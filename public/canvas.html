@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #ffcc00;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="cnv" width="800" height="600" style="background-color: #f5f5f544;"></canvas>
+        <script>
+
+            var canvas = document.getElementById('cnv');
+            var ctx = canvas.getContext('2d');
+
+            var draw = function() {
+
+                var tm = performance.now();
+
+                var data = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">
+                    <foreignObject width="100%" height="100%">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 40px; font-family: Arial; color: #222;">
+                        <style>
+                            table td {
+                                border: 1px solid #33333333;
+                            }
+                        </style>
+                        <em>I</em> like <span style="color:white; text-shadow:0 0 2px blue;">cheese</span>
+                        <table style="border: 1px;"><tr><td style="background-color: rgba(0,0,0,.1);">cell1</td><td>cell2</td></tr><tr><td>cell3</td><td>cell4</td></tr></table>
+                        <div style="position: absolute; left: 50%; transform: translateX(-50%); bottom: 4px; text-align: center; width: 200px; border-radius: 3px; padding: 5px; background: rgba(0,0,0,.3); color: white;">HotBar</div>
+                    </div>
+                    </foreignObject>
+                    </svg>`;
+
+                var DOMURL = window.URL || window.webkitURL || window;
+                var img = new Image();
+                var svg = new Blob([data], {
+                    type: 'image/svg+xml;charset=utf-8'
+                });
+                var url = DOMURL.createObjectURL(svg);
+
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, 800, 600, 0, 0, 800, 600);
+                    DOMURL.revokeObjectURL(url);
+                    console.log(Math.round(performance.now() - tm, 3));
+                }
+                img.src = url;
+                
+                img.addEventListener('mousemove', function(e) {
+                    console.log(e);
+                }, false);
+
+                document.querySelector('body').appendChild(img);
+
+            };
+
+            draw();
+            
+        </script>
+    </body>
+</html>

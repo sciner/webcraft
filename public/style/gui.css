@@ -1,0 +1,13 @@
+/* Minecraft-like pixely font */
+@font-face {
+    font-family: minecraftia;
+    src: url('minecraftia.ttf');
+}
+body {
+    /*
+    background: url(../media/background.png);
+    */
+}
+canvas {
+    background: #00000000;
+}

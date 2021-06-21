@@ -1,0 +1,53 @@
+<!doctype html>
+<html ng-app="gameApp">
+<head>
+	<title>WebCraft</title>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+</head>
+<body style="text-align: center; padding: 0; position: relative;">
+
+    <div style="position: fixed; top: 0; text-align: center; width: 100vw; padding: 15px; z-index: 1; background: rgba(255,255,255,.7);">
+        <input id="x" />
+        <input id="y" />
+        <input id="pos" />
+    </div>
+
+    <div style="position: relative; display: inline-block; margin: auto; background: #000; top: 70px;">
+        <img src="/media/terrain_hd.png" id="inventory" style="display: block;" />
+        <div id="focuser" style="position: absolute; width: 32px; left: 32px; top: 32px; height: 32px; background-color: #ffffff44; outline: 2px solid #ffffff88; pointer-events: none;"></div>
+        <div id="hover" style="position: absolute; width: 32px; left: 32px; top: 32px; height: 32px; background-color: #ffffff44; outline: 2px solid #ffffff88; pointer-events: none;"></div>
+    </div>
+    
+    <script>
+
+        var focuser = document.getElementById('focuser');
+        var hover = document.getElementById('hover');
+
+        document.getElementById('inventory').onmousemove = function(e) {
+            var x = e.offsetX;
+            var y = e.offsetY;
+            x = Math.floor(x / 32);
+            y = Math.floor(y / 32);
+            var pos = y * 32 + x;
+            hover.style.left = x * 32 + 'px';
+            hover.style.top = y * 32 + 'px';
+        }
+
+        document.getElementById('inventory').onmousedown = function(e) {
+            var x = e.offsetX;
+            var y = e.offsetY;
+            x = Math.floor(x / 32);
+            y = Math.floor(y / 32);
+            var pos = y * 32 + x;
+            document.getElementById('x').value = x;
+            document.getElementById('y').value = y;
+            document.getElementById('pos').value = pos;
+            focuser.style.left = x * 32 + 'px';
+            focuser.style.top = y * 32 + 'px';
+        }
+
+    </script>
+
+</body>
+</html>
