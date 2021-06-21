@@ -1,0 +1,53 @@
+#canvas3D {
+    position: fixed;
+    z-index: -1;
+    background: #aaddff;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+}
+
+
+#colorTable {
+    display: inline-block;
+    font-family: arial;
+    background: rgba(0,0,0,.1);
+    padding: 1em;
+    border-radius: 1em;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+}
+
+#colorTable div {
+    display: flex;
+    align-items: center;
+}
+
+#colorTable div span {
+    margin-right: 5px;
+}
+
+#canvas2D {
+    background: #aaddff;
+    position: fixed;
+    right: 10px;
+    top: 10px;
+}
+
+#timer {
+    position: fixed;
+    left: 10px;
+    bottom: 10px;
+    font-size: 20px;
+}
+
+canvas {
+    image-rendering: optimizeSpeed;             /* Older versions of FF          */
+    image-rendering: -moz-crisp-edges;          /* FF 6.0+                       */
+    image-rendering: -webkit-optimize-contrast; /* Safari                        */
+    image-rendering: -o-crisp-edges;            /* OS X & Windows Opera (12.02+) */
+    image-rendering: pixelated;                 /* Awesome future-browsers       */
+    -ms-interpolation-mode: nearest-neighbor;   /* IE                            */
+}

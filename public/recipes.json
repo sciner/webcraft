@@ -1,0 +1,250 @@
+[
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "W  "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:wood"
+            }
+        },
+        "result": {
+            "item": "webcraft:plank",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "W  "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:wood_birch"
+            }
+        },
+        "result": {
+            "item": "webcraft:plank",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "WW ",
+            "WW "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:crafting_table",
+            "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "B  ",
+            "BB ",
+            "BBB"
+        ],
+        "key": {
+            "B": {
+                "item": "webcraft:brick"
+            }
+        },
+        "result": {
+            "item": "webcraft:brick_stairs",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "P  ",
+            "PP ",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:wood_stairs",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:wood_slab",
+            "count": 6
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "BBB"
+        ],
+        "key": {
+            "B": {
+                "item": "webcraft:brick"
+            }
+        },
+        "result": {
+            "item": "webcraft:brick_slab",
+            "count": 6
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "SSS",
+            "S S",
+            "SSS"
+        ],
+        "key": {
+            "S": {
+                "item": "webcraft:cobblestone"
+            }
+        },
+        "result": {
+            "item": "webcraft:furnace",
+            "count": 1
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "P",
+            "P"
+        ],
+        "key": {
+            "P": {
+                "item": "minecraft:plank"
+            }
+        },
+        "result": {
+            "item": "minecraft:stick",
+            "count": 4
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "X",
+            "#"
+        ],
+        "key": {
+            "#": {
+                "item": "minecraft:stick"
+            },
+            "X": {
+                "item": "minecraft:coal"
+            }
+        },
+        "result": {
+            "item": "minecraft:torch",
+            "count": 4
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "###",
+            " | ",
+            " | "
+        ],
+        "key": {
+            "|": {
+                "item": "minecraft:stick"
+            },
+            "#": {
+                "item": "minecraft:plank"
+            }
+        },
+        "result": {
+            "item": "minecraft:wooden_pickaxe",
+            "count": 1
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "#|",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "minecraft:stick"
+            },
+            "#": {
+                "item": "minecraft:plank"
+            }
+        },
+        "result": {
+            "item": "minecraft:wooden_axe",
+            "count": 1
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "minecraft:stick"
+            },
+            "#": {
+                "item": "minecraft:plank"
+            }
+        },
+        "result": {
+            "item": "minecraft:wooden_shovel",
+            "count": 1
+        }
+    },
+    {
+        "type": "minecraft:crafting_shaped",
+        "pattern": [
+            "###",
+            "# #",
+            "###"
+        ],
+        "key": {
+            "#": {
+                "item": "minecraft:plank"
+            }
+        },
+        "result": {
+            "item": "minecraft:chest",
+            "count": 1
+        }
+    }
+]
