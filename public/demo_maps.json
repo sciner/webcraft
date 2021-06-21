@@ -1,0 +1,8 @@
+[
+    {
+        "id": "demo",
+        "url": "/map_demo.json",
+        "title": "♾️ Demo pubilc server",
+        "state": {"_id":"demo","seed":"demo","spawnPoint":{"x":2914.5,"y":2884.5,"z":100},"pos":{"x":2896.692,"y":2862.482,"z":100},"rotate":{"x":-119,"y":104206,"z":0},"brightness":1,"inventory":{"current":{"index": 0, "id":80}}}
+    }
+]

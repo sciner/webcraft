@@ -1,0 +1,42 @@
+.flex0 {
+    display: flex;
+}
+.flex-column {
+    flex-direction: column;
+}
+
+body {
+    color: white;
+    flex-direction: column;
+}
+
+.btn {
+    width: 100%;
+    outline: 2px solid black;
+    background-image: url('../media/gui/button_center.png');
+    position: relative;
+    margin: 0;
+    margin-bottom: 20px;
+    display: inline-block;
+    background-repeat: repeat;
+    padding: .65em 0;
+    font-family: minecraftia;
+    text-align: center;
+    color: white;
+    font-size: 16px;
+    text-shadow: 3px 3px #4c4c4c;
+    border-bottom: 4px solid #565656;
+    border-right: 2px solid #565656;
+    border-left: 2px solid #AAA;
+    border-top: 2px solid #AAA;
+    box-sizing: border-box;
+}
+
+.btn:hover {
+    border-bottom: 4px solid #59639A;
+    border-right: 2px solid #59639A;
+    border-left: 2px solid #BDC6FF;
+    border-top: 2px solid #BDC6FF;
+    background-image: url('../media/gui/button_active_center.png');
+    color: #FFFFA0;
+}
