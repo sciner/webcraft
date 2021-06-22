@@ -12,7 +12,59 @@ PickAt.prototype.draw = function() {
     const render = this.render;
     const gl = this.gl;
     if(this.callbacks.length > 0) {
+
         const player = Game.world.localPlayer;
+
+        /*
+        const render = this.render;
+        const world = render.world;
+        const bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
+        const min = new Vector(bPos.x - PICKAT_DIST, bPos.y - PICKAT_DIST, bPos.z - PICKAT_DIST);
+        const max = new Vector(bPos.x + PICKAT_DIST, bPos.y + PICKAT_DIST, bPos.z + PICKAT_DIST);
+
+        var playerPos = new Vector(
+            parseInt(player.pos.x) - PICKAT_DIST,
+            parseInt(player.pos.y) - PICKAT_DIST,
+            parseInt(player.pos.z) - PICKAT_DIST
+        );
+
+        var block = false;
+
+        for(var x = min.x; x <= max.x; x++) {
+            for(var y = min.y; y <= max.y; y++) {
+                for(var z = min.z; z <= max.z; z++) {
+                    var b = world.chunkManager.getBlock(x, y, z);
+                    if (b.id != BLOCK.AIR.id && b.id != BLOCK.DUMMY.id) {
+                        var resp = Helpers.IntersectRayBrick(
+                            {
+                                start: [playerPos.x, playerPos.y, playerPos.z + 1.7],
+                                // direction: player.angles,
+                                direction: [
+                                    player.angles[0] / Math.PI,
+                                    player.angles[1] / Math.PI,
+                                    player.angles[2] / Math.PI
+                                ]
+                            },
+                            {
+                                min_point: [x, y, z],
+                                max_point: [x + 1, y + 1, z + 1]
+                            }
+                        );
+                        if(resp) {
+                            block = {x: x, y: y, z: z, n: 1};
+                            console.log(block);
+                        }
+                    }
+                }
+            }
+        }
+
+        while(this.callbacks.length > 0) {
+            var callback = this.callbacks.pop();
+            callback(block);
+        }
+        */
+
         const x = gl.canvas.width * 0.5 / window.devicePixelRatio;
         const y = gl.canvas.height * 0.5 / window.devicePixelRatio;
         var bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
@@ -27,6 +79,7 @@ PickAt.prototype.draw = function() {
             var callback = this.callbacks.pop();
             callback(block);
         }
+
     }
 }
 

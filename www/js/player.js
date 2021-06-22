@@ -143,6 +143,7 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
             case KEY.ESC: {
                 if(down) {
                     this.chat.close();
+                    // Game.setupMousePointerIfNoOpenWindows();
                     return true;
                 }
                 break;

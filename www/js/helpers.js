@@ -117,6 +117,44 @@ class Helpers {
         }, 'image/png');
     }
 
+    // IntersectRayBrick
+    static IntersectRayBrick(ray, brick) {
+
+        // check whether initial point is inside the parallelepiped
+        if ((ray.start[0] >= brick.min_point[0]) &&
+            (ray.start[0] <= brick.max_point[0]) &&
+            (ray.start[1] >= brick.min_point[1]) &&
+            (ray.start[1] <= brick.max_point[1]) &&
+            (ray.start[2] >= brick.min_point[2]) &&
+            (ray.start[2] <= brick.max_point[2])) {
+            return true;
+        }
+
+        // ray parameter
+        var t_near = Number.MIN_SAFE_INTEGER;
+        var t_far = Number.MAX_SAFE_INTEGER;
+        var t1, t2;
+
+        // directions loop
+        for (var i = 0; i < 3; i++) {
+            if (Math.abs(ray.direction[i]) >= Number.EPSILON) {
+                t1 = (brick.min_point[i] - ray.start[i]) / ray.direction[i];
+                t2 = (brick.max_point[i] - ray.start[i]) / ray.direction[i];
+                if (t1 > t2) t1 = [t2, t2 = t1][0];
+                if (t1 > t_near) t_near = t1;
+                if (t2 < t_far) t_far = t2;
+                if (t_near > t_far) return false;
+                if (t_far < 0.0) return false;
+            } else {
+                if (ray.start[i] < brick.min_point[i] || ray.start[i] > brick.max_point[i]) {
+                    return false;
+                }
+            }
+        }
+
+        return (t_near <= t_far && t_far >=0);
+    }
+
 }
 
 // ==========================================
