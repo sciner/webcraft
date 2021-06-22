@@ -37,7 +37,7 @@ function Chunk(chunkManager, pos, modify_list) {
     ].join('_');
 
     // Run webworker method
-    chunkManager.worker.postMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
+    chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
 
     this.worker_pn_generate = performance.now();
     // 1. Initialise world array
@@ -116,26 +116,6 @@ Chunk.prototype.onVerticesGenerated = function(args) {
     for(const [key, v] of Object.entries(args.vertices)) {
         this.vertices_length  += v.list.length / 12;
         v.buffer              = gl.createBuffer();
-        /*
-        var list = new Float32Array(v.list.length);
-        var j = 0;
-        for(var i = 0; i < v.list.length; i += 9) {
-            list[j + 0] = v.list[i + 0];
-            list[j + 1] = v.list[i + 1];
-            list[j + 2] = v.list[i + 2];
-            list[j + 3] = v.list[i + 3];
-            list[j + 4] = v.list[i + 4];
-            list[j + 5] = v.list[i + 5];
-            list[j + 6] = v.list[i + 6];
-            list[j + 7] = v.list[i + 7];
-            list[j + 8] = v.list[i + 8];
-            list[j + 9] = v.list[i + 9];
-            list[j + 10] = v.list[i + 10];
-            list[j + 11] = v.list[i + 11];
-            j += 12;
-        }
-        v.list                = list;
-        */
         v.buffer.vertices     = v.list.length / 12;
         gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
         gl.bufferData(gl.ARRAY_BUFFER, v.list, gl.DYNAMIC_DRAW);
@@ -163,7 +143,7 @@ Chunk.prototype.destruct = function() {
         gl.deleteBuffer(this.buffer);
     }
     // Run webworker method
-    this.chunkManager.worker.postMessage(['destructChunk', {key: this.key}]);
+    this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
 }
 
 // buildVertices
@@ -174,7 +154,7 @@ Chunk.prototype.buildVertices = function() {
     this.buildVerticesInProgress = true;
     this.worker_vertices_generate = performance.now();
     // Run webworker method
-    this.chunkManager.worker.postMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
+    this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
     return true;
 }
 
@@ -254,7 +234,7 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
     }
 
     // Run webworker method
-    this.chunkManager.worker.postMessage(['setBlock', {
+    this.chunkManager.postWorkerMessage(['setBlock', {
         key:        this.key,
         x:          x + this.coord.x,
         y:          y + this.coord.y,

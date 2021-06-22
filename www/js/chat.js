@@ -7,6 +7,7 @@ function Chat() {
         send: function(text) {
             this.add('YOU', text);
             Game.world.server.SendMessage(text);
+            Game.setupMousePointerIfNoOpenWindows();
         },
         addSystem: function(text) {
             this.add('<WebCraft>', text);
