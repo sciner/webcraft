@@ -177,7 +177,7 @@ function Terrain() {
         title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .1,
+            frequency: .02,
             list: [
                 {percent: 1, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood'}
             ]
