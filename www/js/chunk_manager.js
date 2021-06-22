@@ -3,7 +3,7 @@ const CHUNK_SIZE_Y      = 16;
 const CHUNK_SIZE_Z      = 256;
 const CHUNK_SIZE_MAX_Z  = CHUNK_SIZE_Z;
 const DIRT_HEIGHT       = 32;
-const CHUNK_RENDER_DIST = 9; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+const CHUNK_RENDER_DIST = 12; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
 
 //
 function ChunkManager(world) {

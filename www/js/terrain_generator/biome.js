@@ -177,7 +177,7 @@ function Terrain() {
         title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: .1,
             list: [
                 {percent: 1, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood'}
             ]
@@ -338,7 +338,7 @@ Terrain.prototype.generate = function(chunk) {
                     } else {
                         chunk.blocks[x][y][z] = biome.dirt_block;
                         if(z == value - 1 && biome.dirt_block.id == blocks.DIRT.id) {
-                            top_dirts[x][y] = value - 1;
+                            top_dirts[x][y] = value;
                         }
                     }
                 }
@@ -363,9 +363,9 @@ Terrain.prototype.generate = function(chunk) {
     // Plant trees
     for(var x = 0; x < chunk.size.x; x++) {
         for(var y = 0; y < chunk.size.y; y++) {
-            var z = top_dirts[x][y] + 1;
+            var z = top_dirts[x][y];
             if(z > 2) {
-                // Динамическая рассалка растений
+                // Динамическая рассадка растений
                 var rnd = aleaRandom.double();
                 if(rnd > 0 && rnd <= biome.plants.frequency) {
                     var s = 0;
@@ -378,6 +378,7 @@ Terrain.prototype.generate = function(chunk) {
                         }
                     }
                 }
+
                 // Посадка деревьев
                 if(rnd > 0 && rnd <= biome.trees.frequency) {
                     var s = 0;
@@ -399,9 +400,9 @@ Terrain.prototype.generate = function(chunk) {
 // plantTree...
 Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) {
 
-    if(x - chunk.coord.x < 4 || y - chunk.coord.y < 4 || x - chunk.coord.x > 12 || y - chunk.coord.y > 12) {
-        return;
-    }
+    //if(x - chunk.coord.x < 4 || y - chunk.coord.y < 4 || x - chunk.coord.x > 12 || y - chunk.coord.y > 12) {
+    //    return;
+    //}
 
     if(aleaRandom.double() < 0.01) {
         chunk.setBlock(x, y, z, tree.trunk, false);
