@@ -37,14 +37,21 @@ void main() {
         vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t));
         
         // Lightning
-        float brightness_mul = 1.;
-        if(floor(v_color.a + .5) == 1. || floor(v_color.a + .5) == 2.) {
+        float brightness_mul = 1.1;
+        
+        float n = floor(v_color.a + .5);
+
+        if(n == 1. || n == 2.) {
+            // front && back
+            brightness_mul = .7;
+        } else if(n == 5. || n == 6.) {
+            // left && right
             brightness_mul = .9;
-        } else if(floor(v_color.a + .5) == 5. || floor(v_color.a + .5) == 6.) {
-            brightness_mul = .8;
-        } else if(floor(v_color.a + .5) == 3.) {
+        } else if(n == 3.) {
+            // down
             brightness_mul = .7;
         }
+
         color = vec4(color.rgb * brightness_mul * u_brightness, color.a);
 
         if(color.a < 0.1) discard;

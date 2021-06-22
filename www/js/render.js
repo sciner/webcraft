@@ -19,7 +19,7 @@ var settings = {
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
-    fogDensity:             0.01,
+    fogDensity:             0.005,
     fogDensityUnderWater:   0.1
 };
 
@@ -369,9 +369,9 @@ Renderer.prototype.draw = function(delta) {
     //    currentRenderState.fogColor     = settings.fogUnderWaterColor;
     //    currentRenderState.fogAddColor  = settings.fogUnderWaterAddColor;
     //} else {
-      currentRenderState.fogDensity   = settings.fogDensity;
-      // currentRenderState.fogColor     = settings.fogColor;
-      currentRenderState.fogAddColor  = settings.fogAddColor;
+    currentRenderState.fogDensity   = settings.fogDensity;
+    // currentRenderState.fogColor     = settings.fogColor;
+    currentRenderState.fogAddColor  = settings.fogAddColor;
     //}
 
 	// Initialise view
@@ -479,12 +479,16 @@ Renderer.prototype.setPerspective = function(fov, min, max) {
 // pos - Position in world coordinates.
 // ang - Pitch, yaw and roll.
 Renderer.prototype.setCamera = function(pos, ang) {
+    var z_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
+    if(this.world.localPlayer.walking) {
+        // ang[1] += Math.cos(this.world.localPlayer.walking_frame * 15) * 0.0025;
+    }
 	this.camPos = pos;
 	mat4.identity(this.viewMatrix);
 	mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, ang[1], [ 0, 0, 1 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, -ang[2], [ 0, 1, 0 ], this.viewMatrix);
-    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[1] + Game.shift.y, -pos[2]], this.viewMatrix);
+    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[1] + Game.shift.y, -pos[2] + z_add], this.viewMatrix);
 }
 
 // drawBuffer...

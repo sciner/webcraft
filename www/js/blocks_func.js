@@ -507,8 +507,8 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
     var blockLit    = z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    /*
     var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
-
     var lm = new Color(
         lightMultiplier,
         lightMultiplier,
@@ -518,7 +518,8 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
     if(blockLight) {
         lm.a += blockLight.a;
     }
-
+    */
+    var lm = new Color(0, 0, 0, 0);
     if(block.id == BLOCK.GRASS.id) {
         z -= .15;
     }
@@ -526,6 +527,7 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
     push_plane(vertices, x, y, z, c, lm, false, true);
 }
 
+/*
 // Плоскость
 function push_pane(block, vertices, world, lightmap, x, y, z) {
     // var block = world.chunkManager.getBlock(x, y, z);
@@ -546,6 +548,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z) {
     var dirs = check_xy_neighbor(world, x, y, z);
     push_plane(vertices, x, y, z, c, lm, dirs[0] >= dirs[1], false);
 }
+*/
 
 // Ворота
 function push_fence(block, vertices, world, lightmap, x, y, z) {
@@ -555,6 +558,7 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    /*
     var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
     var lm = new Color(
         lightMultiplier,
@@ -565,6 +569,8 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
     if(blockLight) {
         lm.a += blockLight.a;
     }
+    */
+    var lm = new Color(0, 0, 0, 0);
     var dirs = check_xy_neighbor(world, x, y, z);
     if (dirs[0] * dirs[1] == 0 && dirs[0] + dirs[1] > 0) {
         push_plane(vertices, x, y, z, c, lm, dirs[0] > dirs[1], false);
@@ -609,6 +615,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
     
     var dirs = check_xy_neighbor(world, x, y, z);
+    /*
     var lm = new Color(
         lightMultiplier,
         lightMultiplier,
@@ -618,20 +625,26 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     if(blockLight) {
         lm.a += blockLight.a;
     }
+    */
 
     // правая стенка (нижней ступени)
+    var lm = new Color(0, 0, 0, 6);
     push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
     // левая стенка (нижней ступени)
+    lm = new Color(0, 0, 0, 5);
     push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
 
     // задняя стенка
+    lm = new Color(0, 0, 0, 2);
     push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
     // передняя стенка нижней ступени
+    lm = new Color(0, 0, 0, 1);
     push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
 
     c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
 
-    // дно    
+    // дно
+    lm = new Color(0, 0, 0, 3);
     pushQuad(
         vertices,                            
         [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
@@ -642,6 +655,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
     // поверхность нижней ступени
     bH = 0.5;
+    lm = new Color(0, 0, 0, 4);
     pushQuad(
         vertices,
         [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
@@ -649,7 +663,6 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
         [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
     );
-
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
     
@@ -688,14 +701,19 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     // Верхняя ступень
     for(var pose of poses) {
         // задняя стенка
+        lm = new Color(0, 0, 0, 2);
         push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + .5, c_half, lm, false, false, null, .5, .5);
         // правая стенка
+        lm = new Color(0, 0, 0, 6);
         push_plane(vertices, x + 0.5 + pose.x, y - 0.5 + pose.y, z + 0.5, c_half, lm, true, false, .5, null, .5);
         // левая стенка
+        lm = new Color(0, 0, 0, 5);
         push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + 0.5, c_half, lm, true, false, .5, null, .5);
         // передняя стенка
+        lm = new Color(0, 0, 0, 1);
         push_plane(vertices, x + pose.x, y + pose.y, z + .5, c_half, lm, false, false, null, .5, .5);
         // поверхность
+        lm = new Color(0, 0, 0, 4);
         var bH = 1.0;
         pushQuad(
             vertices,
@@ -792,7 +810,8 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'pane') {
-        push_pane(vertices, world, lightmap, x, y, z);
+        throw 'Unsupported style';
+        // push_pane(vertices, world, lightmap, x, y, z);
     } else if (style == 'stairs') {
         push_stairs(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'slab') {

@@ -10,9 +10,12 @@ const PICKAT_DIST       = 5;
 function Player() {
     this.inventory              = null;
     this.client                 = null;
-    this.falling                = false;
-    this.running                = false;
-    this.moving                 = false;
+    this.falling                = false; // падает
+    this.flying                 = false; // летит
+    this.running                = false; // бежит
+    this.moving                 = false; // двигается в стороны
+    this.walking                = false; // идёт по земле
+    this.walking_frame          = 0;
     this.angles                 = [0, Math.PI, 0];
     this.chat                   = new Chat();
     this.velocity               = new Vector(0, 0, 0);
@@ -548,7 +551,6 @@ Player.prototype.update = function() {
             var vz = -(30 * delta);
 			velocity.z += vz;
         }
-
         // Jumping | flying
         if(this.keys[KEY.SPACE]) {
             if(this.falling) {
@@ -567,17 +569,34 @@ Player.prototype.update = function() {
                 }
             }
         }
-        
-        
         if(this.keys[KEY.SHIFT]) {
             if(this.flying) {
                 velocity.z = -8;
             }
         }
-
-		if(this.keys[KEY.J] && !this.falling)
+		if(this.keys[KEY.J] && !this.falling) {
 			velocity.z = 20;
-
+        }
+        if(Math.round(velocity.x * 100000) / 100000 == 0) velocity.x = 0;
+        if(Math.round(velocity.y * 100000) / 100000 == 0) velocity.y = 0;
+        if(Math.round(velocity.z * 100000) / 100000 == 0) velocity.z = 0;
+        this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.y) > 1) && !this.flying;
+        if(this.prev_walking != this.walking) {
+            // @toggle walking
+            // this.walking_frame = 0;
+        }
+        if(this.walking) {
+            this.walking_frame += delta;
+            console.log('this.walking_frame', Math.round(this.walking_frame * 1000) / 1000);
+        } else {
+            /*if(this.walking_frame != 0) {
+                this.walking_frame += delta;
+                if(Math.round(Math.cos(this.walking_frame * 15) * 100) / 100 == 0) {
+                    this.walking_frame = 0;
+                }
+            }*/
+        }
+        this.prev_walking = this.walking;
 		// Walking
 		var walkVelocity = new Vector(0, 0, 0);
 		if (!this.falling || this.flying) {
@@ -629,7 +648,7 @@ Player.prototype.update = function() {
         this.pos.x = Math.round(this.pos.x * 1000) / 1000;
         this.pos.y = Math.round(this.pos.y * 1000) / 1000;
         this.pos.z = Math.round(this.pos.z * 1000) / 1000;
-        // this.pos.z = 70; // Math.min(this.pos.z, 80);
+        // this.pos.z = 100; // Math.min(this.pos.z, 80);
         //
         var playerBlockPos  = Game.world.localPlayer.getBlockPos();
         var chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);
@@ -711,13 +730,13 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 		var face = collisionCandidates[i];
 		if (rectRectCollide(face, playerFace) && velocity.z * face.dir < 0) {
 			if(velocity.z < 0) {
-				falling = false;
-				pos.z = face.z;
-				velocity.z = 0;
+				falling         = false;
+				pos.z           = face.z;
+				velocity.z      = 0;
 				this.velocity.z = 0;
 			} else {
-				pos.z = face.z - 1.8;
-				velocity.z = 0;
+				pos.z           = face.z - 1.8;
+				velocity.z      = 0;
 				this.velocity.z = 0;
 			}
 			break;
@@ -728,5 +747,5 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
         this.flying = false;
     }
 	// Return solution
-	return pos.add( velocity );
+	return pos.add(velocity);
 }
