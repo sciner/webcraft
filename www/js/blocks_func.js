@@ -112,9 +112,6 @@ BLOCK.getAll = function() {
                 B.light = null;
             }
             if(B.spawnable == true) {
-                if(B.style == 'stairs') {
-                    // B.transparent = true;
-                }
                 if(B.style && B.style == 'fence') {
                     continue;
                 }
@@ -215,21 +212,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Top
     if(drawAllSides || world.chunkManager.getBlock(x, y, z + 1).transparent || block.fluid) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        /*
-        var lightMultiplier = z >= lightmap[x][y] ? 1.0 : (block.lightPower ? 1.0 : 0.6);
-        if(block.selflit) {
-            lightMultiplier = 1.0;
-        }
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 4);
         pushQuad(
             vertices,
@@ -248,18 +230,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Bottom
     if(drawAllSides || world.chunkManager.getBlock(x, y, z - 1).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
-        /*
-        var lightMultiplier = block.selflit ? 1.0 : 0.6;
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 3);
         pushQuad(
             vertices,                            
@@ -273,20 +243,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Front
     if(drawAllSides || world.chunkManager.getBlock(x, y - 1, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-        /*
-        var lightMultiplier = (z >= lightmap[x][y-1] ) ? 1.0 : 0.6;
-        if(block.selflit) lightMultiplier = 1.0;
-        lightMultiplier *= .85;
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 1);
         pushQuad(
             vertices,
@@ -300,19 +256,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Back
     if(drawAllSides || world.chunkManager.getBlock(x, y + 1, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
-        /*
-        var lightMultiplier = 1; // block.selflit ? 1.0 : 0.6;
-        lightMultiplier *= .85;
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 2);
         pushQuad(
             vertices,
@@ -326,19 +269,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Left
     if(drawAllSides || world.chunkManager.getBlock(x - 1, y, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
-        /*
-        var lightMultiplier = block.selflit ? 1.0 : 0.7;
-        lightMultiplier *= .85;
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 5);
         pushQuad(
             vertices,
@@ -352,21 +282,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Right
     if(drawAllSides || world.chunkManager.getBlock(x + 1, y, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
-        /*
-        var lightMultiplier = ( z >= lightmap[x+1][y] ) ? 1.0 : 0.6;
-        if(block.selflit ) lightMultiplier = 1.0;
-        lightMultiplier *= 0.7;
-        lightMultiplier *= .85;
-        var lm = new Color(
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier,
-            lightMultiplier
-        );
-        if(blockLight) {
-            lm.a += blockLight.a;
-        }
-        */
         var lm = new Color(0, 0, 0, 6);
         pushQuad(
             vertices,
@@ -375,6 +290,72 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
             [x + 1.0 - 1 + width, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
             [x + 1.0 - 1 + width, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
         );
+    }
+
+}
+
+// Pushes the vertices necessary for rendering a
+// specific block into the array.
+function push_ladder(block, vertices, world, lightmap, x, y, z) {
+
+    if(typeof block == 'undefined') {
+        return;
+    }
+
+    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
+
+    var texture     = BLOCK[block.name].texture;
+    var blockLit    = z >= lightmap[x][y];
+    var bH          = 1.0;
+    var width       = block.width ? block.width : 1;
+    var lm          = new Color(0, 0, 0, 1);
+    var c           = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+
+    switch(cardinal_direction) {
+        case ROTATE.S: {
+            // Front
+            pushQuad(
+                vertices,
+                [x, y + 1 - width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1, y + 1 - width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1, y + 1 - width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x, y + 1 - width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            );
+            break;
+        }
+        case ROTATE.W: {
+            // Left
+            pushQuad(
+                vertices,
+                [x + 1 - width, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1 - width, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1 - width, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1 - width, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            );
+            break;
+        }
+        case ROTATE.N: {
+            // Back
+            pushQuad(
+                vertices,
+                [x, y + width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1.0, y + width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1.0, y + width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x, y + width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            );
+            break;
+        }
+        case ROTATE.E: {
+            // Right
+            pushQuad(
+                vertices,
+                [x + 1.0 - 1 + width, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1.0 - 1 + width, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1.0 - 1 + width, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
+                [x + 1.0 - 1 + width, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            );
+            break;
+        }
     }
 
 }
@@ -392,12 +373,6 @@ function check_xy_neighbor(world, x, y, z) {
         x_dir ++;
     //
     b = world.chunkManager.getBlock(x + 1, y, z);
-    /*
-    if (x == world.sx - 1
-        || (b.id != 0 && !b.style)
-        || b.style == block.style)
-        x_dir ++;
-    */
     //
     b = world.chunkManager.getBlock(x, y - 1, z);
     if (y == 0
@@ -816,6 +791,8 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
         push_stairs(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'slab') {
         push_slab(block, vertices, world, lightmap, x, y, z);
+    } else if (style == 'ladder') {
+        push_ladder(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'fence') {
         push_fence(block, vertices, world, lightmap, x, y, z);
     } else {

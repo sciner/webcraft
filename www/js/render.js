@@ -9,8 +9,8 @@
 
 const CAMERA_DIST           = 10;
 const FOV_CHANGE_SPEED      = 150;
-const FOV_NORMAL            = 60;
-const FOV_WIDE              = 80;
+const FOV_NORMAL            = 75;
+const FOV_WIDE              = FOV_NORMAL * 1.15;
 const MAX_DIST_FOR_SHIFT    = 800;
 const RENDER_DISTANCE       = 800;
 

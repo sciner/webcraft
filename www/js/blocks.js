@@ -14,7 +14,7 @@ var DIRECTION = {};
     DIRECTION.BACK      = 6;
 
 const TX_CNT = 32;
-var TRANS_TEX = [4, 11];
+var TRANS_TEX = [4, 12];
 
 BLOCK = {};
 
@@ -914,16 +914,23 @@ BLOCK.WOOD_DOOR = {
     }
 };
 
+
+// ЛЕСТНИЦА
 BLOCK.LADDER = {
     id: 65,
+    inventory_icon_id: 3271,
+    width: 1 / 16,
+    align: ['back'],
     spawnable: true,
     transparent: true,
+    style: 'ladder',
+    passable: .25,
 	texture: function( world, lightmap, lit, x, y, z, dir) {
-        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
-            return TRANS_TEX;
-        } else {
+        // return [3, 3];
+        if (dir == DIRECTION.FORWARD) {
             return [3, 5];
         }
+        return TRANS_TEX;
     }
 };
 
