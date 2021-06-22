@@ -1,0 +1,14 @@
+{
+    "AppVersion": "0.0.1",
+    "AppCode": "webcraft",
+    "ServerIP": "127.0.0.1",
+    "Port": 5700,
+    "Addr": ":5700",
+    "JSONRPCEndpoint": "/api/",
+    "ApiKey": "eeb5694b9bb20fc43ff234438ad26e34",
+    "APIDomain": "http://api.webcraft.loc/",
+    "UseSecureProtocol": false,
+    "SSLCertFile": "/var/ssl/auth/fullchain.pem",
+    "SSLKeyFile": "/var/ssl/auth/privkey.pem",
+    "RedisServer": "127.0.0.1:6379"
+}
