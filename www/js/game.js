@@ -82,7 +82,7 @@ export let Game = {
         var spawnPoint = new Vector(
             2914.5,
             2884.5,
-            50.0
+            150.0
         );
         return Object.assign(form, {
             spawnPoint: spawnPoint,

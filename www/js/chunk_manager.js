@@ -3,7 +3,7 @@ const CHUNK_SIZE_Y      = 16;
 const CHUNK_SIZE_Z      = 256;
 const CHUNK_SIZE_MAX_Z  = CHUNK_SIZE_Z;
 const DIRT_HEIGHT       = 32;
-const CHUNK_RENDER_DIST = 8; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+const CHUNK_RENDER_DIST = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
 
 //
 function ChunkManager(world) {
@@ -186,6 +186,11 @@ ChunkManager.prototype.restoreChunkModifiers = function(modify_list) {
     */
 }
 
+// postWorkerMessage
+ChunkManager.prototype.postWorkerMessage = function(data) {
+    this.worker.postMessage(data);
+};
+
 // Установить начальное состояние указанного чанка
 ChunkManager.prototype.setChunkState = function(state) {
     var k = this.getPosChunkKey(state.pos);
@@ -248,12 +253,11 @@ ChunkManager.prototype.update = function() {
         var actual_keys = {};
         var can_add = 3;
         for(const [key, chunk] of Object.entries(this.chunks)) {
-            if(!chunk.inited || Object.entries(chunk.vertices).length < 2) {
-                // can_add = 0;
+            if(!chunk.inited) {
+                can_add = 0;
                 break;
             }
         }
-        // check for add
         for(var sm of spiral_moves) {
             var pos = new Vector(
                 chunkPos.x + sm.x - this.margin,
@@ -299,7 +303,7 @@ ChunkManager.prototype.update = function() {
                 keys.push(dc.key)
             }
             // Run webworker method
-            this.worker.postMessage(['buildVerticesMany', {keys: keys, shift: Game.shift}]);
+            this.postWorkerMessage(['buildVerticesMany', {keys: keys, shift: Game.shift}]);
         } else {
             // sort dirty chunks by dist from player
             dirty_chunks = MyArray.from(dirty_chunks).sortBy('coord');
@@ -378,6 +382,8 @@ ChunkManager.prototype.setBlock = function(x, y, z, type, is_modify, power, rota
                     }
                 }
             });
+            // устанавливаем блок
+            // chunk.setBlock(x, y, z, type, false, power, rotate, entity_id);
         } else {
             // устанавливаем блок
             chunk.setBlock(x, y, z, type, is_modify, power, rotate, entity_id);
@@ -411,7 +417,7 @@ ChunkManager.prototype.setDirty = function(pos) {
     if(chunk) {
         chunk.dirty = true;
         // Run webworker method
-        this.worker.postMessage(['buildVertices', {
+        this.postWorkerMessage(['buildVertices', {
             shift: Game.shift,
             key: chunk.key
         }]);
