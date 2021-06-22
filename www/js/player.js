@@ -587,7 +587,7 @@ Player.prototype.update = function() {
         }
         if(this.walking) {
             this.walking_frame += delta;
-            console.log('this.walking_frame', Math.round(this.walking_frame * 1000) / 1000);
+            // console.log('this.walking_frame', Math.round(this.walking_frame * 1000) / 1000);
         } else {
             /*if(this.walking_frame != 0) {
                 this.walking_frame += delta;
