@@ -793,13 +793,17 @@ BLOCK.MOSS_STONE = {
 // Факел
 BLOCK.TORCH = {
     id:             50,
+    width:          2 / 16,
+    height:         10 / 16,
     inventory_icon_id: 3389,
     spawnable:      true,
     passable:       1,
     transparent:    true,
-    style:          'torch',
     lightPower:     new Color(253, 241, 131, 180),
 	texture: function( world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP) {
+            return [0, 6];
+        }
         return [0, 5];
     }
 };
@@ -818,8 +822,8 @@ BLOCK.WOOD_STAIRS = {
 // Сундук
 BLOCK.CHEST = {
     id: 54,
-    width: 0.875,
-    height: 0.75,
+    width: 14 / 16,
+    height: 14 / 16,
     inventory_icon_id: 58,
     is_entity: true,
     spawnable: true,
