@@ -380,8 +380,8 @@ ChunkManager.prototype.setBlock = function(x, y, z, type, is_modify, power, rota
 }
 
 // destroyBlock
-ChunkManager.prototype.destroyBlock = function(x, y, z, is_modify) {
-    var block = this.getBlock(x, y, z);
+ChunkManager.prototype.destroyBlock = function(pos, is_modify) {
+    var block = this.getBlock(pos.x, pos.y, pos.z);
     if(block.id == BLOCK.TULIP.id) {
         this.world.renderer.setBrightness(.15);
     } else if(block.id == BLOCK.DANDELION.id) {
@@ -397,8 +397,8 @@ ChunkManager.prototype.destroyBlock = function(x, y, z, is_modify) {
     });
     */
     
-    this.world.destroyBlock(block, new Vector(x, y, z));
-    this.setBlock(x, y, z, BLOCK.AIR, true);
+    this.world.destroyBlock(block, pos);
+    this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
 }
 
 // setDirty

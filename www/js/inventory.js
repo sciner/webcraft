@@ -147,28 +147,37 @@ Inventory.prototype.prev = function() {
     this.select(--this.index);
 }
 
-Inventory.prototype.setMaterial = function(mat) {
-    // console.table(mat);
+Inventory.prototype.cloneMaterial = function(mat) {
+    const MAX = 64;
+    // Search same material with count < max
     for(var index in this.items) {
         if(this.items[index]) {
             if(this.items[index].id == mat.id) {
-                this.items[index].count = Math.min(this.items[index].count + 1, 64);
-                this.select(index);
-                return;
+                if(this.items[index].count < MAX) {
+                    this.items[index].count = Math.min(this.items[index].count + 1, MAX);
+                    if(index < this.hotbar_count) {
+                        this.select(index);
+                    }
+                    return;
+                }
             }
         }
     }
     // start new cell
-    for(var i = 0; i < this.items.length; i++) {
-        if(!this.items[i]) {
-            this.items[i] = Object.assign({count: 1}, mat);
-            delete(this.items[i].texture);
-            this.select(i);
+    for(var index = 0; index < this.items.length; index++) {
+        if(!this.items[index]) {
+            this.items[index] = Object.assign({count: 1}, mat);
+            delete(this.items[index].texture);
+            if(index < this.hotbar_count) {
+                this.select(index);
+            }
             return;
         }
     }
+    /*
     this.current = this.player.buildMaterial = this.items[this.index] = Object.assign({count: 1}, mat);
     delete(this.items[this.index].texture);
+    */
 }
 
 Inventory.prototype.drawHUD = function(hud) {
