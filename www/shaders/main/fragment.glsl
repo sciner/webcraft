@@ -22,6 +22,7 @@ varying vec3 v_position;
 varying vec2 v_texcoord;
 varying vec4 v_color;
 varying vec3 v_normal;
+varying float light;
 
 varying float v_fogDepth;
 
@@ -37,22 +38,22 @@ void main() {
         vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t));
         
         // Lightning
-        float brightness_mul = 1.1;
+        //float brightness_mul = 1.1;
         
-        float n = floor(v_color.a + .5);
+        //float n = floor(v_color.a + .5);
 
-        if(n == 1. || n == 2.) {
+        //if(n == 1. || n == 2.) {
             // front && back
-            brightness_mul = .7;
-        } else if(n == 5. || n == 6.) {
+        //    brightness_mul = .7;
+        //} else if(n == 5. || n == 6.) {
             // left && right
-            brightness_mul = .9;
-        } else if(n == 3.) {
+        //    brightness_mul = .9;
+        //} else if(n == 3.) {
             // down
-            brightness_mul = .7;
-        }
+        //    brightness_mul = .7;
+        //}
 
-        color = vec4(color.rgb * brightness_mul * u_brightness, color.a);
+        color = vec4(color.rgb * u_brightness * light , color.a);
 
         if(color.a < 0.1) discard;
 
