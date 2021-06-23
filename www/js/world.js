@@ -78,12 +78,8 @@ World.prototype.setBlock = function(x, y, z, type, power, rotate) {
 // randomTeleport
 World.prototype.destroyBlock = function(block, pos) {
     var gl = this.renderer.gl;
-    // var pos = this.localPlayer.pos;
-    // var block = BLOCK.DIRT;
-    //for(var i = 0; i < 100; i++) {
     const id = Helpers.getRandomInt(1, 999999999);
     this.meshes[id] = new Particles_Block_Destroy(this.renderer.gl, block, pos);
-    //}
 }
 
 // randomTeleport
