@@ -80,38 +80,26 @@ ChunkManager.prototype.draw = function(render) {
     //
     var overChunk = Game.world.localPlayer.overChunk;
     // draw
+    // var spiral_moves = this.createSpiralCoords(4);
+    // var chunkPos = Game.world.chunkManager.getChunkPos(Game.world.localPlayer.pos.x, Game.world.localPlayer.pos.y, Game.world.localPlayer.pos.z);
     for(const transparent of [false, true]) {
         if(transparent) {
             gl.disable(gl.CULL_FACE);
-            // gl.disable(gl.CULL_FACE); // разрешаем прорисовку текстуры с 2-х сторон
-            // gl.disable(gl.DEPTH_TEST); // отрисуем нашу текстуру поверх всех (без учета удаленности)
-            // gl.enable(gl.BLEND);
-            // gl.disable(gl.DEPTH_TEST);
-            // gl.disable(gl.DEPTH_TEST);
-            // gl.blendFunc(gl.ONE, gl.ONE);
-            // gl.blendEquationSeparate(gl.MAX, gl.FUNC_ADD);
-            // gl.blendFuncSeparate(gl.ONE_MINUS_SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
-            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-            // gl.enable(gl.BLEND);
-            // gl.disable(gl.CULL_FACE); // возвращаем назад
-            // gl.disable(gl.DEPTH_TEST);
         }
         for(const [key, chunk] of Object.entries(this.chunks)) {
-            for(const [key, v] of Object.entries(chunk.vertices)) {
-                if(v.is_transparent == transparent) {
-                    this.rendered_chunks.fact += 0.5;
-                    render.drawBuffer(v.buffer);
-                }
-            }
+            //for(var sm of spiral_moves) {
+            //    if(chunk.addr.x == (chunkPos.x + sm.x - 2) && chunk.addr.y == (chunkPos.y + sm.y - 2) && chunk.addr.z == (chunkPos.z + sm.z)) {
+                    for(const [key, v] of Object.entries(chunk.vertices)) {
+                        if(v.is_transparent == transparent) {
+                            this.rendered_chunks.fact += 0.5;
+                            render.drawBuffer(v.buffer);
+                        }
+                    }
+            //    }
+            //}
         }
         if(transparent) {
             gl.enable(gl.CULL_FACE);
-            // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-            // gl.enable(gl.CULL_FACE); // возвращаем назад
-            // gl.enable(gl.DEPTH_TEST); // возвращаем назад    
-            // gl.enable(gl.BLEND);
-            // gl.enable(gl.DEPTH_TEST);
-            // gl.enable(gl.DEPTH_TEST); // возвращаем назад    
         }
     }
     return true;
@@ -408,6 +396,8 @@ ChunkManager.prototype.destroyBlock = function(x, y, z, is_modify) {
         }
     });
     */
+    
+    this.world.destroyBlock(block, new Vector(x, y, z));
     this.setBlock(x, y, z, BLOCK.AIR, true);
 }
 

@@ -19,6 +19,7 @@ function World(saved_state, connectedCallback) {
         that.rotateDegree   = new Vector(0, 0, 0);
         // Restore state
         that.seed           = saved_state.seed;
+        that.meshes         = {};
         that.rotate         = saved_state.rotate;
         // that.fixRotate();
         that.spawnPoint     = saved_state.spawnPoint;
@@ -40,6 +41,19 @@ function World(saved_state, connectedCallback) {
     }, 30000);
 
 }
+// Draw
+World.prototype.draw = function(render, delta, modelMatrix, uModelMat) {
+    var gl = render.gl;
+    for(const [key, mesh] of Object.entries(this.meshes)) {
+        if(mesh.isAlive()) {
+            mesh.draw(render, delta, modelMatrix, uModelMat);
+        } else {
+            this.meshes[key].destroy(render);
+            delete(this.meshes[key]);
+        }
+    }
+    return true;
+}
 
 // 
 World.prototype.createClone = function() {
@@ -59,6 +73,17 @@ World.prototype.createClone = function() {
 // setBlock
 World.prototype.setBlock = function(x, y, z, type, power, rotate) {
     this.chunkManager.setBlock(x, y, z, type, true, power, rotate);
+}
+
+// randomTeleport
+World.prototype.destroyBlock = function(block, pos) {
+    var gl = this.renderer.gl;
+    // var pos = this.localPlayer.pos;
+    // var block = BLOCK.DIRT;
+    //for(var i = 0; i < 100; i++) {
+    const id = Helpers.getRandomInt(1, 999999999);
+    this.meshes[id] = new Particles_Block_Destroy(this.renderer.gl, block, pos);
+    //}
 }
 
 // randomTeleport
