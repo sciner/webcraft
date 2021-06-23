@@ -498,7 +498,7 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
         lm.a += blockLight.a;
     }
     */
-    var lm = new Color(0, 0, 0, 0);
+    var lm = new Color(0, 0, 0, 4);
     if(block.id == BLOCK.GRASS.id) {
         z -= .15;
     }

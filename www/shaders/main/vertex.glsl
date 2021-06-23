@@ -22,7 +22,7 @@ void main() {
 
     float l = aColor.a;
     vec3 n;
-    vec3 sun_dir = vec3(0.0,1.0,0.0);
+    vec3 sun_dir = vec3(0.0,1.0,1.0);
     if (l==1.0){
         n = vec3(-1.0,0.0,0.0);
     }else if (l==2.0){
