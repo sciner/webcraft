@@ -418,6 +418,7 @@ Renderer.prototype.draw = function(delta) {
     //gl.bindTexture(gl.TEXTURE_2D, this.texWater);
 
     this.world.chunkManager.draw(this);
+    this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
 
     // 3. Draw players
     this.drawPlayers();
