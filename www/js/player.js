@@ -490,8 +490,8 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                 }
                 that.inventory.decrement();
             } else if(destroyBlock) {
-                if(world_block.id != BLOCK.BEDROCK.id) {
-                    world.chunkManager.destroyBlock(block.x, block.y, block.z, true);
+                if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
+                    world.chunkManager.destroyBlock(block, true);
                     if(world_block.id == BLOCK.CONCRETE.id) {
                         world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
                     }
@@ -501,12 +501,13 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                     var block_over = that.world.chunkManager.getBlock(block.x, block.y, block.z + 1);
                     // delete plant over deleted block
                     if(BLOCK.isPlants(block_over.id)) {
-                        world.chunkManager.destroyBlock(block.x, block.y, block.z + 1, true);
+                        block.z++;
+                        world.chunkManager.destroyBlock(block, true);
                     }
                 }
             } else if(cloneBlock) {
                 if(world_block) {
-                    that.inventory.setMaterial(world_block);
+                    that.inventory.cloneMaterial(world_block);
                 }
             }
         }
