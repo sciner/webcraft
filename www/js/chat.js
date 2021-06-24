@@ -86,6 +86,23 @@ Chat.prototype.submit = function() {
                 }
                 break;
             }
+            case '/weather': {
+                if(temp.length == 1) {
+                    var name = temp[0].trim().toLowerCase();
+                    switch(name) {
+                        case 'rain': {
+                            Game.world.setRain(true);
+                            Game.world.localPlayer.chat.messages.addSystem('Установлена дождливая погода');
+                            break;
+                        }
+                        case 'clear': {
+                            Game.world.setRain(false);
+                            Game.world.localPlayer.chat.messages.addSystem('Установлена ясная погода');
+                            break;
+                        }
+                    }
+                }
+            }
             case '/give': {
                 if(temp.length >= 2) {
                     if(temp.length == 2) {
