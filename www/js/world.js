@@ -13,6 +13,7 @@ function World(saved_state, connectedCallback) {
     that.server = new ServerClient(serverURL, function(event) {
         that.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
         that.players        = [];
+        that.rainTim        = null;
         that.saved_state    = saved_state;
         that.chunkManager   = new ChunkManager(that);
         that.rotateRadians  = new Vector(0, 0, 0);
@@ -75,11 +76,35 @@ World.prototype.setBlock = function(x, y, z, type, power, rotate) {
     this.chunkManager.setBlock(x, y, z, type, true, power, rotate);
 }
 
-// randomTeleport
+// destroyBlock
 World.prototype.destroyBlock = function(block, pos) {
     var gl = this.renderer.gl;
     const id = Helpers.getRandomInt(1, 999999999);
     this.meshes[id] = new Particles_Block_Destroy(this.renderer.gl, block, pos);
+}
+
+// rainDrop
+World.prototype.rainDrop = function(pos) {
+    var gl = this.renderer.gl;
+    const id = Helpers.getRandomInt(1, 999999999);
+    this.meshes[id] = new Particles_Raindrop(this.renderer.gl, pos);
+}
+
+// setRain
+World.prototype.setRain = function(value) {
+    if(value) {
+        if(!this.rainTim) {
+            this.rainTim = setInterval(function(){
+                var pos = Game.world.localPlayer.pos;
+                Game.world.rainDrop(new Vector(pos.x, pos.y, pos.z + 30));
+            }, 25);
+        }
+    } else {
+        if(this.rainTim) {
+            clearInterval(this.rainTim);
+            this.rainTim = null;
+        }
+    }
 }
 
 // randomTeleport
