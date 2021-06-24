@@ -86,6 +86,33 @@ Chat.prototype.submit = function() {
                 }
                 break;
             }
+            case '/seed': {
+                Game.world.localPlayer.chat.messages.addSystem('Ключ генератора [' + Game.world.seed + ']');
+                break;
+            }
+            case '/help': {
+                var commands = [
+                    '/weather (clear|rain)',
+                    '/tp -> teleport',
+                    '/spawnpoint',
+                    '/seed',
+                    '/give <item> [<count>]',
+                ];
+                Game.world.localPlayer.chat.messages.addSystem('\n' + commands.join('\n'));
+                break;
+            }
+            case '/spawnpoint': {
+                var np = Game.world.localPlayer.pos;
+                var pos = new Vector(
+                    Math.round(np.x),
+                    Math.round(Game.world.localPlayer.pos.y),
+                    Math.round(Game.world.localPlayer.pos.z)
+                );
+                Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
+                Game.world.saveToDB();
+                Game.world.localPlayer.chat.messages.addSystem('Установлена точка возрождения ' + pos.x + ', ' + pos.y + ', ' + pos.z);
+                break;
+            }
             case '/weather': {
                 if(temp.length == 1) {
                     var name = temp[0].trim().toLowerCase();
@@ -104,20 +131,23 @@ Chat.prototype.submit = function() {
                 }
             }
             case '/give': {
-                if(temp.length >= 2) {
-                    if(temp.length == 2) {
-                        var name = temp[0].trim().toUpperCase();
+                console.log('temp', temp);
+                if(temp.length >= 1) {
+                    if(temp.length == 1) {
+                        var name = temp[0].trim();
+                        var cnt = 1;
+                    } else if(temp.length == 2) {
+                        var name = temp[0].trim();
                         var cnt = parseInt(temp[1].trim());
                     } else {
                         var name = temp[1].trim();
                         var cnt = parseInt(temp[2].trim());
                     }
-                    var block = BLOCK[name];
+                    var block = BLOCK[name.toUpperCase()];
                     if(block) {
                         block = Object.assign({}, block);
                         delete(block.texture);
                         block.count = cnt;
-                        console.log(block);
                         Game.world.localPlayer.inventory.increment(block);
                     }
                 }
@@ -171,19 +201,26 @@ Chat.prototype.drawHUD = function(hud) {
                     alpha = time_remains / fadeout_time;
                 }
             }
-            var aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-            hud.ctx.fillStyle = '#000000' + aa;
-            hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, line_height);
-            //
-            aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-            hud.ctx.fillStyle = '#000000' + aa;
-            hud.ctx.fillText(m.nickname + ': ' + m.text, margin + padding, y + 4);
-            //
-            aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
-            hud.ctx.fillStyle = '#ffffff' + aa;
-            hud.ctx.fillText(m.nickname + ': ' + m.text, margin + padding + 2, y + 2);
-            //
-            y -= line_height;
+            var texts = m.text.split('\n');
+            for(var i in texts) {
+                var text = texts[i];
+                if(i == 0) {
+                    text = m.nickname + ': ' + text;
+                }
+                var aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                hud.ctx.fillStyle = '#000000' + aa;
+                hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, line_height);
+                //
+                aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                hud.ctx.fillStyle = '#000000' + aa;
+                hud.ctx.fillText(text, margin + padding, y + 4);
+                //
+                aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                hud.ctx.fillStyle = '#ffffff' + aa;
+                hud.ctx.fillText(text, margin + padding + 2, y + 2);
+                //
+                y -= line_height;
+            }
         }
     }
 
