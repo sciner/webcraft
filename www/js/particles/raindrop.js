@@ -13,7 +13,7 @@ class Particles_Raindrop {
         this.vertices   = [];
         this.particles  = [];
         //
-        for(var i = 0; i < 50; i++) {
+        for(var i = 0; i < 100; i++) {
             const sz        = Math.random() * (2 / 16) + 1 / 16; // часть текстуры
             const half      = sz / TX_CNT;
             // случайная позиция в текстуре
@@ -31,7 +31,7 @@ class Particles_Raindrop {
                 z:              z,
                 vertices_count: 12,
                 gravity:        -.40,
-                speed:          .00375 * 2
+                speed:          .00375 * 3
             };
             var d = Math.sqrt(p.x * p.x + p.y * p.y);            
             p.x = p.x / d * p.speed;
@@ -52,21 +52,8 @@ class Particles_Raindrop {
         var gl = render.gl;
         this.life -= delta / 100000;
         delta /= 1000;
-        //
-        var idx = 0;
-        var j = 0;
-        for(var p of this.particles) {
-            var plus = delta * p.gravity;
-            for(var i = 0; i < p.vertices_count; i++) {
-                // var j = (idx + i) * 12;
-                j += 12;
-                this.vertices[j + 2] += plus;
-            }
-            idx += p.vertices_count;
-        }
-        //
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.vertices);
+        
+        this.pos.z += delta * -.40;
         //
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, [
