@@ -386,6 +386,8 @@ ChunkManager.prototype.destroyBlock = function(pos, is_modify) {
         this.world.renderer.setBrightness(.15);
     } else if(block.id == BLOCK.DANDELION.id) {
         this.world.renderer.setBrightness(1);
+    } else if(block.id == BLOCK.CACTUS.id) {
+        this.world.setRain(true);
     }
     /*
     // @server
