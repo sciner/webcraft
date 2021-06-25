@@ -803,6 +803,8 @@ BLOCK.TORCH = {
 	texture: function( world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [0, 6];
+        } else if (dir == DIRECTION.DOWN) {
+            return [0, 7];
         }
         return [0, 5];
     }
