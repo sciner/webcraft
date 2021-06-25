@@ -485,6 +485,11 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                             Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
                         }
                     } else {
+                        if(['ladder'].indexOf(that.buildMaterial.style) >= 0) {
+                            if(block.n.z != 0 || world_block.transparent) {
+                                return;
+                            }
+                        }
                         world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
                     }
                 }
