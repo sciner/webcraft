@@ -4,7 +4,8 @@ class Particles_Raindrop {
     constructor(gl, pos) {
         this.yaw        = -Game.world.localPlayer.angles[1];
         this.life       = 1;
-        var lm          = new Color(0, 0, 0, 4); // lithning normal
+        var lm          = new Color(0, 0, 0, 0);
+        var n           = NORMALS.UP; // normal for lithning
         var width       = 1;
         var bH          = 1;
         this.texture    = BLOCK.STILL_WATER.texture;
@@ -24,7 +25,7 @@ class Particles_Raindrop {
             var x = (Math.random() - Math.random()) * 16;
             var y = (Math.random() - Math.random()) * 16;
             var z = (Math.random() - Math.random()) * 16;
-            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz / 3, null, sz);
+            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, null, sz);
             var p = {
                 x:              x,
                 y:              y,

@@ -33,10 +33,10 @@ func (this *Chunk) AddUserConn(conn *UserConn) bool {
 func (this *Chunk) RemoveUserConn(conn *UserConn) bool {
 	if _, ok := this.Connections[conn.ID]; ok {
 		delete(this.Connections, conn.ID)
-		log.Println("RemoveUserConn ... true", this.Pos)
+		// log.Println("RemoveUserConn ... true", this.Pos)
 		return true
 	}
-	log.Println("RemoveUserConn ... false", this.Pos)
+	// log.Println("RemoveUserConn ... false", this.Pos)
 	return false
 }
 

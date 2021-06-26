@@ -183,7 +183,6 @@ function parseOBJ(gl, text) {
             // there are no vertex colors so just use constant white
             data.color = { value: [1, 1, 1, 1] };
         }
-
         // create a buffer for each array by calling
         // gl.createBuffer, gl.bindBuffer, gl.bufferData
         const bufferInfo = webglUtils.createBufferInfoFromArrays(gl, data);
@@ -228,6 +227,7 @@ function parseOBJ(gl, text) {
         materialLibs,
         parts,
         extents,
+        buffers: [],
         render: function(gl, meshProgramInfo, u_world) {
             for (const {bufferInfo, material} of this.parts) {
                 // calls gl.bindBuffer, gl.enableVertexAttribArray, gl.vertexAttribPointer
@@ -238,6 +238,12 @@ function parseOBJ(gl, text) {
                     u_diffuse: material.u_diffuse,
                 });
                 // calls gl.drawArrays or gl.drawElements
+                webglUtils.drawBufferInfo(gl, bufferInfo);
+            }
+        },
+        base_render: function(gl, meshProgramInfo) {
+            for (const {bufferInfo, material} of this.parts) {
+                webglUtils.setBuffersAndAttributes(gl, meshProgramInfo, bufferInfo);
                 webglUtils.drawBufferInfo(gl, bufferInfo);
             }
         }

@@ -43,6 +43,12 @@ func main() {
 
 	fileServer := http.StripPrefix("/", http.FileServer(http.Dir("www")))
 	http.Handle("/", fileServer)
+	/*
+		www_config := &wwwserver.WWWConfig{
+			UseCache: false,
+		}
+		http.HandleFunc("/", wwwserver.CreateRoute(www_config))
+	*/
 
 	if conf.Config.UseSecureProtocol {
 		if err := http.ListenAndServeTLS(conf.Config.Addr, conf.Config.SSLCertFile, conf.Config.SSLKeyFile, nil); err != nil {

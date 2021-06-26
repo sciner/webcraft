@@ -164,7 +164,7 @@ BLOCK.TEST = {
     inventory_icon_id: 445, // 240,
     spawnable: false,
     passable: 0,
-    transparent: true,
+    transparent: false,
     texture: function( world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP) {
             return [26, 31];
@@ -803,6 +803,8 @@ BLOCK.TORCH = {
 	texture: function( world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [0, 6];
+        } else if (dir == DIRECTION.DOWN) {
+            return [0, 7];
         }
         return [0, 5];
     }
