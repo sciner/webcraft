@@ -94,7 +94,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.enableVertexAttribArray(that.aColor);
         gl.enableVertexAttribArray(that.a_normal);
 
-        that.setBrightness(that.world.saved_state.brightness);
+        that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
 
         // Create projection and view matrices
         gl.uniformMatrix4fv(that.uModelMat, false, that.modelMatrix);
