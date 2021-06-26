@@ -131,10 +131,6 @@ Chat.prototype.submit = function() {
                 }
             }
             case '/give': {
-<<<<<<< HEAD
-=======
-                console.log('temp', temp);
->>>>>>> ad882448a740b092e4aff9cf639e585ad709ac83
                 if(temp.length >= 1) {
                     if(temp.length == 1) {
                         var name = temp[0].trim();
