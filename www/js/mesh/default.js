@@ -32,9 +32,9 @@ class Mesh_Default {
             var min_z = 0;
             for(var i = 0; i < position.length / 3; i++) {
                 // copy vertices
-                buffer.vertices[idx + 0] = position[i * 3 + 0] / 130;
-                buffer.vertices[idx + 1] = position[i * 3 + 2] / 130;
-                buffer.vertices[idx + 2] = position[i * 3 + 1] / 130;
+                buffer.vertices[idx + 0] = position[i * 3 + 0] / 1;
+                buffer.vertices[idx + 1] = position[i * 3 + 1] / 1;
+                buffer.vertices[idx + 2] = position[i * 3 + 2] / 1;
                 // allign by bottom point
                 if(buffer.vertices[idx + 2] < min_z) {
                     min_z = buffer.vertices[idx + 2];

@@ -3,7 +3,7 @@ const CHUNK_SIZE_Y      = 16;
 const CHUNK_SIZE_Z      = 256;
 const CHUNK_SIZE_MAX_Z  = CHUNK_SIZE_Z;
 const DIRT_HEIGHT       = 32;
-const CHUNK_RENDER_DIST = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+var CHUNK_RENDER_DIST   = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
 
 //
 function ChunkManager(world) {
@@ -46,6 +46,14 @@ function ChunkManager(world) {
             }
         }
     }
+}
+
+//
+ChunkManager.prototype.setRenderDist = function(value) {
+    value = Math.max(value, 4);
+    value = Math.min(value, 50);
+    CHUNK_RENDER_DIST = value;
+    this.margin = Math.max(CHUNK_RENDER_DIST + 1, 1)
 }
 
 // toggleUpdateChunks
