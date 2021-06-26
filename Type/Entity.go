@@ -144,12 +144,12 @@ func (this *EntityManager) Load(world *World) {
 	log.Println("Before load from " + fileName)
 	s, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		log.Println("Error load chunk from file ", err)
+		log.Printf("Error load entity from file `%s`", err)
 		return
 	}
 	err = json.Unmarshal([]byte(s), &this)
 	if err != nil {
-		log.Println("Error Unmarshal chunk ", err)
+		log.Printf("Error Unmarshal chunk `%s`", err)
 		return
 	}
 }
