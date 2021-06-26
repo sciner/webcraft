@@ -4,16 +4,8 @@ class Particles_Block_Destroy {
     constructor(gl, block, pos) {
         this.yaw        = -Game.world.localPlayer.angles[1];
         this.life       = .5;
-        // normal for lithning
-        var normal = 4;
-        // if(pos.n.y == -1)   normal = 1;
-        // if(pos.n.y == 1)    normal = 2;
-        // if(pos.n.x == -1)   normal = 3;
-        // if(pos.n.x == 1)    normal = 4;
-        // if(pos.n.z == -1)   normal = 5;
-        // if(pos.n.z == 1)    normal = 6;
-        // lightning
-        var lm          = new Color(0, 0, 0, normal);
+        var lm          = new Color(0, 0, 0, 0);
+        var n           = NORMALS.UP; // normal for lithning
         var width       = 1;
         var bH          = 1;
         this.texture    = BLOCK.fromId(block.id).texture;
@@ -37,7 +29,7 @@ class Particles_Block_Destroy {
             var x = (Math.random() - Math.random()) * .5;
             var y = (Math.random() - Math.random()) * .5;
             var z = (Math.random() - Math.random()) * .5;
-            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, null, sz);
+            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz, null, sz);
             var p = {
                 x:              x,
                 y:              y,

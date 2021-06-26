@@ -22,22 +22,11 @@ void main() {
 
     float l = aColor.a;
     vec3 n;
-    vec3 sun_dir = vec3(0.0,1.0,1.0);
-    if (l==1.0){
-        n = vec3(-1.0,0.0,0.0);
-    }else if (l==2.0){
-        n = vec3(1.0,0.0,0.0);
-    }else if (l==3.0){
-        n = vec3(0.0,-1.0,0.0);
-    }else if (l==4.0){
-        n = vec3(0.0,1.0,0.0);
-    }else if (l==5.0){
-        n = vec3(0.0,0.0,-1.0);
-    }else if (l==6.0){
-        n = vec3(0.0,0.0,1.0);
-    }
+    vec3 sun_dir = vec3(0.7,1.0,0.85);
 
-    light = max(0.5, dot(n,sun_dir));
+    n = normalize(v_normal);
+
+    light = max(0.5, dot(n, sun_dir));
 
     if(u_fogOn) {
         gl_Position = uProjMatrix * u_worldView * ( uModelMatrix * vec4(a_position, 1.0 ) );
