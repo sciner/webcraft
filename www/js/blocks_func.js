@@ -220,12 +220,14 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var height = block.height ? block.height : 1;
 
     var drawAllSides = width != 1 || height != 1;
+    
+    var c, lm, n;
 
     // Top
     if(drawAllSides || world.chunkManager.getBlock(x, y, z + 1).transparent || block.fluid) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        var lm = new Color(0, 0, 0, 4);
-        var n = NORMALS.UP;
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
+        lm = new Color(0, 0, 0, 4);
+        n = NORMALS.UP;
         pushQuad(
             vertices,
             [x, y,              z + bH - 1 + height, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -242,8 +244,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 
     // Bottom
     if(drawAllSides || world.chunkManager.getBlock(x, y, z - 1).transparent) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
-        var lm = new Color(0, 0, 0, 3);
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+        lm = new Color(0, 0, 0, 3);
+        n = NORMALS.DOWN;
         pushQuad(
             vertices,                            
             [x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -255,9 +258,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 
     // Front/Forward
     if(drawAllSides || world.chunkManager.getBlock(x, y - 1, z).transparent) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-        var lm = new Color(0, 0, 0, 1);
-        var n = NORMALS.FORWARD;
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+        lm = new Color(0, 0, 0, 1);
+        n = NORMALS.FORWARD;
         pushQuad(
             vertices,
             [x, y + .5 - width / 2, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -269,9 +272,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 
     // Back
     if(drawAllSides || world.chunkManager.getBlock(x, y + 1, z).transparent) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
-        var lm = new Color(0, 0, 0, 2);
-        var n = NORMALS.BACK;
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
+        lm = new Color(0, 0, 0, 2);
+        n = NORMALS.BACK;
         pushQuad(
             vertices,
             [x, y + 0.5 + width / 2, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -283,9 +286,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 
     // Left
     if(drawAllSides || world.chunkManager.getBlock(x - 1, y, z).transparent) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
-        var lm = new Color(0, 0, 0, 5);
-        var n = NORMALS.LEFT;
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+        lm = new Color(0, 0, 0, 5);
+        n = NORMALS.LEFT;
         pushQuad(
             vertices,
             [x + .5 - width / 2, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -297,9 +300,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 
     // Right
     if(drawAllSides || world.chunkManager.getBlock(x + 1, y, z).transparent) {
-        var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
-        var lm = new Color(0, 0, 0, 6);
-        var n = NORMALS.RIGHT;
+        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
+        lm = new Color(0, 0, 0, 6);
+        n = NORMALS.RIGHT;
         pushQuad(
             vertices,
             [x + .5 + width / 2, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -612,7 +615,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
     // дно
     lm = new Color(0, 0, 0, 3);
-    n = NORMALS.BOTTOM;
+    n = NORMALS.DOWN;
     pushQuad(
         vertices,                            
         [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -765,7 +768,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 
     // дно
     lm = new Color(0, 0, 0, 3);
-    n = NORMALS.BOTTOM;
+    n = NORMALS.DOWN;
     pushQuad(
         vertices,                            
         [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
