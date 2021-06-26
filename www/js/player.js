@@ -191,6 +191,20 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
     }
 
     //
+    if(keyCode == KEY.PAGE_UP) {
+        if(down) {
+            Game.world.chunkManager.setRenderDist(CHUNK_RENDER_DIST + 1);
+        }
+    }
+
+    //
+    if(keyCode == KEY.PAGE_DOWN) {
+        if(down) {
+            Game.world.chunkManager.setRenderDist(CHUNK_RENDER_DIST - 1);
+        }
+    }
+
+    //
     if(keyCode == KEY.SPACE) {
         if(this.velocity.z > 0) {
             if(down && first && !this.flying) {

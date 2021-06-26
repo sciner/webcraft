@@ -255,7 +255,7 @@ HUD.prototype.drawInfo = function(hud) {
     }
     text += '\nYAW: ' + Math.round(Game.world.rotateDegree.y);
     // Chunks inited
-    text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total;
+    text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
     var vertices_length_total = 0;
     for(const[key, chunk] of Object.entries(Game.world.chunkManager.chunks)) {
