@@ -129,6 +129,18 @@ Chat.prototype.submit = function() {
                         }
                     }
                 }
+                break;
+            }
+            case '/obj': {
+                var mesh = new Mesh_Default(
+                    Game.world.renderer.gl,
+                    Game.world.localPlayer.pos,
+                    '/vendors/Mickey Mouse.obj',
+                    function(m) {
+                        Game.world.meshes.add(m)
+                    }
+                )
+                break;
             }
             case '/give': {
                 if(temp.length >= 1) {

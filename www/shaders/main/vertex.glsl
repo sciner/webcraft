@@ -20,12 +20,8 @@ void main() {
     v_texcoord = a_texcoord;
     v_normal = a_normal;
 
-    float l = aColor.a;
-    vec3 n;
-    vec3 sun_dir = vec3(0.7,1.0,0.85);
-
-    n = normalize(v_normal);
-
+    vec3 sun_dir = vec3(0.7, 1.0, 0.85);
+    vec3 n = normalize(v_normal);
     light = max(0.5, dot(n, sun_dir));
 
     if(u_fogOn) {

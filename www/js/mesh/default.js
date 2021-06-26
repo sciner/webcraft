@@ -1,25 +1,23 @@
-class Mesh_Pigeon {
+class Mesh_Default {
 
     // Constructor
-    constructor(gl, pos) {
+    constructor(gl, pos, file, callback) {
         this.pos = new Vector(
             pos.x,
             pos.y,
             pos.z
         );
         var that = this;
-        // loadText('/vendors/uploads_files_2342633_pigeon.obj', function(text) {
-        loadText('/vendors/Mickey Mouse.obj', function(text) {
+        loadText(file, function(text) {
             that.obj = parseOBJ(gl, text);
-            //
             that.makeBuffers(gl);
-            Game.world.meshes['Pigeon'] = that;
-            console.log('this.obj', that);
+            callback(that);
         });
     }
-    
+
     makeBuffers(gl) {
         this.buffers = [];
+        const VERTICES_POINTS = 12;
         for(var g of this.obj.geometries) {
             var position = g.data.position;
             var texcoord = g.data.texcoord;
@@ -28,8 +26,8 @@ class Mesh_Pigeon {
                 vertices: [],
                 info: gl.createBuffer()
             };
-            buffer.vertices = new Float32Array(position.length / 3 * 12);
-            buffer.info.vertices = buffer.vertices.length / 12;
+            buffer.vertices = new Float32Array(position.length / 3 * VERTICES_POINTS);
+            buffer.info.vertices = buffer.vertices.length / VERTICES_POINTS;
             var idx = 0;
             var min_z = 0;
             for(var i = 0; i < position.length / 3; i++) {
@@ -45,10 +43,10 @@ class Mesh_Pigeon {
                 buffer.vertices[idx + 9] = normal[i * 3 + 0];
                 buffer.vertices[idx + 10] = normal[i * 3 + 1];
                 buffer.vertices[idx + 11] = normal[i * 3 + 2];
-                idx += 12;
+                idx += VERTICES_POINTS;
             }
             if(min_z < 0) {
-                for(var i = 0; i < buffer.vertices.length; i += 12) {
+                for(var i = 0; i < buffer.vertices.length; i += VERTICES_POINTS) {
                     buffer.vertices[i + 2] -= min_z;
                 }
             }

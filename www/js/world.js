@@ -20,7 +20,28 @@ function World(saved_state, connectedCallback) {
         that.rotateDegree   = new Vector(0, 0, 0);
         // Restore state
         that.seed           = saved_state.seed;
-        that.meshes         = {};
+        that.meshes         = {
+            list: {},
+            add: function(mesh, key) {
+                if(!key) {
+                    key = Helpers.generateID();
+                }
+                this.list[key] = mesh;
+            },
+            remove: function(key, render) {
+                this.list[key].destroy(render);
+                delete(this.list[key]);
+            },
+            draw: function(render, delta, modelMatrix, uModelMat) {
+                for(const [key, mesh] of Object.entries(this.list)) {
+                    if(mesh.isAlive()) {
+                        mesh.draw(render, delta, modelMatrix, uModelMat);
+                    } else {
+                        this.remove(key, render)
+                    }
+                }
+            }
+        };
         that.rotate         = saved_state.rotate;
         // that.fixRotate();
         that.spawnPoint     = saved_state.spawnPoint;
@@ -44,15 +65,7 @@ function World(saved_state, connectedCallback) {
 }
 // Draw
 World.prototype.draw = function(render, delta, modelMatrix, uModelMat) {
-    var gl = render.gl;
-    for(const [key, mesh] of Object.entries(this.meshes)) {
-        if(mesh.isAlive()) {
-            mesh.draw(render, delta, modelMatrix, uModelMat);
-        } else {
-            this.meshes[key].destroy(render);
-            delete(this.meshes[key]);
-        }
-    }
+    this.meshes.draw(render, delta, modelMatrix, uModelMat);
     return true;
 }
 
@@ -79,15 +92,13 @@ World.prototype.setBlock = function(x, y, z, type, power, rotate) {
 // destroyBlock
 World.prototype.destroyBlock = function(block, pos) {
     var gl = this.renderer.gl;
-    const id = Helpers.getRandomInt(1, 999999999);
-    this.meshes[id] = new Particles_Block_Destroy(this.renderer.gl, block, pos);
+    this.meshes.add(new Particles_Block_Destroy(this.renderer.gl, block, pos));
 }
 
 // rainDrop
 World.prototype.rainDrop = function(pos) {
     var gl = this.renderer.gl;
-    const id = Helpers.getRandomInt(1, 999999999);
-    this.meshes[id] = new Particles_Raindrop(this.renderer.gl, pos);
+    this.meshes.add(new Particles_Raindrop(this.renderer.gl, pos));
 }
 
 // setRain

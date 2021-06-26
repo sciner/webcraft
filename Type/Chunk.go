@@ -78,7 +78,8 @@ func (this *Chunk) Load() {
 	log.Println("Before load from " + fileName)
 	s, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		log.Println("Error load chunk from file ", err)
+		// Chunk file not found
+		// log.Printf("Error load chunk from file: %s", err)
 		return
 	}
 	err = json.Unmarshal([]byte(s), &this.ModifyList)
