@@ -5,6 +5,14 @@ for(const [key, block] of Object.entries(BLOCK)) {
     }
 }
 
+var NORMALS = {};
+NORMALS.FORWARD          = new Vector(0, 0, 1);
+NORMALS.BACK             = new Vector(0, 0, -1);
+NORMALS.LEFT             = new Vector(-1, 0, 0);
+NORMALS.RIGHT            = new Vector(1, 0, 0);
+NORMALS.UP               = new Vector(0, 1, 0);
+NORMALS.DOWN             = new Vector(0, -1, 0);
+
 var ROTATE = {};
 ROTATE.S = 1; // BACK
 ROTATE.W = 2; // LEFT
@@ -217,12 +225,13 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || world.chunkManager.getBlock(x, y, z + 1).transparent || block.fluid) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
         var lm = new Color(0, 0, 0, 4);
+        var n = NORMALS.UP;
         pushQuad(
             vertices,
-            [x, y,              z + bH - 1 + height, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y,        z + bH - 1 + height, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y + 1.0,  z + bH - 1 + height, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x, y + 1.0,        z + bH - 1 + height, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x, y,              z + bH - 1 + height, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y,        z + bH - 1 + height, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y + 1.0,  z + bH - 1 + height, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x, y + 1.0,        z + bH - 1 + height, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -237,10 +246,10 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         var lm = new Color(0, 0, 0, 3);
         pushQuad(
             vertices,                            
-            [x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -248,12 +257,13 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || world.chunkManager.getBlock(x, y - 1, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
         var lm = new Color(0, 0, 0, 1);
+        var n = NORMALS.FORWARD;
         pushQuad(
             vertices,
-            [x, y + .5 - width / 2, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1, y + .5 - width / 2, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1, y + .5 - width / 2, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x, y + .5 - width / 2, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x, y + .5 - width / 2, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1, y + .5 - width / 2, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1, y + .5 - width / 2, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x, y + .5 - width / 2, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -261,12 +271,13 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || world.chunkManager.getBlock(x, y + 1, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
         var lm = new Color(0, 0, 0, 2);
+        var n = NORMALS.BACK;
         pushQuad(
             vertices,
-            [x, y + 0.5 + width / 2, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y + 0.5 + width / 2, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + 1.0, y + 0.5 + width / 2, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x, y + 0.5 + width / 2, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x, y + 0.5 + width / 2, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y + 0.5 + width / 2, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + 1.0, y + 0.5 + width / 2, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x, y + 0.5 + width / 2, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -274,12 +285,13 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || world.chunkManager.getBlock(x - 1, y, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
         var lm = new Color(0, 0, 0, 5);
+        var n = NORMALS.LEFT;
         pushQuad(
             vertices,
-            [x + .5 - width / 2, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x +.5 - width / 2, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + .5 - width / 2, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + .5 - width / 2, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x + .5 - width / 2, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x +.5 - width / 2, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + .5 - width / 2, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + .5 - width / 2, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -287,12 +299,13 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || world.chunkManager.getBlock(x + 1, y, z).transparent) {
         var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
         var lm = new Color(0, 0, 0, 6);
+        var n = NORMALS.RIGHT;
         pushQuad(
             vertices,
-            [x + .5 + width / 2, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + .5 + width / 2, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + .5 + width / 2, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [x + .5 + width / 2, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [x + .5 + width / 2, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + .5 + width / 2, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + .5 + width / 2, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [x + .5 + width / 2, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -312,51 +325,55 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
     var blockLit    = z >= lightmap[x][y];
     var bH          = 1.0;
     var width       = block.width ? block.width : 1;
-    var lm          = new Color(0, 0, 0, 1);
+    var lm          = new Color(0, 0, 0, 0);
     var c           = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.S: {
             // Front
+            var n = NORMALS.FORWARD;
             pushQuad(
                 vertices,
-                [x, y + 1 - width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1, y + 1 - width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1, y + 1 - width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + 1 - width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x, y + 1 - width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, y + 1 - width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, y + 1 - width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + 1 - width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
         case ROTATE.W: {
             // Left
+            var n = NORMALS.LEFT;
             pushQuad(
                 vertices,
-                [x + 1 - width, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1 - width, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1 - width, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1 - width, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + 1 - width, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
         case ROTATE.N: {
             // Back
+            var n = NORMALS.BACK;
             pushQuad(
                 vertices,
-                [x, y + width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1.0, y + width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1.0, y + width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x, y + width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0, y + width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0, y + width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
         case ROTATE.E: {
             // Right
+            var n = NORMALS.RIGHT;
             pushQuad(
                 vertices,
-                [x + 1.0 - 1 + width, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1.0 - 1 + width, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1.0 - 1 + width, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 1.0 - 1 + width, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + 1.0 - 1 + width, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
@@ -407,7 +424,7 @@ function pushQuad(v, p1, p2, p3, p4) {
 }
 
 // push_plane
-function push_plane(vertices, x, y, z, c, lm, x_dir, rot, xp, yp, zp) {
+function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp) {
 
     xp          = xp ? xp : 1; // rot ? 1.41 : 1.0;
     yp          = yp ? yp : 1; // rot ? 1.41 : 1.0;
@@ -418,57 +435,57 @@ function push_plane(vertices, x, y, z, c, lm, x_dir, rot, xp, yp, zp) {
     if (x_dir) {
         if(rot) {
             quads.push([
-                [x, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
             quads.push([
-                [x + xp, y, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + yp, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + yp, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + xp, y, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + yp, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + yp, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
         } else {
             quads.push([
-                [x, y + 0.5, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + 0.5, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + 0.5, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + 0.5, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x, y + 0.5, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + 0.5, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + 0.5, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + 0.5, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
             quads.push([
-                [x + xp, y + 0.5, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + 0.5, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x, y + 0.5, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + 0.5, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + xp, y + 0.5, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + 0.5, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x, y + 0.5, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + 0.5, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
         }
     } else {
         if(rot) {
             quads.push([
-                [x + xp, y + yp, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0, y + 0.0, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0, y + 0.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y + yp, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + xp, y + yp, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0, y + 0.0, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0, y + 0.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y + yp, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
             quads.push([
-                [x + 0, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + xp, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + 0, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + xp, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
         } else {
             quads.push([
-                [x + 0.5, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + 0.5, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
             quads.push([
-                [x + 0.5, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-                [x + 0.5, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+                [x + 0.5, y + yp, z + zp, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y, z + zp, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 0.5, y + yp, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             ]);
         }
     }
@@ -486,24 +503,13 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
     var blockLit    = z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    /*
-    var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
-    var lm = new Color(
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier
-    );
-    if(blockLight) {
-        lm.a += blockLight.a;
-    }
-    */
     var lm = new Color(0, 0, 0, 4);
+    var n = NORMALS.UP;
     if(block.id == BLOCK.GRASS.id) {
         z -= .15;
     }
-    push_plane(vertices, x, y, z, c, lm, true, true);
-    push_plane(vertices, x, y, z, c, lm, false, true);
+    push_plane(vertices, x, y, z, c, lm, n, true, true);
+    push_plane(vertices, x, y, z, c, lm, n, false, true);
 }
 
 /*
@@ -537,22 +543,11 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    /*
-    var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
-    var lm = new Color(
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier
-    );
-    if(blockLight) {
-        lm.a += blockLight.a;
-    }
-    */
     var lm = new Color(0, 0, 0, 0);
+    var n = NORMALS.UP;
     var dirs = check_xy_neighbor(world, x, y, z);
     if (dirs[0] * dirs[1] == 0 && dirs[0] + dirs[1] > 0) {
-        push_plane(vertices, x, y, z, c, lm, dirs[0] > dirs[1], false);
+        push_plane(vertices, x, y, z, c, lm, n, dirs[0] > dirs[1], false);
     } else {
         push_plant(block, vertices, world, lightmap, x, y, z);
     }
@@ -594,53 +589,48 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
     
     var dirs = check_xy_neighbor(world, x, y, z);
-    /*
-    var lm = new Color(
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier,
-        lightMultiplier
-    );
-    if(blockLight) {
-        lm.a += blockLight.a;
-    }
-    */
 
     // задняя стенка
     var lm = new Color(0, 0, 0, 2);
-    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
+    var n = NORMALS.BACK;
+    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
     // передняя стенка
     lm = new Color(0, 0, 0, 1);
-    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
+    n = NORMALS.FORWARD;
+    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
 
     // правая стенка
     lm = new Color(0, 0, 0, 6);
-    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
+    n = NORMALS.RIGHT;
+    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
     // левая стенка
     lm = new Color(0, 0, 0, 5);
-    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
+    n = NORMALS.LEFT;
+    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
 
     c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
 
     // дно
     lm = new Color(0, 0, 0, 3);
+    n = NORMALS.BOTTOM;
     pushQuad(
         vertices,                            
-        [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+        [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
     // поверхность нижней ступени
     bH = 0.5;
     lm = new Color(0, 0, 0, 4);
+    n = NORMALS.UP;
     pushQuad(
         vertices,
-        [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+        [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
@@ -681,25 +671,30 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     for(var pose of poses) {
         // левая стенка
         lm = new Color(0, 0, 0, 5);
-        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + .5, c_half, lm, false, false, null, .5, .5);
+        n = NORMALS.LEFT;
+        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + .5, c_half, lm, n, false, false, null, .5, .5);
         // передняя стенка
         lm = new Color(0, 0, 0, 1);
-        push_plane(vertices, x + 0.5 + pose.x, y - 0.5 + pose.y, z + 0.5, c_half, lm, true, false, .5, null, .5);
+        n = NORMALS.FORWARD;
+        push_plane(vertices, x + 0.5 + pose.x, y - 0.5 + pose.y, z + 0.5, c_half, lm, n, true, false, .5, null, .5);
         // задняя стенка
         lm = new Color(0, 0, 0, 2);
-        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + 0.5, c_half, lm, true, false, .5, null, .5);
+        n = NORMALS.BACK;
+        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + 0.5, c_half, lm, n, true, false, .5, null, .5);
         // правая стенка
         lm = new Color(0, 0, 0, 6);
-        push_plane(vertices, x + pose.x, y + pose.y, z + .5, c_half, lm, false, false, null, .5, .5);
+        n = NORMALS.RIGHT;
+        push_plane(vertices, x + pose.x, y + pose.y, z + .5, c_half, lm, n, false, false, null, .5, .5);
         // поверхность
         lm = new Color(0, 0, 0, 4);
+        n = NORMALS.UP;
         var bH = 1.0;
         pushQuad(
             vertices,
-            [ x + 0.5 + pose.x,  y + pose.y,       z + bH, c_half[0], c_half[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [ x + 1 + pose.x,    y + pose.y,       z + bH, c_half[2], c_half[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [ x + 1 + pose.x,    y + 0.5 + pose.y, z + bH, c_half[2], c_half[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-            [ x + 0.5 + pose.x,  y + 0.5 + pose.y, z + bH, c_half[0], c_half[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+            [ x + 0.5 + pose.x,  y + pose.y,       z + bH, c_half[0], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 1 + pose.x,    y + pose.y,       z + bH, c_half[2], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 1 + pose.x,    y + 0.5 + pose.y, z + bH, c_half[2], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 0.5 + pose.x,  y + 0.5 + pose.y, z + bH, c_half[0], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
@@ -750,39 +745,45 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 
     // задняя стенка
     var lm = new Color(0, 0, 0, 2);
-    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
+    var n = NORMALS.BACK;
+    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
     // передняя стенка
     lm = new Color(0, 0, 0, 1);
-    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, true, false, null, null, .5);
+    n = NORMALS.FORWARD;
+    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
 
     // правая стенка
     lm = new Color(0, 0, 0, 6);
-    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
+    n = NORMALS.RIGHT;
+    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
     // левая стенка
     lm = new Color(0, 0, 0, 5);
-    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, false, false, null, null, .5);
+    n = NORMALS.LEFT;
+    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
 
     c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
 
     // дно
     lm = new Color(0, 0, 0, 3);
+    n = NORMALS.BOTTOM;
     pushQuad(
         vertices,                            
-        [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+        [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
     // поверхность нижней ступени
     bH = 0.5;
     lm = new Color(0, 0, 0, 4);
+    n = NORMALS.UP;
     pushQuad(
         vertices,
-        [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0],
-        [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, 0, 0, 0]
+        [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
 }

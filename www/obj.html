@@ -17,9 +17,9 @@
     and https://webglfundamentals.org/webgl/lessons/webgl-resizing-the-canvas.html
     for webgl-utils, m3, m4, and webgl-lessons-ui.
     -->
-    <script src="resources/webgl-utils.js"></script>
-    <script src="resources/m4.js"></script>
-    <script src="js/objParser.js"></script>
+    <script src="vendors/webgl-utils.js"></script>
+    <script src="vendors/m4.js"></script>
+    <script src="vendors/objParser.js"></script>
     <script>
 
         async function main() {
@@ -71,23 +71,13 @@
             const meshProgramInfo = webglUtils.createProgramInfo(gl, [vs, fs]);
 
             const files = [
-                'resources/book.obj',
-                'resources/20821_Cube_box_cover_v1.obj',
-                'resources/Street environment_V01.obj',
-                'resources/Castle.obj',
-                'resources/tinker.obj',
-                'resources/book.obj',
-                'resources/cube.obj',
+                'vendors/uploads_files_2342633_pigeon.obj',
             ];
 
-            const response = await fetch(files.pop());  /* webglfundamentals: url */
+            const response = await fetch(files.pop());
             const text1 = await response.text();
             const obj = parseOBJ(gl, text1);
 
-            /*const response = await fetch('resources/windmill.obj');
-            const text = await response.text();
-            const obj = parseOBJ(gl, text);*/
-            
             console.log(obj.parts);
 
             const cameraTarget = [0, 0, 0];
@@ -124,7 +114,7 @@
                 gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
                 gl.enable(gl.DEPTH_TEST);
 
-                const fieldOfViewRadians = degToRad(60);
+                const fieldOfViewRadians = degToRad(80);
                 const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
                 const projection = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
 
@@ -146,14 +136,11 @@
                 // calls gl.uniform
                 webglUtils.setUniforms(meshProgramInfo, sharedUniforms);
 
-                // compute the world matrix once since all parts
-                // are at the same space.
                 let u_world = m4.yRotation(time);
-                // u_world = m4.translate(u_world, ...objOffset);
 
                 obj.render(gl, meshProgramInfo, u_world);
-                // obj.render(gl, meshProgramInfo, u_world);
-
+                // obj.base_render(gl, meshProgramInfo);
+ 
                 requestAnimationFrame(render);
             }
             requestAnimationFrame(render);
