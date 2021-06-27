@@ -73,6 +73,15 @@ class Particles_Raindrop {
     }
 
     isAlive() {
+        /*var pos = new Vector(parseInt(this.pos.x), parseInt(this.pos.y), parseInt(this.pos.z));
+        var chunk_pos = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
+        var chunk = Game.world.chunkManager.getChunk(chunk_pos);
+        if(chunk) {
+            if(pos.z < chunk.lightmap[pos.x][pos.y]) {
+                this.life = 0;
+            }
+        }
+        */
         return this.life > 0;
     }
 
