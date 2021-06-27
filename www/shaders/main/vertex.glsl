@@ -1,6 +1,6 @@
 attribute vec3 a_position;
 attribute vec2 a_texcoord;
-attribute vec4 aColor;
+attribute vec4 a_color;
 attribute vec3 a_normal;
 
 uniform mat4 uProjMatrix;
@@ -16,13 +16,14 @@ varying vec3 v_normal;
 varying float light;
 
 void main() {
-    v_color = aColor;
+
+    v_color = a_color;
     v_texcoord = a_texcoord;
     v_normal = a_normal;
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
-    light = max(0.5, dot(n, sun_dir));
+    light = max(0.5, dot(n, sun_dir) - v_color.a);
 
     if(u_fogOn) {
         gl_Position = uProjMatrix * u_worldView * ( uModelMatrix * vec4(a_position, 1.0 ) );

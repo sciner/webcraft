@@ -39,7 +39,7 @@ function Chunk(chunkManager, pos, modify_list) {
     // Run webworker method
     chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
 
-    this.worker_pn_generate = performance.now();
+    // this.worker_pn_generate = performance.now();
     // 1. Initialise world array
     var BLOCK_AIR = Object.assign({}, BLOCK.AIR);
     //
@@ -123,8 +123,8 @@ Chunk.prototype.onVerticesGenerated = function(args) {
     }
     this.shift_orig            = args.shift;
     this.dirty                 = false;
+    this.timers                = args.timers;
     this.doShift(Game.shift);
-    // console.info('Chunk onVerticesGenerated ... ');
     // console.table(args.timers);
 }
 
