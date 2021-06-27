@@ -124,6 +124,7 @@ Chunk.prototype.onVerticesGenerated = function(args) {
     this.shift_orig            = args.shift;
     this.dirty                 = false;
     this.timers                = args.timers;
+    this.lightmap              = args.lightmap;
     this.doShift(Game.shift);
     // console.table(args.timers);
 }
