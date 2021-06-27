@@ -443,13 +443,37 @@ Chunk.prototype.buildVertices = function() {
             is_transparent: true
         },
     }
+    
+    var cc = [
+        {x: 0, y: 0, z: -1},
+        {x: 0, y: 0, z: 1},
+        {x: -1, y: 0, z: 0},
+        {x: 1, y: 0, z: 0},
+        {x: 0, y: -1, z: 0},
+        {x: 0, y: 1, z: 0},
+    ];
+    
     for(var x = 0; x < this.size.x; x++) {
         for(var y = 0; y < this.size.y; y++) {
             for(var z = 0; z < this.size.z; z++) {
                 var block = this.blocks[x][y][z];
                 if(block) {
                     if(block.id != BLOCK.AIR.id) {
+                        if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                            var pcnt = 0;
+                            for(var p of cc) {
+                                var b = this.blocks[x + p.x][y + p.y][z + p.z];
+                                if(b.transparent || b.fluid) {
+                                    break;
+                                }
+                                pcnt++;
+                            }
+                            if(pcnt == 6) {
+                                continue;
+                            }
+                        }
                         if([200, 202].indexOf(block.id) >= 0) {
+                            // если это блок воды
                             BLOCK.pushVertices(this.vertices.transparent.list, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                         } else {
                             BLOCK.pushVertices(this.vertices.regular.list, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);

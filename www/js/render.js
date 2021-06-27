@@ -75,7 +75,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
         that.u_texture          = gl.getUniformLocation(program, 'u_texture');
         that.a_position         = gl.getAttribLocation(program, 'a_position');
-        that.aColor             = gl.getAttribLocation(program, 'aColor');
+        that.a_color            = gl.getAttribLocation(program, 'a_color');
         that.a_texcoord         = gl.getAttribLocation(program, 'a_texcoord');
         that.a_normal           = gl.getAttribLocation(program, 'a_normal');
         // fog
@@ -91,7 +91,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         // Enable input
         gl.enableVertexAttribArray(that.a_position);
         gl.enableVertexAttribArray(that.a_texcoord);
-        gl.enableVertexAttribArray(that.aColor);
+        gl.enableVertexAttribArray(that.a_color);
         gl.enableVertexAttribArray(that.a_normal);
 
         that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
@@ -500,8 +500,9 @@ Renderer.prototype.drawBuffer = function(buffer) {
 	var gl = this.gl;
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	gl.vertexAttribPointer(this.a_position, 3, gl.FLOAT, false, 12 * 4, 0);
-	gl.vertexAttribPointer(this.aColor, 4, gl.FLOAT, false, 12 * 4, 5 * 4);
+	gl.vertexAttribPointer(this.a_color,    4, gl.FLOAT, false, 12 * 4, 5 * 4);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 12 * 4, 3 * 4);
-	gl.vertexAttribPointer(this.a_normal, 3, gl.FLOAT, false, 12 * 4, 9 * 4);
+	gl.vertexAttribPointer(this.a_normal,   3, gl.FLOAT, false, 12 * 4, 9 * 4);
+    // gl.drawArrays(gl.LINES, 0, buffer.vertices);
     gl.drawArrays(gl.TRIANGLES, 0, buffer.vertices);
 }
