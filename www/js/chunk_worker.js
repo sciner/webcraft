@@ -126,7 +126,8 @@ onmessage = function(e) {
                     fluid_blocks:           chunk.fluid_blocks,
                     shift:                  chunk.shift,
                     timers:                 chunk.timers,
-                    tm:                     chunk.tm
+                    tm:                     chunk.tm,
+                    lightmap:               chunk.lightmap
                 }]);
             }
             break;
@@ -148,7 +149,8 @@ onmessage = function(e) {
                         fluid_blocks:           chunk.fluid_blocks,
                         shift:                  chunk.shift,
                         timers:                 chunk.timers,
-                        tm:                     chunk.tm
+                        tm:                     chunk.tm,
+                        lightmap:               chunk.lightmap
                     });
                 }
             }
@@ -388,9 +390,9 @@ Chunk.prototype.buildVertices = function() {
                 // 5ms
                 if ((x >= 0 && x < this.size.x) && (y >= 0 && y < this.size.y) && (z >= 0 && z < this.size.z)) {
                     var block = this.blocks[x][y][z];
-                    if(block.lightPower) {
-                        lightmap[x + this.coord.x][y + this.coord.y] = 0;
-                    }
+                    //if(block.lightPower) {
+                    //    lightmap[x + this.coord.x][y + this.coord.y] = 0;
+                    //}
                     block.light = null;
                     for(var l of this.lights) {
                         var dist = (Math.sqrt(Math.pow(x - l.x, 2) + Math.pow(y - l.y, 2) + Math.pow(z - l.z, 2)));
@@ -422,7 +424,7 @@ Chunk.prototype.buildVertices = function() {
                             this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
                         }
                         if(calc_lightmap) {
-                            if(!block.transparent) {
+                            if(!block.transparent || block.fluid) {
                                 calc_lightmap = false;
                             }
                         }
@@ -495,6 +497,7 @@ Chunk.prototype.buildVertices = function() {
 
     this.dirty = false;
     this.tm = performance.now() - tm;
+    this.lightmap = lightmap;
 
     return true;
 }
