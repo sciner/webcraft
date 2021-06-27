@@ -352,7 +352,6 @@ ChunkManager.prototype.getBlock = function(x, y, z) {
         // просим вернуть блок передав абсолютные координаты
         return chunk.getBlock(x, y, z);
     }
-    // console.error(chunkPos, x, y, z);
     return BLOCK.DUMMY;
 }
 
