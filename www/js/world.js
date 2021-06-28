@@ -8,7 +8,7 @@ function World(saved_state, connectedCallback) {
 
     var that = this;
 
-    var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://game.whiteframe.ru/ws';
+    var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
 
     that.server = new ServerClient(serverURL, function(event) {
         that.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
