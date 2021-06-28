@@ -36,7 +36,8 @@ class Helpers {
     }
 
     static isDev() {
-        return location.host.indexOf('.loc') >= 0;
+        var loc = location.host;
+        return loc.indexOf('whiteframe.ru') < 0;
     }
 
     static createSkinLayer2(text, image, callback) {
