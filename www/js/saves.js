@@ -42,7 +42,7 @@ Saves.prototype.save = function(world, callback) {
     world.exportJSON(function(row) {
         DB.put(that.table_name, row);
         t = performance.now() - t;
-        console.info('Save for ' + (Math.round(t * 1000) / 1000) + 'ms');
+        // console.info('Save for ' + (Math.round(t * 1000) / 1000) + 'ms');
         if(callback) {
             callback();
         }

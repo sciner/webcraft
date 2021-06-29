@@ -234,7 +234,6 @@ HUD.prototype.drawInfo = function(hud) {
             Math.round(Game.loopTime.avg * 10) / 10
         ].join(' / ');
     }
-    // text += '\nREAL FPS: ' +  Math.round(1000 / Game.loopTime.avg);
     var text = 'FPS: ' + Math.round(fps.fps) + ' /' + Math.round(1000 / Game.loopTime.avg);
     text += '\nMAT: ';
     var mat = Game.player.buildMaterial;
