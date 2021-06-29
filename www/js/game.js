@@ -130,7 +130,6 @@ export let Game = {
                 //
                 that.hud.add(that.world.chunkManager, 0);
                 //
-                that.obj.load();
                 that.readMouseMove();
                 that.startBackgroundMusic();
                 document.querySelector('body').classList.add('started');
@@ -156,23 +155,6 @@ export let Game = {
             }
         }, 1000);
         */
-    },
-    obj: {
-        list: [],
-        load: function() {
-            /*
-            console.log('GL', Game.render.gl);
-            var that = this;
-            // loadText('/resources/book.obj', function(text) {
-            // loadText('/resources/Street environment_V01.obj', function(text) {
-            // loadText('/resources/Castle.obj', function(text) {
-            // loadText('/resources/tinker.obj', function(text) {
-            loadText('/resources/cube.obj', function(text) {
-                const obj = parseOBJ(Game.render.gl, text);
-                that.list.push(obj);
-            });*/
-            
-        }
     },
     // Render loop
     loop: function() {
@@ -239,7 +221,6 @@ export let Game = {
         var element = that.canvas;
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-              
         if(that.controls.inited) {
             element.requestPointerLock();
             return;
@@ -271,6 +252,8 @@ export let Game = {
     },
     readMouseMove: function() {
         var that = this;
+        that.prevMovementX = 0;
+        that.prevMovementY = 0;
         document.addEventListener('wheel', function(e) {
             if(that.player) {
                 if(Game.controls.enabled) {
@@ -279,35 +262,38 @@ export let Game = {
             }
         });
         document.addEventListener('mousemove', function(e) {
-            //if(Game.controls.enabled) {
-                var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-                var y = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-
-                var visibleWindows = Game.hud.wm.getVisibleWindows();
-                if(Game.world.localPlayer.chat.active || visibleWindows.length > 0) {
-                    if(that.controls.enabled) {
-                        Game.mouseY += y;
-                        Game.mouseX += x;
-                        Game.mouseX = Math.max(Game.mouseX, 0);
-                        Game.mouseY = Math.max(Game.mouseY, 0);
-                        Game.mouseX = Math.min(Game.mouseX, Game.hud.width);
-                        Game.mouseY = Math.min(Game.mouseY, Game.hud.height);
-                    } else {
-                        Game.mouseY = e.offsetY * window.devicePixelRatio;
-                        Game.mouseX = e.offsetX * window.devicePixelRatio;
-                    }
-                    Game.hud.wm.mouseEventDispatcher({
-                        type:       e.type,
-                        shiftKey:   e.shiftKey,
-                        button:     e.button,
-                        offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                        offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
-                    });
+            var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+            var y = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+            // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
+            if(Math.abs(x) > 300) {
+                x = that.prevMovementX;
+                y = that.prevMovementY;
+            }
+            that.prevMovementX = x;
+            that.prevMovementY = y;
+            if(Game.hud.wm.getVisibleWindows().length > 0) {
+                if(that.controls.enabled) {
+                    Game.mouseY += y;
+                    Game.mouseX += x;
+                    Game.mouseX = Math.max(Game.mouseX, 0);
+                    Game.mouseY = Math.max(Game.mouseY, 0);
+                    Game.mouseX = Math.min(Game.mouseX, Game.hud.width);
+                    Game.mouseY = Math.min(Game.mouseY, Game.hud.height);
                 } else {
-                    //
-                    that.world.addRotate(new Vector(y, x, 0));
+                    Game.mouseY = e.offsetY * window.devicePixelRatio;
+                    Game.mouseX = e.offsetX * window.devicePixelRatio;
                 }
-            //}
+                Game.hud.wm.mouseEventDispatcher({
+                    type:       e.type,
+                    shiftKey:   e.shiftKey,
+                    button:     e.button,
+                    offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
+                    offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                });
+            } else {
+                //
+                that.world.addRotate(new Vector(y, x, 0));
+            }
         }, false);
     },
 };
