@@ -64,11 +64,8 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
 
 	// Create main program
     createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
-
         var program = that.program = info.program;
-
         gl.useProgram(program);
-
         // Store variable locations
         that.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         that.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
@@ -87,18 +84,14 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         that.u_time             = gl.getUniformLocation(program, 'u_time');
         that.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
-
         // Enable input
         gl.enableVertexAttribArray(that.a_position);
         gl.enableVertexAttribArray(that.a_texcoord);
         gl.enableVertexAttribArray(that.a_color);
         gl.enableVertexAttribArray(that.a_normal);
-
         that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
-
         // Create projection and view matrices
         gl.uniformMatrix4fv(that.uModelMat, false, that.modelMatrix);
-
         // Create 1px white texture for pure vertex color operations (e.g. picking)
         var whiteTexture        = that.texWhite = gl.createTexture();
         var white               = new Uint8Array([255, 255, 255, 255]);
@@ -108,7 +101,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.uniform1i(that.u_texture, 0);
-
         // Load terrain texture
         var terrainTexture          = that.texTerrain = gl.createTexture();
         terrainTexture.image        = new Image();
@@ -128,18 +120,11 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             });
         };
         terrainTexture.image.src = settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png';
-        
         that.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
-
-        // x: 2889.0,
-        // y: 2850.0,
-        // z: 23.0,
-
     });
 
     // SkyBox
     createGLProgram(gl, './shaders/skybox/vertex.glsl', './shaders/skybox/fragment.glsl', function(info) {
-
         const program = info.program;
         gl.useProgram(program);
         const vertexBuffer = gl.createBuffer();
@@ -211,7 +196,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 this.gl.enable(this.gl.DEPTH_TEST);
             }
         }
-
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
         const loadImageInTexture = (target, url) => {
             return new Promise((resolve, reject) => {
@@ -235,7 +219,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             });
         }
         var skiybox_dir = './media/skybox/park';
-        // skiybox_dir = './media/skybox/night';
         Promise.all([
             loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_X, skiybox_dir + '/posx.jpg'),
             loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, skiybox_dir + '/negx.jpg'),
@@ -256,10 +239,8 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
 	// HUD
     createGLProgram(gl, './shaders/hud/vertex.glsl', './shaders/hud/fragment.glsl', function(info) {
 		const program = info.program;
-
         // Build main HUD
         Game.hud = new HUD(0, 0);
-
         that.HUD = {
             gl: gl,
             tick: 0,
@@ -275,57 +256,37 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             attribute: {
                 v_attr_inx:     gl.getAttribLocation(program, 'inPos')
             },
-            /*createUniform: function(type, name) {
-                var location = gl.getUniformLocation(program, name);
-                return function(v1, v2, v3, v4) {
-                    gl['uniform' + type](location, v1, v2, v3, v4);
-                }
-            },*/
             draw: function() {
-
                 const gl = this.gl;
                 gl.useProgram(this.program);
-
                 Game.hud.draw();
-                
                 gl.uniform2f(this.uniform.u_resolution, gl.viewportWidth * window.devicePixelRatio, gl.viewportHeight * window.devicePixelRatio);
                 gl.uniform1f(this.uniform.u_noCrosshair, Game.hud.wm.getVisibleWindows().length > 0);
-
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-                if(this.tick++ % 3 == 0) {
+                if(this.tick++ % 2 == 0) {
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Game.hud.canvas);
                 }
-
                 if(!this.bufRect) {
                     this.bufRect = gl.createBuffer();
                     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW);
                 }
-                
                 var v_attr_inx = this.attribute.v_attr_inx;
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
                 gl.vertexAttribPointer(v_attr_inx, 2, gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(v_attr_inx);
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
                 gl.disableVertexAttribArray(v_attr_inx);
-
             }
         }
-
         // Create HUD texture
         var texture = that.HUD.texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
         initCallback();
-
 	});
 
 }
@@ -415,10 +376,6 @@ Renderer.prototype.draw = function(delta) {
     
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
-
-    //
-    //gl.activeTexture(gl.TEXTURE0);
-    //gl.bindTexture(gl.TEXTURE_2D, this.texWater);
 
     this.world.chunkManager.draw(this);
     this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
