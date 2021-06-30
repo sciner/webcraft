@@ -42,9 +42,8 @@ function World(saved_state, connectedCallback) {
                 }
             }
         };
-        that.rotate         = saved_state.rotate;
-        // that.fixRotate();
-        that.spawnPoint     = saved_state.spawnPoint;
+        that.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
+        that.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
         that.chunkManager.restoreChunkModifiers(saved_state.modifiers);
         connectedCallback();
     });

@@ -221,6 +221,7 @@ export let Game = {
         var element = that.canvas;
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
+              
         if(that.controls.inited) {
             element.requestPointerLock();
             return;
