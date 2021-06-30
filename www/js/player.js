@@ -60,7 +60,7 @@ Player.prototype.setInputCanvas = function(id) {
             return false;
         }
     }
-    document.onkeyup  = function(e) {
+    document.onkeyup = function(e) {
         if (e.target.tagName != 'INPUT') {
             if(t._onKeyEvent(e, e.keyCode, false)) {
                 return false;
@@ -382,7 +382,7 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
     // s = 83 // down
     if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
     if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
-    if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
+    if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}  
     if(keyCode == KEY.W) {
         const n = performance.now();
         if(down) {
@@ -621,19 +621,19 @@ Player.prototype.update = function() {
 		// Walking
 		var walkVelocity = new Vector(0, 0, 0);
 		if (!this.falling || this.flying) {
-			if(this.keys[KEY.W]) {
+			if(this.keys[KEY.W] && !this.keys[KEY.S]) {
 				walkVelocity.x += Math.cos(Math.PI / 2 - this.angles[1]);
 				walkVelocity.y += Math.sin(Math.PI / 2 - this.angles[1]);
 			}
-			if(this.keys[KEY.S]) {
+            if(this.keys[KEY.S] && !this.keys[KEY.W]) {
 				walkVelocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[1]);
 				walkVelocity.y += Math.sin(Math.PI + Math.PI / 2 - this.angles[1]);
 			}
-			if(this.keys[KEY.A]) {
+			if(this.keys[KEY.A] && !this.keys[KEY.D]) {
 				walkVelocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[1]);
 				walkVelocity.y += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[1]);
 			}
-			if(this.keys[KEY.D]) {
+            if(this.keys[KEY.D] && !this.keys[KEY.A]) {
 				walkVelocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[1]);
 				walkVelocity.y += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[1]);
 			}
