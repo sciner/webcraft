@@ -159,7 +159,31 @@ onmessage = function(e) {
         }
         case 'setBlock': {
             if(this.chunks.hasOwnProperty(args.key)) {
-                chunks[args.key].setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate);
+                // 1. Get chunk
+                var chunk = chunks[args.key];
+                // 2. Set new block
+                if(args.type) {
+                    chunk.setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate);
+                }
+                var pos = new Vector(args.x - chunk.coord.x, args.y - chunk.coord.y, args.z - chunk.coord.z);
+                // 3. Clear vertices for new block and around near
+                chunk.setDirtyBlocks(pos);
+                // 4. Rebuild vertices list
+                chunk.timers.build_vertices = performance.now();
+                chunk.dirty = true;
+                chunk.buildVertices();
+                chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
+                // 5. Send result to chunk manager
+                postMessage(['vertices_generated', {
+                    key:                    chunk.key,
+                    vertices:               chunk.vertices,
+                    gravity_blocks:         chunk.gravity_blocks,
+                    fluid_blocks:           chunk.fluid_blocks,
+                    shift:                  chunk.shift,
+                    timers:                 chunk.timers,
+                    tm:                     chunk.tm,
+                    lightmap:               chunk.lightmap
+                }]);
             }
             break;
         }
@@ -259,14 +283,6 @@ Chunk.prototype.init = function() {
 
 }
 
-/*
-//
-Chunk.prototype.setModifiers = function(modify_list) {
-    this.modify_list = modify_list;
-    this.applyModifyList();
-    this.buildVertices();
-}*/
-
 Chunk.prototype.applyModifyList = function() {
     for(const [key, m] of Object.entries(this.modify_list)) {
         var pos = key.split(',');
@@ -334,7 +350,7 @@ Chunk.prototype.setBlock = function(x, y, z, orig_type, is_modify, power, rotate
     this.blocks[x][y][z].rotate     = rotate;
     this.blocks[x][y][z].entity_id  = entity_id;
     this.blocks[x][y][z].texture    = null;
-    this.dirty                      = true;
+    // this.dirty                      = true;
 }
 
 // makeLights
@@ -447,15 +463,27 @@ Chunk.prototype.buildVertices = function() {
                         // make vertices array
                         if([200, 202].indexOf(block.id) >= 0) {
                             // если это блок воды
-                            block.vertices = [];
-                            BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
-                            this.vertices.transparent.list.push(...block.vertices);
-                        } else {
-                            //if(!block.hasOwnProperty('vertices')) {
+                            if(!block.hasOwnProperty('vertices')) {
                                 block.vertices = [];
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
-                            //}
-                            this.vertices.regular.list.push(...block.vertices);
+                            }
+                            // block.vertices_start    = this.vertices.regular.list.length;
+                            // block.vertices_length   = block.vertices.length;
+                            // block.vertices_list     = this.vertices.transparent.list;
+                            if(block.vertices.length > 0) {
+                                this.vertices.transparent.list.push(...block.vertices);
+                            }
+                        } else {
+                            if(!block.hasOwnProperty('vertices')) {
+                                block.vertices = [];
+                                BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                            }
+                            // block.vertices_start    = this.vertices.regular.list.length;
+                            // block.vertices_length   = block.vertices.length;
+                            // block.vertices_list     = this.vertices.regular.list;
+                            if(block.vertices.length > 0) {
+                                this.vertices.regular.list.push(...block.vertices);
+                            }
                         }
                     }
                 }
@@ -477,4 +505,21 @@ Chunk.prototype.buildVertices = function() {
     this.lightmap = lightmap;
 
     return true;
+}
+
+// setDirtyBlocks
+Chunk.prototype.setDirtyBlocks = function(pos) {
+    for(var cx = -1; cx <= 1; cx++) {
+        for(var cy = -1; cy <= 1; cy++) {
+            for(var cz = -1; cz <= 1; cz++) {
+                var x = pos.x + cx;
+                var y = pos.y + cy;
+                var z = pos.z + cz;
+                if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
+                    var block = this.blocks[x][y][z];
+                    delete(block['vertices']);
+                }
+            }
+        }
+    }
 }
