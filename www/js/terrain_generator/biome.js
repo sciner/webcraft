@@ -326,22 +326,38 @@ Terrain.prototype.generate = function(chunk) {
                 if(z < value - (rnd < .005 ? 0 : 2)) {
                     // если это не вода, то заполняем полезными ископаемыми
                     if(r < 0.0025 && z < value - 5) {
-                        chunk.blocks[x][y][z] = blocks.DIAMOND_ORE;
+                        // chunk.blocks[x][y][z] = blocks.DIAMOND_ORE;
+                        chunk.blocks[x][y][z] = {id: blocks.DIAMOND_ORE.id, name: blocks.DIAMOND_ORE.name};
                     } else if(r < 0.01) {
-                        chunk.blocks[x][y][z] = blocks.COAL_ORE;
+                        // chunk.blocks[x][y][z] = blocks.COAL_ORE;
+                        chunk.blocks[x][y][z] = {id: blocks.COAL_ORE.id, name: blocks.COAL_ORE.name};
                     } else {
-                        chunk.blocks[x][y][z] = blocks.CONCRETE;
+                        // chunk.blocks[x][y][z] = blocks.CONCRETE;
+                        chunk.blocks[x][y][z] = {id: blocks.CONCRETE.id, name: blocks.CONCRETE.name};
                     }
                 } else {
                     if(biome.code == 'OCEAN' && r < .1) {
-                        chunk.blocks[x][y][z] = blocks.GRAVEL;
+                        // chunk.blocks[x][y][z] = blocks.GRAVEL;
+                        chunk.blocks[x][y][z] = {id: blocks.GRAVEL.id, name: blocks.GRAVEL.name};
                     } else {
-                        chunk.blocks[x][y][z] = biome.dirt_block;
+                        // chunk.blocks[x][y][z] = biome.dirt_block;
+                        chunk.blocks[x][y][z] = {id: biome.dirt_block.id, name: biome.dirt_block.name};
                         if(z == value - 1 && biome.dirt_block.id == blocks.DIRT.id) {
                             top_dirts[x][y] = value;
                         }
                     }
                 }
+                // chunk.blocks[x][y][z] = Object.assign({}, chunk.blocks[x][y][z]);
+                // chunk.blocks[x][y][z] = JSON.parse(JSON.stringify(chunk.blocks[x][y][z]));
+                // chunk.blocks[x][y][z] = {...chunk.blocks[x][y][z]};
+                // Fastest method
+                /*
+                var b = chunk.blocks[x][y][z];
+                chunk.blocks[x][y][z] = {
+                    id:             b.id,
+                    name:           b.name
+                };
+                */
             }
 
             if(biome.code == 'OCEAN') {

@@ -356,33 +356,39 @@ ChunkManager.prototype.getBlock = function(x, y, z) {
 }
 
 // setBlock
-ChunkManager.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, entity_id) {
+ChunkManager.prototype.setBlock = function(x, y, z, block, is_modify, power, rotate, entity_id) {
     // определяем относительные координаты чанка
     var chunkPos = this.getChunkPos(x, y, z);
     // обращаемся к чанку
     var chunk = this.getChunk(chunkPos);
     // если чанк найден
     if(chunk) {
+        var pos = new Vector(x, y, z);
+        var item = {
+            id: block.id,
+            power: power ? power : 1.0,
+            rotate: rotate,
+            entity_id: entity_id
+        };
         if(is_modify) {
             // @server
             this.world.server.Send({
                 name: ServerClient.EVENT_BLOCK_SET,
                 data: {
-                    pos: new Vector(x, y, z),
-                    item: {
-                        id: type.id,
-                        power: power ? power : 1.0,
-                        rotate: rotate,
-                        entity_id: entity_id
-                    }
+                    pos: pos,
+                    item: item
                 }
             });
-            // устанавливаем блок
-            // chunk.setBlock(x, y, z, type, false, power, rotate, entity_id);
-        } else {
-            // устанавливаем блок
-            chunk.setBlock(x, y, z, type, is_modify, power, rotate, entity_id);
         }
+        if(is_modify) {
+            var world_block = chunk.getBlock(pos.x, pos.y, pos.z);
+            var b = BLOCK.fromId(world_block.id);
+            if(b.sound) {
+                Game.sounds.play(b.sound);
+            }
+        }
+        // устанавливаем блок
+        chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
     }
 }
 
@@ -405,7 +411,6 @@ ChunkManager.prototype.destroyBlock = function(pos, is_modify) {
         }
     });
     */
-    
     this.world.destroyBlock(block, pos);
     this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
 }

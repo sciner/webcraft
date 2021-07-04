@@ -90,13 +90,11 @@ World.prototype.setBlock = function(x, y, z, type, power, rotate) {
 
 // destroyBlock
 World.prototype.destroyBlock = function(block, pos) {
-    var gl = this.renderer.gl;
     this.meshes.add(new Particles_Block_Destroy(this.renderer.gl, block, pos));
 }
 
 // rainDrop
 World.prototype.rainDrop = function(pos) {
-    var gl = this.renderer.gl;
     this.meshes.add(new Particles_Raindrop(this.renderer.gl, pos));
 }
 
