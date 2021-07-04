@@ -114,6 +114,8 @@ export let Game = {
         that.seed       = saved_world.seed;
         saved_world     = that.ajustSavedState(saved_world);
 
+        that.sounds = new Sounds();
+
         // Create a new world
         that.world = new World(saved_world, function() {
             that.render = new Renderer(that.world, 'renderSurface', settings, function() {

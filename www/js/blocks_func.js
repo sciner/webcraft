@@ -176,7 +176,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var height                  = block.height ? block.height : 1;
     var drawAllSides            = width != 1 || height != 1;
     var texture                 = BLOCK[block.name].texture;
-    var blockLit                = z >= lightmap[x][y];
+    var blockLit                = true; // z >= lightmap[x][y];
 
     // F R B L
     switch(cardinal_direction) {
@@ -453,6 +453,13 @@ function check_xy_neighbor(world, x, y, z) {
 * Build up to <count> dirty chunks.
 */
 function pushQuad(v, p1, p2, p3, p4) {
+    v.push(...p1);
+    v.push(...p2);
+    v.push(...p3);
+    v.push(...p3);
+    v.push(...p4);
+    v.push(...p1);
+    /*
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
     v.push(p2[0], p2[1], p2[2], p2[3], p2[4], p2[5], p2[6], p2[7], p2[8], p2[9], p2[10], p2[11]);
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
@@ -460,6 +467,7 @@ function pushQuad(v, p1, p2, p3, p4) {
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
     v.push(p4[0], p4[1], p4[2], p4[3], p4[4], p4[5], p4[6], p4[7], p4[8], p4[9], p4[10], p4[11]);
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
+    */
 }
 
 // push_plane
@@ -539,7 +547,7 @@ function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp) {
 function push_plant(block, vertices, world, lightmap, x, y, z) {
     // var block       = world.chunkManager.getBlock(x, y, z);
     var texture     = BLOCK.fromId(block.id).texture;
-    var blockLit    = z >= lightmap[x][y];
+    var blockLit    = true; // z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lm = new Color(0, 0, 0, 0);

@@ -126,7 +126,7 @@ Chunk.prototype.onVerticesGenerated = function(args) {
     this.timers                = args.timers;
     this.lightmap              = args.lightmap;
     this.doShift(Game.shift);
-    // console.table(args.timers);
+    console.log(args.timers.build_vertices + ' (terrain: ' + args.timers.generate_terrain + ')');
 }
 
 // getChunkModifiers

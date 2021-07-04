@@ -335,9 +335,6 @@ Chunk.prototype.setBlock = function(x, y, z, orig_type, is_modify, power, rotate
     this.blocks[x][y][z].entity_id  = entity_id;
     this.blocks[x][y][z].texture    = null;
     this.dirty                      = true;
-    if(rotate) {
-        // console.log('rotate', rotate);
-    }
 }
 
 // makeLights
@@ -376,64 +373,6 @@ Chunk.prototype.buildVertices = function() {
 
     this.makeLights();
 
-    // lightmap = new Array(this.size.x);
-    for(var x = - 1; x < this.size.x + 1; x++) {
-        lightmap[x + this.coord.x] = {};
-        // lightmap[x] = new Array(this.size.y);
-        for(var y = - 1; y < + this.size.y + 1; y++) {
-            var calc_lightmap = true;
-            for(var z = this.size.z + 1; z >= - 1; z--) {
-                // 5ms
-                if(calc_lightmap) {
-                    lightmap[x + this.coord.x][y + this.coord.y] = z + this.coord.z;
-                }
-                // 5ms
-                if ((x >= 0 && x < this.size.x) && (y >= 0 && y < this.size.y) && (z >= 0 && z < this.size.z)) {
-                    var block = this.blocks[x][y][z];
-                    //if(block.lightPower) {
-                    //    lightmap[x + this.coord.x][y + this.coord.y] = 0;
-                    //}
-                    block.light = null;
-                    for(var l of this.lights) {
-                        var dist = (Math.sqrt(Math.pow(x - l.x, 2) + Math.pow(y - l.y, 2) + Math.pow(z - l.z, 2)));
-                        var maxDist = Math.round((l.power.a / 255) * 8);
-                        if(dist <= maxDist) {
-                            var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
-                            newLight.a *= ((maxDist - dist) / maxDist);
-                            if(block.light) {
-                                // @todo mix two light
-                                if(block.light.a < newLight.a) {
-                                    block.light = newLight;
-                                }
-                            } else {
-                                block.light = newLight;
-                            }
-                            this.blocks[x][y][z] = Object.assign({}, block);
-                        }
-                    }
-                    if(block.id != BLOCK.DUMMY.id) {
-                        if(block.gravity) {
-                            if(z > 0) {
-                                var block_under = this.blocks[x][y][z - 1];
-                                if(block_under.id == blocks.AIR.id) {
-                                    this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
-                                }
-                            }
-                        }
-                        if(block.fluid) {
-                            this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
-                        }
-                        if(calc_lightmap) {
-                            if(!block.transparent || block.fluid) {
-                                calc_lightmap = false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Add vertices for blocks
     this.vertices = {
         regular: {
@@ -461,6 +400,7 @@ Chunk.prototype.buildVertices = function() {
                 var block = this.blocks[x][y][z];
                 if(block) {
                     if(block.id != BLOCK.AIR.id) {
+                        // ignore invisible inside another blocks
                         if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
                             var pcnt = 0;
                             for(var p of cc) {
@@ -474,11 +414,48 @@ Chunk.prototype.buildVertices = function() {
                                 continue;
                             }
                         }
+                        // lights
+                        block.light = null;
+                        for(var l of this.lights) {
+                            var dist = (Math.sqrt(Math.pow(x - l.x, 2) + Math.pow(y - l.y, 2) + Math.pow(z - l.z, 2)));
+                            var maxDist = Math.round((l.power.a / 255) * 8);
+                            if(dist <= maxDist) {
+                                var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
+                                newLight.a *= ((maxDist - dist) / maxDist);
+                                if(block.light) {
+                                    // @todo mix two light
+                                    if(block.light.a < newLight.a) {
+                                        block.light = newLight;
+                                    }
+                                } else {
+                                    block.light = newLight;
+                                }
+                                this.blocks[x][y][z] = Object.assign({}, block);
+                            }
+                        }
+                        // if block with gravity
+                        if(block.gravity && z > 0) {
+                            var block_under = this.blocks[x][y][z - 1];
+                            if(block_under.id == blocks.AIR.id) {
+                                this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
+                            }
+                        }
+                        // if block is fluid
+                        if(block.fluid) {
+                            this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
+                        }
+                        // make vertices array
                         if([200, 202].indexOf(block.id) >= 0) {
                             // если это блок воды
-                            BLOCK.pushVertices(this.vertices.transparent.list, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                            block.vertices = [];
+                            BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                            this.vertices.transparent.list.push(...block.vertices);
                         } else {
-                            BLOCK.pushVertices(this.vertices.regular.list, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                            //if(!block.hasOwnProperty('vertices')) {
+                                block.vertices = [];
+                                BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                            //}
+                            this.vertices.regular.list.push(...block.vertices);
                         }
                     }
                 }
