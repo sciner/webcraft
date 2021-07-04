@@ -504,6 +504,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                 that.inventory.decrement();
             } else if(destroyBlock) {
                 // Destroy block
+                console.log(1, world_block);
                 if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
                     world.chunkManager.destroyBlock(block, true);
                     if(world_block.id == BLOCK.CONCRETE.id) {
