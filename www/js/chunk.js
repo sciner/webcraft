@@ -245,7 +245,72 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
         power:      power,
         rotate:     rotate
     }]);
-    
+
+    if(x == 0) {
+        // left
+        // console.log('left');
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
+        this.chunkManager.postWorkerMessage(['setBlock', {
+            key:        key,
+            x:          x + this.coord.x - 1,
+            y:          y + this.coord.y,
+            z:          z + this.coord.z,
+            type:       null,
+            is_modify:  is_modify,
+            power:      power,
+            rotate:     rotate
+        }]);
+    }
+    if(y == 0) {
+        // top
+        // console.log('top');
+        // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
+        this.chunkManager.postWorkerMessage(['setBlock', {
+            key:        key,
+            x:          x + this.coord.x,
+            y:          y + this.coord.y - 1,
+            z:          z + this.coord.z,
+            type:       null,
+            is_modify:  is_modify,
+            power:      power,
+            rotate:     rotate
+        }]);
+    }
+    if(x == this.size.x - 1) {
+        // right
+        // console.log('right');
+        // this.chunkManager.setDirtySimple(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
+        this.chunkManager.postWorkerMessage(['setBlock', {
+            key:        key,
+            x:          x + this.coord.x + 1,
+            y:          y + this.coord.y,
+            z:          z + this.coord.z,
+            type:       null,
+            is_modify:  is_modify,
+            power:      power,
+            rotate:     rotate
+        }]);
+    }
+    if(y == this.size.y - 1) {
+        // bottom
+        // console.log('bottom');
+        // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
+        this.chunkManager.postWorkerMessage(['setBlock', {
+            key:        key,
+            x:          x + this.coord.x,
+            y:          y + this.coord.y + 1,
+            z:          z + this.coord.z,
+            type:       null,
+            is_modify:  is_modify,
+            power:      power,
+            rotate:     rotate
+        }]);
+    }
+
+    /*
     this.dirty = true;
 
     if(x == 0) {
@@ -268,5 +333,6 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
         // console.log('bottom');
         this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
     }
+    */
 
 }

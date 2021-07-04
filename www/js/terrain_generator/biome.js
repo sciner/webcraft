@@ -347,17 +347,6 @@ Terrain.prototype.generate = function(chunk) {
                         }
                     }
                 }
-                // chunk.blocks[x][y][z] = Object.assign({}, chunk.blocks[x][y][z]);
-                // chunk.blocks[x][y][z] = JSON.parse(JSON.stringify(chunk.blocks[x][y][z]));
-                // chunk.blocks[x][y][z] = {...chunk.blocks[x][y][z]};
-                // Fastest method
-                /*
-                var b = chunk.blocks[x][y][z];
-                chunk.blocks[x][y][z] = {
-                    id:             b.id,
-                    name:           b.name
-                };
-                */
             }
 
             if(biome.code == 'OCEAN') {
