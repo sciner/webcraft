@@ -350,7 +350,12 @@ Terrain.prototype.generate = function(chunk) {
             }
 
             if(biome.code == 'OCEAN') {
-                chunk.blocks[x][y][options.WATER_LINE] = blocks.STILL_WATER;
+                chunk.blocks[x][y][options.WATER_LINE] = {
+                    id: blocks.STILL_WATER.id,
+                    fluid: blocks.STILL_WATER.fluid,
+                    transparent: blocks.STILL_WATER.transparent,
+                    name: blocks.STILL_WATER.name
+                };
             }
 
             // Если это снежный биом, то верхний слой делаем принудительно снегом

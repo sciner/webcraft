@@ -70,7 +70,7 @@ class ServerClient {
                     var pos = cmd.data.pos;
                     var item = cmd.data.item;
                     var block = BLOCK.fromId(item.id);
-                    Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
+                    // Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
                     break;
                 }
                 case ServerClient.EVENT_CHUNK_LOADED: {
