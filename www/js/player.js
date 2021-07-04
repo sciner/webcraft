@@ -108,21 +108,15 @@ Player.prototype._onKeyEvent = function(e, keyCode, down) {
         if(this.keys_fired.up[keyCode]) {
             this.keys_fired.up[keyCode] = false;
         }
-        if(this.keys_fired.down[keyCode]) {
-            resp = this.onKeyEvent(e, keyCode, down, false);
-        } else {
-            resp = this.onKeyEvent(e, keyCode, down, true);
-        }
+        var first_press = this.keys_fired.down[keyCode];
+        resp = this.onKeyEvent(e, keyCode, down, !first_press);
         this.keys_fired.down[keyCode] = true;
     } else {
         if(this.keys_fired.down[keyCode]) {
             this.keys_fired.down[keyCode] = false;
         }
-        if(this.keys_fired.up[keyCode]) {
-            resp = this.onKeyEvent(e, keyCode, down, false);
-        } else {
-            resp = this.onKeyEvent(e, keyCode, down, true);
-        }
+        var first_press = this.keys_fired.up[keyCode];
+        resp = this.onKeyEvent(e, keyCode, down, !first_press);
         this.keys_fired.up[keyCode] = true;
     }
 
@@ -509,6 +503,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                 }
                 that.inventory.decrement();
             } else if(destroyBlock) {
+                // Destroy block
                 if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
                     world.chunkManager.destroyBlock(block, true);
                     if(world_block.id == BLOCK.CONCRETE.id) {
