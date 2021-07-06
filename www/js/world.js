@@ -44,7 +44,9 @@ function World(saved_state, connectedCallback) {
         };
         that.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
         that.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
-        that.chunkManager.restoreChunkModifiers(saved_state.modifiers);
+        if(saved_state.hasOwnProperty('chunk_render_dist')) {
+            that.chunkManager.setRenderDist(saved_state.chunk_render_dist);
+        }
         connectedCallback();
     });
 
@@ -179,12 +181,14 @@ World.prototype.toJSON = function() {
 World.prototype.exportJSON = function(callback) {
     var that = this;
     var row = {
-        _id:        Game.world_name,
-        seed:       Game.seed,
-        spawnPoint: that.spawnPoint,
-        pos:        that.localPlayer.pos,
-        rotate:     that.rotate,
-        brightness: that.renderer.brightness,
+        _id:                Game.world_name,
+        seed:               Game.seed,
+        spawnPoint:         that.spawnPoint,
+        pos:                that.localPlayer.pos,
+        flying:             that.localPlayer.flying,
+        chunk_render_dist:  CHUNK_RENDER_DIST,
+        rotate:             that.rotate,
+        brightness:         that.renderer.brightness,
         inventory:  {
             items: Game.world.localPlayer.inventory.items,
             current: {

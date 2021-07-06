@@ -184,12 +184,13 @@ export let Game = {
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
         var current_player_state = {
-            angles: this.world.localPlayer.angles,
+            angles: this.world.localPlayer.angles.map(x => Math.round(x * 1000) / 1000),
             pos:    this.world.localPlayer.pos,
             ping:   Math.round(this.world.server.ping_value)
         };
-        if(JSON.stringify(current_player_state) != this.prev_player_state) {
-            this.prev_player_state = JSON.stringify(current_player_state);
+        var current_player_state_json = JSON.stringify(current_player_state);
+        if(current_player_state_json != this.prev_player_state) {
+            this.prev_player_state = current_player_state_json;
             this.world.server.Send({
                 name: ServerClient.EVENT_PLAYER_STATE,
                 data: current_player_state
