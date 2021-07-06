@@ -24,6 +24,7 @@ function ChunkManager(world) {
         switch(cmd) {
             case 'blocks_generated': {
                 if(that.chunks.hasOwnProperty(args.key)) {
+                    console.log(JSON.stringify(args).length);
                     that.chunks[args.key].onBlocksGenerated(args);
                 }
                 break;
@@ -59,7 +60,6 @@ ChunkManager.prototype.setRenderDist = function(value) {
 // toggleUpdateChunks
 ChunkManager.prototype.toggleUpdateChunks = function() {
     this.update_chunks = !this.update_chunks;
-    console.log(this.update_chunks);
 }
 
 // shift
@@ -80,31 +80,24 @@ ChunkManager.prototype.refresh = function() {
 
 // Draw level chunks
 ChunkManager.prototype.draw = function(render) {
-    var gl                      = render.gl;
+    var gl = render.gl;
     gl.bindTexture(gl.TEXTURE_2D, render.texTerrain);
     //
-    this.rendered_chunks.total  = Object.entries(this.chunks).length;
+    const chunks = Object.entries(this.chunks);
+    this.rendered_chunks.total  = chunks.length;
     this.rendered_chunks.fact   = 0;
-    //
-    var overChunk = Game.world.localPlayer.overChunk;
     // draw
-    // var spiral_moves = this.createSpiralCoords(4);
-    // var chunkPos = Game.world.chunkManager.getChunkPos(Game.world.localPlayer.pos.x, Game.world.localPlayer.pos.y, Game.world.localPlayer.pos.z);
     for(const transparent of [false, true]) {
         if(transparent) {
             gl.disable(gl.CULL_FACE);
         }
-        for(const [key, chunk] of Object.entries(this.chunks)) {
-            //for(var sm of spiral_moves) {
-            //    if(chunk.addr.x == (chunkPos.x + sm.x - 2) && chunk.addr.y == (chunkPos.y + sm.y - 2) && chunk.addr.z == (chunkPos.z + sm.z)) {
-                    for(const [key, v] of Object.entries(chunk.vertices)) {
-                        if(v.is_transparent == transparent) {
-                            this.rendered_chunks.fact += 0.5;
-                            render.drawBuffer(v.buffer);
-                        }
-                    }
-            //    }
-            //}
+        for(const [ckey, chunk] of chunks) {
+            for(const [vkey, v] of Object.entries(chunk.vertices)) {
+                if(v.is_transparent == transparent) {
+                    this.rendered_chunks.fact += 0.5;
+                    render.drawBuffer(v.buffer);
+                }
+            }
         }
         if(transparent) {
             gl.enable(gl.CULL_FACE);
@@ -171,15 +164,6 @@ ChunkManager.prototype.getChunkModifiers = function() {
         }
     }
     return this.modify_list;
-}
-
-// restoreChunkModifiers
-ChunkManager.prototype.restoreChunkModifiers = function(modify_list) {
-    /*
-    if(Object.entries(modify_list).length > 0) {
-        this.modify_list = modify_list;
-    }
-    */
 }
 
 // postWorkerMessage

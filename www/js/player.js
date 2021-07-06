@@ -31,6 +31,9 @@ Player.prototype.setWorld = function(world) {
     this.keys_fired             = {down: {}, up: {}};
     this.eventHandlers          = {};
     this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+    if(world.saved_state) {
+        this.flying = !!world.saved_state.flying;
+    }
     this.overChunk              = null;
 }
 
@@ -504,7 +507,6 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                 that.inventory.decrement();
             } else if(destroyBlock) {
                 // Destroy block
-                console.log(1, world_block);
                 if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
                     world.chunkManager.destroyBlock(block, true);
                     if(world_block.id == BLOCK.CONCRETE.id) {

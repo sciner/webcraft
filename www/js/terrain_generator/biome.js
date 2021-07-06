@@ -257,10 +257,10 @@ Terrain.prototype.generate = function(chunk) {
     const aleaRandom            = new alea(seed);
     const noisefn               = this.noisefn;
     const clamp                 = this.clamp;
-    noise.seed(this.seed);
-
     const SX                    = chunk.coord.x;
     const SY                    = chunk.coord.y;
+
+    noise.seed(this.seed);
     
     var scale = .5;
 
@@ -277,13 +277,15 @@ Terrain.prototype.generate = function(chunk) {
     for(var x = 0; x < chunk.size.x; x++) {
         for(var y = 0; y < chunk.size.y; y++) {
 
+            // AIR
+            // chunk.blocks[x][y] = Array(chunk.size.z).fill(blocks.AIR);
+            chunk.blocks[x][y] = Array(chunk.size.z).fill(null);
+            //for(var i = 1; i < chunk.size.z; i++) {
+            //    chunk.blocks[x][y][z] = Object.assign({}, blocks.AIR);
+            //}
+
             // Bedrock
             chunk.blocks[x][y][0] = blocks.BEDROCK;
-
-            // AIR
-            for(var z = 1; z < chunk.size.z; z++) {
-                chunk.blocks[x][y][z] = blocks.AIR;
-            }
 
             var px = (x + SX);
             var py = (y + SY);
@@ -351,10 +353,10 @@ Terrain.prototype.generate = function(chunk) {
 
             if(biome.code == 'OCEAN') {
                 chunk.blocks[x][y][options.WATER_LINE] = {
-                    id: blocks.STILL_WATER.id,
-                    fluid: blocks.STILL_WATER.fluid,
-                    transparent: blocks.STILL_WATER.transparent,
-                    name: blocks.STILL_WATER.name
+                    id:             blocks.STILL_WATER.id,
+                    fluid:          blocks.STILL_WATER.fluid,
+                    transparent:    blocks.STILL_WATER.transparent,
+                    name:           blocks.STILL_WATER.name
                 };
             }
 
@@ -383,12 +385,11 @@ Terrain.prototype.generate = function(chunk) {
                     for(var p of biome.plants.list) {
                         s += p.percent;
                         if(r < s) {
-                            chunk.blocks[x][y][z] = p.block;
+                            chunk.blocks[x][y][z] = Object.assign({}, p.block);
                             break;
                         }
                     }
                 }
-
                 // Посадка деревьев
                 if(rnd > 0 && rnd <= biome.trees.frequency) {
                     var s = 0;
@@ -415,8 +416,8 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
     //}
 
     if(aleaRandom.double() < 0.01) {
-        chunk.setBlock(x, y, z, tree.trunk, false);
-        chunk.setBlock(x, y, z + 1, blocks.RED_MUSHROOM, false);
+        chunk.setBlock(x, y, z, Object.assign({}, tree.trunk), false);
+        chunk.setBlock(x, y, z + 1, Object.assign({}, blocks.RED_MUSHROOM), false);
     } else {
 
         // var height = Math.round(this.clamp(aleaRandom.double() * 9, 2, 9));
@@ -426,7 +427,7 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
         // ствол
         for(var p = z; p < zstart; p++) {
             if(chunk.getBlock(x, y, p).id >= 0) {
-                chunk.setBlock(x, y, p, tree.trunk, false);
+                chunk.setBlock(x, y, p, Object.assign({}, tree.trunk), false);
             }
         }
 
@@ -452,7 +453,7 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
                                 if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2) + Math.pow(zstart - k, 2)) <= rad) {
                                     var b = chunk.getBlock(i, j, k);
                                     if(b.id >= 0 && b.id != tree.trunk.id) {
-                                        chunk.setBlock(i, j, k, tree.leaves, false);
+                                        chunk.setBlock(i, j, k, Object.assign({}, tree.leaves), false);
                                     }
                                 }
                             }
@@ -464,7 +465,7 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
             case 'spruce': {
                 if(tree.leaves) {
                     var max_rad = Math.max(parseInt(height / 2), 2);
-                    chunk.setBlock(x, y, zstart, tree.leaves, false);
+                    chunk.setBlock(x, y, zstart, Object.assign({}, tree.leaves), false);
                     zstart -= parseInt(height * .75);
                     for(var r = 0; r < 3; r++) {
                         var rad = max_rad--;
@@ -477,7 +478,7 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
                                     if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2)) <= rad) {
                                         var b = chunk.getBlock(i, j, zstart + l);
                                         if(b.id >= 0 && b.id != tree.trunk.id) {
-                                            chunk.setBlock(i, j, zstart + l, tree.leaves, false);
+                                            chunk.setBlock(i, j, zstart + l, Object.assign({}, tree.leaves), false);
                                         }
                                     }
                                 }

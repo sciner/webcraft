@@ -28,12 +28,55 @@ BLOCK = {};
 // style: 'planting', 'pane, 'fence'
 // texture
 
+// A purple dummy block
+BLOCK.DUMMY = {
+    id: -1,
+    inventory_icon_id: 3270,
+	spawnable: false,
+    transparent: false,
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
+};
+
 // Air
 BLOCK.AIR = {
 	id: 0,
 	spawnable: false,
     passable: 1,
 	transparent: true
+};
+
+// Bedrock
+BLOCK.BEDROCK = {
+    id: 1,
+    inventory_icon_id: 521,
+    spawnable: false,
+    passable: 0,
+    transparent: false,
+    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 1, 1]; }
+};
+
+// Test
+BLOCK.TEST = {
+    id: 199,
+    inventory_icon_id: 445, // 240,
+    spawnable: true,
+    passable: 0,
+    transparent: false,
+    texture: function( world, lightmap, lit, x, y, z, dir) {
+        if(dir == DIRECTION.UP) {
+            return [26, 31];
+        } else if(dir == DIRECTION.DOWN) {
+            return [27, 31];
+        } else if(dir == DIRECTION.BACK) {
+            return [28, 31];
+        } else if(dir == DIRECTION.RIGHT) {
+            return [29, 31];
+        } else if(dir == DIRECTION.FORWARD) {
+            return [30, 31];
+        } else {
+            return [31, 31];
+        }
+    }
 };
 
 // Булыжник
@@ -151,40 +194,6 @@ BLOCK.SNOW_DIRT = {
 	}
 };
 
-// Bedrock
-BLOCK.BEDROCK = {
-    id: 1,
-    inventory_icon_id: 521,
-    spawnable: false,
-    passable: 0,
-    transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 1, 1]; }
-};
-
-// Test
-BLOCK.TEST = {
-    id: 199,
-    inventory_icon_id: 445, // 240,
-    spawnable: false,
-    passable: 0,
-    transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) {
-        if(dir == DIRECTION.UP) {
-            return [26, 31];
-        } else if(dir == DIRECTION.DOWN) {
-            return [27, 31];
-        } else if(dir == DIRECTION.BACK) {
-            return [28, 31];
-        } else if(dir == DIRECTION.RIGHT) {
-            return [29, 31];
-        } else if(dir == DIRECTION.FORWARD) {
-            return [30, 31];
-        } else {
-            return [31, 31];
-        }
-    }
-};
-
 // TNT
 BLOCK.TNT = {
 	id: 4,
@@ -209,7 +218,7 @@ BLOCK.TNT = {
 BLOCK.WOOD_LEAVES = {
     id: 196,
     inventory_icon_id: 3403,
-    spawnable: false,
+    spawnable: true,
     transparent: true,
     sound: 'grass',
     texture: function( world, lightmap, lit, x, y, z, dir) { return [ 4, 3]; }
@@ -219,7 +228,7 @@ BLOCK.WOOD_LEAVES = {
 BLOCK.SPRUCE_LEAVES = {
 	id: 198,
     inventory_icon_id: 3441,
-	spawnable: false,
+	spawnable: true,
 	transparent: true,
     sound: 'grass',
 	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 4, 8]; }
@@ -480,15 +489,6 @@ BLOCK.SPONGE = {
 	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 0, 3 ]; }
 };
 
-// A purple dummy block
-BLOCK.DUMMY = {
-    id: -1,
-    inventory_icon_id: 3270,
-	spawnable: false,
-    transparent: false,
-    texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
-};
-
 BLOCK.STILL_LAVA = {
     id: 171,
     spawnable: true,
@@ -683,6 +683,7 @@ BLOCK.GRASS = {
     passable: 1,
     transparent: true,
     style: 'planting',
+    sound: 'grass',
 	texture: function( world, lightmap, lit, x, y, z, dir) {
         return [8, 2];
     }

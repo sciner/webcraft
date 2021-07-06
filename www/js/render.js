@@ -36,6 +36,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     that.canvas             = document.getElementById(renderSurfaceId);
 	that.canvas.renderer    = that;
 	this.skyBox             = null;
+    this.videoCardInfoCache = null;
     
     // Create projection and view matrices
     that.projMatrix         = mat4.create();
@@ -254,7 +255,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 u_resolution:   gl.getUniformLocation(program, 'u_resolution')
             },
             attribute: {
-                v_attr_inx:     gl.getAttribLocation(program, 'inPos')
+                // v_attr_inx:     gl.getAttribLocation(program, 'inPos')
             },
             draw: function() {
                 const gl = this.gl;
@@ -268,17 +269,32 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 if(this.tick++ % 2 == 0) {
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Game.hud.canvas);
                 }
-                if(!this.bufRect) {
-                    this.bufRect = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW);
+                if(!this.vertexBuffer) {
+                    this.vertexBuffer = gl.createBuffer();
+                    this.indexBuffer = gl.createBuffer();
+                    const vertexData = [
+                        -1, -1,
+                         1, -1,
+                         1,  1,
+                        -1,  1
+                    ];
+                    const indexData = [
+                        0, 1, 2,
+                        1, 2, 3
+                    ];
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
                 }
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+                this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
                 var v_attr_inx = this.attribute.v_attr_inx;
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
                 gl.vertexAttribPointer(v_attr_inx, 2, gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(v_attr_inx);
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
                 gl.disableVertexAttribArray(v_attr_inx);
+                
             }
         }
         // Create HUD texture
@@ -301,7 +317,6 @@ Renderer.prototype.setWorld = function(world) {
 
 // setBrightness...
 Renderer.prototype.setBrightness = function(value) {
-    var gl = this.gl;
     this.brightness = value;
     var mult = Math.min(1, value * 2)
     currentRenderState.fogColor = [
@@ -344,7 +359,8 @@ Renderer.prototype.draw = function(delta) {
 
     // Говорим WebGL, как преобразовать координаты
     // из пространства отсечения в пиксели
-    gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(...currentRenderState.fogColor);
     gl.uniform4fv(this.u_fogColor, currentRenderState.fogColor);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -466,6 +482,9 @@ Renderer.prototype.drawBuffer = function(buffer) {
 
 // getVideoCardInfo...
 Renderer.prototype.getVideoCardInfo = function() {
+    if(this.videoCardInfoCache) {
+        return this.videoCardInfoCache;
+    }
     var gl = this.gl; // document.createElement('canvas').getContext('webgl');
     if (!gl) {
         return {
@@ -473,13 +492,16 @@ Renderer.prototype.getVideoCardInfo = function() {
         };
     }
     const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    var resp = null;
     if(debugInfo) {
-        return {
+        resp = {
             vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
             renderer:  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
         };
     }
-    return {
+    resp = {
         error: 'no WEBGL_debug_renderer_info',
     };
+    this.videoCardInfoCache = resp;
+    return resp;
 }
