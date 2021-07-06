@@ -12,7 +12,7 @@ var fps = {
             this.cnt    = 0;
             this.delta  = now - this.t;
             this.t      = now;
-            console.log('FPS: ' + this.fps);
+            // console.log('FPS: ' + this.fps);
         };
     },
     drawHUD: function(hud) {

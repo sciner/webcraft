@@ -393,6 +393,7 @@ Renderer.prototype.draw = function(delta) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
 
+    // Draw chunks
     this.world.chunkManager.draw(this);
     this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
 
