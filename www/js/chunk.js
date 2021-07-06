@@ -40,16 +40,7 @@ function Chunk(chunkManager, pos, modify_list) {
     chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
 
     // this.worker_pn_generate = performance.now();
-    // 1. Initialise world array
-    var BLOCK_AIR = Object.assign({}, BLOCK.AIR);
-    //
-    this.blocks = new Array(this.size.x);
-    for(var x = 0; x < this.size.x; x++) {
-        this.blocks[x] = new Array(this.size.y);
-        for(var y = 0; y < this.size.y; y++) {
-            this.blocks[x][y] = new Array(this.size.z).fill(BLOCK_AIR);;
-        }
-    }
+
     // Objects
     this.chunkManager               = chunkManager;
     this.world                      = this.chunkManager.world;
@@ -177,6 +168,9 @@ Chunk.prototype.getBlock = function(ox, oy, oz) {
         return BLOCK.DUMMY;
     }
     var block = this.blocks[x][y][z];
+    if(!block) {
+        block = BLOCK.AIR;
+    }
     return block;
 }
 

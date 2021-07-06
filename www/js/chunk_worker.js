@@ -285,10 +285,10 @@ Chunk.prototype.init = function() {
 
 Chunk.prototype.applyModifyList = function() {
     for(const [key, m] of Object.entries(this.modify_list)) {
-        var pos = key.split(',');
-        var type = BLOCK.fromId(m.id);
-        var rotate = m.rotate ? m.rotate : null;
-        var entity_id = m.entity_id ? m.entity_id : null;
+        var pos         = key.split(',');
+        var type        = BLOCK.fromId(m.id);
+        var rotate      = m.rotate ? m.rotate : null;
+        var entity_id   = m.entity_id ? m.entity_id : null;
         this.setBlock(parseInt(pos[0]), parseInt(pos[1]), parseInt(pos[2]), type, false, m.power, rotate, entity_id);
     }
 }
@@ -307,6 +307,9 @@ Chunk.prototype.getBlock = function(ox, oy, oz) {
         return BLOCK.DUMMY;
     }
     var block = this.blocks[x][y][z];
+    if(block == null) {
+        return blocks.AIR;
+    }
     return block || BLOCK.DUMMY;
 }
 
@@ -361,7 +364,7 @@ Chunk.prototype.makeLights = function() {
         for(var y = 0; y < this.size.y; y++) {
             for(var z = 0; z < this.size.z; z++) {
                 var block = this.blocks[x][y][z];
-                if(block.lightPower) {
+                if(block && block.lightPower) {
                     this.lights.push({
                         power: block.lightPower,
                         x: x,
@@ -421,7 +424,7 @@ Chunk.prototype.buildVertices = function() {
                             var pcnt = 0;
                             for(var p of cc) {
                                 var b = this.blocks[x + p.x][y + p.y][z + p.z];
-                                if(b.transparent || b.fluid) {
+                                if(!b || (b.transparent || b.fluid)) {
                                     break;
                                 }
                                 pcnt++;
@@ -452,7 +455,7 @@ Chunk.prototype.buildVertices = function() {
                         // if block with gravity
                         if(block.gravity && z > 0) {
                             var block_under = this.blocks[x][y][z - 1];
-                            if(block_under.id == blocks.AIR.id) {
+                            if(!block_under || block_under.id == blocks.AIR.id) {
                                 this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
                             }
                         }
@@ -467,9 +470,6 @@ Chunk.prototype.buildVertices = function() {
                                 block.vertices = [];
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                             }
-                            // block.vertices_start    = this.vertices.regular.list.length;
-                            // block.vertices_length   = block.vertices.length;
-                            // block.vertices_list     = this.vertices.transparent.list;
                             if(block.vertices.length > 0) {
                                 this.vertices.transparent.list.push(...block.vertices);
                             }
@@ -478,9 +478,6 @@ Chunk.prototype.buildVertices = function() {
                                 block.vertices = [];
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                             }
-                            // block.vertices_start    = this.vertices.regular.list.length;
-                            // block.vertices_length   = block.vertices.length;
-                            // block.vertices_list     = this.vertices.regular.list;
                             if(block.vertices.length > 0) {
                                 this.vertices.regular.list.push(...block.vertices);
                             }
@@ -517,7 +514,9 @@ Chunk.prototype.setDirtyBlocks = function(pos) {
                 var z = pos.z + cz;
                 if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
                     var block = this.blocks[x][y][z];
-                    delete(block['vertices']);
+                    if(block != null) {
+                        delete(block['vertices']);
+                    }
                 }
             }
         }

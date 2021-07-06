@@ -183,6 +183,7 @@ function createGLProgram(gl, vertex, fragment, callback) {
         gl.shaderSource(vertexShader, files[0]);
         gl.compileShader(vertexShader);
         gl.attachShader(program, vertexShader);
+        gl.deleteShader(vertexShader);
         if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
             throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
         }
@@ -192,6 +193,7 @@ function createGLProgram(gl, vertex, fragment, callback) {
         gl.shaderSource(fragmentShader, files[1]);
         gl.compileShader(fragmentShader);
         gl.attachShader(program, fragmentShader);
+        gl.deleteShader(fragmentShader);
         if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
             throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
         }

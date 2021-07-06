@@ -169,7 +169,7 @@ HUD.prototype.draw = function() {
     // var new_height = Math.round(Game.canvas.height / 2);
 
     if(Game.canvas.width > Game.canvas.height) {
-        var new_width =  Math.round(352 * 4.5);
+        var new_width =  Math.round(352 * 3.5);
         var new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
     } else {
         var new_height =  Math.round(332 * 3.5);
