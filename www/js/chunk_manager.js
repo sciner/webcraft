@@ -24,7 +24,7 @@ function ChunkManager(world) {
         switch(cmd) {
             case 'blocks_generated': {
                 if(that.chunks.hasOwnProperty(args.key)) {
-                    console.log(JSON.stringify(args).length);
+                    // console.log(JSON.stringify(args).length);
                     that.chunks[args.key].onBlocksGenerated(args);
                 }
                 break;
@@ -81,24 +81,58 @@ ChunkManager.prototype.refresh = function() {
 // Draw level chunks
 ChunkManager.prototype.draw = function(render) {
     var gl = render.gl;
-    gl.bindTexture(gl.TEXTURE_2D, render.texTerrain);
+    // gl.bindTexture(gl.TEXTURE_2D, render.texTerrain);
     //
     const chunks = Object.entries(this.chunks);
     this.rendered_chunks.total  = chunks.length;
     this.rendered_chunks.fact   = 0;
+    var applyVerticesCan        = 1;
+    // Для отрисовки чанков по спирали от центрального вокруг игрока
+    var spiral_moves = this.createSpiralCoords(this.margin * 2);
+    // чанк, в котором стоит игрок
+    var overChunk = Game.world.localPlayer.overChunk;
     // draw
     for(const transparent of [false, true]) {
         if(transparent) {
             gl.disable(gl.CULL_FACE);
         }
+        if(overChunk) {
+            for(var sm of spiral_moves) {
+                var pos = new Vector(
+                    overChunk.addr.x + sm.x - this.margin,
+                    overChunk.addr.y + sm.y - this.margin,
+                    overChunk.addr.z + sm.z
+                );
+                var chunk = this.getChunk(pos);
+                if(chunk) {
+                    if(chunk.hasOwnProperty('vertices_args')) {
+                        if(applyVerticesCan-- > 0) {
+                            chunk.applyVertices();
+                        }
+                    }
+                    for(const [vkey, v] of Object.entries(chunk.vertices)) {
+                        if(v.is_transparent == transparent) {
+                            this.rendered_chunks.fact += 0.5;
+                            render.drawBuffer(v.buffer);
+                        }
+                    }
+                }
+            }
+        }
+        /*
         for(const [ckey, chunk] of chunks) {
+            if(chunk.hasOwnProperty('vertices_args')) {
+                if(applyVerticesCan-- > 0) {
+                    chunk.applyVertices();
+                }
+            }
             for(const [vkey, v] of Object.entries(chunk.vertices)) {
                 if(v.is_transparent == transparent) {
                     this.rendered_chunks.fact += 0.5;
                     render.drawBuffer(v.buffer);
                 }
             }
-        }
+        }*/
         if(transparent) {
             gl.enable(gl.CULL_FACE);
         }
@@ -128,10 +162,10 @@ ChunkManager.prototype.getChunk = function(pos) {
 ChunkManager.prototype.addChunk = function(pos) {
     var k = this.getPosChunkKey(pos);
     if(!this.chunks.hasOwnProperty(k) && !this.chunks_prepare.hasOwnProperty(k)) {
-        var modify_list = {};
+        /*var modify_list = {};
         if(this.modify_list.hasOwnProperty(k)) {
             modify_list = this.modify_list[k];
-        }
+        }*/
         this.chunks_prepare[k] = {
             start_time: performance.now()
         };
@@ -190,7 +224,6 @@ ChunkManager.prototype.createSpiralCoords = function(size) {
     }
     var resp = [];
     var margin = this.margin;
-
     function rPush(vec) {
         // Если позиция на расстояние видимости (считаем честно, по кругу)
         var dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.y - size / 2, 2));
@@ -213,7 +246,7 @@ ChunkManager.prototype.createSpiralCoords = function(size) {
         rPush(new Vector(iInd, jInd += jStep, 0));
     }
     this[size] = resp;
-    console.info('Spiral(' + size + ') created; count = ' + resp.length);
+    // console.info('Spiral(' + size + ') created; count = ' + resp.length, resp);
     return resp;
 }
 
@@ -231,7 +264,7 @@ ChunkManager.prototype.update = function() {
     if(Object.entries(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
         this.prevChunkPos = chunkPos;
         var actual_keys = {};
-        var can_add = 3;
+        var can_add = 1;
         for(const [key, chunk] of Object.entries(this.chunks)) {
             if(!chunk.inited) {
                 can_add = 0;

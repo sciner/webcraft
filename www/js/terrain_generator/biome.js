@@ -280,12 +280,12 @@ Terrain.prototype.generate = function(chunk) {
             // AIR
             // chunk.blocks[x][y] = Array(chunk.size.z).fill(blocks.AIR);
             chunk.blocks[x][y] = Array(chunk.size.z).fill(null);
-            //for(var i = 1; i < chunk.size.z; i++) {
+            //for(var z = 1; z < chunk.size.z; z++) {
             //    chunk.blocks[x][y][z] = Object.assign({}, blocks.AIR);
             //}
 
             // Bedrock
-            chunk.blocks[x][y][0] = blocks.BEDROCK;
+            chunk.blocks[x][y][0] = {id: blocks.BEDROCK.id, name: blocks.BEDROCK.name};
 
             var px = (x + SX);
             var py = (y + SY);

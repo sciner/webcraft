@@ -16,6 +16,7 @@ function Player() {
     this.moving                 = false; // двигается в стороны
     this.walking                = false; // идёт по земле
     this.walking_frame          = 0;
+    this.height                 = PLAYER_HEIGHT;
     this.angles                 = [0, Math.PI, 0];
     this.chat                   = new Chat();
     this.velocity               = new Vector(0, 0, 0);
@@ -464,7 +465,8 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                         return;
                     }
                 }
-                if(playerPos.x == block.x && playerPos.y == block.y && (playerPos.z - 1 == block.z || playerPos.z == block.z )) {
+                console.log(playerPos, block);
+                if(playerPos.x == block.x && playerPos.y == block.y && (block.z >= playerPos.z - 1 || block.z <= playerPos.z + 1)) {
                     // block is occupied by player
                     return;
                 }
@@ -474,10 +476,6 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                 var matBlock = BLOCK.fromId(that.buildMaterial.id);
                 if(world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id)) {
                     // Replace block
-                    if(playerPos.x == block.x && playerPos.y == block.y && playerPos.z == block.z) {
-                        // block is occupied by player
-                        return;
-                    }
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
                             Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
@@ -533,7 +531,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
 
 // Returns the position of the eyes of the player for rendering.
 Player.prototype.getEyePos = function() {
-	return this.pos.add(new Vector(0.0, 0.0, PLAYER_HEIGHT));
+	return this.pos.add(new Vector(0.0, 0.0, this.height));
 }
 
 // getBlockPos

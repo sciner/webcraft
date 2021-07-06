@@ -6,9 +6,11 @@ class Particles_Block_Destroy {
         this.life       = .5;
         var lm          = new Color(0, 0, 0, 0);
         var n           = NORMALS.UP; // normal for lithning
-        var width       = 1;
-        var bH          = 1;
         this.texture    = BLOCK.fromId(block.id).texture;
+        if(typeof this.texture != 'function') {
+            this.life = 0;
+            return;
+        }
         var c           = calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
