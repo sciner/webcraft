@@ -618,7 +618,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     // var block = world.chunkManager.getBlock(x, y, z);
     var texture = BLOCK.fromId(block.id).texture;
     var blockLit = true; // z >= lightmap[x][y];
-    var blockLight = block.light ? block.light.toFloat() : null;
+    // var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     // полная текстура
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
@@ -629,13 +629,14 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         c[2] - half,
         c[3] - half,
     ];
+    /*
     // верхняя половина текстуры
     var c_half_top = [
         c[0],
         c[1],
         c[2] - half,
         c[3],
-    ];
+    ];*/
     // нижняя половина текстуры
     var c_half_bottom= [
         c[0],
@@ -643,9 +644,9 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         c[2],
         c[3],
     ];
-    var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
-    
-    var dirs = check_xy_neighbor(world, x, y, z);
+
+    // var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
+    // var dirs = check_xy_neighbor(world, x, y, z);
 
     // задняя стенка
     var lm = new Color(0, 0, 0, 0);
