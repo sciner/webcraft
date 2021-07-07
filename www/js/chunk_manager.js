@@ -264,7 +264,7 @@ ChunkManager.prototype.update = function() {
     if(Object.entries(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
         this.prevChunkPos = chunkPos;
         var actual_keys = {};
-        var can_add = 1;
+        var can_add = 3;
         for(const [key, chunk] of Object.entries(this.chunks)) {
             if(!chunk.inited) {
                 can_add = 0;
