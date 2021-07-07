@@ -371,7 +371,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
 
     var texture     = BLOCK[block.name].texture;
-    var blockLit    = z >= lightmap[x][y];
+    var blockLit    = true; // z >= lightmap[x][y];
     var bH          = 1.0;
     var width       = block.width ? block.width : 1;
     var lm          = new Color(0, 0, 0, 0);
@@ -596,7 +596,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z) {
 function push_fence(block, vertices, world, lightmap, x, y, z) {
     // var block = world.chunkManager.getBlock(x, y, z);
     var texture = BLOCK.fromId(block.id).texture;
-    var blockLit = z >= lightmap[x][y];
+    var blockLit = true; // z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
@@ -643,7 +643,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         c[2],
         c[3],
     ];
-    var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
+    var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
     
     var dirs = check_xy_neighbor(world, x, y, z);
 
@@ -764,7 +764,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
     
     // var block = world.chunkManager.getBlock(x, y, z);
     var texture = BLOCK.fromId(block.id).texture;
-	var blockLit = z >= lightmap[x][y];
+	var blockLit = true; // z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     // полная текстура
@@ -790,7 +790,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
         c[2],
         c[3],
     ];
-    var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
+    var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
     
     var dirs = check_xy_neighbor(world, x, y, z);
 
