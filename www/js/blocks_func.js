@@ -617,7 +617,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     
     // var block = world.chunkManager.getBlock(x, y, z);
     var texture = BLOCK.fromId(block.id).texture;
-    var blockLit = z >= lightmap[x][y];
+    var blockLit = true; // z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     // полная текстура
