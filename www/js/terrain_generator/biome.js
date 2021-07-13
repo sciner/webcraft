@@ -246,10 +246,7 @@ Terrain.prototype.generate = function(chunk) {
     // Top dirts
     var top_dirts = new Array(chunk.size.x);
     for(var x = 0; x < chunk.size.x; x++) {
-        top_dirts[x] = new Array(chunk.size.y);
-        for(var y = 0; y < chunk.size.y; y++) {
-            top_dirts[x][y] = 0;
-        }
+        top_dirts[x] = new Array(chunk.size.y).fill(0);
     }
 
     const seed                  = chunk.id;
