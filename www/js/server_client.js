@@ -134,7 +134,10 @@ class ServerClient {
     }
 
     Send(packet) {
-        this.ws.send(JSON.stringify(packet));
+        var that = this;
+        setTimeout(function() {
+            that.ws.send(JSON.stringify(packet));
+        }, 0);
     }
 
     ChunkAdd(pos) {

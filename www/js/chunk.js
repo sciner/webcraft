@@ -92,12 +92,20 @@ Chunk.prototype.doShift = function(shift) {
 
 // onVerticesGenerated ... Webworker callback method
 Chunk.prototype.onVerticesGenerated = function(args) {
+    this.vertices_args = args;
+}
+
+//
+Chunk.prototype.applyVertices = function() {
+    const args = this.vertices_args;
+    delete(this['vertices_args']);
+    // var tm = performance.now();
     this.buildVerticesInProgress    = false;
     this.vertices_length            = 0;
     this.gravity_blocks             = args.gravity_blocks;
     this.fluid_blocks               = args.fluid_blocks;
     var gl = this.world.renderer.gl;
-    gl.useProgram(this.world.renderer.program);
+    // gl.useProgram(this.world.renderer.program);
     // Delete old WebGL buffers
     for(const [key, v] of Object.entries(this.vertices)) {
         gl.deleteBuffer(v.buffer);
