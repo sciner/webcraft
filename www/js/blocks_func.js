@@ -210,41 +210,38 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var bH         = 1.0;
     if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
         bH = Math.min(block.power, .9)
-        var blockOver = world.chunkManager.getBlock(x, y, z + 1);
+        var blockOver  = world.chunkManager.getBlock(x, y, z + 1);
         if(blockOver) {
-            var blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
-            if(blockOverIsFluid) {
-                bH = 1.0;
-            }
-        }
+	        var blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+	        if(blockOverIsFluid) {
+	            bH = 1.0;
+	        }
+	 	}
     }
 
     bH = 1;
     // Top
     neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
-    if(x==3241 && y==2464 && z==89) {
-        console.log('aaa', neighbourBlock);
-    }
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            var nX = world.chunkManager.getBlock(x, y - 1, z + 1); // слева
-            var nY = world.chunkManager.getBlock(x - 1, y, z + 1); // сверху
-            var nXY = world.chunkManager.getBlock(x - 1, y - 1, z + 1); // левый верхний угол
-            var pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
-            var pY = world.chunkManager.getBlock(x + 1, y, z + 1); // снизу
-            var pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
-            var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний 
-            var dXY = world.chunkManager.getBlock(x + 1, y - 1, z + 1); // левый нижний
-            if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
-            if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
-            if(ao_transparent_blocks.indexOf(nXY.id) < 0 && !nXY.transparent)  {ao[0] += .2; }
-            if(ao_transparent_blocks.indexOf(pX.id) < 0 && !pX.transparent)  {ao[2] += .2; ao[3] += .2; }
-            if(ao_transparent_blocks.indexOf(pY.id) < 0 && !pY.transparent)  {ao[1] += .2; ao[2] += .2; }
-            if(ao_transparent_blocks.indexOf(pXY.id) < 0 && !pXY.transparent)  {ao[2] += .2;}
-            if(ao_transparent_blocks.indexOf(uXY.id) < 0 && !uXY.transparent)  {ao[3] += .2;}
-            if(ao_transparent_blocks.indexOf(dXY.id) < 0 && !dXY.transparent)  {ao[1] += .2;}
-        }
+	        var nX = world.chunkManager.getBlock(x, y - 1, z + 1); // слева
+	        var nY = world.chunkManager.getBlock(x - 1, y, z + 1); // сверху
+	        var nXY = world.chunkManager.getBlock(x - 1, y - 1, z + 1); // левый верхний угол
+	        var pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
+	        var pY = world.chunkManager.getBlock(x + 1, y, z + 1); // снизу
+	        var pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
+	        var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний 
+	        var dXY = world.chunkManager.getBlock(x + 1, y - 1, z + 1); // левый нижний
+	        if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
+	        if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
+	        if(ao_transparent_blocks.indexOf(nXY.id) < 0 && !nXY.transparent)  {ao[0] += .2; }
+	        if(ao_transparent_blocks.indexOf(pX.id) < 0 && !pX.transparent)  {ao[2] += .2; ao[3] += .2; }
+	        if(ao_transparent_blocks.indexOf(pY.id) < 0 && !pY.transparent)  {ao[1] += .2; ao[2] += .2; }
+	        if(ao_transparent_blocks.indexOf(pXY.id) < 0 && !pXY.transparent)  {ao[2] += .2;}
+	        if(ao_transparent_blocks.indexOf(uXY.id) < 0 && !uXY.transparent)  {ao[3] += .2;}
+	        if(ao_transparent_blocks.indexOf(dXY.id) < 0 && !dXY.transparent)  {ao[1] += .2;}
+    	}
         c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
         n = NORMALS.UP;
         pushQuad(
@@ -469,7 +466,7 @@ function pushQuad(v, p1, p2, p3, p4) {
     v.push(...p3);
     v.push(...p4);
     v.push(...p1);
-    /*
+	/*
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
     v.push(p2[0], p2[1], p2[2], p2[3], p2[4], p2[5], p2[6], p2[7], p2[8], p2[9], p2[10], p2[11]);
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
@@ -477,7 +474,7 @@ function pushQuad(v, p1, p2, p3, p4) {
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
     v.push(p4[0], p4[1], p4[2], p4[3], p4[4], p4[5], p4[6], p4[7], p4[8], p4[9], p4[10], p4[11]);
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
-    */
+	*/
 }
 
 // push_plane
@@ -629,7 +626,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         c[2] - half,
         c[3] - half,
     ];
-    /*
+	/*
     // верхняя половина текстуры
     var c_half_top = [
         c[0],
