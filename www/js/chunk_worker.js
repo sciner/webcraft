@@ -415,7 +415,9 @@ Chunk.prototype.buildVertices = function() {
         {x: 0, y: -1, z: 0},
         {x: 0, y: 1, z: 0},
     ];
-    
+
+    function F() {}
+
     for(var x = 0; x < this.size.x; x++) {
         for(var y = 0; y < this.size.y; y++) {
             for(var z = 0; z < this.size.z; z++) {
@@ -478,8 +480,47 @@ Chunk.prototype.buildVertices = function() {
                             }
                         } else {
                             if(!block.hasOwnProperty('vertices')) {
-                            	block = this.blocks[x][y][z] = Object.assign({}, block);
+
+                                // 3.8 sec
+                                // block = this.blocks[x][y][z] = Object.assign({}, block);
+                                // block.vertices = [];
+                                
+                                // 3.5 sec
+                                // block = this.blocks[x][y][z] = JSON.parse(JSON.stringify(block));
+                                // block.vertices = [];
+        
+                                // 2.7 sec
+                                //var b = {vertices: []};
+                                //for (var i in block) {
+                                //    b[i] = block[i];
+                                //}
+                                //block = this.blocks[x][y][z] = b;
+
+                                /*
+                                // 2.2 sec
+                                block = this.blocks[x][y][z] = {
+                                    id:                 block.id,
+                                    name:               block.name,
+                                    power:              block.power,
+                                    light:              block.light,
+                                    passable:           block.passable,
+                                    spawnable:          block.spawnable,
+                                    inventory_icon_id:  block.inventory_icon_id,
+                                    fluid:              block.fluid,
+                                    gravity:            block.gravity,
+                                    sound:              block.sound,
+                                    width:              block.width,
+                                    style:              block.style,
+                                    planting:           block.planting,
+                                    transparent:        block.transparent,
+                                    vertices:           []
+                                };
+                                */
+
+                                // 2.185
+                                block = this.blocks[x][y][z] = Object.create(block);
                                 block.vertices = [];
+
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                             }
                             if(block.vertices.length > 0) {
