@@ -94,61 +94,63 @@ PlayerModel.prototype.loadTextures = function() {
 PlayerModel.prototype.loadPlayerHeadModel = function() {
 
     var gl = this.gl;
+
+    // [x, y, z, tX, tY, lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
     
     // Player head
     var vertices = [
         // Top
-        -0.25, -0.25, 0.25, 8/64, 0, 1, 1, 1, 1,
-        0.25, -0.25, 0.25, 16/64, 0, 1, 1, 1, 1,
-        0.25, 0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1,
-        0.25, 0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1,
-        -0.25, 0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1,
-        -0.25, -0.25, 0.25, 8/64, 0, 1, 1, 1, 1,
+        -0.25, -0.25, 0.25, 8/64, 0, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.25, -0.25, 0.25, 16/64, 0, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.25, 0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.25, 0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.25, 0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.25, -0.25, 0.25, 8/64, 0, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         
         // Bottom
-        -0.25, -0.25, -0.25, 16/64, 0, 1, 1, 1, 1,
-        -0.25, 0.25, -0.25, 16/64, 8/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 24/64, 8/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 24/64, 8/64, 1, 1, 1, 1,
-        0.25, -0.25, -0.25, 24/64, 0, 1, 1, 1, 1,
-        -0.25, -0.25, -0.25, 16/64, 0, 1, 1, 1, 1,
+        -0.25, -0.25, -0.25, 16/64, 0, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.25, 0.25, -0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.25, 0.25, -0.25, 24/64, 8/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.25, 0.25, -0.25, 24/64, 8/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.25, -0.25, -0.25, 24/64, 0, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.25, -0.25, -0.25, 16/64, 0, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
         
         // Front        
-        -0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1,
-        -0.25, -0.25, -0.25, 8/64, 16/64, 1, 1, 1, 1,
-        0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1,
-        0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1,
-        0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1,
-        -0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1,
+        -0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.25, -0.25, -0.25, 8/64, 16/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
         
         // Rear        
-        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1,
-        0.25, 0.25, 0.25, 32/64, 8/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 32/64, 16/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 32/64, 16/64, 1, 1, 1, 1,
-        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1,
-        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1,
+        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.25, 0.25, 0.25, 32/64, 8/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.25, 0.25, -0.25, 32/64, 16/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.25, 0.25, -0.25, 32/64, 16/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
         
         // Right
-        -0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1,
-        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1,
-        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1,
-        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1,
-        -0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1,
-        -0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1,
+        -0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.25, 0.25, 0.25, 24/64, 8/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.25, 0.25, -0.25, 24/64, 16/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.25, -0.25, -0.25, 16/64, 16/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.25, -0.25, 0.25, 16/64, 8/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
         
         // Left
-        0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1,
-        0.25, -0.25, -0.25, 8/64, 16/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 0/64, 16/64, 1, 1, 1, 1,
-        0.25, 0.25, -0.25, 0/64, 16/64, 1, 1, 1, 1,
-        0.25, 0.25, 0.25, 0/64, 8/64, 1, 1, 1, 1,
-        0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1
+        0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.25, -0.25, -0.25, 8/64, 16/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.25, 0.25, -0.25, 0/64, 16/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.25, 0.25, -0.25, 0/64, 16/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.25, 0.25, 0.25, 0/64, 8/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.25, -0.25, 0.25, 8/64, 8/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
 
     ];
 
     var buffer = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
     
@@ -165,57 +167,57 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         // Player torso
         
         // Top
-        -0.30, -0.125, 1.45, 20/64, 16/64, 1, 1, 1, 1,
-        0.30, -0.125, 1.45, 28/64, 16/64, 1, 1, 1, 1,
-        0.30, 0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1,
-        0.30, 0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1,
-        -0.30, 0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125, 1.45, 20/64, 16/64, 1, 1, 1, 1,
+        -0.30, -0.125, 1.45, 20/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.30, -0.125, 1.45, 28/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.30, 0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.30, 0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.30, 0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.30, -0.125, 1.45, 20/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         
         // Bottom
-        -0.30, -0.125, 0.73, 28/64, 16/64, 1, 1, 1, 1,
-        -0.30, 0.125, 0.73, 28/64, 20/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 36/64, 20/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 36/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125, 0.73, 36/64, 16/64, 1, 1, 1, 1,
-        -0.30, -0.125, 0.73, 28/64, 16/64, 1, 1, 1, 1,
+        -0.30, -0.125, 0.73, 28/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.30, 0.125, 0.73, 28/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.30, 0.125, 0.73, 36/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.30, 0.125, 0.73, 36/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.30, -0.125, 0.73, 36/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.30, -0.125, 0.73, 28/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
         
         // Front        
-        -0.30, -0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1,
-        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1,
-        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1,
-        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1,
+        -0.30, -0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.30, -0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.30, -0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
         
         // Rear        
-        -0.30, 0.125, 1.45, 40/64, 20/64, 1, 1, 1, 1,
-        0.30, 0.125, 1.45, 32/64, 20/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1,
-        -0.30, 0.125, 0.73, 40/64, 32/64, 1, 1, 1, 1,
-        -0.30, 0.125, 1.45, 40/64, 20/64, 1, 1, 1, 1,
+        -0.30, 0.125, 1.45, 40/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.30, 0.125, 1.45, 32/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.30, 0.125, 0.73, 40/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.30, 0.125, 1.45, 40/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
         
         // Right
-        -0.30, -0.125, 1.45, 16/64, 20/64, 1, 1, 1, 1,
-        -0.30, 0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1,
-        -0.30, 0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1,
-        -0.30, 0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1,
-        -0.30, -0.125, 0.73, 16/64, 32/64, 1, 1, 1, 1,
-        -0.30, -0.125, 1.45, 16/64, 20/64, 1, 1, 1, 1,
+        -0.30, -0.125, 1.45, 16/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.30, 0.125, 1.45, 20/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.30, 0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.30, 0.125, 0.73, 20/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.30, -0.125, 0.73, 16/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.30, -0.125, 1.45, 16/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
         
         // Left
-        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125, 1.45, 32/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1,
+        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.30, -0.125, 0.73, 28/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.30, 0.125, 0.73, 32/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.30, 0.125, 1.45, 32/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.30, -0.125, 1.45, 28/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
         
     ];
     
     var buffer = this.playerBody = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer );
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
 
@@ -223,57 +225,57 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         // Left arm
         
         // Top
-        0.30, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1,
-        0.55, -0.125, 0.05, 48/64, 16/64, 1, 1, 1, 1,
-        0.55,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1,
-        0.55,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1,
-        0.30,  0.125, 0.05, 44/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1,
+        0.30, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.55, -0.125, 0.05, 48/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.55,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.55,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.30,  0.125, 0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.30, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         
         // Bottom
-        0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1,
-        0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1,
-        0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1,
-        0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1,
-        0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1,
-        0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1,
+        0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
         
         // Front        
-        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1,
-        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1,
-        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1,
-        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
-        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
+        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
         
         // Rear        
-        0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1,
-        0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1,
-        0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1,
-        0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1,
+        0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
         
         // Right
-        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
-        0.30,  0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1,
-        0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1,
-        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
+        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.30,  0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
         
         // Left
-        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
-        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1,
-        0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1,
-        0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1,
-        0.55,  0.125,  0.05, 40/64, 20/64, 1, 1, 1, 1,
-        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
+        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.55,  0.125,  0.05, 40/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
         
     ];
 
     var buffer = this.playerLeftArm = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array( vertices ), gl.DYNAMIC_DRAW);
 
@@ -281,57 +283,57 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         // Right arm
         
         // Top
-        -0.55, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1,
-        -0.30, -0.125, 0.05, 48/64, 16/64, 1, 1, 1, 1,
-        -0.30,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1,
-        -0.30,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1,
-        -0.55,  0.125, 0.05, 44/64, 20/64, 1, 1, 1, 1,
-        -0.55, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1,
+        -0.55, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.30, -0.125, 0.05, 48/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.30,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.30,  0.125, 0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.55,  0.125, 0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.55, -0.125, 0.05, 44/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         
         // Bottom
-        -0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1,
-        -0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1,
-        -0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1,
-        -0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1,
-        -0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1,
+        -0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.55,  0.125, -0.67, 52/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.30,  0.125, -0.67, 48/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.30, -0.125, -0.67, 48/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.55, -0.125, -0.67, 52/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
         
         // Front        
-        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
-        -0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1,
-        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1,
-        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1,
-        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
-        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
+        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
         
         // Rear        
-        -0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1,
-        -0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1,
-        -0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        -0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        -0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1,
-        -0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1,
+        -0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.30, 0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.30, 0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.55, 0.125, -0.67, 56/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.55, 0.125,  0.05, 56/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
         
         // Right
-        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
-        -0.55,  0.125,  0.05, 40/64, 20/64, 1, 1, 1, 1,
-        -0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1,
-        -0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1,
-        -0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1,
-        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1,
+        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.55,  0.125,  0.05, 40/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.55,  0.125, -0.67, 40/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.55, -0.125, -0.67, 44/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.55, -0.125,  0.05, 44/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
         
         // Left
-        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1,
-        -0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        -0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1,
-        -0.30,  0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1,
-        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1,
+        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.30, -0.125, -0.67, 48/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.30,  0.125, -0.67, 52/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.30,  0.125,  0.05, 52/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.30, -0.125,  0.05, 48/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
         
     ];
     
     var buffer = this.playerRightArm = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array( vertices ), gl.DYNAMIC_DRAW);
 
@@ -339,56 +341,56 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         // Left leg
         
         // Top
-        0.01, -0.125, 0, 4/64, 16/64, 1, 1, 1, 1,
-        0.3,  -0.125, 0, 8/64, 16/64, 1, 1, 1, 1,
-        0.3,   0.125, 0, 8/64, 20/64, 1, 1, 1, 1,
-        0.3,   0.125, 0, 8/64, 20/64, 1, 1, 1, 1,
-        0.01,  0.125, 0, 4/64, 20/64, 1, 1, 1, 1,
-        0.01, -0.125, 0, 4/64, 16/64, 1, 1, 1, 1,
+        0.01, -0.125, 0, 4/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.3,  -0.125, 0, 8/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.3,   0.125, 0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.3,   0.125, 0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.01,  0.125, 0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        0.01, -0.125, 0, 4/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         
         // Bottom
-        0.01, -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1,
-        0.01,  0.125, -0.73,  8/64, 20/64, 1, 1, 1, 1,
-        0.3,   0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1,
-        0.3,   0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1,
-        0.3,  -0.125, -0.73, 12/64, 16/64, 1, 1, 1, 1,
-        0.01, -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1,
+        0.01, -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.01,  0.125, -0.73,  8/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.3,   0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.3,   0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.3,  -0.125, -0.73, 12/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        0.01, -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
         
         // Front        
-        0.01, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
-        0.01, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1,
-        0.3,  -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1,
-        0.3,  -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1,
-        0.3,  -0.125,     0, 8/64, 20/64, 1, 1, 1, 1,
-        0.01, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
+        0.01, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.01, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.3,  -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.3,  -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.3,  -0.125,     0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        0.01, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
         
         // Rear        
-        0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1,
-        0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1,
-        0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1,
-        0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1,
-        0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1,
+        0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
         
         // Right
-        0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1,
-        0.01,  0.125,     0, 12/64, 20/64, 1, 1, 1, 1,
-        0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        0.01, -0.125, -0.73,  8/64, 32/64, 1, 1, 1, 1,
-        0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1,
+        0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.01,  0.125,     0, 12/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.01, -0.125, -0.73,  8/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
         
         // Left
-        0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
-        0.3, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1,
-        0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1,
-        0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1,
-        0.3,  0.125,     0, 0/64, 20/64, 1, 1, 1, 1,
-        0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
+        0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.3, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.3,  0.125,     0, 0/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
     ];
     
     var buffer = this.playerLeftLeg = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
 
@@ -396,56 +398,56 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         // Right leg
 
         // Top
-        -0.3,  -0.125, 0, 4/64, 16/64, 1, 1, 1, 1,
-        -0.01, -0.125, 0, 8/64, 16/64, 1, 1, 1, 1,
-        -0.01,  0.125, 0, 8/64, 20/64, 1, 1, 1, 1,
-        -0.01,  0.125, 0, 8/64, 20/64, 1, 1, 1, 1,
-        -0.3,   0.125, 0, 4/64, 20/64, 1, 1, 1, 1,
-        -0.3,  -0.125, 0, 4/64, 16/64, 1, 1, 1, 1,
+        -0.3,  -0.125, 0, 4/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.01, -0.125, 0, 8/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.01,  0.125, 0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.01,  0.125, 0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.3,   0.125, 0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -0.3,  -0.125, 0, 4/64, 16/64, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
 
         // Bottom
-        -0.3,  -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1,
-        -0.3,   0.125, -0.73,  8/64, 20/64, 1, 1, 1, 1,
-        -0.01,  0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1,
-        -0.01,  0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1,
-        -0.01, -0.125, -0.73, 12/64, 16/64, 1, 1, 1, 1,
-        -0.3,  -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1,
+        -0.3,  -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.3,   0.125, -0.73,  8/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.01,  0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.01,  0.125, -0.73, 12/64, 20/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.01, -0.125, -0.73, 12/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+        -0.3,  -0.125, -0.73,  8/64, 16/64, 1, 1, 1, 1, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
 
         // Front
-        -0.3,  -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
-        -0.3,  -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1,
-        -0.01, -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1,
-        -0.01, -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1,
-        -0.01, -0.125,     0, 8/64, 20/64, 1, 1, 1, 1,
-        -0.3,  -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
+        -0.3,  -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.3,  -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.01, -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.01, -0.125, -0.73, 8/64, 32/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.01, -0.125,     0, 8/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+        -0.3,  -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
 
         // Rear        
-        -0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1,
-        -0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1,
-        -0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        -0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        -0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1,
-        -0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1,
+        -0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.01, 0.125,     0, 12/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.01, 0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.3,  0.125, -0.73, 16/64, 32/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        -0.3,  0.125,     0, 16/64, 20/64, 1, 1, 1, 1, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
 
         // Right
-        -0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
-        -0.3,  0.125,     0, 0/64, 20/64, 1, 1, 1, 1,
-        -0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1,
-        -0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1,
-        -0.3, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1,
-        -0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1,
+        -0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.3,  0.125,     0, 0/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.3,  0.125, -0.73, 0/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.3, -0.125, -0.73, 4/64, 32/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+        -0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
 
         // Left
-        -0.01, -0.125,    0,   8/64, 20/64, 1, 1, 1, 1,
-        -0.01, -0.125, -0.73,  8/64, 32/64, 1, 1, 1, 1,
-        -0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        -0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1,
-        -0.01,  0.125,     0, 12/64, 20/64, 1, 1, 1, 1,
-        -0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1
+        -0.01, -0.125,    0,   8/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.01, -0.125, -0.73,  8/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.01,  0.125, -0.73, 12/64, 32/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.01,  0.125,     0, 12/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        -0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
     ];
 
     var buffer = this.playerRightLeg = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
 
@@ -584,15 +586,15 @@ PlayerModel.prototype.buildPlayerName = function(nickname) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     // Create model
     var vertices = [
-        -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7,
-        w/2, 0, h, 0, 0, 1, 1, 1, 0.7,
-        w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7,
-        w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7,
-        -w/2, 0, 0, w/256, h/64, 1, 1, 1, 0.7,
-        -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7
+        -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        w/2, 0, h, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -w/2, 0, 0, w/256, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+        -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
     ];
     var buffer = gl.createBuffer();
-    buffer.vertices = vertices.length / 9;
+    buffer.vertices = vertices.length / 12;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
     return {
