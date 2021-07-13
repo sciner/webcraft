@@ -181,14 +181,14 @@ World.prototype.toJSON = function() {
 World.prototype.exportJSON = function(callback) {
     var that = this;
     var row = {
-        _id:                Game.world_name,
-        seed:               Game.seed,
-        spawnPoint:         that.spawnPoint,
-        pos:                that.localPlayer.pos,
+        _id:        Game.world_name,
+        seed:       Game.seed,
+        spawnPoint: that.spawnPoint,
+        pos:        that.localPlayer.pos,
         flying:             that.localPlayer.flying,
         chunk_render_dist:  CHUNK_RENDER_DIST,
-        rotate:             that.rotate,
-        brightness:         that.renderer.brightness,
+        rotate:     that.rotate,
+        brightness: that.renderer.brightness,
         inventory:  {
             items: Game.world.localPlayer.inventory.items,
             current: {

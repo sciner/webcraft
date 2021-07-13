@@ -36,7 +36,6 @@ BLOCK.DUMMY = {
     transparent: false,
     texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
 };
-
 // Air
 BLOCK.AIR = {
 	id: 0,
@@ -308,7 +307,7 @@ BLOCK.GLOWSTONE = {
     spawnable:      true,
     transparent:    true,
     lightPower:     new Color(255, 235, 35, 255),
-    sound: 'stone',
+    sound: 			'stone',
     texture: function( world, lightmap, lit, x, y, z, dir) {
         return [9, 6];
     }

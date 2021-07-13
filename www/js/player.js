@@ -64,7 +64,7 @@ Player.prototype.setInputCanvas = function(id) {
             return false;
         }
     }
-    document.onkeyup = function(e) {
+    document.onkeyup  = function(e) {
         if (e.target.tagName != 'INPUT') {
             if(t._onKeyEvent(e, e.keyCode, false)) {
                 return false;
@@ -380,7 +380,7 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
     // s = 83 // down
     if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
     if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
-    if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}  
+    if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
     if(keyCode == KEY.W) {
         const n = performance.now();
         if(down) {
@@ -465,7 +465,6 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                         return;
                     }
                 }
-                console.log(playerPos, block);
                 if(playerPos.x == block.x && playerPos.y == block.y && (block.z >= playerPos.z - 1 || block.z <= playerPos.z + 1)) {
                     // block is occupied by player
                     return;

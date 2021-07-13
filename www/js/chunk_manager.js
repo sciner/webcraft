@@ -119,20 +119,6 @@ ChunkManager.prototype.draw = function(render) {
                 }
             }
         }
-        /*
-        for(const [ckey, chunk] of chunks) {
-            if(chunk.hasOwnProperty('vertices_args')) {
-                if(applyVerticesCan-- > 0) {
-                    chunk.applyVertices();
-                }
-            }
-            for(const [vkey, v] of Object.entries(chunk.vertices)) {
-                if(v.is_transparent == transparent) {
-                    this.rendered_chunks.fact += 0.5;
-                    render.drawBuffer(v.buffer);
-                }
-            }
-        }*/
         if(transparent) {
             gl.enable(gl.CULL_FACE);
         }
@@ -407,6 +393,35 @@ ChunkManager.prototype.setBlock = function(x, y, z, block, is_modify, power, rot
         // устанавливаем блок
         chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
     }
+    /*
+    // определяем относительные координаты чанка
+    var chunkPos = this.getChunkPos(x, y, z);
+    // обращаемся к чанку
+    var chunk = this.getChunk(chunkPos);
+    // если чанк найден
+    if(chunk) {
+        if(is_modify) {
+            // @server
+            this.world.server.Send({
+                name: ServerClient.EVENT_BLOCK_SET,
+                data: {
+                    pos: new Vector(x, y, z),
+                    item: {
+                        id: type.id,
+                        power: power ? power : 1.0,
+                        rotate: rotate,
+                        entity_id: entity_id
+                    }
+                }
+            });
+            // устанавливаем блок
+            // chunk.setBlock(x, y, z, type, false, power, rotate, entity_id);
+        } else {
+            // устанавливаем блок
+            chunk.setBlock(x, y, z, type, is_modify, power, rotate, entity_id);
+        }
+    }
+    */
 }
 
 // destroyBlock
