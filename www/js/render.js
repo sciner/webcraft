@@ -259,39 +259,45 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 u_resolution:   gl.getUniformLocation(program, 'u_resolution')
             },
             attribute: {
-                v_attr_inx:     gl.getAttribLocation(program, 'inPos')
+                // v_attr_inx:     gl.getAttribLocation(program, 'inPos')
             },
             draw: function() {
                 const gl = this.gl;
                 gl.useProgram(this.program);
                 Game.hud.draw();
-                
                 gl.uniform2f(this.uniform.u_resolution, gl.viewportWidth * window.devicePixelRatio, gl.viewportHeight * window.devicePixelRatio);
                 gl.uniform1f(this.uniform.u_noCrosshair, Game.hud.wm.getVisibleWindows().length > 0);
                 gl.activeTexture(gl.TEXTURE0);
                 gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-                if(this.tick++ % 3 == 0) {
+                if(this.tick++ % 2 == 0) {
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Game.hud.canvas);
                 }
-
-                if(!this.bufRect) {
-                    this.bufRect = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW);
+                if(!this.vertexBuffer) {
+                    this.vertexBuffer = gl.createBuffer();
+                    this.indexBuffer = gl.createBuffer();
+                    const vertexData = [
+                        -1, -1,
+                         1, -1,
+                         1,  1,
+                        -1,  1
+                    ];
+                    const indexData = [
+                        0, 1, 2,
+                        1, 2, 3
+                    ];
+                    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
+                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
                 }
-                
+                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+                this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
                 var v_attr_inx = this.attribute.v_attr_inx;
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.bufRect);
                 gl.vertexAttribPointer(v_attr_inx, 2, gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(v_attr_inx);
                 gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
                 gl.disableVertexAttribArray(v_attr_inx);
-
             }
         }
         // Create HUD texture

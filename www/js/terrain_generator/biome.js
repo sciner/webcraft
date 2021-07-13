@@ -277,13 +277,11 @@ Terrain.prototype.generate = function(chunk) {
     for(var x = 0; x < chunk.size.x; x++) {
         for(var y = 0; y < chunk.size.y; y++) {
 
+            // AIR
+            chunk.blocks[x][y] = Array(chunk.size.z).fill(null);
+
             // Bedrock
             chunk.blocks[x][y][0] = blocks.BEDROCK;
-
-            // AIR
-            for(var z = 1; z < chunk.size.z; z++) {
-                chunk.blocks[x][y][z] = blocks.AIR;
-            }
 
             var px = (x + SX);
             var py = (y + SY);
@@ -345,7 +343,13 @@ Terrain.prototype.generate = function(chunk) {
             }
 
             if(biome.code == 'OCEAN') {
-                chunk.blocks[x][y][options.WATER_LINE] = blocks.STILL_WATER;
+                // chunk.blocks[x][y][options.WATER_LINE] = blocks.STILL_WATER;
+                chunk.blocks[x][y][options.WATER_LINE] = {
+                    id:             blocks.STILL_WATER.id,
+                    fluid:          blocks.STILL_WATER.fluid,
+                    transparent:    blocks.STILL_WATER.transparent,
+                    name:           blocks.STILL_WATER.name
+                };
             }
 
             // Если это снежный биом, то верхний слой делаем принудительно снегом
@@ -385,7 +389,7 @@ Terrain.prototype.generate = function(chunk) {
                     for(var tree of biome.trees.list) {
                         s += tree.percent;
                         if(r < s) {
-                            this.plantTree(biome, tree, chunk, aleaRandom, chunk.coord.x + x, chunk.coord.y + y, chunk.coord.z + z);
+                            this.plantTree(biome, tree, chunk, aleaRandom, x, y, z);
                             break;
                         }
                     }
@@ -404,8 +408,8 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
     //}
 
     if(aleaRandom.double() < 0.01) {
-        chunk.setBlock(x, y, z, tree.trunk, false);
-        chunk.setBlock(x, y, z + 1, blocks.RED_MUSHROOM, false);
+        chunk.blocks[x][y][z] = tree.trunk;
+        chunk.blocks[x][y][z + 1] = blocks.RED_MUSHROOM;
     } else {
 
         // var height = Math.round(this.clamp(aleaRandom.double() * 9, 2, 9));
@@ -414,8 +418,8 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
 
         // ствол
         for(var p = z; p < zstart; p++) {
-            if(chunk.getBlock(x, y, p).id >= 0) {
-                chunk.setBlock(x, y, p, tree.trunk, false);
+            if(chunk.getBlock(x + chunk.coord.x, y + chunk.coord.y, p + chunk.coord.z).id >= 0) {
+                chunk.blocks[x][y][p] = tree.trunk;
             }
         }
 
@@ -439,9 +443,9 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
                         for(var i = x - rad; i <= x + rad; i++) {
                             for(var j = y - rad; j <= y + rad; j++) {
                                 if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2) + Math.pow(zstart - k, 2)) <= rad) {
-                                    var b = chunk.getBlock(i, j, k);
+                                    var b = chunk.getBlock(i + chunk.coord.x, j + chunk.coord.y, k + chunk.coord.z);
                                     if(b.id >= 0 && b.id != tree.trunk.id) {
-                                        chunk.setBlock(i, j, k, tree.leaves, false);
+                						chunk.blocks[i][j][k] = tree.leaves;
                                     }
                                 }
                             }
@@ -453,7 +457,7 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
             case 'spruce': {
                 if(tree.leaves) {
                     var max_rad = Math.max(parseInt(height / 2), 2);
-                    chunk.setBlock(x, y, zstart, tree.leaves, false);
+                	chunk.blocks[x][y][zstart] = tree.leaves;
                     zstart -= parseInt(height * .75);
                     for(var r = 0; r < 3; r++) {
                         var rad = max_rad--;
@@ -464,9 +468,9 @@ Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) 
                             for(var i = x - rad; i <= x + rad; i++) {
                                 for(var j = y - rad; j <= y + rad; j++) {
                                     if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2)) <= rad) {
-                                        var b = chunk.getBlock(i, j, zstart + l);
+                                        var b = chunk.getBlock(i + chunk.coord.x, j + chunk.coord.y, zstart + l + chunk.coord.z);
                                         if(b.id >= 0 && b.id != tree.trunk.id) {
-                                            chunk.setBlock(i, j, zstart + l, tree.leaves, false);
+                                            chunk.blocks[i][j][zstart + l] = tree.leaves;
                                         }
                                     }
                                 }
