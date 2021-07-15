@@ -1,7 +1,6 @@
 const CHUNK_SIZE_X      = 16;
-const CHUNK_SIZE_Y      = 16;
-const CHUNK_SIZE_Z      = 256;
-const CHUNK_SIZE_MAX_Z  = CHUNK_SIZE_Z;
+const CHUNK_SIZE_Y      = 256;
+const CHUNK_SIZE_Z      = 16;
 const DIRT_HEIGHT       = 32;
 var CHUNK_RENDER_DIST   = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
 
@@ -81,9 +80,7 @@ ChunkManager.prototype.refresh = function() {
 // Draw level chunks
 ChunkManager.prototype.draw = function(render) {
     var gl = render.gl;
-    // gl.bindTexture(gl.TEXTURE_2D, render.texTerrain);
-    //
-    const chunks = Object.entries(this.chunks);
+    const chunks                = Object.entries(this.chunks);
     this.rendered_chunks.total  = chunks.length;
     this.rendered_chunks.fact   = 0;
     var applyVerticesCan        = 1;
@@ -100,8 +97,8 @@ ChunkManager.prototype.draw = function(render) {
             for(var sm of spiral_moves) {
                 var pos = new Vector(
                     overChunk.addr.x + sm.x - this.margin,
-                    overChunk.addr.y + sm.y - this.margin,
-                    overChunk.addr.z + sm.z
+                    overChunk.addr.y + sm.y,
+                    overChunk.addr.z + sm.z - this.margin
                 );
                 var chunk = this.getChunk(pos);
                 if(chunk) {
@@ -212,7 +209,7 @@ ChunkManager.prototype.createSpiralCoords = function(size) {
     var margin = this.margin;
     function rPush(vec) {
         // Если позиция на расстояние видимости (считаем честно, по кругу)
-        var dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.y - size / 2, 2));
+        var dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
         if(dist < margin) {
             resp.push(vec);
         }
@@ -221,15 +218,15 @@ ChunkManager.prototype.createSpiralCoords = function(size) {
     var jInd = parseInt(size / 2);
     var iStep = 1;
     var jStep = 1;
-    rPush(new Vector(iInd, jInd, 0));
+    rPush(new Vector(iInd, 0, jInd));
     for(var i = 0; i < size; i++) {
-        for (var h = 0; h < i; h++) rPush(new Vector(iInd, jInd += jStep, 0));
-        for (var v = 0; v < i; v++) rPush(new Vector(iInd += iStep, jInd, 0));
+        for (var h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
+        for (var v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
         jStep = -jStep;
         iStep = -iStep;
     }
     for(var h = 0; h < size - 1; h++) {
-        rPush(new Vector(iInd, jInd += jStep, 0));
+        rPush(new Vector(iInd, 0, jInd += jStep));
     }
     this[size] = resp;
     // console.info('Spiral(' + size + ') created; count = ' + resp.length, resp);
@@ -260,8 +257,8 @@ ChunkManager.prototype.update = function() {
         for(var sm of spiral_moves) {
             var pos = new Vector(
                 chunkPos.x + sm.x - this.margin,
-                chunkPos.y + sm.y - this.margin,
-                chunkPos.z + sm.z
+                chunkPos.y + sm.y,
+                chunkPos.z + sm.z - this.margin
             );
             actual_keys[this.getPosChunkKey(pos)] = pos;
             if(can_add > 0) {
@@ -284,8 +281,8 @@ ChunkManager.prototype.update = function() {
             if(
                 this.getChunk(new Vector(chunk.addr.x - 1, chunk.addr.y, chunk.addr.z)) &&
                 this.getChunk(new Vector(chunk.addr.x + 1, chunk.addr.y, chunk.addr.z)) &&
-                this.getChunk(new Vector(chunk.addr.x, chunk.addr.y - 1, chunk.addr.z)) &&
-                this.getChunk(new Vector(chunk.addr.x, chunk.addr.y + 1, chunk.addr.z))
+                this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z - 1)) &&
+                this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z + 1))
                 ) {
                 dirty_chunks.push({
                     coord: chunk.coord,
@@ -333,11 +330,11 @@ ChunkManager.prototype.parseChunkPos = function(key) {
 ChunkManager.prototype.getChunkPos = function(x, y, z) {
     var v = new Vector(
         parseInt(x / CHUNK_SIZE_X),
-        parseInt(y / CHUNK_SIZE_Y),
-        0, // parseInt(z / CHUNK_SIZE_Z)
+        0,
+        parseInt(z / CHUNK_SIZE_Z)
     );
     if(x < 0) {v.x--;}
-    if(y < 0) {v.y--;}
+    if(z < 0) {v.z--;}
     if(v.x == 0) {v.x = 0;}
     if(v.y == 0) {v.y = 0;}
     if(v.z == 0) {v.z = 0;}

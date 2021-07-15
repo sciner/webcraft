@@ -9,8 +9,8 @@ importScripts(
 );
 
 const CHUNK_SIZE_X      = 16;
-const CHUNK_SIZE_Y      = 16;
-const CHUNK_SIZE_Z      = 256;
+const CHUNK_SIZE_Y      = 256;
+const CHUNK_SIZE_Z      = 16;
 const DIRT_HEIGHT       = 32;
 
 // 1. All blocks
@@ -198,10 +198,10 @@ ChunkManager.prototype.getChunkPos = function(x, y, z) {
     var v = new Vector(
         parseInt(x / CHUNK_SIZE_X),
         parseInt(y / CHUNK_SIZE_Y),
-        0, // parseInt(z / CHUNK_SIZE_Z)
+        parseInt(z / CHUNK_SIZE_Z)
     );
     if(x < 0) {v.x--;}
-    if(y < 0) {v.y--;}
+    if(z < 0) {v.z--;}
     if(v.x == 0) {v.x = 0;}
     if(v.y == 0) {v.y = 0;}
     if(v.z == 0) {v.z = 0;}
@@ -257,10 +257,9 @@ Chunk.prototype.init = function() {
     this.timers.init = performance.now();
     this.blocks = new Array(this.size.x);
     for(var x = 0; x < this.size.x; x++) {
-        this.blocks[x] = new Array(this.size.y);
-        for(var y = 0; y < this.size.y; y++) {
-            // this.blocks[x][y] = new Array(this.size.z);
-            this.blocks[x][y] = new Array(this.size.z).fill(blocks.AIR);;
+        this.blocks[x] = new Array(this.size.z);
+        for(var z = 0; z < this.size.z; z++) {
+            this.blocks[x][z] = new Array(this.size.y).fill(blocks.AIR);
         }
     }
     this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
@@ -303,10 +302,16 @@ Chunk.prototype.getBlock = function(ox, oy, oz) {
     if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
         return BLOCK.DUMMY;
     };
-    if(z < 0 || z >= this.size.z) {
+    if(z < 0 || z >= this.size.y) {
         return BLOCK.DUMMY;
     }
-    var block = this.blocks[x][y][z];
+    try {
+        var block = this.blocks[x][z][y];
+    } catch(e) {
+        console.error(e);
+        console.log(x, y, z);
+        debugger;
+    }
     if(block == null) {
         return blocks.AIR;
     }
@@ -351,11 +356,11 @@ Chunk.prototype.setBlock = function(x, y, z, orig_type, is_modify, power, rotate
         console.table(orig_type);
     }
     var type                        = Object.assign({}, BLOCK.fromId(orig_type.id));
-    this.blocks[x][y][z]            = type;
-    this.blocks[x][y][z].power      = power;
-    this.blocks[x][y][z].rotate     = rotate;
-    this.blocks[x][y][z].entity_id  = entity_id;
-    this.blocks[x][y][z].texture    = null;
+    this.blocks[x][z][y]            = type;
+    this.blocks[x][z][y].power      = power;
+    this.blocks[x][z][y].rotate     = rotate;
+    this.blocks[x][z][y].entity_id  = entity_id;
+    this.blocks[x][z][y].texture    = null;
     // this.dirty                      = true;
 }
 
@@ -364,9 +369,9 @@ Chunk.prototype.makeLights = function() {
     this.lights             = [];
     // Lights
     for(var x = 0; x < this.size.x; x++) {
-        for(var y = 0; y < this.size.y; y++) {
-            for(var z = 0; z < this.size.z; z++) {
-                var block = this.blocks[x][y][z];
+        for(var z = 0; z < this.size.z; z++) {
+            for(var y = 0; y < this.size.y; y++) {
+                var block = this.blocks[x][z][y];
                 if(block && block.lightPower) {
                     this.lights.push({
                         power: block.lightPower,
@@ -406,7 +411,7 @@ Chunk.prototype.buildVertices = function() {
             is_transparent: true
         },
     }
-    
+
     var cc = [
         {x: 0, y: 0, z: -1},
         {x: 0, y: 0, z: 1},
@@ -416,19 +421,17 @@ Chunk.prototype.buildVertices = function() {
         {x: 0, y: 1, z: 0},
     ];
 
-    function F() {}
-
     for(var x = 0; x < this.size.x; x++) {
-        for(var y = 0; y < this.size.y; y++) {
-            for(var z = 0; z < this.size.z; z++) {
-                var block = this.blocks[x][y][z];
+        for(var z = 0; z < this.size.z; z++) {
+            for(var y = 0; y < this.size.y; y++) {
+                var block = this.blocks[x][z][y];
                 if(block) {
                     if(block.id != BLOCK.AIR.id) {
                         // ignore invisible inside another blocks
                         if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
                             var pcnt = 0;
                             for(var p of cc) {
-                                var b = this.blocks[x + p.x][y + p.y][z + p.z];
+                                var b = this.blocks[x + p.x][z + p.z][y + p.y];
                                 if(!b || (b.transparent || b.fluid)) {
                                     break;
                                 }
@@ -441,7 +444,11 @@ Chunk.prototype.buildVertices = function() {
                         // lights
                         block.light = null;
                         for(var l of this.lights) {
-                            var dist = (Math.sqrt(Math.pow(x - l.x, 2) + Math.pow(y - l.y, 2) + Math.pow(z - l.z, 2)));
+                            var dist = Math.sqrt(
+                                Math.pow(x - l.x, 2) +
+                                Math.pow(y - l.y, 2) +
+                                Math.pow(z - l.z, 2)
+                            );
                             var maxDist = Math.round((l.power.a / 255) * 8);
                             if(dist <= maxDist) {
                                 var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
@@ -454,24 +461,25 @@ Chunk.prototype.buildVertices = function() {
                                 } else {
                                     block.light = newLight;
                                 }
-                                this.blocks[x][y][z] = Object.assign({}, block);
+                                this.blocks[x][z][y] = Object.assign({}, block);
                             }
                         }
                         // if block with gravity
                         if(block.gravity && z > 0) {
-                            var block_under = this.blocks[x][y][z - 1];
+                            var block_under = this.blocks[x][z][y - 1];
                             if(!block_under || block_under.id == blocks.AIR.id) {
-                                this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
+                                this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                             }
                         }
                         // if block is fluid
                         if(block.fluid) {
-                            this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z +  + this.coord.z));
+                            this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                         }
                         // make vertices array
                         if([200, 202].indexOf(block.id) >= 0) {
                             // если это блок воды
                             if(!block.hasOwnProperty('vertices')) {
+                                block = this.blocks[x][z][y] = Object.create(block);
                                 block.vertices = [];
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                             }
@@ -518,9 +526,8 @@ Chunk.prototype.buildVertices = function() {
                                 */
 
                                 // 2.185
-                                block = this.blocks[x][y][z] = Object.create(block);
+                                block = this.blocks[x][z][y] = Object.create(block);
                                 block.vertices = [];
-
                                 BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
                             }
                             if(block.vertices.length > 0) {
@@ -537,28 +544,26 @@ Chunk.prototype.buildVertices = function() {
     for(var [key, v] of Object.entries(this.vertices)) {
         for(var i = 0; i < v.list.length; i += 12) {
             v.list[i + 0] -= this.shift.x;
-            v.list[i + 1] -= this.shift.y;
+            v.list[i + 1] -= this.shift.z;
         }
         v.list = new Float32Array(v.list);
     }
-
     this.dirty = false;
     this.tm = performance.now() - tm;
     this.lightmap = lightmap;
-
     return true;
 }
 
 // setDirtyBlocks
 Chunk.prototype.setDirtyBlocks = function(pos) {
     for(var cx = -1; cx <= 1; cx++) {
-        for(var cy = -1; cy <= 1; cy++) {
-            for(var cz = -1; cz <= 1; cz++) {
+        for(var cz = -1; cz <= 1; cz++) {
+            for(var cy = -1; cy <= 1; cy++) {
                 var x = pos.x + cx;
                 var y = pos.y + cy;
                 var z = pos.z + cz;
                 if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                    var block = this.blocks[x][y][z];
+                    var block = this.blocks[x][z][y];
                     if(block != null) {
                         delete(block['vertices']);
                     }

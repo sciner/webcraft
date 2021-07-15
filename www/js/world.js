@@ -50,13 +50,6 @@ function World(saved_state, connectedCallback) {
         connectedCallback();
     });
 
-    // Joke ;)
-    /*
-    setInterval(function() {
-        console.log('Boo');
-        Game.world.createClone();
-    }, 120000);*/
-
     // Autosave
     setInterval(function() {
         console.log('Autosave ... OK');
@@ -106,7 +99,7 @@ World.prototype.setRain = function(value) {
         if(!this.rainTim) {
             this.rainTim = setInterval(function(){
                 var pos = Game.world.localPlayer.pos;
-                Game.world.rainDrop(new Vector(pos.x, pos.y, pos.z + 30));
+                Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
             }, 25);
         }
     } else {
@@ -120,52 +113,54 @@ World.prototype.setRain = function(value) {
 // randomTeleport
 World.prototype.randomTeleport = function() {
     this.localPlayer.pos.x = 10 + Math.random() * 2000000;
-    this.localPlayer.pos.y = 10 + Math.random() * 2000000;
-    this.localPlayer.pos.z = 80
+    this.localPlayer.pos.y = 80;
+    this.localPlayer.pos.z = 10 + Math.random() * 2000000
 }
 
 // underWaterfall
 World.prototype.underWaterfall = function() {
-    this.setBlock(parseInt(this.localPlayer.pos.x), parseInt(this.localPlayer.pos.y), CHUNK_SIZE_Z - 1, BLOCK.FLOWING_WATER, 1);
+    this.setBlock(parseInt(this.localPlayer.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.localPlayer.pos.z), BLOCK.FLOWING_WATER, 1);
 }
 
 World.prototype.addRotate = function(vec3) {
     const speed     = 1.0;
     this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
-    this.rotate.y   += vec3.y * speed; // Z поворот в стороны (yaw)
+    this.rotate.z   += vec3.z * speed; // Z поворот в стороны (yaw)
     this.fixRotate();
 }
 
 World.prototype.fixRotate = function() {
-    var halfYaw = (Game.render.canvas.width || window.innerWidth) * 0.5;
+    // var halfYaw = (Game.render.canvas.width || window.innerWidth) * 0.5;
     var halfPitch = (Game.render.canvas.height || window.innerHeight) * 0.5;
-    if(this.rotate.y <= -1800) {
-        this.rotate.y = 1799.9;
+    if(this.rotate.z <= -1800) {
+        this.rotate.z = 1799.9;
     }
-    if(this.rotate.y >= 1800) {
-        this.rotate.y = -1800;
+    if(this.rotate.z >= 1800) {
+        this.rotate.z = -1800;
     }
     //
     this.rotate.x = Math.max(this.rotate.x, -halfPitch);
     this.rotate.x = Math.min(this.rotate.x, halfPitch);
     var x = (this.rotate.x / halfPitch) * 90;
-    var y = this.rotate.y / 10;
+    var y = 0;
+    var z = this.rotate.z / 10;
     this.rotateRadians.x = deg2rad(x);
     this.rotateRadians.y = deg2rad(y);
+    this.rotateRadians.z = deg2rad(z);
     this.rotateDegree.x = rad2deg(this.rotateRadians.x);
-    this.rotateDegree.y = rad2deg(this.rotateRadians.y) + 180;
-    this.rotateDegree.z = rad2deg(this.rotateRadians.z);
+    this.rotateDegree.y = rad2deg(this.rotateRadians.y);
+    this.rotateDegree.z = rad2deg(this.rotateRadians.z) + 180;
 }
 
 // update
 World.prototype.update = function() {
     if(Game.world.localPlayer) {
         var pos = Game.world.localPlayer.pos;
-        if(Math.abs(pos.x - Game.shift.x) > MAX_DIST_FOR_SHIFT || Math.abs(pos.y - Game.shift.y) > MAX_DIST_FOR_SHIFT) {
-            Game.shift.x = pos.x;
-            Game.shift.y = pos.y;
-            var tm = performance.now();
-            var points = this.chunkManager.shift(Object.assign({}, Game.shift));
+        if(Math.abs(pos.x - Game.shift.x) > MAX_DIST_FOR_SHIFT || Math.abs(pos.z - Game.shift.z) > MAX_DIST_FOR_SHIFT) {
+            Game.shift.x    = pos.x;
+            Game.shift.z    = pos.z;
+            var tm          = performance.now();
+            var points      = this.chunkManager.shift(Object.assign({}, Game.shift));
             console.info('SHIFTED', Game.shift, (Math.round((performance.now() - tm) * 10) / 10) + 'ms', points);
         }
     }
@@ -181,14 +176,14 @@ World.prototype.toJSON = function() {
 World.prototype.exportJSON = function(callback) {
     var that = this;
     var row = {
-        _id:        Game.world_name,
-        seed:       Game.seed,
-        spawnPoint: that.spawnPoint,
-        pos:        that.localPlayer.pos,
+        _id:                Game.world_name,
+        seed:               Game.seed,
+        spawnPoint:         that.spawnPoint,
+        pos:                that.localPlayer.pos,
         flying:             that.localPlayer.flying,
         chunk_render_dist:  CHUNK_RENDER_DIST,
-        rotate:     that.rotate,
-        brightness: that.renderer.brightness,
+        rotate:             that.rotate,
+        brightness:         that.renderer.brightness,
         inventory:  {
             items: Game.world.localPlayer.inventory.items,
             current: {

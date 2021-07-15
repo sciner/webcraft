@@ -122,7 +122,7 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
     // !!!
     for(var i = 0; i < vertices.length; i += 12) {
         vertices[i + 0] -= (Game.shift.x);
-        vertices[i + 1] -= (Game.shift.y);
+        vertices[i + 1] -= (Game.shift.z);
     }
     
     var gl = render.gl;
@@ -172,12 +172,12 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
         return false;
     }
     var normal;
-    if(pixel[3] == 1) normal = new Vector(0, 0, 1); // front
-    else if(pixel[3] == 2) normal = new Vector(0, 0, -1); // back?
-    else if(pixel[3] == 3) normal = new Vector(0, -1, 0); // bottom?
-    else if(pixel[3] == 4) normal = new Vector(0, 1, 0); // top
-    else if(pixel[3] == 5) normal = new Vector(-1, 0, 0); // left?
-    else if(pixel[3] == 6) normal = new Vector(1, 0, 0); // right
+    if(pixel[3] == 1) normal = new Vector(0, 1, 0); // top
+    else if(pixel[3] == 2) normal = new Vector(0, -1, 0); // bottom
+    else if(pixel[3] == 3) normal = new Vector(0, 0, -1); // left
+    else if(pixel[3] == 4) normal = new Vector(0, 0, 1); // right
+    else if(pixel[3] == 5) normal = new Vector(-1, 0, 0); // back
+    else if(pixel[3] == 6) normal = new Vector(1, 0, 0); // front
     if(!normal) {
         return false;
     }
