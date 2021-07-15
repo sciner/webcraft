@@ -17,7 +17,7 @@ function Player() {
     this.walking                = false; // идёт по земле
     this.walking_frame          = 0;
     this.height                 = PLAYER_HEIGHT;
-    this.angles                 = [0, Math.PI, 0];
+    this.angles                 = [0, 0, Math.PI];
     this.chat                   = new Chat();
     this.velocity               = new Vector(0, 0, 0);
 }
@@ -204,10 +204,10 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
 
     //
     if(keyCode == KEY.SPACE) {
-        if(this.velocity.z > 0) {
+        if(this.velocity.y > 0) {
             if(down && first && !this.flying) {
                 console.log('flying');
-                this.velocity.z = 0;
+                this.velocity.y = 0;
                 this.flying = true;
             }
         }
@@ -465,7 +465,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                         return;
                     }
                 }
-                if(playerPos.x == block.x && playerPos.y == block.y && (block.z >= playerPos.z - 1 || block.z <= playerPos.z + 1)) {
+                if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y - 1 || block.y <= playerPos.y + 1)) {
                     // block is occupied by player
                     return;
                 }
@@ -484,7 +484,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                     }
                 } else {
                     // Create block
-                    var blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z - 1);
+                    var blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z + 1);
                     if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
                         return;
                     }
@@ -512,10 +512,10 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                     if(world_block.id != BLOCK.GRASS.id) {
                         that.inventory.increment(Object.assign({count: 1}, world_block));
                     }
-                    var block_over = that.world.chunkManager.getBlock(block.x, block.y, block.z + 1);
+                    var block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
                     // delete plant over deleted block
                     if(BLOCK.isPlants(block_over.id)) {
-                        block.z++;
+                        block.y++;
                         world.chunkManager.destroyBlock(block, true);
                     }
                 }
@@ -530,7 +530,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
 
 // Returns the position of the eyes of the player for rendering.
 Player.prototype.getEyePos = function() {
-	return this.pos.add(new Vector(0.0, 0.0, this.height));
+	return this.pos.add(new Vector(0.0, this.height, 0.0));
 }
 
 // getBlockPos
@@ -543,60 +543,61 @@ Player.prototype.getBlockPos = function() {
     if(this.pos.x < 0) {
         v.x--;
     }
-    if(this.pos.y < 0) {
-        v.y--;
+    if(this.pos.z < 0) {
+        v.z--;
     }
     return v;
 }
 
 // Updates this local player (gravity, movement)
 Player.prototype.update = function() {
-	var world     = this.world;
 	var velocity  = this.velocity;
 	var pos       = this.pos;
-	var bPos      = new Vector(Math.floor(pos.x), Math.floor(pos.y), Math.floor(pos.z));
+	var bPos      = new Vector(
+        Math.floor(pos.x),
+        Math.floor(pos.y),
+        Math.floor(pos.z)
+    );
 	if(this.lastUpdate != null) {
         // var delta = ( new Date().getTime() - this.lastUpdate ) / 1000;
 		var delta = (performance.now() - this.lastUpdate) / 1000;
         // View
         this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
-        this.angles[1] = parseInt(this.world.rotateRadians.y * 100000) / 100000; // yaw | влево-вправо (Y)
-        // this.angles[2] = deg2rad(45); // roll | Наклон
+        this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
+        // this.angles[1] = deg2rad(45); // roll | Наклон вбок
 		// Gravity
 		if(this.falling && !this.flying) {
-            var vz = -(30 * delta);
-			velocity.z += vz;
+			velocity.y += -(30 * delta);
         }
         // Jumping | flying
         if(this.keys[KEY.SPACE]) {
             if(this.falling) {
                 if(this.flying) {
-                    velocity.z = 8;
+                    velocity.y = 8;
                 }
             } else {
-                velocity.z = 8;
+                velocity.y = 8;
             }
         } else {
             if(this.flying) {
-                var vz = -(15 * delta);
-                velocity.z += vz;
-                if(velocity.z < 0) {
-                    velocity.z = 0;
+                velocity.y += -(15 * delta);
+                if(velocity.y < 0) {
+                    velocity.y = 0;
                 }
             }
         }
         if(this.keys[KEY.SHIFT]) {
             if(this.flying) {
-                velocity.z = -8;
+                velocity.y = -8;
             }
         }
 		if(this.keys[KEY.J] && !this.falling) {
-			velocity.z = 20;
+			velocity.y = 20;
         }
         if(Math.round(velocity.x * 100000) / 100000 == 0) velocity.x = 0;
         if(Math.round(velocity.y * 100000) / 100000 == 0) velocity.y = 0;
         if(Math.round(velocity.z * 100000) / 100000 == 0) velocity.z = 0;
-        this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.y) > 1) && !this.flying;
+        this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.z) > 1) && !this.flying;
         if(this.prev_walking != this.walking) {
             // @toggle walking
             // this.walking_frame = 0;
@@ -617,20 +618,20 @@ Player.prototype.update = function() {
 		var walkVelocity = new Vector(0, 0, 0);
 		if (!this.falling || this.flying) {
 			if(this.keys[KEY.W] && !this.keys[KEY.S]) {
-				walkVelocity.x += Math.cos(Math.PI / 2 - this.angles[1]);
-				walkVelocity.y += Math.sin(Math.PI / 2 - this.angles[1]);
+				walkVelocity.x += Math.cos(Math.PI / 2 - this.angles[2]);
+				walkVelocity.z += Math.sin(Math.PI / 2 - this.angles[2]);
 			}
             if(this.keys[KEY.S] && !this.keys[KEY.W]) {
-				walkVelocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[1]);
-				walkVelocity.y += Math.sin(Math.PI + Math.PI / 2 - this.angles[1]);
+				walkVelocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]);
+				walkVelocity.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]);
 			}
 			if(this.keys[KEY.A] && !this.keys[KEY.D]) {
-				walkVelocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[1]);
-				walkVelocity.y += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[1]);
+				walkVelocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]);
+				walkVelocity.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]);
 			}
             if(this.keys[KEY.D] && !this.keys[KEY.A]) {
-				walkVelocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[1]);
-				walkVelocity.y += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[1]);
+				walkVelocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]);
+				walkVelocity.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]);
 			}
 		}
         if(this.running) {
@@ -649,22 +650,22 @@ Player.prototype.update = function() {
             if(this.running) {
                 mul *= 1.5;
                 if(this.flying) {
-                    mul *= 1.5;
+                    mul *= 12.5;
                 }
             }
 			walkVelocity = walkVelocity.normal();
 			velocity.x = walkVelocity.x * 4 * mul;
-			velocity.y = walkVelocity.y * 4 * mul;
+			velocity.z = walkVelocity.z * 4 * mul;
 		} else {
 			velocity.x /= this.falling ? 1.01 : 1.5;
-			velocity.y /= this.falling ? 1.01 : 1.5;
+			velocity.z /= this.falling ? 1.01 : 1.5;
 		}
 		// Resolve collision
 		this.pos = this.resolveCollision(pos, bPos, velocity.mul(delta));
         this.pos.x = Math.round(this.pos.x * 1000) / 1000;
         this.pos.y = Math.round(this.pos.y * 1000) / 1000;
         this.pos.z = Math.round(this.pos.z * 1000) / 1000;
-        // this.pos.z = 100; // Math.min(this.pos.z, 80);
+        // this.pos.y = Math.max(this.pos.y, 100);
         //
         var playerBlockPos  = Game.world.localPlayer.getBlockPos();
         var chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);
@@ -676,84 +677,73 @@ Player.prototype.update = function() {
 // Resolves collisions between the player and blocks on XY level for the next movement step.
 Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 	var world = this.world;
-	var playerRect = {x: pos.x + velocity.x, y: pos.y + velocity.y, size: 0.25};
+	var playerRect = {
+        x: pos.x + velocity.x,
+        y: pos.y + velocity.y,
+        z: pos.z + velocity.z,
+        size: 0.25
+    };
     const shiftPressed = this.keys[KEY.SHIFT];
-	// Collect XY collision sides
+	// Collect XZ collision sides
 	var collisionCandidates = [];
 	for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
-		for(var y = bPos.y - 1; y <= bPos.y + 1; y++) {
-			for(var z = bPos.z; z <= bPos.z + 1; z++) {
+		for(var z = bPos.z - 1; z <= bPos.z + 1; z++) {
+			for(var y = bPos.y; y <= bPos.y + 1; y++) {
                 var block = world.chunkManager.getBlock(x, y, z);
 				if (!block.passable) {
-					if (world.chunkManager.getBlock( x - 1, y, z ).passable) collisionCandidates.push({x: x, dir: -1, y1: y, y2: y + 1});
-					if (world.chunkManager.getBlock( x + 1, y, z ).passable) collisionCandidates.push({x: x + 1, dir: 1, y1: y, y2: y + 1});
-					if (world.chunkManager.getBlock( x, y - 1, z ).passable) collisionCandidates.push({y: y, dir: -1, x1: x, x2: x + 1 });
-					if (world.chunkManager.getBlock( x, y + 1, z ).passable) collisionCandidates.push({y: y + 1, dir: 1, x1: x, x2: x + 1 });
+					if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
+					if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
+					if (world.chunkManager.getBlock(x, y, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
+					if (world.chunkManager.getBlock(x, y, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
 				}
 			}
-            /*
-            if(shiftPressed) {
-                var z = bPos.z - 1;
-                if (world.chunkManager.getBlock( x - 1, y, z ).passable) {
-                    // world.setBlock( x - 1, y, z, BLOCK.WOOD );
-                    collisionCandidates.push({x: x, dir: -1, y1: y, y2: y + 1});
-                }
-                if (world.chunkManager.getBlock( x + 1, y, z ).passable) {
-                    // world.setBlock( x + 1, y, z, BLOCK.WOOD );
-                    collisionCandidates.push({x: x + 1, dir: 1, y1: y, y2: y + 1});
-                }
-                if (world.chunkManager.getBlock( x, y - 1, z ).passable) {
-                    // world.setBlock( x, y - 1, z, BLOCK.WOOD );
-                    collisionCandidates.push({y: y, dir: -1, x1: x, x2: x + 1 });
-                }
-                if (world.chunkManager.getBlock( x, y + 1, z ).passable) {
-                    // world.setBlock( x, y + 1, z, BLOCK.WOOD );
-                    collisionCandidates.push({y: y + 1, dir: 1, x1: x, x2: x + 1 });
-                }
-            }
-            */
 		}
 	}
-	// Solve XY collisions
+	// Solve XZ collisions
 	for(var i in collisionCandidates)  {
 		var side = collisionCandidates[i];
 		if (lineRectCollide(side, playerRect)) {
 			if(side.x != null && velocity.x * side.dir < 0) {
 				pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1 );
 				velocity.x = 0;
-			} else if(side.y != null && velocity.y * side.dir < 0) {
-				pos.y = side.y + playerRect.size / 2 * ( velocity.y > 0 ? -1 : 1 );
-				velocity.y = 0;
+			} else if(side.z != null && velocity.z * side.dir < 0) {
+				pos.z = side.z + playerRect.size / 2 * ( velocity.z > 0 ? -1 : 1 );
+				velocity.z = 0;
 			}
 		}
 	}
-	var playerFace = { x1: pos.x + velocity.x - 0.125, y1: pos.y + velocity.y - 0.125, x2: pos.x + velocity.x + 0.125, y2: pos.y + velocity.y + 0.125 };
-	var newBZLower = Math.floor( pos.z + velocity.z );
-	var newBZUpper = Math.floor( pos.z + 1.7 + velocity.z * 1.1 );
-	// Collect Z collision sides
-	collisionCandidates = [];
-	for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
-		for(var y = bPos.y - 1; y <= bPos.y + 1; y++) {
-			if (!world.chunkManager.getBlock( x, y, newBZLower ).passable)
-				collisionCandidates.push( { z: newBZLower + 1, dir: 1, x1: x, y1: y, x2: x + 1, y2: y + 1 } );
-			if (!world.chunkManager.getBlock( x, y, newBZUpper ).passable)
-				collisionCandidates.push( { z: newBZUpper, dir: -1, x1: x, y1: y, x2: x + 1, y2: y + 1 } );
-		}
-	}
-	// Solve Z collisions
 	var falling = true;
-	for(var i in collisionCandidates) {
+	var playerFace = {
+        x1: pos.x + velocity.x - 0.125,
+        z1: pos.z + velocity.z - 0.125,
+        x2: pos.x + velocity.x + 0.125,
+        z2: pos.z + velocity.z + 0.125
+    };
+	var newBYLower = Math.floor(pos.y + velocity.y);
+	var newBYUpper = Math.floor(pos.y + 1.7 + velocity.y * 1.1);
+	// Collect Y collision sides
+    collisionCandidates = [];
+    for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
+        for(var z = bPos.z - 1; z <= bPos.z + 1; z++) {
+            if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
+                collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
+            if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
+                collisionCandidates.push({y: newBYUpper, dir: -1, x1: x, z1: z, x2: x + 1, z2: z + 1});
+        }
+    }
+	// Solve Y collisions
+    for(var i in collisionCandidates) {
 		var face = collisionCandidates[i];
-		if (rectRectCollide(face, playerFace) && velocity.z * face.dir < 0) {
-			if(velocity.z < 0) {
+		if (rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
+			if(velocity.y < 0) {
 				falling         = false;
-				pos.z           = face.z;
-				velocity.z      = 0;
-				this.velocity.z = 0;
+				pos.y           = face.y;
+				velocity.y      = 0;
+				this.velocity.y = 0;
 			} else {
-				pos.z           = face.z - 1.8;
-				velocity.z      = 0;
-				this.velocity.z = 0;
+				pos.y           = face.y - 1.8;
+				velocity.y      = 0;
+				this.velocity.y = 0;
 			}
 			break;
 		}
@@ -763,5 +753,6 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
         this.flying = false;
     }
 	// Return solution
+    // velocity.y = 0;
 	return pos.add(velocity);
 }

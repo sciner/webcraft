@@ -2,7 +2,7 @@ class Particles_Block_Destroy {
 
     // Constructor
     constructor(gl, block, pos) {
-        this.yaw        = -Game.world.localPlayer.angles[1];
+        this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = .5;
         var lm          = new Color(0, 0, 0, 0);
         var n           = NORMALS.UP; // normal for lithning
@@ -14,8 +14,8 @@ class Particles_Block_Destroy {
         var c           = calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
-            pos.y + .5 - Math.sin(this.yaw + Math.PI / 2) * .5,
-            pos.z + .5
+            pos.y + .5,
+            pos.z + .5 - Math.sin(this.yaw + Math.PI / 2) * .5
         );
         this.vertices   = [];
         this.particles  = [];
@@ -31,7 +31,7 @@ class Particles_Block_Destroy {
             var x = (Math.random() - Math.random()) * .5;
             var y = (Math.random() - Math.random()) * .5;
             var z = (Math.random() - Math.random()) * .5;
-            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz, null, sz);
+            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz, sz, null);
             var p = {
                 x:              x,
                 y:              y,
@@ -40,9 +40,9 @@ class Particles_Block_Destroy {
                 gravity:        .06,
                 speed:          .00375
             };
-            var d = Math.sqrt(p.x * p.x + p.y * p.y);            
+            var d = Math.sqrt(p.x * p.x + p.z * p.z);            
             p.x = p.x / d * p.speed;
-            p.y = p.y / d * p.speed;
+            p.z = p.z / d * p.speed;
             this.particles.push(p);
         }
         this.buffer = gl.createBuffer();
@@ -65,7 +65,7 @@ class Particles_Block_Destroy {
             for(var i = 0; i < p.vertices_count; i++) {
                 var j = (idx + i) * 12;
                 this.vertices[j + 0] += p.x * delta * p.speed;
-                this.vertices[j + 1] += p.y * delta * p.speed;
+                this.vertices[j + 1] += p.z * delta * p.speed;
                 this.vertices[j + 2] += (delta / 1000) * p.gravity;
             }
             idx += p.vertices_count;
@@ -78,8 +78,8 @@ class Particles_Block_Destroy {
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, [
             this.pos.x - Game.shift.x,
-            this.pos.y - Game.shift.y,
-            this.pos.z - Game.shift.z
+            this.pos.z - Game.shift.z,
+            this.pos.y - Game.shift.y
         ]);
         mat4.rotateZ(modelMatrix, this.yaw);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);

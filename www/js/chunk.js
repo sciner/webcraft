@@ -69,11 +69,11 @@ Chunk.prototype.doShift = function(shift) {
     if(this.dirty) {
         return 0;
     }
-    if((shift.x - this.shift.x == 0) && (shift.y - this.shift.y == 0)) {
+    if((shift.x - this.shift.x == 0) && (shift.z - this.shift.z == 0)) {
         return 0;
     }
     const x = shift.x - this.shift_orig.x;
-    const y = shift.y - this.shift_orig.y;
+    const z = shift.z - this.shift_orig.z;
     this.shift_orig = Object.assign({}, shift);
     const gl = this.world.renderer.gl;
     var points = 0;
@@ -81,7 +81,7 @@ Chunk.prototype.doShift = function(shift) {
         var list = v.list;
         for(var i = 0; i < list.length; i += 12) {
             list[i + 0] -= x;
-            list[i + 1] -= y;
+            list[i + 1] -= z;
             points += 2;
         }
         gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
@@ -119,6 +119,7 @@ Chunk.prototype.applyVertices = function() {
         gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
         gl.bufferData(gl.ARRAY_BUFFER, v.list, gl.DYNAMIC_DRAW);
         this.vertices[key]    = v;
+        // debugger;
     }
     this.shift_orig            = args.shift;
     this.dirty                 = false;
@@ -183,7 +184,7 @@ Chunk.prototype.getBlock = function(ox, oy, oz) {
     if(z < 0 || z >= this.size.z) {
         return BLOCK.DUMMY;
     }
-    var block = this.blocks[x][y][z];
+    var block = this.blocks[x][z][y];
     if(!block) {
         block = BLOCK.AIR;
     }
@@ -237,11 +238,11 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
 
     if(!is_modify) {
         var type                        = Object.assign({}, BLOCK[type.name]);
-        this.blocks[x][y][z]            = type;
-        this.blocks[x][y][z].power      = power;
-        this.blocks[x][y][z].rotate     = rotate;
-        this.blocks[x][y][z].entity_id  = entity_id;
-        this.blocks[x][y][z].texture    = null;
+        this.blocks[x][z][y]            = type;
+        this.blocks[x][z][y].power      = power;
+        this.blocks[x][z][y].rotate     = rotate;
+        this.blocks[x][z][y].entity_id  = entity_id;
+        this.blocks[x][z][y].texture    = null;
     }
 
     // Run webworker method
@@ -271,16 +272,16 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
             rotate:     rotate
         }]);
     }
-    if(y == 0) {
+    if(z == 0) {
         // top
         // console.log('top');
         // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
         this.chunkManager.postWorkerMessage(['setBlock', {
             key:        key,
             x:          x + this.coord.x,
-            y:          y + this.coord.y - 1,
-            z:          z + this.coord.z,
+            y:          y + this.coord.y,
+            z:          z + this.coord.z - 1,
             type:       null,
             is_modify:  is_modify,
             power:      power,
@@ -303,16 +304,16 @@ Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, ent
             rotate:     rotate
         }]);
     }
-    if(y == this.size.y - 1) {
+    if(z == this.size.z - 1) {
         // bottom
         // console.log('bottom');
         // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
+        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
         this.chunkManager.postWorkerMessage(['setBlock', {
             key:        key,
             x:          x + this.coord.x,
-            y:          y + this.coord.y + 1,
-            z:          z + this.coord.z,
+            y:          y + this.coord.y,
+            z:          z + this.coord.z + 1,
             type:       null,
             is_modify:  is_modify,
             power:      power,

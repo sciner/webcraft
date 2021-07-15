@@ -460,6 +460,19 @@ Renderer.prototype.setPerspective = function(fov, min, max) {
 // pos - Position in world coordinates.
 // ang - Pitch, yaw and roll.
 Renderer.prototype.setCamera = function(pos, ang) {
+    var y_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
+	this.camPos = pos;
+	mat4.identity(this.viewMatrix);
+	mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
+	mat4.rotate(this.viewMatrix, ang[1], [ 0, 1, 0 ], this.viewMatrix);
+	mat4.rotate(this.viewMatrix, ang[2], [ 0, 0, 1 ], this.viewMatrix);
+    mat4.translate(this.viewMatrix, [
+        -pos[0] + Game.shift.x,
+        -pos[2] + Game.shift.z,
+        -pos[1] + y_add
+    ], this.viewMatrix);
+
+/*
     var z_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
     if(this.world.localPlayer.walking) {
         // ang[1] += Math.cos(this.world.localPlayer.walking_frame * 15) * 0.0025;
@@ -469,7 +482,8 @@ Renderer.prototype.setCamera = function(pos, ang) {
 	mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, ang[1], [ 0, 0, 1 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, -ang[2], [ 0, 1, 0 ], this.viewMatrix);
-    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[1] + Game.shift.y, -pos[2] + z_add], this.viewMatrix);
+    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[2] + Game.shift.z, -pos[1] + z_add], this.viewMatrix);
+    */
 }
 
 // drawBuffer...

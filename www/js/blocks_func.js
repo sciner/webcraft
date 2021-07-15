@@ -21,16 +21,16 @@ ROTATE.E = 4; // RIGHT
 
 // getCardinalDirection...
 BLOCK.getCardinalDirection = function(vec3) {
-    var result = new Vector(0, ROTATE.E, 0);
+    var result = new Vector(0, 0, ROTATE.E);
     if(vec3) {
-        if(vec3.y >= 45 && vec3.y < 135) {
+        if(vec3.z >= 45 && vec3.z < 135) {
             // do nothing
-        } else if(vec3.y >= 135 && vec3.y < 225) {
-            result.y = ROTATE.S;
-        } else if(vec3.y >= 225 && vec3.y < 315) {
-            result.y = ROTATE.W;
+        } else if(vec3.z >= 135 && vec3.z < 225) {
+            result.z = ROTATE.S;
+        } else if(vec3.z >= 225 && vec3.z < 315) {
+            result.z = ROTATE.W;
         } else {
-            result.y = ROTATE.N;
+            result.z = ROTATE.N;
         }
     }
     return result;
@@ -160,7 +160,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         return;
     }
 
-    const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).y;
+    const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
     const ao_enabled            = true;
     const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
 
@@ -176,7 +176,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var height                  = block.height ? block.height : 1;
     var drawAllSides            = width != 1 || height != 1;
     var texture                 = BLOCK[block.name].texture;
-    var blockLit                = true; // z >= lightmap[x][y];
+    var blockLit                = true;
 
     // F R B L
     switch(cardinal_direction) {
@@ -210,7 +210,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var bH         = 1.0;
     if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
         bH = Math.min(block.power, .9)
-        var blockOver  = world.chunkManager.getBlock(x, y, z + 1);
+        var blockOver  = world.chunkManager.getBlock(x, y + 1, z);
         if(blockOver) {
 	        var blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
 	        if(blockOverIsFluid) {
@@ -218,21 +218,21 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
 	        }
 	 	}
     }
+    // bH = 1.0;
 
-    bH = 1;
     // Top
-    neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
+    neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-	        var nX = world.chunkManager.getBlock(x, y - 1, z + 1); // слева
-	        var nY = world.chunkManager.getBlock(x - 1, y, z + 1); // сверху
-	        var nXY = world.chunkManager.getBlock(x - 1, y - 1, z + 1); // левый верхний угол
+	        var nX = world.chunkManager.getBlock(x, y + 1, z - 1); // слева
+	        var nY = world.chunkManager.getBlock(x - 1, y + 1, z); // сверху
+	        var nXY = world.chunkManager.getBlock(x - 1, y + 1, z - 1); // левый верхний угол
 	        var pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
-	        var pY = world.chunkManager.getBlock(x + 1, y, z + 1); // снизу
+	        var pY = world.chunkManager.getBlock(x + 1, y + 1, z); // снизу
 	        var pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
 	        var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний 
-	        var dXY = world.chunkManager.getBlock(x + 1, y - 1, z + 1); // левый нижний
+	        var dXY = world.chunkManager.getBlock(x + 1, y + 1, z - 1); // левый нижний
 	        if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
 	        if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
 	        if(ao_transparent_blocks.indexOf(nXY.id) < 0 && !nXY.transparent)  {ao[0] += .2; }
@@ -246,10 +246,10 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         n = NORMALS.UP;
         pushQuad(
             vertices,
-            [x, y,              z + bH - 1 + height, c[0], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x + 1.0, y,        z + bH - 1 + height, c[2], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + 1.0, y + 1.0,  z + bH - 1 + height, c[2], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x, y + 1.0,        z + bH - 1 + height, c[0], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x,       z,       y + bH - 1 + height, c[0], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x + 1.0, z,       y + bH - 1 + height, c[2], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + 1.0, z + 1.0, y + bH - 1 + height, c[2], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x,       z + 1.0, y + bH - 1 + height, c[0], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
@@ -259,27 +259,27 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     }
 
     // Bottom
-    neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
+    neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
         n = NORMALS.DOWN;
         pushQuad(
             vertices,                            
-            [x, y + 1.0, z, c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x + 1.0, y + 1.0, z, c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + 1.0, y, z, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x, y, z, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x,         z + 1.0,    y, c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x + 1.0,   z + 1.0,    y, c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + 1.0,   z,          y, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x,         z,          y, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
     // Front/Forward
-    neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
+    neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            var aa = world.chunkManager.getBlock(x - 1, y - 1, z); // слева
-            var ab = world.chunkManager.getBlock(x + 1, y - 1, z); // справа
+            var aa = world.chunkManager.getBlock(x - 1, y, z - 1); // слева
+            var ab = world.chunkManager.getBlock(x + 1, y, z - 1); // справа
             var ac = world.chunkManager.getBlock(x, y - 1, z - 1); // снизу
             if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
@@ -289,15 +289,15 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         n = NORMALS.FORWARD;
         pushQuad(
             vertices,
-            [x, y + .5 - width / 2, z, c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x + 1, y + .5 - width / 2, z, c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + 1, y + .5 - width / 2, z + bH, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x, y + .5 - width / 2, z + bH, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x,         z + .5 - width / 2, y,      c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x + 1,     z + .5 - width / 2, y,      c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + 1,     z + .5 - width / 2, y + bH, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x,         z + .5 - width / 2, y + bH, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
     // Back
-    neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
+    neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -307,10 +307,10 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         n = NORMALS.BACK;
         pushQuad(
             vertices,
-            [x, y + 0.5 + width / 2, z + bH, c[2], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x + 1.0, y + 0.5 + width / 2, z + bH, c[0], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + 1.0, y + 0.5 + width / 2, z, c[0], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x, y + 0.5 + width / 2, z, c[2], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x,         z + 0.5 + width / 2, y + bH,    c[2], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x + 1.0,   z + 0.5 + width / 2, y + bH,    c[0], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + 1.0,   z + 0.5 + width / 2, y,         c[0], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x,         z + 0.5 + width / 2, y,         c[2], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
@@ -325,10 +325,10 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         n = NORMALS.LEFT;
         pushQuad(
             vertices,
-            [x + .5 - width / 2, y, z + bH, c[2], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x +.5 - width / 2, y + 1.0, z + bH, c[0], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + .5 - width / 2, y + 1.0, z, c[0], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x + .5 - width / 2, y, z, c[2], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x + .5 - width / 2,    z,          y + bH, c[2], c[1], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x +.5 - width / 2,     z + 1.0,    y + bH, c[0], c[1], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + .5 - width / 2,    z + 1.0,    y, c[0], c[3], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x + .5 - width / 2,    z,          y, c[2], c[3], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
@@ -337,9 +337,9 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            var aa = world.chunkManager.getBlock(x + 1, y - 1, z); // правый верхний
-            var ab = world.chunkManager.getBlock(x + 1, y + 1, z); // правый нижний
-            var ac = world.chunkManager.getBlock(x + 1, y, z - 1);
+            var aa = world.chunkManager.getBlock(x + 1, y, z - 1); // правый верхний
+            var ab = world.chunkManager.getBlock(x + 1, y, z + 1); // правый нижний
+            var ac = world.chunkManager.getBlock(x + 1, y - 1, z);
             if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
@@ -348,10 +348,10 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
         n = NORMALS.RIGHT;
         pushQuad(
             vertices,
-            [x + .5 + width / 2, y, z, c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
-            [x + .5 + width / 2, y + 1.0, z, c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
-            [x + .5 + width / 2, y + 1.0, z + bH, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
-            [x + .5 + width / 2, y, z + bH, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
+            [x + .5 + width / 2, z,         y, c[0], c[3], 0, 0, 0, ao[0], n.x, n.y, n.z],
+            [x + .5 + width / 2, z + 1.0,   y, c[2], c[3], 0, 0, 0, ao[1], n.x, n.y, n.z],
+            [x + .5 + width / 2, z + 1.0,   y + bH, c[2], c[1], 0, 0, 0, ao[2], n.x, n.y, n.z],
+            [x + .5 + width / 2, z,         y + bH, c[0], c[1], 0, 0, 0, ao[3], n.x, n.y, n.z]
         );
     }
 
@@ -365,7 +365,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
         return;
     }
 
-    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
+    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
     var texture     = BLOCK[block.name].texture;
     var blockLit    = true; // z >= lightmap[x][y];
@@ -480,6 +480,9 @@ function pushQuad(v, p1, p2, p3, p4) {
 // push_plane
 function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp) {
 
+    z = [y, y = z][0];
+    zp = [yp, yp = zp][0];
+
     xp          = xp ? xp : 1; // rot ? 1.41 : 1.0;
     yp          = yp ? yp : 1; // rot ? 1.41 : 1.0;
     zp          = zp ? zp : 1; // rot ? 1.41 : 1.0;
@@ -555,12 +558,11 @@ function push_plant(block, vertices, world, lightmap, x, y, z) {
     // var block       = world.chunkManager.getBlock(x, y, z);
     var texture     = BLOCK.fromId(block.id).texture;
     var blockLit    = true; // z >= lightmap[x][y];
-    var blockLight = block.light ? block.light.toFloat() : null;
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lm = new Color(0, 0, 0, 0);
     var n = NORMALS.UP;
     if(block.id == BLOCK.GRASS.id) {
-        z -= .15;
+        y -= .15;
     }
     push_plane(vertices, x, y, z, c, lm, n, true, true);
     push_plane(vertices, x, y, z, c, lm, n, false, true);
@@ -688,7 +690,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
-    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).y;
+    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
     
     // F R B L
     switch(cardinal_direction) {
@@ -845,6 +847,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 
 // pushVertices
 BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
+
     const style = 'style' in block ? block.style : '';
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z);
@@ -867,60 +870,64 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
 // Pushes vertices with the data needed for picking.
 BLOCK.pushPickingVertices = function(vertices, x, y, z, pos) {
 
-	var color = {r: pos.x / 255, g: pos.y / 255, b: pos.z / 255};
+	var color = {
+        r: pos.x / 255,
+        g: pos.y / 255,
+        b: pos.z / 255
+    };
 
 	// Top
 	pushQuad(
 		vertices,
-		[ x, y, z + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
-		[ x + 1, y, z + 1, 1, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
-		[ x + 1, y + 1, z + 1, 1, 1, color.r, color.g, color.b, 1/255, 0, 0, 0],
-		[ x, y + 1, z + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0]
+		[ x,        z,      y + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
+		[ x + 1,    z,      y + 1, 1, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
+		[ x + 1,    z + 1,  y + 1, 1, 1, color.r, color.g, color.b, 1/255, 0, 0, 0],
+		[ x,        z + 1,  y + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0]
 	);
 	
 	// Bottom
 	pushQuad(
 		vertices,
-		[ x, y + 1, z, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
-		[ x + 1, y + 1, z, 1, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
-		[ x + 1, y, z, 1, 1, color.r, color.g, color.b, 2/255, 0, 0, 0],
-		[ x, y, z, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0]
+		[ x,        z + 1,  y, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
+		[ x + 1,    z + 1,  y, 1, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
+		[ x + 1,    z,      y, 1, 1, color.r, color.g, color.b, 2/255, 0, 0, 0],
+		[ x,        z,      y, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0]
 	);
 	
 	// Front
 	pushQuad(
 		vertices,
-		[ x, y, z, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
-		[ x + 1, y, z, 1, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
-		[ x + 1, y, z + 1, 1, 1, color.r, color.g, color.b, 3/255, 0, 0, 0],
-		[ x, y, z + 1, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0]
+		[ x,        z, y, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
+		[ x + 1,    z, y, 1, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
+		[ x + 1,    z, y + 1, 1, 1, color.r, color.g, color.b, 3/255, 0, 0, 0],
+		[ x,        z, y + 1, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0]
 	);
 	
 	// Back
 	pushQuad(
 		vertices,
-		[ x, y + 1, z + 1, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
-		[ x + 1, y + 1, z + 1, 1, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
-		[ x + 1, y + 1, z, 1, 1, color.r, color.g, color.b, 4/255, 0, 0, 0],
-		[ x, y + 1, z, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0]
+		[ x,        z + 1, y + 1, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
+		[ x + 1,    z + 1, y + 1, 1, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
+		[ x + 1,    z + 1, y, 1, 1, color.r, color.g, color.b, 4/255, 0, 0, 0],
+		[ x,        z + 1, y, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0]
 	);
 	
 	// Left
 	pushQuad(
 		vertices,
-		[ x, y, z + 1, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
-		[ x, y + 1, z + 1, 1, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
-		[ x, y + 1, z, 1, 1, color.r, color.g, color.b, 5/255, 0, 0, 0],
-		[ x, y, z, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0]
+		[ x, z,     y + 1, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
+		[ x, z + 1, y + 1, 1, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
+		[ x, z + 1, y, 1, 1, color.r, color.g, color.b, 5/255, 0, 0, 0],
+		[ x, z,     y, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0]
 	);
 	
 	// Right
 	pushQuad(
 		vertices,
-		[ x + 1, y, z, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
-		[ x + 1, y + 1, z, 1, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
-		[ x + 1, y + 1, z + 1, 1, 1, color.r, color.g, color.b, 6/255, 0, 0, 0],
-		[ x + 1, y, z + 1, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0]
+		[ x + 1, z,     y, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
+		[ x + 1, z + 1, y, 1, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
+		[ x + 1, z + 1, y + 1, 1, 1, color.r, color.g, color.b, 6/255, 0, 0, 0],
+		[ x + 1, z,     y + 1, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0]
 	);
 
 }

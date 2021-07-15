@@ -184,7 +184,7 @@ export let Game = {
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
         var current_player_state = {
-            angles: this.world.localPlayer.angles.map(x => Math.round(x * 1000) / 1000),
+            angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
             pos:    this.world.localPlayer.pos,
             ping:   Math.round(this.world.server.ping_value)
         };
@@ -257,7 +257,7 @@ export let Game = {
     readMouseMove: function() {
         var that = this;
         that.prevMovementX = 0;
-        that.prevMovementY = 0;
+        that.prevMovementZ = 0;
         document.addEventListener('wheel', function(e) {
             if(that.player) {
                 if(Game.controls.enabled) {
@@ -266,38 +266,38 @@ export let Game = {
             }
         });
         document.addEventListener('mousemove', function(e) {
-            var x = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-            var y = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+            var z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+            var x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
             // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
-            if(Math.abs(x) > 300) {
+            if(Math.abs(z) > 300) {
                 x = that.prevMovementX;
-                y = that.prevMovementY;
+                z = that.prevMovementZ;
             }
             that.prevMovementX = x;
-            that.prevMovementY = y;
+            that.prevMovementZ = z;
             if(Game.hud.wm.getVisibleWindows().length > 0) {
             	if(that.controls.enabled) {
-                        Game.mouseY += y;
-                        Game.mouseX += x;
-                        Game.mouseX = Math.max(Game.mouseX, 0);
-                        Game.mouseY = Math.max(Game.mouseY, 0);
-                        Game.mouseX = Math.min(Game.mouseX, Game.hud.width);
-                        Game.mouseY = Math.min(Game.mouseY, Game.hud.height);
-                    } else {
-                        Game.mouseY = e.offsetY * window.devicePixelRatio;
-                        Game.mouseX = e.offsetX * window.devicePixelRatio;
-                    }
-                    Game.hud.wm.mouseEventDispatcher({
-                        type:       e.type,
-                        shiftKey:   e.shiftKey,
-                        button:     e.button,
-                        offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                        offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
-                    });
+                    Game.mouseY += x;
+                    Game.mouseX += z;
+                    Game.mouseX = Math.max(Game.mouseX, 0);
+                    Game.mouseY = Math.max(Game.mouseY, 0);
+                    Game.mouseX = Math.min(Game.mouseX, Game.hud.width);
+                    Game.mouseY = Math.min(Game.mouseY, Game.hud.height);
                 } else {
-                    //
-                    that.world.addRotate(new Vector(y, x, 0));
+                    Game.mouseY = e.offsetY * window.devicePixelRatio;
+                    Game.mouseX = e.offsetX * window.devicePixelRatio;
                 }
+                Game.hud.wm.mouseEventDispatcher({
+                    type:       e.type,
+                    shiftKey:   e.shiftKey,
+                    button:     e.button,
+                    offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
+                    offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                });
+            } else {
+                //
+                that.world.addRotate(new Vector(x, 0, z));
+            }
         }, false);
     },
 };

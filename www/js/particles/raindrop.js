@@ -2,12 +2,10 @@ class Particles_Raindrop {
 
     // Constructor
     constructor(gl, pos) {
-        this.yaw        = -Game.world.localPlayer.angles[1];
-        this.life       = 1;
+        this.yaw        = -Game.world.localPlayer.angles[2];
+        this.life       = 0.5;
         var lm          = new Color(0, 0, 0, 0);
         var n           = NORMALS.UP; // normal for lithning
-        var width       = 1;
-        var bH          = 1;
         this.texture    = BLOCK.STILL_WATER.texture;
         var c           = calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(pos.x, pos.y, pos.z);
@@ -25,19 +23,7 @@ class Particles_Raindrop {
             var x = (Math.random() - Math.random()) * 16;
             var y = (Math.random() - Math.random()) * 16;
             var z = (Math.random() - Math.random()) * 16;
-            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, null, sz);
-            var p = {
-                x:              x,
-                y:              y,
-                z:              z,
-                vertices_count: 12,
-                gravity:        -.40,
-                speed:          .00375 * 3
-            };
-            var d = Math.sqrt(p.x * p.x + p.y * p.y);            
-            p.x = p.x / d * p.speed;
-            p.y = p.y / d * p.speed;
-            this.particles.push(p);
+            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null);
         }
         //
         this.buffer = gl.createBuffer();
@@ -50,17 +36,16 @@ class Particles_Raindrop {
 
     // Draw
     draw(render, delta, modelMatrix, uModelMat) {
-        var gl = render.gl;
-        this.life -= delta / 100000;
-        delta /= 1000;
-        
-        this.pos.z += delta * -.40;
+        var gl      = render.gl;
+        this.life   -= delta / 100000;
+        delta       /= 1000;
+        this.pos.y  += delta * -.40;
         //
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, [
             this.pos.x - Game.shift.x,
-            this.pos.y - Game.shift.y,
-            this.pos.z - Game.shift.z
+            this.pos.z - Game.shift.z,
+            this.pos.y - Game.shift.y
         ]);
         mat4.rotateZ(modelMatrix, this.yaw);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
