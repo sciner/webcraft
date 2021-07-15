@@ -617,15 +617,17 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
 // Ступеньки
 function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
-    const half = 0.5 / TX_CNT;
-    
-    // var block = world.chunkManager.getBlock(x, y, z);
-    var texture = BLOCK.fromId(block.id).texture;
-    var blockLit = true; // z >= lightmap[x][y];
-    // var blockLight = block.light ? block.light.toFloat() : null;
-    block.transparent = true;
+    const half          = 0.5 / TX_CNT;
+    var poses           = [];
+    var texture         = BLOCK.fromId(block.id).texture;
+    var lm              = new Color(0, 0, 0, 0);
+    var blockLit        = true;
+
+    block.transparent   = true;
+
     // полная текстура
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+
     // четверть текстуры
     var c_half = [
         c[0],
@@ -649,38 +651,32 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         c[3],
     ];
 
-    // var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
-    // var dirs = check_xy_neighbor(world, x, y, z);
+    // стенка 1
+    var n = NORMALS.RIGHT;
+    push_plane(vertices, x, y, z - 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
-    // задняя стенка
-    var lm = new Color(0, 0, 0, 0);
-    var n = NORMALS.BACK;
-    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
-    // передняя стенка
-    lm = new Color(0, 0, 0, 0);
-    n = NORMALS.FORWARD;
-    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
+    // стенка 2
+    n = NORMALS.BACK;
+    push_plane(vertices, x, y, z + 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
-    // правая стенка
-    lm = new Color(0, 0, 0, 0);
-    n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
-    // левая стенка
-    lm = new Color(0, 0, 0, 0);
+    // стенка 3
     n = NORMALS.LEFT;
-    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
+    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
+
+    // стенка 4
+    n = NORMALS.LEFT;
+    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
     c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
 
     // дно
-    lm = new Color(0, 0, 0, 0);
     n = NORMALS.DOWN;
     pushQuad(
         vertices,                            
-        [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x, y, z, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+        [ x,        z + 1.0,    y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0,  z + 1.0,    y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0,  z,          y, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x,        z,          y, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
     // поверхность нижней ступени
@@ -689,10 +685,10 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     n = NORMALS.UP;
     pushQuad(
         vertices,
-        [ x, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x + 1.0, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x + 1.0, y + 1.0, z + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-        [ x, y + 1.0, z + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+        [ x,        z,          y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0,  z,          y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x + 1.0,  z + 1.0,    y + bH, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        [ x,        z + 1.0,    y + bH, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
     );
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
@@ -700,30 +696,30 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     // F R B L
     switch(cardinal_direction) {
         case ROTATE.S: {
-            var poses = [
-                new Vector(0, .5, 0),
-                new Vector(-.5, .5, 0),
+            poses = [
+                new Vector(0, 0, .5),
+                new Vector(-.5, 0, .5),
             ];
             break;
         }
         case ROTATE.W: {
-            var poses = [
+            poses = [
                 new Vector(0, 0, 0),
-                new Vector(0, .5, 0),
+                new Vector(0, 0, .5),
             ];
             break;
         }
         case ROTATE.N: {
-            var poses = [
+            poses = [
                 new Vector(0, 0, 0),
                 new Vector(-.5, 0, 0),
             ];
             break;
         }
         case ROTATE.E: {
-            var poses = [
+            poses = [
                 new Vector(-.5, 0, 0),
-                new Vector(-.5, .5, 0),
+                new Vector(-.5, 0, .5),
             ];
             break;
         }
@@ -731,32 +727,32 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
     // Верхняя ступень
     for(var pose of poses) {
+
         // левая стенка
-        lm = new Color(0, 0, 0, 0);
         n = NORMALS.LEFT;
-        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + .5, c_half, lm, n, false, false, null, .5, .5);
+        push_plane(vertices, x + 0.5 + pose.x, y + .5, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
+
         // передняя стенка
-        lm = new Color(0, 0, 0, 0);
         n = NORMALS.FORWARD;
-        push_plane(vertices, x + 0.5 + pose.x, y - 0.5 + pose.y, z + 0.5, c_half, lm, n, true, false, .5, null, .5);
+        push_plane(vertices, x + 0.5 + pose.x, y + 0.5, z - 0.5 + pose.z, c_half, lm, n, true, false, .5, .5, null);
+
         // задняя стенка
-        lm = new Color(0, 0, 0, 0);
         n = NORMALS.BACK;
-        push_plane(vertices, x + 0.5 + pose.x, y + pose.y, z + 0.5, c_half, lm, n, true, false, .5, null, .5);
+        push_plane(vertices, x + 0.5 + pose.x, y + 0.5, z + pose.z, c_half, lm, n, true, false, .5, .5, null);
+
         // правая стенка
-        lm = new Color(0, 0, 0, 0);
         n = NORMALS.RIGHT;
-        push_plane(vertices, x + pose.x, y + pose.y, z + .5, c_half, lm, n, false, false, null, .5, .5);
+        push_plane(vertices, x + pose.x, y + 0.5, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
+
         // поверхность
-        lm = new Color(0, 0, 0, 0);
         n = NORMALS.UP;
         var bH = 1.0;
         pushQuad(
             vertices,
-            [ x + 0.5 + pose.x,  y + pose.y,       z + bH, c_half[0], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-            [ x + 1 + pose.x,    y + pose.y,       z + bH, c_half[2], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-            [ x + 1 + pose.x,    y + 0.5 + pose.y, z + bH, c_half[2], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-            [ x + 0.5 + pose.x,  y + 0.5 + pose.y, z + bH, c_half[0], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+            [ x + 0.5 + pose.x,  z + pose.z,       y + bH, c_half[0], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 1 + pose.x,    z + pose.z,       y + bH, c_half[2], c_half[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 1 + pose.x,    z + 0.5 + pose.z, y + bH, c_half[2], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+            [ x + 0.5 + pose.x,  z + 0.5 + pose.z, y + bH, c_half[0], c_half[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
         );
     }
 
