@@ -40,7 +40,7 @@ class CraftTableSlot extends Label {
         var h = 32;
         ctx.imageSmoothingEnabled = false;
         // 
-        if(item.hasOwnProperty('inventory_icon_id')) {
+        if('inventory_icon_id' in item) {
             var icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
             ctx.drawImage(
                 this.ct.inventory.inventory_image,

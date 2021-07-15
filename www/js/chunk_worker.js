@@ -425,115 +425,119 @@ Chunk.prototype.buildVertices = function() {
         for(var z = 0; z < this.size.z; z++) {
             for(var y = 0; y < this.size.y; y++) {
                 var block = this.blocks[x][z][y];
-                if(block) {
-                    if(block.id != BLOCK.AIR.id) {
-                        // ignore invisible inside another blocks
-                        if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                            var pcnt = 0;
-                            for(var p of cc) {
-                                var b = this.blocks[x + p.x][z + p.z][y + p.y];
-                                if(!b || (b.transparent || b.fluid)) {
-                                    break;
-                                }
-                                pcnt++;
-                            }
-                            if(pcnt == 6) {
-                                continue;
-                            }
+                if(block == null) {
+                    continue;
+                }
+                if(block.id == BLOCK.AIR.id) {
+                    continue;
+                }
+                // ignore invisible inside another blocks
+                if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                    var pcnt = 0;
+                    for(var p of cc) {
+                        var b = this.blocks[x + p.x][z + p.z][y + p.y];
+                        if(!b || (b.transparent || b.fluid)) {
+                            break;
                         }
-                        // lights
-                        block.light = null;
-                        for(var l of this.lights) {
-                            var dist = Math.sqrt(
-                                Math.pow(x - l.x, 2) +
-                                Math.pow(y - l.y, 2) +
-                                Math.pow(z - l.z, 2)
-                            );
-                            var maxDist = Math.round((l.power.a / 255) * 8);
-                            if(dist <= maxDist) {
-                                var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
-                                newLight.a *= ((maxDist - dist) / maxDist);
-                                if(block.light) {
-                                    // @todo mix two light
-                                    if(block.light.a < newLight.a) {
-                                        block.light = newLight;
-                                    }
-                                } else {
-                                    block.light = newLight;
-                                }
-                                this.blocks[x][z][y] = Object.assign({}, block);
-                            }
-                        }
-                        // if block with gravity
-                        if(block.gravity && z > 0) {
-                            var block_under = this.blocks[x][z][y - 1];
-                            if(!block_under || block_under.id == blocks.AIR.id) {
-                                this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
-                            }
-                        }
-                        // if block is fluid
-                        if(block.fluid) {
-                            this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
-                        }
-                        // make vertices array
-                        if([200, 202].indexOf(block.id) >= 0) {
-                            // если это блок воды
-                            if(!block.hasOwnProperty('vertices')) {
-                                block = this.blocks[x][z][y] = Object.create(block);
-                                block.vertices = [];
-                                BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
-                            }
-                            if(block.vertices.length > 0) {
-                                this.vertices.transparent.list.push(...block.vertices);
+                        pcnt++;
+                    }
+                    if(pcnt == 6) {
+                        continue;
+                    }
+                }
+                /*
+                // lights
+                block.light = null;
+                for(var l of this.lights) {
+                    var dist = Math.sqrt(
+                        Math.pow(x - l.x, 2) +
+                        Math.pow(y - l.y, 2) +
+                        Math.pow(z - l.z, 2)
+                    );
+                    var maxDist = Math.round((l.power.a / 255) * 8);
+                    if(dist <= maxDist) {
+                        var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
+                        newLight.a *= ((maxDist - dist) / maxDist);
+                        if(block.light) {
+                            // @todo mix two light
+                            if(block.light.a < newLight.a) {
+                                block.light = newLight;
                             }
                         } else {
-                            if(!block.hasOwnProperty('vertices')) {
-
-                                // 3.8 sec
-                                // block = this.blocks[x][y][z] = Object.assign({}, block);
-                                // block.vertices = [];
-                                
-                                // 3.5 sec
-                                // block = this.blocks[x][y][z] = JSON.parse(JSON.stringify(block));
-                                // block.vertices = [];
-        
-                                // 2.7 sec
-                                //var b = {vertices: []};
-                                //for (var i in block) {
-                                //    b[i] = block[i];
-                                //}
-                                //block = this.blocks[x][y][z] = b;
-
-                                /*
-                                // 2.2 sec
-                                block = this.blocks[x][y][z] = {
-                                    id:                 block.id,
-                                    name:               block.name,
-                                    power:              block.power,
-                                    light:              block.light,
-                                    passable:           block.passable,
-                                    spawnable:          block.spawnable,
-                                    inventory_icon_id:  block.inventory_icon_id,
-                                    fluid:              block.fluid,
-                                    gravity:            block.gravity,
-                                    sound:              block.sound,
-                                    width:              block.width,
-                                    style:              block.style,
-                                    planting:           block.planting,
-                                    transparent:        block.transparent,
-                                    vertices:           []
-                                };
-                                */
-
-                                // 2.185
-                                block = this.blocks[x][z][y] = Object.create(block);
-                                block.vertices = [];
-                                BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
-                            }
-                            if(block.vertices.length > 0) {
-                                this.vertices.regular.list.push(...block.vertices);
-                            }
+                            block.light = newLight;
                         }
+                        this.blocks[x][z][y] = Object.assign({}, block);
+                    }
+                }
+                */
+                // if block with gravity
+                if(block.gravity && z > 0) {
+                    var block_under = this.blocks[x][z][y - 1];
+                    if(!block_under || block_under.id == blocks.AIR.id) {
+                        this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
+                    }
+                }
+                // if block is fluid
+                if(block.fluid) {
+                    this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
+                }
+                // make vertices array
+                if([200, 202].indexOf(block.id) >= 0) {
+                    // если это блок воды
+                    if(!block.hasOwnProperty('vertices')) {
+                        block = this.blocks[x][z][y] = Object.create(block);
+                        block.vertices = [];
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                    }
+                    if(block.vertices.length > 0) {
+                        this.vertices.transparent.list.push(...block.vertices);
+                    }
+                } else {
+                    if(!block.hasOwnProperty('vertices')) {
+
+                        // 3.8 sec
+                        // block = this.blocks[x][y][z] = Object.assign({}, block);
+                        // block.vertices = [];
+                        
+                        // 3.5 sec
+                        // block = this.blocks[x][y][z] = JSON.parse(JSON.stringify(block));
+                        // block.vertices = [];
+
+                        // 2.7 sec
+                        //var b = {vertices: []};
+                        //for (var i in block) {
+                        //    b[i] = block[i];
+                        //}
+                        //block = this.blocks[x][y][z] = b;
+
+                        /*
+                        // 2.2 sec
+                        block = this.blocks[x][y][z] = {
+                            id:                 block.id,
+                            name:               block.name,
+                            power:              block.power,
+                            light:              block.light,
+                            passable:           block.passable,
+                            spawnable:          block.spawnable,
+                            inventory_icon_id:  block.inventory_icon_id,
+                            fluid:              block.fluid,
+                            gravity:            block.gravity,
+                            sound:              block.sound,
+                            width:              block.width,
+                            style:              block.style,
+                            planting:           block.planting,
+                            transparent:        block.transparent,
+                            vertices:           []
+                        };
+                        */
+
+                        // 2.185
+                        block = this.blocks[x][z][y] = Object.create(block);
+                        block.vertices = [];
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                    }
+                    if(block.vertices.length > 0) {
+                        this.vertices.regular.list.push(...block.vertices);
                     }
                 }
             }
@@ -564,8 +568,15 @@ Chunk.prototype.setDirtyBlocks = function(pos) {
                 var z = pos.z + cz;
                 if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
                     var block = this.blocks[x][z][y];
-                    if(block != null) {
-                        delete(block['vertices']);
+                    if(block && typeof block === 'object') {
+                        if(block.hasOwnProperty('vertices')) {
+                            /*
+                            if(!('id' in block)) {
+                                console.log(JSON.stringify(block));
+                                debugger;
+                            }*/
+                            delete(block['vertices']);
+                        }
                     }
                 }
             }
