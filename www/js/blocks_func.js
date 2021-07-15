@@ -1,6 +1,6 @@
 var BLOCK_BY_ID = {};
 for(const [key, block] of Object.entries(BLOCK)) {
-    if(typeof(block) == 'object' && block.hasOwnProperty('spawnable')) {
+    if(typeof(block) == 'object' && ('spawnable' in block)) {
         BLOCK_BY_ID[block.id] = block;
     }
 }
@@ -170,6 +170,11 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     var DIRECTION_RIGHT         = DIRECTION.RIGHT;
     var DIRECTION_FORWARD       = DIRECTION.FORWARD;
     var DIRECTION_LEFT          = DIRECTION.LEFT;
+
+    if(!block.name) {
+        console.log('block', JSON.stringify(block), block.id);
+        debugger;
+    }
 
     var c, n, ao, neighbourBlock;
     var width                   = block.width ? block.width : 1;
@@ -380,10 +385,10 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             var n = NORMALS.FORWARD;
             pushQuad(
                 vertices,
-                [x, y + 1 - width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1, y + 1 - width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1, y + 1 - width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x, y + 1 - width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+                [x,     z + 1 - width, y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, z + 1 - width, y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, z + 1 - width, y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x,     z + 1 - width, y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
@@ -392,10 +397,10 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             var n = NORMALS.LEFT;
             pushQuad(
                 vertices,
-                [x + 1 - width, y, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1 - width, y + 1.0, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1 - width, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1 - width, y, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+                [x + 1 - width, z,          y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, z + 1.0,    y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, z + 1.0,    y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1 - width, z,          y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
@@ -404,10 +409,10 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             var n = NORMALS.BACK;
             pushQuad(
                 vertices,
-                [x, y + width, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1.0, y + width, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1.0, y + width, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x, y + width, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+                [x,         z + width, y + bH,  c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0,   z + width, y + bH,  c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0,   z + width, y,       c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x,         z + width, y,       c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }
@@ -416,10 +421,10 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             var n = NORMALS.RIGHT;
             pushQuad(
                 vertices,
-                [x + 1.0 - 1 + width, y, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1.0 - 1 + width, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1.0 - 1 + width, y + 1.0, z + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-                [x + 1.0 - 1 + width, y, z + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+                [x + 1.0 - 1 + width, z,        y,      c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, z + 1.0,  y,      c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, z + 1.0,  y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0 - 1 + width, z,        y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
             );
             break;
         }

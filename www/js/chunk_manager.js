@@ -145,10 +145,6 @@ ChunkManager.prototype.getChunk = function(pos) {
 ChunkManager.prototype.addChunk = function(pos) {
     var k = this.getPosChunkKey(pos);
     if(!this.chunks.hasOwnProperty(k) && !this.chunks_prepare.hasOwnProperty(k)) {
-        /*var modify_list = {};
-        if(this.modify_list.hasOwnProperty(k)) {
-            modify_list = this.modify_list[k];
-        }*/
         this.chunks_prepare[k] = {
             start_time: performance.now()
         };
