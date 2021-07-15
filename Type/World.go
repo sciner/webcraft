@@ -12,8 +12,8 @@ import (
 
 const (
 	CHUNK_SIZE_X int = 16
-	CHUNK_SIZE_Y int = 16
-	CHUNK_SIZE_Z int = 256
+	CHUNK_SIZE_Y int = 256
+	CHUNK_SIZE_Z int = 16
 )
 
 type (
@@ -79,7 +79,7 @@ func (this *World) GetChunkPos(pos Struct.Vector3) Struct.Vector3 {
 	v := Struct.Vector3{
 		X: pos.X / CHUNK_SIZE_X,
 		Y: pos.Y / CHUNK_SIZE_Y,
-		Z: 0,
+		Z: pos.Z / CHUNK_SIZE_Z,
 	}
 	return v
 }
