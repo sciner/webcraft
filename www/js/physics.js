@@ -40,7 +40,7 @@ Physics.prototype.simulate = function() {
                 var block1 = world.chunkManager.getBlock(x, y, z - 1);
                 if(z > 0 && [BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block1.id) >= 0) {
                     var block = world.chunkManager.getBlock(x, y, z);
-                    world.setBlock(x, y, z - 1, block);
+                    world.setBlock(x, y - 1, z, block);
                     world.setBlock(x, y, z, BLOCK.AIR);
                 }
             }

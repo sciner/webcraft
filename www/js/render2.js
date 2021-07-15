@@ -488,7 +488,7 @@ Renderer.prototype.setCamera = function(pos, ang) {
 	mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, ang[1], [ 0, 0, 1 ], this.viewMatrix);
 	mat4.rotate(this.viewMatrix, -ang[2], [ 0, 1, 0 ], this.viewMatrix);
-    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[1] + Game.shift.y, -pos[2] + z_add], this.viewMatrix);
+    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[2] + Game.shift.z, -pos[1] + z_add], this.viewMatrix);
 }
 
 // drawBuffer...

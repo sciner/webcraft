@@ -256,7 +256,7 @@ HUD.prototype.drawInfo = function(hud) {
     if(Game.world.server.ping_value) {
         text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
     }
-    text += '\nYAW: ' + Math.round(Game.world.rotateDegree.y);
+    text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
     // Chunks inited
     text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
