@@ -47,29 +47,31 @@ void main() {
         gl_FragColor = color;
 
         /*
-            // Calc fog amount
-            float fogDistance = length(v_position);
-            float fogAmount = 1. - exp2(-u_fogDensity * u_fogDensity * fogDistance * fogDistance * LOG2);
-            if(fogAmount < .5) {
-                fogAmount = .0;
-            } else {
-                fogAmount = (fogAmount - .5) * 2.;
-            }
-            fogAmount = clamp(fogAmount, 0., 1.);
 
-            // Apply fog
-            gl_FragColor = mix(color, u_fogColor, fogAmount);
-            gl_FragColor.r = (gl_FragColor.r * (1. - u_fogAddColor.a) + u_fogAddColor.r * u_fogAddColor.a);
-            gl_FragColor.g = (gl_FragColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
-            gl_FragColor.b = (gl_FragColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
+        // Calc fog amount
+        float fogDistance = length(v_position);
+        float fogAmount = 1. - exp2(-u_fogDensity * u_fogDensity * fogDistance * fogDistance * LOG2);
+        if(fogAmount < .5) {
+            fogAmount = .0;
+        } else {
+            fogAmount = (fogAmount - .5) * 2.;
+        }
+        fogAmount = clamp(fogAmount, 0., 1.);
 
-            // Desaturate colors in night
-            //if(u_brightness != 1.) {
-            //    float gs = 0.2126 * gl_FragColor.r + 0.7152 * gl_FragColor.g + 0.0722 * gl_FragColor.b;
-            //    vec4 grayscale = vec4(gs, gs, gs, 1);
-            //    float u_brightness2 = clamp(u_brightness * desaturateFactor, .0, 1.);
-            //    gl_FragColor = (gl_FragColor * u_brightness2) + (grayscale * (1.0 - u_brightness2));
-            //}
+        // Apply fog
+        gl_FragColor = mix(color, u_fogColor, fogAmount);
+        gl_FragColor.r = (gl_FragColor.r * (1. - u_fogAddColor.a) + u_fogAddColor.r * u_fogAddColor.a);
+        gl_FragColor.g = (gl_FragColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
+        gl_FragColor.b = (gl_FragColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
+
+        // Desaturate colors in night
+        //if(u_brightness != 1.) {
+        //    float gs = 0.2126 * gl_FragColor.r + 0.7152 * gl_FragColor.g + 0.0722 * gl_FragColor.b;
+        //    vec4 grayscale = vec4(gs, gs, gs, 1);
+        //    float u_brightness2 = clamp(u_brightness * desaturateFactor, .0, 1.);
+        //    gl_FragColor = (gl_FragColor * u_brightness2) + (grayscale * (1.0 - u_brightness2));
+        //}
+
         */
 
     } else {
