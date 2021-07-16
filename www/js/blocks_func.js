@@ -652,7 +652,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     ];
 
     // стенка 1
-    var n = NORMALS.RIGHT;
+    var n = NORMALS.FORWARD;
     push_plane(vertices, x, y, z - 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // стенка 2
@@ -660,7 +660,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     push_plane(vertices, x, y, z + 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // стенка 3
-    n = NORMALS.LEFT;
+    n = NORMALS.RIGHT;
     push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
     // стенка 4
@@ -729,7 +729,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     for(var pose of poses) {
 
         // левая стенка
-        n = NORMALS.LEFT;
+        n = NORMALS.RIGHT;
         push_plane(vertices, x + 0.5 + pose.x, y + .5, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
 
         // передняя стенка
@@ -741,7 +741,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         push_plane(vertices, x + 0.5 + pose.x, y + 0.5, z + pose.z, c_half, lm, n, true, false, .5, .5, null);
 
         // правая стенка
-        n = NORMALS.RIGHT;
+        n = NORMALS.LEFT;
         push_plane(vertices, x + pose.x, y + 0.5, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
 
         // поверхность
