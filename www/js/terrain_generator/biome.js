@@ -3,11 +3,18 @@ importScripts(
     '../vendors/alea.js'
 );
 
-var xxmin = 99999;
-
 function Terrain() {
-    this.seed = 0;
-    this.noisefn = noise.perlin3;
+
+    const CACTUS_MAX_HEIGHT     = 7;
+    const TREE_MAX_HEIGHT       = 12;
+    const TREE_FREQUENCY        = 0.015;
+
+    this.seed                   = 0;
+    this.noisefn                = noise.perlin3;
+    this.maps_cache             = {};
+
+    noise.seed(this.seed);
+
     this.BIOMES = {};
     this.BIOMES.OCEAN = {
         code:       'OCEAN',
@@ -29,10 +36,8 @@ function Terrain() {
         title:      'ПЛЯЖ',
         dirt_block: blocks.SAND,
         trees:      {
-            frequency: .025,
-            list: [
-                {percent: 1, trunk: blocks.CACTUS, leaves: null}
-            ]
+            frequency: 0,
+            list: []
         },
         plants: {
             frequency: .005,
@@ -47,9 +52,9 @@ function Terrain() {
         title:      'УМЕРЕННАЯ ПУСТЫНЯ',
         dirt_block: blocks.SAND,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY / 2,
             list: [
-                {percent: 1, trunk: blocks.CACTUS, leaves: null, style: 'cactus'}
+                {percent: 1, trunk: blocks.CACTUS, leaves: null, style: 'cactus', height: {min: 2, max: CACTUS_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -65,9 +70,10 @@ function Terrain() {
         title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -99,13 +105,14 @@ function Terrain() {
         title:      'ТУНДРА',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
                 {percent: 1, block: blocks.BROWN_MUSHROOM}
             ]
@@ -117,9 +124,10 @@ function Terrain() {
         title:      'ТАЙГА',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -133,9 +141,10 @@ function Terrain() {
         title:      'СНЕГ',
         dirt_block: blocks.SNOW_DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -177,9 +186,10 @@ function Terrain() {
         title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .02,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -196,9 +206,10 @@ function Terrain() {
         title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -212,9 +223,10 @@ function Terrain() {
         title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -228,9 +240,10 @@ function Terrain() {
         title:      'ТРОПИЧЕСКИЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: .025,
+            frequency: TREE_FREQUENCY,
             list: [
-                {percent: 1, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce'}
+                {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+                {percent: 0.99, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -240,25 +253,18 @@ function Terrain() {
     };
 }
 
-// Generate
-Terrain.prototype.generate = function(chunk) {
+// generateMap
+Terrain.prototype.generateMap = function(chunk, noisefn, signal) {
 
-    // Top dirts
-    var top_dirts = new Array(chunk.size.x);
-    for(var x = 0; x < chunk.size.x; x++) {
-        top_dirts[x] = new Array(chunk.size.y).fill(0);
+    if(this.maps_cache.hasOwnProperty(chunk.id)) {
+        return this.maps_cache[chunk.id];
     }
 
-    const seed                  = chunk.id;
-    const signal                = this.makeSignal(115, 10);
-    const aleaRandom            = new alea(seed);
-    const noisefn               = this.noisefn;
     const clamp                 = this.clamp;
     const SX                    = chunk.coord.x;
     const SZ                    = chunk.coord.z;
-    
-    noise.seed(this.seed);
-    
+    const aleaRandom            = new alea(chunk.id);
+
     var scale = .5;
 
     // Настройки
@@ -270,15 +276,18 @@ Terrain.prototype.generate = function(chunk) {
         SCALE_VALUE:            250  * scale // Масштаб шума для карты высот
     };
 
+    // Result map
+    var map = {
+        options:    options,
+        // top_dirts:  [],
+        trees:      [],
+        plants:     [],
+        cells:      Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null))
+    };
+
     //
     for(var x = 0; x < chunk.size.x; x++) {
         for(var z = 0; z < chunk.size.z; z++) {
-
-            // AIR
-            chunk.blocks[x][z] = Array(chunk.size.y).fill(null);
-
-            // Bedrock
-            chunk.blocks[x][z][0] = blocks.BEDROCK;
 
             var px = (x + SX);
             var pz = (z + SZ);
@@ -295,9 +304,9 @@ Terrain.prototype.generate = function(chunk) {
                 // noisefn(px / options.SCALE_BIOM, pz / options.SCALE_BIOM, 0)
             ) / 2;
 
-            // Шум биома
-            var mh = clamp(noisefn(px / (options.SCALE_VALUE * 8), pz / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
-            value *= (1. + mh / 2);
+            // Шум биома (biome noise)
+            var bn = clamp(noisefn(px / (options.SCALE_VALUE * 8), pz / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
+            value *= (1. + bn / 2);
 
             if(value < 0) {
                 value /= 6;
@@ -306,15 +315,159 @@ Terrain.prototype.generate = function(chunk) {
             value = parseInt(value * 255) + 4;
             value = clamp(value, 4, 255);
             value = signal[value];
-            
+
             if(value < options.WATER_LINE) {
                 value = Math.round(options.WATER_LINE - (options.WATER_LINE - value) * 0.5);
             }
 
             // Get biome
             var biome = this.getBiome(value / 255, humidity, equator);
-            
-            var rnd = aleaRandom.double() * mh;
+
+            // Если наверху блок земли
+            if([biome.dirt_block.id].indexOf(biome.dirt_block.id) >= 0) {
+                // map.top_dirts.push(new Vector(x, value, z));
+                // Динамическая рассадка растений
+                var rnd = aleaRandom.double();
+                if(rnd > 0 && rnd <= biome.plants.frequency) {
+                    var s = 0;
+                    var r = rnd / biome.plants.frequency;
+                    for(var p of biome.plants.list) {
+                        s += p.percent;
+                        if(r < s) {
+                            map.plants.push({
+                                pos: new Vector(x, value, z),
+                                block: p.block
+                            });
+                            break;
+                        }
+                    }
+                }
+                // Посадка деревьев
+                if(rnd > 0 && rnd <= biome.trees.frequency) {
+                    var s = 0;
+                    var r = rnd / biome.trees.frequency;
+                    for(var type of biome.trees.list) {
+                        s += type.percent;
+                        if(r < s) {
+                            const height = clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);
+                            const rad = Math.max(parseInt(height / 2), 2);
+                            map.trees.push({
+                                pos:    new Vector(x, value, z),
+                                height: height,
+                                rad:    rad,
+                                type:   type
+                            });
+                            break;
+                        }
+                    }
+                }
+            }
+
+            map.cells[x][z] = {
+                value:      value,
+                humidity:   humidity,
+                equator:    equator,
+                bn:         bn,
+                value:      value,
+                biome:      biome,
+                block:      biome.dirt_block
+            };
+
+            if(biome.code == 'OCEAN') {
+                map.cells[x][z].block = blocks.STILL_WATER;
+            }
+
+            // @todo: Если это снежный биом, то верхний слой делаем принудительно снегом
+
+        }
+    }
+
+    // Clear maps_cache
+    var entrs = Object.entries(this.maps_cache);
+    var MAX_ENTR = 2000;
+    if(entrs.length > MAX_ENTR) {
+        var del_count = Math.floor(entrs.length - MAX_ENTR * 0.333);
+        console.info('Clear maps_cache, del_count: ' + del_count);
+        for(const [k, v] of entrs) {
+            if(--del_count == 0) {
+                break;
+            }
+            delete(this.maps_cache[k]);
+        }
+    }
+
+    //
+    return this.maps_cache[chunk.id] = map;
+
+}
+
+// Generate
+Terrain.prototype.generate = function(chunk) {
+
+    const seed                  = chunk.id;
+    const aleaRandom            = new alea(seed);
+    const noisefn               = this.noisefn;
+    const signal                = this.makeSignal(115, 10);
+
+    // maps
+    var map                    = null;
+    var maps                   = [];
+
+    for(var x = -1; x <= 1; x++) {
+        for(var z = -1; z <= 1; z++) {
+            const addr = new Vector(
+                chunk.addr.x + x,
+                chunk.addr.y,
+                chunk.addr.z + z
+            );
+            const c = {
+                seed: chunk.seed,
+                addr: addr,
+                size: new Vector(
+                    CHUNK_SIZE_X,
+                    CHUNK_SIZE_Y,
+                    CHUNK_SIZE_Z
+                ),
+                coord: new Vector(
+                    addr.x * CHUNK_SIZE_X,
+                    addr.y * CHUNK_SIZE_Y,
+                    addr.z * CHUNK_SIZE_Z
+                ),
+            };
+            c.id = [
+                c.addr.x,
+                c.addr.y,
+                c.addr.z,
+                c.size.x,
+                c.size.y,
+                c.size.z
+            ].join('_');
+            var item = {
+                chunk: c,
+                info: this.generateMap(c, noisefn, signal)
+            };
+            maps.push(item);
+            if(x == 0 && z == 0) {
+                map = item;
+            }            
+        }
+    }
+
+    //
+    for(var x = 0; x < chunk.size.x; x++) {
+        for(var z = 0; z < chunk.size.z; z++) {
+
+            // AIR
+            chunk.blocks[x][z] = Array(chunk.size.y).fill(null);
+
+            // Bedrock
+            chunk.blocks[x][z][0] = blocks.BEDROCK;
+
+            const cell = map.info.cells[x][z];
+            const biome = cell.biome;
+            const value = cell.value;
+
+            var rnd = aleaRandom.double() * cell.bn;
 
             for(var y = 1; y < value; y++) {
                 var r = aleaRandom.double() * 1.33;
@@ -332,146 +485,119 @@ Terrain.prototype.generate = function(chunk) {
                         chunk.blocks[x][z][y] = blocks.GRAVEL;
                     } else {
                         chunk.blocks[x][z][y] = biome.dirt_block;
-                        if(y == value - 1 && biome.dirt_block.id == blocks.DIRT.id) {
-                            top_dirts[x][z] = value;
-                        }
                     }
                 }
             }
 
             if(biome.code == 'OCEAN') {
-                chunk.blocks[x][z][options.WATER_LINE] = blocks.STILL_WATER;
+                chunk.blocks[x][z][map.info.options.WATER_LINE] = blocks.STILL_WATER;
             }
-
-            // Если это снежный биом, то верхний слой делаем принудительно снегом
-            /*
-                if(biome.code == 'SNOW') {
-                    if(block_type.id == blocks.CONCRETE.id) {
-                        chunk.blocks[x][z][value] = blocks.SNOW_BLOCK;
-                    }
-                }
-            */
 
         }
     }
 
+    // Plant plants
+    for(var p of map.info.plants) {
+        chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
+    }
+
     // Plant trees
-    for(var x = 0; x < chunk.size.x; x++) {
-        for(var z = 0; z < chunk.size.z; z++) {
-            var y = top_dirts[x][z];
-            if(y > 2) {
-                // Динамическая рассадка растений
-                var rnd = aleaRandom.double();
-                if(rnd > 0 && rnd <= biome.plants.frequency) {
-                    var s = 0;
-                    var r = rnd / biome.plants.frequency;
-                    for(var p of biome.plants.list) {
-                        s += p.percent;
-                        if(r < s) {
-                            chunk.blocks[x][z][y] = p.block;
-                            break;
-                        }
-                    }
-                }
-                // Посадка деревьев
-                if(rnd > 0 && rnd <= biome.trees.frequency) {
-                    var s = 0;
-                    var r = rnd / biome.trees.frequency;
-                    for(var tree of biome.trees.list) {
-                        s += tree.percent;
-                        if(r < s) {
-                            this.plantTree(biome, tree, chunk, aleaRandom, x, y, z);
-                            break;
-                        }
-                    }
-                }
-            }
+    for(const m of maps) {
+        for(var p of m.info.trees) {
+            this.plantTree(
+                p,
+                chunk,
+                m.chunk.coord.x + p.pos.x - chunk.coord.x,
+                m.chunk.coord.y + p.pos.y - chunk.coord.y,
+                m.chunk.coord.z + p.pos.z - chunk.coord.z
+            );
         }
     }
 
 }
 
 // plantTree...
-Terrain.prototype.plantTree = function(biome, tree, chunk, aleaRandom, x, y, z) {
+Terrain.prototype.plantTree = function(options, chunk, x, y, z) {
 
-    //if(x - chunk.coord.x < 4 || y - chunk.coord.y < 4 || x - chunk.coord.x > 12 || y - chunk.coord.y > 12) {
-    //    return;
-    //}
+    const height        = options.height;
+    const type          = options.type;
+    const leaves_rad    = options.rad;
+    var ystart = y + height;
 
-    if(aleaRandom.double() < 0.01) {
-        chunk.blocks[x][z][y] = tree.trunk;
-        chunk.blocks[x][z][y + 1] = blocks.RED_MUSHROOM;
-    } else {
-
-        // var height = Math.round(this.clamp(aleaRandom.double() * 9, 2, 9));
-        var height = Math.round(aleaRandom.double() * 7 + 2);
-        var ystart = y + height;
-
-        // ствол
-        for(var p = y; p < ystart; p++) {
-            if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
-                chunk.blocks[x][z][p] = tree.trunk;
+    // ствол
+    for(var p = y; p < ystart; p++) {
+        if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
+            if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
+                chunk.blocks[x][z][p] = type.trunk;
             }
         }
+    }
 
-        // листва над стволом
-        switch(tree.style) {
-            case 'cactus': {
-                break;
+    // листва над стволом
+    switch(type.style) {
+        case 'cactus': {
+            // кактус
+            break;
+        }
+        case 'stump': {
+            // пенёк
+            if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
+                chunk.blocks[x][z][ystart] = type.leaves;
             }
-            case 'wood': {
-                if(tree.leaves) {
-                    const leaves_rad = Math.max(parseInt(height / 2), 2);
-                    for(var p = ystart - leaves_rad; p <= ystart + leaves_rad; p++) {
-                        var rad = leaves_rad;
-                        if(tree.trunk.id == tree.trunk.id) {
-                            var max = leaves_rad * 2;
-                            var perc = (p - (ystart - leaves_rad)) / max;
-                            rad = parseInt(Math.abs(Math.sin(perc * Math.PI * 2) * (leaves_rad * (1 - perc))));
-                            rad = Math.max(rad, 2);
-                        }
-                        for(var i = x - rad; i <= x + rad; i++) {
-                            for(var j = z - rad; j <= z + rad; j++) {
-                                if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2) + Math.pow(ystart - p, 2)) <= rad) {
-                                    var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
-                                    if(b.id >= 0 && b.id != tree.trunk.id) {
-                                        chunk.blocks[i][j][p] = tree.leaves;
-                                    }
+            break;
+        }
+        case 'wood': {
+            // дуб, берёза
+            for(var p = ystart - leaves_rad; p <= ystart + leaves_rad; p++) {
+                var max = leaves_rad * 2;
+                var perc = (p - (ystart - leaves_rad)) / max;
+                var rad = parseInt(Math.abs(Math.sin(perc * Math.PI * 2) * (leaves_rad * (1 - perc))));
+                rad = Math.max(rad, 2);
+                for(var i = x - rad; i <= x + rad; i++) {
+                    for(var j = z - rad; j <= z + rad; j++) {
+                        if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
+                            if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2) + Math.pow(ystart - p, 2)) <= rad) {
+                                var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
+                                if(b.id >= 0 && b.id != type.trunk.id) {
+                                    chunk.blocks[i][j][p] = type.leaves;
                                 }
                             }
                         }
                     }
                 }
-                break;
             }
-            case 'spruce': {
-                if(tree.leaves) {
-                    var max_rad = Math.max(parseInt(height / 2), 2);
-                	chunk.blocks[x][z][ystart] = tree.leaves;
-                    ystart -= parseInt(height * .75);
-                    for(var r = 0; r < 3; r++) {
-                        var rad = max_rad--;
-                        if(rad < 1) {
-                            break;
-                        }
-                        for(var l = 0; l < 2; l++) {
-                            for(var i = x - rad; i <= x + rad; i++) {
-                                for(var j = z - rad; j <= z + rad; j++) {
-                                    if(Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
-                                        var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
-                                        if(b.id >= 0 && b.id != tree.trunk.id) {
-                                            chunk.blocks[i][j][ystart + l] = tree.leaves;
-                                        }
-                                    }
+            break;
+        }
+        case 'spruce': {
+            
+            // ель
+            var r = 1;
+            var rad = Math.round(r);
+            if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
+                chunk.blocks[x][z][ystart] = type.leaves;
+            }
+            var step = 0;
+            for(var y = ystart - 1; y > ystart - (height - 1); y--) {
+                if(step++ % 2 == 0) {
+                    rad = Math.min(Math.round(r), 3);
+                } else {
+                    rad = 1;
+                }
+                for(var i = x - rad; i <= x + rad; i++) {
+                    for(var j = z - rad; j <= z + rad; j++) {
+                        if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
+                            if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
+                                var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
+                                if(b.id == blocks.AIR.id) {
+                                    chunk.blocks[i][j][y] = type.leaves;
                                 }
                             }
-                            rad -= 2;
                         }
-                        ystart += 2;
                     }
                 }
-                break;
+                r += .9;
             }
+            break;
         }
     }
 
@@ -485,7 +611,9 @@ Terrain.prototype.clamp = function(x, min, max) {
     if(!max) {
         max = 1;
     }
-    return Math.max(Math.min(x, max), min);
+    if(x < min) return min;
+    if(x > max) return max;
+    return x;
 }
     
 /**
@@ -559,13 +687,11 @@ Terrain.prototype.getCurvePoints = function(pts, tension, isClosed, numOfSegment
     isClosed = isClosed ? isClosed : false;
     numOfSegments = numOfSegments ? numOfSegments : 16;
     var _pts = [], res = [],    // clone array
-        x, y,           // our x,y coords
-        t1x, t2x, t1y, t2y, // tension vectors
-        c1, c2, c3, c4,     // cardinal points
-        st, t, i;       // steps based on num. of segments
-
+        x, y,                   // our x,y coords
+        t1x, t2x, t1y, t2y,     // tension vectors
+        c1, c2, c3, c4,         // cardinal points
+        st, t, i;               // steps based on num. of segments
     // clone array so we don't change the original
-    //
     _pts = pts.slice(0);
     // The algorithm require a previous and next point to the actual point array.
     // Check if we will draw closed or open curve.
@@ -589,28 +715,22 @@ Terrain.prototype.getCurvePoints = function(pts, tension, isClosed, numOfSegment
     // 2. loop goes through each segment between the 2 pts + 1e point before and after
     for (i=2; i < (_pts.length - 4); i+=2) {
         for (t=0; t <= numOfSegments; t++) {
-
             // calc tension vectors
             t1x = (_pts[i+2] - _pts[i-2]) * tension;
             t2x = (_pts[i+4] - _pts[i]) * tension;
-
             t1y = (_pts[i+3] - _pts[i-1]) * tension;
             t2y = (_pts[i+5] - _pts[i+1]) * tension;
-
             // calc step
             st = t / numOfSegments;
-
             // calc cardinals
             c1 =   2 * Math.pow(st, 3)  - 3 * Math.pow(st, 2) + 1; 
             c2 = -(2 * Math.pow(st, 3)) + 3 * Math.pow(st, 2); 
             c3 =       Math.pow(st, 3)  - 2 * Math.pow(st, 2) + st; 
             c4 =       Math.pow(st, 3)  -     Math.pow(st, 2);
-
             // calc x and y cords with common control vectors
             x = c1 * _pts[i]    + c2 * _pts[i+2] + c3 * t1x + c4 * t2x;
             y = c1 * _pts[i+1]  + c2 * _pts[i+3] + c3 * t1y + c4 * t2y;
-
-            //store points in array
+            // store points in array
             res.push(x);
             res.push(y);
 
