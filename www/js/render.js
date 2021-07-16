@@ -19,7 +19,7 @@ var settings = {
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
-    fogDensity:             0.005,
+    fogDensity:             0.015,
     fogDensityUnderWater:   0.1
 };
 
