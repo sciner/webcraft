@@ -80,7 +80,7 @@ for(var [key, b] of Object.entries(blocks)) {
 }
 
 var chunks              = {};
-var terrainGenerator    = new Terrain();
+var terrainGenerator    = null; // new Terrain();
 var world               = {
     chunkManager: new ChunkManager()
 }
@@ -91,7 +91,9 @@ onmessage = function(e) {
     const args = e.data[1];
     switch(cmd) {
         case 'createChunk': {
-            terrainGenerator.seed = args.seed;
+            if(!terrainGenerator) {
+                terrainGenerator = new Terrain(args.seed);
+            }
             if(!this.chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = Object.assign(new Chunk(), args);
                 chunks[args.key].init();
@@ -126,6 +128,7 @@ onmessage = function(e) {
                     fluid_blocks:           chunk.fluid_blocks,
                     shift:                  chunk.shift,
                     timers:                 chunk.timers,
+                    map:                    chunk.map.info,
                     tm:                     chunk.tm,
                     lightmap:               chunk.lightmap
                 }]);
@@ -149,6 +152,7 @@ onmessage = function(e) {
                         fluid_blocks:           chunk.fluid_blocks,
                         shift:                  chunk.shift,
                         timers:                 chunk.timers,
+                        map:                    chunk.map.info,
                         tm:                     chunk.tm,
                         lightmap:               chunk.lightmap
                     });
@@ -259,14 +263,14 @@ Chunk.prototype.init = function() {
     for(var x = 0; x < this.size.x; x++) {
         this.blocks[x] = new Array(this.size.z);
         for(var z = 0; z < this.size.z; z++) {
-            this.blocks[x][z] = new Array(this.size.y).fill(blocks.AIR);
+            this.blocks[x][z] = new Array(this.size.y).fill(null);
         }
     }
     this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
 
     // 2. Generate terrain
     this.timers.generate_terrain = performance.now();
-    terrainGenerator.generate(this);
+    this.map = terrainGenerator.generate(this);
     this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
 
     // 3. Apply modify_list
@@ -278,6 +282,7 @@ Chunk.prototype.init = function() {
     postMessage(['blocks_generated', {
         key:    this.key,
         blocks: this.blocks,
+        map:    this.map
     }]);
 
 }
@@ -510,9 +515,8 @@ Chunk.prototype.buildVertices = function() {
                         //}
                         //block = this.blocks[x][y][z] = b;
 
-                        /*
                         // 2.2 sec
-                        block = this.blocks[x][y][z] = {
+                        /*block = this.blocks[x][y][z] = {
                             id:                 block.id,
                             name:               block.name,
                             power:              block.power,

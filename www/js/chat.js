@@ -77,9 +77,9 @@ Chat.prototype.submit = function() {
         switch(cmd.trim().toLowerCase()) {
             case '/tp': {
                 if(temp.length == 3) {
-                    var x = parseInt(temp[0].trim());
-                    var y = parseInt(temp[1].trim());
-                    var z = parseInt(temp[2].trim());
+                    var x = parseFloat(temp[0].trim());
+                    var y = parseFloat(temp[1].trim());
+                    var z = parseFloat(temp[2].trim());
                     Game.world.localPlayer.pos.x = x;
                     Game.world.localPlayer.pos.y = y;
                     Game.world.localPlayer.pos.z = z;

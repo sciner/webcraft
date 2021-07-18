@@ -266,7 +266,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z) {
     // Bottom
     neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [0, 0, 0, 0];
+        ao = [.5, .5, .5, .5];
         c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
         n = NORMALS.DOWN;
         pushQuad(

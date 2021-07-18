@@ -3,13 +3,14 @@ importScripts(
     '../vendors/alea.js'
 );
 
-function Terrain() {
+function Terrain(seed) {
 
     const CACTUS_MAX_HEIGHT     = 7;
-    const TREE_MAX_HEIGHT       = 12;
+    const TREE_MIN_HEIGHT       = 4;
+    const TREE_MAX_HEIGHT       = 8;
     const TREE_FREQUENCY        = 0.015;
 
-    this.seed                   = 0;
+    this.seed                   = seed;
     this.noisefn                = noise.perlin3;
     this.maps_cache             = {};
 
@@ -54,7 +55,7 @@ function Terrain() {
         trees:      {
             frequency: TREE_FREQUENCY / 2,
             list: [
-                {percent: 1, trunk: blocks.CACTUS, leaves: null, style: 'cactus', height: {min: 2, max: CACTUS_MAX_HEIGHT}}
+                {percent: 1, trunk: blocks.CACTUS, leaves: null, style: 'cactus', height: {min: TREE_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -73,7 +74,7 @@ function Terrain() {
             frequency: TREE_FREQUENCY,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -189,7 +190,7 @@ function Terrain() {
             frequency: TREE_FREQUENCY,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
+                {percent: 0.99, trunk: blocks.WOOD_BIRCH, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -209,7 +210,7 @@ function Terrain() {
             frequency: TREE_FREQUENCY,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -226,7 +227,7 @@ function Terrain() {
             frequency: TREE_FREQUENCY,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: 2, max: TREE_MAX_HEIGHT}}
+                {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
             ]
         },
         plants: {
@@ -263,7 +264,7 @@ Terrain.prototype.generateMap = function(chunk, noisefn, signal) {
     const clamp                 = this.clamp;
     const SX                    = chunk.coord.x;
     const SZ                    = chunk.coord.z;
-    const aleaRandom            = new alea(chunk.id);
+    const aleaRandom            = new alea(chunk.seed + '_' + chunk.id);
 
     var scale = .5;
 
@@ -368,8 +369,7 @@ Terrain.prototype.generateMap = function(chunk, noisefn, signal) {
                 humidity:   humidity,
                 equator:    equator,
                 bn:         bn,
-                value:      value,
-                biome:      biome,
+                biome:      {code: biome.code, color: biome.color, title: biome.title, dirt_block: biome.dirt_block},
                 block:      biome.dirt_block
             };
 
@@ -513,6 +513,8 @@ Terrain.prototype.generate = function(chunk) {
             );
         }
     }
+
+    return map;
 
 }
 

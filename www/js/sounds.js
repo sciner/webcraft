@@ -47,6 +47,14 @@ class Sounds {
                 this.list[i].play();
             }
         };
+        this.tags['click'] = {
+            list: [
+                new Howl({src: ["/sounds/click.mp3"]})
+            ],
+            play: function() {
+                this.list[0].play();
+            }
+        };
     }
 
     play(tag) {

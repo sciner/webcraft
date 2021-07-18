@@ -33,6 +33,7 @@ BLOCK.DUMMY = {
     id: -1,
     inventory_icon_id: 3270,
 	spawnable: false,
+    passable: 0,
     transparent: false,
     texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
 };

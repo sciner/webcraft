@@ -10,16 +10,17 @@ function World(saved_state, connectedCallback) {
 
     var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
 
-    that.server = new ServerClient(serverURL, function(event) {
+    // Create server client
+    that.server = new ServerClient(serverURL, function() {
         that.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
         that.players        = [];
         that.rainTim        = null;
         that.saved_state    = saved_state;
+        that.seed           = saved_state.seed;
         that.chunkManager   = new ChunkManager(that);
         that.rotateRadians  = new Vector(0, 0, 0);
         that.rotateDegree   = new Vector(0, 0, 0);
-        // Restore state
-        that.seed           = saved_state.seed;
+        //
         that.meshes         = {
             list: {},
             add: function(mesh, key) {
