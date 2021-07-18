@@ -23,7 +23,7 @@ void main() {
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
-    light = max(0.5, dot(n, sun_dir) - v_color.a);
+    light = max(.5, dot(n, sun_dir) - v_color.a);
 
     if(u_fogOn) {
         gl_Position = uProjMatrix * u_worldView * ( uModelMatrix * vec4(a_position, 1.0 ) );

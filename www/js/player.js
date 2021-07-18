@@ -499,6 +499,10 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                             }
                         }
                         world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
+                        var b = BLOCK.fromId(that.buildMaterial.id);
+                        if(b.sound) {
+                            Game.sounds.play(b.sound);
+                        }
                     }
                 }
                 that.inventory.decrement();
@@ -657,6 +661,7 @@ Player.prototype.update = function() {
 			velocity.x = walkVelocity.x * 4 * mul;
 			velocity.z = walkVelocity.z * 4 * mul;
 		} else {
+            // энерция торможения разная
 			velocity.x /= this.falling ? 1.01 : 1.5;
 			velocity.z /= this.falling ? 1.01 : 1.5;
 		}
@@ -683,13 +688,24 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
         z: pos.z + velocity.z,
         size: 0.25
     };
-    const shiftPressed = this.keys[KEY.SHIFT];
+    const shiftPressed = !!this.keys[KEY.SHIFT];
 	// Collect XZ collision sides
 	var collisionCandidates = [];
 	for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
 		for(var z = bPos.z - 1; z <= bPos.z + 1; z++) {
 			for(var y = bPos.y; y <= bPos.y + 1; y++) {
                 var block = world.chunkManager.getBlock(x, y, z);
+                // Позволяет не падать с края блоков, если зажат [Shift]
+                if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
+                    var blockUnder = world.chunkManager.getBlock(x, y - 1, z);
+                    if(blockUnder.passable) {
+                        if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
+                        if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
+                        if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
+                        if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
+                        continue;
+                    }
+                }
 				if (!block.passable) {
 					if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
 					if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
@@ -704,10 +720,10 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 		var side = collisionCandidates[i];
 		if (lineRectCollide(side, playerRect)) {
 			if(side.x != null && velocity.x * side.dir < 0) {
-				pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1 );
+				pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1);
 				velocity.x = 0;
 			} else if(side.z != null && velocity.z * side.dir < 0) {
-				pos.z = side.z + playerRect.size / 2 * ( velocity.z > 0 ? -1 : 1 );
+				pos.z = side.z + playerRect.size / 2 * ( velocity.z > 0 ? -1 : 1);
 				velocity.z = 0;
 			}
 		}
@@ -720,7 +736,7 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
         z2: pos.z + velocity.z + 0.125
     };
 	var newBYLower = Math.floor(pos.y + velocity.y);
-	var newBYUpper = Math.floor(pos.y + 1.7 + velocity.y * 1.1);
+	var newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
 	// Collect Y collision sides
     collisionCandidates = [];
     for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
@@ -741,7 +757,7 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 				velocity.y      = 0;
 				this.velocity.y = 0;
 			} else {
-				pos.y           = face.y - 1.8;
+				pos.y           = face.y - this.height;
 				velocity.y      = 0;
 				this.velocity.y = 0;
 			}
