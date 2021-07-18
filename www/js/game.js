@@ -83,8 +83,8 @@ export let Game = {
     createNewWorld: function(form) {
         var spawnPoint = new Vector(
             2914.5,
-            2884.5,
-            150.0
+            150.0,
+            2884.5
         );
         return Object.assign(form, {
             spawnPoint: spawnPoint,
@@ -128,6 +128,7 @@ export let Game = {
                 that.physics.setWorld(that.world);
                 that.player.setWorld(that.world);
                 that.setupMousePointer();
+                that.world.renderer.updateViewport();
                 that.world.fixRotate();
                 //
                 that.hud.add(that.world.chunkManager, 0);
@@ -183,17 +184,17 @@ export let Game = {
     },
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
-        var current_player_state = {
+        this.current_player_state = {
             angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
             pos:    this.world.localPlayer.pos,
             ping:   Math.round(this.world.server.ping_value)
         };
-        var current_player_state_json = JSON.stringify(current_player_state);
-        if(current_player_state_json != this.prev_player_state) {
-            this.prev_player_state = current_player_state_json;
+        this.current_player_state_json = JSON.stringify(this.current_player_state);
+        if(this.current_player_state_json != this.prev_player_state) {
+            this.prev_player_state = this.current_player_state_json;
             this.world.server.Send({
                 name: ServerClient.EVENT_PLAYER_STATE,
-                data: current_player_state
+                data: this.current_player_state
             });
         }
     },
@@ -224,7 +225,6 @@ export let Game = {
         var element = that.canvas;
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-              
         if(that.controls.inited) {
             element.requestPointerLock();
             return;

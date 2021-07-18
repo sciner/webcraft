@@ -26,6 +26,7 @@ function HUD(width, height) {
     this.buffer                     = null;
     this.width                      = width;
     this.height                     = height;
+    this.text                       = null;
     this.items                      = [];
 
     var HUD = this;
@@ -227,71 +228,75 @@ HUD.prototype.drawInfo = function(hud) {
     if(!this.draw_info) {
         return;
     }
-    if(Game.loopTime) {
+    /*if(Game.loopTime) {
         text += '\nLOOP_TIME: ' + [
             Math.round(Game.loopTime.min * 10) / 10,
             Math.round(Game.loopTime.max * 10) / 10,
             Math.round(Game.loopTime.avg * 10) / 10
         ].join(' / ');
-    }
-    var text = 'FPS: ' + Math.round(fps.fps) + ' /' + Math.round(1000 / Game.loopTime.avg);
+    }*/
+    this.text = 'FPS: ' + Math.round(fps.fps) + ' /' + Math.round(1000 / Game.loopTime.avg);
     var vci = Game.render.getVideoCardInfo();
     if(!vci.error) {
-        text += '\nRenderer: ' + vci.renderer;
+        this.text += '\nRenderer: ' + vci.renderer;
     }
-    text += '\nMAT: ';
+    this.text += '\nMAT: ';
     var mat = Game.player.buildMaterial;
     if(mat) {
-        text += ' ' + mat.id + ' / ' + mat.name;
+        this.text += ' ' + mat.id + ' / ' + mat.name;
         if(mat.fluid) {
-            text += ' ' + '(FLUID!!!)';
+            this.text += ' ' + '(FLUID!!!)';
         }
     } else {
-        text += 'NULL';
+        this.text += 'NULL';
     }
     if(performance.now() - Game.last_saved_time < 3000) {
-        text += '\nSaved ... OK';
+        this.text += '\nSaved ... OK';
     }
     // text += '\nUsername: ' + Game.username;
     if(Game.world.server.ping_value) {
-        text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
+        this.text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
     }
-    text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
+    this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
     // Chunks inited
-    text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
+    this.text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
     var vertices_length_total = 0;
     for(const[key, chunk] of Object.entries(Game.world.chunkManager.chunks)) {
         vertices_length_total += chunk.vertices_length;
     }
-    text += '\nVertices: ' + vertices_length_total.toLocaleString(undefined, {minimumFractionDigits: 0}) + 
+    this.text += '\nVertices: ' + vertices_length_total.toLocaleString(undefined, {minimumFractionDigits: 0}) + 
         ' / ' + Math.round(vertices_length_total * 12 * 4 / 1024 / 1024) + 'Mb';
     
     //
-    text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
+    this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
     // Console =)
     var playerBlockPos = Game.world.localPlayer.getBlockPos();
     var chunk = Game.world.localPlayer.overChunk;
-    text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z;
+    this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z;
     if(chunk) {
-        text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n';
+        var biome = null;
+        if(chunk.map) {
+            biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
+        }
+        this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + ' / ' + biome + '\n';
         // text += 'CHUNK_XYZ: ' + chunk.coord.x + ', ' + chunk.coord.y + ', ' + chunk.coord.z + '\n';
     }
     // Players list
-    text += '\nOnline:\n';
+    this.text += '\nOnline:\n';
     for(const [id, player] of Object.entries(Game.world.players)) {
         if(id == 'itsme') {
             continue;
         }
-        text += '🙎‍♂️' + player.nick;
+        this.text += '🙎‍♂️' + player.nick;
         if(player.itsme) {
-            text += ' <- YOU';
+            this.text += ' <- YOU';
         } else {
-            text += ' ... ' + Math.floor(Helpers.distance(player.pos, Game.world.localPlayer.pos)) + 'm';
+            this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, Game.world.localPlayer.pos)) + 'm';
         }
-        text += '\n';
+        this.text += '\n';
     }
-    hud.drawText(text, 10, 10);
+    hud.drawText(this.text, 10, 10);
 }
 
 // Просто функция печати текста

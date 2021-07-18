@@ -80,12 +80,11 @@ ChunkManager.prototype.refresh = function() {
 // Draw level chunks
 ChunkManager.prototype.draw = function(render) {
     var gl = render.gl;
-    const chunks                = Object.entries(this.chunks);
-    this.rendered_chunks.total  = chunks.length;
+    this.rendered_chunks.total  = Object.entries(this.chunks).length;
     this.rendered_chunks.fact   = 0;
     var applyVerticesCan        = 1;
     // Для отрисовки чанков по спирали от центрального вокруг игрока
-    var spiral_moves = this.createSpiralCoords(this.margin * 2);
+    this.spiral_moves = this.createSpiralCoords(this.margin * 2);
     // чанк, в котором стоит игрок
     var overChunk = Game.world.localPlayer.overChunk;
     // draw
@@ -94,7 +93,7 @@ ChunkManager.prototype.draw = function(render) {
             gl.disable(gl.CULL_FACE);
         }
         if(overChunk) {
-            for(var sm of spiral_moves) {
+            for(var sm of this.spiral_moves) {
                 var pos = new Vector(
                     overChunk.addr.x + sm.x - this.margin,
                     overChunk.addr.y + sm.y,
