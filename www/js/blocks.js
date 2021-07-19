@@ -4,6 +4,10 @@
 // This file contains all available block types and their properties.
 // ==========================================
 
+const CHUNK_SIZE_X      = 16;
+const CHUNK_SIZE_Y      = 256;
+const CHUNK_SIZE_Z      = 16;
+
 // Direction enumeration
 var DIRECTION = {};
     DIRECTION.UP        = 1;

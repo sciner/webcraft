@@ -61,7 +61,6 @@ function Chunk(chunkManager, pos, modify_list) {
 Chunk.prototype.onBlocksGenerated = function(args) {
     this.blocks = args.blocks;
     this.inited = true;
-    // console.info('Chunk onBlocksGenerated ... ', Math.round((performance.now() - this.worker_pn_generate) * 1000) / 1000, ' ms');
 }
 
 // doShift
