@@ -8,9 +8,6 @@ importScripts(
     // '/js/terrain_generator/diamond_square.js'
 );
 
-const CHUNK_SIZE_X      = 16;
-const CHUNK_SIZE_Y      = 256;
-const CHUNK_SIZE_Z      = 16;
 const DIRT_HEIGHT       = 32;
 
 // 1. All blocks
@@ -82,6 +79,7 @@ for(var [key, b] of Object.entries(blocks)) {
 var chunks              = {};
 var terrainGenerator    = null; // new Terrain();
 var world               = {
+    blocks_pushed: 0,
     chunkManager: new ChunkManager()
 }
 
@@ -417,13 +415,20 @@ Chunk.prototype.buildVertices = function() {
         },
     }
 
+    var neighbour_chunks = {
+        nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
+        px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+        nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
+        pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
+    };
+
     var cc = [
-        {x: 0, y: 0, z: -1},
-        {x: 0, y: 0, z: 1},
-        {x: -1, y: 0, z: 0},
-        {x: 1, y: 0, z: 0},
-        {x: 0, y: -1, z: 0},
-        {x: 0, y: 1, z: 0},
+        {x: -1, y:  0, z:  0},
+        {x:  1, y:  0, z:  0},
+        {x:  0, y: -1, z:  0},
+        {x:  0, y:  1, z:  0},
+        {x:  0, y:  0, z: -1},
+        {x:  0, y:  0, z:  1}
     ];
 
     for(var x = 0; x < this.size.x; x++) {
@@ -437,10 +442,46 @@ Chunk.prototype.buildVertices = function() {
                     continue;
                 }
                 // ignore invisible inside another blocks
-                if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                    var pcnt = 0;
+                var pcnt = 0;
+                if(y > 0 && y < this.size.y - 1) {
                     for(var p of cc) {
-                        var b = this.blocks[x + p.x][z + p.z][y + p.y];
+                        var b = null;
+                        if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                            b = this.blocks[x + p.x][z + p.z][y + p.y];
+                        } else {
+                            // 1.85
+                            if(p.x == -1) {
+                                if(x == 0) {
+                                    b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                                } else {
+                                    b = this.blocks[x - 1][z][y];
+                                }
+                            } else if (p.x == 1) {
+                                if(x == this.size.x - 1) {
+                                    b = neighbour_chunks.px.blocks[0][z][y];
+                                } else {
+                                    b = this.blocks[x + 1][z][y];
+                                }
+                            } else if (p.z == -1) {
+                                if(z == 0) {
+                                    b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                                } else {
+                                    b = this.blocks[x][z - 1][y];
+                                }
+                            } else if (p.z == 1) {
+                                if(z == this.size.z - 1) {
+                                    b = neighbour_chunks.pz.blocks[x][0][y];
+                                } else {
+                                    b = this.blocks[x][z + 1][y];
+                                }
+                            } else if (p.y == -1) {
+                                b = this.blocks[x][z][y - 1];
+                            } else if (p.y == 1) {
+                                b = this.blocks[x][z][y + 1];
+                            }
+                            // 3.4
+                            // b = world.chunkManager.getBlock(x + p.x + this.coord.x, y + p.y + this.coord.y, z + p.z + this.coord.z);
+                        }
                         if(!b || (b.transparent || b.fluid)) {
                             break;
                         }
@@ -486,6 +527,7 @@ Chunk.prototype.buildVertices = function() {
                 if(block.fluid) {
                     this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                 }
+                world.blocks_pushed++;
                 // make vertices array
                 if([200, 202].indexOf(block.id) >= 0) {
                     // если это блок воды
@@ -499,43 +541,6 @@ Chunk.prototype.buildVertices = function() {
                     }
                 } else {
                     if(!block.hasOwnProperty('vertices')) {
-
-                        // 3.8 sec
-                        // block = this.blocks[x][y][z] = Object.assign({}, block);
-                        // block.vertices = [];
-                        
-                        // 3.5 sec
-                        // block = this.blocks[x][y][z] = JSON.parse(JSON.stringify(block));
-                        // block.vertices = [];
-
-                        // 2.7 sec
-                        //var b = {vertices: []};
-                        //for (var i in block) {
-                        //    b[i] = block[i];
-                        //}
-                        //block = this.blocks[x][y][z] = b;
-
-                        // 2.2 sec
-                        /*block = this.blocks[x][y][z] = {
-                            id:                 block.id,
-                            name:               block.name,
-                            power:              block.power,
-                            light:              block.light,
-                            passable:           block.passable,
-                            spawnable:          block.spawnable,
-                            inventory_icon_id:  block.inventory_icon_id,
-                            fluid:              block.fluid,
-                            gravity:            block.gravity,
-                            sound:              block.sound,
-                            width:              block.width,
-                            style:              block.style,
-                            planting:           block.planting,
-                            transparent:        block.transparent,
-                            vertices:           []
-                        };
-                        */
-
-                        // 2.185
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
                         BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
@@ -547,6 +552,8 @@ Chunk.prototype.buildVertices = function() {
             }
         }
     }
+
+    // console.log('world.blocks_pushed', world.blocks_pushed);
 
     // ~0ms
     for(var [key, v] of Object.entries(this.vertices)) {

@@ -1,6 +1,3 @@
-const CHUNK_SIZE_X      = 16;
-const CHUNK_SIZE_Y      = 256;
-const CHUNK_SIZE_Z      = 16;
 const DIRT_HEIGHT       = 32;
 var CHUNK_RENDER_DIST   = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
 

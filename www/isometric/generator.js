@@ -144,10 +144,8 @@ class Biome {
             var value = signal[i];
             ctx2D.fillRect((i / 256) * 320, 320 - (value / 256) * 320, 2, 2);
         }
-        
         ctx2D.fillStyle = '#dd2200';
         ctx2D.fillRect(158, 158, 4, 4);
-        
         document.getElementById('timer').innerText = Math.round(performance.now() - t) + ' ms';
         SX += SZ / 50;
     }
