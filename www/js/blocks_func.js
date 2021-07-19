@@ -154,7 +154,7 @@ function calcTexture(c) {
 
 // Pushes the vertices necessary for rendering a
 // specific block into the array.
-function push_cube(block, vertices, world, lightmap, x, y, z) {
+function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
 
     if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
         return;
