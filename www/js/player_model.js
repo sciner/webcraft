@@ -28,8 +28,8 @@ function PlayerModel(props) {
 }
 
 // draw
-PlayerModel.prototype.draw = function(render, modelMatrix, uModelMat, camPos, options) {
-    this.drawLayer(render, modelMatrix, uModelMat, camPos, {
+PlayerModel.prototype.draw = function(render, modelMatrix, uModelMat, camPos, delta) {
+    this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
         scale:          1.0,
         texture:        this.texPlayer,
         draw_nametag:   false
@@ -38,7 +38,7 @@ PlayerModel.prototype.draw = function(render, modelMatrix, uModelMat, camPos, op
     const gl = this.gl;
     gl.disable(gl.CULL_FACE);
     
-    this.drawLayer(render, modelMatrix, uModelMat, camPos, {
+    this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
         scale:          1.05,
         texture:        this.texPlayer2,
         draw_nametag:   true
@@ -454,7 +454,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
 }
 
 // drawLayer
-PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPos, options) {
+PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPos, delta, options) {
     
     const gl        = this.gl;
     const scale     = options.scale;
@@ -462,7 +462,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     var aniangle = 0;
     if(this.moving || Math.abs(this.aniframe) > 0.1) {
-        this.aniframe += 0.15;
+        this.aniframe += (0.1 / 1000 * delta);
         if(this.aniframe > Math.PI) {
             this.aniframe  = -Math.PI;
         }
@@ -474,11 +474,11 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     // Draw head
     var pitch = this.pitch;
-    if(pitch < -0.32 ) {
-        pitch = -0.32;
+    if(pitch < -0.5 ) {
+        pitch = -0.5;
     }
-    if(pitch > 0.32 ) {
-        pitch = 0.32;
+    if(pitch > 0.5 ) {
+        pitch = 0.5;
     }
 
     // Load mesh
@@ -495,7 +495,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     // Draw head
     mat4.identity(modelMatrix);
-    mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.y - Game.shift.y, this.pos.z + this.height * options.scale - z_minus]);
+    mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + this.height * options.scale - z_minus]);
     mat4.scale(modelMatrix, [scale, scale, scale]);
     mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
     mat4.rotateX(modelMatrix, -pitch);
@@ -507,7 +507,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     // Draw body
     mat4.identity(modelMatrix);
-    mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.y - Game.shift.y, this.pos.z + 0.01 - z_minus / 2]);
+    mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + 0.01 - z_minus / 2]);
     mat4.scale(modelMatrix, [scale, scale, scale]);
     mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
@@ -544,10 +544,10 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
         mat4.identity(modelMatrix);
         // Calculate angle so that the nametag always faces the local player
-        var angZ = -Math.PI/2 + Math.atan2((camPos[1] - Game.shift.y) - (this.pos.y - Game.shift.y), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
+        var angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
         var angX = 0; // @todo
         
-        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.y - Game.shift.y, this.pos.z + (this.height + 0.35) * options.scale - z_minus]);
+        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
         mat4.rotateZ(modelMatrix, angZ);
         mat4.rotateX(modelMatrix, angX);
         mat4.scale(modelMatrix, [0.005, 1, 0.005]);

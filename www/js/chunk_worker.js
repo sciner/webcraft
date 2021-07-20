@@ -371,9 +371,9 @@ Chunk.prototype.setBlock = function(x, y, z, orig_type, is_modify, power, rotate
 Chunk.prototype.makeLights = function() {
     this.lights             = [];
     // Lights
-    for(var x = 0; x < this.size.x; x++) {
-        for(var z = 0; z < this.size.z; z++) {
-            for(var y = 0; y < this.size.y; y++) {
+    for(var y = 0; y < this.size.y; y++) {
+        for(var x = 0; x < this.size.x; x++) {
+            for(var z = 0; z < this.size.z; z++) {
                 var block = this.blocks[x][z][y];
                 if(block && block.lightPower) {
                     this.lights.push({
@@ -423,17 +423,17 @@ Chunk.prototype.buildVertices = function() {
     };
 
     var cc = [
-        {x: -1, y:  0, z:  0},
-        {x:  1, y:  0, z:  0},
-        {x:  0, y: -1, z:  0},
         {x:  0, y:  1, z:  0},
+        {x:  0, y: -1, z:  0},
         {x:  0, y:  0, z: -1},
-        {x:  0, y:  0, z:  1}
+        {x:  0, y:  0, z:  1},
+        {x: -1, y:  0, z:  0},
+        {x:  1, y:  0, z:  0}
     ];
 
-    for(var x = 0; x < this.size.x; x++) {
-        for(var z = 0; z < this.size.z; z++) {
-            for(var y = 0; y < this.size.y; y++) {
+    for(var y = 0; y < this.size.y; y++) {
+        for(var x = 0; x < this.size.x; x++) {
+            for(var z = 0; z < this.size.z; z++) {
                 var block = this.blocks[x][z][y];
                 if(block == null) {
                     continue;
@@ -441,55 +441,69 @@ Chunk.prototype.buildVertices = function() {
                 if(block.id == BLOCK.AIR.id) {
                     continue;
                 }
-                // ignore invisible inside another blocks
+                // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока
+                var neighbours = {UP: null, DOWN: null, FORWARD: null, BACK: null, LEFT: null, RIGHT: null};
                 var pcnt = 0;
-                if(y > 0 && y < this.size.y - 1) {
-                    for(var p of cc) {
-                        var b = null;
-                        if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                            b = this.blocks[x + p.x][z + p.z][y + p.y];
-                        } else {
-                            // 1.85
-                            if(p.x == -1) {
-                                if(x == 0) {
-                                    b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
-                                } else {
-                                    b = this.blocks[x - 1][z][y];
-                                }
-                            } else if (p.x == 1) {
-                                if(x == this.size.x - 1) {
-                                    b = neighbour_chunks.px.blocks[0][z][y];
-                                } else {
-                                    b = this.blocks[x + 1][z][y];
-                                }
-                            } else if (p.z == -1) {
-                                if(z == 0) {
-                                    b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
-                                } else {
-                                    b = this.blocks[x][z - 1][y];
-                                }
-                            } else if (p.z == 1) {
-                                if(z == this.size.z - 1) {
-                                    b = neighbour_chunks.pz.blocks[x][0][y];
-                                } else {
-                                    b = this.blocks[x][z + 1][y];
-                                }
-                            } else if (p.y == -1) {
-                                b = this.blocks[x][z][y - 1];
-                            } else if (p.y == 1) {
-                                b = this.blocks[x][z][y + 1];
+                // обходим соседние блоки
+                for(var p of cc) {
+                    var b = null;
+                    if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                        // если блок в том же чанке
+                        b = this.blocks[x + p.x][z + p.z][y + p.y];
+                    } else {
+                        // если блок с краю чанка или вообще в соседнем чанке
+                        if(p.x == -1) {
+                            if(x == 0) {
+                                b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                            } else {
+                                b = this.blocks[x - 1][z][y];
                             }
-                            // 3.4
-                            // b = world.chunkManager.getBlock(x + p.x + this.coord.x, y + p.y + this.coord.y, z + p.z + this.coord.z);
+                        } else if (p.x == 1) {
+                            if(x == this.size.x - 1) {
+                                b = neighbour_chunks.px.blocks[0][z][y];
+                            } else {
+                                b = this.blocks[x + 1][z][y];
+                            }
+                        } else if (p.z == -1) {
+                            if(z == 0) {
+                                b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                            } else {
+                                b = this.blocks[x][z - 1][y];
+                            }
+                        } else if (p.z == 1) {
+                            if(z == this.size.z - 1) {
+                                b = neighbour_chunks.pz.blocks[x][0][y];
+                            } else {
+                                b = this.blocks[x][z + 1][y];
+                            }
+                        } else if (p.y == -1) {
+                            b = this.blocks[x][z][y - 1];
+                        } else if (p.y == 1) {
+                            b = this.blocks[x][z][y + 1];
                         }
-                        if(!b || (b.transparent || b.fluid)) {
-                            break;
-                        }
-                        pcnt++;
                     }
-                    if(pcnt == 6) {
-                        continue;
+                    if(p.y == 1) {
+                        neighbours.UP = b;
+                    } else if(p.y == -1) {
+                        neighbours.DOWN = b;
+                    } else if(p.z == -1) {
+                        neighbours.FORWARD = b;
+                    } else if(p.z == 1) {
+                        neighbours.BACK = b;
+                    } else if(p.x == -1) {
+                        neighbours.LEFT = b;
+                    } else if(p.x == 1) {
+                        neighbours.RIGHT = b;
                     }
+                    if(!b || (b.transparent || b.fluid)) {
+                        // break;
+                        pcnt = -40;
+                    }
+                    pcnt++;
+                }
+                // если у блока все соседи есть, значит его не видно и не нужно отрисовывать
+                if(pcnt == 6) {
+                    continue;
                 }
                 /*
                 // lights
@@ -534,7 +548,7 @@ Chunk.prototype.buildVertices = function() {
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours);
                     }
                     if(block.vertices.length > 0) {
                         this.vertices.transparent.list.push(...block.vertices);
@@ -543,7 +557,7 @@ Chunk.prototype.buildVertices = function() {
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z);
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours);
                     }
                     if(block.vertices.length > 0) {
                         this.vertices.regular.list.push(...block.vertices);

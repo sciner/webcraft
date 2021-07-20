@@ -16,6 +16,7 @@ function Player() {
     this.moving                 = false; // двигается в стороны
     this.walking                = false; // идёт по земле
     this.walking_frame          = 0;
+    this.zoom                   = false;
     this.height                 = PLAYER_HEIGHT;
     this.angles                 = [0, 0, Math.PI];
     this.chat                   = new Chat();
@@ -214,6 +215,7 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
     }
 
     this.keys[keyCode] = down;
+    this.zoom = this.keys[KEY.C];
 
     switch(keyCode) {
         // F1
@@ -308,6 +310,13 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
                 Game.world.chunkManager.toggleUpdateChunks();
             }
             return true;
+            break;
+        }
+        case KEY.C: {
+            if(first) {
+                Game.world.renderer.updateViewport();
+                return true;
+            }
             break;
         }
         // R (Respawn)
@@ -638,15 +647,26 @@ Player.prototype.update = function() {
 				walkVelocity.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]);
 			}
 		}
-        if(this.running) {
-            if(Game.render.fov < FOV_WIDE) {
-                var fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
+
+        if(this.zoom) {
+            if(Game.render.fov > FOV_ZOOM) {
+                var fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
                 Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
             }
         } else {
-            if(Game.render.fov > FOV_NORMAL) {
-                var fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+            if(this.running) {
+                if(Game.render.fov < FOV_WIDE) {
+                    var fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
+                    Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                }
+            } else if(Game.render.fov < FOV_NORMAL) {
+                var fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
                 Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+            } else {
+                if(Game.render.fov > FOV_NORMAL) {
+                    var fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                    Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                }
             }
         }
 		if(walkVelocity.length() > 0) {
