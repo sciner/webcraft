@@ -493,6 +493,8 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
         return;
     }
 
+    var a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
+
     // Draw head
     mat4.identity(modelMatrix);
     mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + this.height * options.scale - z_minus]);
@@ -503,7 +505,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, options.texture);
-    render.drawBuffer(this.playerHead);
+    render.drawBuffer(this.playerHead, a_pos);
 
     // Draw body
     mat4.identity(modelMatrix);
@@ -511,30 +513,30 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
     mat4.scale(modelMatrix, [scale, scale, scale]);
     mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-    render.drawBuffer(this.playerBody);
+    render.drawBuffer(this.playerBody, a_pos);
 
     // Left arm
     mat4.translate(modelMatrix, [ 0, 0, 1.4]);
     mat4.rotateX(modelMatrix, 0.75 * aniangle);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-    render.drawBuffer(this.playerLeftArm);
+    render.drawBuffer(this.playerLeftArm, a_pos);
 
     // Right arm
     mat4.rotateX(modelMatrix, -1.5 * aniangle);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-    render.drawBuffer(this.playerRightArm);
+    render.drawBuffer(this.playerRightArm, a_pos);
     mat4.rotateX(modelMatrix, 0.75 * aniangle);
     mat4.translate(modelMatrix, [ 0, 0, -0.67] );
 
     // Right leg
     mat4.rotateX(modelMatrix, 0.5 * aniangle);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-    render.drawBuffer(this.playerRightLeg);
+    render.drawBuffer(this.playerRightLeg, a_pos);
 
     // Left leg
     mat4.rotateX(modelMatrix, -aniangle);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-    render.drawBuffer(this.playerLeftLeg);
+    render.drawBuffer(this.playerLeftLeg, a_pos);
 
     if(options.draw_nametag) {
         // Draw player name
@@ -556,7 +558,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
         gl.disable(gl.CULL_FACE);
         gl.disable(gl.DEPTH_TEST);
-        render.drawBuffer(this.nametag.model);
+        render.drawBuffer(this.nametag.model, a_pos);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
     }

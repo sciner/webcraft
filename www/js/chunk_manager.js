@@ -80,6 +80,7 @@ ChunkManager.prototype.draw = function(render) {
     this.rendered_chunks.total  = Object.entries(this.chunks).length;
     this.rendered_chunks.fact   = 0;
     var applyVerticesCan        = 1;
+    var a_pos                   = new Vector(0, 0, 0);
     // Для отрисовки чанков по спирали от центрального вокруг игрока
     this.spiral_moves = this.createSpiralCoords(this.margin * 2);
     // чанк, в котором стоит игрок
@@ -106,7 +107,7 @@ ChunkManager.prototype.draw = function(render) {
                     for(const [vkey, v] of Object.entries(chunk.vertices)) {
                         if(v.is_transparent == transparent) {
                             this.rendered_chunks.fact += 0.5;
-                            render.drawBuffer(v.buffer);
+                            render.drawBuffer(v.buffer, a_pos);
                         }
                     }
                 }
