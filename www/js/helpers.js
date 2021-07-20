@@ -22,9 +22,10 @@ class Helpers {
     }
 
     static distance(p, q) {
-        var dx   = p.x - q.x;         
-        var dy   = p.y - q.y;         
-        var dist = Math.sqrt(dx * dx + dy * dy); 
+        var dx   = p.x - q.x;
+        var dy   = p.y - q.y;
+        var dz   = p.z - q.z;         
+        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz); 
         return dist;
     }
 
