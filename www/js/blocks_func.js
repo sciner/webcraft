@@ -225,6 +225,15 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
     // bH = 1.0;
 
+    if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SNOW_DIRT.id) {
+        if(neighbours.UP && !neighbours.UP.transparent) {
+            DIRECTION_BACK      = DIRECTION.DOWN;
+            DIRECTION_RIGHT     = DIRECTION.DOWN;
+            DIRECTION_FORWARD   = DIRECTION.DOWN;
+            DIRECTION_LEFT      = DIRECTION.DOWN;
+        }
+    }
+
     // Top
     neighbourBlock = neighbours.UP;
     // neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
