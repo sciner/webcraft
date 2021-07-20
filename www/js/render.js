@@ -8,9 +8,11 @@
 **/
 
 const CAMERA_DIST           = 10;
+const ZOOM_FACTOR           = 0.25;
 const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
 const FOV_WIDE              = FOV_NORMAL * 1.15;
+const FOV_ZOOM              = FOV_NORMAL * ZOOM_FACTOR;
 const MAX_DIST_FOR_SHIFT    = 800;
 const RENDER_DISTANCE       = 800;
 
@@ -378,6 +380,7 @@ Renderer.prototype.draw = function(delta) {
     // setCamera
     gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
     // setPerspective
+    // const zoom = this.world.localPlayer.keys[KEY.C] ? 0.3 : 1;
     mat4.perspective(this.fov, gl.viewportWidth / gl.viewportHeight, this.min, this.max, this.projMatrix);
     gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
     // Picking
@@ -401,7 +404,7 @@ Renderer.prototype.draw = function(delta) {
     this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
 
     // 3. Draw players
-    this.drawPlayers();
+    this.drawPlayers(delta);
 
     // 4. Draw HUD
     if(that.HUD) {
@@ -413,12 +416,12 @@ Renderer.prototype.draw = function(delta) {
 }
 
 // drawPlayers
-Renderer.prototype.drawPlayers = function() {
+Renderer.prototype.drawPlayers = function(delta) {
     var gl = this.gl;
     gl.useProgram(this.program);
     for(const [id, player] of Object.entries(this.world.players)) {
         if(player.id != this.world.server.id) {
-            player.draw(this, this.modelMatrix, this.uModelMat, this.camPos);
+            player.draw(this, this.modelMatrix, this.uModelMat, this.camPos, delta);
         }
     }
     // Restore Matrix

@@ -87,7 +87,7 @@ func (this *Chunk) Load() {
 		log.Println("Error Unmarshal chunk ", err)
 		return
 	}
-	log.Println("this.ModifyList", this.ModifyList)
+	// log.Println("this.ModifyList", this.ModifyList)
 }
 
 // Save to file

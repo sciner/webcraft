@@ -98,7 +98,7 @@ class ServerClient {
                         // angles:         data.angles,
                         pos:            data.pos,
                         pitch:          data.angles ? data.angles[0] : 0,
-                        yaw:            data.angles ? data.angles[1] : 0,
+                        yaw:            data.angles ? data.angles[2] : 0,
                         skin:           Game.skins.getById(data.skin),
                         nick:           data.nickname
                     });
@@ -119,7 +119,7 @@ class ServerClient {
                         pl.pos      = data.pos;
                         // pl.angles   = data.angles;
                         pl.pitch    = data.angles[0];
-                        pl.yaw      = data.angles[1];
+                        pl.yaw      = data.angles[2];
                         if(pl.moving_timeout) {
                             clearTimeout(pl.moving_timeout);
                         }

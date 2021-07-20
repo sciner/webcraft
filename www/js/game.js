@@ -17,6 +17,7 @@ export let KEY           = {};
     KEY.PAGE_UP   = 33;
     KEY.PAGE_DOWN = 34;
     KEY.A         = 65;
+    KEY.C         = 67;
     KEY.D         = 68;
     KEY.E         = 69;
     KEY.J         = 74;
@@ -275,6 +276,10 @@ export let Game = {
             }
             that.prevMovementX = x;
             that.prevMovementZ = z;
+            if(that.player.zoom) {
+                x *= ZOOM_FACTOR * 0.5;
+                z *= ZOOM_FACTOR * 0.5;
+            }
             if(Game.hud.wm.getVisibleWindows().length > 0) {
             	if(that.controls.enabled) {
                     Game.mouseY += x;

@@ -226,7 +226,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     // bH = 1.0;
 
     // Top
-    neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
+    neighbourBlock = neighbours.UP;
+    // neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -264,7 +265,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
 
     // Bottom
-    neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
+    neighbourBlock = neighbours.DOWN;
+    // neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [.5, .5, .5, .5];
         c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
@@ -279,7 +281,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
 
     // Front/Forward
-    neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
+    neighbourBlock = neighbours.FORWARD;
+    // neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -302,7 +305,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
 
     // Back
-    neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
+    neighbourBlock = neighbours.BACK;
+    // neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -320,7 +324,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
 
     // Left
-    neighbourBlock = world.chunkManager.getBlock(x - 1, y, z);
+    neighbourBlock = neighbours.LEFT;
+    // neighbourBlock = world.chunkManager.getBlock(x - 1, y, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -338,7 +343,8 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours) {
     }
 
     // Right
-    neighbourBlock = world.chunkManager.getBlock(x + 1, y, z);
+    neighbourBlock = neighbours.RIGHT;
+    // neighbourBlock = world.chunkManager.getBlock(x + 1, y, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
@@ -847,7 +853,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 }
 
 // pushVertices
-BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
+BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbours) {
 
     const style = 'style' in block ? block.style : '';
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
@@ -864,7 +870,7 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z) {
     } else if (style == 'fence') {
         push_fence(block, vertices, world, lightmap, x, y, z);
     } else {
-        push_cube(block, vertices, world, lightmap, x, y, z);
+        push_cube(block, vertices, world, lightmap, x, y, z, neighbours);
     }
 }
 
