@@ -21,7 +21,7 @@ var settings = {
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
-    fogDensity:             0.015,
+    fogDensity:             2.52 / 320, // 170, //  0.015 = 168, 0.03 = 84
     fogDensityUnderWater:   0.1
 };
 
@@ -82,10 +82,12 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.a_texcoord         = gl.getAttribLocation(program, 'a_texcoord');
         that.a_normal           = gl.getAttribLocation(program, 'a_normal');
         // fog
+        that.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
         that.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
         that.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         that.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
         that.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
+        that.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
         //
         that.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         that.u_time             = gl.getUniformLocation(program, 'u_time');
@@ -368,6 +370,7 @@ Renderer.prototype.draw = function(delta) {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(...currentRenderState.fogColor);
     gl.uniform4fv(this.u_fogColor, currentRenderState.fogColor);
+    gl.uniform1f(this.u_chunkBlockDist, CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // 1. Draw skybox
@@ -394,6 +397,7 @@ Renderer.prototype.draw = function(delta) {
     gl.uniform2f(this.u_resolution, gl.viewportWidth, gl.viewportHeight);
     gl.uniform1f(this.u_time, performance.now() / 1000);
     gl.uniform1f(this.u_brightness, this.brightness);
+
     gl.enable(gl.BLEND);
     
     gl.activeTexture(gl.TEXTURE0);
@@ -490,8 +494,9 @@ Renderer.prototype.setCamera = function(pos, ang) {
 }
 
 // drawBuffer...
-Renderer.prototype.drawBuffer = function(buffer) {
+Renderer.prototype.drawBuffer = function(buffer, a_pos) {
 	var gl = this.gl;
+    gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	gl.vertexAttribPointer(this.a_position, 3, gl.FLOAT, false, 12 * 4, 0);
 	gl.vertexAttribPointer(this.a_color,    4, gl.FLOAT, false, 12 * 4, 5 * 4);

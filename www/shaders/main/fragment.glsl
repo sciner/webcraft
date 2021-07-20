@@ -10,6 +10,7 @@ uniform vec4 u_fogColor;
 uniform vec4 u_fogAddColor;
 uniform float u_fogDensity;
 uniform bool u_fogOn;
+uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
@@ -23,6 +24,7 @@ varying vec2 v_texcoord;
 varying vec4 v_color;
 varying vec3 v_normal;
 varying float light;
+varying vec3 v_add_pos;
 
 varying float v_fogDepth;
 
@@ -46,17 +48,12 @@ void main() {
         
         gl_FragColor = color;
 
-        /*
-
         // Calc fog amount
         float fogDistance = length(v_position);
-        float fogAmount = 1. - exp2(-u_fogDensity * u_fogDensity * fogDistance * fogDistance * LOG2);
-        if(fogAmount < .5) {
-            fogAmount = .0;
-        } else {
-            fogAmount = (fogAmount - .5) * 2.;
+        float fogAmount = 0.;
+        if(fogDistance > u_chunkBlockDist) {
+            fogAmount = clamp(0.05 * (fogDistance - u_chunkBlockDist), 0., 1.);
         }
-        fogAmount = clamp(fogAmount, 0., 1.);
 
         // Apply fog
         gl_FragColor = mix(color, u_fogColor, fogAmount);
@@ -71,8 +68,6 @@ void main() {
         //    float u_brightness2 = clamp(u_brightness * desaturateFactor, .0, 1.);
         //    gl_FragColor = (gl_FragColor * u_brightness2) + (grayscale * (1.0 - u_brightness2));
         //}
-
-        */
 
     } else {
         vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t)) * vec4(v_color.rgb, 1.0);

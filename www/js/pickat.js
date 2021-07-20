@@ -152,7 +152,7 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
     gl.bindTexture(gl.TEXTURE_2D, render.texWhite);
     gl.viewport(0, 0, 512, 512);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    render.drawBuffer(buffer);
+    render.drawBuffer(buffer, new Vector(0, 0, 0));
     
     // Read pixel
     var pixel = new Uint8Array(4);
