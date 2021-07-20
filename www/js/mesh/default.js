@@ -60,19 +60,15 @@ class Mesh_Default {
     draw(render, delta, modelMatrix, uModelMat) {
         var gl = render.gl;
         var program = render.program;
-        
+        var a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
         //
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [
-            this.pos.x - Game.shift.x,
-            this.pos.y - Game.shift.y,
-            this.pos.z - Game.shift.z
-        ]);
+        mat4.translate(modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
         // render
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         gl.disable(gl.CULL_FACE);
         for(var buf of this.buffers) {
-            render.drawBuffer(buf.info);
+            render.drawBuffer(buf.info, a_pos);
         }
         gl.enable(gl.CULL_FACE);
         // this.obj.base_render(gl, program);

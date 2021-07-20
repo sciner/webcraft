@@ -40,17 +40,14 @@ class Particles_Raindrop {
         this.life   -= delta / 100000;
         delta       /= 1000;
         this.pos.y  += delta * -.40;
+        var a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
         //
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [
-            this.pos.x - Game.shift.x,
-            this.pos.z - Game.shift.z,
-            this.pos.y - Game.shift.y
-        ]);
+        mat4.translate(modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
         mat4.rotateZ(modelMatrix, this.yaw);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         // render
-        render.drawBuffer(this.buffer);
+        render.drawBuffer(this.buffer, a_pos);
     }
 
     destroy(render) {
