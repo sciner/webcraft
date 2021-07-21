@@ -510,7 +510,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                         world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
                         var b = BLOCK.fromId(that.buildMaterial.id);
                         if(b.sound) {
-                            Game.sounds.play(b.sound);
+                            Game.sounds.play(b.sound, 'place');
                         }
                     }
                 }

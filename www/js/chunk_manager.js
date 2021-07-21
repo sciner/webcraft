@@ -375,9 +375,19 @@ ChunkManager.prototype.setBlock = function(x, y, z, block, is_modify, power, rot
         }
         if(is_modify) {
             var world_block = chunk.getBlock(pos.x, pos.y, pos.z);
-            var b = BLOCK.fromId(world_block.id);
-            if(b.sound) {
-                Game.sounds.play(b.sound);
+            var b = null;
+            var action = null;
+            if(block.id == BLOCK.AIR.id) {
+                // dig
+                action = 'dig';
+                b = world_block;
+            } else {
+                // place
+                action = 'place';
+                b = block;
+            }
+            if(b.hasOwnProperty('sound')) {
+                Game.sounds.play(b.sound, action);
             }
         }
         // устанавливаем блок
