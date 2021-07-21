@@ -235,10 +235,10 @@ app.controller('gameCtrl', gameCtrl);
 var injectParams = ['$q'];
 var directive = function($q) {
     return function(scope, element, attrs) {
-        element.bind('keydown keypress', function (event) {
+        element.bind('keydown keypress', function(event) {
             if(event.which === 13) {
                 if(!event.shiftKey) {
-                    scope.$apply(function (){
+                    scope.$apply(function() {
                         scope.$eval(attrs.myEnter);
                     });
                     event.preventDefault();

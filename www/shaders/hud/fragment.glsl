@@ -21,7 +21,7 @@ void main() {
                 gl_FragCoord.y > u_resolution.y / 2.0 - ch_height && gl_FragCoord.y < u_resolution.y / 2.0 + ch_height) || 
                 (gl_FragCoord.x > u_resolution.x / 2.0 - ch_height && gl_FragCoord.x < u_resolution.x / 2.0 + ch_height &&
                 gl_FragCoord.y > u_resolution.y / 2.0 - ch_width && gl_FragCoord.y < u_resolution.y / 2.0 + ch_width)
-                ) {
+               ) {
                     gl_FragColor.r = 1.0 - gl_FragColor.r;
                     gl_FragColor.g = 1.0 - gl_FragColor.g;
                     gl_FragColor.b = 1.0 - gl_FragColor.b;

@@ -773,6 +773,70 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
 }
 
+// Панель
+function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
+
+    if(typeof block == 'undefined') {
+        return;
+    }
+
+    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
+
+    var texture     = BLOCK[block.name].texture;
+    var blockLit    = true;
+    var bH          = 1.0;
+    var width       = block.width ? block.width : 1;
+    var lm          = new Color(0, 0, 0, 0);
+    var c           = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+
+    switch(cardinal_direction) {
+        case ROTATE.N:
+        case ROTATE.S: {
+            // Front
+            var n = NORMALS.FORWARD;
+            pushQuad(
+                vertices,
+                [x,     z + .5, y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, z + .5, y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1, z + .5, y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x,     z + .5, y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+            );
+            n = NORMALS.BACK;
+            pushQuad(
+                vertices,
+                [x,         z + .5, y + bH,  c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0,   z + .5, y + bH,  c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + 1.0,   z + .5, y,       c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x,         z + .5, y,       c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+            );
+            break;
+        }
+        case ROTATE.E:
+        case ROTATE.W: {
+            // Left
+            var n = NORMALS.LEFT;
+            pushQuad(
+                vertices,
+                [x + .5, z,          y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z + 1.0,    y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z + 1.0,    y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z,          y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+            );
+            // Right
+            n = NORMALS.RIGHT;
+            pushQuad(
+                vertices,
+                [x + .5, z,        y,      c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z + 1.0,  y,      c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z + 1.0,  y + bH, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+                [x + .5, z,        y + bH, c[0], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z]
+            );
+            break;
+        }
+    }
+
+}
+
 // Плита
 function push_slab(block, vertices, world, lightmap, x, y, z) {
 
@@ -868,8 +932,9 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbo
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'pane') {
-        throw 'Unsupported style';
-        // push_pane(vertices, world, lightmap, x, y, z);
+        // throw 'Unsupported style';
+        // push_plant(block, vertices, world, lightmap, x, y, z);
+        push_pane(block, vertices, world, lightmap, x, y, z, neighbours);
     } else if (style == 'stairs') {
         push_stairs(block, vertices, world, lightmap, x, y, z);
     } else if (style == 'slab') {
