@@ -28,7 +28,6 @@ class Sounds {
         }
         const list = this.tags[tag][action];
         var i = Math.floor(Math.random() * list.length);
-        console.log('PLAY', list[i]);
         list[i].play();
     }
 

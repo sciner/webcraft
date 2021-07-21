@@ -478,7 +478,14 @@ Terrain.prototype.generate = function(chunk) {
                     } else if(r < 0.01) {
                         chunk.blocks[x][z][y] = blocks.COAL_ORE;
                     } else {
-                        chunk.blocks[x][z][y] = blocks.CONCRETE;
+                        var norm = true;
+                        for(var plant of map.info.plants) {
+                            if(plant.pos.x == x && plant.pos.z == z && y == plant.pos.y - 1) {
+                                norm = false;
+                                break;
+                            }
+                        }
+                        chunk.blocks[x][z][y] = norm ? blocks.CONCRETE : biome.dirt_block;
                     }
                 } else {
                     if(biome.code == 'OCEAN' && r < .1) {
