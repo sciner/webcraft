@@ -160,8 +160,8 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		// Update local position
 		conn.Pos = params.Pos
 		conn.Angles = params.Angles
-		// this.SendAll(packets, []string{conn.ID})
-		this.SendAll(packets, []string{})
+		this.SendAll(packets, []string{conn.ID})
+		// this.SendAll(packets, []string{})
 
 	case Struct.CLIENT_LOAD_CHEST:
 		out, _ := json.Marshal(cmdIn.Data)
