@@ -276,7 +276,7 @@ ChunkManager.prototype.update = function() {
                 this.getChunk(new Vector(chunk.addr.x + 1, chunk.addr.y, chunk.addr.z)) &&
                 this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z - 1)) &&
                 this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z + 1))
-                ) {
+               ) {
                 dirty_chunks.push({
                     coord: chunk.coord,
                     key: chunk.key
@@ -355,44 +355,46 @@ ChunkManager.prototype.setBlock = function(x, y, z, block, is_modify, power, rot
     // обращаемся к чанку
     var chunk = this.getChunk(chunkPos);
     // если чанк найден
-    if(chunk) {
-        var pos = new Vector(x, y, z);
-        var item = {
-            id: block.id,
-            power: power ? power : 1.0,
-            rotate: rotate,
-            entity_id: entity_id
-        };
-        if(is_modify) {
-            // @server
-            this.world.server.Send({
-                name: ServerClient.EVENT_BLOCK_SET,
-                data: {
-                    pos: pos,
-                    item: item
-                }
-            });
-        }
-        if(is_modify) {
-            var world_block = chunk.getBlock(pos.x, pos.y, pos.z);
-            var b = null;
-            var action = null;
-            if(block.id == BLOCK.AIR.id) {
-                // dig
-                action = 'dig';
-                b = world_block;
-            } else {
-                // place
-                action = 'place';
-                b = block;
-            }
-            if(b.hasOwnProperty('sound')) {
-                Game.sounds.play(b.sound, action);
-            }
-        }
-        // устанавливаем блок
-        chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
+    if(!chunk) {
+        return null;
     }
+    var pos = new Vector(x, y, z);
+    var item = {
+        id: block.id,
+        power: power ? power : 1.0,
+        rotate: rotate,
+        entity_id: entity_id
+    };
+    if(is_modify) {
+        // @server
+        this.world.server.Send({
+            name: ServerClient.EVENT_BLOCK_SET,
+            data: {
+                pos: pos,
+                item: item
+            }
+        });
+    }
+    if(is_modify) {
+        var world_block = chunk.getBlock(pos.x, pos.y, pos.z);
+        var b = null;
+        var action = null;
+        if(block.id == BLOCK.AIR.id) {
+            // dig
+            action = 'dig';
+            b = world_block;
+        } else {
+            // place
+            action = 'place';
+            b = block;
+        }
+        b = BLOCK_BY_ID[b.id];
+        if(b.hasOwnProperty('sound')) {
+            Game.sounds.play(b.sound, action);
+        }
+    }
+    // устанавливаем блок
+    return chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
 }
 
 // destroyBlock

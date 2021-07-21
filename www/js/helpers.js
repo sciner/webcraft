@@ -287,7 +287,7 @@ function loadText(url, callback) {
     var xobj = new XMLHttpRequest();
     xobj.overrideMimeType('application/json');
     xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
-    xobj.onreadystatechange = function () {
+    xobj.onreadystatechange = function() {
         if (xobj.readyState == 4 && xobj.status == '200') {
             // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
             callback(xobj.responseText);
@@ -329,15 +329,15 @@ function Vector(x, y, z) {
 	this.z = z || 0;
 }
 
-Vector.prototype.add = function( vec ) {
+Vector.prototype.add = function(vec) {
 	return new Vector( this.x + vec.x, this.y + vec.y, this.z + vec.z );
 }
 
-Vector.prototype.sub = function( vec ) {
+Vector.prototype.sub = function(vec) {
 	return new Vector( this.x - vec.x, this.y - vec.y, this.z - vec.z );
 }
 
-Vector.prototype.mul = function( n ) {
+Vector.prototype.mul = function(n) {
 	return new Vector( this.x*n, this.y*n, this.z*n );
 }
 
@@ -345,7 +345,7 @@ Vector.prototype.length = function() {
 	return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
 }
 
-Vector.prototype.distance = function( vec ) {
+Vector.prototype.distance = function(vec) {
 	return this.sub( vec ).length();
 }
 
@@ -355,7 +355,7 @@ Vector.prototype.normal = function() {
 	return new Vector( this.x/l, this.y/l, this.z/l );
 }
 
-Vector.prototype.dot = function( vec ) {
+Vector.prototype.dot = function(vec) {
 	return this.x * vec.x + this.y * vec.y + this.z * vec.z;
 }
 

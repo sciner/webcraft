@@ -500,6 +500,10 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
                             Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
+                            var b = BLOCK.fromId(that.buildMaterial.id);
+                            if(b.sound) {
+                                Game.sounds.play(b.sound, 'place');
+                            }
                         }
                     } else {
                         if(['ladder'].indexOf(that.buildMaterial.style) >= 0) {
@@ -508,10 +512,6 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                             }
                         }
                         world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
-                        var b = BLOCK.fromId(that.buildMaterial.id);
-                        if(b.sound) {
-                            Game.sounds.play(b.sound, 'place');
-                        }
                     }
                 }
                 that.inventory.decrement();
@@ -522,7 +522,7 @@ Player.prototype.doBlockAction = function(button_id, shiftKey) {
                     if(world_block.id == BLOCK.CONCRETE.id) {
                         world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
                     }
-                    if(world_block.id != BLOCK.GRASS.id) {
+                    if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
                         that.inventory.increment(Object.assign({count: 1}, world_block));
                     }
                     var block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);

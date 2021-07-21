@@ -36,6 +36,7 @@ class ChestWindow extends Window {
         this.onShow = function() {
             this.getRoot().center(this);
             Game.releaseMousePointer();
+            Game.sounds.play(BLOCK.CHEST.sound, 'open');
         }
         
         // Обработчик закрытия формы
@@ -46,6 +47,7 @@ class ChestWindow extends Window {
                 this.inventory.increment(dragItem.item);
             }
             this.getRoot().drag.clear();
+            Game.sounds.play(BLOCK.CHEST.sound, 'close');
         }
 
         // Add labels to window

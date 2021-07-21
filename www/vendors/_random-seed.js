@@ -197,7 +197,7 @@ var uheprng = function(seed) {
         };
 
         // this handy exported function is used to add entropy to our uheprng at any time
-        random.addEntropy = function ( /* accept zero or more arguments */ ) {
+        random.addEntropy = function ( /* accept zero or more arguments */) {
             var args = [];
             for (i = 0; i < arguments.length; i++) {
                 args.push(arguments[i]);

@@ -1,5 +1,26 @@
 [
     {
+        "type": "webcraft:block.chest",
+        "dig": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ],
+        "place": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ],
+        "open": [
+            "/sounds/Chest_open.ogg"
+        ],
+        "close": [
+            "/sounds/Chest_close.ogg"
+        ]
+    },
+    {
         "type": "webcraft:block.wood",
         "dig": [
             "/sounds/wood1.mp3",
