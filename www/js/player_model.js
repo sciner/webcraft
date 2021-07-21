@@ -474,10 +474,10 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
 
     // Draw head
     var pitch = this.pitch;
-    if(pitch < -0.5 ) {
+    if(pitch < -0.5) {
         pitch = -0.5;
     }
-    if(pitch > 0.5 ) {
+    if(pitch > 0.5) {
         pitch = 0.5;
     }
 

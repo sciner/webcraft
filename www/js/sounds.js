@@ -11,10 +11,12 @@ class Sounds {
     }
 
     add(item) {
-        for(var action of ['dig', 'place']) {
-            for(var i in item[action]) {
-                var src = item[action][i];
-                item[action][i] = new Howl({src: [src]})
+        for(var action of ['dig', 'place', 'open', 'close']) {
+            if(item.hasOwnProperty(action)) {
+                for(var i in item[action]) {
+                    var src = item[action][i];
+                    item[action][i] = new Howl({src: [src]})
+                }
             }
         }
         this.tags[item.type] = item;
@@ -26,6 +28,7 @@ class Sounds {
         }
         const list = this.tags[tag][action];
         var i = Math.floor(Math.random() * list.length);
+        console.log('PLAY', list[i]);
         list[i].play();
     }
 

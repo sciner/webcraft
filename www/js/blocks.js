@@ -39,6 +39,7 @@ BLOCK.DUMMY = {
 	spawnable: false,
     passable: 0,
     transparent: false,
+    sound: 'webcraft:block.wood',
     texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
 };
 // Air
@@ -56,7 +57,8 @@ BLOCK.BEDROCK = {
     spawnable: false,
     passable: 0,
     transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 1, 1]; }
+    sound: 'webcraft:block.stone',
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 1, 1]; }
 };
 
 // Test
@@ -66,7 +68,8 @@ BLOCK.TEST = {
     spawnable: true,
     passable: 0,
     transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.wood',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP) {
             return [26, 31];
         } else if(dir == DIRECTION.DOWN) {
@@ -93,7 +96,7 @@ BLOCK.COBBLESTONE = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.stone',
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 0, 1]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 0, 1]; }
 };
 
 // Деревянная кирка
@@ -107,7 +110,7 @@ BLOCK.WOODEN_PICKAXE = {
     fluid: false,
     stackable: false,
     is_item: true,
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 31]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 31]; }
 };
 
 // Деревянный топор
@@ -121,7 +124,7 @@ BLOCK.WOODEN_AXE = {
     fluid: false,
     stackable: false,
     is_item: true,
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 30]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 30]; }
 };
 
 
@@ -136,15 +139,17 @@ BLOCK.WOODEN_SHOVEL = {
 	fluid: false,
     stackable: false,
     is_item: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 28]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 28]; }
 };
 
+// Верстак
 BLOCK.CRAFTING_TABLE = {
     id: 58,
     inventory_icon_id: 3600,
 	spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.wood',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [11, 2];
         } else if(dir == DIRECTION.DOWN) {
@@ -168,7 +173,7 @@ BLOCK.DIRT = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.grass',
-    texture: function( world, lightmap, lit, x, y, z, dir ) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP && lit )
             return [ 0, 0 ];
         else if(dir == DIRECTION.DOWN || !lit ) 
@@ -188,7 +193,7 @@ BLOCK.SNOW_DIRT = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.grass',
-	texture: function( world, lightmap, lit, x, y, z, dir ) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		if(dir == DIRECTION.UP && lit )
 			return [2, 4];
 		else if(dir == DIRECTION.DOWN || !lit ) 
@@ -207,7 +212,8 @@ BLOCK.TNT = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir ) {
+    sound: 'webcraft:block.grass',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP) {
             return [ 9, 0 ];
         } else if(dir == DIRECTION.DOWN) {
@@ -225,7 +231,7 @@ BLOCK.WOOD_LEAVES = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.grass',
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 4, 3]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 3]; }
 };
 
 // Листья ели
@@ -235,7 +241,7 @@ BLOCK.SPRUCE_LEAVES = {
 	spawnable: true,
 	transparent: true,
     sound: 'webcraft:block.grass',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 4, 8]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 8]; }
 };
 
 // Wood
@@ -248,7 +254,7 @@ BLOCK.WOOD = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.wood',
-    texture: function( world, lightmap, lit, x, y, z, dir ) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
             return [ 5, 1 ];
         else
@@ -266,7 +272,7 @@ BLOCK.SPRUCE = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir ) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
 			return [23, 17];
 		else
@@ -303,7 +309,7 @@ BLOCK.PLANK = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 4, 0 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 0 ]; }
 };
 
 BLOCK.GLOWSTONE = {
@@ -312,8 +318,8 @@ BLOCK.GLOWSTONE = {
     spawnable:      true,
     transparent:    true,
     lightPower:     new Color(255, 235, 35, 255),
-    sound: 			'stone',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 			'webcraft:block.stone',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [9, 6];
     }
 };
@@ -328,7 +334,7 @@ BLOCK.CONCRETE = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.stone',
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 1, 0 ]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 1, 0 ]; }
 };
 
 // Полированный камень
@@ -340,7 +346,7 @@ BLOCK.POLISHED_STONE = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 6, 0 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 6, 0 ]; }
 };
 
 // Brick
@@ -353,7 +359,7 @@ BLOCK.BRICK = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 7, 0 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 7, 0 ]; }
 };
 
 // Sand
@@ -367,7 +373,7 @@ BLOCK.SAND = {
 	gravity: true,
 	fluid: false,
     sound: 'webcraft:block.sand',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 2, 1 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 2, 1 ]; }
 };
 
 // Gravel
@@ -379,7 +385,7 @@ BLOCK.GRAVEL = {
 	gravity: true,
 	fluid: false,
     sound: 'webcraft:block.gravel',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 3, 1 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 3, 1 ]; }
 };
 
 
@@ -390,20 +396,20 @@ BLOCK.OAK_SAPLING = {
     passable: 1,
     transparent: true,
     style: 'planting',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 0];
     }
 };
 
-// Листва дерева
+// Ствол берёзы
 BLOCK.WOOD_BIRCH = {
     id: 162,
-    // inventory_icon_id: 18,
     inventory_icon_id: 2237,
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.wood',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
             return [19, 16];
         else
@@ -419,10 +425,8 @@ BLOCK.IRON = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 6, 1 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 6, 1 ]; }
 };
-
-// BLOCK.ADD('GOLD', 14, {})
 
 // Gold
 BLOCK.GOLD = {
@@ -433,7 +437,7 @@ BLOCK.GOLD = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 7, 1 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 7, 1 ]; }
 };
 
 BLOCK.GOLD_ORE = {
@@ -442,7 +446,7 @@ BLOCK.GOLD_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 2]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 2]; }
 };
 
 // Diamond
@@ -454,7 +458,7 @@ BLOCK.DIAMOND = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 8, 1 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 8, 1 ]; }
 };
 
 // Obsidian
@@ -466,7 +470,7 @@ BLOCK.OBSIDIAN = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 5, 2 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 5, 2 ]; }
 };
 
 // Glass
@@ -479,7 +483,7 @@ BLOCK.GLASS = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.glass',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 1, 3 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 1, 3 ]; }
 };
 
 // Sponge
@@ -491,7 +495,7 @@ BLOCK.SPONGE = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [ 0, 3 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 0, 3 ]; }
 };
 
 BLOCK.STILL_LAVA = {
@@ -535,8 +539,6 @@ BLOCK.FLOWING_WATER = {
 };
 
 // Lava
-
-
 BLOCK.FLOWING_LAVA = {
     id: 170,
     spawnable: true,
@@ -549,7 +551,7 @@ BLOCK.FLOWING_LAVA = {
         still_block_id: BLOCK.STILL_LAVA.id
     },
     lightPower: new Color(253, 200, 80, 255),
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [ 13, 14 ]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 13, 14 ]; }
 };
 
 BLOCK.IRON_ORE = {
@@ -558,7 +560,7 @@ BLOCK.IRON_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [1, 2]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 2]; }
 };
 
 BLOCK.COAL_ORE = {
@@ -568,7 +570,7 @@ BLOCK.COAL_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [2, 2]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [2, 2]; }
 };
 
 
@@ -577,7 +579,7 @@ BLOCK.LEAVES = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.grass',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [12, 14]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [12, 14]; }
 };
 
 BLOCK.LAPIS_LAZULI_ORE = {
@@ -586,21 +588,21 @@ BLOCK.LAPIS_LAZULI_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 10]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 10]; }
 };
 
 BLOCK.LAPIS_LAZULI = {
     id: 22,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 9]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 9]; }
 };
 
 BLOCK.DISPENSER = {
     id: 23,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [14, 3];
         } else if (dir == DIRECTION.FORWARD) {
@@ -616,7 +618,7 @@ BLOCK.SANDSTONE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.gravel',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
 BLOCK.NOTE_BLOCK = {
@@ -624,7 +626,7 @@ BLOCK.NOTE_BLOCK = {
     inventory_icon_id: 3610,
     spawnable: true,
     transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) { return [10, 4]; }
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [10, 4]; }
 };
 
 BLOCK.STICK = {
@@ -633,7 +635,7 @@ BLOCK.STICK = {
     spawnable: true,
     transparent: false,
     is_item: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 0]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 0]; }
 };
 
 // Подушка кровати
@@ -641,7 +643,7 @@ BLOCK.BED = {
     id: 26,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [7, 8];
         } else if (dir == DIRECTION.DOWN) {
@@ -658,7 +660,7 @@ BLOCK.STICKY_PISTON = {
     id: 29,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [10, 6];
         } else if (dir == DIRECTION.DOWN) {
@@ -676,7 +678,8 @@ BLOCK.COBWEB = {
     passable: .1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.stone',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [11, 0];
     }
 };
@@ -689,18 +692,20 @@ BLOCK.GRASS = {
     transparent: true,
     style: 'planting',
     sound: 'webcraft:block.grass',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 2];
     }
 };
 
 BLOCK.DEAD_BUSH = {
     id: 32,
+    inventory_icon_id: 1038,
     spawnable: true,
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 3];
     }
 };
@@ -709,7 +714,7 @@ BLOCK.PISTON = {
     id: 33,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [11, 6];
         } else if (dir == DIRECTION.DOWN) {
@@ -726,7 +731,7 @@ BLOCK.WOOL = {
     inventory_icon_id: 1535,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 8];
     }
 };
@@ -738,7 +743,8 @@ BLOCK.DANDELION = {
     passable: 1,
     transparent: true,
     style: 'planting',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [13, 0];
     }
 };
@@ -750,7 +756,7 @@ BLOCK.POPPY = {
     passable: 1,
     transparent: true,
     style: 'planting',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [12, 0];
     }
 };
@@ -763,7 +769,8 @@ BLOCK.TULIP = {
     passable: 1,
     transparent: true,
     style: 'planting',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [12, 0];
     }
 };
@@ -775,7 +782,8 @@ BLOCK.BROWN_MUSHROOM = {
     transparent: true,
     passable: 1,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [13, 1];
     }
 };
@@ -787,7 +795,8 @@ BLOCK.RED_MUSHROOM = {
     transparent: true,
     passable: 1,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.grass',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [12, 1];
     }
 };
@@ -797,7 +806,7 @@ BLOCK.DOUBLE_SLAB = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [5, 0];
     }
 };
@@ -808,7 +817,7 @@ BLOCK.SLAB = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [6, 0];
     }
 };
@@ -818,7 +827,7 @@ BLOCK.MOSS_STONE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [4, 2]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [4, 2]; }
 };
 
 // Факел
@@ -832,7 +841,7 @@ BLOCK.TORCH = {
     transparent:    true,
     lightPower:     new Color(253, 241, 131, 180),
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [0, 6];
         } else if (dir == DIRECTION.DOWN) {
@@ -849,7 +858,7 @@ BLOCK.WOOD_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [4, 0];
 	}
 };
@@ -863,8 +872,8 @@ BLOCK.CHEST = {
     is_entity: true,
     spawnable: true,
     transparent: true,
-    sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+    sound: 'webcraft:block.chest',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [17, 6];
         } else if (dir == DIRECTION.FORWARD) {
@@ -881,7 +890,7 @@ BLOCK.DIAMOND_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [2, 3]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [2, 3]; }
 };
 
 BLOCK.WHEAT = {
@@ -890,7 +899,7 @@ BLOCK.WHEAT = {
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 5];
     }
 };
@@ -900,7 +909,7 @@ BLOCK.FARMLAND = {
     inventory_icon_id: 885,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [7, 5]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [7, 5]; }
 };
 
 BLOCK.FURNACE = {
@@ -909,7 +918,7 @@ BLOCK.FURNACE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [14, 3];
         } else if (dir == DIRECTION.FORWARD) {
@@ -926,7 +935,7 @@ BLOCK.BURNING_FURNACE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [14, 3];
         } else if (dir == DIRECTION.FORWARD) {
@@ -942,7 +951,7 @@ BLOCK.STANDING_SIGN = {
     spawnable: true,
     transparent: true,
     style: 'sign',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 11];
     }
 };
@@ -953,7 +962,7 @@ BLOCK.WOOD_DOOR = {
     transparent: true,
     style: 'pane',
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -970,7 +979,7 @@ BLOCK.LADDER = {
     style: 'ladder',
     passable: .25,
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         // return [3, 3];
         if (dir == DIRECTION.FORWARD) {
             return [3, 5];
@@ -985,7 +994,7 @@ BLOCK.COBBLESTONE_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 1];
     }
 };
@@ -995,7 +1004,7 @@ BLOCK.IRON_DOOR = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [2, 5];
     }
 };
@@ -1005,7 +1014,7 @@ BLOCK.WOOD_PLATE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [4, 0];
 	}
 };
@@ -1015,7 +1024,7 @@ BLOCK.REDSTONE_ORE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [3, 3];
 	}
 };
@@ -1024,7 +1033,7 @@ BLOCK.GLOWING_REDSTONE_ORE = {
     id: 74,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [3, 3];
 	}
 }
@@ -1036,7 +1045,7 @@ BLOCK.REDSTONE_TORCH_ON = {
     transparent: true,
     style: 'torch',
     lightPower: new Color(253, 200, 131, 150),
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 6];
 	}
 };
@@ -1047,7 +1056,7 @@ BLOCK.REDSTONE_TORCH_OFF = {
     passable: 1,
     transparent: true,
     style: 'torch',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 7];
 	}
 };
@@ -1056,7 +1065,7 @@ BLOCK.ICE = {
     id: 79,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 4];
 	}
 };
@@ -1066,7 +1075,7 @@ BLOCK.SNOW_BLOCK = {
     inventory_icon_id: 3314,
     spawnable: true,
     transparent: false,
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [2, 4];
     }
 };
@@ -1078,7 +1087,7 @@ BLOCK.CACTUS = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.cloth',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.DOWN) {
             return [7, 4];
         } else if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
@@ -1093,7 +1102,7 @@ BLOCK.CLAY = {
     id: 82,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 4];
     }
 };
@@ -1102,7 +1111,7 @@ BLOCK.SUGAR_CANES = {
     id: 83,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return TRANS_TEX;
         } else {
@@ -1116,7 +1125,7 @@ BLOCK.JUKEBOX = {
     inventory_icon_id: 3608,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [11, 4];
         } else {
@@ -1131,7 +1140,7 @@ BLOCK.OAK_FENCE = {
     transparent: true,
     style: 'fence',
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1141,7 +1150,7 @@ BLOCK.PUMPKIN = {
     inventory_icon_id: 3436,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [6, 6];
         } else {
@@ -1154,7 +1163,7 @@ BLOCK.NETHERRACK = {
     id: 87,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 6];
     }
 };
@@ -1164,7 +1173,7 @@ BLOCK.SOUL_SAND = {
     spawnable: true,
     gravity: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 6];
     }
 };
@@ -1173,7 +1182,7 @@ BLOCK.LIT_PUMPKIN = {
     id: 91,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.FORWARD) {
             return [8, 7];
         } else if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
@@ -1188,7 +1197,7 @@ BLOCK.STAINED_GLASS = {
     id: 95,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 3];
     }
 };
@@ -1197,7 +1206,7 @@ BLOCK.MONSTER_EGG = {
     id: 97,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [5, 6];
     }
 };
@@ -1208,7 +1217,7 @@ BLOCK.STONE_BRICK = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [6, 3];
     }
 };
@@ -1217,7 +1226,7 @@ BLOCK.BROWN_MUSHROOM_BLOCK = {
     id: 99,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [14, 7];
     }
 };
@@ -1226,7 +1235,7 @@ BLOCK.RED_MUSHROOM_BLOCK = {
     id: 100,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [13, 7];
     }
 };
@@ -1236,24 +1245,26 @@ BLOCK.IRON_BARS = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [5, 5];
     }
 };
 
 BLOCK.GLASS_PANE = {
     id: 102,
+    inventory_icon_id: 3261,
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
+    sound: 'webcraft:block.glass',
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
 };
 
 BLOCK.MELON = {
     id: 103,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [9, 8];
         } else {
@@ -1268,7 +1279,7 @@ BLOCK.PUMPKIN_STEM = {
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 6];
     }
 };
@@ -1279,7 +1290,7 @@ BLOCK.MELON_STEM = {
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 6];
     }
 };
@@ -1288,7 +1299,7 @@ BLOCK.VINES = {
     id: 106,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [11, 14];
     }
 };
@@ -1298,7 +1309,7 @@ BLOCK.FENCE_GATE = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1310,7 +1321,7 @@ BLOCK.BRICK_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [7, 0]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [7, 0]; }
 };
 
 BLOCK.STONE_STAIRS = {
@@ -1344,7 +1355,7 @@ BLOCK.NETHER_BRICK = {
     id: 112,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 6];
     }
 };
@@ -1354,7 +1365,7 @@ BLOCK.NETHER_BRICK_FENCE = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1364,7 +1375,7 @@ BLOCK.NETHER_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 6];
     }
 };
@@ -1374,7 +1385,7 @@ BLOCK.NETHER_WART = {
     spawnable: true,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [4, 14];
     }
 };
@@ -1384,7 +1395,7 @@ BLOCK.ENCHANTING_TABLE = {
     id: 116,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [6, 10];
         } else if (dir == DIRECTION.DOWN) {
@@ -1400,7 +1411,7 @@ BLOCK.BREWING_STAND = {
     spawnable: true,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [13, 9];
     }
 };
@@ -1409,7 +1420,7 @@ BLOCK.CAULDRON = {
     id: 118,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [10, 8];
         } else if (dir == DIRECTION.DOWN) {
@@ -1424,7 +1435,7 @@ BLOCK.END_PORTAL_FRAME = {
     id: 120,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
             return [14, 9];
         } else if (dir == DIRECTION.DOWN) {
@@ -1439,7 +1450,7 @@ BLOCK.END_STONE = {
     id: 121,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 10];
     }
 };
@@ -1448,7 +1459,7 @@ BLOCK.DOUBLE_SLAB2 = {
     id: 125,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [5, 0];
     }
 };
@@ -1460,7 +1471,7 @@ BLOCK.WOOD_SLAB = {
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.wood',
-    texture: function( world, lightmap, lit, x, y, z, dir) {
+    texture: function(world, lightmap, lit, x, y, z, dir) {
         return [4, 0];
     }
 };
@@ -1480,14 +1491,14 @@ BLOCK.SANDSTONE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
 BLOCK.EMERALD_ORE = {
     id: 129,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [9, 11];
     }
 };
@@ -1496,7 +1507,7 @@ BLOCK.EMERALD = {
     id: 133,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [9, 12];
     }
 };
@@ -1506,7 +1517,7 @@ BLOCK.SPRUCE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [4, 7];
 	}
 };
@@ -1516,7 +1527,7 @@ BLOCK.BIRCH_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [4, 7];
 	}
 };
@@ -1526,7 +1537,7 @@ BLOCK.JUNGLE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [4, 7];
 	}
 };
@@ -1536,7 +1547,7 @@ BLOCK.COBBLESTONE_WALL = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 1];
     }
 };
@@ -1558,7 +1569,7 @@ BLOCK.POTATOS = {
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [11, 5];
     }
 };
@@ -1567,7 +1578,7 @@ BLOCK.TRAPPED_CHEST = {
     id: 146,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
             return [9, 1];
         } else if (dir == DIRECTION.FORWARD) {
@@ -1582,7 +1593,7 @@ BLOCK.REDSTONE = {
     id: 152,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [9, 13];
     }
 };
@@ -1591,7 +1602,7 @@ BLOCK.QUARTZ = {
     id: 155,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 13];
     }
 };
@@ -1601,7 +1612,7 @@ BLOCK.QUARTZ_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 13];
     }
 };
@@ -1610,7 +1621,7 @@ BLOCK.DROPPER = {
     id: 158,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.DOWN || dir == DIRECTION.UP) {
             return [14, 3];
         } else if (dir == DIRECTION.FORWARD) {
@@ -1625,7 +1636,7 @@ BLOCK.HARDENED_CLAY = {
     id: 159,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 1];
     }
 };
@@ -1635,14 +1646,14 @@ BLOCK.STAINED_GLASS_PANE = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
 };
 
 BLOCK.LEAVES2 = {
     id: 161,
     spawnable: true,
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [5, 3]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [5, 3]; }
 };
 
 BLOCK.ACACIA_STAIRS = {
@@ -1650,7 +1661,7 @@ BLOCK.ACACIA_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [4, 7];
     }
 };
@@ -1660,7 +1671,7 @@ BLOCK.DARK_OAK_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [4, 7];
     }
 };
@@ -1669,7 +1680,7 @@ BLOCK.PRISMARINE = {
     id: 168,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 14];
     }
 };
@@ -1678,7 +1689,7 @@ BLOCK.SEA_LANTERN = {
     id: 169,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 4];
     }
 };
@@ -1687,7 +1698,7 @@ BLOCK.HARDENED_CLAY2 = {
     id: 172,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 1];
     }
 };
@@ -1697,7 +1708,7 @@ BLOCK.COAL = {
     inventory_icon_id: 1118,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [5, 2];
     }
 };
@@ -1706,7 +1717,7 @@ BLOCK.ICE2 = {
     id: 174,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 4];
 	}
 };
@@ -1718,7 +1729,7 @@ BLOCK.FLOWER = {
     passable: 1,
     transparent: true,
     style: 'planting',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [12, 0];
 	}
 };*/
@@ -1727,7 +1738,7 @@ BLOCK.RED_SANDSTONE = {
     id: 179,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
 BLOCK.RED_SANDSTONE_STAIRS = {
@@ -1735,14 +1746,14 @@ BLOCK.RED_SANDSTONE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
 BLOCK.DOUBLE_RED_SANDSTONE_SLAB = {
     id: 181,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
 BLOCK.RED_SANDSTONE_SLAB = {
@@ -1750,7 +1761,7 @@ BLOCK.RED_SANDSTONE_SLAB = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.stone',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 12];
     }
 };
@@ -1761,7 +1772,7 @@ BLOCK.FENCE_GATE2 = {
     transparent: true,
     style: 'fence',
     sound: 'webcraft:block.wood',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1771,7 +1782,7 @@ BLOCK.FENCE_GATE3 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1781,7 +1792,7 @@ BLOCK.FENCE_GATE4 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1791,7 +1802,7 @@ BLOCK.FENCE_GATE5 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1801,7 +1812,7 @@ BLOCK.FENCE_GATE6 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
     }
 };
@@ -1811,7 +1822,7 @@ BLOCK.FENCE2 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1821,7 +1832,7 @@ BLOCK.FENCE3 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1831,7 +1842,7 @@ BLOCK.FENCE4 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1841,7 +1852,7 @@ BLOCK.FENCE5 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1851,7 +1862,7 @@ BLOCK.FENCE6 = {
     spawnable: true,
     transparent: true,
     style: 'fence',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [8, 13];
     }
 };
@@ -1861,7 +1872,7 @@ BLOCK.SPRUCE_DOOR = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -1871,7 +1882,7 @@ BLOCK.BIRCH_DOOR = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -1881,7 +1892,7 @@ BLOCK.JUNGLE_DOOR = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -1891,7 +1902,7 @@ BLOCK.ACACIA_DOOR = {
     spawnable: true,
     style: 'pane',
     transparent: true,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -1901,7 +1912,7 @@ BLOCK.DARK_OAK_DOOR = {
     spawnable: true,
     transparent: true,
     style: 'pane',
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 5];
     }
 };
@@ -1910,7 +1921,7 @@ BLOCK.END_STONE_BRICK = {
     id: 206,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [15, 10];
     }
 };
@@ -1919,7 +1930,7 @@ BLOCK.ICE3 = {
     id: 212,
     spawnable: true,
     transparent: false,
-	texture: function( world, lightmap, lit, x, y, z, dir) {
+	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 4];
 	}
 };
