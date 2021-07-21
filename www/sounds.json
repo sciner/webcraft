@@ -1,0 +1,100 @@
+[
+    {
+        "type": "webcraft:block.wood",
+        "dig": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ],
+        "place": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ]
+    },
+    {
+        "type": "webcraft:block.sand",
+        "dig": [
+            "/sounds/Sand_dig1.ogg",
+            "/sounds/Sand_dig2.ogg",
+            "/sounds/Sand_dig3.ogg",
+            "/sounds/Sand_dig4.ogg"
+        ],
+        "place": [
+            "/sounds/Sand_dig1.ogg",
+            "/sounds/Sand_dig2.ogg",
+            "/sounds/Sand_dig3.ogg",
+            "/sounds/Sand_dig4.ogg"
+        ]
+    },
+    {
+        "type": "webcraft:block.glass",
+        "dig": [
+            "/sounds/Glass_dig1.ogg",
+            "/sounds/Glass_dig2.ogg",
+            "/sounds/Glass_dig3.ogg"
+        ],
+        "place": [
+            "/sounds/stone1.mp3",
+            "/sounds/stone2.mp3",
+            "/sounds/stone3.mp3",
+            "/sounds/stone4.mp3"
+        ]
+    },
+    {
+        "type": "webcraft:block.cloth",
+        "dig": [
+            "/sounds/Cloth_dig1.ogg",
+            "/sounds/Cloth_dig2.ogg",
+            "/sounds/Cloth_dig3.ogg",
+            "/sounds/Cloth_dig4.ogg"
+        ],
+        "place": [
+            "/sounds/Cloth_dig1.ogg",
+            "/sounds/Cloth_dig2.ogg",
+            "/sounds/Cloth_dig3.ogg",
+            "/sounds/Cloth_dig4.ogg"
+        ]
+    },
+    {
+        "type": "webcraft:block.grass",
+        "dig": [
+            "/sounds/grass1.mp3",
+            "/sounds/grass2.mp3",
+            "/sounds/grass3.mp3",
+            "/sounds/grass4.mp3"
+        ],
+        "place": [
+            "/sounds/grass1.mp3",
+            "/sounds/grass2.mp3",
+            "/sounds/grass3.mp3",
+            "/sounds/grass4.mp3"
+        ]
+    },
+    {
+        "type": "webcraft:block.stone",
+        "dig": [
+            "/sounds/stone1.mp3",
+            "/sounds/stone2.mp3",
+            "/sounds/stone3.mp3",
+            "/sounds/stone4.mp3"
+        ],
+        "place": [
+            "/sounds/stone1.mp3",
+            "/sounds/stone2.mp3",
+            "/sounds/stone3.mp3",
+            "/sounds/stone4.mp3"
+        ]
+    },
+    {
+        "type": "webcraft:block.gravel",
+        "dig": [
+            "/sounds/gravel1.mp3"
+        ],
+        "place": [
+            "/sounds/gravel1.mp3"
+        ]
+    }
+]
