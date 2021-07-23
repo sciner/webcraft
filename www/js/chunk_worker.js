@@ -3,7 +3,8 @@ importScripts(
     './blocks.js',
     './blocks_func.js',
     // './terrain_generator/basic.js'
-    './terrain_generator/biome.js'
+    // './terrain_generator/biome.js'
+    './terrain_generator/3dnoise.js'
     // './terrain_generator/simple.js'
     // '/js/terrain_generator/diamond_square.js'
 );
