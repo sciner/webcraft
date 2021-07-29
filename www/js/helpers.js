@@ -73,6 +73,7 @@ class Helpers {
 
     // Раскрашивание текстуры
     static colorizeTerrainTexture(image, callback) {
+        var that = this;
         // Высчитываем ширину и высоту одного блока
         const block_sz      = image.width / 32;
         //
@@ -89,7 +90,7 @@ class Helpers {
         ctx.globalCompositeOperation = 'multiply';
         // Блок травы (grass block)
         ctx.fillStyle = '#80a755ff';
-        ctx.fillRect(0, 0, block_sz, block_sz);
+        // ctx.fillRect(0, 0, block_sz, block_sz);
         // Шапка травы
         /*
             // img, sx, sy, swidth, sheight, x, y, width, height
@@ -108,15 +109,39 @@ class Helpers {
                 var i = (y * canvas.width + x) * 4;
                 if(pix[i + 3] > 0) {
                     ctx.fillStyle = '#80a755ff'; // 'rgba(' + [r, g, b, (a / 255)].join(',') + ')';
-                    ctx.fillRect(x, y, 1, 1);
+                    // ctx.fillRect(x, y, 1, 1);
                 }
             }
         }
         // ctx.fillRect(block_sz * 8, block_sz * 2, block_sz, block_sz);
         canvas.toBlob(function(blob) {
             var filefromblob = new File([blob], 'image.png', {type: 'image/png'});
+            // that.downloadBlobPNG(blob);
             callback(filefromblob);
         }, 'image/png');
+    }
+
+    
+    /* Canvas Donwload */
+    static downloadBlobPNG(blob, filename) {
+        /// create an "off-screen" anchor tag
+        var lnk = document.createElement('a'), e;
+        /// the key here is to set the download attribute of the a tag
+        lnk.download = filename;
+        /// convert canvas content to data-uri for link. When download
+        /// attribute is set the content pointed to by link will be
+        /// pushed as "download" in HTML5 capable browsers
+        lnk.href = URL.createObjectURL(blob);
+        /// create a "fake" click-event to trigger the download
+        if (document.createEvent) {
+            e = document.createEvent('MouseEvents');
+            e.initMouseEvent('click', true, true, window,
+            0, 0, 0, 0, 0, false, false, false,
+            false, 0, null);
+            lnk.dispatchEvent(e);
+        } else if (lnk.fireEvent) {
+            lnk.fireEvent('onclick');
+        }
     }
 
     // IntersectRayBrick
@@ -223,6 +248,22 @@ function Color(r, g, b, a) {
     this.g = g;
     this.b = b;
     this.a = a;
+}
+
+Color.prototype.add = function(color) {
+    this.r += color.r;
+    this.g += color.g;
+    this.b += color.b;
+    this.a += color.a;
+    return this;
+}
+
+Color.prototype.divide = function(color) {
+    this.r /= color.r;
+    this.g /= color.g;
+    this.b /= color.b;
+    this.a /= color.a;
+    return this;
 }
 
 Color.prototype.toFloat = function()  {

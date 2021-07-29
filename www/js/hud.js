@@ -277,7 +277,11 @@ HUD.prototype.drawInfo = function(hud) {
     if(chunk) {
         var biome = null;
         if(chunk.map) {
-            // biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
+            try {
+                biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
+            } catch(e) {
+                //
+            }
         }
         this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + ' / ' + biome + '\n';
         // text += 'CHUNK_XYZ: ' + chunk.coord.x + ', ' + chunk.coord.y + ', ' + chunk.coord.z + '\n';
