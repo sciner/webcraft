@@ -4,6 +4,7 @@ precision highp float;
 const float desaturateFactor = 2.0;
 
 uniform sampler2D u_texture;
+uniform sampler2D u_texture_mask;
 
 // Fog
 uniform vec4 u_fogColor;
@@ -27,7 +28,6 @@ varying float light;
 varying vec3 v_add_pos;
 
 varying float v_fogDepth;
-
 uniform float u_time;
 
 void main() {
@@ -36,16 +36,23 @@ void main() {
     if(u_fogOn) {
 
         // Read texture
-        // vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t)) * vec4(v_color.rgb * max(u_brightness, v_color.a - 1.), 1.0);
-        vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t));
-        
-        // Lightning
-        //float brightness_mul = 1.1;
+        vec2 texc = vec2(v_texcoord.s, v_texcoord.t);
+        vec4 color = texture2D(u_texture, texc);
+        vec4 color_mask = texture2D(u_texture_mask, texc);
 
-        color = vec4(color.rgb * u_brightness * light , color.a);
+        // color.rgb = color_mask.rgb;
 
+        // Apply light
+        color = vec4(color.rgb * u_brightness * light, color.a);
         if(color.a < 0.1) discard;
+
+        // Multiply color by mask
+        // vec2 maskc = vec2(v_color.b, 22. / 32.);
+        // vec4 color_mask = texture2D(u_texture, maskc);
         
+        vec4 color_mult = texture2D(u_texture, vec2(v_color.r, v_color.g));
+        color.rgb *= (color_mult.rgb + (1. - color_mult.rgb) * (1. - color_mask.rgb));
+
         gl_FragColor = color;
 
         // Calc fog amount
@@ -56,18 +63,10 @@ void main() {
         }
 
         // Apply fog
-        gl_FragColor = mix(color, u_fogColor, fogAmount);
+        gl_FragColor = mix(gl_FragColor, u_fogColor, fogAmount);
         gl_FragColor.r = (gl_FragColor.r * (1. - u_fogAddColor.a) + u_fogAddColor.r * u_fogAddColor.a);
         gl_FragColor.g = (gl_FragColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
         gl_FragColor.b = (gl_FragColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
-
-        // Desaturate colors in night
-        //if(u_brightness != 1.) {
-        //    float gs = 0.2126 * gl_FragColor.r + 0.7152 * gl_FragColor.g + 0.0722 * gl_FragColor.b;
-        //    vec4 grayscale = vec4(gs, gs, gs, 1);
-        //    float u_brightness2 = clamp(u_brightness * desaturateFactor, .0, 1.);
-        //    gl_FragColor = (gl_FragColor * u_brightness2) + (grayscale * (1.0 - u_brightness2));
-        //}
 
     } else {
         vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t)) * vec4(v_color.rgb, 1.0);

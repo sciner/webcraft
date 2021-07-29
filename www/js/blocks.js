@@ -7,6 +7,7 @@
 const CHUNK_SIZE_X      = 16;
 const CHUNK_SIZE_Y      = 256;
 const CHUNK_SIZE_Z      = 16;
+const DIRT_HEIGHT       = 32;
 
 // Direction enumeration
 var DIRECTION = {};

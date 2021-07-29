@@ -2,14 +2,14 @@ importScripts(
     './helpers.js',
     './blocks.js',
     './blocks_func.js',
+    './biomes.js',
+    './terrain_generator/biome2.js'
     // './terrain_generator/basic.js'
     // './terrain_generator/biome.js'
-    './terrain_generator/3dnoise.js'
+    // './terrain_generator/3dnoise.js'
     // './terrain_generator/simple.js'
     // '/js/terrain_generator/diamond_square.js'
 );
-
-const DIRT_HEIGHT       = 32;
 
 // 1. All blocks
 var all_blocks = [];
@@ -56,6 +56,7 @@ var blocks = {
     WOOD:           BLOCK.WOOD,
     SPRUCE:         BLOCK.SPRUCE,
     SAND:           BLOCK.SAND,
+    GLASS:          BLOCK.GLASS,
     DEAD_BUSH:      BLOCK.DEAD_BUSH,
     WOOD_BIRCH:     BLOCK.WOOD_BIRCH,
     WOOD_LEAVES:    BLOCK.WOOD_LEAVES,
@@ -436,6 +437,7 @@ Chunk.prototype.buildVertices = function() {
         for(var x = 0; x < this.size.x; x++) {
             for(var z = 0; z < this.size.z; z++) {
                 var block = this.blocks[x][z][y];
+                const biome = this.map.info.cells[x][z].biome;
                 if(block == null) {
                     continue;
                 }
@@ -549,7 +551,7 @@ Chunk.prototype.buildVertices = function() {
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours);
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
                     }
                     if(block.vertices.length > 0) {
                         this.vertices.transparent.list.push(...block.vertices);
@@ -558,7 +560,7 @@ Chunk.prototype.buildVertices = function() {
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours);
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
                     }
                     if(block.vertices.length > 0) {
                         this.vertices.regular.list.push(...block.vertices);

@@ -485,7 +485,7 @@ Terrain.prototype.generate = function(chunk) {
 					if (density <= 18 && density > 15) {
                         block = blocks.CONCRETE;
 					} else if (density <= 15 && density > 14) {
-                        block = blocks.DIRT;
+                        block = blocks.CONCRETE;
                     } else if (density <= 14 && density > 0) {
                         block = blocks.DIRT;
                     }
