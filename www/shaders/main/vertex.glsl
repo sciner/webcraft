@@ -19,18 +19,17 @@ varying vec3 v_add_pos;
 
 void main() {
 
-    v_add_pos = u_add_pos;
-
-    v_color = a_color;
-    v_texcoord = a_texcoord;
-    v_normal = a_normal;
+    v_add_pos       = u_add_pos;
+    v_color         = a_color;
+    v_texcoord      = a_texcoord;
+    v_normal        = a_normal;
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
     light = max(.5, dot(n, sun_dir) - v_color.a);
 
     if(u_fogOn) {
-        gl_Position = uProjMatrix * u_worldView * ( uModelMatrix * vec4(a_position, 1.0 ) );
+        gl_Position = uProjMatrix * u_worldView * (uModelMatrix * vec4(a_position, 1.0));
         // 1. Pass the view position to the fragment shader
         v_position = (u_worldView * vec4(a_position + v_add_pos, 1.0)).xyz;
     } else {

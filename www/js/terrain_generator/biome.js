@@ -207,7 +207,7 @@ function Terrain(seed) {
         title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: TREE_FREQUENCY,
+            frequency: TREE_FREQUENCY * 2,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
                 {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
@@ -224,7 +224,7 @@ function Terrain(seed) {
         title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
         dirt_block: blocks.DIRT,
         trees:      {
-            frequency: TREE_FREQUENCY,
+            frequency: TREE_FREQUENCY * 2,
             list: [
                 {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
                 {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
@@ -301,19 +301,20 @@ Terrain.prototype.generateMap = function(chunk, noisefn, signal) {
             // Высота
             var value = (
                 noisefn(px / options.SCALE_VALUE, pz / options.SCALE_VALUE, 0) + // равнины
-                noisefn(px / (options.SCALE_VALUE / 2), pz / (options.SCALE_VALUE / 2), 0)
+                0
+                // noisefn(px / (options.SCALE_VALUE / 2), pz / (options.SCALE_VALUE / 2), 0)
                 // noisefn(px / options.SCALE_BIOM, pz / options.SCALE_BIOM, 0)
-            ) / 2;
+            ) / 1;
 
             // Шум биома (biome noise)
             var bn = clamp(noisefn(px / (options.SCALE_VALUE * 8), pz / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
             value *= (1. + bn / 2);
 
             if(value < 0) {
-                value /= 6;
+                value /= 4;
             }
             value += 0.2;
-            value = parseInt(value * 255) + 4;
+            value = parseInt(value * 256) + 4;
             value = clamp(value, 4, 255);
             value = signal[value];
 
@@ -401,18 +402,11 @@ Terrain.prototype.generateMap = function(chunk, noisefn, signal) {
 
 }
 
-// Generate
-Terrain.prototype.generate = function(chunk) {
 
-    const seed                  = chunk.id;
-    const aleaRandom            = new alea(seed);
+Terrain.prototype.generateMaps = function(chunk) {
     const noisefn               = this.noisefn;
     const signal                = this.makeSignal(115, 10);
-
-    // maps
-    var map                    = null;
-    var maps                   = [];
-
+    var maps                    = [];
     for(var x = -1; x <= 1; x++) {
         for(var z = -1; z <= 1; z++) {
             const addr = new Vector(
@@ -452,6 +446,25 @@ Terrain.prototype.generate = function(chunk) {
             }            
         }
     }
+    return maps;
+}
+
+
+// Generate
+Terrain.prototype.generate = function(chunk) {
+
+    const seed                  = chunk.id;
+    const seedn                 = 0;
+    const amplitude             = 24;
+    const aleaRandom            = new alea(seed);
+    const noisefn               = this.noisefn;
+
+    // maps
+    // var map                     = null;
+    // var maps                    = [];
+
+    var maps = this.generateMaps(chunk);
+    var map = maps[4];
 
     //
     for(var x = 0; x < chunk.size.x; x++) {
@@ -463,13 +476,39 @@ Terrain.prototype.generate = function(chunk) {
             // Bedrock
             chunk.blocks[x][z][0] = blocks.BEDROCK;
 
+            // chunk.blocks[x][z][1] = blocks.DIRT;
+            // continue;
+
             const cell = map.info.cells[x][z];
             const biome = cell.biome;
             const value = cell.value;
 
-            var rnd = aleaRandom.double() * cell.bn;
+            var ar = aleaRandom.double();
+            var rnd = ar * cell.bn;
+
+            // Sin wave
+            var px = (x + chunk.coord.x);
+            var pz = (z + chunk.coord.z);
+            for(var y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
+                chunk.blocks[x][z][y] = blocks.CONCRETE;
+            }
 
             for(var y = 1; y < value; y++) {
+
+                /*if(y > 5 && ['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
+                    var noiseScale  = 10; // map.info.options.SCALE_VALUE;
+                    var px          = (x + chunk.coord.x);
+                    var py          = (y + chunk.coord.y);
+                    var pz          = (z + chunk.coord.z);
+                    let xNoise      = noisefn(py / noiseScale, pz / noiseScale, seedn) * amplitude;
+                    let yNoise      = noisefn(px / noiseScale, pz / noiseScale, seedn) * amplitude;
+                    let zNoise      = noisefn(px / noiseScale, py / noiseScale, seedn) * amplitude;
+                    let density     = xNoise + yNoise + zNoise; // + (py / 4);
+                    if (density > 2 && density < 50) {
+                        continue;
+                    }
+                }*/
+
                 var r = aleaRandom.double() * 1.33;
                 if(y < value - (rnd < .005 ? 0 : 2)) {
                     // если это не вода, то заполняем полезными ископаемыми
@@ -503,14 +542,46 @@ Terrain.prototype.generate = function(chunk) {
         }
     }
 
+    /*
+    const tree_types = [
+        {style: 'spruce', trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, height: 7},
+        {style: 'wood', trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, height: 5},
+        {style: 'stump', trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, height: 1},
+        {style: 'cactus', trunk: blocks.CACTUS, leaves: null, height: 5},
+    ];
+
+    var x = 8;
+    var z = 8;
+    var type = tree_types[chunk.addr.x % tree_types.length];
+    var tree_options = {
+        type: type,
+        height: type.height,
+        rad: 4,
+        pos: new Vector(x, 2, z)
+    };
+    this.plantTree(
+        tree_options,
+        chunk,
+        tree_options.pos.x,
+        tree_options.pos.y,
+        tree_options.pos.z,
+    );
+
+    return map;
+    */
+
     // Plant plants
     for(var p of map.info.plants) {
-        chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
+        var b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
+        if(b && b.id == blocks.DIRT.id) {
+            chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
+        }
     }
 
     // Plant trees
     for(const m of maps) {
         for(var p of m.info.trees) {
+            // m.chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1] = blocks.DIRT;
             this.plantTree(
                 p,
                 chunk,
@@ -557,6 +628,33 @@ Terrain.prototype.plantTree = function(options, chunk, x, y, z) {
         }
         case 'wood': {
             // дуб, берёза
+
+            var py = y + height;
+            for(var rad of [1, 1, 2, 2]) {
+                for(var i = x - rad; i <= x + rad; i++) {
+                    for(var j = z - rad; j <= z + rad; j++) {
+                        if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
+                            var m = (i == x - rad && j == z - rad) ||
+                                (i == x + rad && j == z + rad) || 
+                                (i == x - rad && j == z + rad) ||
+                                (i == x + rad && j == z - rad);
+                            var m2 = (py == y + height) ||
+                                (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
+                            if(m && m2) {
+                                    continue;
+                            }
+                            var b = chunk.blocks[i][j][py];
+                            // var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
+                            if(!b || b.id >= 0 && b.id != type.trunk.id) {
+                                chunk.blocks[i][j][py] = type.leaves;
+                            }
+                        }
+                    }
+                }
+                py--;
+            }
+
+            /*
             for(var p = ystart - leaves_rad; p <= ystart + leaves_rad; p++) {
                 var max = leaves_rad * 2;
                 var perc = (p - (ystart - leaves_rad)) / max;
@@ -575,6 +673,7 @@ Terrain.prototype.plantTree = function(options, chunk, x, y, z) {
                     }
                 }
             }
+            */
             break;
         }
         case 'spruce': {
@@ -672,6 +771,8 @@ Terrain.prototype.getBiome = function(height, humidity, equator) {
 
 // Make signal
 Terrain.prototype.makeSignal = function(w, h) {
+    w = 0;
+    h = 0;
     // minimum two points
     var myPoints = [
         0.01,   0,

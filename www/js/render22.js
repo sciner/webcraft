@@ -18,7 +18,6 @@ const RENDER_DISTANCE       = 800;
 
 var settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1],
-    // fogColor:               [185 / 255, 210 / 255, 254 / 255, 1],
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
@@ -27,7 +26,6 @@ var settings = {
 };
 
 var currentRenderState = {
-    // fogColor:           [185 / 255, 210 / 255, 254 / 255, 1],
     fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
     fogDensity:         0.02,
     underWater:         false
@@ -79,7 +77,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
         that.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
         that.u_texture          = gl.getUniformLocation(program, 'u_texture');
-        that.u_texture_mask     = gl.getUniformLocation(program, 'u_texture_mask');
         that.a_position         = gl.getAttribLocation(program, 'a_position');
         that.a_color            = gl.getAttribLocation(program, 'a_color');
         that.a_texcoord         = gl.getAttribLocation(program, 'a_texcoord');
@@ -112,34 +109,26 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, white);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-        // Terrain texture
-        gl.uniform1i(that.u_texture, 4);
+        gl.uniform1i(that.u_texture, 0);
+        // Load terrain texture
         var terrainTexture          = that.texTerrain = gl.createTexture();
         terrainTexture.image        = new Image();
         terrainTexture.image.onload = function() {
-                gl.activeTexture(gl.TEXTURE4);
-                gl.bindTexture(gl.TEXTURE_2D, terrainTexture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, terrainTexture.image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            // Раскрашивание текстуры
+            Helpers.colorizeTerrainTexture(terrainTexture.image, function(file) {
+                var image2 = new Image();
+                image2.src = URL.createObjectURL(file);
+                image2.onload = function(e) {
+                    terrainTexture.image = image2;
+                    gl.bindTexture(gl.TEXTURE_2D, terrainTexture);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, terrainTexture.image);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                };
+                image2.src = URL.createObjectURL(file);
+            });
         };
         terrainTexture.image.src = settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png';
-
-        // Terrain texture mask
-        gl.uniform1i(that.u_texture_mask, 5);
-        var terrainTextureMask          = that.texTerrainMask = gl.createTexture();
-        terrainTextureMask.image        = new Image();
-        terrainTextureMask.image.onload = function() {
-            gl.activeTexture(gl.TEXTURE5);
-            gl.bindTexture(gl.TEXTURE_2D, terrainTextureMask);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, terrainTextureMask.image);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        };
-        terrainTextureMask.image.src = settings.hd ? 'media/terrain_hd_mask.png' : 'media/terrain_mask.png';
-
-        //
         that.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
     });
 
@@ -169,10 +158,10 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
         that.skyBox = {
-            gl:         gl,
-            program:    program,
-            texture:    gl.createTexture(),
-            loaded:     false,
+            gl: gl,
+            program: program,
+            texture: gl.createTexture(),
+            loaded: false,
             attribute: {
                 vertex: gl.getAttribLocation(program, 'a_vertex')
             },
@@ -225,15 +214,14 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 const height            = 1;
                 const format            = gl.RGBA;
                 const type              = gl.UNSIGNED_BYTE;
-                gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
+                gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255,255,255,255]));
                 const image = new Image();
-                image.addEventListener('load', () => {
+                image.addEventListener("load", () => {
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                    gl.activeTexture(gl.TEXTURE0);
                     gl.texImage2D(target, level, internalFormat, format, type, image);
                     resolve();
                 });
-                image.addEventListener('error', () => {
+                image.addEventListener("error", () => {
                     reject(new Error(`Ошибка загрузки изображения '${url}'.`));
                 });
                 image.src = url;
@@ -248,7 +236,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, skiybox_dir + '/posz.jpg'),
             loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, skiybox_dir + '/negz.jpg'),
         ]).then(() => {
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
@@ -412,13 +399,9 @@ Renderer.prototype.draw = function(delta) {
     gl.uniform1f(this.u_brightness, this.brightness);
 
     gl.enable(gl.BLEND);
-
-    gl.activeTexture(gl.TEXTURE4);
-    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
     
-    gl.activeTexture(gl.TEXTURE5);
-    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
-
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     

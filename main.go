@@ -1,6 +1,8 @@
 package main
 
 import (
+	"mime"
+
 	"whiteframe.ru/webcraft/Struct"
 	"whiteframe.ru/webcraft/Type"
 	"whiteframe.ru/webcraft/utils"
@@ -40,6 +42,9 @@ func main() {
 
 	http.HandleFunc("/ws", homeHandler)
 	http.HandleFunc(conf.Config.JSONRPCEndpoint, homeHandler)
+
+	mime.AddExtensionType(".js", "application/javascript; charset=utf-8")
+	mime.AddExtensionType(".css", "text/css; charset=utf-8")
 
 	fileServer := http.StripPrefix("/", http.FileServer(http.Dir("www")))
 	http.Handle("/", fileServer)
