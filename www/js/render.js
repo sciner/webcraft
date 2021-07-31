@@ -319,6 +319,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         }
         // Create HUD texture
         var texture = that.HUD.texture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -413,10 +414,10 @@ Renderer.prototype.draw = function(delta) {
 
     gl.enable(gl.BLEND);
 
-    gl.activeTexture(gl.TEXTURE4);
-    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
+    // gl.activeTexture(gl.TEXTURE4);
+    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
     
-    gl.activeTexture(gl.TEXTURE5);
+    // gl.activeTexture(gl.TEXTURE5);
     // gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
 
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -514,6 +515,10 @@ Renderer.prototype.setCamera = function(pos, ang) {
 
 // drawBuffer...
 Renderer.prototype.drawBuffer = function(buffer, a_pos) {
+    if (buffer.vertices === 0) {
+        return;
+    }
+
 	var gl = this.gl;
     gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);

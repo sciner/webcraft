@@ -11,6 +11,11 @@ PickAt.prototype.get = function(callback) {
 PickAt.prototype.draw = function() {
     const render = this.render;
     const gl = this.gl;
+    // To enable better, but slow debugging:
+    // if (this.callbacks.length  === 0) {
+    //     this.callbacks.push(()=>{});
+    // }
+
     if(this.callbacks.length > 0) {
 
         const player = Game.world.localPlayer;
@@ -149,10 +154,14 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STREAM_DRAW);
     // Draw buffer
     gl.uniform1f(render.u_fogOn, false);
+    gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, render.texWhite);
     gl.viewport(0, 0, 512, 512);
+    gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.disable(gl.BLEND);
     render.drawBuffer(buffer, new Vector(0, 0, 0));
+    gl.enable(gl.BLEND);
     
     // Read pixel
     var pixel = new Uint8Array(4);
