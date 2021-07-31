@@ -3,8 +3,8 @@ function Hotbar(hud, inventory) {
     this.hud                = hud;
     this.inventory          = inventory;
     this.image              = new Image(); // new Image(40, 40); // Размер изображения
-    this.lives              = 0.45;
-    this.foods              = 0.55;
+    this.lives              = 0.95;
+    this.foods              = 1.;
     this.image.onload = function() {
         that.hud.add(that, 0);
     }
