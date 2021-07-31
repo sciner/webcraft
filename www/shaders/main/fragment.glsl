@@ -73,5 +73,6 @@ void main() {
     } else {
         gl_FragColor = texture2D(u_texture, texc);
         if(gl_FragColor.a < 0.1) discard;
+        gl_FragColor *= v_color;
     }
 }
