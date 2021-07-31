@@ -3,6 +3,12 @@ const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
 const TREE_FREQUENCY        = 0.015;
 
+var biome_stat = {
+    height:     {min: 999999999, max: -99999},
+    humidity:   {min: 999999999, max: -99999},
+    equator:    {min: 999999999, max: -99999},
+};
+
 // 1. All blocks
 var all_blocks = [];
 
@@ -190,9 +196,10 @@ BIOMES.TUNDRA = {
     color:      '#74883c',
     dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0),
     title:      'ТУНДРА',
+    max_height: 48,
     dirt_block: blocks.DIRT,
     trees:      {
-        frequency: TREE_FREQUENCY,
+        frequency: TREE_FREQUENCY * 1.5,
         list: [
             {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
             {percent: 0.99, trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
@@ -288,7 +295,7 @@ BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
     block: blocks.GLASS,
     code:       'TEMPERATE_DECIDUOUS_FOREST',
     color:      '#228b22',
-    dirt_color: new Color(780 / 1024, 850 / 1024, 0, 0),
+    dirt_color: new Color(800 / 1024, 880 / 1024, 0, 0),
     title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
     max_height: 48,
     dirt_block: blocks.DIRT,
@@ -376,21 +383,26 @@ BIOMES.TROPICAL_RAIN_FOREST = {
 /**
 * Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора
 */
-BIOMES.getBiome = function(height, humidity, equator) {
-    
+BIOMES.getBiome = function(v_height, humidity, equator) {
+
+    let height = v_height + 0.;
+    // height = (height - .19) * 5.;
+
+    if(height < biome_stat.height.min) biome_stat.height.min = height;
+    if(height > biome_stat.height.max) biome_stat.height.max = height;
+
+    if(humidity < biome_stat.humidity.min) biome_stat.humidity.min = humidity;
+    if(humidity > biome_stat.humidity.max) biome_stat.humidity.max = humidity;
+
+    if(equator < biome_stat.equator.min) biome_stat.equator.min = equator;
+    if(equator > biome_stat.equator.max) biome_stat.equator.max = equator;
+
     function _(humidity, height, equator) {
-        /*
-        if(equator > .7) {
-            if (equator < .9) return 'OCEAN';
-            if (equator < .92 && humidity < .5) return 'TUNDRA';
-            return 'SNOW';
-        }
-        */
-        // if (h < 0.1) return 'OCEAN';
-        // if (h < 0.12) return 'BEACH';
+
         if (height < 0.248) return 'OCEAN';
-        if (height < 0.255) return 'BEACH';
-        if (height > 0.8) {
+        if (height < 0.253) return 'BEACH';
+
+        if (height > 0.5 || equator < .6) {
             if (humidity < 0.1) return 'SCORCHED';
             if (humidity < 0.2) return 'BARE';
             if (humidity < 0.5) return 'TUNDRA';

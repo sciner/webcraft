@@ -32,11 +32,13 @@ uniform float u_time;
 
 void main() {
 
+    vec2 texc = vec2(v_texcoord.s, v_texcoord.t);
+
     // Game
     if(u_fogOn) {
 
         // Read texture
-        vec2 texc = vec2(v_texcoord.s, v_texcoord.t);
+        
         vec4 color = texture2D(u_texture, texc);
         vec4 color_mask = texture2D(u_texture_mask, texc);
 
@@ -69,8 +71,7 @@ void main() {
         gl_FragColor.b = (gl_FragColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
 
     } else {
-        vec4 color = texture2D(u_texture, vec2(v_texcoord.s, v_texcoord.t)) * vec4(v_color.rgb, 1.0);
-        // if(color.a < 0.1 ) discard;
-        gl_FragColor = vec4(color.rgb, v_color.a);
+        gl_FragColor = texture2D(u_texture, texc);
+        if(gl_FragColor.a < 0.1) discard;
     }
 }
