@@ -57,7 +57,7 @@ Terrain.prototype.generateMap = function(chunk, noisefn) {
             // Влажность
             var humidity = clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY, 0) + 0.8) / 2);
             // Экватор
-            var equator = clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR, 0) + 0.8) / 2);
+            var equator = clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR, 0) + 0.8) / 1);
             // Get biome
             var biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
 
@@ -212,12 +212,12 @@ Terrain.prototype.generateMaps = function(chunk) {
     for(var x = 0; x < chunk.size.x; x++) {
         for(var z = 0; z < chunk.size.z; z++) {
             const cell = map.info.cells[x][z];
-            if(['OCEAN', 'BEACH'].indexOf(cell.biome.code) >= 0) {
+            if(cell.value > this.options.WATER_LINE - 2 && ['OCEAN', 'BEACH'].indexOf(cell.biome.code) >= 0) {
                 cell.value2 = cell.value;
                 continue;
             }
             cell.value2 = 0;
-            const rad   = 8;
+            const rad   = 6;
             var cnt     = 0;
             var dirt_color = new Color(0, 0, 0, 0);
             for(var i = -rad; i <= rad; i++) {
@@ -313,11 +313,19 @@ Terrain.prototype.generate = function(chunk) {
                 chunk.blocks[x][z][y] = blocks.CONCRETE;
             }*/
 
+            var center = new Vector(8, 65, 8);
+
             for(var y = 1; y < value; y++) {
 
                 // Caves | Пещеры
                 if(y > 5 && ['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
-                    var noiseScale  = 15; // map.info.options.SCALE_VALUE;
+                    
+                    /*let dist = Helpers.distance(new Vector(x, y, z), center);
+                    if(dist < 4 + ar) {
+                        continue;
+                    }*/
+
+                    var noiseScale  = 15;
                     var px          = (x + chunk.coord.x);
                     var py          = (y + chunk.coord.y);
                     var pz          = (z + chunk.coord.z);
