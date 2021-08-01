@@ -154,13 +154,6 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
                 }
                 return true;
             }
-            /*case KEY.SLASH: {
-                if(!down) {
-                    this.chat.close();
-                }
-                return true;
-                break;
-            }*/
             case KEY.ENTER: {
                 if(!down) {
                     this.chat.submit();
@@ -577,7 +570,6 @@ Player.prototype.update = function() {
         // View
         this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
         this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
-        // this.angles[1] = deg2rad(45); // roll | Наклон вбок
 		// Gravity
 		if(this.falling && !this.flying) {
 			velocity.y += -(30 * delta);
@@ -738,7 +730,7 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 	// Solve XZ collisions
 	for(var i in collisionCandidates)  {
 		var side = collisionCandidates[i];
-		if (lineRectCollide(side, playerRect)) {
+		if (Helpers.lineRectCollide(side, playerRect)) {
 			if(side.x != null && velocity.x * side.dir < 0) {
 				pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1);
 				velocity.x = 0;
@@ -770,7 +762,7 @@ Player.prototype.resolveCollision = function(pos, bPos, velocity) {
 	// Solve Y collisions
     for(var i in collisionCandidates) {
 		var face = collisionCandidates[i];
-		if (rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
+		if (Helpers.rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
 			if(velocity.y < 0) {
 				falling         = false;
 				pos.y           = face.y;

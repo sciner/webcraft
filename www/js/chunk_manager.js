@@ -19,7 +19,6 @@ function ChunkManager(world) {
         switch(cmd) {
             case 'blocks_generated': {
                 if(that.chunks.hasOwnProperty(args.key)) {
-                    // console.log(JSON.stringify(args).length);
                     that.chunks[args.key].onBlocksGenerated(args);
                 }
                 break;
@@ -27,7 +26,6 @@ function ChunkManager(world) {
             case 'vertices_generated': {
                 // console.log('%c vertices_generated ' + args.key + ' ', 'background: #222; color: #bada55');
                 if(that.chunks.hasOwnProperty(args.key)) {
-                    // var t = performance.now();
                     that.chunks[args.key].onVerticesGenerated(args);
                 }
                 break;
@@ -221,7 +219,6 @@ ChunkManager.prototype.createSpiralCoords = function(size) {
         rPush(new Vector(iInd, 0, jInd += jStep));
     }
     this[size] = resp;
-    // console.info('Spiral(' + size + ') created; count = ' + resp.length, resp);
     return resp;
 }
 
@@ -439,4 +436,3 @@ ChunkManager.prototype.setDirtySimple = function(pos) {
         chunk.dirty = true;
     }
 }
-

@@ -145,12 +145,12 @@ World.prototype.fixRotate = function() {
     var x = (this.rotate.x / halfPitch) * 90;
     var y = 0;
     var z = this.rotate.z / 10;
-    this.rotateRadians.x = deg2rad(x);
-    this.rotateRadians.y = deg2rad(y);
-    this.rotateRadians.z = deg2rad(z);
-    this.rotateDegree.x = rad2deg(this.rotateRadians.x);
-    this.rotateDegree.y = rad2deg(this.rotateRadians.y);
-    this.rotateDegree.z = rad2deg(this.rotateRadians.z) + 180;
+    this.rotateRadians.x = Helpers.deg2rad(x);
+    this.rotateRadians.y = Helpers.deg2rad(y);
+    this.rotateRadians.z = Helpers.deg2rad(z);
+    this.rotateDegree.x = Helpers.rad2deg(this.rotateRadians.x);
+    this.rotateDegree.y = Helpers.rad2deg(this.rotateRadians.y);
+    this.rotateDegree.z = Helpers.rad2deg(this.rotateRadians.z) + 180;
 }
 
 // update
@@ -196,7 +196,7 @@ World.prototype.exportJSON = function(callback) {
     if(callback) {
         callback(row);
     } else {
-        saveJSON(row, Game.world_name + '.json');
+        Helpers.saveJSON(row, Game.world_name + '.json');
     }
 }
 
