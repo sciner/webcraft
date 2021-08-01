@@ -3,7 +3,7 @@ class Sounds {
     constructor() {
         var that = this;
         this.tags = {};
-        loadJSON('../sounds.json', function(json) {
+        Helpers.loadJSON('../sounds.json', function(json) {
             for(var sound of json) {
                 that.add(sound);
             }

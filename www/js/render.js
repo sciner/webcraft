@@ -68,7 +68,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     this.pickAt             = new PickAt(this, gl);
 
 	// Create main program
-    createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
+    Helpers.createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
 
         var program = that.program = info.program;
 
@@ -144,7 +144,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     });
 
     // SkyBox
-    createGLProgram(gl, './shaders/skybox/vertex.glsl', './shaders/skybox/fragment.glsl', function(info) {
+    Helpers.createGLProgram(gl, './shaders/skybox/vertex.glsl', './shaders/skybox/fragment.glsl', function(info) {
         const program = info.program;
         gl.useProgram(program);
         const vertexBuffer = gl.createBuffer();
@@ -259,7 +259,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     });
 
 	// HUD
-    createGLProgram(gl, './shaders/hud/vertex.glsl', './shaders/hud/fragment.glsl', function(info) {
+    Helpers.createGLProgram(gl, './shaders/hud/vertex.glsl', './shaders/hud/fragment.glsl', function(info) {
 		const program = info.program;
         // Build main HUD
         Game.hud = new HUD(0, 0);
@@ -397,7 +397,6 @@ Renderer.prototype.draw = function(delta) {
     // setCamera
     gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
     // setPerspective
-    // const zoom = this.world.localPlayer.keys[KEY.C] ? 0.3 : 1;
     mat4.perspective(this.fov, gl.viewportWidth / gl.viewportHeight, this.min, this.max, this.projMatrix);
     gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
     // Picking
@@ -414,15 +413,6 @@ Renderer.prototype.draw = function(delta) {
 
     gl.enable(gl.BLEND);
 
-    // gl.activeTexture(gl.TEXTURE4);
-    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
-    
-    // gl.activeTexture(gl.TEXTURE5);
-    // gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
-
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    
     // Draw chunks
     this.world.chunkManager.draw(this);
     this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
@@ -498,19 +488,6 @@ Renderer.prototype.setCamera = function(pos, ang) {
         -pos[2] + Game.shift.z,
         -pos[1] + y_add
     ], this.viewMatrix);
-
-/*
-    var z_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
-    if(this.world.localPlayer.walking) {
-        // ang[1] += Math.cos(this.world.localPlayer.walking_frame * 15) * 0.0025;
-    }
-	this.camPos = pos;
-	mat4.identity(this.viewMatrix);
-	mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
-	mat4.rotate(this.viewMatrix, ang[1], [ 0, 0, 1 ], this.viewMatrix);
-	mat4.rotate(this.viewMatrix, -ang[2], [ 0, 1, 0 ], this.viewMatrix);
-    mat4.translate(this.viewMatrix, [-pos[0] + Game.shift.x, -pos[2] + Game.shift.z, -pos[1] + z_add], this.viewMatrix);
-    */
 }
 
 // drawBuffer...
@@ -518,7 +495,6 @@ Renderer.prototype.drawBuffer = function(buffer, a_pos) {
     if (buffer.vertices === 0) {
         return;
     }
-
 	var gl = this.gl;
     gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -535,7 +511,7 @@ Renderer.prototype.getVideoCardInfo = function() {
     if(this.videoCardInfoCache) {
         return this.videoCardInfoCache;
     }
-    var gl = this.gl; // document.createElement('canvas').getContext('webgl');
+    var gl = this.gl;
     if (!gl) {
         return {
             error: 'no webgl',
