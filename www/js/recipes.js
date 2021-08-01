@@ -74,7 +74,7 @@ RECIPES = {
     }
 };
 
-loadJSON('../recipes.json', function(json) {
+Helpers.loadJSON('../recipes.json', function(json) {
     for(var recipe of json) {
         RECIPES.add(recipe);
     }

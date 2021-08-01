@@ -82,7 +82,7 @@ var gameCtrl = function($scope, $interval, $timeout) {
         },
         init: function() {
             var that = this;
-            loadJSON('/skins.json', function(list) {
+            Helpers.loadJSON('/skins.json', function(list) {
                 that.loading = false;
                 for(var item of list) {
                     item.file = that.getURLById(item.id)
@@ -202,7 +202,7 @@ var gameCtrl = function($scope, $interval, $timeout) {
         load: function() {
             var that = this;
             that.loading = true;
-            loadJSON('./demo_maps.json', function(response) {
+            Helpers.loadJSON('./demo_maps.json', function(response) {
                 $timeout(function() {
                     that.list = response;
                     that.loading = false;
@@ -217,7 +217,7 @@ var gameCtrl = function($scope, $interval, $timeout) {
                 $scope.boot.saves.load(item.id, function(row) {
                     $scope.Game.initGame(row, $scope.settings.form);
                 }, function(err) {
-                    loadJSON(item.url, function(row) {
+                    Helpers.loadJSON(item.url, function(row) {
                         $timeout(function(){
                             $scope.Game.initGame(row, $scope.settings.form);
                         });
