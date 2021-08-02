@@ -65,7 +65,7 @@ PlayerModel.prototype.loadTextures = function() {
         Helpers.createSkinLayer2(null, image, function(file) {
             var image2 = new Image();
             image2.onload = function(e) {
-                gl.useProgram(Game.world.renderer.program);
+                gl.activeTexture(gl.TEXTURE0);
                 // Layer1
                 var texture = gl.createTexture();
                 texture.image = image;
@@ -503,7 +503,7 @@ PlayerModel.prototype.drawLayer = function(render, modelMatrix, uModelMat, camPo
     mat4.rotateX(modelMatrix, -pitch);
     gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
 
-    gl.activeTexture(gl.TEXTURE0);
+    gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, options.texture);
     render.drawBuffer(this.playerHead, a_pos);
 
