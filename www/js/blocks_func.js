@@ -943,7 +943,6 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 
 // pushVertices
 BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-
     const style = 'style' in block ? block.style : '';
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z, biome);
