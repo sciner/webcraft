@@ -3,12 +3,12 @@ importScripts(
     '../vendors/alea.js'
 );
 
-function Terrain() {
+function Terrain_Generator() {
     this.seed = 0;
     this.noisefn = noise.perlin3;
 }
 
-Terrain.prototype.generate = function(chunk) {
+Terrain_Generator.prototype.generate = function(chunk) {
 
     const seed = chunk.id;
     noise.seed(this.seed);

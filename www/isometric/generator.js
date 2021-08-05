@@ -72,8 +72,6 @@ class Biome {
             SCALE_VALUE:            250  * scale // Масштаб шума для карты высот
         };
 
-        var clamp = this.clamp;
-
         for(var x = 0; x < SZ; x += 4) {
             for(var y = 0; y < SZ; y += 4) {
 
@@ -81,9 +79,9 @@ class Biome {
                 const py = (SY - SZ / 2 + (y)); // * options.SCALE;
 
                 // Влажность
-                var humidity = clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6);
+                var humidity = Helpers.clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6);
                 // Экватор
-                var equator = clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6);
+                var equator = Helpers.clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6);
 
                 // Высота
                 var value = (
@@ -93,7 +91,7 @@ class Biome {
                 ) / 2;
 
                 // Шум биома
-                var mh = clamp(noisefn(px / (options.SCALE_VALUE * 8), py / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
+                var mh = Helpers.clamp(noisefn(px / (options.SCALE_VALUE * 8), py / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
                 value *= (1. + mh / 2);
 
                 if(value < 0) {
@@ -101,7 +99,7 @@ class Biome {
                 }
                 value += 0.2;
                 value = parseInt(value * 255) + 4;
-                value = clamp(value, 4, 255);
+                value = Helpers.clamp(value, 4, 255);
                 value = signal[value];
 
                 var biome = this.getBiome(value / 255, humidity, equator);
@@ -188,17 +186,6 @@ class Biome {
         if (m < 0.33) return 'GRASSLAND';
         if (m < 0.66) return 'TROPICAL_SEASONAL_FOREST';
         return 'TROPICAL_RAIN_FOREST';
-    }
-
-    // clamp
-    clamp(x, min, max) {
-        if(!min) {
-            min = 0;
-        }
-        if(!max) {
-            max = 1;
-        }
-        return Math.max(Math.min(x, max), min);
     }
 
 }

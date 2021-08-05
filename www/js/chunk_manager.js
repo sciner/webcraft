@@ -24,7 +24,6 @@ function ChunkManager(world) {
                 break;
             }
             case 'vertices_generated': {
-                // console.log('%c vertices_generated ' + args.key + ' ', 'background: #222; color: #bada55');
                 if(that.chunks.hasOwnProperty(args.key)) {
                     that.chunks[args.key].onVerticesGenerated(args);
                 }

@@ -4,11 +4,6 @@ importScripts(
     './blocks_func.js',
     './biomes.js',
     './terrain_generator/biome2.js'
-    // './terrain_generator/basic.js'
-    // './terrain_generator/biome.js'
-    // './terrain_generator/3dnoise.js'
-    // './terrain_generator/simple.js'
-    // '/js/terrain_generator/diamond_square.js'
 );
 
 // 1. All blocks
@@ -79,7 +74,7 @@ for(var [key, b] of Object.entries(blocks)) {
 }
 
 var chunks              = {};
-var terrainGenerator    = null; // new Terrain();
+var terrainGenerator    = null;
 var world               = {
     blocks_pushed: 0,
     chunkManager: new ChunkManager()
@@ -92,7 +87,7 @@ onmessage = function(e) {
     switch(cmd) {
         case 'createChunk': {
             if(!terrainGenerator) {
-                terrainGenerator = new Terrain(args.seed);
+                terrainGenerator = new Terrain_Generator(args.seed);
             }
             if(!this.chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = Object.assign(new Chunk(), args);
@@ -106,12 +101,6 @@ onmessage = function(e) {
             }
             break;
         }
-        /*case 'setModifiers': {
-            if(this.chunks.hasOwnProperty(args.key)) {
-                chunks[args.key].setModifiers(args.modify_list);
-            }
-            break;
-        }*/
         case 'buildVertices': {
             if(this.chunks.hasOwnProperty(args.key)) {
                 var chunk = chunks[args.key];
@@ -366,7 +355,6 @@ Chunk.prototype.setBlock = function(x, y, z, orig_type, is_modify, power, rotate
     this.blocks[x][z][y].rotate     = rotate;
     this.blocks[x][z][y].entity_id  = entity_id;
     this.blocks[x][z][y].texture    = null;
-    // this.dirty                      = true;
 }
 
 // makeLights
