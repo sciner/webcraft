@@ -6,6 +6,19 @@
 
 class Helpers {
 
+    // clamp
+    static clamp(x, min, max) {
+        if(!min) {
+            min = 0;
+        }
+        if(!max) {
+            max = 1;
+        }
+        if(x < min) return min;
+        if(x > max) return max;
+        return x;
+    }
+
     // str byteToHex(uint8 byte)
     // converts a single byte to a hex string 
     static byteToHex(byte) {
@@ -290,6 +303,12 @@ function loadText(url, callback) {
 }
 
 function Vector(x, y, z) {
+    if(x instanceof Vector) {
+        this.x = x.x;
+        this.y = x.y;
+        this.z = x.z;
+        return;
+    }
 	this.x = x || 0;
 	this.y = y || 0;
 	this.z = z || 0;

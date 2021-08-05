@@ -45,6 +45,7 @@ func main() {
 
 	mime.AddExtensionType(".js", "application/javascript; charset=utf-8")
 	mime.AddExtensionType(".css", "text/css; charset=utf-8")
+	mime.AddExtensionType(".wasm", "application/wasm")
 
 	fileServer := http.StripPrefix("/", http.FileServer(http.Dir("www")))
 	http.Handle("/", fileServer)

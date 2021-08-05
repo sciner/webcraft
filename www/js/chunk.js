@@ -92,7 +92,9 @@ Chunk.prototype.doShift = function(shift) {
 // onVerticesGenerated ... Webworker callback method
 Chunk.prototype.onVerticesGenerated = function(args) {
     this.vertices_args = args;
-    this.map = args.map;
+    if(!this.map) {
+        this.map = args.map;
+    }
 }
 
 //
