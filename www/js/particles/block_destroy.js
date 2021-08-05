@@ -2,9 +2,17 @@ class Particles_Block_Destroy {
 
     // Constructor
     constructor(gl, block, pos) {
+
+        let chunk_pos   = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
+        var chunk       = Game.world.chunkManager.getChunk(chunk_pos);
+        if(!chunk.map) {
+            debugger;
+        }
+        var cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
+
         this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = .5;
-        var lm          = new Color(0, 0, 0, 0);
+        var lm          = new Color(cell.biome.dirt_color.r, cell.biome.dirt_color.g, cell.biome.dirt_color.b, 0);
         var n           = NORMALS.UP; // normal for lithning
         this.texture    = BLOCK.fromId(block.id).texture;
         if(typeof this.texture != 'function') {
@@ -23,7 +31,7 @@ class Particles_Block_Destroy {
         for(var i = 0; i < 30; i++) {
             const sz        = Math.random() * (3 / 16) + 1 / 16; // часть текстуры
             const half      = sz / TX_CNT;
-            // случайная позиция в текстуре
+            // random tex coord (случайная позиция в текстуре)
             var cx = c[0] + Math.random() * (half * 3);
             var cy = c[1] + Math.random() * (half * 3);
             var c_half = [cx, cy, cx + half, cy + half];

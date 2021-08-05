@@ -3,12 +3,12 @@ importScripts(
     '../vendors/alea.js'
 );
 
-function Terrain() {
+function Terrain_Generator() {
     this.seed = 0;
     this.noisefn = noise.perlin3;
 }
 
-Terrain.prototype.generate = function(chunk) {
+Terrain_Generator.prototype.generate = function(chunk) {
 
     var dirt_height_half        = Math.round(DIRT_HEIGHT * 0.5);
     const threshold_dirt        = -.25;
@@ -163,7 +163,7 @@ Terrain.prototype.generate = function(chunk) {
 }
 
 // plantTree...
-Terrain.prototype.plantTree = function(chunk, aleaRandom, x, y, z) {
+Terrain_Generator.prototype.plantTree = function(chunk, aleaRandom, x, y, z) {
 
     // проверка на достаточность земли вокруг дерева
 
