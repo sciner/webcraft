@@ -124,7 +124,7 @@ function HUD(width, height) {
     this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
     wm.add(this.frmMainMenu);
 
-    // Debug debug layer
+    // Debug layer
     /*
         this.lblDebug = new Label(15, 15, 500, 500, 'lblDebug');
         this.lblDebug.style.font.size = 25;
@@ -166,9 +166,6 @@ HUD.prototype.draw = function() {
 
     this.frmMainMenu.parent.center(this.frmMainMenu);
 
-    // var new_width =  Math.round(Game.canvas.width / 2);
-    // var new_height = Math.round(Game.canvas.height / 2);
-
     if(Game.canvas.width > Game.canvas.height) {
         var new_width =  Math.round(352 * 4.5);
         var new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
@@ -178,7 +175,6 @@ HUD.prototype.draw = function() {
     }
 
     if(Game.hud.width != new_width || Game.hud.height != new_height) {
-        // console.log('HUD ' + new_width + 'x' + new_height);
         this.width  = this.ctx.canvas.width   = new_width;
         this.height = this.ctx.canvas.height  = new_height;
         this.ctx.font = '24px Minecraftia';

@@ -34,45 +34,6 @@ var banned_blocks = [
     BLOCK.ICE2.id
 ];
 
-// 4. Blocks used for generators
-var blocks = {
-    DIRT:           BLOCK.DIRT,
-    SNOW_DIRT:      BLOCK.SNOW_DIRT,
-    AIR:            BLOCK.AIR,
-    DIAMOND_ORE:    BLOCK.DIAMOND_ORE,
-    COAL_ORE:       BLOCK.COAL_ORE,
-    CONCRETE:       BLOCK.CONCRETE,
-    BEDROCK:        BLOCK.BEDROCK,
-    GRAVEL:         BLOCK.GRAVEL,
-    PLANK:          BLOCK.PLANK,
-    GRASS:          BLOCK.GRASS,
-    RED_MUSHROOM:   BLOCK.RED_MUSHROOM,
-    BROWN_MUSHROOM: BLOCK.BROWN_MUSHROOM,
-    WOOD:           BLOCK.WOOD,
-    SPRUCE:         BLOCK.SPRUCE,
-    SAND:           BLOCK.SAND,
-    GLASS:          BLOCK.GLASS,
-    DEAD_BUSH:      BLOCK.DEAD_BUSH,
-    WOOD_BIRCH:     BLOCK.WOOD_BIRCH,
-    WOOD_LEAVES:    BLOCK.WOOD_LEAVES,
-    SPRUCE_LEAVES:  BLOCK.SPRUCE_LEAVES,
-    LEAVES2:        BLOCK.LEAVES2,
-    STILL_WATER:    BLOCK.STILL_WATER,
-    SNOW_BLOCK:     BLOCK.SNOW_BLOCK,
-    CACTUS:         BLOCK.CACTUS,
-    //
-    GRASS_BLOCK:    BLOCK.DIRT,
-    STONE:          BLOCK.CONCRETE,
-    TALLGRASS:      BLOCK.GRASS,
-    TULIP:          BLOCK.TULIP,
-    DANDELION:      BLOCK.DANDELION,
-};
-for(var [key, b] of Object.entries(blocks)) {
-    b = Object.assign({}, b), 
-    delete(b.texture);
-    blocks[key] = b;
-}
-
 var chunks              = {};
 var terrainGenerator    = null;
 var world               = {
