@@ -337,7 +337,19 @@ class Terrain_Generator {
                         let zNoise      = noisefn(px / noiseScale, py / noiseScale, seedn) * amplitude;
                         let density     = xNoise + yNoise + zNoise + (py / 4);
                         if (density < 2 || density > 97) {
-                            continue;
+                            // Чтобы не удалять землю из под деревьев
+                            var near_tree = false;
+                            for(let m of maps) {
+                                for(let tree of m.info.trees) {
+                                    if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
+                                        near_tree = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!near_tree) {
+                                continue;
+                            }
                         }
                     }
 
@@ -404,10 +416,12 @@ class Terrain_Generator {
         */
 
         // Remove herbs and trees on air
+        /*
         map.info.trees = map.info.trees.filter(function(item, index, arr) {
             let block = chunk.blocks[item.pos.x][item.pos.z][item.pos.y - 1];
             return block && block.id != blocks.AIR.id;
         });
+        */
 
         // Plant herbs
         for(var p of map.info.plants) {
