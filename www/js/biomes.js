@@ -62,8 +62,10 @@ var blocks = {
     DEAD_BUSH:      BLOCK.DEAD_BUSH,
     WOOD_BIRCH:     BLOCK.WOOD_BIRCH,
     WOOD_LEAVES:    BLOCK.WOOD_LEAVES,
+    WOOD_ACACIA:    BLOCK.WOOD_ACACIA,
     SPRUCE_LEAVES:  BLOCK.SPRUCE_LEAVES,
     LEAVES2:        BLOCK.LEAVES2,
+    LEAVES_ACACIA:  BLOCK.LEAVES_ACACIA,
     STILL_WATER:    BLOCK.STILL_WATER,
     SNOW_BLOCK:     BLOCK.SNOW_BLOCK,
     CACTUS:         BLOCK.CACTUS,
@@ -144,18 +146,19 @@ BIOMES.TEMPERATE_DESERT = {
 };
 
 BIOMES.SUBTROPICAL_DESERT = {
-    block: blocks.PLANK,
+    block:      blocks.PLANK,
     code:       'SUBTROPICAL_DESERT',
     color:      '#c19a6b',
-    dirt_color: new Color(900 / 1024, 990 / 1024, 0, 0),
+    dirt_color: new Color(845 / 1024, 990 / 1024, 0, 0),
     title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
     max_height: 6,
     dirt_block: blocks.DIRT,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
-            {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 1, trunk: blocks.WOOD_ACACIA, leaves: blocks.LEAVES_ACACIA, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            // {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
+            // {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {

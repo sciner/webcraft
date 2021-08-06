@@ -56,30 +56,6 @@ export let Game = {
         inited: false,
         enabled: false
     },
-    loopTime: {
-        history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ],
-        prev: null,
-        min: null,
-        max: null,
-        avg: null,
-        add: function(value) {
-            this.prev = value;
-            if(this.min === null || this.min > value) {
-                this.min = value;
-            }
-            if(this.max === null || this.max < value) {
-                this.max = value;
-            }
-            this.history.shift();
-            this.history.push(value);
-            const sum = this.history.reduce((a, b) => a + b, 0);
-            this.avg = (sum / this.history.length) || 0;
-        }
-    },
-
     // createNewWorld
     createNewWorld: function(form) {
         var spawnPoint = new Vector(
@@ -102,21 +78,16 @@ export let Game = {
             }
         })
     },
-
     // Ajust world state
     ajustSavedState: function(saved_state) {
         return saved_state;
     },
-
     initGame: function(saved_world, settings) {
-        
         var that = this;
         that.world_name = saved_world._id;
         that.seed       = saved_world.seed;
         saved_world     = that.ajustSavedState(saved_world);
-
-        that.sounds = new Sounds();
-
+        that.sounds     = new Sounds();
         // Create a new world
         that.world = new World(saved_world, function() {
             that.render = new Renderer(that.world, 'renderSurface', settings, function() {
@@ -160,19 +131,42 @@ export let Game = {
         }, 1000);
         */
     },
+    loopTime: {
+        history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ],
+        prev: null,
+        min: null,
+        max: null,
+        avg: null,
+        add: function(value) {
+            this.prev = value;
+            if(this.min === null || this.min > value) {
+                this.min = value;
+            }
+            if(this.max === null || this.max < value) {
+                this.max = value;
+            }
+            this.history.shift();
+            this.history.push(value);
+            let sum = this.history.reduce((a, b) => a + b, 0);
+            this.avg = (sum / this.history.length) || 0;
+        }
+    },
     // Render loop
     loop: function() {
-        var tm = performance.now();
+        let tm = performance.now();
         var that = Game;
         if(that.controls.enabled) {
             // Simulate physics
             that.physics.simulate();
             // Update local player
             that.player.update();
-            that.world.update();
         } else {
             that.player.lastUpdate = null;
         }
+        that.world.update();
         // Draw world
         that.render.setCamera(that.player.getEyePos().toArray(), that.player.angles);
         that.render.draw(fps.delta);
