@@ -81,7 +81,8 @@ class Map {
                 let biome = BIOMES[cell.biome.code];
                 let y = cell.value2;
                 // Если наверху блок земли
-                if([biome.dirt_block.id].indexOf(biome.dirt_block.id) >= 0) {
+                let dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
+                if(dirt_block_ids.indexOf(cell.block.id) >= 0) {
                     // Динамическая рассадка растений
                     var rnd = aleaRandom.double();
                     if(rnd > 0 && rnd <= biome.plants.frequency) {
@@ -152,60 +153,55 @@ class Terrain_Generator {
         };
         //
         this.seed                   = seed;
-        this.noisefn                = noise.perlin3;
+        this.noisefn                = noise.perlin2;
         this.maps_cache             = {};
         noise.seed(this.seed);
     }
 
     // generateMap
     generateMap(chunk, noisefn) {
-
         if(this.maps_cache.hasOwnProperty(chunk.id)) {
             return this.maps_cache[chunk.addr.toString()];
         }
-
         const options               = this.options;
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
- 
         // Result map
-        var map = new Map(chunk, this.options);
-
+        var map                     = new Map(chunk, this.options);
         //
         for(var x = 0; x < chunk.size.x; x++) {
             for(var z = 0; z < chunk.size.z; z++) {
-
                 var px = SX + x;
                 var pz = SZ + z;
-                
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
-                    noisefn(px / 1650, pz / 1650, 0) * .1 +
-                    noisefn(px / 650, pz / 650, 0) * .25 +
-                    noisefn(px / 20, pz / 20, 0) * .05 +
-                    noisefn(px / 350, pz / 350, 0) * .5;
-                value += noisefn(px / 25, pz / 25, 0) * (4 / 255 * noisefn(px / 20, pz / 20, 0));
-
+                    noisefn(px / 1650, pz / 1650) * .1 +
+                    noisefn(px / 650, pz / 650) * .25 +
+                    noisefn(px / 20, pz / 20) * .05 +
+                    noisefn(px / 350, pz / 350) * .5;
+                value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
                 // Влажность
-                var humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY, 0) + 0.8) / 2);
+                var humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2);
                 // Экватор
-                var equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR, 0) + 0.8) / 1);
+                var equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1);
                 // Get biome
                 var biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
-
                 value = value * biome.max_height + 68;
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 255);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);
-
                 // Pow
                 var diff = value - options.WATER_LINE;
                 if(diff < 0) {
-                    value -= (options.WATER_LINE - value);
+                    value -= (options.WATER_LINE - value) * .65 - 1.5;
+                    // value = (options.WATER_LINE + diff * .7);
                 } else {
                     value = options.WATER_LINE + Math.pow(diff, 1 + diff / 64);
                 }
                 value = parseInt(value);
-
+                // Different dirt blocks
+                var ns = noisefn(px / 5, pz / 5);
+                let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
+                var dirt_block = biome.dirt_block[index];
                 // Create map cell
                 map.cells[x][z] = new MapCell(
                     value,
@@ -216,19 +212,17 @@ class Terrain_Generator {
                         color:          biome.color,
                         dirt_color:     biome.dirt_color,
                         title:          biome.title,
-                        dirt_block:     biome.dirt_block,
+                        dirt_block:     dirt_block,
                         block:          biome.block
                     },
-                    biome.dirt_block
+                    dirt_block
                 );
-
                 if(biome.code == 'OCEAN') {
                     map.cells[x][z].block = blocks.STILL_WATER;
                 }
 
             }
         }
-
         // Clear maps_cache
         var entrs = Object.entries(this.maps_cache);
         var MAX_ENTR = 2000;
@@ -242,10 +236,8 @@ class Terrain_Generator {
                 delete(this.maps_cache[k]);
             }
         }
-
         //
         return this.maps_cache[chunk.addr.toString()] = map;
-
     }
 
     // generateMaps
@@ -332,9 +324,9 @@ class Terrain_Generator {
                         let px          = (x + chunk.coord.x);
                         let py          = (y + chunk.coord.y);
                         let pz          = (z + chunk.coord.z);
-                        let xNoise      = noisefn(py / noiseScale, pz / noiseScale, seedn) * amplitude;
-                        let yNoise      = noisefn(px / noiseScale, pz / noiseScale, seedn) * amplitude;
-                        let zNoise      = noisefn(px / noiseScale, py / noiseScale, seedn) * amplitude;
+                        let xNoise      = noisefn(py / noiseScale, pz / noiseScale) * amplitude;
+                        let yNoise      = noisefn(px / noiseScale, pz / noiseScale) * amplitude;
+                        let zNoise      = noisefn(px / noiseScale, py / noiseScale) * amplitude;
                         let density     = xNoise + yNoise + zNoise + (py / 4);
                         if (density < 2 || density > 97) {
                             // Чтобы не удалять землю из под деревьев
@@ -353,9 +345,9 @@ class Terrain_Generator {
                         }
                     }
 
-                    var r = aleaRandom.double() * 1.33;
+                    // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(y < value - (rnd < .005 ? 0 : 3)) {
-                        // если это не вода, то заполняем полезными ископаемыми
+                        var r = aleaRandom.double() * 1.33;
                         if(r < 0.0025 && y < value - 5) {
                             chunk.blocks[x][z][y] = blocks.DIAMOND_ORE;
                         } else if(r < 0.01) {
@@ -371,13 +363,8 @@ class Terrain_Generator {
                             chunk.blocks[x][z][y] = norm ? blocks.CONCRETE : biome.dirt_block;
                         }
                     } else {
-                        if(biome.code == 'OCEAN' && r < .1) {
-                            chunk.blocks[x][z][y] = blocks.GRAVEL;
-                        } else {
-                            chunk.blocks[x][z][y] = biome.dirt_block;
-                        }
+                        chunk.blocks[x][z][y] = biome.dirt_block;
                     }
-
                 }
 
                 if(biome.code == 'OCEAN') {
@@ -450,11 +437,9 @@ class Terrain_Generator {
 
     // plantTree...
     plantTree(options, chunk, x, y, z) {
-
         const height        = options.height;
         const type          = options.type;
         var ystart = y + height;
-
         // ствол
         for(var p = y; p < ystart; p++) {
             if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
@@ -463,7 +448,6 @@ class Terrain_Generator {
                 }
             }
         }
-
         // листва над стволом
         switch(type.style) {
             case 'cactus': {
@@ -526,7 +510,6 @@ class Terrain_Generator {
                 break;
             }
             case 'spruce': {
-
                 // ель
                 var r = 1;
                 var rad = Math.round(r);
@@ -557,7 +540,6 @@ class Terrain_Generator {
                 break;
             }
         }
-
     }
 
 }
