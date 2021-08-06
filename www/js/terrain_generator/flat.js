@@ -5,7 +5,7 @@ importScripts(
 
 function Terrain_Generator() {
     this.seed = 0;
-    this.noisefn = noise.perlin3;
+    this.noisefn = noise.perlin2;
 }
 
 Terrain_Generator.prototype.generate = function(chunk) {
@@ -30,7 +30,7 @@ Terrain_Generator.prototype.generate = function(chunk) {
                 chunk.blocks[x][y][z] = blocks.BEDROCK;
             }
 
-            var value = this.noisefn((chunk.coord.x + x) / 64, (chunk.coord.y + y) / 64, 0);
+            var value = this.noisefn((chunk.coord.x + x) / 64, (chunk.coord.y + y) / 64);
 
         }
     }

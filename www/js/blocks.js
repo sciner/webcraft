@@ -420,7 +420,7 @@ BLOCK.WOOD_ACACIA = {
 
 // Листья акации
 BLOCK.LEAVES_ACACIA = {
-    id: 196,
+    id: 220,
     inventory_icon_id: 3403,
     spawnable: true,
     transparent: true,

@@ -5,7 +5,7 @@ importScripts(
 
 function Terrain_Generator() {
     this.seed = 0;
-    this.noisefn = noise.perlin3;
+    this.noisefn = noise.perlin2;
 }
 
 Terrain_Generator.prototype.generate = function(chunk) {
