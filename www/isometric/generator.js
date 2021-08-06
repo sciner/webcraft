@@ -50,7 +50,7 @@ const SZ                    = 320; // Ширина и длина ргенери�
 var ww                      = window.innerWidth;
 var wh                      = window.innerHeight;
 
-const noisefn = noise.perlin3;
+const noisefn = noise.perlin2;
 var signal = makeSignal(115, 20);
 
 class Biome {
