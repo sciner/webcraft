@@ -79,7 +79,7 @@ class Map {
             for(var z = 0; z < chunk.size.z; z++) {
                 let cell = this.cells[x][z];
                 let biome = BIOMES[cell.biome.code];
-                let value = cell.value2;
+                let y = cell.value2;
                 // Если наверху блок земли
                 if([biome.dirt_block.id].indexOf(biome.dirt_block.id) >= 0) {
                     // Динамическая рассадка растений
@@ -91,7 +91,7 @@ class Map {
                             s += p.percent;
                             if(r < s) {
                                 this.plants.push({
-                                    pos: new Vector(x, value, z),
+                                    pos: new Vector(x, y, z),
                                     block: p.block
                                 });
                                 break;
@@ -108,7 +108,7 @@ class Map {
                                 const height = Helpers.clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);
                                 const rad = Math.max(parseInt(height / 2), 2);
                                 this.trees.push({
-                                    pos:    new Vector(x, value, z),
+                                    pos:    new Vector(x, y, z),
                                     height: height,
                                     rad:    rad,
                                     type:   type
@@ -257,33 +257,15 @@ class Terrain_Generator {
 
         for(var x = -1; x <= 1; x++) {
             for(var z = -1; z <= 1; z++) {
-                const addr = new Vector(
-                    chunk.addr.x + x,
-                    chunk.addr.y,
-                    chunk.addr.z + z
-                );
+                const addr = new Vector(chunk.addr.x + x, chunk.addr.y, chunk.addr.z + z);
                 const c = {
+                    blocks: {},
                     seed: chunk.seed,
                     addr: addr,
-                    size: new Vector(
-                        CHUNK_SIZE_X,
-                        CHUNK_SIZE_Y,
-                        CHUNK_SIZE_Z
-                    ),
-                    coord: new Vector(
-                        addr.x * CHUNK_SIZE_X,
-                        addr.y * CHUNK_SIZE_Y,
-                        addr.z * CHUNK_SIZE_Z
-                    ),
+                    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z),
+                    coord: new Vector(addr.x * CHUNK_SIZE_X, addr.y * CHUNK_SIZE_Y, addr.z * CHUNK_SIZE_Z),
                 };
-                c.id = [
-                    c.addr.x,
-                    c.addr.y,
-                    c.addr.z,
-                    c.size.x,
-                    c.size.y,
-                    c.size.z
-                ].join('_');
+                c.id = [c.addr.x, c.addr.y, c.addr.z, c.size.x, c.size.y, c.size.z].join('_');
                 var item = {
                     chunk: c,
                     info: this.generateMap(c, noisefn)
@@ -309,15 +291,15 @@ class Terrain_Generator {
     // Generate
     generate(chunk) {
 
+        var maps = this.generateMaps(chunk);
+        var map = maps[4];
+        
         const seed                  = chunk.id;
         const seedn                 = 0;
         const amplitude             = 24;
         const noiseScale            = 15;
         const aleaRandom            = new alea(seed);
         const noisefn               = this.noisefn;
-
-        var maps = this.generateMaps(chunk);
-        var map = maps[4];
 
         //
         for(var x = 0; x < chunk.size.x; x++) {
@@ -337,12 +319,11 @@ class Terrain_Generator {
                 var rnd     = ar;
 
                 // Sin wave
-                /*
-                var px = (x + chunk.coord.x);
-                var pz = (z + chunk.coord.z);
-                for(var y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
-                    chunk.blocks[x][z][y] = blocks.CONCRETE;
-                }*/
+                //var px = (x + chunk.coord.x);
+                //var pz = (z + chunk.coord.z);
+                //for(var y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
+                //    chunk.blocks[x][z][y] = blocks.CONCRETE;
+                //}
 
                 for(var y = 1; y < value; y++) {
 
@@ -422,6 +403,12 @@ class Terrain_Generator {
         return map;
         */
 
+        // Remove herbs and trees on air
+        map.info.trees = map.info.trees.filter(function(item, index, arr) {
+            let block = chunk.blocks[item.pos.x][item.pos.z][item.pos.y - 1];
+            return block && block.id != blocks.AIR.id;
+        });
+
         // Plant herbs
         for(var p of map.info.plants) {
             var b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
@@ -478,7 +465,6 @@ class Terrain_Generator {
             }
             case 'wood': {
                 // дуб, берёза
-
                 var py = y + height;
                 for(var rad of [1, 1, 2, 2]) {
                     for(var i = x - rad; i <= x + rad; i++) {
