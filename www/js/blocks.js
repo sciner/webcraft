@@ -403,6 +403,31 @@ BLOCK.OAK_SAPLING = {
     }
 };
 
+// Ствол акации
+BLOCK.WOOD_ACACIA = {
+    id: 165,
+    inventory_icon_id: 2237,
+    spawnable: true,
+    transparent: false,
+    sound: 'webcraft:block.wood',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
+            return [22, 17];
+        else
+            return [22, 16];
+    }
+};
+
+// Листья акации
+BLOCK.LEAVES_ACACIA = {
+    id: 196,
+    inventory_icon_id: 3403,
+    spawnable: true,
+    transparent: true,
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {return [22, 18];}
+};
+
 // Ствол берёзы
 BLOCK.WOOD_BIRCH = {
     id: 162,

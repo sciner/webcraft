@@ -491,7 +491,28 @@ class Terrain_Generator {
                                 var m2 = (py == y + height) ||
                                     (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
                                 if(m && m2) {
-                                        continue;
+                                    continue;
+                                }
+                                var b = chunk.blocks[i][j][py];
+                                if(!b || b.id >= 0 && b.id != type.trunk.id) {
+                                    chunk.blocks[i][j][py] = type.leaves;
+                                }
+                            }
+                        }
+                    }
+                    py--;
+                }
+                break;
+            }
+            case 'acacia': {
+                // акация
+                var py = y + height;
+                for(var rad of [2, 3]) {
+                    for(var i = x - rad; i <= x + rad; i++) {
+                        for(var j = z - rad; j <= z + rad; j++) {
+                            if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
+                                if(Helpers.distance(new Vector(x, 0, z), new Vector(i, 0, j)) > rad) {
+                                    continue;
                                 }
                                 var b = chunk.blocks[i][j][py];
                                 if(!b || b.id >= 0 && b.id != type.trunk.id) {
