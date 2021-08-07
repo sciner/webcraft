@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="style/gui.css" rel="stylesheet" type="text/css">
-    <script type="text/javascript" src="./js/wm.js"></script>
+    <link href="./gui.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="./wm.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css" integrity="sha512-tN7Ec6zAFaVSG3TpNAKtk4DOHNpSwKHxxrsiw4GHKESGPs5njn/0sMCUMl2svV4wo4BK/rCP7juYz+zx+l6oeQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js" integrity="sha512-YBk7HhgDZvBxmtOfUdvX0z8IH2d10Hp3aEygaMNhtF8fSOvBZ16D/1bXZTJV6ndk/L/DlXxYStP8jrF77v2MIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -25,7 +25,7 @@
         </div>
         
         <div class="d-flex flex-column align-items-center">
-            <a class="btn btn-success" href="./js/wm.js" download="wm.js">Скачать wm.js</a>
+            <a class="btn btn-success" href="./wm.js" download="wm.js">Скачать wm.js</a>
             <br>
         </div>
 
@@ -150,7 +150,7 @@ var ctx = canvas.getContext('2d');
 
 // Init Window Manager
 const wm = new WindowManager(canvas, ctx, 0, 0, canvas.width, canvas.height);
-wm.setBackground('./media/gui/screenshot.jpg');
+wm.setBackground('./screenshot.jpg');
 wm.style.background.color = '#00000044';
 
 // Создаем форму
@@ -159,7 +159,7 @@ wm.add(new Window(10, 10, 352, 332, 'ct1', null));
 // Получаем форму по её идентификатору
 const ct = wm.getWindow('ct1');
 // Устанавливаем фоновое изображение
-ct.setBackground('./media/gui/form-crafting-table.png');
+ct.setBackground('/media/gui/form-crafting-table.png');
 ct.style.background.color = '#00000000';
 ct.style.border.hidden = true;
 
@@ -198,7 +198,7 @@ for(var i = 0; i < ct.inventory_slots.length; i++) {
 
 // Кнопка рецептов
 var btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
-btnRecipes.setBackground('./media/gui/recipes.png');
+btnRecipes.setBackground('/media/gui/recipes.png');
 btnRecipes.onMouseDown = function(e) {
     alert('Привет');
 }

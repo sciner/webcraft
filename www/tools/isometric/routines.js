@@ -1,24 +1,19 @@
 //
 const cache = {};
 function lightHex(hex, light_value) {
-    light_value = clamp(light_value);
+    light_value = Helpers.clamp(light_value);
     light_value = Math.round(light_value * 255) / 255;
     var k = hex + light_value;
     if(cache.hasOwnProperty(k)) {
         return cache[k];
     }
-    light_value = clamp(light_value * 2.0);
+    light_value = Helpers.clamp(light_value * 2.0);
     var rgb = [
         parseInt(parseInt(hex.substring(1, 3), 16) * light_value),
         parseInt(parseInt(hex.substring(3, 5), 16) * light_value),
         parseInt(parseInt(hex.substring(5, 7), 16) * light_value),
     ];
     return cache[k] = rgb2Hex(rgb);
-}
-
-//
-function clamp(x) {
-    return Math.max(Math.min(x, 1), 0);
 }
 
 //

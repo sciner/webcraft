@@ -1,8 +1,8 @@
 [
     {
         "id": "demo",
-        "url": "/map_demo.json",
-        "title": "♾️ Demo p1ubilc server",
+        "url": "/data/map_demo.json",
+        "title": "♾️ Demo public server",
         "state": {
             "_id":"demo",
             "seed":"demo",
