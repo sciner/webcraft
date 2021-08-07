@@ -1,7 +1,7 @@
 /* Minecraft-like pixely font */
 @font-face {
     font-family: minecraftia;
-    src: url('minecraftia.ttf');
+    src: url('/style/minecraftia.ttf');
 }
 body {
     /*
