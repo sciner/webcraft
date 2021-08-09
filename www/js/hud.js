@@ -31,6 +31,8 @@ function HUD(width, height) {
     this.height                     = height;
     this.text                       = null;
     this.items                      = [];
+    this.prevInfo                   = null;
+    this.prevDrawTime               = 0;
 
     // var HUD = this;
 
@@ -186,6 +188,12 @@ HUD.prototype.draw = function() {
         Game.hud.wm.resize(this.width, this.height);
     }
 
+    // Make info for draw
+    if(!this.makeInfo() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0) {
+        return false;
+    }
+    this.prevDrawTime = performance.now();
+
     this.clear();
 
     // Draw splash screen...
@@ -198,12 +206,13 @@ HUD.prototype.draw = function() {
     this.ctx.font           = '20px Minecraftia';
     this.ctx.textAlign      = 'left';
     this.ctx.textBaseline   = 'top';
-    
+
     this.ctx.save();
 
     if(this.isActive()) {
+
         // Draw game technical info
-        this.drawInfo(this);
+        this.drawInfo();
 
         // Crosshair
         for(let cs of [{width: '2', color: 'black'}, {width: '1', color: 'white'}]) {
@@ -242,12 +251,9 @@ HUD.prototype.draw = function() {
 
 }
 
-// Draw game technical info
-HUD.prototype.drawInfo = function(hud) {
-    if(!this.draw_info) {
-        return;
-    }
-    this.text = 'FPS: ' + Math.round(fps.fps) + ' /' + Math.round(1000 / Game.loopTime.avg);
+//
+HUD.prototype.makeInfo = function() {
+    this.text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(fps.avg);
     var vci = Game.render.getVideoCardInfo();
     if(!vci.error) {
         this.text += '\nRenderer: ' + vci.renderer;
@@ -269,7 +275,7 @@ HUD.prototype.drawInfo = function(hud) {
     if(Game.world.server.ping_value) {
         this.text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
     }
-    this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
+    // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
     // Chunks inited
     this.text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
@@ -307,7 +313,20 @@ HUD.prototype.drawInfo = function(hud) {
         }
         this.text += '\n';
     }
-    hud.drawText(this.text, 10, 10);
+    if(this.prevInfo == this.text) {
+        return false;
+    }
+    this.prevInfo = this.text;
+    return true;
+}
+
+// Draw game technical info
+HUD.prototype.drawInfo = function() {
+    if(!this.draw_info) {
+        return;
+    }
+    // var text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
+    this.drawText(this.text, 10, 10);
 }
 
 // Просто функция печати текста
