@@ -169,7 +169,7 @@ export let Game = {
         that.render.setCamera(that.player.getEyePos().toArray(), that.player.angles);
         that.render.draw(fps.delta);
         // Send player state
-        that.sendPlayerState();
+        // that.sendPlayerState();
         // Счетчик FPS
         fps.incr();
         that.loopTime.add(performance.now() - tm);

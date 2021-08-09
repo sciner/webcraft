@@ -217,6 +217,9 @@ class Window {
         this.visible = false;
         this.resetHover();
         this.onHide();
+        if(Game.hud) {
+            Game.hud.prevDrawTime = 0;
+        }
     }
     resetHover() {
         this.hover = false;
