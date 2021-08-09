@@ -288,6 +288,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             },
             draw: function() {
                 Game.hud.draw();
+                return;
                 const gl = this.gl;
                 gl.useProgram(this.program);
                 gl.uniform2f(this.uniform.u_resolution, gl.viewportWidth * window.devicePixelRatio, gl.viewportHeight * window.devicePixelRatio);
