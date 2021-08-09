@@ -485,7 +485,7 @@ Chunk.prototype.buildVertices = function() {
                 // if block with gravity
                 if(block.gravity && z > 0) {
                     var block_under = this.blocks[x][z][y - 1];
-                    if(!block_under || block_under.id == blocks.AIR.id) {
+                    if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                         this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                     }
                 }

@@ -11,8 +11,9 @@ function HUD(width, height) {
 
     // Create canvas used to draw HUD
     var canvas                      = this.canvas = document.createElement('canvas');
+    canvas.id                       = 'cnvHUD';
     canvas.width                    = width;
-    canvas.height                   = width;
+    canvas.height                   = height;
     canvas.style.display            = 'none';
     canvas.style.zIndex             = 0;
     canvas.style.pointerEvents      = 'none';
@@ -46,20 +47,20 @@ function HUD(width, height) {
             image.src = '../media/background.png';
         },
         draw: function() {
-            var cl = 0; //Object.entries(Game.world.chunkManager.chunks).length;
+            var cl = 0; // Object.entries(Game.world.chunkManager.chunks).length;
             for(const [key, chunk] of Object.entries(Game.world.chunkManager.chunks)) {
                 if(chunk.inited) {
                     cl++;
                 }
             }
             var nc = 45;
-            var w = this.hud.width;
-            var h = this.hud.height;
             this.loading = cl < nc;
             if(!this.loading) {
                 return false;
             }
-            var ctx = this.hud.ctx;
+            let w = this.hud.width;
+            let h = this.hud.height;
+            let ctx = this.hud.ctx;
             ctx.save();
             if(this.image) {
                 for(var x = 0; x < w; x += this.image.width) {
@@ -169,6 +170,8 @@ HUD.prototype.draw = function() {
     if(Game.canvas.width > Game.canvas.height) {
         var new_width =  Math.round(352 * 4.5);
         var new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
+        new_width = document.body.clientWidth;
+        new_height = document.body.clientHeight;
     } else {
         var new_height =  Math.round(332 * 3.5);
         var new_width = Math.round(new_height * (Game.canvas.width / Game.canvas.height));
@@ -193,6 +196,7 @@ HUD.prototype.draw = function() {
     this.ctx.font           = '20px Minecraftia';
     this.ctx.textAlign      = 'left';
     this.ctx.textBaseline   = 'top';
+    
     this.ctx.save();
 
     if(this.isActive()) {
@@ -224,13 +228,6 @@ HUD.prototype.drawInfo = function(hud) {
     if(!this.draw_info) {
         return;
     }
-    /*if(Game.loopTime) {
-        text += '\nLOOP_TIME: ' + [
-            Math.round(Game.loopTime.min * 10) / 10,
-            Math.round(Game.loopTime.max * 10) / 10,
-            Math.round(Game.loopTime.avg * 10) / 10
-        ].join(' / ');
-    }*/
     this.text = 'FPS: ' + Math.round(fps.fps) + ' /' + Math.round(1000 / Game.loopTime.avg);
     var vci = Game.render.getVideoCardInfo();
     if(!vci.error) {
@@ -257,15 +254,11 @@ HUD.prototype.drawInfo = function(hud) {
     // Chunks inited
     this.text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
-    var vertices_length_total = 0;
-    for(const[key, chunk] of Object.entries(Game.world.chunkManager.chunks)) {
-        vertices_length_total += chunk.vertices_length;
-    }
-    this.text += '\nVertices: ' + vertices_length_total.toLocaleString(undefined, {minimumFractionDigits: 0}) + 
+    var vertices_length_total = Game.world.chunkManager.vertices_length_total;
+    this.text += '\nVertices: ' + vertices_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) + 
         ' / ' + Math.round(vertices_length_total * 12 * 4 / 1024 / 1024) + 'Mb';
-    
     //
-    this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
+    // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
     // Console =)
     var playerBlockPos = Game.world.localPlayer.getBlockPos();
     var chunk = Game.world.localPlayer.overChunk;
@@ -280,7 +273,6 @@ HUD.prototype.drawInfo = function(hud) {
             }
         }
         this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + ' / ' + biome + '\n';
-        // text += 'CHUNK_XYZ: ' + chunk.coord.x + ', ' + chunk.coord.y + ', ' + chunk.coord.z + '\n';
     }
     // Players list
     this.text += '\nOnline:\n';

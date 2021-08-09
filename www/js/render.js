@@ -287,9 +287,9 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 // v_attr_inx:     gl.getAttribLocation(program, 'inPos')
             },
             draw: function() {
+                Game.hud.draw();
                 const gl = this.gl;
                 gl.useProgram(this.program);
-                Game.hud.draw();
                 gl.uniform2f(this.uniform.u_resolution, gl.viewportWidth * window.devicePixelRatio, gl.viewportHeight * window.devicePixelRatio);
                 gl.uniform1f(this.uniform.u_noCrosshair, Game.hud.wm.getVisibleWindows().length > 0);
                 gl.activeTexture(gl.TEXTURE0);
@@ -333,6 +333,9 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         initCallback();
 	});
+
+    // var pos = new Vector(0, 0, 0);
+    // Game.world.meshes.add(new Particles_Sun(Game.world.renderer.gl, pos));
 
 }
 

@@ -12,6 +12,7 @@ var fps = {
             this.cnt    = 0;
             this.delta  = now - this.t;
             this.t      = now;
+            // console.log('FPS: ' + Math.round(this.fps) + ' /' + Math.round(1000 / Game.loopTime.avg));
         };
     },
     drawHUD: function(hud) {
