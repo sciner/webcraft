@@ -18,6 +18,7 @@ Physics.prototype.setWorld = function(world) {
 // Perform one iteration of physics simulation.
 // Should be called about once every second.
 Physics.prototype.simulate = function() {
+    return;
 	var world = this.world;
 	var step = Math.floor(new Date().getTime() / 100);
 	if(step == this.lastStep) {
