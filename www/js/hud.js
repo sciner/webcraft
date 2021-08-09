@@ -204,6 +204,23 @@ HUD.prototype.draw = function() {
     if(this.isActive()) {
         // Draw game technical info
         this.drawInfo(this);
+
+        // Crosshair
+        for(let cs of [{width: '2', color: 'black'}, {width: '1', color: 'white'}]) {
+        this.ctx.beginPath();
+            var x = this.ctx.canvas.width / 2;
+            var y = this.ctx.canvas.height / 2;
+            x = Math.floor(x) + 0.5;
+            y = Math.floor(y) + 0.5;
+            this.ctx.lineWidth = cs.width;
+            this.ctx.moveTo(x, y - 10);
+            this.ctx.lineTo(x, y + 10);
+            this.ctx.moveTo(x - 10,  y);
+            this.ctx.lineTo(x + 10,  y);
+            this.ctx.strokeStyle = cs.color;
+        this.ctx.stroke();
+        }
+
         // Draw HUD components
         for(var t of this.items) {
             for(var e of t) {
