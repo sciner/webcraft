@@ -121,6 +121,7 @@ Chunk.prototype.applyVertices = function() {
         this.vertices[key]    = v;
         // debugger;
     }
+    this.chunkManager.vertices_length_total += this.vertices_length;
     this.shift_orig            = args.shift;
     this.dirty                 = false;
     this.timers                = args.timers;

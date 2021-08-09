@@ -103,8 +103,6 @@ export let Game = {
                 that.world.renderer.updateViewport();
                 that.world.fixRotate();
                 //
-                that.hud.add(that.world.chunkManager, 0);
-                //
                 that.readMouseMove();
                 that.startBackgroundMusic();
                 document.querySelector('body').classList.add('started');

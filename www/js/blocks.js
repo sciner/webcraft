@@ -380,6 +380,7 @@ BLOCK.SAND = {
 // Gravel
 BLOCK.GRAVEL = {
 	id: 12,
+    inventory_icon_id: 3364,
 	spawnable: true,
 	transparent: false,
 	selflit: false,

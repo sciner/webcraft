@@ -18,29 +18,27 @@ Physics.prototype.setWorld = function(world) {
 // Perform one iteration of physics simulation.
 // Should be called about once every second.
 Physics.prototype.simulate = function() {
-
-    return;
-
 	var world = this.world;
-
 	var step = Math.floor(new Date().getTime() / 100);
 	if(step == this.lastStep) {
         return;
     }
 	this.lastStep = step;
-	
 	// Gravity
-    if (step % 1 == 0) {
+    if (step % 2 == 0) {
         for(const [key, chunk] of Object.entries(world.chunkManager.chunks)) {
             if(!chunk.inited)  {
                 continue;
             }
             for(var pos of chunk.gravity_blocks) {
-                var x = pos.x;
-                var y = pos.y;
-                var z = pos.z;
-                var block1 = world.chunkManager.getBlock(x, y, z - 1);
-                if(z > 0 && [BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block1.id) >= 0) {
+                let x = pos.x;
+                let y = pos.y;
+                let z = pos.z;
+                if(y <= 0) {
+                    continue;
+                }
+                var block_under = world.chunkManager.getBlock(x, y - 1, z);
+                if([BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block_under.id) >= 0) {
                     var block = world.chunkManager.getBlock(x, y, z);
                     world.setBlock(x, y - 1, z, block);
                     world.setBlock(x, y, z, BLOCK.AIR);

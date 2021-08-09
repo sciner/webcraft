@@ -116,15 +116,6 @@ ChunkManager.prototype.draw = function(render) {
     return true;
 }
 
-// Draw on HUD
-ChunkManager.prototype.drawHUD = function(hud) {
-    this.vertices_length_total = 0;
-    for(const[key, chunk] of Object.entries(this.chunks)) {
-        this.vertices_length_total += chunk.vertices_length;
-    }
-    Game.hud.text += '\nVertices: ' + this.vertices_length_total.toLocaleString(undefined, {minimumFractionDigits: 0});
-}
-
 // Get
 ChunkManager.prototype.getChunk = function(pos) {
     var k = this.getPosChunkKey(pos);
@@ -150,6 +141,7 @@ ChunkManager.prototype.addChunk = function(pos) {
 // Remove
 ChunkManager.prototype.removeChunk = function(pos) {
     var k = this.getPosChunkKey(pos);
+    this.vertices_length_total -= this.chunks[k].vertices_length;
     this.chunks[k].destruct();
     delete this.chunks[k];
     this.world.server.ChunkRemove(pos);
