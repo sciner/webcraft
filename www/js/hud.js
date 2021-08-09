@@ -14,9 +14,11 @@ function HUD(width, height) {
     canvas.id                       = 'cnvHUD';
     canvas.width                    = width;
     canvas.height                   = height;
-    canvas.style.display            = 'none';
+    // canvas.style.display            = 'none';
     canvas.style.zIndex             = 0;
     canvas.style.pointerEvents      = 'none';
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
     this.ctx                        = this.canvas.getContext('2d');
     this.ctx.imageSmoothingEnabled  = false;
     document.body.appendChild(this.canvas);
@@ -30,7 +32,7 @@ function HUD(width, height) {
     this.text                       = null;
     this.items                      = [];
 
-    var HUD = this;
+    // var HUD = this;
 
     // Splash screen (Loading...)
     this.splash = {
@@ -311,7 +313,7 @@ HUD.prototype.drawTextBG = function(txt, x, y) {
     var width = mt.width;
     var height = mt.actualBoundingBoxDescent;
     // color for background
-    this.ctx.fillStyle = 'rgba(0, 0, 0, .25)';
+    this.ctx.fillStyle = 'rgba(0, 0, 0, .35)';
     if(txt) {
         // draw background rect assuming height of font
         this.ctx.fillRect(x, y, width + 4, height + 4);
