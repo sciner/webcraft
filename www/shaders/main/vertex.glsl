@@ -24,6 +24,7 @@ varying float light;
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
     v_normal        = normalize(cross(a_axisX, a_axisY));
+    v_normal.yz = v_normal.zy;
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
     v_texcoord = a_uvCenter + (a_uvSize * a_quad);
