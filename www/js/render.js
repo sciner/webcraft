@@ -445,11 +445,10 @@ Renderer.prototype.draw = function(delta) {
 Renderer.prototype.drawPlayers = function(delta) {
     var gl = this.gl;
     gl.useProgram(this.program);
-
     gl.activeTexture(gl.TEXTURE5);
     gl.bindTexture(gl.TEXTURE_2D, this.texBlack);
-
-    for(const [id, player] of Object.entries(this.world.players)) {
+    for(let id of Object.keys(this.world.players)) {
+        let player = this.world.players[id];
         if(player.id != this.world.server.id) {
             player.draw(this, this.modelMatrix, this.uModelMat, this.camPos, delta);
         }
@@ -518,10 +517,10 @@ Renderer.prototype.drawBuffer = function(buffer, a_pos) {
 	var gl = this.gl;
     gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-	gl.vertexAttribPointer(this.a_position, 3, gl.FLOAT, false, 12 * 4, 0);
-	gl.vertexAttribPointer(this.a_color,    4, gl.FLOAT, false, 12 * 4, 5 * 4);
+    gl.vertexAttribPointer(this.a_position, 3, gl.FLOAT, false, 12 * 4, 0);
+    gl.vertexAttribPointer(this.a_color,    4, gl.FLOAT, false, 12 * 4, 5 * 4);
     gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 12 * 4, 3 * 4);
-	gl.vertexAttribPointer(this.a_normal,   3, gl.FLOAT, false, 12 * 4, 9 * 4);
+    gl.vertexAttribPointer(this.a_normal,   3, gl.FLOAT, false, 12 * 4, 9 * 4);
     // gl.drawArrays(gl.LINES, 0, buffer.vertices);
     gl.drawArrays(gl.TRIANGLES, 0, buffer.vertices);
 }

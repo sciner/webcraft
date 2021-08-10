@@ -157,7 +157,8 @@ class Window {
         }
         // Restore the default state
         ctx.restore();
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             if(w.visible) {
                 w.draw(ctx, this.x, this.y);
             }
@@ -165,7 +166,8 @@ class Window {
     }
     getVisibleWindows() {
         var list = [];
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             if(w.visible) {
                 list.push(w);
             }
@@ -223,7 +225,8 @@ class Window {
     }
     resetHover() {
         this.hover = false;
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             w.hover = false;
         }
     }
@@ -236,7 +239,8 @@ class Window {
     mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             if(!w.catchEvents) {
                 continue;
             }
@@ -261,7 +265,8 @@ class Window {
         }
     }
     _mousedown(e) {
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             if(w.visible) {
                 var e2 = Object.assign({}, e);
                 e2.x -= (this.ax + w.x);
@@ -275,7 +280,8 @@ class Window {
         this.onMouseDown(e);
     }
     _drop(e) {
-        for(const [id, w] of Object.entries(this.list)) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
             if(w.visible) {
                 var e2 = Object.assign({}, e);
                 e2.x -= (this.ax + w.x);

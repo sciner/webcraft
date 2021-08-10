@@ -34,7 +34,8 @@ function World(saved_state, connectedCallback) {
                 delete(this.list[key]);
             },
             draw: function(render, delta, modelMatrix, uModelMat) {
-                for(const [key, mesh] of Object.entries(this.list)) {
+                for(let key of Object.keys(this.list)) {
+                    let mesh = this.list[key];
                     if(mesh.isAlive()) {
                         mesh.draw(render, delta, modelMatrix, uModelMat);
                     } else {
@@ -168,11 +169,6 @@ World.prototype.update = function() {
     this.chunkManager.update();
 }
 
-// Returns a string representation of this world.
-World.prototype.toJSON = function() {
-    return this.chunkManager.getChunkModifiers();
-}
-
 // exportJSON
 World.prototype.exportJSON = function(callback) {
     var that = this;
@@ -190,8 +186,7 @@ World.prototype.exportJSON = function(callback) {
             current: {
                 index: Game.world.localPlayer.inventory.index
             }
-        }/*,
-        modifiers:  that.toJSON()*/
+        }
     };
     if(callback) {
         callback(row);

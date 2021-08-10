@@ -76,7 +76,8 @@ Chunk.prototype.doShift = function(shift) {
     this.shift_orig = Object.assign({}, shift);
     const gl = this.world.renderer.gl;
     var points = 0;
-    for(const [key, v] of Object.entries(this.vertices)) {
+    for(let key of Object.keys(this.vertices)) {
+        let v = this.vertices[key];
         var list = v.list;
         for(var i = 0; i < list.length; i += 12) {
             list[i + 0] -= x;
@@ -107,19 +108,20 @@ Chunk.prototype.applyVertices = function() {
     this.fluid_blocks               = args.fluid_blocks;
     var gl = this.world.renderer.gl;
     // Delete old WebGL buffers
-    for(let [key, v] of Object.entries(this.vertices)) {
+    for(let key of Object.keys(this.vertices)) {
+        let v = this.vertices[key];
         gl.deleteBuffer(v.buffer);
         delete(this.vertices[key]);
     }
     // Добавление чанка в отрисовщик
-    for(let [key, v] of Object.entries(args.vertices)) {
+    for(let key of Object.keys(args.vertices)) {
+        let v = args.vertices[key];
         this.vertices_length  += v.list.length / 12;
         v.buffer              = gl.createBuffer();
         v.buffer.vertices     = v.list.length / 12;
         gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
         gl.bufferData(gl.ARRAY_BUFFER, v.list, gl.DYNAMIC_DRAW);
         this.vertices[key]    = v;
-        // debugger;
     }
     this.chunkManager.vertices_length_total += this.vertices_length;
     this.shift_orig            = args.shift;
@@ -129,16 +131,8 @@ Chunk.prototype.applyVertices = function() {
     this.doShift(Game.shift);
 }
 
-// getChunkModifiers
-Chunk.prototype.getChunkModifiers = function() {
-    return this.modify_list;
-}
-
 // destruct chunk
 Chunk.prototype.destruct = function() {
-    if(Object.entries(this.modify_list).length > 0) {
-        this.chunkManager.saveChunkModifiers(this.addr, this.modify_list);
-    }
     var gl = this.world.renderer.gl;
     if(this.buffer) {
         gl.deleteBuffer(this.buffer);

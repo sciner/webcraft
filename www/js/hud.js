@@ -51,8 +51,9 @@ function HUD(width, height) {
             image.src = '../media/background.png';
         },
         draw: function() {
-            var cl = 0; // Object.entries(Game.world.chunkManager.chunks).length;
-            for(const [key, chunk] of Object.entries(Game.world.chunkManager.chunks)) {
+            var cl = 0;
+            for(let key of Object.keys(Game.world.chunkManager.chunks)) {
+                let chunk = Game.world.chunkManager.chunks[key];
                 if(chunk.inited) {
                     cl++;
                 }
@@ -301,7 +302,8 @@ HUD.prototype.makeInfo = function() {
     }
     // Players list
     this.text += '\nOnline:\n';
-    for(const [id, player] of Object.entries(Game.world.players)) {
+    for(let id of Object.keys(Game.world.players)) {
+        let player = Game.world.players[id];
         if(id == 'itsme') {
             continue;
         }
