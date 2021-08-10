@@ -234,7 +234,7 @@ class Terrain_Generator {
         if(keys.length > MAX_ENTR) {
             var del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
             console.info('Clear maps_cache, del_count: ' + del_count);
-            for(let key in keys) {
+            for(let key of keys) {
                 if(--del_count == 0) {
                     break;
                 }
