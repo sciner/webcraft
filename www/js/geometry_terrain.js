@@ -4,7 +4,7 @@ class GeometryTerrain {
         this.updateID = 0;
         this.uploadID = -1;
 
-        this.strideFloats = 20;
+        this.strideFloats = 21;
         this.stride = this.strideFloats * 4;
 
         // if (vertices instanceof Array) {
@@ -33,6 +33,7 @@ class GeometryTerrain {
         gl.enableVertexAttribArray(attribs.a_uvSize);
         gl.enableVertexAttribArray(attribs.a_color);
         gl.enableVertexAttribArray(attribs.a_occlusion);
+        gl.enableVertexAttribArray(attribs.a_flags);
 
         gl.enableVertexAttribArray(attribs.a_quad);
         gl.enableVertexAttribArray(attribs.a_quadOcc);
@@ -49,6 +50,7 @@ class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
         gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
         gl.vertexAttribPointer(attribs.a_occlusion, 4, gl.FLOAT, false, stride, 16 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 20 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -57,6 +59,7 @@ class GeometryTerrain {
         gl.vertexAttribDivisor(attribs.a_uvSize, 1);
         gl.vertexAttribDivisor(attribs.a_color, 1);
         gl.vertexAttribDivisor(attribs.a_occlusion, 1);
+        gl.vertexAttribDivisor(attribs.a_flags, 1);
 
         GeometryTerrain.bindQuad(gl);
         gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 6 * 4, 0);
@@ -167,7 +170,7 @@ class GeometryTerrain {
             const ny = uz * vx - vz * ux;
             const nz = ux * vy - vx * uy;
 
-            const dot = nx * vertices[j + 9] + ny * vertices[j + 10] + nz * vertices[j + 11];
+            const dot = nx * vertices[j + 9] + ny * vertices[j + 11] + nz * vertices[j + 10];
             // if (dot < 0) {
             //     vx = -vx;
             //     vy = -vy;
@@ -198,6 +201,8 @@ class GeometryTerrain {
             newArr[k++] = vertices[j + du + 8];
             newArr[k++] = vertices[j + dd + 8];
             newArr[k++] = vertices[j + dv + 8];
+
+            newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
 
         return newArr;
