@@ -41,7 +41,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
 	that.canvas.renderer    = that;
 	this.skyBox             = null;
     this.videoCardInfoCache = null;
-    
+
     // Create projection and view matrices
     that.projMatrix         = mat4.create();
     that.viewMatrix         = mat4.create();
@@ -63,7 +63,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.CULL_FACE);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    
+
     // PickAt
     this.pickAt             = new PickAt(this, gl);
 
@@ -155,6 +155,8 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     Helpers.createGLProgram(gl, './shaders/skybox/vertex.glsl', './shaders/skybox/fragment.glsl', function(info) {
         const program = info.program;
         gl.useProgram(program);
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
         const vertexBuffer = gl.createBuffer();
         const indexBuffer = gl.createBuffer();
         const vertexData = [
@@ -173,17 +175,19 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             3,2,6,6,7,3, 0,1,5,5,4,0
         ];
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
+
+        const attribVertex = gl.getAttribLocation(program, 'a_vertex');
+        gl.vertexAttribPointer(attribVertex, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(attribVertex);
+
         that.skyBox = {
             gl:         gl,
             program:    program,
             texture:    gl.createTexture(),
             loaded:     false,
-            attribute: {
-                vertex: gl.getAttribLocation(program, 'a_vertex')
-            },
             uniform: {
                 texture: gl.getUniformLocation(program, 'u_texture'),
                 lookAtMatrix: gl.getUniformLocation(program, 'u_lookAtMatrix'),
@@ -204,12 +208,10 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 _lookAtMatrix[13] = 0;
                 _lookAtMatrix[14] = 0;
                 this.gl.useProgram(this.program);
+                this.gl.bindVertexArray(vao);
                 // brightness
                 this.gl.uniform1f(this.uniform.u_brightness_value, that.brightness);
                 // skybox
-                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffer.vertex);
-                this.gl.vertexAttribPointer(this.attribute.vertex, 3, this.gl.FLOAT, false, 0, 0);
-                this.gl.enableVertexAttribArray(this.attribute.vertex);
                 this.gl.uniform1i(this.uniform.texture, 0);
                 this.gl.activeTexture(this.gl.TEXTURE0);
                 this.gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
@@ -218,7 +220,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
                 this.gl.disable(this.gl.CULL_FACE);
                 this.gl.disable(this.gl.DEPTH_TEST);
-                this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.buffer.index);
                 this.gl.drawElements(this.gl.TRIANGLES, 36, this.gl.UNSIGNED_BYTE, 0);
                 this.gl.enable(this.gl.CULL_FACE);
                 this.gl.enable(this.gl.DEPTH_TEST);
@@ -288,42 +289,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
             },
             draw: function() {
                 Game.hud.draw();
-                return;
-                const gl = this.gl;
-                gl.useProgram(this.program);
-                gl.uniform2f(this.uniform.u_resolution, gl.viewportWidth * window.devicePixelRatio, gl.viewportHeight * window.devicePixelRatio);
-                gl.uniform1f(this.uniform.u_noCrosshair, Game.hud.wm.getVisibleWindows().length > 0);
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-                if(this.tick++ % 2 == 0) {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, Game.hud.canvas);
-                }
-                if(!this.vertexBuffer) {
-                    this.vertexBuffer = gl.createBuffer();
-                    this.indexBuffer = gl.createBuffer();
-                    const vertexData = [
-                        -1, -1,
-                         1, -1,
-                         1,  1,
-                        -1,  1
-                    ];
-                    const indexData = [
-                        0, 1, 2,
-                        1, 2, 3
-                    ];
-                    gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
-                    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
-                    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
-                }
-                this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
-                this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-                var v_attr_inx = this.attribute.v_attr_inx;
-                gl.vertexAttribPointer(v_attr_inx, 2, gl.FLOAT, false, 0, 0);
-                gl.enableVertexAttribArray(v_attr_inx);
-                gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
-                gl.disableVertexAttribArray(v_attr_inx);
             }
         }
         // Create HUD texture
@@ -511,18 +476,14 @@ Renderer.prototype.setCamera = function(pos, ang) {
 
 // drawBuffer...
 Renderer.prototype.drawBuffer = function(buffer, a_pos) {
-    if (buffer.vertices === 0) {
+    if (buffer.size === 0) {
         return;
     }
+
+    buffer.bind(this);
 	var gl = this.gl;
     gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.vertexAttribPointer(this.a_position, 3, gl.FLOAT, false, 12 * 4, 0);
-    gl.vertexAttribPointer(this.a_color,    4, gl.FLOAT, false, 12 * 4, 5 * 4);
-    gl.vertexAttribPointer(this.a_texcoord, 2, gl.FLOAT, false, 12 * 4, 3 * 4);
-    gl.vertexAttribPointer(this.a_normal,   3, gl.FLOAT, false, 12 * 4, 9 * 4);
-    // gl.drawArrays(gl.LINES, 0, buffer.vertices);
-    gl.drawArrays(gl.TRIANGLES, 0, buffer.vertices);
+    gl.drawArrays(gl.TRIANGLES, 0, buffer.size);
 }
 
 // getVideoCardInfo...
