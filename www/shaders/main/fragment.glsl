@@ -22,6 +22,7 @@ uniform sampler2D u_HUDTexture;
 
 varying vec3 v_position;
 varying vec2 v_texcoord;
+varying vec4 v_texClamp;
 varying vec4 v_color;
 varying vec3 v_normal;
 varying float light;
@@ -30,8 +31,8 @@ varying float v_fogDepth;
 uniform float u_time;
 
 void main() {
-
-    vec2 texc = vec2(v_texcoord.s, v_texcoord.t);
+    vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
+    vec2 texc = vec2(texCoord.s, texCoord.t);
 
     // Game
     if(u_fogOn) {
