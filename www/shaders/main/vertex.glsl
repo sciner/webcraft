@@ -5,6 +5,7 @@ attribute vec2 a_uvCenter;
 attribute vec2 a_uvSize;
 attribute vec3 a_color;
 attribute vec4 a_occlusion;
+attribute float a_flags;
 attribute vec2 a_quad;
 attribute vec4 a_quadOcc;
 
@@ -23,7 +24,13 @@ varying float light;
 
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
-    v_normal        = normalize(cross(a_axisX, a_axisY));
+
+    float flagNormalUp = step(0.5, a_flags);
+    if (flagNormalUp > 0.0) {
+        v_normal = -a_axisY;
+    } else {
+        v_normal = normalize(cross(a_axisX, a_axisY));
+    }
     v_normal.yz = v_normal.zy;
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);

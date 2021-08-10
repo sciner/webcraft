@@ -88,6 +88,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.a_uvSize           = gl.getAttribLocation(program, 'a_uvSize');
         that.a_color            = gl.getAttribLocation(program, 'a_color');
         that.a_occlusion        = gl.getAttribLocation(program, 'a_occlusion');
+        that.a_flags            = gl.getAttribLocation(program, 'a_flags');
         that.a_quad             = gl.getAttribLocation(program, 'a_quad');
         that.a_quadOcc          = gl.getAttribLocation(program, 'a_quadOcc');
         // fog
