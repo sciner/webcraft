@@ -43,7 +43,7 @@ BLOCK.getCardinalDirection = function(vec3) {
     }
     return result;
 }
-        
+
 // Returns a block structure for the given id.
 BLOCK.fromId = function(id) {
     if(BLOCK_BY_ID.hasOwnProperty(id)) {
@@ -52,7 +52,7 @@ BLOCK.fromId = function(id) {
     console.error('Warning: id missing in BLOCK ' + id);
     return BLOCK.DUMMY;
 }
-        
+
 // Returns a block structure for the given id.
 BLOCK.fromName = function(name) {
     if(name.indexOf(':') >= 0) {
@@ -261,7 +261,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
 	        var pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
 	        var pY = world.chunkManager.getBlock(x + 1, y + 1, z); // снизу
 	        var pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
-	        var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний 
+	        var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний
 	        var dXY = world.chunkManager.getBlock(x + 1, y + 1, z - 1); // левый нижний
 	        if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
 	        if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
@@ -296,7 +296,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
         c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
         n = NORMALS.DOWN;
         pushQuad(
-            vertices,                            
+            vertices,
             [x,         z + 1.0,    y, c[0], c[3], lm.r, lm.g, lm.b, ao[0], n.x, n.y, n.z],
             [x + 1.0,   z + 1.0,    y, c[2], c[3], lm.r, lm.g, lm.b, ao[1], n.x, n.y, n.z],
             [x + 1.0,   z,          y, c[2], c[1], lm.r, lm.g, lm.b, ao[2], n.x, n.y, n.z],
@@ -505,7 +505,7 @@ function pushQuad(v, p1, p2, p3, p4) {
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
     v.push(p2[0], p2[1], p2[2], p2[3], p2[4], p2[5], p2[6], p2[7], p2[8], p2[9], p2[10], p2[11]);
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
-    
+
     v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
     v.push(p4[0], p4[1], p4[2], p4[3], p4[4], p4[5], p4[6], p4[7], p4[8], p4[9], p4[10], p4[11]);
     v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
@@ -581,11 +581,11 @@ function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp) {
             ]);
         }
     }
-    
+
     for(var quad of quads) {
         pushQuad(vertices, quad[0], quad[1], quad[2], quad[3]);
     }
-    
+
 }
 
 // Растения
@@ -701,12 +701,12 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     n = NORMALS.LEFT;
     push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
-    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
+    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
     // дно
     n = NORMALS.DOWN;
     pushQuad(
-        vertices,                            
+        vertices,
         [ x,        z + 1.0,    y, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
         [ x + 1.0,  z + 1.0,    y, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
         [ x + 1.0,  z,          y, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -725,7 +725,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     );
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
-    
+
     // F R B L
     switch(cardinal_direction) {
         case ROTATE.S: {
@@ -859,7 +859,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
 function push_slab(block, vertices, world, lightmap, x, y, z) {
 
     const half = 0.5 / TX_CNT;
-    
+
     // var block = world.chunkManager.getBlock(x, y, z);
     var texture = BLOCK.fromId(block.id).texture;
 	var blockLit = true; // z >= lightmap[x][y];
@@ -889,7 +889,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
         c[3],
     ];
     var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
-    
+
     var dirs = check_xy_neighbor(world, x, y, z);
 
     /*
@@ -916,13 +916,13 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
     n = NORMALS.LEFT;
     push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
 
-    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));    
+    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
     // дно
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.DOWN;
     pushQuad(
-        vertices,                            
+        vertices,
         [ x, y + 1.0, z, c[0], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
         [ x + 1.0, y + 1.0, z, c[2], c[3], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
         [ x + 1.0, y, z, c[2], c[1], lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
@@ -980,52 +980,52 @@ BLOCK.pushPickingVertices = function(vertices, x, y, z, pos) {
 		[ x,        z,      y + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
 		[ x + 1,    z,      y + 1, 1, 0, color.r, color.g, color.b, 1/255, 0, 0, 0],
 		[ x + 1,    z + 1,  y + 1, 1, 1, color.r, color.g, color.b, 1/255, 0, 0, 0],
-		[ x,        z + 1,  y + 1, 0, 0, color.r, color.g, color.b, 1/255, 0, 0, 0]
+		[ x,        z + 1,  y + 1, 0, 1, color.r, color.g, color.b, 1/255, 0, 0, 0]
 	);
-	
+
 	// Bottom
 	pushQuad(
 		vertices,
 		[ x,        z + 1,  y, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
 		[ x + 1,    z + 1,  y, 1, 0, color.r, color.g, color.b, 2/255, 0, 0, 0],
 		[ x + 1,    z,      y, 1, 1, color.r, color.g, color.b, 2/255, 0, 0, 0],
-		[ x,        z,      y, 0, 0, color.r, color.g, color.b, 2/255, 0, 0, 0]
+		[ x,        z,      y, 0, 1, color.r, color.g, color.b, 2/255, 0, 0, 0]
 	);
-	
+
 	// Front
 	pushQuad(
 		vertices,
 		[ x,        z, y, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
 		[ x + 1,    z, y, 1, 0, color.r, color.g, color.b, 3/255, 0, 0, 0],
 		[ x + 1,    z, y + 1, 1, 1, color.r, color.g, color.b, 3/255, 0, 0, 0],
-		[ x,        z, y + 1, 0, 0, color.r, color.g, color.b, 3/255, 0, 0, 0]
+		[ x,        z, y + 1, 0, 1, color.r, color.g, color.b, 3/255, 0, 0, 0]
 	);
-	
+
 	// Back
 	pushQuad(
 		vertices,
 		[ x,        z + 1, y + 1, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
 		[ x + 1,    z + 1, y + 1, 1, 0, color.r, color.g, color.b, 4/255, 0, 0, 0],
 		[ x + 1,    z + 1, y, 1, 1, color.r, color.g, color.b, 4/255, 0, 0, 0],
-		[ x,        z + 1, y, 0, 0, color.r, color.g, color.b, 4/255, 0, 0, 0]
+		[ x,        z + 1, y, 0, 1, color.r, color.g, color.b, 4/255, 0, 0, 0]
 	);
-	
+
 	// Left
 	pushQuad(
 		vertices,
 		[ x, z,     y + 1, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
 		[ x, z + 1, y + 1, 1, 0, color.r, color.g, color.b, 5/255, 0, 0, 0],
 		[ x, z + 1, y, 1, 1, color.r, color.g, color.b, 5/255, 0, 0, 0],
-		[ x, z,     y, 0, 0, color.r, color.g, color.b, 5/255, 0, 0, 0]
+		[ x, z,     y, 0, 1, color.r, color.g, color.b, 5/255, 0, 0, 0]
 	);
-	
+
 	// Right
 	pushQuad(
 		vertices,
 		[ x + 1, z,     y, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
 		[ x + 1, z + 1, y, 1, 0, color.r, color.g, color.b, 6/255, 0, 0, 0],
 		[ x + 1, z + 1, y + 1, 1, 1, color.r, color.g, color.b, 6/255, 0, 0, 0],
-		[ x + 1, z,     y + 1, 0, 0, color.r, color.g, color.b, 6/255, 0, 0, 0]
+		[ x + 1, z,     y + 1, 0, 1, color.r, color.g, color.b, 6/255, 0, 0, 0]
 	);
 
 }

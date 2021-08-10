@@ -152,8 +152,8 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
         this.pickBuffer = new GeometryTerrain(vertices);
     } else {
         this.pickBuffer.updateInternal(vertices);
-        this.pickBuffer.bind();
     }
+    this.pickBuffer.bind(render);
     // Draw buffer
     gl.uniform1f(render.u_fogOn, false);
     gl.activeTexture(gl.TEXTURE4);
@@ -162,8 +162,10 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.disable(gl.BLEND);
+    gl.disable(gl.CULL_FACE);
     render.drawBuffer(this.pickBuffer, new Vector(0, 0, 0));
     gl.enable(gl.BLEND);
+    gl.enable(gl.CULL_FACE);
 
     // Read pixel
     var pixel = new Uint8Array(4);

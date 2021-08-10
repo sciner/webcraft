@@ -25,7 +25,6 @@ varying vec2 v_texcoord;
 varying vec4 v_color;
 varying vec3 v_normal;
 varying float light;
-varying vec3 v_add_pos;
 
 varying float v_fogDepth;
 uniform float u_time;
@@ -38,7 +37,7 @@ void main() {
     if(u_fogOn) {
 
         // Read texture
-        
+
         vec4 color = texture2D(u_texture, texc);
         vec4 color_mask = texture2D(u_texture_mask, texc);
 
@@ -51,7 +50,7 @@ void main() {
         // Multiply color by mask
         // vec2 maskc = vec2(v_color.b, 22. / 32.);
         // vec4 color_mask = texture2D(u_texture, maskc);
-        
+
         vec4 color_mult = texture2D(u_texture, vec2(v_color.r, v_color.g));
         color.rgb *= (color_mult.rgb + (1. - color_mult.rgb) * (1. - color_mask.rgb));
 
