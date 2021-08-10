@@ -135,7 +135,7 @@ class GeometryTerrain {
     static convertFrom12(vertices) {
         const oldStride = 12;
         const len = vertices.length / oldStride / 6;
-        const newArr = new Float32Array(len * 20);
+        const newArr = new Float32Array(len * 21);
         let k = 0;
         for (let j = 0; j < vertices.length; j += oldStride * 6) {
             let du = 0, dv = 0, dd = 0, d0 = 0;

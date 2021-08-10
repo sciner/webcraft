@@ -41,7 +41,7 @@ function HUD(width, height) {
         loading:    true,
         image:      null,
         hud:        null,
-        init: function(hud) {    
+        init: function(hud) {
             var that = this;
             that.hud = hud;
             var image = new Image();
@@ -109,7 +109,7 @@ function HUD(width, height) {
         }
     };
     this.splash.init(this);
-    
+
     // Green frame
     this.add({
         drawHUD: function(that) {
@@ -280,9 +280,9 @@ HUD.prototype.makeInfo = function() {
     // Chunks inited
     this.text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
-    var vertices_length_total = Game.world.chunkManager.vertices_length_total;
-    this.text += '\nVertices: ' + vertices_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) + 
-        ' / ' + Math.round(vertices_length_total * 12 * 4 / 1024 / 1024) + 'Mb';
+    var quads_length_total = Game.world.chunkManager.vertices_length_total;
+    this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+        ' / ' + Math.round(quads_length_total * 21 * 4 / 1024 / 1024) + 'Mb';
     //
     // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
     // Console =)
@@ -342,7 +342,7 @@ HUD.prototype.drawText = function(str, x, y) {
 
 // Напечатать текст с фоном
 HUD.prototype.drawTextBG = function(txt, x, y) {
-    /// lets save current state as we make a lot of changes        
+    /// lets save current state as we make a lot of changes
     this.ctx.save();
     /// draw text from top - makes life easier at the moment
     this.ctx.textBaseline = 'top';
