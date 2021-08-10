@@ -31,7 +31,8 @@ RECIPES = {
                 recipe.result.item_id = result_block.id;
                 // create key map
                 var keys = {};
-                for(const [key, value] of Object.entries(recipe.key)) {
+                for(let key of Object.keys(recipe.key)) {
+                    let value = recipe.key[key];
                     if(value.hasOwnProperty('item')) {
                         var block = BLOCK.fromName(value.item);
                         if(block.id == BLOCK.DUMMY.id) {
