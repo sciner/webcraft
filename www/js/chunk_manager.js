@@ -60,9 +60,9 @@ ChunkManager.prototype.shift = function(shift) {
     const gl = renderer.gl;
     gl.useProgram(renderer.program);
     var points = 0;
-    for(const [key, chunk] of Object.entries(this.chunks)) {
-        points += chunk.doShift(shift);
-    }
+    Object.keys(this.chunks).forEach(key => {
+        points += this.chunks[key].doShift(shift);
+    });
     return points;
 }
 
@@ -73,7 +73,7 @@ ChunkManager.prototype.refresh = function() {
 // Draw level chunks
 ChunkManager.prototype.draw = function(render) {
     var gl = render.gl;
-    this.rendered_chunks.total  = Object.entries(this.chunks).length;
+    this.rendered_chunks.total  = Object.keys(this.chunks).length;
     this.rendered_chunks.fact   = 0;
     var applyVerticesCan        = 1;
     var a_pos                   = new Vector(0, 0, 0);
@@ -100,10 +100,15 @@ ChunkManager.prototype.draw = function(render) {
                             chunk.applyVertices();
                         }
                     }
-                    for(const [vkey, v] of Object.entries(chunk.vertices)) {
-                        if(v.is_transparent == transparent) {
+                    if(transparent) {
+                        if(chunk.vertices.transparent) {
                             this.rendered_chunks.fact += 0.5;
-                            render.drawBuffer(v.buffer, a_pos);
+                            render.drawBuffer(chunk.vertices.transparent.buffer, a_pos);
+                        }
+                    } else {
+                        if(chunk.vertices.regular) {
+                            this.rendered_chunks.fact += 0.5;
+                            render.drawBuffer(chunk.vertices.regular.buffer, a_pos);
                         }
                     }
                 }
@@ -145,23 +150,6 @@ ChunkManager.prototype.removeChunk = function(pos) {
     this.chunks[k].destruct();
     delete this.chunks[k];
     this.world.server.ChunkRemove(pos);
-}
-
-// saveChunkModifiers
-ChunkManager.prototype.saveChunkModifiers = function(pos, modify_list) {
-    var k = this.getPosChunkKey(pos);
-    this.modify_list[k] = modify_list;
-}
-
-// getChunkModifiers
-ChunkManager.prototype.getChunkModifiers = function() {
-    for(const [key, chunk] of Object.entries(this.chunks)) {
-        var modifiers = chunk.getChunkModifiers();
-        if(Object.entries(modifiers).length > 0) {
-            this.modify_list[key] = modifiers;
-        }
-    }
-    return this.modify_list;
 }
 
 // postWorkerMessage
@@ -224,12 +212,12 @@ ChunkManager.prototype.update = function() {
     if(world.localPlayer) {
         var chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
     }
-    if(Object.entries(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
+    if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
         this.prevChunkPos = chunkPos;
         var actual_keys = {};
         var can_add = 3;
-        for(const [key, chunk] of Object.entries(this.chunks)) {
-            if(!chunk.inited) {
+        for(let key of Object.keys(this.chunks)) {
+            if(!this.chunks[key].inited) {
                 can_add = 0;
                 break;
             }
@@ -248,7 +236,7 @@ ChunkManager.prototype.update = function() {
             }
         }
         // check for remove
-        for (const [key, value] of Object.entries(this.chunks)) {
+        for(let key of Object.keys(this.chunks)) {
             if(!actual_keys.hasOwnProperty(key)) {
                 this.removeChunk(this.parseChunkPos(key));
             }
@@ -256,7 +244,8 @@ ChunkManager.prototype.update = function() {
     }
     // detect dirty chunks
     var dirty_chunks = [];
-    for(const [key, chunk] of Object.entries(this.chunks)) {
+    for(let key of Object.keys(this.chunks)) {
+        let chunk = this.chunks[key];
         if(chunk.dirty && !chunk.buildVerticesInProgress) {
             if(
                 this.getChunk(new Vector(chunk.addr.x - 1, chunk.addr.y, chunk.addr.z)) &&

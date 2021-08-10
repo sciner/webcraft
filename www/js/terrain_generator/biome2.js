@@ -21,10 +21,10 @@ class Map {
 
     smooth(generator) {
     
-        const SMOOTH_RAD = 3;
+        const SMOOTH_RAD    = 3;
 
-        let neighbour_map = null;
-        let map = null;
+        let neighbour_map   = null;
+        let map             = null;
 
         // Smoothing | Сглаживание
         for(var x = 0 - SMOOTH_RAD; x < this.#chunk.size.x + SMOOTH_RAD; x++) {
@@ -40,26 +40,31 @@ class Map {
                     map = generator.maps_cache[addr];
                 }
                 let cell = map.cells[px - map.#chunk.coord.x][pz - map.#chunk.coord.z];
+                if(!cell) {
+                    continue;
+                }
                 if(cell.value > this.options.WATER_LINE - 2 && [BIOMES.OCEAN.code, BIOMES.BEACH.code].indexOf(cell.biome.code) >= 0) {
                     continue;
                 }
                 let height_sum  = 0;
                 let cnt         = 0;
                 let dirt_color  = new Color(0, 0, 0, 0);
-                for(var i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
-                    for(var j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        cnt++;
+                for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
+                    for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
                         // calc chunk addr for this cell
                         let neighbour_addr  = new Vector(parseInt((px + i) / CHUNK_SIZE_X), 0, parseInt((pz + j) / CHUNK_SIZE_Z));
-                        var addr_ok = neighbour_map &&
+                        let addr_ok = neighbour_map &&
                                       (neighbour_map.#chunk.addr.x == neighbour_addr.x) &&
                                       (neighbour_map.#chunk.addr.z == neighbour_addr.z);
                         if(!neighbour_map || !addr_ok) {
                             neighbour_map = generator.maps_cache[neighbour_addr.toString()];
                         }
                         let neighbour_cell  = neighbour_map.cells[px + i - neighbour_map.#chunk.coord.x][pz + j - neighbour_map.#chunk.coord.z];
-                        height_sum += neighbour_cell.value;
-                        dirt_color.add(neighbour_cell.biome.dirt_color);
+                        if(neighbour_cell) {
+                            height_sum += neighbour_cell.value;
+                            dirt_color.add(neighbour_cell.biome.dirt_color);
+                            cnt++;
+                        }
                     }
                 }
                 cell.value2           = parseInt(height_sum / cnt);
@@ -224,16 +229,16 @@ class Terrain_Generator {
             }
         }
         // Clear maps_cache
-        var entrs = Object.entries(this.maps_cache);
+        let keys = Object.keys(this.maps_cache);
         var MAX_ENTR = 2000;
-        if(entrs.length > MAX_ENTR) {
-            var del_count = Math.floor(entrs.length - MAX_ENTR * 0.333);
+        if(keys.length > MAX_ENTR) {
+            var del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
             console.info('Clear maps_cache, del_count: ' + del_count);
-            for(const [k, v] of entrs) {
+            for(let key in keys) {
                 if(--del_count == 0) {
                     break;
                 }
-                delete(this.maps_cache[k]);
+                delete(this.maps_cache[key]);
             }
         }
         //
