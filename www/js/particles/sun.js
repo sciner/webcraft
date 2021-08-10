@@ -22,12 +22,9 @@ class Particles_Sun {
         // push_plane(this.vertices, x - .5, y - .5 + 1/16, z + 10, c_half_rad, lm, n, true, false, 2, 2, null);
         var p = {x: x, y: y, z: z, vertices_count: 12/*, scale: 100, dist: 600*/};
         this.particles.push(p);
-        this.buffer = gl.createBuffer();
+
         this.vertices = new Float32Array(this.vertices);
-        this.buffer.vertices = this.vertices.length / 12;
-        //
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.DYNAMIC_DRAW);
+        this.buffer = new GeometryTerrain(this.vertices);
     }
 
     // Draw
@@ -57,7 +54,7 @@ class Particles_Sun {
     }
 
     destroy(render) {
-        render.gl.deleteBuffer(this.buffer);
+        this.buffer.destroy();
     }
 
     isAlive() {

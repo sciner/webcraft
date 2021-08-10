@@ -26,12 +26,8 @@ class Particles_Raindrop {
             push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null);
         }
         //
-        this.buffer = gl.createBuffer();
         this.vertices = new Float32Array(this.vertices);
-        this.buffer.vertices = this.vertices.length / 12;
-        //
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.vertices, gl.DYNAMIC_DRAW);
+        this.buffer = new GeometryTerrain(this.vertices);
     }
 
     // Draw
@@ -51,7 +47,7 @@ class Particles_Raindrop {
     }
 
     destroy(render) {
-        render.gl.deleteBuffer(this.buffer);
+        this.buffer.destroy();
     }
 
     isAlive() {
