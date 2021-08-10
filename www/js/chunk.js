@@ -113,7 +113,7 @@ Chunk.prototype.applyVertices = function() {
     // Добавление чанка в отрисовщик
     for(let key of Object.keys(args.vertices)) {
         let v = args.vertices[key];
-        this.vertices_length  += v.list.length / 12;
+        this.vertices_length  += v.list.length / 12 / 6;
         v.buffer              = new GeometryTerrain(v.list);
         this.vertices[key]    = v;
     }
