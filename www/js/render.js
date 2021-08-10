@@ -80,10 +80,16 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
         that.u_texture          = gl.getUniformLocation(program, 'u_texture');
         that.u_texture_mask     = gl.getUniformLocation(program, 'u_texture_mask');
+
         that.a_position         = gl.getAttribLocation(program, 'a_position');
+        that.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
+        that.a_axisY            = gl.getAttribLocation(program, 'a_axisY');
+        that.a_uvCenter         = gl.getAttribLocation(program, 'a_uvCenter');
+        that.a_uvSize           = gl.getAttribLocation(program, 'a_uvSize');
         that.a_color            = gl.getAttribLocation(program, 'a_color');
-        that.a_texcoord         = gl.getAttribLocation(program, 'a_texcoord');
-        that.a_normal           = gl.getAttribLocation(program, 'a_normal');
+        that.a_occlusion        = gl.getAttribLocation(program, 'a_occlusion');
+        that.a_quad             = gl.getAttribLocation(program, 'a_quad');
+        that.a_quadOcc          = gl.getAttribLocation(program, 'a_quadOcc');
         // fog
         that.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
         that.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
@@ -98,9 +104,13 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
 
         // Enable input
         gl.enableVertexAttribArray(that.a_position);
-        gl.enableVertexAttribArray(that.a_texcoord);
-        gl.enableVertexAttribArray(that.a_color);
+        gl.enableVertexAttribArray(that.a_axisX);
+        gl.enableVertexAttribArray(that.a_axisY);
         gl.enableVertexAttribArray(that.a_normal);
+        gl.enableVertexAttribArray(that.a_size2);
+        gl.enableVertexAttribArray(that.a_uvCenter);
+        gl.enableVertexAttribArray(that.a_uvSize2);
+
         that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
         // Create projection and view matrices
         gl.uniformMatrix4fv(that.uModelMat, false, that.modelMatrix);
@@ -483,7 +493,7 @@ Renderer.prototype.drawBuffer = function(buffer, a_pos) {
     buffer.bind(this);
 	var gl = this.gl;
     gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
-    gl.drawArrays(gl.TRIANGLES, 0, buffer.size);
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, buffer.size);
 }
 
 // getVideoCardInfo...
