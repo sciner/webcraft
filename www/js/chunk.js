@@ -74,7 +74,6 @@ Chunk.prototype.doShift = function(shift) {
     const x = shift.x - this.shift_orig.x;
     const z = shift.z - this.shift_orig.z;
     this.shift_orig = Object.assign({}, shift);
-    const gl = this.world.renderer.gl;
     var points = 0;
     for(let key of Object.keys(this.vertices)) {
         let v = this.vertices[key];
@@ -84,8 +83,7 @@ Chunk.prototype.doShift = function(shift) {
             list[i + 1] -= z;
             points += 2;
         }
-        gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, list);
+        v.buffer.updateInternal(list);
     }
     return points;
 }
@@ -106,21 +104,17 @@ Chunk.prototype.applyVertices = function() {
     this.vertices_length            = 0;
     this.gravity_blocks             = args.gravity_blocks;
     this.fluid_blocks               = args.fluid_blocks;
-    var gl = this.world.renderer.gl;
     // Delete old WebGL buffers
     for(let key of Object.keys(this.vertices)) {
         let v = this.vertices[key];
-        gl.deleteBuffer(v.buffer);
+        v.buffer.destroy();
         delete(this.vertices[key]);
     }
     // Добавление чанка в отрисовщик
     for(let key of Object.keys(args.vertices)) {
         let v = args.vertices[key];
         this.vertices_length  += v.list.length / 12;
-        v.buffer              = gl.createBuffer();
-        v.buffer.vertices     = v.list.length / 12;
-        gl.bindBuffer(gl.ARRAY_BUFFER, v.buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, v.list, gl.DYNAMIC_DRAW);
+        v.buffer              = new GeometryTerrain(v.list);
         this.vertices[key]    = v;
     }
     this.chunkManager.vertices_length_total += this.vertices_length;
@@ -133,9 +127,8 @@ Chunk.prototype.applyVertices = function() {
 
 // destruct chunk
 Chunk.prototype.destruct = function() {
-    var gl = this.world.renderer.gl;
     if(this.buffer) {
-        gl.deleteBuffer(this.buffer);
+        this.buffer.destroy();
     }
     // Run webworker method
     this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);

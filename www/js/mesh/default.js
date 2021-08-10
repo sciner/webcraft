@@ -22,12 +22,12 @@ class Mesh_Default {
             var position = g.data.position;
             var texcoord = g.data.texcoord;
             var normal = g.data.normal;
+            var vertices = new Float32Array(position.length / 3 * VERTICES_POINTS);
+
             var buffer = {
-                vertices: [],
-                info: gl.createBuffer()
+                vertices,
+                info: new GeometryTerrain(vertices)
             };
-            buffer.vertices = new Float32Array(position.length / 3 * VERTICES_POINTS);
-            buffer.info.vertices = buffer.vertices.length / VERTICES_POINTS;
             var idx = 0;
             var min_z = 0;
             for(var i = 0; i < position.length / 3; i++) {
@@ -50,8 +50,6 @@ class Mesh_Default {
                     buffer.vertices[i + 2] -= min_z;
                 }
             }
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer.info);
-            gl.bufferData(gl.ARRAY_BUFFER, buffer.vertices, gl.DYNAMIC_DRAW);
             this.buffers.push(buffer);
         }
     }
