@@ -1,5 +1,6 @@
 var BLOCK_BY_ID = {};
-for(const [key, block] of Object.entries(BLOCK)) {
+for(let key of Object.keys(BLOCK)) {
+    let block = BLOCK[key];
     if(typeof(block) == 'object' && ('spawnable' in block)) {
         BLOCK_BY_ID[block.id] = block;
     }
@@ -100,7 +101,8 @@ BLOCK.getStartInventory = function() {
         Object.assign({count: 20}, BLOCK.GLOWSTONE),
         Object.assign({count: 4}, BLOCK.TEST)
     ];
-    for(const [key, b] of Object.entries(blocks)) {
+    for(let key of Object.keys(blocks)) {
+        let b = blocks[key];
         delete(b.texture);
         blocks[key] = b;
     }
