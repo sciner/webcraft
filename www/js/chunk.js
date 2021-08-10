@@ -101,6 +101,7 @@ Chunk.prototype.applyVertices = function() {
     const args = this.vertices_args;
     delete(this['vertices_args']);
     this.buildVerticesInProgress    = false;
+    this.chunkManager.vertices_length_total -= this.vertices_length;
     this.vertices_length            = 0;
     this.gravity_blocks             = args.gravity_blocks;
     this.fluid_blocks               = args.fluid_blocks;
