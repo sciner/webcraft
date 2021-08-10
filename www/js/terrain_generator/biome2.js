@@ -19,30 +19,40 @@ class Map {
         this.#chunk         = chunk;
     }
 
-    smooth(generator) {
+    smooth(generator, chunk_addr) {
     
         const SMOOTH_RAD    = 3;
 
         let neighbour_map   = null;
         let map             = null;
+        let chunk_coord     = this.#chunk.coord;
+
+        let z_min = -SMOOTH_RAD;
+        let z_max = CHUNK_SIZE_Z + SMOOTH_RAD;
+
+        if(chunk_coord.z < 0) {
+            z_min = (CHUNK_SIZE_Z + SMOOTH_RAD) * -1;
+            z_max = SMOOTH_RAD;
+        }
 
         // Smoothing | Сглаживание
-        for(var x = 0 - SMOOTH_RAD; x < this.#chunk.size.x + SMOOTH_RAD; x++) {
-            for(var z = 0 - SMOOTH_RAD; z < this.#chunk.size.z + SMOOTH_RAD; z++) {
+        for(var x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
+            for(var z = z_min; z < z_max; z++) {
                 // absolute cell coord
-                let px      = this.#chunk.coord.x + x;
-                let pz      = this.#chunk.coord.z + z;
+                let px      = chunk_coord.x + x;
+                let pz      = chunk_coord.z + z;
                 // calc chunk addr for this cell
                 let addr    = new Vector(parseInt(px / CHUNK_SIZE_X), 0, parseInt(pz / CHUNK_SIZE_Z));
                 // get chunk map from cache
                 let map_addr_ok = map && (map.#chunk.addr.x == addr.x) && (map.#chunk.addr.z == addr.z);
                 if(!map || !map_addr_ok) {
-                    map = generator.maps_cache[addr];
+                    map = generator.maps_cache[addr.toString()];
                 }
                 let cell = map.cells[px - map.#chunk.coord.x][pz - map.#chunk.coord.z];
                 if(!cell) {
                     continue;
                 }
+                // Не сглаживаем блоки пляжа и океана
                 if(cell.value > this.options.WATER_LINE - 2 && [BIOMES.OCEAN.code, BIOMES.BEACH.code].indexOf(cell.biome.code) >= 0) {
                     continue;
                 }
@@ -59,7 +69,10 @@ class Map {
                         if(!neighbour_map || !addr_ok) {
                             neighbour_map = generator.maps_cache[neighbour_addr.toString()];
                         }
-                        let neighbour_cell  = neighbour_map.cells[px + i - neighbour_map.#chunk.coord.x][pz + j - neighbour_map.#chunk.coord.z];
+                        if(!neighbour_map) {
+                            debugger;
+                        }
+                        let neighbour_cell = neighbour_map.cells[px + i - neighbour_map.#chunk.coord.x][pz + j - neighbour_map.#chunk.coord.z];
                         if(neighbour_cell) {
                             height_sum += neighbour_cell.value;
                             dirt_color.add(neighbour_cell.biome.dirt_color);
@@ -275,7 +288,7 @@ class Terrain_Generator {
         }
 
         // Smooth (for central and part of neighboors)
-        map.info.smooth(this);
+        map.info.smooth(this, chunk.addr);
 
         // Generate vegetation
         for(var map of maps) {
