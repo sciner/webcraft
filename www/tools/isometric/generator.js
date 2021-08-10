@@ -39,7 +39,8 @@ BIOMES.TROPICAL_SEASONAL_FOREST   = {color: '#008456', title: 'ТРОПИЧЕС�
 BIOMES.TROPICAL_RAIN_FOREST       = {color: '#16994f', title: 'ТРОПИЧЕСКИЙ ЛЕС'};
 
 // Print legend
-for(const[code, b] of Object.entries(BIOMES)) {
+for(let code of Object.keys(BIOMES)) {
+    let b = BIOMES[code];
     document.getElementById('colorTable').insertAdjacentHTML('beforeend', '<div><span style="display: inline-block; width: 32px; height: 32px; background-color: ' + b.color + ';"></span> ' + b.title + '</div>');
 }
 

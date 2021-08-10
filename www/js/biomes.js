@@ -77,7 +77,8 @@ var blocks = {
     DANDELION:      BLOCK.DANDELION,
 };
 
-for(var [key, b] of Object.entries(blocks)) {
+for(let key of Object.keys(blocks)) {
+    let b = blocks[key];
     b = Object.assign({}, b), 
     delete(b.texture);
     blocks[key] = b;

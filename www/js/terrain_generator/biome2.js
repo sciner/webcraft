@@ -333,7 +333,7 @@ class Terrain_Generator {
                         let yNoise      = noisefn(px / noiseScale, pz / noiseScale) * amplitude;
                         let zNoise      = noisefn(px / noiseScale, py / noiseScale) * amplitude;
                         let density     = xNoise + yNoise + zNoise + (py / 4);
-                        if (density < 2 || density > 97) {
+                        if (density < -5 || density > 97) {
                             // Чтобы не удалять землю из под деревьев
                             var near_tree = false;
                             for(let m of maps) {
