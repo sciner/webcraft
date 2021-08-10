@@ -11,7 +11,8 @@ canvas2D.onmousemove = function(e) {
     var c = ctx2D.getImageData(e.offsetX, e.offsetY, 1, 1).data;
     var rgb = [c[0], c[1], c[2]];
     var hex = rgb2Hex(rgb);
-    for(const [code, b] of Object.entries(BIOMES)) {
+    for(let code of Object.keys(BIOMES)) {
+        let b = BIOMES[code];
         if(b.color == hex) {
             if(this.title != b.title) {
                 this.title = b.title;

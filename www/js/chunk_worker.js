@@ -237,8 +237,10 @@ Chunk.prototype.init = function() {
 
 }
 
+//
 Chunk.prototype.applyModifyList = function() {
-    for(const [key, m] of Object.entries(this.modify_list)) {
+    for(let key of Object.keys(this.modify_list)) {
+        let m = this.modify_list[key];
         var pos = key.split(',');
         var type = BLOCK.fromId(m.id);
         var rotate = m.rotate ? m.rotate : null;
@@ -522,7 +524,8 @@ Chunk.prototype.buildVertices = function() {
     // console.log('world.blocks_pushed', world.blocks_pushed);
 
     // ~0ms
-    for(var [key, v] of Object.entries(this.vertices)) {
+    for(let key of Object.keys(this.vertices)) {
+        let v = this.vertices[key];
         for(var i = 0; i < v.list.length; i += 12) {
             v.list[i + 0] -= this.shift.x;
             v.list[i + 1] -= this.shift.z;

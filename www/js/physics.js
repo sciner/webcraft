@@ -27,7 +27,8 @@ Physics.prototype.simulate = function() {
 	this.lastStep = step;
 	// Gravity
     if (step % 2 == 0) {
-        for(const [key, chunk] of Object.entries(world.chunkManager.chunks)) {
+        for(let key of Object.keys(world.chunkManager.chunks)) {
+            let chunk = world.chunkManager.chunks[key];
             if(!chunk.inited)  {
                 continue;
             }
@@ -55,7 +56,8 @@ Physics.prototype.simulate = function() {
 		// Newly spawned fluid blocks are stored so that those aren't
 		// updated in the same step, creating a simulation avalanche.
 		var newFluidBlocks = {};
-        for(const [key, chunk] of Object.entries(world.chunkManager.chunks)) {
+        for(let key of Object.keys(world.chunkManager.chunks)) {
+            let chunk = world.chunkManager.chunks[key];
             if(!chunk.inited)  {
                 continue;
             }
