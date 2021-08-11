@@ -37,7 +37,7 @@ void main() {
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
     v_texcoord = a_uvCenter + (a_uvSize * a_quad);
-    v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + 1.0 / 1024.0, a_uvCenter + abs(a_uvSize * 0.5) - 1.0 / 1024.0);
+    v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + 1.0 / 2048.0, a_uvCenter + abs(a_uvSize * 0.5) - 1.0 / 2048.0);
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
