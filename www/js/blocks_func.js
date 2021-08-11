@@ -604,7 +604,6 @@ function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
         y -= .15;
     }
     push_plane(vertices, x, y, z, c, lm, n, true, true);
-    push_plane(vertices, x, y, z, c, lm, n, false, true);
 }
 
 /*
@@ -1030,15 +1029,7 @@ BLOCK.pushPickingVertices = function(vertices, x, y, z, pos) {
 
 }
 
-class Vector4 {
-    constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-}
-
+// Return inventory icon pos
 BLOCK.getInventoryIconPos = function(inventory_icon_id) {
     var w = 32;
     var h = 32;
