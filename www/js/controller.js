@@ -2,7 +2,7 @@ var app = angular.module('gameApp', []);
 
 var injectParams = ['$scope', '$interval', '$timeout'];
 var gameCtrl = function($scope, $interval, $timeout) {
-    
+
     // Load text file
     $scope.loadTextFile = function(url) {
         return fetch(url).then(response => response.text());
@@ -18,14 +18,15 @@ var gameCtrl = function($scope, $interval, $timeout) {
             $scope.login.init();
             $scope.skin.init();
         });
-        
+
     // Current window
     $scope.current_window = 'main';
 
     // Settings
     $scope.settings = {
         form: {
-            hd: false
+            hd: false,
+            mipmap: false
         },
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));

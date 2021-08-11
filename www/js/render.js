@@ -67,6 +67,9 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     // PickAt
     this.pickAt             = new PickAt(this, gl);
 
+    this.anisotropicExt = gl.getExtension('EXT_texture_filter_anisotropic');
+    this.useAnisotropy = this.anisotropicExt && settings.mipmap;
+
 	// Create main program
     Helpers.createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
 
@@ -132,16 +135,36 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
+        function genTerrain(glTex) {
+            gl.bindTexture(gl.TEXTURE_2D, glTex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
+            if (that.useAnisotropy) {
+                const maxAni = gl.getParameter(that.anisotropicExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                let t = glTex.image.width / 512;
+                let lvl = 4;
+                while (t >= 2.0) {
+                    t /= 2.0;
+                    lvl++;
+                }
+                const lv = Math.min(maxAni, lvl);
+                gl.texParameterf(gl.TEXTURE_2D, that.anisotropicExt.TEXTURE_MAX_ANISOTROPY_EXT, lv);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, lvl);
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            } else {
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            }
+        }
+
         // Terrain texture
         gl.uniform1i(that.u_texture, 4);
         var terrainTexture          = that.texTerrain = gl.createTexture();
         terrainTexture.image        = new Image();
         terrainTexture.image.onload = function() {
                 gl.activeTexture(gl.TEXTURE4);
-                gl.bindTexture(gl.TEXTURE_2D, terrainTexture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, terrainTexture.image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                genTerrain(terrainTexture);
         };
         terrainTexture.image.src = settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png';
 
@@ -151,10 +174,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         terrainTextureMask.image        = new Image();
         terrainTextureMask.image.onload = function() {
             gl.activeTexture(gl.TEXTURE5);
-            gl.bindTexture(gl.TEXTURE_2D, terrainTextureMask);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, terrainTextureMask.image);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+            genTerrain(terrainTextureMask);
         };
         terrainTextureMask.image.src = settings.hd ? 'media/terrain_hd_mask.png' : 'media/terrain_mask.png';
 
