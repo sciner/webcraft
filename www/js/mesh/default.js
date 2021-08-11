@@ -26,7 +26,7 @@ class Mesh_Default {
 
             var buffer = {
                 vertices,
-                info: new GeometryTerrain(vertices)
+                info: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
             };
             var idx = 0;
             var min_z = 0;
