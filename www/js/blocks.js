@@ -177,7 +177,7 @@ BLOCK.DIRT = {
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP && lit )
             return [ 0, 0 ];
-        else if(dir == DIRECTION.DOWN || !lit ) 
+        else if(dir == DIRECTION.DOWN || !lit )
             return [ 2, 0 ];
         else
             return [ 3, 0 ];
@@ -197,7 +197,7 @@ BLOCK.SNOW_DIRT = {
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		if(dir == DIRECTION.UP && lit )
 			return [2, 4];
-		else if(dir == DIRECTION.DOWN || !lit ) 
+		else if(dir == DIRECTION.DOWN || !lit )
 			return [2, 0];
 		else
 			return [4, 4];
@@ -1110,7 +1110,7 @@ BLOCK.SNOW_BLOCK = {
 BLOCK.CACTUS = {
     id: 81,
     inventory_icon_id: 3409,
-    width: 0.875, 
+    width: 0.875,
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.cloth',

@@ -27,7 +27,7 @@ class Particles_Raindrop {
         }
         //
         this.vertices = new Float32Array(this.vertices);
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new GeometryTerrain(GeometryTerrain.convertFrom12(this.vertices));
     }
 
     // Draw

@@ -6,10 +6,14 @@ importScripts(
     './terrain_generator/biome2.js'
 );
 
+const GeometryTerrain = {
+    strideFloats: 21,
+}
+
 // 1. All blocks
 var all_blocks = [];
 for(var b of BLOCK.getAll()) {
-    b = Object.assign({}, b), 
+    b = Object.assign({}, b),
     delete(b.texture);
     all_blocks.push(b);
 }
@@ -21,7 +25,7 @@ for(var k in all_blocks) {
 // 2. Plants
 var plant_blocks = []
 for(var b of BLOCK.getPlants()) {
-    b = Object.assign({}, b), 
+    b = Object.assign({}, b),
     delete(b.texture);
     plant_blocks.push(b);
 }
@@ -206,7 +210,7 @@ Chunk.prototype.init = function() {
         generate_terrain:   null,
         apply_modify:       null,
         build_vertices:     null
-    };    
+    };
     // 1. Initialise world array
     this.timers.init = performance.now();
     this.blocks = new Array(this.size.x);
@@ -526,7 +530,7 @@ Chunk.prototype.buildVertices = function() {
     // ~0ms
     for(let key of Object.keys(this.vertices)) {
         let v = this.vertices[key];
-        for(var i = 0; i < v.list.length; i += 12) {
+        for(var i = 0; i < v.list.length; i += GeometryTerrain.strideFloats) {
             v.list[i + 0] -= this.shift.x;
             v.list[i + 1] -= this.shift.z;
         }
