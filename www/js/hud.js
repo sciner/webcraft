@@ -278,7 +278,7 @@ HUD.prototype.makeInfo = function() {
     }
     // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
     // Chunks inited
-    this.text += '\nChunks inited: ' + Game.world.chunkManager.rendered_chunks.fact + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
+    this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
     //
     var quads_length_total = Game.world.chunkManager.vertices_length_total;
     this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +

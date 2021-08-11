@@ -666,7 +666,7 @@ Player.prototype.update = function() {
             if(this.running) {
                 mul *= 1.5;
                 if(this.flying) {
-                    mul *= 5.5;
+                    mul *= 2.0;
                 }
             }
 			walkVelocity = walkVelocity.normal();

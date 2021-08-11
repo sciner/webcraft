@@ -81,12 +81,13 @@ ChunkManager.prototype.draw = function(render) {
     this.spiral_moves = this.createSpiralCoords(this.margin * 2);
     // чанк, в котором стоит игрок
     var overChunk = Game.world.localPlayer.overChunk;
-    // draw
-    for(const transparent of [false, true]) {
-        if(transparent) {
-            gl.disable(gl.CULL_FACE);
-        }
-        if(overChunk) {
+    if(overChunk) {
+        // draw
+        for(let group of ['regular', 'doubleface', 'transparent']) {
+            let transparent = group != 'regular';
+            if(transparent) {
+                gl.disable(gl.CULL_FACE);
+            }
             for(var sm of this.spiral_moves) {
                 var pos = new Vector(
                     overChunk.addr.x + sm.x - this.margin,
@@ -95,27 +96,20 @@ ChunkManager.prototype.draw = function(render) {
                 );
                 var chunk = this.getChunk(pos);
                 if(chunk) {
+                    this.rendered_chunks.fact += 0.33333;
                     if(chunk.hasOwnProperty('vertices_args')) {
                         if(applyVerticesCan-- > 0) {
                             chunk.applyVertices();
                         }
                     }
-                    if(transparent) {
-                        if(chunk.vertices.transparent) {
-                            this.rendered_chunks.fact += 0.5;
-                            render.drawBuffer(chunk.vertices.transparent.buffer, a_pos);
-                        }
-                    } else {
-                        if(chunk.vertices.regular) {
-                            this.rendered_chunks.fact += 0.5;
-                            render.drawBuffer(chunk.vertices.regular.buffer, a_pos);
-                        }
+                    if(chunk.vertices[group]) {
+                        render.drawBuffer(chunk.vertices[group].buffer, a_pos);
                     }
                 }
             }
-        }
-        if(transparent) {
-            gl.enable(gl.CULL_FACE);
+            if(transparent) {
+                gl.enable(gl.CULL_FACE);
+            }
         }
     }
     return true;
