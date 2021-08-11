@@ -31,9 +31,8 @@ varying float v_fogDepth;
 uniform float u_time;
 
 void main() {
-//    vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
-//    vec2 texc = vec2(texCoord.s, texCoord.t);
-    vec2 texc = vec2(v_texcoord.s, v_texcoord.t);
+    vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
+    vec2 texc = vec2(texCoord.s, texCoord.t);
 
     // Game
     if(u_fogOn) {
