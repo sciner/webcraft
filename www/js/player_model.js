@@ -149,7 +149,7 @@ PlayerModel.prototype.loadPlayerHeadModel = function() {
 
     ];
 
-    return this.playerHead = new GeometryTerrain(vertices);
+    return this.playerHead = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
 }
 
@@ -211,7 +211,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
 
     ];
 
-    this.playerBody = new GeometryTerrain(vertices);
+    this.playerBody = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
     var vertices = [
         // Left arm
@@ -266,7 +266,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
 
     ];
 
-    this.playerLeftArm = new GeometryTerrain(vertices);
+    this.playerLeftArm = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
     var vertices = [
         // Right arm
@@ -321,7 +321,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
 
     ];
 
-    this.playerRightArm = new GeometryTerrain(vertices);
+    this.playerRightArm = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
     var vertices = [
         // Left leg
@@ -375,7 +375,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         0.3, -0.125,     0, 4/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
     ];
 
-    this.playerLeftLeg = new GeometryTerrain(vertices);
+    this.playerLeftLeg = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
     var vertices = [
         // Right leg
@@ -429,7 +429,7 @@ PlayerModel.prototype.loadPlayerBodyModel = function(gl) {
         -0.01, -0.125,     0,  8/64, 20/64, 1, 1, 1, 1, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
     ];
 
-    this.playerRightLeg = new GeometryTerrain(vertices);
+    this.playerRightLeg = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 }
 
 // drawLayer
@@ -576,6 +576,6 @@ PlayerModel.prototype.buildPlayerName = function(nickname) {
     ];
     return {
         texture: tex,
-        model: new GeometryTerrain(vertices)
+        model: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
     };
 }

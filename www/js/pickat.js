@@ -125,7 +125,7 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
         }
     }
     // !!!
-    for(var i = 0; i < vertices.length; i += 12) {
+    for(var i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
         vertices[i + 0] -= (Game.shift.x);
         vertices[i + 1] -= (Game.shift.z);
     }

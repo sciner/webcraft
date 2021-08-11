@@ -6,6 +6,10 @@ importScripts(
     './terrain_generator/biome2.js'
 );
 
+const GeometryTerrain = {
+    strideFloats: 21,
+}
+
 // 1. All blocks
 var all_blocks = [];
 for(var b of BLOCK.getAll()) {
@@ -526,7 +530,7 @@ Chunk.prototype.buildVertices = function() {
     // ~0ms
     for(let key of Object.keys(this.vertices)) {
         let v = this.vertices[key];
-        for(var i = 0; i < v.list.length; i += 12) {
+        for(var i = 0; i < v.list.length; i += GeometryTerrain.strideFloats) {
             v.list[i + 0] -= this.shift.x;
             v.list[i + 1] -= this.shift.z;
         }

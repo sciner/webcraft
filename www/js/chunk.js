@@ -78,7 +78,7 @@ Chunk.prototype.doShift = function(shift) {
     for(let key of Object.keys(this.vertices)) {
         let v = this.vertices[key];
         var list = v.list;
-        for(var i = 0; i < list.length; i += 12) {
+        for(var i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
             list[i + 0] -= x;
             list[i + 1] -= z;
             points += 2;
@@ -114,7 +114,7 @@ Chunk.prototype.applyVertices = function() {
     // Добавление чанка в отрисовщик
     for(let key of Object.keys(args.vertices)) {
         let v = args.vertices[key];
-        this.vertices_length  += v.list.length / 12 / 6;
+        this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
         v.buffer              = new GeometryTerrain(v.list);
         this.vertices[key]    = v;
     }
