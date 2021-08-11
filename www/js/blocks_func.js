@@ -21,6 +21,9 @@ NORMALS.RIGHT            = new Vector(1, 0, 0);
 NORMALS.UP               = new Vector(0, 1, 0);
 NORMALS.DOWN             = new Vector(0, -1, 0);
 
+var QUAD_FLAGS = {}
+QUAD_FLAGS.NORMAL_UP = 1;
+
 var ROTATE = {};
 ROTATE.S = 1; // BACK
 ROTATE.W = 2; // LEFT
@@ -588,8 +591,8 @@ function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
     if(block.id == BLOCK.GRASS.id) {
         y -= .15;
     }
-    push_plane(vertices, x, y, z, c, lm, n, true, true, undefined, undefined, undefined, 1);
-    push_plane(vertices, x, y, z, c, lm, n, false, true, undefined, undefined, undefined, 1);
+    push_plane(vertices, x, y, z, c, lm, n, true, true, undefined, undefined, undefined, QUAD_FLAGS.NORMAL_UP);
+    push_plane(vertices, x, y, z, c, lm, n, false, true, undefined, undefined, undefined, QUAD_FLAGS.NORMAL_UP);
 }
 
 /*
@@ -627,7 +630,7 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
     var n = NORMALS.UP;
     var dirs = check_xy_neighbor(world, x, y, z);
     if (dirs[0] * dirs[1] == 0 && dirs[0] + dirs[1] > 0) {
-        push_plane(vertices, x, y, z, c, lm, n, dirs[0] > dirs[1], false, undefined, undefined, undefined, 1);
+        push_plane(vertices, x, y, z, c, lm, n, dirs[0] > dirs[1], false, undefined, undefined, undefined, QUAD_FLAGS.NORMAL_UP);
     } else {
         push_plant(block, vertices, world, lightmap, x, y, z);
     }
