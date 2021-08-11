@@ -53,7 +53,7 @@ class Particles_Block_Destroy {
             p.z = p.z / d * p.speed;
             this.particles.push(p);
         }
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new GeometryTerrain(GeometryTerrain.convertFrom12(this.vertices));
 
     }
 
@@ -75,7 +75,7 @@ class Particles_Block_Destroy {
             p.gravity -= delta / 250000;
         }
         //
-        this.buffer.updateInternal(this.vertices);
+        this.buffer.updateInternal(GeometryTerrain.convertFrom12(this.vertices));
         //
         mat4.identity(modelMatrix);
         var a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
@@ -87,7 +87,10 @@ class Particles_Block_Destroy {
     }
 
     destroy(render) {
-        this.buffer.destroy();
+        if (this.buffer) {
+            this.buffer.destroy();
+            this.buffer = null;
+        }
     }
 
     isAlive() {
