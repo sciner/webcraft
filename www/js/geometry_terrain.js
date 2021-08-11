@@ -4,15 +4,14 @@ class GeometryTerrain {
         this.updateID = 0;
         this.uploadID = -1;
 
-        this.strideFloats = 21;
+        this.strideFloats = GeometryTerrain.strideFloats;
         this.stride = this.strideFloats * 4;
 
-        // if (vertices instanceof Array) {
-        //     this.data = new Float32Array(vertices);
-        // } else {
-        //     this.data = vertices;
-        // }
-        this.data = GeometryTerrain.convertFrom12(vertices);
+        if (vertices instanceof Array) {
+            this.data = new Float32Array(vertices);
+        } else {
+            this.data = vertices;
+        }
         this.size = this.data.length / this.strideFloats;
 
         this.glSize = 0;
@@ -93,14 +92,13 @@ class GeometryTerrain {
     }
 
     updateInternal(data) {
-        // if (data) {
-        //     if (data instanceof Array) {
-        //         this.data = new Float32Array(data);
-        //     } else {
-        //         this.data = data;
-        //     }
-        // }
-        this.data = GeometryTerrain.convertFrom12(data);
+        if (data) {
+            if (data instanceof Array) {
+                this.data = new Float32Array(data);
+            } else {
+                this.data = data;
+            }
+        }
         this.size = this.data.length / this.strideFloats;
         this.updateID++;
     }
@@ -135,7 +133,7 @@ class GeometryTerrain {
     static convertFrom12(vertices) {
         const oldStride = 12;
         const len = vertices.length / oldStride / 6;
-        const newArr = new Float32Array(len * 21);
+        const newArr = new Float32Array(len * GeometryTerrain.strideFloats);
         let k = 0;
         for (let j = 0; j < vertices.length; j += oldStride * 6) {
             let du = 0, dv = 0, dd = 0, d0 = 0;
@@ -207,4 +205,6 @@ class GeometryTerrain {
 
         return newArr;
     }
+
+    static strideFloats = 21;
 }

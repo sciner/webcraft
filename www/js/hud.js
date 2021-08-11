@@ -282,7 +282,7 @@ HUD.prototype.makeInfo = function() {
     //
     var quads_length_total = Game.world.chunkManager.vertices_length_total;
     this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-        ' / ' + Math.round(quads_length_total * 21 * 4 / 1024 / 1024) + 'Mb';
+        ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
     //
     // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
     // Console =)
