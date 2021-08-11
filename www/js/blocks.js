@@ -225,7 +225,7 @@ BLOCK.TNT = {
 	}
 };
 
-// Листья дуба
+// Листья дерева
 BLOCK.WOOD_LEAVES = {
     id: 196,
     inventory_icon_id: 3403,
@@ -233,6 +233,16 @@ BLOCK.WOOD_LEAVES = {
     transparent: true,
     sound: 'webcraft:block.grass',
     texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 3]; }
+};
+
+// Листья дуба
+BLOCK.OAK_LEAVES = {
+    id: 233,
+    inventory_icon_id: 3403,
+    spawnable: true,
+    transparent: true,
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [ 23, 18]; }
 };
 
 // Листья ели

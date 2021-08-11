@@ -64,6 +64,7 @@ var blocks = {
     WOOD_LEAVES:    BLOCK.WOOD_LEAVES,
     WOOD_ACACIA:    BLOCK.WOOD_ACACIA,
     SPRUCE_LEAVES:  BLOCK.SPRUCE_LEAVES,
+    OAK_LEAVES:     BLOCK.OAK_LEAVES,
     LEAVES2:        BLOCK.LEAVES2,
     LEAVES_ACACIA:  BLOCK.LEAVES_ACACIA,
     STILL_WATER:    BLOCK.STILL_WATER,
@@ -280,7 +281,8 @@ BIOMES.GRASSLAND = {
     block: blocks.DIRT,
     code:       'GRASSLAND',
     color:      '#98a136',
-    dirt_color: new Color(805 / 1024, 850 / 1024, 0, 0),
+    dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
+    // dirt_color: new Color(805 / 1024, 850 / 1024, 0, 0),
     title:      'ТРАВЯНАЯ ЗЕМЛЯ',
     max_height: 18,
     dirt_block: [blocks.DIRT],
@@ -291,6 +293,12 @@ BIOMES.GRASSLAND = {
             {percent: .95, block: blocks.GRASS},
             {percent: .025, block: blocks.TULIP},
             {percent: .025, block: blocks.DANDELION}
+        ]
+    },
+    trees:      {
+        frequency: TREE_FREQUENCY / 10,
+        list: [
+            {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     }
 };
@@ -344,7 +352,8 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
     block: blocks.BRICK,
     code:       'TROPICAL_SEASONAL_FOREST',
     color:      '#008456',
-    dirt_color: new Color(900 / 1024, 965 / 1024, 0, 0),
+    dirt_color: new Color(900 / 1024, 900 / 1024, 0, 0),
+    // dirt_color: new Color(900 / 1024, 965 / 1024, 0, 0),
     title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
     max_height: 32,
     dirt_block: [blocks.DIRT],
@@ -352,7 +361,8 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
         frequency: TREE_FREQUENCY / 2,
         list: [
             {percent: 0.01, trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.OAK_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            // {percent: 0.99, trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
