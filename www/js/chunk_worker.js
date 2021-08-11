@@ -366,6 +366,10 @@ Chunk.prototype.buildVertices = function() {
             list: [],
             is_transparent: true
         },
+        doubleface: {
+            list: [],
+            is_transparent: true
+        },
     }
 
     var neighbour_chunks = {
@@ -394,6 +398,14 @@ Chunk.prototype.buildVertices = function() {
                 }
                 if(block.id == BLOCK.AIR.id) {
                     continue;
+                }
+                let group = 'regular';
+                // make vertices array
+                if([200, 202].indexOf(block.id) >= 0) {
+                    // если это блок воды
+                    group = 'transparent';
+                } else if(block.style == 'planting') {
+                    group = 'doubleface';
                 }
                 // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока
                 var neighbours = {UP: null, DOWN: null, FORWARD: null, BACK: null, LEFT: null, RIGHT: null};
@@ -495,27 +507,14 @@ Chunk.prototype.buildVertices = function() {
                 if(block.fluid) {
                     this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                 }
+                if(!block.hasOwnProperty('vertices')) {
+                    block = this.blocks[x][z][y] = Object.create(block);
+                    block.vertices = [];
+                    BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
+                }
                 world.blocks_pushed++;
-                // make vertices array
-                if([200, 202].indexOf(block.id) >= 0) {
-                    // если это блок воды
-                    if(!block.hasOwnProperty('vertices')) {
-                        block = this.blocks[x][z][y] = Object.create(block);
-                        block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
-                    }
-                    if(block.vertices.length > 0) {
-                        this.vertices.transparent.list.push(...block.vertices);
-                    }
-                } else {
-                    if(!block.hasOwnProperty('vertices')) {
-                        block = this.blocks[x][z][y] = Object.create(block);
-                        block.vertices = [];
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
-                    }
-                    if(block.vertices.length > 0) {
-                        this.vertices.regular.list.push(...block.vertices);
-                    }
+                if(block.vertices.length > 0) {
+                    this.vertices[group].list.push(...block.vertices);
                 }
             }
         }

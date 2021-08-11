@@ -56,7 +56,7 @@ function World(saved_state, connectedCallback) {
     setInterval(function() {
         console.log('Autosave ... OK');
         Game.saves.save(that);
-    }, 30000);
+    }, 60000 * 5);
 
 }
 // Draw
