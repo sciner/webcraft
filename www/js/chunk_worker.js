@@ -11,7 +11,6 @@ var CHUNK_SIZE_Z        = null;
 var all_blocks          = []; // 1. All blocks
 var blocks              = [];
 var plant_blocks        = []; // 2. Plants
-var banned_blocks       = [];
 var chunks              = {};
 var terrainGenerator    = null;
 
@@ -464,7 +463,8 @@ async function importModules() {
         blocks = module.blocks;
     });
     // load module
-    await import("./terrain_generator/biome2.js").then(module => {
+    // await import("./terrain_generator/biome2.js").then(module => {
+    await import("./terrain_generator/flat.js").then(module => {
         terrainGenerator = new module.default();
     });
     // Init vars
@@ -484,13 +484,6 @@ async function importModules() {
         delete(b.texture);
         plant_blocks.push(b);
     }
-    // 3. Banned blocks
-    banned_blocks = [
-        BLOCK.DUMMY.id,
-        BLOCK.STILL_WATER.id,
-        BLOCK.ICE.id,
-        BLOCK.ICE2.id
-    ];
     // Run queue items
     for(var item of queue) {
         await onmessage(item);

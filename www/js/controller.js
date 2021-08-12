@@ -50,11 +50,9 @@ var gameCtrl = function($scope, $timeout) {
         loading: true,
         open: function() {
             $scope.current_window = 'skin';
-            // this.visible = true;
         },
         close: function() {
             $scope.current_window = 'main';
-            // this.visible = false;
         },
         next: function() {
             this.index++;
