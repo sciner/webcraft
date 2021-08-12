@@ -176,11 +176,11 @@ BLOCK.DIRT = {
     sound: 'webcraft:block.grass',
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP && lit )
-            return [ 0, 0 ];
+            return [ 0, 16 ];
         else if(dir == DIRECTION.DOWN || !lit )
             return [ 2, 0 ];
         else
-            return [ 3, 0 ];
+            return [ 2, 16 ];
     }
 };
 
@@ -720,7 +720,7 @@ BLOCK.GRASS = {
     style: 'planting',
     sound: 'webcraft:block.grass',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 2];
+        return [4, 16];
     }
 };
 
