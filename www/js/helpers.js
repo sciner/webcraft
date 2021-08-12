@@ -21,37 +21,37 @@ export class Vector {
     add(vec) {
         return new Vector( this.x + vec.x, this.y + vec.y, this.z + vec.z );
     }
-    
+
     sub(vec) {
         return new Vector( this.x - vec.x, this.y - vec.y, this.z - vec.z );
     }
-    
+
     mul(n) {
         return new Vector( this.x*n, this.y*n, this.z*n );
     }
-    
+
     length() {
         return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
     }
-    
+
     distance(vec) {
         return this.sub( vec ).length();
     }
-    
+
     normal() {
         if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector( 0, 0, 0 );
         var l = this.length();
         return new Vector( this.x/l, this.y/l, this.z/l );
     }
-    
+
     dot(vec) {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
-    
+
     toArray() {
         return [ this.x, this.y, this.z ];
     }
-    
+
     toString() {
         return '(' + this.x + ',' + this.y + ',' + this.z + ')';
     }
@@ -99,7 +99,7 @@ export class Helpers {
     }
 
     // str byteToHex(uint8 byte)
-    // converts a single byte to a hex string 
+    // converts a single byte to a hex string
     static byteToHex(byte) {
         return ('0' + byte.toString(16)).slice(-2);
     }
@@ -116,8 +116,8 @@ export class Helpers {
     static distance(p, q) {
         var dx   = p.x - q.x;
         var dy   = p.y - q.y;
-        var dz   = p.z - q.z;         
-        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz); 
+        var dz   = p.z - q.z;
+        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
         return dist;
     }
 
@@ -222,17 +222,17 @@ export class Helpers {
     static deg2rad(degrees) {
         return degrees * (Math.PI / 180);
     }
-    
+
     static rad2deg(radians) {
         return radians * 180 / Math.PI;
     }
-    
+
     static loadJSON(url, callback) {
         loadText(url, function(text) {
             callback(JSON.parse(text));
         });
     }
-    
+
     static saveJSON(data, filename) {
         if(!data) {
             console.error('No data')
@@ -324,7 +324,7 @@ export class Helpers {
 
 export class Color {
 
-    consdtructor(r, g, b, a) {
+    constructor(r, g, b, a) {
         this.r = r;
         this.g = g;
         this.b = b;
@@ -338,7 +338,7 @@ export class Color {
         this.a += color.a;
         return this;
     }
-    
+
     divide(color) {
         this.r /= color.r;
         this.g /= color.g;
@@ -346,7 +346,7 @@ export class Color {
         this.a /= color.a;
         return this;
     }
-    
+
     toFloat()  {
         return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
     }
@@ -372,7 +372,7 @@ export class MyArray extends Array {
     }
 }
 
-function loadText(url, callback) {   
+function loadText(url, callback) {
     var xobj = new XMLHttpRequest();
     xobj.overrideMimeType('application/json');
     xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
@@ -382,7 +382,7 @@ function loadText(url, callback) {
             callback(xobj.responseText);
         }
     };
-    xobj.send(null);  
+    xobj.send(null);
 }
 
 export class Vector4 {
