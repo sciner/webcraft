@@ -463,8 +463,8 @@ async function importModules() {
         blocks = module.blocks;
     });
     // load module
-    // await import("./terrain_generator/biome2.js").then(module => {
-    await import("./terrain_generator/flat.js").then(module => {
+    // await import("./terrain_generator/flat.js").then(module => {
+    await import("./terrain_generator/biome2.js").then(module => {
         terrainGenerator = new module.default();
     });
     // Init vars
