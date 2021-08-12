@@ -3,36 +3,32 @@ importScripts(
     '../vendors/alea.js'
 );
 
-function Terrain_Generator() {
-    this.seed = 0;
-    this.noisefn = noise.perlin2;
-}
+class Terrain_Generator {
 
-Terrain_Generator.prototype.generate = function(chunk) {
+    constructor() {
+        this.seed = 0;
+        this.noisefn = noise.perlin2;
+    }
 
-    const seed = chunk.id;
-    noise.seed(this.seed);
-    
-    var aleaRandom = new alea(seed);
-    
-    var r = aleaRandom.double();
+    generate(chunk) {
 
-    for(var x = 0; x < chunk.size.x; x++) {
-        for(var y = 0; y < chunk.size.y; y++) {
-            // AIR
-            for(var z = 0; z < chunk.size.z; z++) {
-                chunk.blocks[x][y][z] = blocks.AIR;
+        const seed = chunk.id;
+        noise.seed(this.seed);
+
+        for(var x = 0; x < chunk.size.x; x++) {
+            for(var y = 0; y < chunk.size.y; y++) {
+                // AIR
+                for(var z = 0; z < chunk.size.z; z++) {
+                    chunk.blocks[x][y][z] = blocks.AIR;
+                }
+                // BEDROCK
+                for(var z = 0; z < 1; z++) {
+                    chunk.blocks[x][y][z] = blocks.BEDROCK;
+                }
+
             }
-            // BEDROCK
-            for(var z = 0; z < 1; z++) {
-                var ax = x + chunk.coord.x;
-                var ay = y + chunk.coord.y;
-                chunk.blocks[x][y][z] = blocks.BEDROCK;
-            }
-
-            var value = this.noisefn((chunk.coord.x + x) / 64, (chunk.coord.y + y) / 64);
-
         }
+    
     }
 
 }

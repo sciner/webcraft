@@ -247,7 +247,7 @@ export class Window {
             var old_hover = w.hover;
             w.hover = false;
             if(w.visible) {
-                var e2 = Object.assign({}, e);
+                var e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
@@ -268,7 +268,7 @@ export class Window {
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
-                var e2 = Object.assign({}, e);
+                var e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
@@ -283,7 +283,7 @@ export class Window {
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
-                var e2 = Object.assign({}, e);
+                var e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
