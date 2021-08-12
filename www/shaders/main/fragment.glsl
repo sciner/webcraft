@@ -33,6 +33,7 @@ in float v_fogDepth;
 uniform float u_time;
 uniform float u_mipmap;
 uniform float u_blockSize;
+uniform float u_opaqueThreshold;
 
 out vec4 outColor;
 
@@ -62,6 +63,13 @@ void main() {
         // Read texture
         vec4 color = texture(u_texture, texc * mipScale + mipOffset);
         if(color.a < 0.1) discard;
+        if (u_opaqueThreshold > 0.1) {
+            if (color.a < u_opaqueThreshold) {
+                discard;
+            } else {
+                color.a = 1.0;
+            }
+        }
 
         if (v_color.r >= 0.0) {
             vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize, texc.y) * mipScale + mipOffset);
