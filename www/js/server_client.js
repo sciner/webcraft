@@ -99,7 +99,6 @@ export default class ServerClient {
                         gl:             Game.world.renderer.gl,
                         id:             data.id,
                         itsme:          data.id == Game.world.server.id,
-                        // angles:         data.angles,
                         pos:            data.pos,
                         pitch:          data.angles ? data.angles[0] : 0,
                         yaw:            data.angles ? data.angles[2] : 0,
@@ -121,7 +120,6 @@ export default class ServerClient {
                             pl.moving = true;
                         }
                         pl.pos      = data.pos;
-                        // pl.angles   = data.angles;
                         pl.pitch    = data.angles[0];
                         pl.yaw      = data.angles[2];
                         if(pl.moving_timeout) {
