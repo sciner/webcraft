@@ -20,16 +20,16 @@ export default class Particles_Raindrop {
             // случайная позиция в текстуре
             var cx = c[0] + Math.random() * (half * 3);
             var cy = c[1] + Math.random() * (half * 3);
-            var c_half = [cx, cy, cx + half, cy + half];
+            var c_half = [cx - c[2]/2 + half/2, cy - c[3]/2 + half/2, half, half];
             // случаная позиция частицы (в границах блока)
             var x = (Math.random() - Math.random()) * 16;
             var y = (Math.random() - Math.random()) * 16;
             var z = (Math.random() - Math.random()) * 16;
-            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null);
+            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
         }
         //
         this.vertices = new Float32Array(this.vertices);
-        this.buffer = new GeometryTerrain(GeometryTerrain.convertFrom12(this.vertices));
+        this.buffer = new GeometryTerrain(this.vertices);
     }
 
     // Draw
