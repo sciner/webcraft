@@ -98,7 +98,7 @@ export default class ChestWindow extends Window {
         this.clear();
         for(let k of Object.keys(chest.slots)) {
             let item = chest.slots[k];
-            var block = Object.assign({}, BLOCK.fromId(item.id));
+            var block = {...BLOCK.fromId(item.id)};
             block = Object.assign(block, item);
             this.chest.slots[k].setItem(block);
         }

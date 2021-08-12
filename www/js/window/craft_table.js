@@ -118,7 +118,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             // right button (divide to 2)
             if(e.button == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
                 var split_count = Math.ceil(targetItem.count / 2);
-                dragItem = Object.assign({}, targetItem);
+                dragItem = {...targetItem};
                 dragItem.count = split_count;
                 targetItem.count -= split_count;
                 this.setItem(targetItem);
@@ -242,7 +242,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             } else {
                 // Перетаскивание в пустую ячейку
                 if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                    var newItem = Object.assign({}, dropData.item);
+                    var newItem = {...dropData.item};
                     newItem.count = 1;
                     that.setItem(newItem);
                     dropData.item.count--;

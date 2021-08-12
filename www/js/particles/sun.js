@@ -8,7 +8,7 @@ export default class Particles_Sun {
         this.life       = 1;
         var lm          = new Color(0, 0, 0, 0);
         var n           = NORMALS.UP; // normal for lithning
-        this.pos        = Object.assign({}, pos);
+        this.pos        = {...pos};
         this.vertices   = [];
         this.particles  = [];
         //

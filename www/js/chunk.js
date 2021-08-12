@@ -75,7 +75,7 @@ export default class Chunk {
         }
         const x = shift.x - this.shift_orig.x;
         const z = shift.z - this.shift_orig.z;
-        this.shift_orig = Object.assign({}, shift);
+        this.shift_orig = {...shift};
         var points = 0;
         for(let key of Object.keys(this.#vertices)) {
             let v = this.#vertices[key];
@@ -224,7 +224,7 @@ export default class Chunk {
         };
 
         if(!is_modify) {
-            var type                        = Object.assign({}, BLOCK[type.name]);
+            var type                        = {...BLOCK[type.name]};
             this.blocks[x][z][y]            = type;
             this.blocks[x][z][y].power      = power;
             this.blocks[x][z][y].rotate     = rotate;

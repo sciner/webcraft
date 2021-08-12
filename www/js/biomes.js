@@ -15,19 +15,19 @@ var biome_stat = {
 var all_blocks = [];
 
 for(var b of BLOCK.getAll()) {
-    b = Object.assign({}, b), 
+    b = {...b},
     delete(b.texture);
     all_blocks.push(b);
 }
 for(var k in all_blocks) {
-    all_blocks[k] = Object.assign({}, all_blocks[k]);
+    all_blocks[k] = {...all_blocks[k]};
     delete(all_blocks[k].texture);
 }
 
 // 2. Plants
 var plant_blocks = []
 for(var b of BLOCK.getPlants()) {
-    b = Object.assign({}, b), 
+    b = {...b},
     delete(b.texture);
     plant_blocks.push(b);
 }
@@ -82,7 +82,7 @@ export var blocks = {
 
 for(let key of Object.keys(blocks)) {
     let b = blocks[key];
-    b = Object.assign({}, b), 
+    b = {...b},
     delete(b.texture);
     blocks[key] = b;
 }
