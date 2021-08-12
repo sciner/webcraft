@@ -56,10 +56,3 @@ export default class Saves {
     }
 
 }
-
-/*
-// Export to node.js
-if(typeof(exports) != 'undefined') {
-	exports.Saves = Saves;
-}
-*/

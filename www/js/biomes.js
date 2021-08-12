@@ -32,14 +32,6 @@ for(var b of BLOCK.getPlants()) {
     plant_blocks.push(b);
 }
 
-// 3. Banned blocks
-var banned_blocks = [
-    BLOCK.DUMMY.id,
-    BLOCK.STILL_WATER.id,
-    BLOCK.ICE.id,
-    BLOCK.ICE2.id
-];
-
 // 4. Blocks used for generators
 export var blocks = {
     DIRT:           BLOCK.DIRT,
@@ -401,7 +393,6 @@ BIOMES.TROPICAL_RAIN_FOREST = {
 BIOMES.getBiome = function(v_height, humidity, equator) {
 
     let height = v_height + 0.;
-    // height = (height - .19) * 5.;
 
     if(height < biome_stat.height.min) biome_stat.height.min = height;
     if(height > biome_stat.height.max) biome_stat.height.max = height;
