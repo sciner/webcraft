@@ -1,49 +1,65 @@
-function Saves(callback) {
-    var that = this;
-    this.table_name = 'worlds';
-    DB.open(this.table_name, function(instance) {
-        that.DB = instance;
-        callback(that);
-    });
-}
+import DB from './db.js';
 
-Saves.prototype.load = function(world_name, callback, callback_error) {
-    var that = this;
-    if(!that.DB) {
-        throw('DB not inited');
-    }
-    try {
-        that.DB.get(this.table_name, world_name, function(row) {
-            callback(row);
-        }, function(err) {     
-            // console.error(err);
-            callback_error(err);
-        });
-        return true;
-    } catch(e) {
-        console.error(e);
-        return false;
-    }
-}
+export default class Saves {
 
-Saves.prototype.addNew = function(row, callback) {
-    DB.put(this.table_name, row);
-    if(callback) {
-        callback();
+    // Constructor
+    constructor(callback) {
+        var that = this;
+        this.table_name = 'worlds';
+        DB.open(this.table_name, function(instance) {
+            that.DB = instance;
+            callback(that);
+        });    
     }
-};
 
-Saves.prototype.save = function(world, callback) {
-    var that = this;
-    if(!that.DB) {
-        throw('DB not inited');
+    // Load
+    load(world_name, callback, callback_error) {
+        var that = this;
+        if(!that.DB) {
+            throw('DB not inited');
+        }
+        try {
+            that.DB.get(this.table_name, world_name, function(row) {
+                callback(row);
+            }, function(err) {     
+                callback_error(err);
+            });
+            return true;
+        } catch(e) {
+            console.error(e);
+            return false;
+        }
     }
-    var t = performance.now();
-    world.exportJSON(function(row) {
-        DB.put(that.table_name, row);
-        t = performance.now() - t;
+
+    // Add new
+    addNew(row, callback) {
+        DB.put(this.table_name, row);
         if(callback) {
             callback();
         }
-    });
+    };
+
+    // Save
+    save(world, callback) {
+        var that = this;
+        if(!that.DB) {
+            throw('DB not inited');
+        }
+        var t = performance.now();
+        world.exportJSON(function(row) {
+            DB.put(that.table_name, row);
+            t = performance.now() - t;
+            if(callback) {
+                callback();
+            }
+        });
+    }
+
 }
+
+/*
+// Export to node.js
+if(typeof(exports) != 'undefined') {
+	exports.Saves = Saves;
+}
+*/

@@ -1,4 +1,6 @@
-class Sounds {
+import {Helpers} from "./helpers.js";
+
+export default class Sounds {
 
     constructor() {
         var that = this;

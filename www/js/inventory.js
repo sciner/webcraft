@@ -1,6 +1,10 @@
+import {BLOCK} from "./blocks.js";
+import {CraftTable, InventoryWindow, ChestWindow} from "./window/index.js";
+import {Vector} from "./helpers.js";
+
 // Player inventory
 
-function Inventory(player, hud, hotbar) {
+export default function Inventory(player, hud, hotbar) {
     var that            = this;
     this.player         = player;
     this.hud            = hud;

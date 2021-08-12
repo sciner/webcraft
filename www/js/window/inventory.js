@@ -1,4 +1,9 @@
-class InventoryWindow extends Window {
+import {Window, Label, Button} from "../../tools/gui/wm.js";
+import {CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableResultSlot} from "./craft_table.js";
+import RECIPES from "../recipes.js";
+import {BLOCK} from "../blocks.js";
+
+export default class InventoryWindow extends Window {
 
     constructor(x, y, w, h, id, title, text, inventory) {
 

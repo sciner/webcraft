@@ -1,3 +1,5 @@
+import {Color} from './helpers.js';
+
 const CACTUS_MAX_HEIGHT     = 7;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
@@ -39,7 +41,7 @@ var banned_blocks = [
 ];
 
 // 4. Blocks used for generators
-var blocks = {
+export var blocks = {
     DIRT:           BLOCK.DIRT,
     GLOWSTONE:      BLOCK.GLOWSTONE,
     COBBLESTONE:    BLOCK.COBBLESTONE,
@@ -85,7 +87,7 @@ for(let key of Object.keys(blocks)) {
     blocks[key] = b;
 }
 
-const BIOMES = {};
+export const BIOMES = {};
 
 BIOMES.OCEAN = {
     block:      blocks.STILL_WATER,
@@ -282,7 +284,6 @@ BIOMES.GRASSLAND = {
     code:       'GRASSLAND',
     color:      '#98a136',
     dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
-    // dirt_color: new Color(805 / 1024, 850 / 1024, 0, 0),
     title:      'ТРАВЯНАЯ ЗЕМЛЯ',
     max_height: 18,
     dirt_block: [blocks.DIRT],

@@ -59,3 +59,5 @@ const DB = {
         return store.delete(id);
     }
 };
+
+export default DB;

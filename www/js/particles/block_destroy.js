@@ -1,4 +1,9 @@
-class Particles_Block_Destroy {
+import {TX_CNT, DIRECTION, NORMALS, Vector, Color} from '../helpers.js';
+import {BLOCK} from '../blocks.js';
+import {push_plane} from '../blocks_func.js';
+import GeometryTerrain from "../geometry_terrain.js";
+
+export default class Particles_Block_Destroy {
 
     // Constructor
     constructor(gl, block, pos) {
@@ -19,7 +24,7 @@ class Particles_Block_Destroy {
             this.life = 0;
             return;
         }
-        var c           = calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
+        var c           = BLOCK.calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
             pos.y + .5,

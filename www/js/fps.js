@@ -1,5 +1,5 @@
 // FPS
-var fps = {
+export const fps = {
     cnt:    0,
     fps:    0,
     avg:    0,

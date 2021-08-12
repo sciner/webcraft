@@ -1,4 +1,6 @@
-class Particles_Raindrop {
+import {TX_CNT, DIRECTION, NORMALS, Vector, Color} from '../helpers.js';
+
+export default class Particles_Raindrop {
 
     // Constructor
     constructor(gl, pos) {
@@ -7,7 +9,7 @@ class Particles_Raindrop {
         var lm          = new Color(0, 0, 0, 0);
         var n           = NORMALS.UP; // normal for lithning
         this.texture    = BLOCK.STILL_WATER.texture;
-        var c           = calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
+        var c           = BLOCK.calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.vertices   = [];
         this.particles  = [];

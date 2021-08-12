@@ -1,4 +1,7 @@
-RECIPES = {
+import {Helpers} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
+
+const RECIPES = {
     all:             [],
     crafting_shaped: {
         list: [],
@@ -73,10 +76,12 @@ RECIPES = {
             }
         }
     }
-};
+}
 
 Helpers.loadJSON('../data/recipes.json', function(json) {
     for(var recipe of json) {
         RECIPES.add(recipe);
     }
 });
+
+export default RECIPES;

@@ -1,4 +1,6 @@
-function Chat() {
+import {BLOCK} from "./blocks.js";
+
+export default function Chat() {
     this.active                 = false;
     this.buffer                 = [];
     this.history_max_messages   = 64;

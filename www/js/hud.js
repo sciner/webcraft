@@ -1,13 +1,10 @@
-const HUD_WIDTH             = 700;
-const HUD_HEIGHT            = 700;
+import {WindowManager} from "../tools/gui/wm.js";
+import {MainMenu} from "./window/index.js";
+import {fps} from "./fps.js";
+import GeometryTerrain from "./geometry_terrain.js";
+import {Helpers} from './helpers.js';
 
-function requestCORSIfNotSameOrigin(img, url) {
-    if ((new URL(url, window.location.href)).origin !== window.location.origin) {
-        img.crossOrigin = '';
-    }
-}
-
-function HUD(width, height) {
+export default function HUD(width, height) {
 
     // Create canvas used to draw HUD
     var canvas                      = this.canvas = document.createElement('canvas');
@@ -33,8 +30,6 @@ function HUD(width, height) {
     this.items                      = [];
     this.prevInfo                   = null;
     this.prevDrawTime               = 0;
-
-    // var HUD = this;
 
     // Splash screen (Loading...)
     this.splash = {
@@ -129,15 +124,6 @@ function HUD(width, height) {
     // Main menu
     this.frmMainMenu = new MainMenu(10, 10, 352, 332, 'frmMainMenu', null, null, this)
     wm.add(this.frmMainMenu);
-
-    // Debug layer
-    /*
-        this.lblDebug = new Label(15, 15, 500, 500, 'lblDebug');
-        this.lblDebug.style.font.size = 25;
-        this.lblDebug.style.color = '#ffff00ff';
-        this.lblDebug.setText('mat: CRAFTING_TABLE; id: 58');
-        wm.add(this.lblDebug);
-    */
 
 }
 
@@ -278,7 +264,7 @@ HUD.prototype.makeInfo = function() {
     }
     // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
     // Chunks inited
-    this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + CHUNK_RENDER_DIST + ')';
+    this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
     //
     var quads_length_total = Game.world.chunkManager.vertices_length_total;
     this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +

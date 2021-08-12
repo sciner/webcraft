@@ -1,4 +1,10 @@
-function PickAt(render, gl) {
+import {Vector} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
+import GeometryTerrain from "./geometry_terrain.js";
+
+const PICKAT_DIST = 5;
+
+export default function PickAt(render, gl) {
     this.render = render;
     this.gl = gl;
     this.callbacks = [];

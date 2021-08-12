@@ -1,4 +1,8 @@
-class ServerClient {
+import {Helpers} from "./helpers.js";
+import PlayerModel from "./player_model.js";
+import {BLOCK} from "./blocks.js";
+
+export default class ServerClient {
 
     // System
     static EVENT_HELO                   = 1;

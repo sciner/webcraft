@@ -1,3 +1,7 @@
+import {Window, Label, Button} from "../../tools/gui/wm.js";
+import RECIPES from "../recipes.js";
+import {BLOCK} from "../blocks.js";
+
 class CraftTableSlot extends Label {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
@@ -82,7 +86,7 @@ class CraftTableSlot extends Label {
 
 }
 
-class CraftTableInventorySlot extends CraftTableSlot {
+export class CraftTableInventorySlot extends CraftTableSlot {
 
     constructor(x, y, w, h, id, title, text, ct, slot_index) {
         
@@ -265,7 +269,7 @@ class CraftTableInventorySlot extends CraftTableSlot {
 }
 
 // Ячейка рецепта
-class CraftTableRecipeSlot extends CraftTableInventorySlot {
+export class CraftTableRecipeSlot extends CraftTableInventorySlot {
 
     // Вызывается после изменения любой из её ячеек
     setItem(item) {
@@ -275,7 +279,8 @@ class CraftTableRecipeSlot extends CraftTableInventorySlot {
 
 }
 
-class CraftTableResultSlot extends CraftTableSlot {
+//
+export class CraftTableResultSlot extends CraftTableSlot {
 
     constructor(x, y, w, h, id, title, text, ct) {
 
@@ -348,8 +353,7 @@ class CraftTableResultSlot extends CraftTableSlot {
     
 }
 
-
-class CraftTable extends Window {
+export class CraftTable extends Window {
 
     constructor(x, y, w, h, id, title, text, inventory) {
 

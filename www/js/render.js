@@ -1,5 +1,10 @@
 "use strict";
 
+import PickAt from "./pickat.js";
+import HUD from "./hud.js";
+import {Helpers} from "./helpers.js";
+import {CHUNK_SIZE_X} from "./blocks.js";
+
 /**
 * Renderer
 *
@@ -13,7 +18,6 @@ const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
 const FOV_WIDE              = FOV_NORMAL * 1.15;
 const FOV_ZOOM              = FOV_NORMAL * ZOOM_FACTOR;
-const MAX_DIST_FOR_SHIFT    = 800;
 const RENDER_DISTANCE       = 800;
 
 var settings = {
@@ -34,13 +38,14 @@ var currentRenderState = {
 };
 
 // Creates a new renderer with the specified canvas as target.
-function Renderer(world, renderSurfaceId, settings, initCallback) {
+export default function Renderer(world, renderSurfaceId, settings, initCallback) {
 
     var that                = this;
     that.canvas             = document.getElementById(renderSurfaceId);
 	that.canvas.renderer    = that;
 	this.skyBox             = null;
     this.videoCardInfoCache = null;
+    this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
     // Create projection and view matrices
     that.projMatrix         = mat4.create();
@@ -403,7 +408,7 @@ Renderer.prototype.draw = function(delta) {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(...currentRenderState.fogColor);
     gl.uniform4fv(this.u_fogColor, currentRenderState.fogColor);
-    gl.uniform1f(this.u_chunkBlockDist, CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2);
+    gl.uniform1f(this.u_chunkBlockDist, this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // 1. Draw skybox

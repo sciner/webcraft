@@ -1,17 +1,21 @@
-var CHUNK_RENDER_DIST   = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+import {Vector, MyArray} from "./helpers.js";
+import Chunk from "./chunk.js";
+import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Z} from "./blocks.js";
+import ServerClient from "./server_client.js";
 
 //
-function ChunkManager(world) {
+export function ChunkManager(world) {
     var that                    = this;
+    this.CHUNK_RENDER_DIST      = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
     this.chunks                 = {};
     this.chunks_prepare         = {};
     this.modify_list            = {};
     this.world                  = world;
-    this.margin                 = Math.max(CHUNK_RENDER_DIST + 1, 1);
+    this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
     this.rendered_chunks        = {fact: 0, total: 0};
     this.update_chunks          = true;
     this.vertices_length_total  = 0;
-    this.worker                 = new Worker('./js/chunk_worker.js');
+    this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
     // Message received from worker
     this.worker.onmessage = function(e) {
         const cmd = e.data[0];
@@ -45,8 +49,8 @@ function ChunkManager(world) {
 ChunkManager.prototype.setRenderDist = function(value) {
     value = Math.max(value, 4);
     value = Math.min(value, 50);
-    CHUNK_RENDER_DIST = value;
-    this.margin = Math.max(CHUNK_RENDER_DIST + 1, 1)
+    this.CHUNK_RENDER_DIST = value;
+    this.margin = Math.max(this.CHUNK_RENDER_DIST + 1, 1)
 }
 
 // toggleUpdateChunks
@@ -363,7 +367,7 @@ ChunkManager.prototype.setBlock = function(x, y, z, block, is_modify, power, rot
             action = 'place';
             b = block;
         }
-        b = BLOCK_BY_ID[b.id];
+        b = BLOCK.BLOCK_BY_ID[b.id];
         if(b.hasOwnProperty('sound')) {
             Game.sounds.play(b.sound, action);
         }
