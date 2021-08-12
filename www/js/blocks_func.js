@@ -899,7 +899,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
         lm.a, lm.a, lm.a, lm.a, 0);
 
     // поверхность нижней ступени
-    bH = 0.5;
+    const bH = 0.5;
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.UP;
     vertices.push(x + .5, y + .5, z + bH,
