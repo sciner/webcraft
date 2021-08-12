@@ -38,7 +38,7 @@ var currentRenderState = {
 
 // Creates a new renderer with the specified canvas as target.
 export default class Renderer {
-    
+
     constructor(world, renderSurfaceId, settings, initCallback) {
 
         var that                = this;
@@ -74,7 +74,6 @@ export default class Renderer {
         this.pickAt             = new PickAt(this, gl);
 
         this.useAnisotropy = settings.mipmap;
-        this.debugMipTest = false;
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
 
@@ -148,34 +147,24 @@ export default class Renderer {
                     const w = glTex.image.width;
                     canvas2d.width = w * 2;
                     canvas2d.height = w * 2;
-                    let offsetX = 0;
-                    for (let dx = 1; dx <= 16; dx *= 2) {
-                        let offsetY = 0;
-                        for (let dy = 1; dy <= 16; dy *= 2) {
-                            const test = Math.max(dx, dy);
-                            if (test === 1 || !that.debugMipTest) {
-                                context.drawImage(glTex.image, 0, 0, w, w, offsetX, offsetY, w / dx, w / dy);
-                            } else {
-                                const test = Math.max(dx, dy);
-                                if (test === 2) {
-                                    context.fillStyle = 'blue';
-                                } else if (test === 4) {
-                                    context.fillStyle = 'green';
-                                } else {
-                                    context.fillStyle = 'red';
-                                }
-                                context.fillRect(offsetX, offsetY, w / dx, w / dy);
-                            }
-                            offsetY += w / dy;
-                        }
-                        offsetX += w / dx;
+                    let offset = 0;
+                    context.drawImage(glTex.image, 0, 0);
+                    for (let dd = 2; dd <= 16; dd *= 2) {
+                        const nextOffset = offset + w * 2 / dd;
+                        context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
+                        offset = nextOffset;
+                    }
+                    offset = 0;
+                    for (let dd = 2; dd <= 16; dd *= 2) {
+                        const nextOffset = offset + w * 2 / dd;
+                        context.drawImage(canvas2d, 0, offset, w * 2, w * 2 / dd, 0, nextOffset, w * 2, w / dd);
+                        offset = nextOffset;
                     }
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas2d);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                     // canvas2d.width = 0;
                     // canvas2d.height = 0;
-                    // that.terrainTexSize *= 2;
                 } else {
                     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
