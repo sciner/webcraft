@@ -102,7 +102,7 @@ ChunkManager.prototype.draw = function(render) {
                             chunk.applyVertices();
                         }
                     }
-                    chunk.drawBufferGroup(render, group, a_pos);
+                    chunk.drawBufferGroup(group, a_pos);
                 }
             }
             if(transparent) {
