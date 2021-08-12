@@ -12,7 +12,7 @@ export const CHUNK_SIZE_Y      = 256;
 export const CHUNK_SIZE_Z      = 16;
 export const DIRT_HEIGHT       = 32;
 
-var TRANS_TEX = [4, 12];
+let TRANS_TEX = [4, 12];
 
 export class BLOCK extends BLOCK_FUNC {};
 

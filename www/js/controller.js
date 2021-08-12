@@ -1,10 +1,10 @@
 import Saves from './saves.js';
 import {Helpers} from './helpers.js';
 
-var app = angular.module('gameApp', []);
+let app = angular.module('gameApp', []);
 
-var injectParams = ['$scope', '$timeout'];
-var gameCtrl = function($scope, $timeout) {
+let injectParams = ['$scope', '$timeout'];
+let gameCtrl = function($scope, $timeout) {
 
     // Load text file
     $scope.loadTextFile = function(url) {
@@ -35,7 +35,7 @@ var gameCtrl = function($scope, $timeout) {
             localStorage.setItem('settings', JSON.stringify(this.form));
         },
         load: function() {
-            var form = localStorage.getItem('settings');
+            let form = localStorage.getItem('settings');
             if(form) {
                 this.form = JSON.parse(form);
             }
@@ -72,7 +72,7 @@ var gameCtrl = function($scope, $timeout) {
             this.close();
         },
         getById: function(skin_id) {
-            for(var item of this.list) {
+            for(let item of this.list) {
                 if(item.id == skin_id) {
                     return item;
                 }
@@ -83,16 +83,16 @@ var gameCtrl = function($scope, $timeout) {
             return './media/skins/' + skin_id + '.png';
         },
         init: function() {
-            var that = this;
+            let that = this;
             Helpers.loadJSON('/data/skins.json', function(list) {
                 that.loading = false;
-                for(var item of list) {
+                for(let item of list) {
                     item.file = that.getURLById(item.id)
                 }
                 that.list = list;
-                var s = localStorage.getItem('skin');
+                let s = localStorage.getItem('skin');
                 if(s) {
-                    for(var i in list) {
+                    for(let i in list) {
                         if(list[i].id == s) {
                             that.index = parseInt(i);
                             break;
@@ -113,11 +113,10 @@ var gameCtrl = function($scope, $timeout) {
             username: ''
         },
         submit: function() {
-            var that = this;
-            if(!that.form.username) {
+            if(!this.form.username) {
                 return false;
             }
-            localStorage.setItem('username', that.form.username);
+            localStorage.setItem('username', this.form.username);
             this.init();
         },
         init: function() {
@@ -132,8 +131,7 @@ var gameCtrl = function($scope, $timeout) {
         loading: false,
         latest_save: false,
         init: function() {
-            var that = this;
-            that.saves = new Saves(function(instance) {
+            this.saves = new Saves(function(instance) {
                 $scope.Game.saves = instance;
             });
             $scope.demoMaps.load();
@@ -144,7 +142,7 @@ var gameCtrl = function($scope, $timeout) {
     $scope.mygames = {
         list: [],
         load: function() {
-            var list = localStorage.getItem('mygames');
+            let list = localStorage.getItem('mygames');
             if(list) {
                 list = JSON.parse(list);
                 if(list) {
@@ -202,7 +200,7 @@ var gameCtrl = function($scope, $timeout) {
         map_running: false,
         list: [],
         load: function() {
-            var that = this;
+            let that = this;
             that.loading = true;
             Helpers.loadJSON('./data/demo_maps.json', function(response) {
                 $timeout(function() {
@@ -212,7 +210,7 @@ var gameCtrl = function($scope, $timeout) {
             });
         },
         run: function(item) {
-            var that = this;
+            let that = this;
             $scope.settings.save();
             that.map_running = true;
             $timeout(function() {
@@ -234,8 +232,9 @@ var gameCtrl = function($scope, $timeout) {
 gameCtrl.$inject = injectParams;
 app.controller('gameCtrl', gameCtrl);
 
-var injectParams = ['$q'];
-var directive = function($q) {
+// myEnter directive
+let myEnterInjectParams = ['$q'];
+let directive = function($q) {
     return function(scope, element, attrs) {
         element.bind('keydown keypress', function(event) {
             if(event.which === 13) {
@@ -249,5 +248,5 @@ var directive = function($q) {
         });
     };
 };
-directive.$inject = injectParams;
+directive.$inject = myEnterInjectParams;
 app.directive('myEnter', directive);

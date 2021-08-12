@@ -72,18 +72,18 @@ export default class Chat {
         if(!this.active) {
             return;
         }
-        var text = this.buffer.join('');
+        let text = this.buffer.join('');
         if(text != '' && text != '/') {
             this.messages.send(text);
             // Parse commands
-            var temp = text.split(' ');
-            var cmd = temp.shift();
+            let temp = text.split(' ');
+            let cmd = temp.shift();
             switch(cmd.trim().toLowerCase()) {
                 case '/tp': {
                     if(temp.length == 3) {
-                        var x = parseFloat(temp[0].trim());
-                        var y = parseFloat(temp[1].trim());
-                        var z = parseFloat(temp[2].trim());
+                        let x = parseFloat(temp[0].trim());
+                        let y = parseFloat(temp[1].trim());
+                        let z = parseFloat(temp[2].trim());
                         Game.world.localPlayer.pos.x = x;
                         Game.world.localPlayer.pos.y = y;
                         Game.world.localPlayer.pos.z = z;
@@ -95,7 +95,7 @@ export default class Chat {
                     break;
                 }
                 case '/help': {
-                    var commands = [
+                    let commands = [
                         '/weather (clear|rain)',
                         '/tp -> teleport',
                         '/spawnpoint',
@@ -106,8 +106,8 @@ export default class Chat {
                     break;
                 }
                 case '/spawnpoint': {
-                    var np = Game.world.localPlayer.pos;
-                    var pos = new Vector(
+                    let np = Game.world.localPlayer.pos;
+                    let pos = new Vector(
                         Math.round(np.x),
                         Math.round(Game.world.localPlayer.pos.y),
                         Math.round(Game.world.localPlayer.pos.z)
@@ -119,7 +119,7 @@ export default class Chat {
                 }
                 case '/weather': {
                     if(temp.length == 1) {
-                        var name = temp[0].trim().toLowerCase();
+                        let name = temp[0].trim().toLowerCase();
                         switch(name) {
                             case 'rain': {
                                 Game.world.setRain(true);
@@ -136,7 +136,7 @@ export default class Chat {
                     break;
                 }
                 case '/obj': {
-                    var mesh = new Mesh_Default(
+                    let mesh = new Mesh_Default(
                         Game.world.renderer.gl,
                         Game.world.localPlayer.pos,
                         '/vendors/Mickey Mouse.obj',
@@ -148,17 +148,19 @@ export default class Chat {
                 }
                 case '/give': {
                     if(temp.length >= 1) {
+                        let name = null;
+                        let cnt = 1;
                         if(temp.length == 1) {
-                            var name = temp[0].trim();
-                            var cnt = 1;
+                            name = temp[0].trim();
+                            cnt = 1;
                         } else if(temp.length == 2) {
-                            var name = temp[0].trim();
-                            var cnt = parseInt(temp[1].trim());
+                            name = temp[0].trim();
+                            cnt = parseInt(temp[1].trim());
                         } else {
-                            var name = temp[1].trim();
-                            var cnt = parseInt(temp[2].trim());
+                            name = temp[1].trim();
+                            cnt = parseInt(temp[2].trim());
                         }
-                        var block = BLOCK[name.toUpperCase()];
+                        let block = BLOCK[name.toUpperCase()];
                         if(block) {
                             block = {...block};
                             delete(block.texture);
@@ -190,15 +192,15 @@ export default class Chat {
         // Calc text size
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
-        var mt = hud.ctx.measureText('TW|');
-        var line_height = mt.actualBoundingBoxDescent + 14;
-        var y = hud.height - (top + margin + line_height);
-    
+        let mt                  = hud.ctx.measureText('TW|');
+        let line_height         = mt.actualBoundingBoxDescent + 14;
+        let y                   = hud.height - (top + margin + line_height);
+
         if(this.active) {
             hud.ctx.fillStyle = '#000000aa';
             hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, line_height);
-            var text = this.buffer.join('');
-            var how_long_open = Math.round(performance.now() - this.open_time);
+            let text = this.buffer.join('');
+            let how_long_open = Math.round(performance.now() - this.open_time);
             if(how_long_open % blink_period < blink_period * 0.5) {
                 text += '_';
             }
@@ -206,23 +208,23 @@ export default class Chat {
         }
     
         // Draw message history
-        for(var m of this.messages.list) {
-            var time_diff = performance.now() - m.time;
+        for(let m of this.messages.list) {
+            let time_diff = performance.now() - m.time;
             if(this.active || time_diff < max_show_time) {
-                var alpha = 1;
+                let alpha = 1;
                 if(!this.active) {
-                    var time_remains = max_show_time - time_diff;
+                    let time_remains = max_show_time - time_diff;
                     if(time_remains < fadeout_time) {
                         alpha = time_remains / fadeout_time;
                     }
                 }
-                var texts = m.text.split('\n');
-                for(var i in texts) {
-                    var text = texts[i];
+                let texts = m.text.split('\n');
+                for(let i in texts) {
+                    let text = texts[i];
                     if(i == 0) {
                         text = m.nickname + ': ' + text;
                     }
-                    var aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                    let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
                     hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, line_height);
                     //

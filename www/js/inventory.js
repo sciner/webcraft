@@ -7,7 +7,7 @@ import {Vector} from "./helpers.js";
 export default class Inventory {
     
     constructor(player, hud, hotbar) {
-        var that            = this;
+        let that            = this;
         this.player         = player;
         this.hud            = hud;
         this.hotbar         = hotbar;
@@ -17,10 +17,10 @@ export default class Inventory {
         this.max_count      = 36;
         this.hotbar_count   = 9;
         this.items          = []; // new Array(this.max_count);
-        for(var i = 0; i < this.max_count; i++) {
+        for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-        for(var k in Game.world.saved_state.inventory.items) {
+        for(let k in Game.world.saved_state.inventory.items) {
             if(k >= this.items.length) {
                 console.error('Limit reach of inventory');
                 break;
@@ -37,13 +37,13 @@ export default class Inventory {
         // set inventory to user
         this.player.setInventory(this);
         // make default inventory
-        for(var B of BLOCK.getAll()) {
+        for(let B of BLOCK.getAll()) {
             this.all.push(B);
         }
         //
         this.select(Game.world.saved_state.inventory.current.index);
         //
-        var image = new Image(); // new Image(40, 40); // Размер изображения
+        let image = new Image(); // new Image(40, 40); // Размер изображения
         image.onload = function() {
             that.inventory_image = image;
             that.hud.add(that, 0);
@@ -63,7 +63,7 @@ export default class Inventory {
     set(items) {
         this.items = new Array(this.max_count);
         this.index = 0;
-        for(var i in items) {
+        for(let i in items) {
             const item = items[i];
             if(i < this.max_count) {
                 this.items[i] = item;
@@ -78,7 +78,7 @@ export default class Inventory {
     increment(mat) {
         const MAX_COUNT = 64;
         // update cell if exists
-        for(var i in this.items) {
+        for(let i in this.items) {
             if(this.items[i]) {
                 if(this.items[i].id == mat.id) {
                     if(this.items[i].count < MAX_COUNT) {
@@ -86,7 +86,7 @@ export default class Inventory {
                             this.items[i].count = Math.min(this.items[i].count + mat.count, MAX_COUNT);
                             return;
                         } else {
-                            var remains = (this.items[i].count + mat.count) - MAX_COUNT;
+                            let remains = (this.items[i].count + mat.count) - MAX_COUNT;
                             this.items[i].count = MAX_COUNT;
                             mat.count = remains;
                         }
@@ -95,7 +95,7 @@ export default class Inventory {
             }
         }
         // start new slot
-        for(var i = 0; i < this.items.length; i++) {
+        for(let i = 0; i < this.items.length; i++) {
             if(!this.items[i]) {
                 this.items[i] = {...mat};
                 if(this.items[i].count > MAX_COUNT) {
@@ -156,7 +156,7 @@ export default class Inventory {
     cloneMaterial(mat) {
         const MAX = 64;
         // Search same material with count < max
-        for(var index in this.items) {
+        for(let index in this.items) {
             if(this.items[index]) {
                 if(this.items[index].id == mat.id) {
                     if(this.items[index].count < MAX) {
@@ -170,7 +170,7 @@ export default class Inventory {
             }
         }
         // start new cell
-        for(var index = 0; index < this.items.length; index++) {
+        for(let index = 0; index < this.items.length; index++) {
             if(!this.items[index]) {
                 this.items[index] = Object.assign({count: 1}, mat);
                 delete(this.items[index].texture);
@@ -217,7 +217,7 @@ export default class Inventory {
                     console.error(item);
                 }
                 if('inventory_icon_id' in item) {
-                    var icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+                    let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
                     hud.ctx.drawImage(
                         this.inventory_image,
                         icon.x,
@@ -232,7 +232,7 @@ export default class Inventory {
                 } else {
                     hud.ctx.textBaseline    = 'top';
                     hud.ctx.font            = '12px Minecraftia';
-                    var text = item.name.substring(0, 4);
+                    let text = item.name.substring(0, 4);
                     hud.ctx.fillStyle = '#000000ff';
                     hud.ctx.fillText(text, hud_pos.x + cell_size - 5, hud_pos.y + 20);
                     hud.ctx.fillStyle = '#ffffffff';

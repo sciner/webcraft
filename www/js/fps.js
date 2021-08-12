@@ -7,7 +7,7 @@ export const fps = {
     delta:  0,
     incr: function() {
         this.cnt++;
-        var now = performance.now();
+        let now = performance.now();
         if(now - this.t > 1000) {
             this.fps    = Math.round(this.cnt / ((now - this.t) / 1000));
             this.cnt    = 0;

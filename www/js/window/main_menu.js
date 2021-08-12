@@ -13,13 +13,13 @@ export default class MainMenu extends Window {
         // ct.setBackground('./media/gui/form-crafting-table.png');
         ct.hide();
         // Add labels to window
-        var lbl1 = new Label(0, 0, this.width, 30, 'lbl1', 'Menu');
+        let lbl1 = new Label(0, 0, this.width, 30, 'lbl1', 'Menu');
         lbl1.style.color = '#333333ff';
         lbl1.style.textAlign.horizontal = 'center';
         lbl1.style.textAlign.vertical = 'middle';
         ct.add(lbl1);
         //
-        var lbl2 = new Label(0, 0, this.width, 30, 'lbl2', 'Menu');
+        let lbl2 = new Label(0, 0, this.width, 30, 'lbl2', 'Menu');
         lbl2.style.color = '#ffffffff';
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
@@ -36,7 +36,7 @@ export default class MainMenu extends Window {
         this.addCloseButton();
         
         // Load buttons background image
-        var image = new Image();
+        let image = new Image();
         image.onload = function(e) {
             ct.buttonBackground = this;
             ct.btnReturn.style.background.image = this;
@@ -49,7 +49,7 @@ export default class MainMenu extends Window {
     }
 
     addReturnButton() {
-        var btnReturn = this.btnReturn = new Button(20, 80, this.width - 40, 40, 'btnReturn', 'Return');
+        let btnReturn = this.btnReturn = new Button(20, 80, this.width - 40, 40, 'btnReturn', 'Return');
         btnReturn.style.background.color = '#777777ff';
         btnReturn.style.color = '#ffffffff';
         btnReturn.style.font.shadow = {
@@ -78,7 +78,7 @@ export default class MainMenu extends Window {
 
     addCloseButton() {
         // Close button
-        var btnClose = this.btnClose = new Button(20, 130, this.width - 40, 40, 'btnClose', 'Save and exit');
+        let btnClose = this.btnClose = new Button(20, 130, this.width - 40, 40, 'btnClose', 'Save and exit');
         btnClose.style.background.color = '#777777ff';
         btnClose.style.color = '#ffffffff';
         btnClose.style.font.shadow = {

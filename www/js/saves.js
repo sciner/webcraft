@@ -4,7 +4,7 @@ export default class Saves {
 
     // Constructor
     constructor(callback) {
-        var that = this;
+        let that = this;
         this.table_name = 'worlds';
         DB.open(this.table_name, function(instance) {
             that.DB = instance;
@@ -14,7 +14,7 @@ export default class Saves {
 
     // Load
     load(world_name, callback, callback_error) {
-        var that = this;
+        let that = this;
         if(!that.DB) {
             throw('DB not inited');
         }
@@ -41,11 +41,11 @@ export default class Saves {
 
     // Save
     save(world, callback) {
-        var that = this;
+        let that = this;
         if(!that.DB) {
             throw('DB not inited');
         }
-        var t = performance.now();
+        let t = performance.now();
         world.exportJSON(function(row) {
             DB.put(that.table_name, row);
             t = performance.now() - t;

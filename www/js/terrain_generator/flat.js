@@ -12,12 +12,12 @@ export default class Terrain_Generator {
     }
 
     generate(chunk) {
-        for(var x = 0; x < chunk.size.x; x++) {
-            for(var z = 0; z < chunk.size.z; z++) {
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
                 // AIR
                 chunk.blocks[x][z] = Array(chunk.size.y).fill(null);
                 // BEDROCK
-                for(var y = 0; y < 1; y++) {
+                for(let y = 0; y < 1; y++) {
                     chunk.blocks[x][z][y] = blocks.BEDROCK;
                 }
 

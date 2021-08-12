@@ -1,13 +1,13 @@
 import {TX_CNT, ROTATE, DIRECTION, NORMALS, Vector, Vector4, Color} from './helpers.js';
 
-var MULTIPLY = {
+let MULTIPLY = {
     COLOR: {
         WHITE: new Color(816 / 1024, 1008 / 1024, 0, 0),
         GRASS: new Color(900 / 1024, 965 / 1024, 0, 0)
     }
 };
 
-var QUAD_FLAGS = {}
+let QUAD_FLAGS = {}
 QUAD_FLAGS.NORMAL_UP = 1;
 QUAD_FLAGS.MASK_BIOME = 2;
 
@@ -15,7 +15,7 @@ export class BLOCK_FUNC {
 
     // getCardinalDirection...
     static getCardinalDirection(vec3) {
-        var result = new Vector(0, 0, ROTATE.E);
+        let result = new Vector(0, 0, ROTATE.E);
         if(vec3) {
             if(vec3.z >= 45 && vec3.z < 135) {
                 // do nothing
@@ -65,7 +65,7 @@ export class BLOCK_FUNC {
 
     // Возвращает True если блок является растением
     static isPlants(id) {
-        for(var p of this.getPlants()) {
+        for(let p of this.getPlants()) {
             if(p.id == id) {
                 return true;
             }
@@ -80,7 +80,7 @@ export class BLOCK_FUNC {
 
     // Стартовый игровой инвентарь
     static getStartInventory() {
-        var blocks = [
+        let blocks = [
             Object.assign({count: 5}, this.RED_MUSHROOM),
             Object.assign({count: 64}, this.SAND),
             Object.assign({count: 6}, this.BOOKCASE),
@@ -100,10 +100,10 @@ export class BLOCK_FUNC {
         if(this.list) {
             return this.list;
         }
-        var list = this.list = [];
-        var id_list = [];
-        for(var mat in this) {
-            var B = this[mat];
+        let list = this.list = [];
+        let id_list = [];
+        for(let mat in this) {
+            let B = this[mat];
             B.power = 1;
             if(typeof(B) == 'object') {
                 if(id_list.indexOf(B.id) >= 0)  {
@@ -162,31 +162,31 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     let upFlags = 0;
 
     // Texture color multiplier
-    var lm = MULTIPLY.COLOR.WHITE;
+    let lm = MULTIPLY.COLOR.WHITE;
     if(block.id == BLOCK.DIRT.id) {
         lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
         sideFlags = QUAD_FLAGS.MASK_BIOME;
         upFlags = QUAD_FLAGS.MASK_BIOME;
     }
 
-    var DIRECTION_UP            = DIRECTION.UP;
-    var DIRECTION_DOWN          = DIRECTION.DOWN;
-    var DIRECTION_BACK          = DIRECTION.BACK;
-    var DIRECTION_RIGHT         = DIRECTION.RIGHT;
-    var DIRECTION_FORWARD       = DIRECTION.FORWARD;
-    var DIRECTION_LEFT          = DIRECTION.LEFT;
+    let DIRECTION_UP            = DIRECTION.UP;
+    let DIRECTION_DOWN          = DIRECTION.DOWN;
+    let DIRECTION_BACK          = DIRECTION.BACK;
+    let DIRECTION_RIGHT         = DIRECTION.RIGHT;
+    let DIRECTION_FORWARD       = DIRECTION.FORWARD;
+    let DIRECTION_LEFT          = DIRECTION.LEFT;
 
     if(!block.name) {
         console.log('block', JSON.stringify(block), block.id);
         debugger;
     }
 
-    var c, n, ao, neighbourBlock;
-    var width                   = block.width ? block.width : 1;
-    var height                  = block.height ? block.height : 1;
-    var drawAllSides            = width != 1 || height != 1;
-    var texture                 = BLOCK[block.name].texture;
-    var blockLit                = true;
+    let c, ao, neighbourBlock;
+    let width                   = block.width ? block.width : 1;
+    let height                  = block.height ? block.height : 1;
+    let drawAllSides            = width != 1 || height != 1;
+    let texture                 = BLOCK[block.name].texture;
+    let blockLit                = true;
 
     // F R B L
     switch(cardinal_direction) {
@@ -217,18 +217,17 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     }
 
     // Can change height
-    var bH         = 1.0;
+    let bH         = 1.0;
     if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
         bH = Math.min(block.power, .9)
-        var blockOver  = world.chunkManager.getBlock(x, y + 1, z);
+        let blockOver  = world.chunkManager.getBlock(x, y + 1, z);
         if(blockOver) {
-	        var blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+	        let blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
 	        if(blockOverIsFluid) {
 	            bH = 1.0;
 	        }
 	 	}
     }
-    // bH = 1.0;
 
     if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SNOW_DIRT.id) {
         if(neighbours.UP && !neighbours.UP.transparent) {
@@ -246,14 +245,14 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-	        var nX = world.chunkManager.getBlock(x, y + 1, z - 1); // слева
-	        var nY = world.chunkManager.getBlock(x - 1, y + 1, z); // сверху
-	        var nXY = world.chunkManager.getBlock(x - 1, y + 1, z - 1); // левый верхний угол
-	        var pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
-	        var pY = world.chunkManager.getBlock(x + 1, y + 1, z); // снизу
-	        var pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
-	        var uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний
-	        var dXY = world.chunkManager.getBlock(x + 1, y + 1, z - 1); // левый нижний
+	        let nX = world.chunkManager.getBlock(x, y + 1, z - 1); // слева
+	        let nY = world.chunkManager.getBlock(x - 1, y + 1, z); // сверху
+	        let nXY = world.chunkManager.getBlock(x - 1, y + 1, z - 1); // левый верхний угол
+	        let pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
+	        let pY = world.chunkManager.getBlock(x + 1, y + 1, z); // снизу
+	        let pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
+	        let uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний
+	        let dXY = world.chunkManager.getBlock(x + 1, y + 1, z - 1); // левый нижний
 	        if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
 	        if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
 	        if(ao_transparent_blocks.indexOf(nXY.id) < 0 && !nXY.transparent)  {ao[0] += .2; }
@@ -264,7 +263,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
 	        if(ao_transparent_blocks.indexOf(dXY.id) < 0 && !dXY.transparent)  {ao[1] += .2;}
     	}
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        n = NORMALS.UP;
+        // n = NORMALS.UP;
         vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
             1, 0, 0,
             0, 1, 0,
@@ -284,7 +283,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [.5, .5, .5, .5];
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
-        n = NORMALS.DOWN;
         vertices.push(x + 0.5, z + 0.5, y,
             1, 0, 0,
             0, -1, 0,
@@ -299,15 +297,14 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            var aa = world.chunkManager.getBlock(x - 1, y, z - 1); // слева
-            var ab = world.chunkManager.getBlock(x + 1, y, z - 1); // справа
-            var ac = world.chunkManager.getBlock(x, y - 1, z - 1); // снизу
+            let aa = world.chunkManager.getBlock(x - 1, y, z - 1); // слева
+            let ab = world.chunkManager.getBlock(x + 1, y, z - 1); // справа
+            let ac = world.chunkManager.getBlock(x, y - 1, z - 1); // снизу
             if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-        n = NORMALS.FORWARD;
         vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
             1, 0, 0,
             0, 0, bH,
@@ -325,7 +322,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             // @todo
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
-        n = NORMALS.BACK;
         vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
             1, 0, 0,
             0, 0, -bH,
@@ -343,7 +339,6 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             // @todo
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
-        n = NORMALS.LEFT;
         vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
             0, 1, 0,
             0, 0, -bH,
@@ -358,15 +353,14 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            var aa = world.chunkManager.getBlock(x + 1, y, z - 1); // правый верхний
-            var ab = world.chunkManager.getBlock(x + 1, y, z + 1); // правый нижний
-            var ac = world.chunkManager.getBlock(x + 1, y - 1, z);
+            let aa = world.chunkManager.getBlock(x + 1, y, z - 1); // правый верхний
+            let ab = world.chunkManager.getBlock(x + 1, y, z + 1); // правый нижний
+            let ac = world.chunkManager.getBlock(x + 1, y - 1, z);
             if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
-        n = NORMALS.RIGHT;
         vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
             0, 1, 0,
             0, 0, bH,
@@ -387,17 +381,16 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
-    var texture     = BLOCK[block.name].texture;
-    var blockLit    = true; // z >= lightmap[x][y];
-    var bH          = 1.0;
-    var width       = block.width ? block.width : 1;
-    var lm          = MULTIPLY.COLOR.WHITE;
-    var c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    let texture     = BLOCK[block.name].texture;
+    let blockLit    = true; // z >= lightmap[x][y];
+    let bH          = 1.0;
+    let width       = block.width ? block.width : 1;
+    let lm          = MULTIPLY.COLOR.WHITE;
+    let c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.S: {
-            // Front
-            var n = NORMALS.FORWARD;
+            // Front / NORMALS.FORWARD;
             vertices.push(x + .5, z + 1 - width, y + bH / 2,
                 1, 0, 0,
                 0, 0, bH,
@@ -407,8 +400,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             break;
         }
         case ROTATE.W: {
-            // Left
-            var n = NORMALS.LEFT;
+            // Left / NORMALS.LEFT;
             vertices.push(x + 1 - width, z + .5, y + bH / 2,
                 0, 1, 0,
                 0, 0, -bH,
@@ -418,8 +410,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             break;
         }
         case ROTATE.N: {
-            // Back
-            var n = NORMALS.BACK;
+            // Back / NORMALS.BACK;
             vertices.push(x + .5, z + width, y + bH / 2,
                 1, 0, 0,
                 0, 0, -bH,
@@ -429,8 +420,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
             break;
         }
         case ROTATE.E: {
-            // Right
-            var n = NORMALS.RIGHT;
+            // Right / NORMALS.RIGHT;
             vertices.push(x + width, z + .5, y + bH / 2,
                 0, 1, 0,
                 0, 0, bH,
@@ -445,11 +435,11 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
 
 // check_xy_neighbor
 function check_xy_neighbor(world, x, y, z) {
-    var block = world.chunkManager.getBlock(x, y, z);
-    var x_dir = 0;
-    var y_dir = 0;
+    let block = world.chunkManager.getBlock(x, y, z);
+    let x_dir = 0;
+    let y_dir = 0;
     // first decide x or y direction
-    var b = world.chunkManager.getBlock(x - 1, y, z);
+    let b = world.chunkManager.getBlock(x - 1, y, z);
     if (x == 0
         || (b.id != 0 && !b.style)
         || b.style == block.style)
@@ -502,7 +492,6 @@ export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, 
     xp          = xp ? xp : 1; // rot ? 1.41 : 1.0;
     yp          = yp ? yp : 1; // rot ? 1.41 : 1.0;
     zp          = zp ? zp : 1; // rot ? 1.41 : 1.0;
-    var mn      = 0.15;
     flags = flags || 0;
 
     if (x_dir) {
@@ -566,18 +555,17 @@ export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, 
 
 // Растения
 function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
-    // var block       = world.chunkManager.getBlock(x, y, z);
-    var texture     = BLOCK.fromId(block.id).texture;
-    var blockLit    = true; // z >= lightmap[x][y];
-    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    var lm = MULTIPLY.COLOR.WHITE;
-    var flags = QUAD_FLAGS.NORMAL_UP;
+    let texture     = BLOCK.fromId(block.id).texture;
+    let blockLit    = true;
+    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let lm = MULTIPLY.COLOR.WHITE;
+    let flags = QUAD_FLAGS.NORMAL_UP;
     // Texture color multiplier
     if(block.id == BLOCK.GRASS.id) {
         lm = biome.dirt_color;
         flags |= QUAD_FLAGS.MASK_BIOME;
     }
-    var n = NORMALS.UP;
+    let n = NORMALS.UP;
     if(block.id == BLOCK.GRASS.id) {
         y -= .15;
     }
@@ -587,13 +575,13 @@ function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
 /*
 // Плоскость
 function push_pane(block, vertices, world, lightmap, x, y, z) {
-    // var block = world.chunkManager.getBlock(x, y, z);
-    var texture = BLOCK.fromId(block.id).texture;
-	var blockLit = z >= lightmap[x][y];
-    var blockLight = block.light ? block.light.toFloat() : null;
-    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
-    var lm = new Color(
+    // let block = world.chunkManager.getBlock(x, y, z);
+    let texture = BLOCK.fromId(block.id).texture;
+	let blockLit = z >= lightmap[x][y];
+    let blockLight = block.light ? block.light.toFloat() : null;
+    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
+    let lm = new Color(
         lightMultiplier,
         lightMultiplier,
         lightMultiplier,
@@ -602,22 +590,20 @@ function push_pane(block, vertices, world, lightmap, x, y, z) {
     if(blockLight) {
         lm.a += blockLight.a;
     }
-    var dirs = check_xy_neighbor(world, x, y, z);
+    let dirs = check_xy_neighbor(world, x, y, z);
     push_plane(vertices, x, y, z, c, lm, dirs[0] >= dirs[1], false);
 }
 */
 
 // Ворота
 function push_fence(block, vertices, world, lightmap, x, y, z) {
-    // var block = world.chunkManager.getBlock(x, y, z);
-    var texture = BLOCK.fromId(block.id).texture;
-    var blockLit = true; // z >= lightmap[x][y];
-    var blockLight = block.light ? block.light.toFloat() : null;
+    let texture = BLOCK.fromId(block.id).texture;
+    let blockLit = true;
     block.transparent = true;
-    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    var lm = MULTIPLY.COLOR.WHITE;
-    var n = NORMALS.UP;
-    var dirs = check_xy_neighbor(world, x, y, z);
+    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let lm = MULTIPLY.COLOR.WHITE;
+    let n = NORMALS.UP;
+    let dirs = check_xy_neighbor(world, x, y, z);
     if (dirs[0] * dirs[1] == 0 && dirs[0] + dirs[1] > 0) {
         push_plane(vertices, x, y, z, c, lm, n, dirs[0] > dirs[1], false, undefined, undefined, undefined, QUAD_FLAGS.NORMAL_UP);
     } else {
@@ -629,33 +615,25 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
 function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
     const half          = 0.5 / TX_CNT;
-    var poses           = [];
-    var texture         = BLOCK.fromId(block.id).texture;
-    var lm              = MULTIPLY.COLOR.WHITE;
-    var blockLit        = true;
+    let poses           = [];
+    let texture         = BLOCK.fromId(block.id).texture;
+    let lm              = MULTIPLY.COLOR.WHITE;
+    let blockLit        = true;
 
     block.transparent   = true;
 
     // полная текстура
-    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
 
     // четверть текстуры
-    var c_half = [
+    let c_half = [
         c[0] - half/2,
         c[1] - half/2,
         c[2] - half,
         c[3] - half,
     ];
-	/*
-    // верхняя половина текстуры
-    var c_half_top = [
-        c[0],
-        c[1],
-        c[2] - half,
-        c[3],
-    ];*/
     // нижняя половина текстуры
-    var c_half_bottom= [
+    let c_half_bottom = [
         c[0],
         c[1] + half/2,
         c[2],
@@ -663,7 +641,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     ];
 
     // стенка 1
-    var n = NORMALS.FORWARD;
+    let n = NORMALS.FORWARD;
     push_plane(vertices, x, y, z - 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // стенка 2
@@ -734,7 +712,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     }
 
     // Верхняя ступень
-    for(var pose of poses) {
+    for(let pose of poses) {
 
         // левая стенка
         n = NORMALS.RIGHT;
@@ -754,7 +732,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
 
         // поверхность
         n = NORMALS.UP;
-        var bH = 1.0;
+        let bH = 1.0;
         vertices.push(x + .75 + pose.x, z + .25 + pose.z, y + bH,
             .5, 0, 0,
             0, .5, 0,
@@ -774,18 +752,17 @@ function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
-    var texture     = BLOCK[block.name].texture;
-    var blockLit    = true;
-    var bH          = 1.0;
-    var width       = block.width ? block.width : 1;
-    var lm          = MULTIPLY.COLOR.WHITE;
-    var c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    let texture     = BLOCK[block.name].texture;
+    let blockLit    = true;
+    let bH          = 1.0;
+    let lm          = MULTIPLY.COLOR.WHITE;
+    let c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.N:
         case ROTATE.S: {
             // Front
-            var n = NORMALS.FORWARD;
+            let n = NORMALS.FORWARD;
             vertices.push(x + .5, z + .5, y + bH/2,
                 1, 0, 0,
                 0, 0, bH,
@@ -804,7 +781,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
         case ROTATE.E:
         case ROTATE.W: {
             // Left
-            var n = NORMALS.LEFT;
+            let n = NORMALS.LEFT;
             vertices.push(x + .5, z + .5, y + bH/2,
                 0, 1, 0,
                 0, 0, -bH,
@@ -830,47 +807,24 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 
     const half = 0.5 / TX_CNT;
 
-    // var block = world.chunkManager.getBlock(x, y, z);
-    var texture = BLOCK.fromId(block.id).texture;
-	var blockLit = true; // z >= lightmap[x][y];
-    var blockLight = block.light ? block.light.toFloat() : null;
+    let texture = BLOCK.fromId(block.id).texture;
+	let blockLit = true;
     block.transparent = true;
+
     // полная текстура
-    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
-    // четверть текстуры
-    var c_half = [
-        c[0] - half/2,
-        c[1] - half/2,
-        c[2] - half,
-        c[3] - half,
-    ];
-    // верхняя половина текстуры
-    var c_half_top = [
-        c[0] - half/2,
-        c[1],
-        c[2] - half,
-        c[3],
-    ];
+    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+
     // нижняя половина текстуры
-    var c_half_bottom= [
+    let c_half_bottom= [
         c[0],
         c[1] + half /2,
         c[2],
         c[3] - half,
     ];
-    var lightMultiplier = true; // z >= lightmap[x][y] ? 1.0 : 0.6;
-
-    var dirs = check_xy_neighbor(world, x, y, z);
-
-    /*
-    if(blockLight) {
-        lm.a += blockLight.a;
-    }
-    */
 
     // задняя стенка
-    var lm = MULTIPLY.COLOR.WHITE;
-    var n = NORMALS.BACK;
+    let lm = MULTIPLY.COLOR.WHITE;
+    let n = NORMALS.BACK;
     push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
     // передняя стенка
     lm = MULTIPLY.COLOR.WHITE;
@@ -935,7 +889,7 @@ BLOCK_FUNC.pushVertices = function(vertices, block, world, lightmap, x, y, z, ne
 // Pushes vertices with the data needed for picking.
 BLOCK_FUNC.pushPickingVertices = function(vertices, x, y, z, pos) {
 
-	var color = {
+	let color = {
         r: pos.x / 255,
         g: pos.y / 255,
         b: pos.z / 255,
@@ -998,8 +952,8 @@ BLOCK_FUNC.pushPickingVertices = function(vertices, x, y, z, pos) {
 
 // Return inventory icon pos
 BLOCK_FUNC.getInventoryIconPos = function(inventory_icon_id) {
-    var w = 32;
-    var h = 32;
+    let w = 32;
+    let h = 32;
     return new Vector4(
         (inventory_icon_id % w) * w,
         Math.floor(inventory_icon_id / h) * h,

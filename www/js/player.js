@@ -56,8 +56,8 @@ export default class Player {
 
     // Set the canvas the renderer uses for some input operations.
     setInputCanvas(id) {
-        var canvas = this.canvas = document.getElementById( id );
-        var t = this;
+        let canvas = this.canvas = document.getElementById( id );
+        let t = this;
         document.onkeydown = function(e) {
             if (e.target.tagName != 'INPUT') {
                 if(t._onKeyEvent(e, e.keyCode, true)) {
@@ -104,28 +104,28 @@ export default class Player {
 
     // Hook for keyboard input.
     onKeyPress(e) {
-        var charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
-        var typedChar = String.fromCharCode(charCode);
+        let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
+        let typedChar = String.fromCharCode(charCode);
         this.chat.typeChar(typedChar);
     }
 
     // Hook for keyboard input.
     _onKeyEvent(e, keyCode, down) {
 
-        var resp = null;
+        let resp = null;
 
         if(down) {
             if(this.keys_fired.up[keyCode]) {
                 this.keys_fired.up[keyCode] = false;
             }
-            var first_press = this.keys_fired.down[keyCode];
+            let first_press = this.keys_fired.down[keyCode];
             resp = this.onKeyEvent(e, keyCode, down, !first_press);
             this.keys_fired.down[keyCode] = true;
         } else {
             if(this.keys_fired.down[keyCode]) {
                 this.keys_fired.down[keyCode] = false;
             }
-            var first_press = this.keys_fired.up[keyCode];
+            let first_press = this.keys_fired.up[keyCode];
             resp = this.onKeyEvent(e, keyCode, down, !first_press);
             this.keys_fired.up[keyCode] = true;
         }
@@ -170,7 +170,7 @@ export default class Player {
             return false;
         }
 
-        var vw = Game.hud.wm.getVisibleWindows();
+        let vw = Game.hud.wm.getVisibleWindows();
         if(vw.length > 0) {
             switch(keyCode) {
                 // E (Inventory)
@@ -190,7 +190,7 @@ export default class Player {
         //
         if(keyCode == KEY.PAGE_UP) {
             if(down) {
-                Game.world.chunkManager.setRenderDist( + 1);
+                Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST + 1);
             }
         }
 
@@ -245,12 +245,12 @@ export default class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        var z = Math.round(Game.player.pos.z);
-                        var x, startx = Math.round(Game.player.pos.x);
-                        var y = Math.round(Game.player.pos.y);
-                        var d = 10;
-                        var cnt = 0;
-                        for(var i = 0; i < Game.player.inventory.all.length; i++) {
+                        let z = Math.round(Game.player.pos.z);
+                        let x, startx = Math.round(Game.player.pos.x);
+                        let y = Math.round(Game.player.pos.y);
+                        let d = 10;
+                        let cnt = 0;
+                        for(let i = 0; i < Game.player.inventory.all.length; i++) {
                             if(Game.player.inventory.all[i].fluid) {
                                 continue;
                             }
@@ -264,7 +264,7 @@ export default class Player {
                             cnt++;
                         }
                     } else {
-                        var np = this.pos;
+                        let np = this.pos;
                         Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
                         console.log('Spawnpoint changed');
                         this.chat.messages.addSystem('Spawnpoint changed');
@@ -421,7 +421,7 @@ export default class Player {
 
     // Hook for mouse input.
     onMouseEvent(e, x, y, type, button_id, shiftKey) {
-        var visibleWindows = Game.hud.wm.getVisibleWindows();
+        let visibleWindows = Game.hud.wm.getVisibleWindows();
         if(visibleWindows.length > 0) {
             if (type == MOUSE.DOWN) {
                 Game.hud.wm.mouseEventDispatcher({
@@ -446,16 +446,16 @@ export default class Player {
 
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(button_id, shiftKey) {
-        var that            = this;
-        var destroyBlock    = button_id == 1;
-        var cloneBlock      = button_id == 2;
-        var createBlock     = button_id == 3;
-        var world           = this.world; // this.client ? this.client : this.world;
+        let that            = this;
+        let destroyBlock    = button_id == 1;
+        let cloneBlock      = button_id == 2;
+        let createBlock     = button_id == 3;
+        let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
         this.canvas.renderer.pickAt.get(function(block) {
             if(block != false) {
-                var world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
-                var playerPos = that.getBlockPos();
+                let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
+                let playerPos = that.getBlockPos();
                 if(createBlock) {
                     if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
                         if(!shiftKey) {
@@ -479,7 +479,7 @@ export default class Player {
                     if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
                         return;
                     }
-                    var matBlock = BLOCK.fromId(that.buildMaterial.id);
+                    let matBlock = BLOCK.fromId(that.buildMaterial.id);
                     if(world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id)) {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
@@ -491,14 +491,14 @@ export default class Player {
                         }
                     } else {
                         // Create block
-                        var blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z + 1);
+                        let blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z + 1);
                         if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
                             return;
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
                                 Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
-                                var b = BLOCK.fromId(that.buildMaterial.id);
+                                let b = BLOCK.fromId(that.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');
                                 }
@@ -523,7 +523,7 @@ export default class Player {
                         if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
                             that.inventory.increment(Object.assign({count: 1}, world_block));
                         }
-                        var block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
+                        let block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
                         // delete plant over deleted block
                         if(BLOCK.isPlants(block_over.id)) {
                             block.y++;
@@ -546,7 +546,7 @@ export default class Player {
 
     // getBlockPos
     getBlockPos() {
-        var v = new Vector(
+        let v = new Vector(
             parseInt(this.pos.x),
             parseInt(this.pos.y),
             parseInt(this.pos.z)
@@ -562,9 +562,9 @@ export default class Player {
 
     // Updates this local player (gravity, movement)
     update() {
-        var velocity  = this.velocity;
-        var pos       = this.pos;
-        var bPos      = new Vector(
+        let velocity  = this.velocity;
+        let pos       = this.pos;
+        let bPos      = new Vector(
             Math.floor(pos.x),
             Math.floor(pos.y),
             Math.floor(pos.z)
@@ -573,8 +573,8 @@ export default class Player {
         const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = Game.render.options;
 
         if(this.lastUpdate != null) {
-            // var delta = ( new Date().getTime() - this.lastUpdate ) / 1000;
-            var delta = (performance.now() - this.lastUpdate) / 1000;
+            // let delta = ( new Date().getTime() - this.lastUpdate ) / 1000;
+            let delta = (performance.now() - this.lastUpdate) / 1000;
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
@@ -628,7 +628,7 @@ export default class Player {
             }
             this.prev_walking = this.walking;
             // Walking
-            var walkVelocity = new Vector(0, 0, 0);
+            let walkVelocity = new Vector(0, 0, 0);
             if (!this.falling || this.flying) {
                 if(this.keys[KEY.W] && !this.keys[KEY.S]) {
                     walkVelocity.x += Math.cos(Math.PI / 2 - this.angles[2]);
@@ -650,27 +650,27 @@ export default class Player {
 
             if(this.zoom) {
                 if(Game.render.fov > FOV_ZOOM) {
-                    var fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
+                    let fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
                     Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                 }
             } else {
                 if(this.running) {
                     if(Game.render.fov < FOV_WIDE) {
-                        var fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
+                        let fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
                         Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                     }
                 } else if(Game.render.fov < FOV_NORMAL) {
-                    var fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                    let fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
                     Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                 } else {
                     if(Game.render.fov > FOV_NORMAL) {
-                        var fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                        let fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
                         Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                     }
                 }
             }
             if(walkVelocity.length() > 0) {
-                var mul = 1; // this.flying ? 1 : 1;
+                let mul = 1; // this.flying ? 1 : 1;
                 if(this.running) {
                     mul *= 1.5;
                     if(this.flying) {
@@ -692,8 +692,8 @@ export default class Player {
             this.pos.z = Math.round(this.pos.z * 1000) / 1000;
             // this.pos.y = Math.max(this.pos.y, 100);
             //
-            var playerBlockPos  = Game.world.localPlayer.getBlockPos();
-            var chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);
+            let playerBlockPos  = Game.world.localPlayer.getBlockPos();
+            let chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);
             this.overChunk      = Game.world.chunkManager.getChunk(chunkPos);
         }
         this.lastUpdate = performance.now(); // new Date().getTime();
@@ -701,8 +701,8 @@ export default class Player {
 
     // Resolves collisions between the player and blocks on XY level for the next movement step.
     resolveCollision(pos, bPos, velocity) {
-        var world = this.world;
-        var playerRect = {
+        let world = this.world;
+        let playerRect = {
             x: pos.x + velocity.x,
             y: pos.y + velocity.y,
             z: pos.z + velocity.z,
@@ -710,14 +710,14 @@ export default class Player {
         };
         const shiftPressed = !!this.keys[KEY.SHIFT];
         // Collect XZ collision sides
-        var collisionCandidates = [];
-        for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
-            for(var z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                for(var y = bPos.y; y <= bPos.y + 1; y++) {
-                    var block = world.chunkManager.getBlock(x, y, z);
+        let collisionCandidates = [];
+        for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
+            for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
+                for(let y = bPos.y; y <= bPos.y + 1; y++) {
+                    let block = world.chunkManager.getBlock(x, y, z);
                     // Позволяет не падать с края блоков, если зажат [Shift]
                     if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
-                        var blockUnder = world.chunkManager.getBlock(x, y - 1, z);
+                        let blockUnder = world.chunkManager.getBlock(x, y - 1, z);
                         if(blockUnder.passable) {
                             if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
                             if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
@@ -736,8 +736,8 @@ export default class Player {
             }
         }
         // Solve XZ collisions
-        for(var i in collisionCandidates)  {
-            var side = collisionCandidates[i];
+        for(let i in collisionCandidates)  {
+            let side = collisionCandidates[i];
             if (Helpers.lineRectCollide(side, playerRect)) {
                 if(side.x != null && velocity.x * side.dir < 0) {
                     pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1);
@@ -748,19 +748,19 @@ export default class Player {
                 }
             }
         }
-        var falling = true;
-        var playerFace = {
+        let falling = true;
+        let playerFace = {
             x1: pos.x + velocity.x - 0.125,
             z1: pos.z + velocity.z - 0.125,
             x2: pos.x + velocity.x + 0.125,
             z2: pos.z + velocity.z + 0.125
         };
-        var newBYLower = Math.floor(pos.y + velocity.y);
-        var newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
+        let newBYLower = Math.floor(pos.y + velocity.y);
+        let newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
         // Collect Y collision sides
         collisionCandidates = [];
-        for(var x = bPos.x - 1; x <= bPos.x + 1; x++) {
-            for(var z = bPos.z - 1; z <= bPos.z + 1; z++) {
+        for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
+            for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
                 if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
                     collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
                 if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
@@ -768,8 +768,8 @@ export default class Player {
             }
         }
         // Solve Y collisions
-        for(var i in collisionCandidates) {
-            var face = collisionCandidates[i];
+        for(let i in collisionCandidates) {
+            let face = collisionCandidates[i];
             if (Helpers.rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
                 if(velocity.y < 0) {
                     falling         = false;

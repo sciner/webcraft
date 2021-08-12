@@ -76,11 +76,11 @@ export default class Chunk {
         const x = shift.x - this.shift_orig.x;
         const z = shift.z - this.shift_orig.z;
         this.shift_orig = {...shift};
-        var points = 0;
+        let points = 0;
         for(let key of Object.keys(this.#vertices)) {
             let v = this.#vertices[key];
-            var list = v.list;
-            for(var i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
+            let list = v.list;
+            for(let i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
                 list[i + 0] -= x;
                 list[i + 1] -= z;
                 points += 2;
@@ -199,7 +199,7 @@ export default class Chunk {
             return;
         }
         if(is_modify) {
-            var modify_item = {
+            let modify_item = {
                 id: type.id,
                 power: power,
                 rotate: rotate
@@ -222,9 +222,8 @@ export default class Chunk {
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
         };
-
         if(!is_modify) {
-            var type                        = {...BLOCK[type.name]};
+            type = {...BLOCK[type.name]};
             this.blocks[x][z][y]            = type;
             this.blocks[x][z][y].power      = power;
             this.blocks[x][z][y].rotate     = rotate;
@@ -246,7 +245,7 @@ export default class Chunk {
 
         if(x == 0) {
             // left
-            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
+            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
             this.#chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x - 1,
@@ -260,7 +259,7 @@ export default class Chunk {
         }
         if(z == 0) {
             // top
-            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
+            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
             this.#chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
@@ -274,7 +273,7 @@ export default class Chunk {
         }
         if(x == this.size.x - 1) {
             // right
-            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
+            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
             this.#chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x + 1,
@@ -288,7 +287,7 @@ export default class Chunk {
         }
         if(z == this.size.z - 1) {
             // bottom
-            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
+            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
             this.#chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,

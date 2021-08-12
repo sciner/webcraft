@@ -21,25 +21,25 @@
     
     <script>
 
-        var focuser = document.getElementById('focuser');
-        var hover = document.getElementById('hover');
+        let focuser = document.getElementById('focuser');
+        let hover = document.getElementById('hover');
 
         document.getElementById('inventory').onmousemove = function(e) {
-            var x = e.offsetX;
-            var y = e.offsetY;
+            let x = e.offsetX;
+            let y = e.offsetY;
             x = Math.floor(x / 32);
             y = Math.floor(y / 32);
-            var pos = y * 32 + x;
+            let pos = y * 32 + x;
             hover.style.left = x * 32 + 'px';
             hover.style.top = y * 32 + 'px';
         }
 
         document.getElementById('inventory').onmousedown = function(e) {
-            var x = e.offsetX;
-            var y = e.offsetY;
+            let x = e.offsetX;
+            let y = e.offsetY;
             x = Math.floor(x / 32);
             y = Math.floor(y / 32);
-            var pos = y * 32 + x;
+            let pos = y * 32 + x;
             document.getElementById('x').value = x;
             document.getElementById('y').value = y;
             document.getElementById('pos').value = pos;

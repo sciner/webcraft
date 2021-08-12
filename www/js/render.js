@@ -19,7 +19,7 @@ const FOV_WIDE              = FOV_NORMAL * 1.15;
 const FOV_ZOOM              = FOV_NORMAL * ZOOM_FACTOR;
 const RENDER_DISTANCE       = 800;
 
-var settings = {
+let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1],
     // fogColor:               [185 / 255, 210 / 255, 254 / 255, 1],
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
@@ -29,7 +29,7 @@ var settings = {
     fogDensityUnderWater:   0.1
 };
 
-var currentRenderState = {
+let currentRenderState = {
     // fogColor:           [185 / 255, 210 / 255, 254 / 255, 1],
     fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
     fogDensity:         0.02,
@@ -41,7 +41,7 @@ export default class Renderer {
 
     constructor(world, renderSurfaceId, settings, initCallback) {
 
-        var that                = this;
+        let that                = this;
         that.canvas             = document.getElementById(renderSurfaceId);
         that.canvas.renderer    = that;
         this.skyBox             = null;
@@ -56,7 +56,7 @@ export default class Renderer {
 
         this.setWorld(world);
         // Initialise WebGL
-        var gl;
+        let gl;
         try {
             gl = that.gl = that.canvas.getContext('webgl2', {antialias: false, depth: true, premultipliedAlpha: false});
             // gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
@@ -80,7 +80,7 @@ export default class Renderer {
         // Create main program
         Helpers.createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
 
-            var program = that.program = info.program;
+            let program = that.program = info.program;
 
             gl.useProgram(program);
 
@@ -120,16 +120,16 @@ export default class Renderer {
             // Create projection and view matrices
             gl.uniformMatrix4fv(that.uModelMat, false, that.modelMatrix);
             // Create 1px white texture for pure vertex color operations (e.g. picking)
-            var whiteTexture        = that.texWhite = gl.createTexture();
-            var white               = new Uint8Array([255, 255, 255, 255]);
+            let whiteTexture        = that.texWhite = gl.createTexture();
+            let white               = new Uint8Array([255, 255, 255, 255]);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, white);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
-            var blackTexture        = that.texBlack = gl.createTexture();
-            var black               = new Uint8Array([0, 0, 0, 255]);
+            let blackTexture        = that.texBlack = gl.createTexture();
+            let black               = new Uint8Array([0, 0, 0, 255]);
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, blackTexture);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
@@ -174,7 +174,7 @@ export default class Renderer {
 
             // Terrain texture
             gl.uniform1i(that.u_texture, 4);
-            var terrainTexture          = that.texTerrain = gl.createTexture();
+            let terrainTexture          = that.texTerrain = gl.createTexture();
             terrainTexture.image        = new Image();
             terrainTexture.image.onload = function() {
                     gl.activeTexture(gl.TEXTURE4);
@@ -282,7 +282,7 @@ export default class Renderer {
                     image.src = url;
                 });
             }
-            var skiybox_dir = './media/skybox/park';
+            let skiybox_dir = './media/skybox/park';
             Promise.all([
                 loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_X, skiybox_dir + '/posx.jpg'),
                 loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, skiybox_dir + '/negx.jpg'),
@@ -326,7 +326,7 @@ export default class Renderer {
                 }
             }
             // Create HUD texture
-            var texture = that.HUD.texture = gl.createTexture();
+            let texture = that.HUD.texture = gl.createTexture();
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, texture);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -334,7 +334,7 @@ export default class Renderer {
             initCallback();
         });
 
-        // var pos = new Vector(0, 0, 0);
+        // let pos = new Vector(0, 0, 0);
         // Game.world.meshes.add(new Particles_Sun(Game.world.renderer.gl, pos));
     }
 
@@ -349,7 +349,7 @@ export default class Renderer {
     // setBrightness...
     setBrightness(value) {
         this.brightness = value;
-        var mult = Math.min(1, value * 2)
+        let mult = Math.min(1, value * 2)
         currentRenderState.fogColor = [
             settings.fogColor[0] * (value * mult),
             settings.fogColor[1] * (value * mult),
@@ -370,8 +370,8 @@ export default class Renderer {
     // Render one frame of the world to the canvas.
     draw(delta) {
 
-        var that = this;
-        var gl = this.gl;
+        let that = this;
+        let gl = this.gl;
 
         // console.log(Game.world.renderer.camPos[2]);
         //if(Game.world.localPlayer.pos.z + 1.7 < 63.8) {
@@ -448,7 +448,7 @@ export default class Renderer {
 
     // drawPlayers
     drawPlayers(delta) {
-        var gl = this.gl;
+        let gl = this.gl;
         gl.useProgram(this.program);
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
@@ -468,8 +468,8 @@ export default class Renderer {
     * the render configuration if required.
     */
     updateViewport() {
-        var gl = this.gl;
-        var canvas = this.canvas;
+        let gl = this.gl;
+        let canvas = this.canvas;
         if (canvas.clientWidth != gl.viewportWidth || canvas.clientHeight != gl.viewportHeight) {
             gl.viewportWidth  = canvas.clientWidth;
             gl.viewportHeight = canvas.clientHeight;
@@ -497,7 +497,7 @@ export default class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(pos, ang) {
-        var y_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
+        let y_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
         this.camPos = pos;
         mat4.identity(this.viewMatrix);
         mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
@@ -515,9 +515,8 @@ export default class Renderer {
         if (buffer.size === 0) {
             return;
         }
-
         buffer.bind(this);
-        var gl = this.gl;
+        let gl = this.gl;
         gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, buffer.size);
     }
@@ -527,14 +526,14 @@ export default class Renderer {
         if(this.videoCardInfoCache) {
             return this.videoCardInfoCache;
         }
-        var gl = this.gl;
+        let gl = this.gl;
         if (!gl) {
             return {
                 error: 'no webgl',
             };
         }
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        var resp = null;
+        let resp = null;
         if(debugInfo) {
             resp = {
                 vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
