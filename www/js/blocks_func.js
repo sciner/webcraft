@@ -255,6 +255,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             DIRECTION_RIGHT     = DIRECTION.DOWN;
             DIRECTION_FORWARD   = DIRECTION.DOWN;
             DIRECTION_LEFT      = DIRECTION.DOWN;
+            sideFlags = 0;
         }
     }
 
