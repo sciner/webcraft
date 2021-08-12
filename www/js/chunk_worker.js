@@ -1,58 +1,96 @@
-importScripts(
-    './helpers.js',
-    './blocks.js',
-    './blocks_func.js',
-    './biomes.js',
-    './terrain_generator/biome2.js'
-);
+let queue               = [];
+
+// Modules
+var Vector              = null;
+var BLOCK               = null;
+var CHUNK_SIZE_X        = null;
+var CHUNK_SIZE_Y        = null;
+var CHUNK_SIZE_Z        = null;
+// var Terrain_Generator   = null;
+
+// Vars
+var all_blocks          = []; // 1. All blocks
+var blocks              = [];
+var plant_blocks        = []; // 2. Plants
+var banned_blocks       = [];
+var chunks              = {};
+var terrainGenerator    = null;
+
+const world = {
+    blocks_pushed: 0,
+    chunkManager: new ChunkManager()
+}
 
 const GeometryTerrain = {
     strideFloats: 21,
 }
 
-// 1. All blocks
-var all_blocks = [];
-for(var b of BLOCK.getAll()) {
-    b = Object.assign({}, b),
-    delete(b.texture);
-    all_blocks.push(b);
-}
-for(var k in all_blocks) {
-    all_blocks[k] = Object.assign({}, all_blocks[k]);
-    delete(all_blocks[k].texture);
+// Import all modules
+async function importModules() {
+    // load module
+    await import("./helpers.js").then(module => {
+        Vector = module.Vector;
+    });
+    // load module
+    await import("./blocks.js").then(module => {
+        BLOCK = module.BLOCK;
+        CHUNK_SIZE_X = module.CHUNK_SIZE_X;
+        CHUNK_SIZE_Y = module.CHUNK_SIZE_Y;
+        CHUNK_SIZE_Z = module.CHUNK_SIZE_Z;
+    });
+    // load module
+    await import("./biomes.js").then(module => {
+        blocks = module.blocks;
+    });
+    // load module
+    await import("./terrain_generator/biome2.js").then(module => {
+        terrainGenerator = new module.default();
+    });
+    // Init vars
+    // 1. Fill all_blocks
+    for(var b of BLOCK.getAll()) {
+        b = Object.assign({}, b),
+        delete(b.texture);
+        all_blocks.push(b);
+    }
+    for(var k in all_blocks) {
+        all_blocks[k] = Object.assign({}, all_blocks[k]);
+        delete(all_blocks[k].texture);
+    }
+    // 2. Plants
+    for(var b of BLOCK.getPlants()) {
+        b = Object.assign({}, b),
+        delete(b.texture);
+        plant_blocks.push(b);
+    }
+    // 3. Banned blocks
+    banned_blocks = [
+        BLOCK.DUMMY.id,
+        BLOCK.STILL_WATER.id,
+        BLOCK.ICE.id,
+        BLOCK.ICE2.id
+    ];
+    // Run queue items
+    for(var item of queue) {
+        await onmessage(item);
+    }
+    queue = [];
 }
 
-// 2. Plants
-var plant_blocks = []
-for(var b of BLOCK.getPlants()) {
-    b = Object.assign({}, b),
-    delete(b.texture);
-    plant_blocks.push(b);
-}
-
-// 3. Banned blocks
-var banned_blocks = [
-    BLOCK.DUMMY.id,
-    BLOCK.STILL_WATER.id,
-    BLOCK.ICE.id,
-    BLOCK.ICE2.id
-];
-
-var chunks              = {};
-var terrainGenerator    = null;
-var world               = {
-    blocks_pushed: 0,
-    chunkManager: new ChunkManager()
-}
+importModules();
 
 // On message callback function
-onmessage = function(e) {
+onmessage = async function(e) {
+    if (!BLOCK || !terrainGenerator) {
+        return queue.push(e);
+    }
     const cmd = e.data[0];
     const args = e.data[1];
     switch(cmd) {
         case 'createChunk': {
-            if(!terrainGenerator) {
-                terrainGenerator = new Terrain_Generator(args.seed);
+            if(!terrainGenerator.seed) {
+                terrainGenerator.setSeed(args.seed);
+                // terrainGenerator = new Terrain_Generator(args.seed);
             }
             if(!this.chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = Object.assign(new Chunk(), args);

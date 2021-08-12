@@ -1,3 +1,14 @@
+import Sounds from "./sounds.js";
+import World from "./world.js";
+import Renderer from "./render.js";
+import Physics from "./physics.js";
+import Player from "./player.js";
+import Inventory from "./inventory.js";
+import {fps} from "./fps.js";
+import Hotbar from "./hotbar.js";
+import {Vector} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
+
 // Mouse event enumeration
 export let MOUSE         = {};
     MOUSE.DOWN    = 1;

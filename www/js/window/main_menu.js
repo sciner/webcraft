@@ -1,6 +1,8 @@
-class MainMenu extends Window {
+import {Window, Label, Button} from "../../tools/gui/wm.js";
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+export default class MainMenu extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
 

@@ -1,3 +1,12 @@
+import {Helpers, Vector} from "./helpers.js";
+import ServerClient from "./server_client.js";
+import {ChunkManager} from "./chunk_manager.js";
+import Particles_Block_Destroy from "./particles/block_destroy.js";
+import Particles_Raindrop from "./particles/raindrop.js";
+import Particles_Sun from "./particles/sun.js";
+
+const MAX_DIST_FOR_SHIFT = 800;
+
 /* World container
 *
 * This class contains the elements that make up the game world.
@@ -178,7 +187,7 @@ World.prototype.exportJSON = function(callback) {
         spawnPoint:         that.spawnPoint,
         pos:                that.localPlayer.pos,
         flying:             that.localPlayer.flying,
-        chunk_render_dist:  CHUNK_RENDER_DIST,
+        chunk_render_dist:  Game.world.chunkManager.CHUNK_RENDER_DIST,
         rotate:             that.rotate,
         brightness:         that.renderer.brightness,
         inventory:  {
@@ -201,7 +210,4 @@ World.prototype.saveToDB = function(callback) {
     return;
 }
 
-// Export to node.js
-if(typeof(exports) != 'undefined') {
-	exports.World = World;
-}
+export default World;

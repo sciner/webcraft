@@ -1,4 +1,5 @@
-class GeometryTerrain {
+export default class GeometryTerrain {
+
     constructor(vertices) {
         this.vertices = vertices;
         this.updateID = 0;

@@ -1,27 +1,20 @@
+import {DIRECTION, Color} from './helpers.js';
+import {BLOCK_FUNC} from './blocks_func.js';
+
 // ==========================================
 // Block types
 //
 // This file contains all available block types and their properties.
 // ==========================================
 
-const CHUNK_SIZE_X      = 16;
-const CHUNK_SIZE_Y      = 256;
-const CHUNK_SIZE_Z      = 16;
-const DIRT_HEIGHT       = 32;
+export const CHUNK_SIZE_X      = 16;
+export const CHUNK_SIZE_Y      = 256;
+export const CHUNK_SIZE_Z      = 16;
+export const DIRT_HEIGHT       = 32;
 
-// Direction enumeration
-var DIRECTION = {};
-    DIRECTION.UP        = 1;
-    DIRECTION.DOWN      = 2;
-    DIRECTION.LEFT      = 3;
-    DIRECTION.RIGHT     = 4;
-    DIRECTION.FORWARD   = 5;
-    DIRECTION.BACK      = 6;
-
-const TX_CNT = 32;
 var TRANS_TEX = [4, 12];
 
-BLOCK = {};
+export class BLOCK extends BLOCK_FUNC {};
 
 // Each block has the following properties:
 // id,
@@ -1971,3 +1964,14 @@ BLOCK.ICE3 = {
         return [3, 4];
 	}
 };
+
+// Run getAll()
+BLOCK.getAll();
+
+BLOCK.BLOCK_BY_ID = {};
+for(let key of Object.keys(BLOCK)) {
+    let block = BLOCK[key];
+    if(typeof(block) == 'object' && ('spawnable' in block)) {
+        BLOCK.BLOCK_BY_ID[block.id] = block;
+    }
+}

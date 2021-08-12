@@ -3,7 +3,7 @@
 */
 
 // Base window
-class Window {
+export class Window {
     constructor(x, y, w, h, id, title, text) {
         this.list           = {};
         this.visible        = true;
@@ -330,7 +330,7 @@ class Window {
 }
 
 // Button
-class Button extends Window {
+export class Button extends Window {
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
@@ -349,7 +349,7 @@ class Button extends Window {
 }
 
 // Label
-class Label extends Window {
+export class Label extends Window {
 
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
@@ -360,7 +360,7 @@ class Label extends Window {
 }
 
 // WindowManager
-class WindowManager extends Window {
+export class WindowManager extends Window {
     
     static draw_calls = 0;
     

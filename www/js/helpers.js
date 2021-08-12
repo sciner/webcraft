@@ -4,7 +4,32 @@
 // This file contains helper classes and functions.
 // ==========================================
 
-class Helpers {
+export let ROTATE = {};
+ROTATE.S = 1; // BACK
+ROTATE.W = 2; // LEFT
+ROTATE.N = 3; // FRONT
+ROTATE.E = 4; // RIGHT
+
+export const TX_CNT = 32;
+
+export let NORMALS = {};
+NORMALS.FORWARD          = new Vector(0, 0, 1);
+NORMALS.BACK             = new Vector(0, 0, -1);
+NORMALS.LEFT             = new Vector(-1, 0, 0);
+NORMALS.RIGHT            = new Vector(1, 0, 0);
+NORMALS.UP               = new Vector(0, 1, 0);
+NORMALS.DOWN             = new Vector(0, -1, 0);
+
+// Direction enumeration
+export let DIRECTION = {};
+    DIRECTION.UP        = 1;
+    DIRECTION.DOWN      = 2;
+    DIRECTION.LEFT      = 3;
+    DIRECTION.RIGHT     = 4;
+    DIRECTION.FORWARD   = 5;
+    DIRECTION.BACK      = 6;
+
+export class Helpers {
 
     // clamp
     static clamp(x, min, max) {
@@ -243,7 +268,7 @@ class Helpers {
 
 }
 
-function Color(r, g, b, a) {
+export function Color(r, g, b, a) {
     this.r = r;
     this.g = g;
     this.b = b;
@@ -270,7 +295,7 @@ Color.prototype.toFloat = function()  {
     return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
 }
 
-class MyArray extends Array {
+export class MyArray extends Array {
     sortBy(...args) {
         return this.sort(function(obj1, obj2) {
             if(!Game.world || !Game.world.localPlayer) {
@@ -302,7 +327,7 @@ function loadText(url, callback) {
     xobj.send(null);  
 }
 
-class Vector4 {
+export class Vector4 {
     constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
@@ -311,7 +336,7 @@ class Vector4 {
     }
 }
 
-function Vector(x, y, z) {
+export function Vector(x, y, z) {
     if(x instanceof Vector) {
         this.x = x.x;
         this.y = x.y;
@@ -359,9 +384,4 @@ Vector.prototype.toArray = function() {
 
 Vector.prototype.toString = function() {
 	return '(' + this.x + ',' + this.y + ',' + this.z + ')';
-}
-
-// Export to node.js
-if(typeof(exports) != 'undefined') {
-	exports.Vector = Vector;
 }
