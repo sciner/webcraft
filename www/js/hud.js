@@ -8,7 +8,7 @@ export default class HUD {
 
     constructor(width, height) {
         // Create canvas used to draw HUD
-        var canvas                      = this.canvas = document.createElement('canvas');
+        let canvas                      = this.canvas = document.createElement('canvas');
         canvas.id                       = 'cnvHUD';
         canvas.width                    = width;
         canvas.height                   = height;
@@ -39,23 +39,23 @@ export default class HUD {
             image:      null,
             hud:        null,
             init: function(hud) {
-                var that = this;
+                let that = this;
                 that.hud = hud;
-                var image = new Image();
+                let image = new Image();
                 image.onload = function() {
                     that.image = this;
                 }
                 image.src = '../media/background.png';
             },
             draw: function() {
-                var cl = 0;
+                let cl = 0;
                 for(let key of Object.keys(Game.world.chunkManager.chunks)) {
                     let chunk = Game.world.chunkManager.chunks[key];
                     if(chunk.inited) {
                         cl++;
                     }
                 }
-                var nc = 45;
+                let nc = 45;
                 this.loading = cl < nc;
                 if(!this.loading) {
                     return false;
@@ -65,8 +65,8 @@ export default class HUD {
                 let ctx = this.hud.ctx;
                 ctx.save();
                 if(this.image) {
-                    for(var x = 0; x < w; x += this.image.width) {
-                        for(var y = 0; y < h; y += this.image.height) {
+                    for(let x = 0; x < w; x += this.image.width) {
+                        for(let y = 0; y < h; y += this.image.height) {
                             ctx.drawImage(this.image, x, y);
                         }
                     }
@@ -77,17 +77,17 @@ export default class HUD {
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                var txt = 'LOADING ... ' + Math.round(cl / nc * 100) + '%';
+                let txt = 'LOADING ... ' + Math.round(cl / nc * 100) + '%';
                 //
-                var x = w / 2;
-                var y = h / 2 + 50;
-                var padding = 15;
+                let x = w / 2;
+                let y = h / 2 + 50;
+                let padding = 15;
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
                 // get width of text
-                var mt = ctx.measureText(txt);
-                var width = mt.width;
-                var height = mt.actualBoundingBoxDescent;
+                let mt = ctx.measureText(txt);
+                let width = mt.width;
+                let height = mt.actualBoundingBoxDescent;
                 // color for background
                 ctx.fillStyle = 'rgba(255, 255, 255, .25)';
                 // draw background rect assuming height of font
@@ -118,7 +118,7 @@ export default class HUD {
         });
 
         // Init Window Manager
-        var wm = this.wm = new WindowManager(this.canvas, this.ctx, 0, 0, this.canvas.width, this.canvas.height);
+        let wm = this.wm = new WindowManager(this.canvas, this.ctx, 0, 0, this.canvas.width, this.canvas.height);
         wm.style.background.color       = '#00000000';
         wm.style.border.hidden          = true;
         wm.pointer.visible              = false;
@@ -154,19 +154,20 @@ export default class HUD {
     }
     
     draw() {
-    
-        var that = this;
 
         this.frmMainMenu.parent.center(this.frmMainMenu);
+
+        let new_width = null;
+        let new_height = null;
     
         if(Game.canvas.width > Game.canvas.height) {
-            var new_width =  Math.round(352 * 4.5);
-            var new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
+            new_width =  Math.round(352 * 4.5);
+            new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
             new_width = document.body.clientWidth;
             new_height = document.body.clientHeight;
         } else {
-            var new_height =  Math.round(332 * 3.5);
-            var new_width = Math.round(new_height * (Game.canvas.width / Game.canvas.height));
+            new_height =  Math.round(332 * 3.5);
+            new_width = Math.round(new_height * (Game.canvas.width / Game.canvas.height));
         }
     
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
@@ -205,8 +206,8 @@ export default class HUD {
             // Crosshair
             for(let cs of [{width: '2', color: 'black'}, {width: '1', color: 'white'}]) {
             this.ctx.beginPath();
-                var x = this.ctx.canvas.width / 2;
-                var y = this.ctx.canvas.height / 2;
+                let x = this.ctx.canvas.width / 2;
+                let y = this.ctx.canvas.height / 2;
                 x = Math.floor(x) + 0.5;
                 y = Math.floor(y) + 0.5;
                 this.ctx.lineWidth = cs.width;
@@ -219,8 +220,8 @@ export default class HUD {
             }
     
             // Draw HUD components
-            for(var t of this.items) {
-                for(var e of t) {
+            for(let t of this.items) {
+                for(let e of t) {
                     this.ctx.restore();
                     e.item.drawHUD(this);
                 }
@@ -242,12 +243,12 @@ export default class HUD {
     //
     makeInfo() {
         this.text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(fps.avg);
-        var vci = Game.render.getVideoCardInfo();
+        let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += '\nRenderer: ' + vci.renderer;
         }
         this.text += '\nMAT: ';
-        var mat = Game.player.buildMaterial;
+        let mat = Game.player.buildMaterial;
         if(mat) {
             this.text += ' ' + mat.id + ' / ' + mat.name;
             if(mat.fluid) {
@@ -267,17 +268,17 @@ export default class HUD {
         // Chunks inited
         this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
         //
-        var quads_length_total = Game.world.chunkManager.vertices_length_total;
+        let quads_length_total = Game.world.chunkManager.vertices_length_total;
         this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
             ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
         //
         // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
-        var playerBlockPos = Game.world.localPlayer.getBlockPos();
-        var chunk = Game.world.localPlayer.overChunk;
+        let playerBlockPos = Game.world.localPlayer.getBlockPos();
+        let chunk = Game.world.localPlayer.overChunk;
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z;
         if(chunk) {
-            var biome = null;
+            let biome = null;
             if(chunk.map) {
                 try {
                     biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
@@ -314,7 +315,7 @@ export default class HUD {
         if(!this.draw_info) {
             return;
         }
-        // var text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
+        // let text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
         this.drawText(this.text, 10, 10);
     }
     
@@ -322,7 +323,7 @@ export default class HUD {
     drawText(str, x, y) {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
-        for(var i in str) {
+        for(let i in str) {
             this.drawTextBG(str[i], x, y + 28 * i);
         }
     }
@@ -334,9 +335,9 @@ export default class HUD {
         /// draw text from top - makes life easier at the moment
         this.ctx.textBaseline = 'top';
         // get width of text
-        var mt = this.ctx.measureText(txt);
-        var width = mt.width;
-        var height = mt.actualBoundingBoxDescent;
+        let mt = this.ctx.measureText(txt);
+        let width = mt.width;
+        let height = mt.actualBoundingBoxDescent;
         // color for background
         this.ctx.fillStyle = 'rgba(0, 0, 0, .35)';
         if(txt) {

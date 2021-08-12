@@ -37,12 +37,12 @@ export default class Terrain_Generator {
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
         // Result map
-        var map                     = new Map(chunk, this.options);
+        let map                     = new Map(chunk, this.options);
         //
-        for(var x = 0; x < chunk.size.x; x++) {
-            for(var z = 0; z < chunk.size.z; z++) {
-                var px = SX + x;
-                var pz = SZ + z;
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
+                let px = SX + x;
+                let pz = SZ + z;
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 +
                     noisefn(px / 650, pz / 650) * .25 +
@@ -50,17 +50,17 @@ export default class Terrain_Generator {
                     noisefn(px / 350, pz / 350) * .5;
                 value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
                 // Влажность
-                var humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2);
+                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2);
                 // Экватор
-                var equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1);
+                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1);
                 // Get biome
-                var biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
+                let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
                 value = value * biome.max_height + 68;
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 255);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);
                 // Pow
-                var diff = value - options.WATER_LINE;
+                let diff = value - options.WATER_LINE;
                 if(diff < 0) {
                     value -= (options.WATER_LINE - value) * .65 - 1.5;
                     // value = (options.WATER_LINE + diff * .7);
@@ -69,9 +69,9 @@ export default class Terrain_Generator {
                 }
                 value = parseInt(value);
                 // Different dirt blocks
-                var ns = noisefn(px / 5, pz / 5);
+                let ns = noisefn(px / 5, pz / 5);
                 let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
-                var dirt_block = biome.dirt_block[index];
+                let dirt_block = biome.dirt_block[index];
                 // Create map cell
                 map.cells[x][z] = new MapCell(
                     value,
@@ -95,9 +95,9 @@ export default class Terrain_Generator {
         }
         // Clear maps_cache
         let keys = Object.keys(this.maps_cache);
-        var MAX_ENTR = 2000;
+        let MAX_ENTR = 2000;
         if(keys.length > MAX_ENTR) {
-            var del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
+            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
             console.info('Clear maps_cache, del_count: ' + del_count);
             for(let key of keys) {
                 if(--del_count == 0) {
@@ -114,11 +114,11 @@ export default class Terrain_Generator {
     generateMaps(chunk) {
 
         const noisefn               = this.noisefn;
-        var maps                    = [];
-        var map                     = null;
+        let maps                    = [];
+        let map                     = null;
 
-        for(var x = -1; x <= 1; x++) {
-            for(var z = -1; z <= 1; z++) {
+        for(let x = -1; x <= 1; x++) {
+            for(let z = -1; z <= 1; z++) {
                 const addr = new Vector(chunk.addr.x + x, chunk.addr.y, chunk.addr.z + z);
                 const c = {
                     blocks: {},
@@ -128,7 +128,7 @@ export default class Terrain_Generator {
                     coord: new Vector(addr.x * CHUNK_SIZE_X, addr.y * CHUNK_SIZE_Y, addr.z * CHUNK_SIZE_Z),
                 };
                 c.id = [c.addr.x, c.addr.y, c.addr.z, c.size.x, c.size.y, c.size.z].join('_');
-                var item = {
+                let item = {
                     chunk: c,
                     info: this.generateMap(c, noisefn)
                 };
@@ -143,7 +143,7 @@ export default class Terrain_Generator {
         map.info.smooth(this, chunk.addr);
 
         // Generate vegetation
-        for(var map of maps) {
+        for(let map of maps) {
             map.info.generateVegetation();
         }
 
@@ -153,8 +153,8 @@ export default class Terrain_Generator {
     // Generate
     generate(chunk) {
 
-        var maps = this.generateMaps(chunk);
-        var map = maps[4];
+        let maps = this.generateMaps(chunk);
+        let map = maps[4];
         
         const seed                  = chunk.id;
         const seedn                 = 0;
@@ -164,8 +164,8 @@ export default class Terrain_Generator {
         const noisefn               = this.noisefn;
 
         //
-        for(var x = 0; x < chunk.size.x; x++) {
-            for(var z = 0; z < chunk.size.z; z++) {
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
 
                 // AIR
                 chunk.blocks[x][z] = Array(chunk.size.y).fill(null);
@@ -177,17 +177,17 @@ export default class Terrain_Generator {
                 const biome = cell.biome;
                 const value = cell.value2;
 
-                var ar      = aleaRandom.double();
-                var rnd     = ar;
+                let ar      = aleaRandom.double();
+                let rnd     = ar;
 
                 // Sin wave
-                //var px = (x + chunk.coord.x);
-                //var pz = (z + chunk.coord.z);
-                //for(var y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
+                //let px = (x + chunk.coord.x);
+                //let pz = (z + chunk.coord.z);
+                //for(let y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
                 //    chunk.blocks[x][z][y] = blocks.CONCRETE;
                 //}
 
-                for(var y = 1; y < value; y++) {
+                for(let y = 1; y < value; y++) {
 
                     // Caves | Пещеры
                     if(y > 5 && ['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
@@ -200,7 +200,7 @@ export default class Terrain_Generator {
                         let density     = xNoise + yNoise + zNoise + (py / 4);
                         if (density < -5 || density > 97) {
                             // Чтобы не удалять землю из под деревьев
-                            var near_tree = false;
+                            let near_tree = false;
                             for(let m of maps) {
                                 for(let tree of m.info.trees) {
                                     if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
@@ -217,14 +217,14 @@ export default class Terrain_Generator {
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(y < value - (rnd < .005 ? 0 : 3)) {
-                        var r = aleaRandom.double() * 1.33;
+                        let r = aleaRandom.double() * 1.33;
                         if(r < 0.0025 && y < value - 5) {
                             chunk.blocks[x][z][y] = blocks.DIAMOND_ORE;
                         } else if(r < 0.01) {
                             chunk.blocks[x][z][y] = blocks.COAL_ORE;
                         } else {
-                            var norm = true;
-                            for(var plant of map.info.plants) {
+                            let norm = true;
+                            for(let plant of map.info.plants) {
                                 if(plant.pos.x == x && plant.pos.z == z && y == plant.pos.y - 1) {
                                     norm = false;
                                     break;
@@ -252,10 +252,10 @@ export default class Terrain_Generator {
             {style: 'cactus', trunk: blocks.CACTUS, leaves: null, height: 5},
         ];
 
-        var x = 8;
-        var z = 8;
-        var type = tree_types[chunk.addr.x % tree_types.length];
-        var tree_options = {
+        let x = 8;
+        let z = 8;
+        let type = tree_types[chunk.addr.x % tree_types.length];
+        let tree_options = {
             type: type,
             height: type.height,
             rad: 4,
@@ -281,8 +281,8 @@ export default class Terrain_Generator {
         */
 
         // Plant herbs
-        for(var p of map.info.plants) {
-            var b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
+        for(let p of map.info.plants) {
+            let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
             if(b && b.id == blocks.DIRT.id) {
                 chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
             }
@@ -290,7 +290,7 @@ export default class Terrain_Generator {
 
         // Plant trees
         for(const m of maps) {
-            for(var p of m.info.trees) {
+            for(let p of m.info.trees) {
                 this.plantTree(
                     p,
                     chunk,
@@ -309,9 +309,9 @@ export default class Terrain_Generator {
     plantTree(options, chunk, x, y, z) {
         const height        = options.height;
         const type          = options.type;
-        var ystart = y + height;
+        let ystart = y + height;
         // ствол
-        for(var p = y; p < ystart; p++) {
+        for(let p = y; p < ystart; p++) {
             if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
                 if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
                     chunk.blocks[x][z][p] = type.trunk;
@@ -333,21 +333,21 @@ export default class Terrain_Generator {
             }
             case 'wood': {
                 // дуб, берёза
-                var py = y + height;
-                for(var rad of [1, 1, 2, 2]) {
-                    for(var i = x - rad; i <= x + rad; i++) {
-                        for(var j = z - rad; j <= z + rad; j++) {
+                let py = y + height;
+                for(let rad of [1, 1, 2, 2]) {
+                    for(let i = x - rad; i <= x + rad; i++) {
+                        for(let j = z - rad; j <= z + rad; j++) {
                             if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                                var m = (i == x - rad && j == z - rad) ||
+                                let m = (i == x - rad && j == z - rad) ||
                                     (i == x + rad && j == z + rad) || 
                                     (i == x - rad && j == z + rad) ||
                                     (i == x + rad && j == z - rad);
-                                var m2 = (py == y + height) ||
+                                    let m2 = (py == y + height) ||
                                     (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
                                 if(m && m2) {
                                     continue;
                                 }
-                                var b = chunk.blocks[i][j][py];
+                                let b = chunk.blocks[i][j][py];
                                 if(!b || b.id >= 0 && b.id != type.trunk.id) {
                                     chunk.blocks[i][j][py] = type.leaves;
                                 }
@@ -360,15 +360,15 @@ export default class Terrain_Generator {
             }
             case 'acacia': {
                 // акация
-                var py = y + height;
-                for(var rad of [2, 3]) {
-                    for(var i = x - rad; i <= x + rad; i++) {
-                        for(var j = z - rad; j <= z + rad; j++) {
+                let py = y + height;
+                for(let rad of [2, 3]) {
+                    for(let i = x - rad; i <= x + rad; i++) {
+                        for(let j = z - rad; j <= z + rad; j++) {
                             if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
                                 if(Helpers.distance(new Vector(x, 0, z), new Vector(i, 0, j)) > rad) {
                                     continue;
                                 }
-                                var b = chunk.blocks[i][j][py];
+                                let b = chunk.blocks[i][j][py];
                                 if(!b || b.id >= 0 && b.id != type.trunk.id) {
                                     chunk.blocks[i][j][py] = type.leaves;
                                 }
@@ -381,23 +381,23 @@ export default class Terrain_Generator {
             }
             case 'spruce': {
                 // ель
-                var r = 1;
-                var rad = Math.round(r);
+                let r = 1;
+                let rad = Math.round(r);
                 if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
                     chunk.blocks[x][z][ystart] = type.leaves;
                 }
-                var step = 0;
-                for(var y = ystart - 1; y > ystart - (height - 1); y--) {
+                let step = 0;
+                for(let y = ystart - 1; y > ystart - (height - 1); y--) {
                     if(step++ % 2 == 0) {
                         rad = Math.min(Math.round(r), 3);
                     } else {
                         rad = 1;
                     }
-                    for(var i = x - rad; i <= x + rad; i++) {
-                        for(var j = z - rad; j <= z + rad; j++) {
+                    for(let i = x - rad; i <= x + rad; i++) {
+                        for(let j = z - rad; j <= z + rad; j++) {
                             if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
                                 if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
-                                    var b = chunk.getBlock(i + chunk.coord.x, p + chunk.coord.y, j + chunk.coord.z);
+                                    let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                                     if(b.id == blocks.AIR.id) {
                                         chunk.blocks[i][j][y] = type.leaves;
                                     }
@@ -447,8 +447,8 @@ class Map {
         }
 
         // Smoothing | Сглаживание
-        for(var x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-            for(var z = z_min; z < z_max; z++) {
+        for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
+            for(let z = z_min; z < z_max; z++) {
                 // absolute cell coord
                 let px      = chunk_coord.x + x;
                 let pz      = chunk_coord.z + z;
@@ -504,8 +504,8 @@ class Map {
         let aleaRandom  = this.#aleaRandom;
         this.trees      = [];
         this.plants     = [];
-        for(var x = 0; x < chunk.size.x; x++) {
-            for(var z = 0; z < chunk.size.z; z++) {
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
                 let cell = this.cells[x][z];
                 let biome = BIOMES[cell.biome.code];
                 let y = cell.value2;
@@ -513,11 +513,11 @@ class Map {
                 let dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
                 if(dirt_block_ids.indexOf(cell.block.id) >= 0) {
                     // Динамическая рассадка растений
-                    var rnd = aleaRandom.double();
+                    let rnd = aleaRandom.double();
                     if(rnd > 0 && rnd <= biome.plants.frequency) {
-                        var s = 0;
-                        var r = rnd / biome.plants.frequency;
-                        for(var p of biome.plants.list) {
+                        let s = 0;
+                        let r = rnd / biome.plants.frequency;
+                        for(let p of biome.plants.list) {
                             s += p.percent;
                             if(r < s) {
                                 this.plants.push({
@@ -530,9 +530,9 @@ class Map {
                     }
                     // Посадка деревьев
                     if(rnd > 0 && rnd <= biome.trees.frequency) {   
-                        var s = 0;
-                        var r = rnd / biome.trees.frequency;
-                        for(var type of biome.trees.list) {
+                        let s = 0;
+                        let r = rnd / biome.trees.frequency;
+                        for(let type of biome.trees.list) {
                             s += type.percent;
                             if(r < s) {
                                 const height = Helpers.clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);

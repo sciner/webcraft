@@ -6,7 +6,7 @@ const RECIPES = {
     crafting_shaped: {
         list: [],
         searchRecipeResult: function(pattern_array) {
-            for(var recipe of this.list) {
+            for(let recipe of this.list) {
                 if(recipe.pattern_array.length == pattern_array.length) {
                     if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
                         return recipe.result;
@@ -20,24 +20,24 @@ const RECIPES = {
         if(!recipe) {
             throw 'Empty recipe';
         }
-        var type = recipe.type.split(':')[1];
+        let type = recipe.type.split(':')[1];
         switch(type) {
             case 'crafting_shaped': {
                 // parse result
                 if(!recipe.hasOwnProperty('result')) {
                     throw 'Recipe result not defined';
                 }
-                var result_block = BLOCK.fromName(recipe.result.item);
+                let result_block = BLOCK.fromName(recipe.result.item);
                 if(result_block.id == BLOCK.DUMMY.id) {
                     throw 'Invalid recipe result block type ' + recipe.result.item;
                 }
                 recipe.result.item_id = result_block.id;
                 // create key map
-                var keys = {};
+                let keys = {};
                 for(let key of Object.keys(recipe.key)) {
                     let value = recipe.key[key];
                     if(value.hasOwnProperty('item')) {
-                        var block = BLOCK.fromName(value.item);
+                        let block = BLOCK.fromName(value.item);
                         if(block.id == BLOCK.DUMMY.id) {
                             throw 'Invalid recipe key name ' + value.item;
                         }
@@ -49,7 +49,7 @@ const RECIPES = {
                     }
                 }
                 // Make pattern
-                for(var pk in recipe.pattern) {
+                for(let pk in recipe.pattern) {
                     if(recipe.pattern[pk].length < 3) {
                         recipe.pattern[pk] = (recipe.pattern[pk] + '   ').substring(0, 3);
                     }
@@ -79,7 +79,7 @@ const RECIPES = {
 }
 
 Helpers.loadJSON('../data/recipes.json', function(json) {
-    for(var recipe of json) {
+    for(let recipe of json) {
         RECIPES.add(recipe);
     }
 });

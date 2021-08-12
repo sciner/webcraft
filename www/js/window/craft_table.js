@@ -28,7 +28,7 @@ class CraftTableSlot extends Label {
 
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
-        var item = this.getItem();
+        let item = this.getItem();
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
@@ -40,12 +40,10 @@ class CraftTableSlot extends Label {
         if(!item) {
             return;
         }
-        var w = 32;
-        var h = 32;
         ctx.imageSmoothingEnabled = false;
         // 
         if('inventory_icon_id' in item) {
-            var icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+            let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
             ctx.drawImage(
                 this.ct.inventory.inventory_image,
                 icon.x,
@@ -61,7 +59,7 @@ class CraftTableSlot extends Label {
             ctx.textBaseline    = 'top';
             ctx.textAlign       = 'left';
             ctx.font            = '11px Minecraftia';
-            var text            = item.name.substring(0, 4);
+            let text            = item.name.substring(0, 4);
             ctx.fillStyle       = '#000000ff';
             ctx.fillText(text, x + 2, y + 2);
             ctx.fillStyle       = '#ffffffff';
@@ -103,10 +101,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
         // Drag & drop
         this.onMouseDown = function(e) {
-            var that        = this;
+            let that        = this;
             const MAX_COUNT = 64;
             //
-            var targetItem  = this.getInventoryItem();
+            let targetItem  = this.getInventoryItem();
             // Set new drag
             if(!targetItem) {
                 return;
@@ -114,10 +112,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(e.drag.getItem()) {
                 return;
             }
-            var dragItem = targetItem;
+            let dragItem = targetItem;
             // right button (divide to 2)
             if(e.button == MOUSE.BUTTON_RIGHT && targetItem.count > 1) {
-                var split_count = Math.ceil(targetItem.count / 2);
+                let split_count = Math.ceil(targetItem.count / 2);
                 dragItem = {...targetItem};
                 dragItem.count = split_count;
                 targetItem.count -= split_count;
@@ -139,23 +137,23 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         // Drag & drop
         this.onDrop = function(e) {
             const MAX_COUNT = 64;
-            var that        = this;
-            var drag        = e.drag;
+            let that        = this;
+            let drag        = e.drag;
             // @todo check instanceof!
             // if(dropData instanceof InventoryItem) {
-            var dropData    = drag.getItem();
-            var targetItem  = this.getInventoryItem();
+            let dropData    = drag.getItem();
+            let targetItem  = this.getInventoryItem();
             if(!dropData) {
                 return;
             }
             if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
                 if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < MAX_COUNT) {
-                    var need_count = MAX_COUNT - dropData.item.count;
+                    let need_count = MAX_COUNT - dropData.item.count;
                     // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
-                    var craft_slots = this.parent.craft.slots;
-                    for(var i in craft_slots) {
+                    let craft_slots = this.parent.craft.slots;
+                    for(let i in craft_slots) {
                         if(need_count == 0) {
                             break;
                         }
@@ -163,7 +161,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if(slot && slot.item) {
                             if(slot.item.id == dropData.item.id) {
                                 if(slot.item.count != MAX_COUNT) {
-                                    var minus_count = 0;
+                                    let minus_count = 0;
                                     if(slot.item.count < need_count) {
                                         minus_count = slot.item.count;
                                     } else {
@@ -180,8 +178,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                     }
                     // проверить слоты инвентаря
-                    var inventory_items = Game.world.localPlayer.inventory.items;
-                    for(var i in inventory_items) {
+                    let inventory_items = Game.world.localPlayer.inventory.items;
+                    for(let i in inventory_items) {
                         if(need_count == 0) {
                             break;
                         }
@@ -189,7 +187,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         if(item) {
                             if(item.id == dropData.item.id) {
                                 if(item.count != MAX_COUNT) {
-                                    var minus_count = 0;
+                                    let minus_count = 0;
                                     if(item.count < need_count) {
                                         minus_count = item.count;
                                     } else {
@@ -220,8 +218,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             targetItem.count++;
                             dropData.item.count--;
                         } else {
-                            var new_count = targetItem.count + dropData.item.count;
-                            var remains = 0;
+                            let new_count = targetItem.count + dropData.item.count;
+                            let remains = 0;
                             if(new_count > MAX_COUNT) {
                                 remains = new_count - MAX_COUNT;
                                 new_count = MAX_COUNT;
@@ -242,7 +240,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             } else {
                 // Перетаскивание в пустую ячейку
                 if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                    var newItem = {...dropData.item};
+                    let newItem = {...dropData.item};
                     newItem.count = 1;
                     that.setItem(newItem);
                     dropData.item.count--;
@@ -257,7 +255,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
     draw(ctx, ax, ay) {
         this.applyStyle(ctx, ax, ay);
-        var item = this.getInventoryItem();
+        let item = this.getInventoryItem();
         this.drawItem(ctx, item, ax + this.x, ay + this.y, this.width, this.height);
         super.draw(ctx, ax, ay);
     }
@@ -287,9 +285,9 @@ export class CraftTableResultSlot extends CraftTableSlot {
         super(x, y, w, h, id, title, text, ct, null);
 
         this.onDrop = function(e) {
-            var that = this;
-            var dragItem = this.getItem();
-            var dropItem = e.drag.getItem().item;
+            let that = this;
+            let dragItem = this.getItem();
+            let dropItem = e.drag.getItem().item;
             if(!dragItem || !dropItem) {
                 return;
             }
@@ -297,8 +295,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 return;
             }
             // decrement craft slots
-            for(var slot of this.parent.craft.slots) {
-                var item = slot.getItem();
+            for(let slot of this.parent.craft.slots) {
+                let item = slot.getItem();
                 if(item) {
                     item.count--;
                     if(item.count == 0) {
@@ -313,7 +311,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 // clear result slot
                 this.setItem(null);
             } else {
-                var remains = (dropItem.count + dragItem.count) - MAX_COUNT;
+                let remains = (dropItem.count + dragItem.count) - MAX_COUNT;
                 dropItem.count = MAX_COUNT;
                 dragItem.count = remains;
             }
@@ -322,16 +320,16 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
         // Drag & drop
         this.onMouseDown = function(e) {
-            var that = this;
-            var dragItem = this.getItem();
+            let that = this;
+            let dragItem = this.getItem();
             if(!dragItem) {
                 return;
             }
             // clear result slot
             this.setItem(null);
             // decrement craft slots
-            for(var slot of this.parent.craft.slots) {
-                var item = slot.getItem();
+            for(let slot of this.parent.craft.slots) {
+                let item = slot.getItem();
                 if(item) {
                     item.count--;
                     if(item.count == 0) {
@@ -393,7 +391,7 @@ export class CraftTable extends Window {
         // Обработчик закрытия формы
         this.onHide = function() {
             // Drag
-            var dragItem = this.getRoot().drag.getItem();
+            let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
                 this.inventory.increment(dragItem.item);
             }
@@ -401,7 +399,7 @@ export class CraftTable extends Window {
             // Clear result
             this.resultSlot.setItem(null);
             //
-            for(var slot of this.craft.slots) {
+            for(let slot of this.craft.slots) {
                 if(slot && slot.item) {
                     this.inventory.increment(slot.item);
                     slot.item = null;
@@ -410,8 +408,8 @@ export class CraftTable extends Window {
         }
 
         // Add labels to window
-        var lbl1 = new Label(59, 12, 80, 30, 'lbl1', null, 'Crafting');
-        var lbl2 = new Label(16, 144, 80, 30, 'lbl2', null, 'Inventory');
+        let lbl1 = new Label(59, 12, 80, 30, 'lbl1', null, 'Crafting');
+        let lbl2 = new Label(16, 144, 80, 30, 'lbl2', null, 'Inventory');
         ct.add(lbl1);
         ct.add(lbl2);
 
@@ -420,7 +418,7 @@ export class CraftTable extends Window {
     addCloseButton() {
         const ct = this;
         // Close button
-        var btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+        let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
         }
@@ -430,7 +428,7 @@ export class CraftTable extends Window {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        var btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
+        let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
         btnRecipes.setBackground('./media/gui/recipes.png');
         btnRecipes.onMouseDown = function(e) {
             // ct.hide();
@@ -448,14 +446,14 @@ export class CraftTable extends Window {
             console.error('createCraftSlots() already created');
             return;
         }
-        var sx          = 58;
-        var sy          = 32;
-        var xcnt        = 3;
+        let sx          = 58;
+        let sy          = 32;
+        let xcnt        = 3;
         this.craft = {
             slots: [null, null, null, null, null, null, null, null, null]
         };
-        for(var i = 0; i < ct.craft.slots.length; i++) {
-            var lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+        for(let i = 0; i < ct.craft.slots.length; i++) {
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
             }
@@ -472,7 +470,7 @@ export class CraftTable extends Window {
     createResultSlot() {
         const ct = this;
         // x, y, w, h, id, title, text, ct, slot_index
-        var lblResultSlot = this.resultSlot = new CraftTableResultSlot(246, 68, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
+        let lblResultSlot = this.resultSlot = new CraftTableResultSlot(246, 68, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
         lblResultSlot.onMouseEnter = function() {
             this.style.background.color = '#ffffff33';
         }
@@ -494,20 +492,20 @@ export class CraftTable extends Window {
         }
         ct.inventory_slots  = [];
         // нижний ряд (видимые на хотбаре)
-        var sx = 14;
-        var sy = 282;
-        var xcnt = 9;
-        for(var i = 0; i < 9; i++) {
-            var lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+        let sx          = 14;
+        let sy          = 282;
+        let xcnt        = 9;
+        for(let i = 0; i < 9; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        var sx              = 14;
-        var sy              = 166;
-        var xcnt            = 9;
+        sx              = 14;
+        sy              = 166;
+        xcnt            = 9;
         // верхние 3 ряда
-        for(var i = 0; i < 27; i++) {
-            var lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+        for(let i = 0; i < 27; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
@@ -515,8 +513,8 @@ export class CraftTable extends Window {
     
     // собираем и проверяем шаблон
     checkRecipe() {
-        var pattern_array = [];
-        for(var slot of this.craft.slots) {
+        let pattern_array = [];
+        for(let slot of this.craft.slots) {
             if(!slot.item) {
                 if(pattern_array.length > 0) {
                     pattern_array.push(null);
@@ -526,13 +524,13 @@ export class CraftTable extends Window {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        var craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array);
+        let craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array);
         if(!craft_result) {
-            var pattern_array2 = [];
+            let pattern_array2 = [];
             // 2. Mirrored
-            for(var i = 0; i < 3; i++) {
-                for(var j = 2; j >= 0; j--) {
-                    var slot = this.craft.slots[i * 3 + j];
+            for(let i = 0; i < 3; i++) {
+                for(let j = 2; j >= 0; j--) {
+                    let slot = this.craft.slots[i * 3 + j];
                     if(!slot.item) {
                         if(pattern_array.length > 0) {
                             pattern_array2.push(null);
@@ -548,7 +546,7 @@ export class CraftTable extends Window {
         if(!craft_result) {
             return this.resultSlot.setItem(null);
         }
-        var block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
+        let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
         this.resultSlot.setItem(block);
     }

@@ -3,12 +3,12 @@ const cache = {};
 function lightHex(hex, light_value) {
     light_value = Helpers.clamp(light_value);
     light_value = Math.round(light_value * 255) / 255;
-    var k = hex + light_value;
+    let k = hex + light_value;
     if(cache.hasOwnProperty(k)) {
         return cache[k];
     }
     light_value = Helpers.clamp(light_value * 2.0);
-    var rgb = [
+    let rgb = [
         parseInt(parseInt(hex.substring(1, 3), 16) * light_value),
         parseInt(parseInt(hex.substring(3, 5), 16) * light_value),
         parseInt(parseInt(hex.substring(5, 7), 16) * light_value),
@@ -24,7 +24,7 @@ function rgb2Hex(rgb) {
 // Make signal
 function makeSignal(w, h) {
     // minimum two points
-    var myPoints = [
+    let myPoints = [
         0.01,    0,
         0.3,     0,
         0.35,    0,
@@ -32,10 +32,10 @@ function makeSignal(w, h) {
         1.0,     0,
     ];
     const tension = 0.5;
-    var curve = getCurvePoints(myPoints, tension, false, 63);
+    let curve = getCurvePoints(myPoints, tension, false, 63);
 
-    var signal = [];
-    for(var i = 0; i < 255; i++) {
+    let signal = [];
+    for(let i = 0; i < 255; i++) {
         signal.push(parseInt(curve[i * 2] * 255));
     }
     return signal;
@@ -48,7 +48,7 @@ function getCurvePoints(pts, tension, isClosed, numOfSegments) {
     isClosed = isClosed ? isClosed : false;
     numOfSegments = numOfSegments ? numOfSegments : 16;
 
-    var _pts = [], res = [],    // clone array
+    let _pts = [], res = [],    // clone array
         x, y,           // our x,y coords
         t1x, t2x, t1y, t2y, // tension vectors
         c1, c2, c3, c4,     // cardinal points

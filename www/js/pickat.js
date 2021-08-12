@@ -36,20 +36,20 @@ export default class PickAt {
             const min = new Vector(bPos.x - PICKAT_DIST, bPos.y - PICKAT_DIST, bPos.z - PICKAT_DIST);
             const max = new Vector(bPos.x + PICKAT_DIST, bPos.y + PICKAT_DIST, bPos.z + PICKAT_DIST);
     
-            var playerPos = new Vector(
+            let playerPos = new Vector(
                 parseInt(player.pos.x) - PICKAT_DIST,
                 parseInt(player.pos.y) - PICKAT_DIST,
                 parseInt(player.pos.z) - PICKAT_DIST
             );
     
-            var block = false;
+            let block = false;
     
-            for(var x = min.x; x <= max.x; x++) {
-                for(var y = min.y; y <= max.y; y++) {
-                    for(var z = min.z; z <= max.z; z++) {
-                        var b = world.chunkManager.getBlock(x, y, z);
+            for(let x = min.x; x <= max.x; x++) {
+                for(let y = min.y; y <= max.y; y++) {
+                    for(let z = min.z; z <= max.z; z++) {
+                        let b = world.chunkManager.getBlock(x, y, z);
                         if (b.id != BLOCK.AIR.id && b.id != BLOCK.DUMMY.id) {
-                            var resp = Helpers.IntersectRayBrick(
+                            let resp = Helpers.IntersectRayBrick(
                                 {
                                     start: [playerPos.x, playerPos.y, playerPos.z + 1.7],
                                     // direction: player.angles,
@@ -74,15 +74,15 @@ export default class PickAt {
             }
     
             while(this.callbacks.length > 0) {
-                var callback = this.callbacks.pop();
+                let callback = this.callbacks.pop();
                 callback(block);
             }
             */
     
             const x = gl.canvas.width * 0.5 / window.devicePixelRatio;
             const y = gl.canvas.height * 0.5 / window.devicePixelRatio;
-            var bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
-            var block = this.pickAt(
+            let bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
+            let block = this.pickAt(
                 new Vector(bPos.x - PICKAT_DIST, bPos.y - PICKAT_DIST, bPos.z - PICKAT_DIST),
                 new Vector(bPos.x + PICKAT_DIST, bPos.y + PICKAT_DIST, bPos.z + PICKAT_DIST),
                 x,
@@ -90,7 +90,7 @@ export default class PickAt {
             );
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
             while(this.callbacks.length > 0) {
-                var callback = this.callbacks.pop();
+                let callback = this.callbacks.pop();
                 callback(block);
             }
     
@@ -108,22 +108,22 @@ export default class PickAt {
     **/
     pickAt(min, max, mx, my) {
     
-        var render = this.render;
-        var world = render.world;
+        let render = this.render;
+        let world = render.world;
     
         // Build buffer with block pick candidates
-        var vertices = [];
-        var playerPos = new Vector(
+        let vertices = [];
+        let playerPos = new Vector(
             parseInt(Game.world.localPlayer.pos.x) - PICKAT_DIST,
             parseInt(Game.world.localPlayer.pos.y) - PICKAT_DIST,
             parseInt(Game.world.localPlayer.pos.z) - PICKAT_DIST
         );
-        for(var x = min.x; x <= max.x; x++) {
-            for(var y = min.y; y <= max.y; y++) {
-                for(var z = min.z; z <= max.z; z++) {
-                    var b = world.chunkManager.getBlock(x, y, z);
+        for(let x = min.x; x <= max.x; x++) {
+            for(let y = min.y; y <= max.y; y++) {
+                for(let z = min.z; z <= max.z; z++) {
+                    let b = world.chunkManager.getBlock(x, y, z);
                     if (b.id != BLOCK.AIR.id && b.id != BLOCK.DUMMY.id) {
-                        var pos = new Vector(
+                        let pos = new Vector(
                             x - playerPos.x,
                             y - playerPos.y,
                             z - playerPos.z
@@ -134,24 +134,24 @@ export default class PickAt {
             }
         }
         // !!!
-        for(var i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
+        for(let i = 0; i < vertices.length; i += GeometryTerrain.strideFloats) {
             vertices[i + 0] -= (Game.shift.x);
             vertices[i + 1] -= (Game.shift.z);
         }
     
-        var gl = render.gl;
+        let gl = render.gl;
     
         gl.useProgram(render.program);
         gl.activeTexture(gl.TEXTURE0);
         // Create framebuffer for picking render
-        var fbo = gl.createFramebuffer();
+        let fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-        var bt = gl.createTexture();
+        let bt = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, bt);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 512, 512, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        var renderbuffer = gl.createRenderbuffer();
+        let renderbuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 512, 512);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bt, 0);
@@ -178,7 +178,7 @@ export default class PickAt {
         gl.enable(gl.CULL_FACE);
     
         // Read pixel
-        var pixel = new Uint8Array(4);
+        let pixel = new Uint8Array(4);
         gl.readPixels(mx / gl.viewportWidth * 512, (1 - my / gl.viewportHeight) * 512, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
         gl.uniform1f(render.u_fogOn, true);
         // Reset states
@@ -193,7 +193,7 @@ export default class PickAt {
         if(pixel[0] == 255) {
             return false;
         }
-        var normal;
+        let normal;
         if(pixel[3] == 1) normal = new Vector(0, 1, 0); // top
         else if(pixel[3] == 2) normal = new Vector(0, -1, 0); // bottom
         else if(pixel[3] == 3) normal = new Vector(0, 0, -1); // left

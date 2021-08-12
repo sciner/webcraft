@@ -40,7 +40,7 @@ export class Vector {
 
     normal() {
         if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector( 0, 0, 0 );
-        var l = this.length();
+        let l = this.length();
         return new Vector( this.x/l, this.y/l, this.z/l );
     }
 
@@ -108,16 +108,16 @@ export class Helpers {
     // len - must be an even number (default: 32)
     static generateID() {
         const len = 32;
-        var arr = new Uint8Array(len / 2);
+        let arr = new Uint8Array(len / 2);
         window.crypto.getRandomValues(arr);
         return Array.from(arr, Helpers.byteToHex).join('');
     }
 
     static distance(p, q) {
-        var dx   = p.x - q.x;
-        var dy   = p.y - q.y;
-        var dz   = p.z - q.z;
-        var dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        let dx   = p.x - q.x;
+        let dy   = p.y - q.y;
+        let dz   = p.z - q.z;
+        let dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
         return dist;
     }
 
@@ -129,15 +129,15 @@ export class Helpers {
     }
 
     static isDev() {
-        var loc = location.host;
+        let loc = location.host;
         return loc.indexOf('whiteframe.ru') < 0;
     }
 
     static createSkinLayer2(text, image, callback) {
-        var canvas          = document.createElement('canvas');
+        let canvas          = document.createElement('canvas');
         canvas.width        = 64;
         canvas.height       = 64;
-        var ctx             = canvas.getContext('2d');
+        let ctx             = canvas.getContext('2d');
         if(text) {
             ctx.fillStyle       = '#f5f5f5';
             ctx.fillRect(0, 0, 200, 200);
@@ -158,7 +158,7 @@ export class Helpers {
             ctx.drawImage(image, 0, 48, 48, 16, 32, 48, 16, 16);
         }
         canvas.toBlob(function(blob) {
-            var filefromblob = new File([blob], 'image.png', {type: 'image/png'});
+            let filefromblob = new File([blob], 'image.png', {type: 'image/png'});
             callback(filefromblob);
         }, 'image/png');
     }
@@ -166,7 +166,7 @@ export class Helpers {
     /* Canvas Donwload */
     static downloadBlobPNG(blob, filename) {
         /// create an "off-screen" anchor tag
-        var lnk = document.createElement('a'), e;
+        let lnk = document.createElement('a'), e;
         /// the key here is to set the download attribute of the a tag
         lnk.download = filename;
         /// convert canvas content to data-uri for link. When download
@@ -197,11 +197,11 @@ export class Helpers {
             return true;
         }
         // ray parameter
-        var t_near = Number.MIN_SAFE_INTEGER;
-        var t_far = Number.MAX_SAFE_INTEGER;
-        var t1, t2;
+        let t_near = Number.MIN_SAFE_INTEGER;
+        let t_far = Number.MAX_SAFE_INTEGER;
+        let t1, t2;
         // directions loop
-        for (var i = 0; i < 3; i++) {
+        for (let i = 0; i < 3; i++) {
             if (Math.abs(ray.direction[i]) >= Number.EPSILON) {
                 t1 = (brick.min_point[i] - ray.start[i]) / ray.direction[i];
                 t2 = (brick.max_point[i] - ray.start[i]) / ray.direction[i];
@@ -242,7 +242,7 @@ export class Helpers {
         if(typeof data === "object"){
             data = JSON.stringify(data); // , undefined, 4)
         }
-        var blob = new Blob([data], {type: 'text/json'}),
+        let blob = new Blob([data], {type: 'text/json'}),
             e    = document.createEvent('MouseEvents'),
             a    = document.createElement('a')
         a.download = filename
@@ -259,9 +259,9 @@ export class Helpers {
         };
         async function loadShaders() {
             const files = await Promise.all([vertex, fragment].map(loadTextFile));
-            var program = gl.createProgram();
+            let program = gl.createProgram();
             // Compile vertex shader
-            var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+            let vertexShader = gl.createShader(gl.VERTEX_SHADER);
             gl.shaderSource(vertexShader, files[0]);
             gl.compileShader(vertexShader);
             gl.attachShader(program, vertexShader);
@@ -270,7 +270,7 @@ export class Helpers {
                 throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
             }
             // Compile fragment shader
-            var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+            let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
             gl.shaderSource(fragmentShader, files[1]);
             gl.compileShader(fragmentShader);
             gl.attachShader(program, fragmentShader);
@@ -359,9 +359,9 @@ export class MyArray extends Array {
             if(!Game.world || !Game.world.localPlayer) {
                 return;
             }
-            var playerPos = Game.world.localPlayer.pos;
-            var dist1 = Math.sqrt(Math.pow(playerPos.x - obj1.coord.x, 2) + Math.pow(playerPos.y - obj1.coord.y, 2));
-            var dist2 = Math.sqrt(Math.pow(playerPos.x - obj2.coord.x, 2) + Math.pow(playerPos.y - obj2.coord.y, 2));
+            let playerPos = Game.world.localPlayer.pos;
+            let dist1 = Math.sqrt(Math.pow(playerPos.x - obj1.coord.x, 2) + Math.pow(playerPos.y - obj1.coord.y, 2));
+            let dist2 = Math.sqrt(Math.pow(playerPos.x - obj2.coord.x, 2) + Math.pow(playerPos.y - obj2.coord.y, 2));
             if(dist1 > dist2) {
                 return 1;
             } else if(dist2 > dist1) {
@@ -373,7 +373,7 @@ export class MyArray extends Array {
 }
 
 function loadText(url, callback) {
-    var xobj = new XMLHttpRequest();
+    let xobj = new XMLHttpRequest();
     xobj.overrideMimeType('application/json');
     xobj.open('GET', url, true); // Replace 'my_data' with the path to your file
     xobj.onreadystatechange = function() {

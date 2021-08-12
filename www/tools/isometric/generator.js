@@ -1,16 +1,16 @@
-var canvas = document.getElementById('canvas3D');
-var ctx = canvas.getContext('2d', { alpha: false });
+let canvas = document.getElementById('canvas3D');
+let ctx = canvas.getContext('2d', { alpha: false });
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight ;
 
-var canvas2D = document.getElementById('canvas2D');
-var ctx2D = canvas2D.getContext('2d', { alpha: false });
+let canvas2D = document.getElementById('canvas2D');
+let ctx2D = canvas2D.getContext('2d', { alpha: false });
 
 // onmousemove
 canvas2D.onmousemove = function(e) {
-    var c = ctx2D.getImageData(e.offsetX, e.offsetY, 1, 1).data;
-    var rgb = [c[0], c[1], c[2]];
-    var hex = rgb2Hex(rgb);
+    let c = ctx2D.getImageData(e.offsetX, e.offsetY, 1, 1).data;
+    let rgb = [c[0], c[1], c[2]];
+    let hex = rgb2Hex(rgb);
     for(let code of Object.keys(BIOMES)) {
         let b = BIOMES[code];
         if(b.color == hex) {
@@ -45,15 +45,15 @@ for(let code of Object.keys(BIOMES)) {
 }
 
 // Terrain settings
-var SX                      = 592038; // Стартовая координата X на карте
-var SY                      = 91347; // Стартовая координата Y на карте
+let SX                      = 592038; // Стартовая координата X на карте
+let SY                      = 91347; // Стартовая координата Y на карте
 const SZ                    = 320; // Ширина и длина ргенерируемой области
 
-var ww                      = window.innerWidth;
-var wh                      = window.innerHeight;
+let ww                      = window.innerWidth;
+let wh                      = window.innerHeight;
 
 const noisefn = noise.perlin2;
-var signal = makeSignal(115, 20);
+let signal = makeSignal(115, 20);
 
 class Biome {
 
@@ -63,7 +63,7 @@ class Biome {
         ctx.fillStyle = '#aaddff';
         ctx.fillRect(0, 0, ww, wh);
         
-        var scale = .5;
+        let scale = .5;
 
         // Настройки
         const options = {
@@ -74,26 +74,26 @@ class Biome {
             SCALE_VALUE:            250  * scale // Масштаб шума для карты высот
         };
 
-        for(var x = 0; x < SZ; x += 4) {
-            for(var y = 0; y < SZ; y += 4) {
+        for(let x = 0; x < SZ; x += 4) {
+            for(let y = 0; y < SZ; y += 4) {
 
                 const px = (SX - SZ / 2 + (SZ - x)); // * options.SCALE;
                 const py = (SY - SZ / 2 + (y)); // * options.SCALE;
 
                 // Влажность
-                var humidity = Helpers.clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6);
+                let humidity = Helpers.clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6);
                 // Экватор
-                var equator = Helpers.clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6);
+                let equator = Helpers.clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6);
 
                 // Высота
-                var value = (
+                let value = (
                     noisefn(px / options.SCALE_VALUE, py / options.SCALE_VALUE, 0) + // равнины
                     noisefn(px / (options.SCALE_VALUE / 2), py / (options.SCALE_VALUE / 2), 0)
                     // noisefn(px / options.SCALE_BIOM, py / options.SCALE_BIOM, 0)
                 ) / 2;
 
                 // Шум биома
-                var mh = Helpers.clamp(noisefn(px / (options.SCALE_VALUE * 8), py / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
+                let mh = Helpers.clamp(noisefn(px / (options.SCALE_VALUE * 8), py / (options.SCALE_VALUE * 8), 0) + 0.6, 0.1, 1);
                 value *= (1. + mh / 2);
 
                 if(value < 0) {
@@ -104,15 +104,15 @@ class Biome {
                 value = Helpers.clamp(value, 4, 255);
                 value = signal[value];
 
-                var biome = this.getBiome(value / 255, humidity, equator);
+                let biome = this.getBiome(value / 255, humidity, equator);
 
                 if(biome == 'OCEAN') {
                     value = options.WATER_LINE;
                 }
 
                 //
-                var i = (ww / 2 + SZ / 2) - (y - x);
-                var j = (wh / 2 - SZ / 4) + (x + y) / 2;
+                let i = (ww / 2 + SZ / 2) - (y - x);
+                let j = (wh / 2 - SZ / 4) + (x + y) / 2;
 
                 if(x >= SZ - 4 || y >= SZ - 4) {
                     ctx.fillStyle = lightHex(BIOMES[biome].color, value / 255);
@@ -136,12 +136,12 @@ class Biome {
 
     // Redraw
     redraw() {
-        var t = performance.now();
+        let t = performance.now();
         this.draw(noisefn, signal);
         // Draw signal modify table
         ctx2D.fillStyle = '#00000077';
-        for(var i in signal) {
-            var value = signal[i];
+        for(let i in signal) {
+            let value = signal[i];
             ctx2D.fillRect((i / 256) * 320, 320 - (value / 256) * 320, 2, 2);
         }
         ctx2D.fillStyle = '#dd2200';
@@ -154,8 +154,8 @@ class Biome {
     * Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора
     */
     getBiome(height, humidity, equator) {
-        var h = height;
-        var m = humidity;
+        let h = height;
+        let m = humidity;
         /*
         if(equator > .7) {
             if (equator < .9) return 'OCEAN';
@@ -192,7 +192,7 @@ class Biome {
 
 }
 
-var biome = new Biome();
+let biome = new Biome();
 biome.redraw();
 
 setInterval(function() {

@@ -1,25 +1,25 @@
 let queue               = [];
 
 // Modules
-var Vector              = null;
-var BLOCK               = null;
-var CHUNK_SIZE_X        = null;
-var CHUNK_SIZE_Y        = null;
-var CHUNK_SIZE_Z        = null;
+let Vector              = null;
+let BLOCK               = null;
+let CHUNK_SIZE_X        = null;
+let CHUNK_SIZE_Y        = null;
+let CHUNK_SIZE_Z        = null;
 
 // Vars
-var all_blocks          = []; // 1. All blocks
-var blocks              = [];
-var plant_blocks        = []; // 2. Plants
-var chunks              = {};
-var terrainGenerator    = null;
+let all_blocks          = []; // 1. All blocks
+let blocks              = [];
+let plant_blocks        = []; // 2. Plants
+let chunks              = {};
+let terrainGenerator    = null;
 
 // ChunkManager
 class ChunkManager {
 
     // Возвращает относительные координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
-        var v = new Vector(
+        let v = new Vector(
             parseInt(x / CHUNK_SIZE_X),
             parseInt(y / CHUNK_SIZE_Y),
             parseInt(z / CHUNK_SIZE_Z)
@@ -33,13 +33,12 @@ class ChunkManager {
     }
 
     getPosChunkKey(pos) {
-        var k = 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
-        return k;
+        return 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
     }
 
     // Get
     getChunk(pos) {
-        var k = this.getPosChunkKey(pos);
+        let k = this.getPosChunkKey(pos);
         if(chunks.hasOwnProperty(k)) {
             return chunks[k];
         }
@@ -49,9 +48,9 @@ class ChunkManager {
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        var chunkPos = this.getChunkPos(x, y, z);
+        let chunkPos = this.getChunkPos(x, y, z);
         // обращаемся к чанку
-        var chunk = this.getChunk(chunkPos);
+        let chunk = this.getChunk(chunkPos);
         // если чанк найден
         if(chunk) {
             // просим вернуть блок передав абсолютные координаты
@@ -82,9 +81,9 @@ class Chunk {
         // 1. Initialise world array
         this.timers.init = performance.now();
         this.blocks = new Array(this.size.x);
-        for(var x = 0; x < this.size.x; x++) {
+        for(let x = 0; x < this.size.x; x++) {
             this.blocks[x] = new Array(this.size.z);
-            for(var z = 0; z < this.size.z; z++) {
+            for(let z = 0; z < this.size.z; z++) {
                 this.blocks[x][z] = new Array(this.size.y).fill(null);
             }
         }
@@ -112,11 +111,11 @@ class Chunk {
     //
     applyModifyList() {
         for(let key of Object.keys(this.modify_list)) {
-            let m = this.modify_list[key];
-            var pos = key.split(',');
-            var type = BLOCK.fromId(m.id);
-            var rotate = m.rotate ? m.rotate : null;
-            var entity_id = m.entity_id ? m.entity_id : null;
+            let m           = this.modify_list[key];
+            let pos         = key.split(',');
+            let type        = BLOCK.fromId(m.id);
+            let rotate      = m.rotate ? m.rotate : null;
+            let entity_id   = m.entity_id ? m.entity_id : null;
             this.setBlock(parseInt(pos[0]), parseInt(pos[1]), parseInt(pos[2]), type, false, m.power, rotate, entity_id);
         }
     }
@@ -125,17 +124,18 @@ class Chunk {
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
     getBlock(ox, oy, oz) {
-        var x = ox - this.coord.x;
-        var y = oy - this.coord.y;
-        var z = oz - this.coord.z;
+        let x = ox - this.coord.x;
+        let y = oy - this.coord.y;
+        let z = oz - this.coord.z;
         if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return BLOCK.DUMMY;
         };
         if(z < 0 || z >= this.size.y) {
             return BLOCK.DUMMY;
         }
+        let block = null;
         try {
-            var block = this.blocks[x][z][y];
+            block = this.blocks[x][z][y];
         } catch(e) {
             console.error(e);
             console.log(x, y, z);
@@ -168,7 +168,7 @@ class Chunk {
             return;
         }
         if(is_modify) {
-            var modify_item = {
+            let modify_item = {
                 id: orig_type.id,
                 power: power,
                 rotate: rotate
@@ -184,8 +184,7 @@ class Chunk {
         if(is_modify) {
             console.table(orig_type);
         }
-        var type                        = {...BLOCK.fromId(orig_type.id)};
-        this.blocks[x][z][y]            = type;
+        this.blocks[x][z][y]            = {...BLOCK.fromId(orig_type.id)};
         this.blocks[x][z][y].power      = power;
         this.blocks[x][z][y].rotate     = rotate;
         this.blocks[x][z][y].entity_id  = entity_id;
@@ -196,10 +195,10 @@ class Chunk {
     makeLights() {
         this.lights = [];
         // Lights
-        for(var y = 0; y < this.size.y; y++) {
-            for(var x = 0; x < this.size.x; x++) {
-                for(var z = 0; z < this.size.z; z++) {
-                    var block = this.blocks[x][z][y];
+        for(let y = 0; y < this.size.y; y++) {
+            for(let x = 0; x < this.size.x; x++) {
+                for(let z = 0; z < this.size.z; z++) {
+                    let block = this.blocks[x][z][y];
                     if(block && block.lightPower) {
                         this.lights.push({
                             power: block.lightPower,
@@ -221,8 +220,8 @@ class Chunk {
         }
     
         // Create map of lowest blocks that are still lit
-        var lightmap            = {};
-        var tm                  = performance.now();
+        let lightmap            = {};
+        let tm                  = performance.now();
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
     
@@ -244,14 +243,14 @@ class Chunk {
             },
         }
     
-        var neighbour_chunks = {
+        let neighbour_chunks = {
             nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
             nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
             pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
         };
     
-        var cc = [
+        let cc = [
             {x:  0, y:  1, z:  0},
             {x:  0, y: -1, z:  0},
             {x:  0, y:  0, z: -1},
@@ -260,10 +259,10 @@ class Chunk {
             {x:  1, y:  0, z:  0}
         ];
     
-        for(var y = 0; y < this.size.y; y++) {
-            for(var x = 0; x < this.size.x; x++) {
-                for(var z = 0; z < this.size.z; z++) {
-                    var block = this.blocks[x][z][y];
+        for(let y = 0; y < this.size.y; y++) {
+            for(let x = 0; x < this.size.x; x++) {
+                for(let z = 0; z < this.size.z; z++) {
+                    let block = this.blocks[x][z][y];
                     const biome = this.map.info.cells[x][z].biome;
                     if(block == null) {
                         continue;
@@ -280,11 +279,11 @@ class Chunk {
                         group = 'doubleface';
                     }
                     // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока
-                    var neighbours = {UP: null, DOWN: null, FORWARD: null, BACK: null, LEFT: null, RIGHT: null};
-                    var pcnt = 0;
+                    let neighbours = {UP: null, DOWN: null, FORWARD: null, BACK: null, LEFT: null, RIGHT: null};
+                    let pcnt = 0;
                     // обходим соседние блоки
-                    for(var p of cc) {
-                        var b = null;
+                    for(let p of cc) {
+                        let b = null;
                         if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
                             // если блок в том же чанке
                             b = this.blocks[x + p.x][z + p.z][y + p.y];
@@ -346,15 +345,15 @@ class Chunk {
                     /*
                     // lights
                     block.light = null;
-                    for(var l of this.lights) {
-                        var dist = Math.sqrt(
+                    for(let l of this.lights) {
+                        let dist = Math.sqrt(
                             Math.pow(x - l.x, 2) +
                             Math.pow(y - l.y, 2) +
                             Math.pow(z - l.z, 2)
                         );
-                        var maxDist = Math.round((l.power.a / 255) * 8);
+                        let maxDist = Math.round((l.power.a / 255) * 8);
                         if(dist <= maxDist) {
-                            var newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
+                            let newLight = new Color(l.power.r, l.power.g, l.power.b, l.power.a);
                             newLight.a *= ((maxDist - dist) / maxDist);
                             if(block.light) {
                                 // @todo mix two light
@@ -370,7 +369,7 @@ class Chunk {
                     */
                     // if block with gravity
                     if(block.gravity && z > 0) {
-                        var block_under = this.blocks[x][z][y - 1];
+                        let block_under = this.blocks[x][z][y - 1];
                         if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                             this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
                         }
@@ -395,7 +394,7 @@ class Chunk {
         // ~0ms
         for(let key of Object.keys(this.vertices)) {
             let v = this.vertices[key];
-            for(var i = 0; i < v.list.length; i += GeometryTerrain.strideFloats) {
+            for(let i = 0; i < v.list.length; i += GeometryTerrain.strideFloats) {
                 v.list[i + 0] -= this.shift.x;
                 v.list[i + 1] -= this.shift.z;
             }
@@ -409,14 +408,14 @@ class Chunk {
     
     // setDirtyBlocks
     setDirtyBlocks(pos) {
-        for(var cx = -1; cx <= 1; cx++) {
-            for(var cz = -1; cz <= 1; cz++) {
-                for(var cy = -1; cy <= 1; cy++) {
-                    var x = pos.x + cx;
-                    var y = pos.y + cy;
-                    var z = pos.z + cz;
+        for(let cx = -1; cx <= 1; cx++) {
+            for(let cz = -1; cz <= 1; cz++) {
+                for(let cy = -1; cy <= 1; cy++) {
+                    let x = pos.x + cx;
+                    let y = pos.y + cy;
+                    let z = pos.z + cz;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        var block = this.blocks[x][z][y];
+                        let block = this.blocks[x][z][y];
                         if(block && typeof block === 'object') {
                             if(block.hasOwnProperty('vertices')) {
                                 /*
@@ -469,23 +468,23 @@ async function importModules() {
     });
     // Init vars
     // 1. Fill all_blocks
-    for(var b of BLOCK.getAll()) {
+    for(let b of BLOCK.getAll()) {
         b = {...b};
         delete(b.texture);
         all_blocks.push(b);
     }
-    for(var k in all_blocks) {
+    for(let k in all_blocks) {
         all_blocks[k] = {...all_blocks[k]};
         delete(all_blocks[k].texture);
     }
     // 2. Plants
-    for(var b of BLOCK.getPlants()) {
+    for(let b of BLOCK.getPlants()) {
         b = {...b};
         delete(b.texture);
         plant_blocks.push(b);
     }
     // Run queue items
-    for(var item of queue) {
+    for(let item of queue) {
         await onmessage(item);
     }
     queue = [];
@@ -506,21 +505,21 @@ onmessage = async function(e) {
                 terrainGenerator.setSeed(args.seed);
                 // terrainGenerator = new Terrain_Generator(args.seed);
             }
-            if(!this.chunks.hasOwnProperty(args.key)) {
+            if(!chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = Object.assign(new Chunk(), args);
                 chunks[args.key].init();
             }
             break;
         }
         case 'destructChunk': {
-            if(this.chunks.hasOwnProperty(args.key)) {
+            if(chunks.hasOwnProperty(args.key)) {
                 delete(chunks[args.key]);
             }
             break;
         }
         case 'buildVertices': {
-            if(this.chunks.hasOwnProperty(args.key)) {
-                var chunk = chunks[args.key];
+            if(chunks.hasOwnProperty(args.key)) {
+                let chunk = chunks[args.key];
                 chunk.dirty = true;
                 chunk.shift = args.shift;
                 chunk.timers.build_vertices = performance.now();
@@ -542,10 +541,10 @@ onmessage = async function(e) {
             break;
         }
         case 'buildVerticesMany': {
-            var result = [];
-            for(var key of args.keys) {
-                if(this.chunks.hasOwnProperty(key)) {
-                    var chunk = this.chunks[key];
+            let result = [];
+            for(let key of args.keys) {
+                if(chunks.hasOwnProperty(key)) {
+                    let chunk = chunks[key];
                     chunk.dirty = true;
                     chunk.shift = args.shift;
                     chunk.timers.build_vertices = performance.now();
@@ -568,14 +567,14 @@ onmessage = async function(e) {
             break;
         }
         case 'setBlock': {
-            if(this.chunks.hasOwnProperty(args.key)) {
+            if(chunks.hasOwnProperty(args.key)) {
                 // 1. Get chunk
-                var chunk = chunks[args.key];
+                let chunk = chunks[args.key];
                 // 2. Set new block
                 if(args.type) {
                     chunk.setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate);
                 }
-                var pos = new Vector(args.x - chunk.coord.x, args.y - chunk.coord.y, args.z - chunk.coord.z);
+                let pos = new Vector(args.x - chunk.coord.x, args.y - chunk.coord.y, args.z - chunk.coord.z);
                 // 3. Clear vertices for new block and around near
                 chunk.setDirtyBlocks(pos);
                 // 4. Rebuild vertices list

@@ -3,7 +3,7 @@ import {Vector} from "./helpers.js";
 export class Hotbar {
 
     constructor(hud, inventory) {
-        var that                = this;
+        let that                = this;
         this.hud                = hud;
         this.inventory          = inventory;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
@@ -23,10 +23,10 @@ export class Hotbar {
     
     drawHUD(hud) {
         const scale = 1;
-        var w = 546; // this.image.width;
-        var h = 147; // this.image.height;
+        let w = 546; // this.image.width;
+        let h = 147; // this.image.height;
         const cell_size = 60;
-        var hud_pos = {
+        let hud_pos = {
             x: hud.width / 2 - w / 2,
             y: hud.height - h
         };
@@ -44,7 +44,7 @@ export class Hotbar {
             h
         );
         // lives
-        for(var i = 0; i < Math.floor(this.lives * 10); i++) {
+        for(let i = 0; i < Math.floor(this.lives * 10); i++) {
             hud.ctx.drawImage(
                 this.image,
                 0,
@@ -71,7 +71,7 @@ export class Hotbar {
             );
         }
         // foods
-        for(var i = 0; i < Math.floor(this.foods * 10); i++) {
+        for(let i = 0; i < Math.floor(this.foods * 10); i++) {
             hud.ctx.drawImage(
                 this.image,
                 ss,

@@ -29,7 +29,7 @@ export default class ServerClient {
 
     // Constructor
     constructor(url, onOpenCallback) {
-        var that = this;        
+        let that = this;        
         that.ping_time                    = null;
         that.ping_value                   = null;
         this._loadID();
@@ -56,7 +56,7 @@ export default class ServerClient {
 
     // Restore local use ID or create it
     _loadID() {
-        var id = localStorage.getItem('id');
+        let id = localStorage.getItem('id');
         if(!id) {
             id = Helpers.generateID();
             localStorage.setItem('id', id)
@@ -66,14 +66,14 @@ export default class ServerClient {
 
     // New commands from server
     _onMessage(event) {
-        var that = this;
-        var cmds = JSON.parse(event.data);
-        for(var cmd of cmds) {
+        let that = this;
+        let cmds = JSON.parse(event.data);
+        for(let cmd of cmds) {
             switch(cmd.event) {
                 case ServerClient.EVENT_BLOCK_SET: {
-                    var pos = cmd.data.pos;
-                    var item = cmd.data.item;
-                    var block = BLOCK.fromId(item.id);
+                    let pos = cmd.data.pos;
+                    let item = cmd.data.item;
+                    let block = BLOCK.fromId(item.id);
                     Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
                     break;
                 }
@@ -94,7 +94,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.EVENT_PLAYER_JOIN: {
-                    var data = cmd.data;
+                    let data = cmd.data;
                     Game.world.players[data.id] = new PlayerModel({
                         gl:             Game.world.renderer.gl,
                         id:             data.id,
@@ -108,13 +108,13 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.EVENT_PLAYER_LEAVE: {
-                    var data = cmd.data;
+                    let data = cmd.data;
                     delete(Game.world.players[data.id]);
                     break;
                 }
                 case ServerClient.EVENT_PLAYER_STATE: {
-                    var data = cmd.data;
-                    var pl = Game.world.players[data.id];
+                    let data = cmd.data;
+                    let pl = Game.world.players[data.id];
                     if(pl) {
                         if(Helpers.distance(data.pos, pl.pos) > 0.001) {
                             pl.moving = true;
@@ -136,7 +136,7 @@ export default class ServerClient {
     }
 
     Send(packet) {
-        var that = this;
+        let that = this;
         setTimeout(function() {
             that.ws.send(JSON.stringify(packet));
         }, 0);

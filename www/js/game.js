@@ -69,7 +69,7 @@ export let Game = {
     },
     // createNewWorld
     createNewWorld: function(form) {
-        var spawnPoint = new Vector(
+        let spawnPoint = new Vector(
             2914.5,
             150.0,
             2884.5
@@ -94,7 +94,7 @@ export let Game = {
         return saved_state;
     },
     initGame: function(saved_world, settings) {
-        var that = this;
+        let that = this;
         that.world_name = saved_world._id;
         that.seed       = saved_world.seed;
         saved_world     = that.ajustSavedState(saved_world);
@@ -128,7 +128,7 @@ export let Game = {
         /*
         setTimeout(function(){
             try {
-                var audioElement0 = document.createElement('audio');
+                let audioElement0 = document.createElement('audio');
                 // audioElement0.setAttribute('src', '/volume_alpha_10_equinoxe.mp3');
                 audioElement0.setAttribute('src', 'https://webcraft.whiteframe.ru/forest.mp3');
                 audioElement0.setAttribute('autoplay', 'autoplay');
@@ -166,7 +166,7 @@ export let Game = {
     // Render loop
     loop: function() {
         let tm = performance.now();
-        var that = Game;
+        let that = Game;
         if(that.controls.enabled) {
             // Simulate physics
             that.physics.simulate();
@@ -219,21 +219,21 @@ export let Game = {
         this.setupMousePointer();
     },
     setupMousePointer: function() {
-        var that = this;
+        let that = this;
         if(!that.world) {
             return;
         }
         if(that.controls.enabled) {
             return;
         }
-        var element = that.canvas;
+        let element = that.canvas;
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
         if(that.controls.inited) {
             element.requestPointerLock();
             return;
         }
-        var pointerlockchange = function(event) {
+        let pointerlockchange = function(event) {
             if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
                 that.controls.enabled = true;
                 console.log('Pointer lock enabled!');
@@ -245,7 +245,7 @@ export let Game = {
                 console.info('Pointer lock lost!');
             }
         }
-        var pointerlockerror = function(event) {
+        let pointerlockerror = function(event) {
             console.error('Error setting pointer lock!', event);
         }
         // Hook pointer lock state change events
@@ -259,7 +259,7 @@ export let Game = {
         that.controls.inited = true;
     },
     readMouseMove: function() {
-        var that = this;
+        let that = this;
         that.prevMovementX = 0;
         that.prevMovementZ = 0;
         document.addEventListener('wheel', function(e) {
@@ -270,8 +270,8 @@ export let Game = {
             }
         });
         document.addEventListener('mousemove', function(e) {
-            var z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-            var x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+            let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+            let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
             // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
             if(Math.abs(z) > 300) {
                 x = that.prevMovementX;
