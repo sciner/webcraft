@@ -4,6 +4,60 @@
 // This file contains helper classes and functions.
 // ==========================================
 
+export class Vector {
+
+    constructor(x, y, z) {
+        if(x instanceof Vector) {
+            this.x = x.x;
+            this.y = x.y;
+            this.z = x.z;
+            return;
+        }
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+    }
+
+    add(vec) {
+        return new Vector( this.x + vec.x, this.y + vec.y, this.z + vec.z );
+    }
+    
+    sub(vec) {
+        return new Vector( this.x - vec.x, this.y - vec.y, this.z - vec.z );
+    }
+    
+    mul(n) {
+        return new Vector( this.x*n, this.y*n, this.z*n );
+    }
+    
+    length() {
+        return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
+    }
+    
+    distance(vec) {
+        return this.sub( vec ).length();
+    }
+    
+    normal() {
+        if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector( 0, 0, 0 );
+        var l = this.length();
+        return new Vector( this.x/l, this.y/l, this.z/l );
+    }
+    
+    dot(vec) {
+        return this.x * vec.x + this.y * vec.y + this.z * vec.z;
+    }
+    
+    toArray() {
+        return [ this.x, this.y, this.z ];
+    }
+    
+    toString() {
+        return '(' + this.x + ',' + this.y + ',' + this.z + ')';
+    }
+
+}
+
 export let ROTATE = {};
 ROTATE.S = 1; // BACK
 ROTATE.W = 2; // LEFT
@@ -268,31 +322,35 @@ export class Helpers {
 
 }
 
-export function Color(r, g, b, a) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.a = a;
-}
+export class Color {
 
-Color.prototype.add = function(color) {
-    this.r += color.r;
-    this.g += color.g;
-    this.b += color.b;
-    this.a += color.a;
-    return this;
-}
+    consdtructor(r, g, b, a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
 
-Color.prototype.divide = function(color) {
-    this.r /= color.r;
-    this.g /= color.g;
-    this.b /= color.b;
-    this.a /= color.a;
-    return this;
-}
+    add(color) {
+        this.r += color.r;
+        this.g += color.g;
+        this.b += color.b;
+        this.a += color.a;
+        return this;
+    }
+    
+    divide(color) {
+        this.r /= color.r;
+        this.g /= color.g;
+        this.b /= color.b;
+        this.a /= color.a;
+        return this;
+    }
+    
+    toFloat()  {
+        return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
+    }
 
-Color.prototype.toFloat = function()  {
-    return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
 }
 
 export class MyArray extends Array {
@@ -328,60 +386,12 @@ function loadText(url, callback) {
 }
 
 export class Vector4 {
+
     constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
     }
-}
 
-export function Vector(x, y, z) {
-    if(x instanceof Vector) {
-        this.x = x.x;
-        this.y = x.y;
-        this.z = x.z;
-        return;
-    }
-	this.x = x || 0;
-	this.y = y || 0;
-	this.z = z || 0;
-}
-
-Vector.prototype.add = function(vec) {
-	return new Vector( this.x + vec.x, this.y + vec.y, this.z + vec.z );
-}
-
-Vector.prototype.sub = function(vec) {
-	return new Vector( this.x - vec.x, this.y - vec.y, this.z - vec.z );
-}
-
-Vector.prototype.mul = function(n) {
-	return new Vector( this.x*n, this.y*n, this.z*n );
-}
-
-Vector.prototype.length = function() {
-	return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
-}
-
-Vector.prototype.distance = function(vec) {
-	return this.sub( vec ).length();
-}
-
-Vector.prototype.normal = function() {
-	if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector( 0, 0, 0 );
-	var l = this.length();
-	return new Vector( this.x/l, this.y/l, this.z/l );
-}
-
-Vector.prototype.dot = function(vec) {
-	return this.x * vec.x + this.y * vec.y + this.z * vec.z;
-}
-
-Vector.prototype.toArray = function() {
-	return [ this.x, this.y, this.z ];
-}
-
-Vector.prototype.toString = function() {
-	return '(' + this.x + ',' + this.y + ',' + this.z + ')';
 }
