@@ -7,7 +7,7 @@ import ServerClient from "./server_client.js";
 export class ChunkManager {
 
     constructor(world) {
-        var that                    = this;
+        let that                    = this;
         this.CHUNK_RENDER_DIST      = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
         this.chunks                 = {};
         this.chunks_prepare         = {};
@@ -36,7 +36,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'vertices_generated_many': {
-                    for(var result of args) {
+                    for(let result of args) {
                         if(that.chunks.hasOwnProperty(result.key)) {
                             that.chunks[result.key].onVerticesGenerated(result);
                         }
@@ -62,13 +62,13 @@ export class ChunkManager {
 
     // shift
     shift(shift) {
-        const renderer = this.world.renderer
-        const gl = renderer.gl;
+        let points      = 0;
+        const renderer  = this.world.renderer
+        const gl        = renderer.gl;
         gl.useProgram(renderer.program);
-        var points = 0;
-        Object.keys(this.chunks).forEach(key => {
+        for(let key of Object.keys(this.chunks)) {
             points += this.chunks[key].doShift(shift);
-        });
+        }
         return points;
     }
 
@@ -78,15 +78,15 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render) {
-        var gl = render.gl;
+        let gl = render.gl;
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
-        var applyVerticesCan        = 1;
-        var a_pos                   = new Vector(0, 0, 0);
+        let applyVerticesCan        = 1;
+        let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
         this.spiral_moves = this.createSpiralCoords(this.margin * 2);
         // чанк, в котором стоит игрок
-        var overChunk = Game.world.localPlayer.overChunk;
+        let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
             // draw
             for(let group of ['regular', 'doubleface', 'transparent']) {
@@ -98,13 +98,13 @@ export class ChunkManager {
                 if (opaque) {
                     gl.uniform1f(render.u_opaqueThreshold, 0.5);
                 }
-                for(var sm of this.spiral_moves) {
-                    var pos = new Vector(
+                for(let sm of this.spiral_moves) {
+                    let pos = new Vector(
                         overChunk.addr.x + sm.x - this.margin,
                         overChunk.addr.y + sm.y,
                         overChunk.addr.z + sm.z - this.margin
                     );
-                    var chunk = this.getChunk(pos);
+                    let chunk = this.getChunk(pos);
                     if(chunk) {
                         this.rendered_chunks.fact += 0.33333;
                         if(chunk.hasOwnProperty('vertices_args')) {
@@ -128,7 +128,7 @@ export class ChunkManager {
 
     // Get
     getChunk(pos) {
-        var k = this.getPosChunkKey(pos);
+        let k = this.getPosChunkKey(pos);
         if(this.chunks.hasOwnProperty(k)) {
             return this.chunks[k];
         }
@@ -137,7 +137,7 @@ export class ChunkManager {
 
     // Add
     addChunk(pos) {
-        var k = this.getPosChunkKey(pos);
+        let k = this.getPosChunkKey(pos);
         if(!this.chunks.hasOwnProperty(k) && !this.chunks_prepare.hasOwnProperty(k)) {
             this.chunks_prepare[k] = {
                 start_time: performance.now()
@@ -150,7 +150,7 @@ export class ChunkManager {
 
     // Remove
     removeChunk(pos) {
-        var k = this.getPosChunkKey(pos);
+        let k = this.getPosChunkKey(pos);
         this.vertices_length_total -= this.chunks[k].vertices_length;
         this.chunks[k].destruct();
         delete this.chunks[k];
@@ -164,10 +164,10 @@ export class ChunkManager {
 
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
-        var k = this.getPosChunkKey(state.pos);
+        let k = this.getPosChunkKey(state.pos);
         if(this.chunks_prepare.hasOwnProperty(k)) {
-            var prepare = this.chunks_prepare[k];
-            var chunk = new Chunk(this, state.pos, state.modify_list);
+            let prepare = this.chunks_prepare[k];
+            let chunk = new Chunk(this, state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
             delete(this.chunks_prepare[k]);
             this.chunks[k] = chunk;
@@ -179,27 +179,27 @@ export class ChunkManager {
         if(this.hasOwnProperty(size)) {
             return this[size];
         }
-        var resp = [];
-        var margin = this.margin;
+        let resp = [];
+        let margin = this.margin;
         function rPush(vec) {
             // Если позиция на расстояние видимости (считаем честно, по кругу)
-            var dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
+            let dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
             if(dist < margin) {
                 resp.push(vec);
             }
         }
-        var iInd = parseInt(size / 2);
-        var jInd = parseInt(size / 2);
-        var iStep = 1;
-        var jStep = 1;
+        let iInd = parseInt(size / 2);
+        let jInd = parseInt(size / 2);
+        let iStep = 1;
+        let jStep = 1;
         rPush(new Vector(iInd, 0, jInd));
-        for(var i = 0; i < size; i++) {
-            for (var h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
-            for (var v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
+        for(let i = 0; i < size; i++) {
+            for (let h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
+            for (let v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
             jStep = -jStep;
             iStep = -iStep;
         }
-        for(var h = 0; h < size - 1; h++) {
+        for(let h = 0; h < size - 1; h++) {
             rPush(new Vector(iInd, 0, jInd += jStep));
         }
         this[size] = resp;
@@ -211,24 +211,24 @@ export class ChunkManager {
         if(!this.update_chunks) {
             return;
         }
-        var world = this.world;
-        var spiral_moves = this.createSpiralCoords(this.margin * 2);
-        var chunkPos = this.getChunkPos(world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z);
+        let world = this.world;
+        let spiral_moves = this.createSpiralCoords(this.margin * 2);
+        let chunkPos = this.getChunkPos(world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z);
         if(world.localPlayer) {
-            var chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
+            chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         }
         if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
-            var actual_keys = {};
-            var can_add = 3;
+            let actual_keys = {};
+            let can_add = 3;
             for(let key of Object.keys(this.chunks)) {
                 if(!this.chunks[key].inited) {
                     can_add = 0;
                     break;
                 }
             }
-            for(var sm of spiral_moves) {
-                var pos = new Vector(
+            for(let sm of spiral_moves) {
+                let pos = new Vector(
                     chunkPos.x + sm.x - this.margin,
                     chunkPos.y + sm.y,
                     chunkPos.z + sm.z - this.margin
@@ -248,7 +248,7 @@ export class ChunkManager {
             }
         }
         // detect dirty chunks
-        var dirty_chunks = [];
+        let dirty_chunks = [];
         for(let key of Object.keys(this.chunks)) {
             let chunk = this.chunks[key];
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
@@ -267,8 +267,8 @@ export class ChunkManager {
         }
         if(dirty_chunks.length > 0) {
             if(dirty_chunks.length == 2 || dirty_chunks.length == 3) {
-                var keys = [];
-                for(var dc of dirty_chunks) {
+                let keys = [];
+                for(let dc of dirty_chunks) {
                     this.chunks[dc.key].buildVerticesInProgress = true;
                     keys.push(dc.key)
                 }
@@ -278,8 +278,8 @@ export class ChunkManager {
                 // sort dirty chunks by dist from player
                 dirty_chunks = MyArray.from(dirty_chunks).sortBy('coord');
                 // rebuild dirty chunks
-                var buildCount = 1;
-                for(var dc of dirty_chunks) {
+                let buildCount = 1;
+                for(let dc of dirty_chunks) {
                     if(this.chunks[dc.key].buildVertices()) {
                         if(--buildCount == 0) {
                             break;
@@ -291,18 +291,17 @@ export class ChunkManager {
     }
 
     getPosChunkKey(pos) {
-        var k = 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
-        return k;
+        return 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
     }
 
     parseChunkPos(key) {
-        var k = key.split('_');
+        let k = key.split('_');
         return new Vector(parseInt(k[1]), parseInt(k[2]), parseInt(k[3]));
     }
 
     // Возвращает относительные координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
-        var v = new Vector(
+        let v = new Vector(
             parseInt(x / CHUNK_SIZE_X),
             0,
             parseInt(z / CHUNK_SIZE_Z)
@@ -318,9 +317,9 @@ export class ChunkManager {
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        var chunkPos = this.getChunkPos(x, y, z);
+        let chunkPos = this.getChunkPos(x, y, z);
         // обращаемся к чанку
-        var chunk = this.getChunk(chunkPos);
+        let chunk = this.getChunk(chunkPos);
         // если чанк найден
         if(chunk) {
             // просим вернуть блок передав абсолютные координаты
@@ -332,15 +331,15 @@ export class ChunkManager {
     // setBlock
     setBlock(x, y, z, block, is_modify, power, rotate, entity_id) {
         // определяем относительные координаты чанка
-        var chunkPos = this.getChunkPos(x, y, z);
+        let chunkPos = this.getChunkPos(x, y, z);
         // обращаемся к чанку
-        var chunk = this.getChunk(chunkPos);
+        let chunk = this.getChunk(chunkPos);
         // если чанк найден
         if(!chunk) {
             return null;
         }
-        var pos = new Vector(x, y, z);
-        var item = {
+        let pos = new Vector(x, y, z);
+        let item = {
             id: block.id,
             power: power ? power : 1.0,
             rotate: rotate,
@@ -357,9 +356,9 @@ export class ChunkManager {
             });
         }
         if(is_modify) {
-            var world_block = chunk.getBlock(pos.x, pos.y, pos.z);
-            var b = null;
-            var action = null;
+            let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
+            let b = null;
+            let action = null;
             if(block.id == BLOCK.AIR.id) {
                 // dig
                 action = 'dig';
@@ -380,7 +379,7 @@ export class ChunkManager {
 
     // destroyBlock
     destroyBlock(pos, is_modify) {
-        var block = this.getBlock(pos.x, pos.y, pos.z);
+        let block = this.getBlock(pos.x, pos.y, pos.z);
         if(block.id == BLOCK.TULIP.id) {
             this.world.renderer.setBrightness(.15);
         } else if(block.id == BLOCK.DANDELION.id) {
@@ -403,7 +402,7 @@ export class ChunkManager {
 
     // setDirty
     setDirty(pos) {
-        var chunk = this.getChunk(pos);
+        let chunk = this.getChunk(pos);
         if(chunk) {
             chunk.dirty = true;
             // Run webworker method
@@ -416,7 +415,7 @@ export class ChunkManager {
 
     // setDirtySimple
     setDirtySimple(pos) {
-        var chunk = this.getChunk(pos);
+        let chunk = this.getChunk(pos);
         if(chunk) {
             chunk.dirty = true;
         }

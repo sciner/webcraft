@@ -59,17 +59,17 @@ export default class PlayerModel {
 
     // loadTextures...
     loadTextures() {
-        var that = this;
-        var gl = this.gl;
+        let that = this;
+        let gl = this.gl;
         // Load player texture
-        var image = new Image();
+        let image = new Image();
         image.onload = function() {
             Helpers.createSkinLayer2(null, image, function(file) {
-                var image2 = new Image();
+                let image2 = new Image();
                 image2.onload = function(e) {
                     gl.activeTexture(gl.TEXTURE0);
                     // Layer1
-                    var texture = gl.createTexture();
+                    let texture = gl.createTexture();
                     texture.image = image;
                     that.texPlayer = texture;
                     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -77,7 +77,7 @@ export default class PlayerModel {
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                     // Layer2
-                    var texture2 = gl.createTexture();
+                    let texture2 = gl.createTexture();
                     texture2.image = image2;
                     that.texPlayer2 = texture2;
                     gl.bindTexture(gl.TEXTURE_2D, texture2);
@@ -95,12 +95,10 @@ export default class PlayerModel {
     // Loads the player head model into a vertex buffer for rendering.
     loadPlayerHeadModel() {
 
-        var gl = this.gl;
-
         // [x, y, z, tX, tY, lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
 
         // Player head
-        var vertices = [
+        let vertices = [
             // Top
             -0.25, -0.25, 0.25, 8/64, 0, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             0.25, -0.25, 0.25, 16/64, 0, 1, 1, 1, 1, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
@@ -158,9 +156,7 @@ export default class PlayerModel {
     // Loads the player body model into a vertex buffer for rendering.
     loadPlayerBodyModel(gl) {
 
-        var gl = this.gl;
-
-        var vertices = [
+        let vertices = [
             // Player torso
 
             // Top
@@ -215,7 +211,7 @@ export default class PlayerModel {
 
         this.playerBody = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
-        var vertices = [
+        vertices = [
             // Left arm
 
             // Top
@@ -270,7 +266,7 @@ export default class PlayerModel {
 
         this.playerLeftArm = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
-        var vertices = [
+        vertices = [
             // Right arm
 
             // Top
@@ -325,7 +321,7 @@ export default class PlayerModel {
 
         this.playerRightArm = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
-        var vertices = [
+        vertices = [
             // Left leg
 
             // Top
@@ -379,7 +375,7 @@ export default class PlayerModel {
 
         this.playerLeftLeg = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
 
-        var vertices = [
+        vertices = [
             // Right leg
 
             // Top
@@ -441,7 +437,7 @@ export default class PlayerModel {
         const scale     = options.scale;
         const z_minus   = (this.height * options.scale - this.height);
 
-        var aniangle = 0;
+        let aniangle = 0;
         if(this.moving || Math.abs(this.aniframe) > 0.1) {
             this.aniframe += (0.1 / 1000 * delta);
             if(this.aniframe > Math.PI) {
@@ -454,7 +450,7 @@ export default class PlayerModel {
         }
 
         // Draw head
-        var pitch = this.pitch;
+        let pitch = this.pitch;
         if(pitch < -0.5) {
             pitch = -0.5;
         }
@@ -474,7 +470,7 @@ export default class PlayerModel {
             return;
         }
 
-        var a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
+        let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
 
         // Draw head
         mat4.identity(modelMatrix);
@@ -527,8 +523,8 @@ export default class PlayerModel {
 
             mat4.identity(modelMatrix);
             // Calculate angle so that the nametag always faces the local player
-            var angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
-            var angX = 0; // @todo
+            let angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
+            let angX = 0; // @todo
 
             mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
             mat4.rotateZ(modelMatrix, angZ);
@@ -550,11 +546,11 @@ export default class PlayerModel {
     // tag of the specified player over head.
     buildPlayerName(nickname) {
         nickname        = nickname.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
-        var gl          = this.gl;
-        var canvas      = this.textCanvas;
-        var ctx         = this.textContext;
-        var w           = ctx.measureText(nickname).width + 16;
-        var h           = 45;
+        let gl          = this.gl;
+        let canvas      = this.textCanvas;
+        let ctx         = this.textContext;
+        let w           = ctx.measureText(nickname).width + 16;
+        let h           = 45;
         // Draw text box
         ctx.fillStyle   = '#00000055';
         ctx.fillRect(0, 0, w, 45);
@@ -562,13 +558,13 @@ export default class PlayerModel {
         ctx.font        = '24px Minecraftia';
         ctx.fillText(nickname, 10, 12);
         // Create texture
-        var tex = gl.createTexture();
+        let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         // Create model
-        var vertices = [
+        let vertices = [
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             w/2, 0, h, 0, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
             w/2, 0, 0, 0, h/64, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,

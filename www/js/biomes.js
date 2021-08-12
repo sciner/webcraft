@@ -5,35 +5,34 @@ const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
 const TREE_FREQUENCY        = 0.015;
 
-var biome_stat = {
+let biome_stat = {
     height:     {min: 999999999, max: -99999},
     humidity:   {min: 999999999, max: -99999},
     equator:    {min: 999999999, max: -99999},
 };
 
 // 1. All blocks
-var all_blocks = [];
-
-for(var b of BLOCK.getAll()) {
+let all_blocks = [];
+for(let b of BLOCK.getAll()) {
     b = {...b},
     delete(b.texture);
     all_blocks.push(b);
 }
-for(var k in all_blocks) {
+for(let k in all_blocks) {
     all_blocks[k] = {...all_blocks[k]};
     delete(all_blocks[k].texture);
 }
 
 // 2. Plants
-var plant_blocks = []
-for(var b of BLOCK.getPlants()) {
+let plant_blocks = []
+for(let b of BLOCK.getPlants()) {
     b = {...b},
     delete(b.texture);
     plant_blocks.push(b);
 }
 
 // 4. Blocks used for generators
-export var blocks = {
+export let blocks = {
     DIRT:           BLOCK.DIRT,
     GLOWSTONE:      BLOCK.GLOWSTONE,
     COBBLESTONE:    BLOCK.COBBLESTONE,
@@ -431,7 +430,7 @@ BIOMES.getBiome = function(v_height, humidity, equator) {
         return 'TROPICAL_RAIN_FOREST';
     }
 
-    var b = _(humidity, height, equator);
+    let b = _(humidity, height, equator);
     return this[b];
 
 }

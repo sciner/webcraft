@@ -45,7 +45,7 @@ export default class ChestWindow extends Window {
         // Обработчик закрытия формы
         this.onHide = function() {
             // Drag
-            var dragItem = this.getRoot().drag.getItem();
+            let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
                 this.inventory.increment(dragItem.item);
             }
@@ -67,7 +67,7 @@ export default class ChestWindow extends Window {
     addCloseButton() {
         const ct = this;
         // Close button
-        var btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '×');
+        let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
         }
@@ -76,7 +76,7 @@ export default class ChestWindow extends Window {
 
     // Запрос содержимого сундука
     load(block) {
-        var that = this;
+        let that = this;
         this.lbl1.setText('LOADING...');
         console.table(block);
         this.entity_id  = block.entity_id;
@@ -98,7 +98,7 @@ export default class ChestWindow extends Window {
         this.clear();
         for(let k of Object.keys(chest.slots)) {
             let item = chest.slots[k];
-            var block = {...BLOCK.fromId(item.id)};
+            let block = {...BLOCK.fromId(item.id)};
             block = Object.assign(block, item);
             this.chest.slots[k].setItem(block);
         }
@@ -111,7 +111,7 @@ export default class ChestWindow extends Window {
 
     // Очистка слотов сундука от предметов
     clear() {
-        for(var slot of this.chest.slots) {
+        for(let slot of this.chest.slots) {
             slot.item = null;
             // slot.setItem(null);
         }
@@ -127,14 +127,14 @@ export default class ChestWindow extends Window {
             console.error('createCraftSlots() already created');
             return;
         }
-        var sx          = 14;
-        var sy          = 34;
-        var xcnt        = 9;
+        let sx          = 14;
+        let sy          = 34;
+        let xcnt        = 9;
         this.chest = {
             slots: []
         };
-        for(var i = 0; i < 27; i++) {
-            var lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
+        for(let i = 0; i < 27; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
             lblSlot.index = i;
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
@@ -178,20 +178,20 @@ export default class ChestWindow extends Window {
         }
         ct.inventory_slots  = [];
         // нижний ряд (видимые на хотбаре)
-        var sx = 14;
-        var sy = 282;
-        var xcnt = 9;
-        for(var i = 0; i < 9; i++) {
-            var lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+        let sx          = 14;
+        let sy          = 282;
+        let xcnt        = 9;
+        for(let i = 0; i < 9; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        var sx              = 14;
-        var sy              = 166;
-        var xcnt            = 9;
+        sx              = 14;
+        sy              = 166;
+        xcnt            = 9;
         // верхние 3 ряда
-        for(var i = 0; i < 27; i++) {
-            var lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+        for(let i = 0; i < 27; i++) {
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }

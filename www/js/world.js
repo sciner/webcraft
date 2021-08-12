@@ -17,9 +17,9 @@ export default class World {
     
     constructor(saved_state, connectedCallback) {
 
-        var that = this;
+        let that = this;
 
-        var serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
+        let serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
 
         // Create server client
         that.server = new ServerClient(serverURL, function() {
@@ -111,7 +111,7 @@ export default class World {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(function(){
-                    var pos = Game.world.localPlayer.pos;
+                    let pos = Game.world.localPlayer.pos;
                     Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
                 }, 25);
             }
@@ -143,8 +143,8 @@ export default class World {
     }
 
     fixRotate() {
-        // var halfYaw = (Game.render.canvas.width || window.innerWidth) * 0.5;
-        var halfPitch = (Game.render.canvas.height || window.innerHeight) * 0.5;
+        // let halfYaw = (Game.render.canvas.width || window.innerWidth) * 0.5;
+        let halfPitch = (Game.render.canvas.height || window.innerHeight) * 0.5;
         if(this.rotate.z <= -1800) {
             this.rotate.z = 1799.9;
         }
@@ -154,9 +154,9 @@ export default class World {
         //
         this.rotate.x = Math.max(this.rotate.x, -halfPitch);
         this.rotate.x = Math.min(this.rotate.x, halfPitch);
-        var x = (this.rotate.x / halfPitch) * 90;
-        var y = 0;
-        var z = this.rotate.z / 10;
+        let x = (this.rotate.x / halfPitch) * 90;
+        let y = 0;
+        let z = this.rotate.z / 10;
         this.rotateRadians.x = Helpers.deg2rad(x);
         this.rotateRadians.y = Helpers.deg2rad(y);
         this.rotateRadians.z = Helpers.deg2rad(z);
@@ -168,12 +168,12 @@ export default class World {
     // update
     update() {
         if(Game.world.localPlayer) {
-            var pos = Game.world.localPlayer.pos;
+            let pos = Game.world.localPlayer.pos;
             if(Math.abs(pos.x - Game.shift.x) > MAX_DIST_FOR_SHIFT || Math.abs(pos.z - Game.shift.z) > MAX_DIST_FOR_SHIFT) {
                 Game.shift.x    = pos.x;
                 Game.shift.z    = pos.z;
-                var tm          = performance.now();
-                var points      = this.chunkManager.shift({...Game.shift});
+                let tm          = performance.now();
+                let points      = this.chunkManager.shift({...Game.shift});
                 console.info('SHIFTED', Game.shift, (Math.round((performance.now() - tm) * 10) / 10) + 'ms', points);
             }
         }
@@ -182,8 +182,8 @@ export default class World {
 
     // exportJSON
     exportJSON(callback) {
-        var that = this;
-        var row = {
+        let that = this;
+        let row = {
             _id:                Game.world_name,
             seed:               Game.seed,
             spawnPoint:         that.spawnPoint,

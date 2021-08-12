@@ -90,10 +90,10 @@ export class Window {
         }
         WindowManager.draw_calls++;
 
-        var x = ax + this.x;
-        var y = ay + this.y;
-        var w = this.width;
-        var h = this.height;
+        let x = ax + this.x;
+        let y = ay + this.y;
+        let w = this.width;
+        let h = this.height;
 
         // Save the default state
         ctx.save();
@@ -165,7 +165,7 @@ export class Window {
         }
     }
     getVisibleWindows() {
-        var list = [];
+        let list = [];
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
@@ -201,8 +201,8 @@ export class Window {
         ctx.textBaseline    = this.style.textAlign.vertical;
     }
     setBackground(url, image_size_mode) {
-        var that = this;
-        var bg = new Image();
+        let that = this;
+        let bg = new Image();
         bg.onload = function(e) {
             that.style.background.image = bg;
             that.style.background.image_size_mode = image_size_mode ? image_size_mode : 'none';
@@ -244,10 +244,10 @@ export class Window {
             if(!w.catchEvents) {
                 continue;
             }
-            var old_hover = w.hover;
+            let old_hover = w.hover;
             w.hover = false;
             if(w.visible) {
-                var e2 = {...e};
+                let e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
@@ -268,7 +268,7 @@ export class Window {
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
-                var e2 = {...e};
+                let e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
@@ -283,7 +283,7 @@ export class Window {
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
-                var e2 = {...e};
+                let e2 = {...e};
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
@@ -305,12 +305,12 @@ export class Window {
         const x             = this.x + this.ax;
         const y             = this.y + this.ay;
         const lineHeight    = 20;
-        var currentLine     = 0;
-        var words           = (text + '').split(' ');
-        var idx             = 1;
+        let currentLine     = 0;
+        let words           = (text + '').split(' ');
+        let idx             = 1;
         while(words.length > 0 && idx <= words.length) {
-            var str = words.slice(0, idx).join(' ');
-            var w = this.ctx.measureText(str).width;
+            let str = words.slice(0, idx).join(' ');
+            let w = this.ctx.measureText(str).width;
             if(w > this.width) {
                 if(idx == 1) {
                     idx = 2;
@@ -366,7 +366,7 @@ export class WindowManager extends Window {
     
     constructor(canvas, ctx, x, y, w, h) {
         super(x, y, w, h, '_wm', null);
-        var that = this;
+        let that = this;
         this.list = [];
         this.canvas = canvas;
         this.ctx = ctx;
@@ -378,8 +378,8 @@ export class WindowManager extends Window {
             visible: true,
             load: function() {
                 /*
-                var image = new Image();
-                var that = this;
+                let image = new Image();
+                let that = this;
                 image.onload = function() {
                     that.image = image;
                 };
@@ -431,8 +431,8 @@ export class WindowManager extends Window {
     }
 
     closeAll() {
-        var list = this.getVisibleWindows();
-        for(var w of list) {
+        let list = this.getVisibleWindows();
+        for(let w of list) {
             w.hide();
         }
     }
@@ -448,7 +448,7 @@ export class WindowManager extends Window {
     mouseEventDispatcher(e) {
         switch(e.type) {
             case 'mousemove': {
-                var evt = {
+                let evt = {
                     shiftKey:   e.shiftKey,
                     button:     e.button,
                     x:          e.offsetX - this.x,
@@ -460,7 +460,7 @@ export class WindowManager extends Window {
                 break;
             }
             case 'mousedown': {
-                var evt = {
+                let evt = {
                     shiftKey:   e.shiftKey,
                     button:     e.button,
                     drag:       this.drag,

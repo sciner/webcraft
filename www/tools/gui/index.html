@@ -41,8 +41,8 @@
         <div class="py-3">
             <h3>3 простых шага для создания формы</h3>
             <pre><code class="language-js">// Определяем контекст для рисования
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
 
 // Создаем диспетчер окон
 const wm = new WindowManager(canvas, ctx, 0, 0, canvas.width, canvas.height);
@@ -57,7 +57,7 @@ wm.add(new Window(10, 10, 352, 332, 'ct1', null));</code></pre>
 const ct = wm.getWindow('ct1');
 
 // Создаём кнопку
-var btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
 
 // Добавляем кнопку на форму
 ct.add(btnClose);</code></pre>
@@ -67,7 +67,7 @@ ct.add(btnClose);</code></pre>
 const ct = wm.getWindow('ct1');
 
 // Добавляем надпись на форму
-var lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
+let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
 ct.add(lbl1);</code></pre>
 </div>
 
@@ -118,7 +118,7 @@ ct.style.border.hidden = true;
 <div class="pt-3">
         <h3>Изменение свойств</h3>
 <pre><code class="language-js">// Получаем форму по её идентификатору
-var ct1 = wm.getWindow('ct1');
+let ct1 = wm.getWindow('ct1');
 
 // Поменять текст у надписи
 ct1.getWindow('lbl1').setText('Готово');
@@ -145,8 +145,8 @@ canvas.addEventListener('mousedown', function(e) {
 <script type="text/javascript" id="demo-code-src">
 
 // Define canvas and drawing context
-var canvas = document.getElementById('canvas');
-var ctx = canvas.getContext('2d');
+let canvas = document.getElementById('canvas');
+let ctx = canvas.getContext('2d');
 
 // Init Window Manager
 const wm = new WindowManager(canvas, ctx, 0, 0, canvas.width, canvas.height);
@@ -164,11 +164,11 @@ ct.style.background.color = '#00000000';
 ct.style.border.hidden = true;
 
 // Добавляем надписи на форму
-var lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
+let lbl1 = new Label(59, 12, 250, 20, 'lbl1', null, 'Crafting');
 ct.add(lbl1);
 
 // Добавление второй надписи
-var lbl2 = new Label(16, 144, 150, 20, 'lbl2', null, 'Inventory');
+let lbl2 = new Label(16, 144, 150, 20, 'lbl2', null, 'Inventory');
 lbl2.style.background.color = '#ffffff33';
 lbl2.onMouseMove = function(e) {
     this.setText(e.x + 'x' + e.y);
@@ -177,12 +177,12 @@ ct.add(lbl2);
 
 // Создание слотов для инвентаря
 ct.inventory_slots = new Array(27);
-var sx = 14;
-var sy = 166;
-var sz = 36;
-var xcnt = 9;
-for(var i = 0; i < ct.inventory_slots.length; i++) {
-    var lblSlot = new Label(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + i, null, '' + i);
+let sx = 14;
+let sy = 166;
+let sz = 36;
+let xcnt = 9;
+for(let i = 0; i < ct.inventory_slots.length; i++) {
+    let lblSlot = new Label(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + i, null, '' + i);
     lblSlot.onMouseEnter = function() {
         this.style.background.color = '#ffffff33';
         wm.clear();
@@ -197,7 +197,7 @@ for(var i = 0; i < ct.inventory_slots.length; i++) {
 }
 
 // Кнопка рецептов
-var btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
+let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
 btnRecipes.setBackground('/media/gui/recipes.png');
 btnRecipes.onMouseDown = function(e) {
     alert('Привет');
@@ -216,7 +216,7 @@ btnRecipes.onMouseLeave = function() {
 ct.add(btnRecipes);
 
 // Добавляем кнопку на форму
-var btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
 btnClose.onMouseEnter = function() {
     this.style.background.color = '#ff000033';
 }
@@ -241,7 +241,7 @@ wm.draw();
 const demo = {
     // Скрыть / показать форму
     toggleVisibility: function() {
-        var ct1 = wm.getWindow('ct1');
+        let ct1 = wm.getWindow('ct1');
         ct1.toggleVisibility();
         // После ручного изменения любого состояния необходимо вызвать перерисовку
         wm.clear();
@@ -249,7 +249,7 @@ const demo = {
     },
     // Поменять текст надписи в указанной форме
     changeLabelText: function() {
-        var ct1 = wm.getWindow('ct1');
+        let ct1 = wm.getWindow('ct1');
         ct1.getWindow('lbl1').setText((new Date()).toLocaleString());
         // После ручного изменения любого состояния необходимо вызвать перерисовку
         wm.clear();
