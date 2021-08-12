@@ -85,8 +85,12 @@ ChunkManager.prototype.draw = function(render) {
         // draw
         for(let group of ['regular', 'doubleface', 'transparent']) {
             let transparent = group != 'regular';
+            let opaque = group !== 'transparent';
             if(transparent) {
                 gl.disable(gl.CULL_FACE);
+            }
+            if (opaque) {
+                gl.uniform1f(render.u_opaqueThreshold, 0.5);
             }
             for(var sm of this.spiral_moves) {
                 var pos = new Vector(
@@ -107,6 +111,9 @@ ChunkManager.prototype.draw = function(render) {
             }
             if(transparent) {
                 gl.enable(gl.CULL_FACE);
+            }
+            if (opaque) {
+                gl.uniform1f(render.u_opaqueThreshold, 0.0);
             }
         }
     }
