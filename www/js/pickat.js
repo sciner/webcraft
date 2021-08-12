@@ -156,6 +156,7 @@ PickAt.prototype.pickAt = function(min, max, mx, my) {
     this.pickBuffer.bind(render);
     // Draw buffer
     gl.uniform1f(render.u_fogOn, false);
+    gl.uniform1f(render.u_mipmap, 0.0);
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, render.texWhite);
     gl.viewport(0, 0, 512, 512);
