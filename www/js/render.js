@@ -103,6 +103,7 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
         that.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
         that.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
+        that.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         that.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         that.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
         //
@@ -437,6 +438,7 @@ Renderer.prototype.draw = function(delta) {
     this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
 
     // 3. Draw players
+    gl.uniform1f(this.u_mipmap, 0.0);
     this.drawPlayers(delta);
 
     // 4. Draw HUD
