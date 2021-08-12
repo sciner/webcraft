@@ -1,330 +1,302 @@
 // Creates a new chunk
-function Chunk(chunkManager, pos, modify_list) {
+class Chunk {
 
-    // info
-    this.key = chunkManager.getPosChunkKey(pos);
-    this.modify_list = modify_list;
+    #chunkManager = null;
+    #vertices     = null;
 
-    // размеры чанка
-    this.size = new Vector(
-        CHUNK_SIZE_X,
-        CHUNK_SIZE_Y,
-        CHUNK_SIZE_Z
-    );
+    constructor(chunkManager, pos, modify_list) {
 
-    // относительные координаты чанка
-    this.addr = new Vector(
-        pos.x,
-        pos.y,
-        pos.z
-    );
-    this.coord = new Vector(
-        this.addr.x * CHUNK_SIZE_X,
-        this.addr.y * CHUNK_SIZE_Y,
-        this.addr.z * CHUNK_SIZE_Z
-    );
+        // info
+        this.key = chunkManager.getPosChunkKey(pos);
+        this.modify_list = modify_list;
 
-    this.seed = chunkManager.world.seed;
-
-    this.id = [
-        // chunkManager.world.seed,
-        this.addr.x,
-        this.addr.y,
-        this.addr.z,
-        this.size.x,
-        this.size.y,
-        this.size.z
-    ].join('_');
-
-    // Run webworker method
-    chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
-
-    // this.worker_pn_generate = performance.now();
-
-    // Objects
-    this.chunkManager               = chunkManager;
-    this.world                      = this.chunkManager.world;
-
-    // Variables
-    this.inited                     = false;
-    this.dirty                      = true;
-    this.buildVerticesInProgress    = false;
-    this.vertices_length            = 0;
-    this.vertices                   = {};
-    this.vertices_transparent       = [];
-    this.fluid_blocks               = [];
-    this.gravity_blocks             = [];
-
-}
-
-// onBlocksGenerated ... Webworker callback method
-Chunk.prototype.onBlocksGenerated = function(args) {
-    this.blocks = args.blocks;
-    this.inited = true;
-}
-
-// doShift
-Chunk.prototype.doShift = function(shift) {
-    if(this.dirty) {
-        return 0;
-    }
-    if((shift.x - this.shift.x == 0) && (shift.z - this.shift.z == 0)) {
-        return 0;
-    }
-    const x = shift.x - this.shift_orig.x;
-    const z = shift.z - this.shift_orig.z;
-    this.shift_orig = Object.assign({}, shift);
-    var points = 0;
-    for(let key of Object.keys(this.vertices)) {
-        let v = this.vertices[key];
-        var list = v.list;
-        for(var i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
-            list[i + 0] -= x;
-            list[i + 1] -= z;
-            points += 2;
-        }
-        v.buffer.updateInternal(list);
-    }
-    return points;
-}
-
-// onVerticesGenerated ... Webworker callback method
-Chunk.prototype.onVerticesGenerated = function(args) {
-    this.vertices_args = args;
-    if(!this.map) {
-        this.map = args.map;
-    }
-}
-
-//
-Chunk.prototype.applyVertices = function() {
-    const args = this.vertices_args;
-    delete(this['vertices_args']);
-    this.chunkManager.vertices_length_total -= this.vertices_length;
-    this.buildVerticesInProgress    = false;
-    this.chunkManager.vertices_length_total -= this.vertices_length;
-    this.vertices_length            = 0;
-    this.gravity_blocks             = args.gravity_blocks;
-    this.fluid_blocks               = args.fluid_blocks;
-    // Delete old WebGL buffers
-    for(let key of Object.keys(this.vertices)) {
-        let v = this.vertices[key];
-        v.buffer.destroy();
-        delete(this.vertices[key]);
-    }
-    // Добавление чанка в отрисовщик
-    for(let key of Object.keys(args.vertices)) {
-        let v = args.vertices[key];
-        this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
-        v.buffer              = new GeometryTerrain(v.list);
-        this.vertices[key]    = v;
-    }
-    this.chunkManager.vertices_length_total += this.vertices_length;
-    this.shift_orig            = args.shift;
-    this.dirty                 = false;
-    this.timers                = args.timers;
-    this.lightmap              = args.lightmap;
-    this.doShift(Game.shift);
-}
-
-// destruct chunk
-Chunk.prototype.destruct = function() {
-    if(this.buffer) {
-        this.buffer.destroy();
-    }
-    // Run webworker method
-    this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
-}
-
-// buildVertices
-Chunk.prototype.buildVertices = function() {
-    if(this.buildVerticesInProgress) {
-        return;
-    }
-    this.buildVerticesInProgress = true;
-    this.worker_vertices_generate = performance.now();
-    // Run webworker method
-    this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
-    return true;
-}
-
-// Get the type of the block at the specified position.
-// Mostly for neatness, since accessing the array
-// directly is easier and faster.
-Chunk.prototype.getBlock = function(ox, oy, oz) {
-    if(!this.inited) {
-        return BLOCK.DUMMY;
-    }
-    x = ox - this.coord.x;
-    y = oy - this.coord.y;
-    z = oz - this.coord.z;
-    if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
-        // console.error(new Vector(x, y, z), new Vector(ox, oy, oz), this.coord);
-        return BLOCK.DUMMY;
-    };
-    if(z < 0 || z >= this.size.z) {
-        return BLOCK.DUMMY;
-    }
-    var block = this.blocks[x][z][y];
-    if(!block) {
-        block = BLOCK.AIR;
-    }
-    return block;
-}
-
-// setBlock
-Chunk.prototype.setBlock = function(x, y, z, type, is_modify, power, rotate, entity_id) {
-    // fix rotate
-    if(rotate && typeof rotate === 'object') {
-        rotate = new Vector(
-            Math.round(rotate.x * 10) / 10,
-            Math.round(rotate.y * 10) / 10,
-            Math.round(rotate.z * 10) / 10
+        // размеры чанка
+        this.size = new Vector(
+            CHUNK_SIZE_X,
+            CHUNK_SIZE_Y,
+            CHUNK_SIZE_Z
         );
-    } else {
-        rotate = null;
+
+        // относительные координаты чанка
+        this.addr = new Vector(
+            pos.x,
+            pos.y,
+            pos.z
+        );
+        this.coord = new Vector(
+            this.addr.x * CHUNK_SIZE_X,
+            this.addr.y * CHUNK_SIZE_Y,
+            this.addr.z * CHUNK_SIZE_Z
+        );
+
+        this.seed = chunkManager.world.seed;
+
+        this.id = [
+            this.addr.x,
+            this.addr.y,
+            this.addr.z,
+            this.size.x,
+            this.size.y,
+            this.size.z
+        ].join('_');
+
+        // Run webworker method
+        chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
+
+        // Objects & variables
+        this.#chunkManager              = chunkManager;
+        this.inited                     = false;
+        this.dirty                      = true;
+        this.buildVerticesInProgress    = false;
+        this.vertices_length            = 0;
+        this.#vertices                  = {};
+        this.fluid_blocks               = [];
+        this.gravity_blocks             = [];
+
     }
-    // fix power
-    if(typeof power === 'undefined' || power === null) {
-        power = 1.0;
+
+    // onBlocksGenerated ... Webworker callback method
+    onBlocksGenerated(args) {
+        this.blocks = args.blocks;
+        this.inited = true;
     }
-    power = Math.round(power * 10000) / 10000;
-    if(power <= 0) {
-        return;
-    }
-    if(is_modify) {
-        var modify_item = {
-            id: type.id,
-            power: power,
-            rotate: rotate
-        };
-        this.modify_list[[x, y, z]] = modify_item;
-        /*
-        // @server
-        this.world.server.Send({
-            name: ServerClient.EVENT_BLOCK_SET,
-            data: {
-                pos: new Vector(x, y, z),
-                item: modify_item
+
+    // doShift
+    doShift(shift) {
+        if(this.dirty) {
+            return 0;
+        }
+        if((shift.x - this.shift.x == 0) && (shift.z - this.shift.z == 0)) {
+            return 0;
+        }
+        const x = shift.x - this.shift_orig.x;
+        const z = shift.z - this.shift_orig.z;
+        this.shift_orig = Object.assign({}, shift);
+        var points = 0;
+        for(let key of Object.keys(this.#vertices)) {
+            let v = this.#vertices[key];
+            var list = v.list;
+            for(var i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
+                list[i + 0] -= x;
+                list[i + 1] -= z;
+                points += 2;
             }
-        });
-        */
-    }
-    x -= this.coord.x;
-    y -= this.coord.y;
-    z -= this.coord.z;
-    if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
-        return;
-    };
-
-    if(!is_modify) {
-        var type                        = Object.assign({}, BLOCK[type.name]);
-        this.blocks[x][z][y]            = type;
-        this.blocks[x][z][y].power      = power;
-        this.blocks[x][z][y].rotate     = rotate;
-        this.blocks[x][z][y].entity_id  = entity_id;
-        this.blocks[x][z][y].texture    = null;
+            v.buffer.updateInternal(list);
+        }
+        return points;
     }
 
-    // Run webworker method
-    this.chunkManager.postWorkerMessage(['setBlock', {
-        key:        this.key,
-        x:          x + this.coord.x,
-        y:          y + this.coord.y,
-        z:          z + this.coord.z,
-        type:       type,
-        is_modify:  is_modify,
-        power:      power,
-        rotate:     rotate
-    }]);
-
-    if(x == 0) {
-        // left
-        // console.log('left');
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
-        this.chunkManager.postWorkerMessage(['setBlock', {
-            key:        key,
-            x:          x + this.coord.x - 1,
-            y:          y + this.coord.y,
-            z:          z + this.coord.z,
-            type:       null,
-            is_modify:  is_modify,
-            power:      power,
-            rotate:     rotate
-        }]);
+    // onVerticesGenerated ... Webworker callback method
+    onVerticesGenerated(args) {
+        this.vertices_args = args;
+        if(!this.map) {
+            this.map = args.map;
+        }
     }
-    if(z == 0) {
-        // top
-        // console.log('top');
-        // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
-        this.chunkManager.postWorkerMessage(['setBlock', {
-            key:        key,
+
+    drawBufferGroup(render, group, a_pos) {
+        if(this.#vertices[group]) {
+            render.drawBuffer(this.#vertices[group].buffer, a_pos);
+        }
+    }
+
+    // Apply vertices
+    applyVertices() {
+        const args = this.vertices_args;
+        delete(this['vertices_args']);
+        this.#chunkManager.vertices_length_total -= this.vertices_length;
+        this.buildVerticesInProgress    = false;
+        this.#chunkManager.vertices_length_total -= this.vertices_length;
+        this.vertices_length            = 0;
+        this.gravity_blocks             = args.gravity_blocks;
+        this.fluid_blocks               = args.fluid_blocks;
+        // Delete old WebGL buffers
+        for(let key of Object.keys(this.#vertices)) {
+            let v = this.#vertices[key];
+            v.buffer.destroy();
+            delete(this.#vertices[key]);
+        }
+        // Добавление чанка в отрисовщик
+        for(let key of Object.keys(args.vertices)) {
+            let v = args.vertices[key];
+            this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
+            v.buffer              = new GeometryTerrain(v.list);
+            this.#vertices[key]   = v;
+            delete(v.list);
+        }
+        this.#chunkManager.vertices_length_total += this.vertices_length;
+        this.shift_orig            = args.shift;
+        this.dirty                 = false;
+        this.timers                = args.timers;
+        this.doShift(Game.shift);
+    }
+
+    // destruct chunk
+    destruct() {
+        if(this.buffer) {
+            this.buffer.destroy();
+        }
+        // Run webworker method
+        this.#chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
+    }
+
+    // buildVertices
+    buildVertices() {
+        if(this.buildVerticesInProgress) {
+            return;
+        }
+        this.buildVerticesInProgress = true;
+        // Run webworker method
+        this.#chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
+        return true;
+    }
+
+    // Get the type of the block at the specified position.
+    // Mostly for neatness, since accessing the array
+    // directly is easier and faster.
+    getBlock(ox, oy, oz) {
+        if(!this.inited) {
+            return BLOCK.DUMMY;
+        }
+        let x = ox - this.coord.x;
+        let y = oy - this.coord.y;
+        let z = oz - this.coord.z;
+        if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
+            return BLOCK.DUMMY;
+        };
+        if(z < 0 || z >= this.size.z) {
+            return BLOCK.DUMMY;
+        }
+        let block = this.blocks[x][z][y];
+        if(!block) {
+            block = BLOCK.AIR;
+        }
+        return block;
+    }
+
+    // setBlock
+    setBlock(x, y, z, type, is_modify, power, rotate, entity_id) {
+        // fix rotate
+        if(rotate && typeof rotate === 'object') {
+            rotate = new Vector(
+                Math.round(rotate.x * 10) / 10,
+                Math.round(rotate.y * 10) / 10,
+                Math.round(rotate.z * 10) / 10
+            );
+        } else {
+            rotate = null;
+        }
+        // fix power
+        if(typeof power === 'undefined' || power === null) {
+            power = 1.0;
+        }
+        power = Math.round(power * 10000) / 10000;
+        if(power <= 0) {
+            return;
+        }
+        if(is_modify) {
+            var modify_item = {
+                id: type.id,
+                power: power,
+                rotate: rotate
+            };
+            this.modify_list[[x, y, z]] = modify_item;
+            /*
+            // @server
+            this.world.server.Send({
+                name: ServerClient.EVENT_BLOCK_SET,
+                data: {
+                    pos: new Vector(x, y, z),
+                    item: modify_item
+                }
+            });
+            */
+        }
+        x -= this.coord.x;
+        y -= this.coord.y;
+        z -= this.coord.z;
+        if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
+            return;
+        };
+
+        if(!is_modify) {
+            var type                        = Object.assign({}, BLOCK[type.name]);
+            this.blocks[x][z][y]            = type;
+            this.blocks[x][z][y].power      = power;
+            this.blocks[x][z][y].rotate     = rotate;
+            this.blocks[x][z][y].entity_id  = entity_id;
+            this.blocks[x][z][y].texture    = null;
+        }
+
+        // Run webworker method
+        this.#chunkManager.postWorkerMessage(['setBlock', {
+            key:        this.key,
             x:          x + this.coord.x,
             y:          y + this.coord.y,
-            z:          z + this.coord.z - 1,
-            type:       null,
-            is_modify:  is_modify,
-            power:      power,
-            rotate:     rotate
-        }]);
-    }
-    if(x == this.size.x - 1) {
-        // right
-        // console.log('right');
-        // this.chunkManager.setDirtySimple(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
-        this.chunkManager.postWorkerMessage(['setBlock', {
-            key:        key,
-            x:          x + this.coord.x + 1,
-            y:          y + this.coord.y,
             z:          z + this.coord.z,
-            type:       null,
+            type:       type,
             is_modify:  is_modify,
             power:      power,
             rotate:     rotate
         }]);
-    }
-    if(z == this.size.z - 1) {
-        // bottom
-        // console.log('bottom');
-        // this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
-        var key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
-        this.chunkManager.postWorkerMessage(['setBlock', {
-            key:        key,
-            x:          x + this.coord.x,
-            y:          y + this.coord.y,
-            z:          z + this.coord.z + 1,
-            type:       null,
-            is_modify:  is_modify,
-            power:      power,
-            rotate:     rotate
-        }]);
-    }
 
-    /*
-    this.dirty = true;
+        if(x == 0) {
+            // left
+            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
+            this.#chunkManager.postWorkerMessage(['setBlock', {
+                key:        key,
+                x:          x + this.coord.x - 1,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z,
+                type:       null,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate
+            }]);
+        }
+        if(z == 0) {
+            // top
+            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
+            this.#chunkManager.postWorkerMessage(['setBlock', {
+                key:        key,
+                x:          x + this.coord.x,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z - 1,
+                type:       null,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate
+            }]);
+        }
+        if(x == this.size.x - 1) {
+            // right
+            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
+            this.#chunkManager.postWorkerMessage(['setBlock', {
+                key:        key,
+                x:          x + this.coord.x + 1,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z,
+                type:       null,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate
+            }]);
+        }
+        if(z == this.size.z - 1) {
+            // bottom
+            var key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
+            this.#chunkManager.postWorkerMessage(['setBlock', {
+                key:        key,
+                x:          x + this.coord.x,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z + 1,
+                type:       null,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate
+            }]);
+        }
 
-    if(x == 0) {
-        // left
-        // console.log('left');
-        this.chunkManager.setDirtySimple(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
     }
-    if(y == 0) {
-        // top
-        // console.log('top');
-        this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y - 1, this.addr.z));
-    }
-    if(x == this.size.x - 1) {
-        // right
-        // console.log('right');
-        this.chunkManager.setDirtySimple(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
-    }
-    if(y == this.size.y - 1) {
-        // bottom
-        // console.log('bottom');
-        this.chunkManager.setDirtySimple(new Vector(this.addr.x, this.addr.y + 1, this.addr.z));
-    }
-    */
 
 }
