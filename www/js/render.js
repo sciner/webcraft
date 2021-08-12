@@ -67,8 +67,10 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
     // PickAt
     this.pickAt             = new PickAt(this, gl);
 
-    this.anisotropicExt = gl.getExtension('EXT_texture_filter_anisotropic');
-    this.useAnisotropy = this.anisotropicExt && settings.mipmap;
+    this.useAnisotropy = settings.mipmap;
+    this.debugMipTest = false;
+    this.terrainTexSize = 1;
+    this.terrainBlockSize = 1;
 
 	// Create main program
     Helpers.createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
@@ -82,7 +84,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
         that.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
         that.u_texture          = gl.getUniformLocation(program, 'u_texture');
-        that.u_texture_mask     = gl.getUniformLocation(program, 'u_texture_mask');
 
         that.a_position         = gl.getAttribLocation(program, 'a_position');
         that.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
@@ -100,20 +101,14 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         that.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         that.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
         that.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
+        that.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
+        that.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
+        that.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         that.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
         //
         that.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         that.u_time             = gl.getUniformLocation(program, 'u_time');
         that.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
-
-        // Enable input
-        gl.enableVertexAttribArray(that.a_position);
-        gl.enableVertexAttribArray(that.a_axisX);
-        gl.enableVertexAttribArray(that.a_axisY);
-        gl.enableVertexAttribArray(that.a_normal);
-        gl.enableVertexAttribArray(that.a_size2);
-        gl.enableVertexAttribArray(that.a_uvCenter);
-        gl.enableVertexAttribArray(that.a_uvSize2);
 
         that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
         // Create projection and view matrices
@@ -136,23 +131,46 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
         function genTerrain(glTex) {
+            that.terrainTexSize = glTex.image.width;
+            that.terrainBlockSize = glTex.image.width / 512 * 16;
+
             gl.bindTexture(gl.TEXTURE_2D, glTex);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
             if (that.useAnisotropy) {
-                const maxAni = gl.getParameter(that.anisotropicExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-                let t = glTex.image.width / 512;
-                let lvl = 4;
-                while (t >= 2.0) {
-                    t /= 2.0;
-                    lvl++;
+                const canvas2d = document.createElement('canvas');
+                const context = canvas2d.getContext('2d');
+                const w = glTex.image.width;
+                canvas2d.width = w * 2;
+                canvas2d.height = w * 2;
+                let offsetX = 0;
+                for (let dx = 1; dx <= 16; dx *= 2) {
+                    let offsetY = 0;
+                    for (let dy = 1; dy <= 16; dy *= 2) {
+                        const test = Math.max(dx, dy);
+                        if (test === 1 || !that.debugMipTest) {
+                            context.drawImage(glTex.image, 0, 0, w, w, offsetX, offsetY, w / dx, w / dy);
+                        } else {
+                            const test = Math.max(dx, dy);
+                            if (test === 2) {
+                                context.fillStyle = 'blue';
+                            } else if (test === 4) {
+                                context.fillStyle = 'green';
+                            } else {
+                                context.fillStyle = 'red';
+                            }
+                            context.fillRect(offsetX, offsetY, w / dx, w / dy);
+                        }
+                        offsetY += w / dy;
+                    }
+                    offsetX += w / dx;
                 }
-                const lv = Math.min(maxAni, lvl);
-                gl.texParameterf(gl.TEXTURE_2D, that.anisotropicExt.TEXTURE_MAX_ANISOTROPY_EXT, lv);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, lvl);
-                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas2d);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                // canvas2d.width = 0;
+                // canvas2d.height = 0;
+                // that.terrainTexSize *= 2;
             } else {
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
             }
@@ -167,17 +185,6 @@ function Renderer(world, renderSurfaceId, settings, initCallback) {
                 genTerrain(terrainTexture);
         };
         terrainTexture.image.src = settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png';
-
-        // Terrain texture mask
-        gl.uniform1i(that.u_texture_mask, 5);
-        var terrainTextureMask          = that.texTerrainMask = gl.createTexture();
-        terrainTextureMask.image        = new Image();
-        terrainTextureMask.image.onload = function() {
-            gl.activeTexture(gl.TEXTURE5);
-            genTerrain(terrainTextureMask);
-        };
-        terrainTextureMask.image.src = settings.hd ? 'media/terrain_hd_mask.png' : 'media/terrain_mask.png';
-
         //
         that.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
     });
@@ -384,6 +391,9 @@ Renderer.prototype.draw = function(delta) {
 
 	// Initialise view
     gl.useProgram(this.program);
+    gl.uniform1f(this.u_blockSize, this.terrainBlockSize / this.terrainTexSize);
+    gl.uniform1f(this.u_pixelSize, 1.0 / this.terrainTexSize);
+
 	this.updateViewport();
 
     // Говорим WebGL, как преобразовать координаты
@@ -414,6 +424,7 @@ Renderer.prototype.draw = function(delta) {
     gl.uniform1f(this.u_fogDensity, currentRenderState.fogDensity);
     gl.uniform4fv(this.u_fogAddColor, currentRenderState.fogAddColor);
     gl.uniform1f(this.u_fogOn, true);
+    gl.uniform1f(this.u_mipmap, this.useAnisotropy ? 4.0 : 0.0);
     // resolution
     gl.uniform2f(this.u_resolution, gl.viewportWidth, gl.viewportHeight);
     gl.uniform1f(this.u_time, performance.now() / 1000);
@@ -441,8 +452,6 @@ Renderer.prototype.draw = function(delta) {
 Renderer.prototype.drawPlayers = function(delta) {
     var gl = this.gl;
     gl.useProgram(this.program);
-    gl.activeTexture(gl.TEXTURE5);
-    gl.bindTexture(gl.TEXTURE_2D, this.texBlack);
     for(let id of Object.keys(this.world.players)) {
         let player = this.world.players[id];
         if(player.id != this.world.server.id) {
@@ -454,8 +463,6 @@ Renderer.prototype.drawPlayers = function(delta) {
     gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
     gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
-    gl.activeTexture(gl.TEXTURE5);
-    gl.bindTexture(gl.TEXTURE_2D, this.texTerrainMask);
 }
 
 /**

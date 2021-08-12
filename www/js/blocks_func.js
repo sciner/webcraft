@@ -23,6 +23,7 @@ NORMALS.DOWN             = new Vector(0, -1, 0);
 
 var QUAD_FLAGS = {}
 QUAD_FLAGS.NORMAL_UP = 1;
+QUAD_FLAGS.MASK_BIOME = 2;
 
 var ROTATE = {};
 ROTATE.S = 1; // BACK
@@ -175,11 +176,16 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
     const ao_enabled            = true;
     const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
+    let flags = 0;
+    let sideFlags = 0;
+    let upFlags = 0;
 
     // Texture color multiplier
     var lm = MULTIPLY.COLOR.WHITE;
     if(block.id == BLOCK.DIRT.id) {
         lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+        sideFlags = QUAD_FLAGS.MASK_BIOME;
+        upFlags = QUAD_FLAGS.MASK_BIOME;
     }
 
     var DIRECTION_UP            = DIRECTION.UP;
@@ -282,7 +288,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, 1, 0,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags | upFlags);
     }
 
     // Waters
@@ -302,7 +308,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, -1, 0,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags);
     }
 
     // Front/Forward
@@ -325,7 +331,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, 0, bH,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
     // Back
@@ -343,7 +349,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
     // Left
@@ -361,7 +367,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
     // Right
@@ -384,7 +390,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             0, 0, bH,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], 0);
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
 }
@@ -583,15 +589,17 @@ function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
     var blockLit    = true; // z >= lightmap[x][y];
     var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lm = MULTIPLY.COLOR.WHITE;
+    var flags = QUAD_FLAGS.NORMAL_UP;
     // Texture color multiplier
     if(block.id == BLOCK.GRASS.id) {
         lm = biome.dirt_color;
+        flags |= QUAD_FLAGS.MASK_BIOME;
     }
     var n = NORMALS.UP;
     if(block.id == BLOCK.GRASS.id) {
         y -= .15;
     }
-    push_plane(vertices, x, y, z, c, lm, n, true, true, undefined, undefined, undefined, QUAD_FLAGS.NORMAL_UP);
+    push_plane(vertices, x, y, z, c, lm, n, true, true, undefined, undefined, undefined, flags);
 }
 
 /*
