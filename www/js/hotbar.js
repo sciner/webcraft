@@ -1,8 +1,8 @@
 import {Vector} from "./helpers.js";
 
-export default class Hotbar {
+export class Hotbar {
 
-    construcror(hud, inventory) {
+    constructor(hud, inventory) {
         var that                = this;
         this.hud                = hud;
         this.inventory          = inventory;

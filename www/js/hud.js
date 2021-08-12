@@ -156,7 +156,7 @@ export default class HUD {
     draw() {
     
         var that = this;
-    
+
         this.frmMainMenu.parent.center(this.frmMainMenu);
     
         if(Game.canvas.width > Game.canvas.height) {
