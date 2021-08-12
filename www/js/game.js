@@ -5,7 +5,7 @@ import Physics from "./physics.js";
 import Player from "./player.js";
 import Inventory from "./inventory.js";
 import {fps} from "./fps.js";
-import Hotbar from "./hotbar.js";
+import {Hotbar} from "./hotbar.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 
