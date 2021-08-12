@@ -14,7 +14,6 @@ var gameCtrl = function($scope, $timeout) {
     import('./game.js')
         .then(module => {
             $scope.Game = window.Game = module.Game;
-            window.ROTATE   = module.ROTATE;
             window.MOUSE    = module.MOUSE;
             window.KEY      = module.KEY;
             $scope.settings.load();
