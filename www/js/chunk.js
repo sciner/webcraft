@@ -94,9 +94,9 @@ class Chunk {
         }
     }
 
-    drawBufferGroup(render, group, a_pos) {
+    drawBufferGroup(group, a_pos) {
         if(this.#vertices[group]) {
-            render.drawBuffer(this.#vertices[group].buffer, a_pos);
+            Game.render.drawBuffer(this.#vertices[group].buffer, a_pos);
         }
     }
 
