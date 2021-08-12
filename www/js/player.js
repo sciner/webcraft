@@ -1,13 +1,16 @@
+import Chat from "./chat.js";
+import {Helpers, Vector} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
+
 // ==========================================
 // Player
 // This class contains the code that manages the local player.
 // ==========================================
 
 const PLAYER_HEIGHT     = 1.8;
-const PICKAT_DIST       = 5;
 
 // Creates a new local player manager.
-function Player() {
+export default function Player() {
     this.inventory              = null;
     this.client                 = null;
     this.falling                = false; // падает
@@ -185,14 +188,14 @@ Player.prototype.onKeyEvent = function(e, keyCode, down, first) {
     //
     if(keyCode == KEY.PAGE_UP) {
         if(down) {
-            Game.world.chunkManager.setRenderDist(CHUNK_RENDER_DIST + 1);
+            Game.world.chunkManager.setRenderDist( + 1);
         }
     }
 
     //
     if(keyCode == KEY.PAGE_DOWN) {
         if(down) {
-            Game.world.chunkManager.setRenderDist(CHUNK_RENDER_DIST - 1);
+            Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST - 1);
         }
     }
 
@@ -564,6 +567,9 @@ Player.prototype.update = function() {
         Math.floor(pos.y),
         Math.floor(pos.z)
     );
+
+    const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = Game.render.options;
+
 	if(this.lastUpdate != null) {
         // var delta = ( new Date().getTime() - this.lastUpdate ) / 1000;
 		var delta = (performance.now() - this.lastUpdate) / 1000;

@@ -1,10 +1,4 @@
-var BLOCK_BY_ID = {};
-for(let key of Object.keys(BLOCK)) {
-    let block = BLOCK[key];
-    if(typeof(block) == 'object' && ('spawnable' in block)) {
-        BLOCK_BY_ID[block.id] = block;
-    }
-}
+import {TX_CNT, ROTATE, DIRECTION, NORMALS, Vector, Vector4, Color} from './helpers.js';
 
 var MULTIPLY = {
     COLOR: {
@@ -13,156 +7,143 @@ var MULTIPLY = {
     }
 };
 
-var NORMALS = {};
-NORMALS.FORWARD          = new Vector(0, 0, 1);
-NORMALS.BACK             = new Vector(0, 0, -1);
-NORMALS.LEFT             = new Vector(-1, 0, 0);
-NORMALS.RIGHT            = new Vector(1, 0, 0);
-NORMALS.UP               = new Vector(0, 1, 0);
-NORMALS.DOWN             = new Vector(0, -1, 0);
-
 var QUAD_FLAGS = {}
 QUAD_FLAGS.NORMAL_UP = 1;
 QUAD_FLAGS.MASK_BIOME = 2;
 
-var ROTATE = {};
-ROTATE.S = 1; // BACK
-ROTATE.W = 2; // LEFT
-ROTATE.N = 3; // FRONT
-ROTATE.E = 4; // RIGHT
+export class BLOCK_FUNC {
 
-// getCardinalDirection...
-BLOCK.getCardinalDirection = function(vec3) {
-    var result = new Vector(0, 0, ROTATE.E);
-    if(vec3) {
-        if(vec3.z >= 45 && vec3.z < 135) {
-            // do nothing
-        } else if(vec3.z >= 135 && vec3.z < 225) {
-            result.z = ROTATE.S;
-        } else if(vec3.z >= 225 && vec3.z < 315) {
-            result.z = ROTATE.W;
-        } else {
-            result.z = ROTATE.N;
-        }
-    }
-    return result;
-}
-
-// Returns a block structure for the given id.
-BLOCK.fromId = function(id) {
-    if(BLOCK_BY_ID.hasOwnProperty(id)) {
-        return BLOCK_BY_ID[id]
-    }
-    console.error('Warning: id missing in BLOCK ' + id);
-    return BLOCK.DUMMY;
-}
-
-// Returns a block structure for the given id.
-BLOCK.fromName = function(name) {
-    if(name.indexOf(':') >= 0) {
-        name = name.split(':')[1].toUpperCase();
-    }
-    if(BLOCK.hasOwnProperty(name)) {
-        return BLOCK[name]
-    }
-    console.error('Warning: name missing in BLOCK ' + name);
-	return BLOCK.DUMMY;
-}
-
-// Return plants for terrain generator
-BLOCK.getPlants = function() {
-    return [
-        BLOCK.GRASS,
-        BLOCK.DANDELION,
-        // BLOCK.POPPY,
-        BLOCK.TULIP,
-        BLOCK.BROWN_MUSHROOM,
-        BLOCK.RED_MUSHROOM
-    ];
-}
-
-// Возвращает True если блок является растением
-BLOCK.isPlants = function(id) {
-    for(var p of this.getPlants()) {
-        if(p.id == id) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// Блок может быть уничтожен водой
-BLOCK.destroyableByWater = function(block) {
-    return block.planting || block.id == BLOCK.AIR.id;
-}
-
-// Стартовый игровой инвентарь
-BLOCK.getStartInventory = function() {
-    var blocks = [
-        Object.assign({count: 5}, BLOCK.RED_MUSHROOM),
-        Object.assign({count: 64}, BLOCK.SAND),
-        Object.assign({count: 6}, BLOCK.BOOKCASE),
-        Object.assign({count: 20}, BLOCK.GLOWSTONE),
-        Object.assign({count: 4}, BLOCK.TEST)
-    ];
-    for(let key of Object.keys(blocks)) {
-        let b = blocks[key];
-        delete(b.texture);
-        blocks[key] = b;
-    }
-    return blocks;
-}
-
-// getAll
-BLOCK.getAll = function() {
-    if(this.list) {
-        return this.list;
-    }
-    var list = this.list = [];
-    var id_list = [];
-    for(var mat in BLOCK) {
-        var B = BLOCK[mat];
-        B.power = 1;
-        if(typeof(B) == 'object') {
-            if(id_list.indexOf(B.id) >= 0)  {
-                console.error('Duplicate block id ', B.id, B);
-            }
-            id_list.push(B.id);
-            B.name = mat;
-            if(!B.light) {
-                B.light = null;
-            }
-            if(B.spawnable == true) {
-                if(B.style && B.style == 'fence') {
-                    continue;
-                }
-                if(B.style && B.style == 'planting') {
-                    B.planting = true;
-                }
-                if(B.style && B.style == 'stairs') {
-                    B.transparent = true;
-                }
-                if([18, 118, 152, 203, 159, 160, 74, 26, 133, 102, 168, 121, 169, 172, 193, 63, 64, 65, 71, 81, 83, 120, 146, 54, 194, 195, 196, 197, 115, 103, 116, 179, 180, 181, 182, 206].indexOf(B.id) >= 0) {
-                    continue;
-                }
-                list.push(B);
+    // getCardinalDirection...
+    static getCardinalDirection(vec3) {
+        var result = new Vector(0, 0, ROTATE.E);
+        if(vec3) {
+            if(vec3.z >= 45 && vec3.z < 135) {
+                // do nothing
+            } else if(vec3.z >= 135 && vec3.z < 225) {
+                result.z = ROTATE.S;
+            } else if(vec3.z >= 225 && vec3.z < 315) {
+                result.z = ROTATE.W;
+            } else {
+                result.z = ROTATE.N;
             }
         }
+        return result;
     }
-    return list;
-}
 
-// Run getAll()
-BLOCK.getAll();
+    // Returns a block structure for the given id.
+    static fromId(id) {
+        if(this.BLOCK_BY_ID.hasOwnProperty(id)) {
+            return this.BLOCK_BY_ID[id]
+        }
+        console.error('Warning: id missing in BLOCK ' + id);
+        return this.DUMMY;
+    }
 
-// Возвращает координаты текстуры
-function calcTexture(c) {
-    return [
-        (c[0] + 0.5) / TX_CNT,
-        (c[1] + 0.5) / TX_CNT,
-        1 / TX_CNT,
-        1 / TX_CNT,
-    ];
+    // Returns a block structure for the given id.
+    static fromName(name) {
+        if(name.indexOf(':') >= 0) {
+            name = name.split(':')[1].toUpperCase();
+        }
+        if(this.hasOwnProperty(name)) {
+            return this[name]
+        }
+        console.error('Warning: name missing in BLOCK ' + name);
+        return this.DUMMY;
+    }
+
+    // Return plants for terrain generator
+    static getPlants() {
+        return [
+            this.GRASS,
+            this.DANDELION,
+            // this.POPPY,
+            this.TULIP,
+            this.BROWN_MUSHROOM,
+            this.RED_MUSHROOM
+        ];
+    }
+
+    // Возвращает True если блок является растением
+    static isPlants(id) {
+        for(var p of this.getPlants()) {
+            if(p.id == id) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Блок может быть уничтожен водой
+    static destroyableByWater(block) {
+        return block.planting || block.id == this.AIR.id;
+    }
+
+    // Стартовый игровой инвентарь
+    static getStartInventory() {
+        var blocks = [
+            Object.assign({count: 5}, this.RED_MUSHROOM),
+            Object.assign({count: 64}, this.SAND),
+            Object.assign({count: 6}, this.BOOKCASE),
+            Object.assign({count: 20}, this.GLOWSTONE),
+            Object.assign({count: 4}, this.TEST)
+        ];
+        for(let key of Object.keys(blocks)) {
+            let b = blocks[key];
+            delete(b.texture);
+            blocks[key] = b;
+        }
+        return blocks;
+    }
+
+    // getAll
+    static getAll() {
+        if(this.list) {
+            return this.list;
+        }
+        var list = this.list = [];
+        var id_list = [];
+        for(var mat in this) {
+            var B = this[mat];
+            B.power = 1;
+            if(typeof(B) == 'object') {
+                if(id_list.indexOf(B.id) >= 0)  {
+                    console.error('Duplicate block id ', B.id, B);
+                }
+                id_list.push(B.id);
+                B.name = mat;
+                if(!B.light) {
+                    B.light = null;
+                }
+                if(B.spawnable == true) {
+                    if(B.style && B.style == 'fence') {
+                        continue;
+                    }
+                    if(B.style && B.style == 'planting') {
+                        B.planting = true;
+                    }
+                    if(B.style && B.style == 'stairs') {
+                        B.transparent = true;
+                    }
+                    if([18, 118, 152, 203, 159, 160, 74, 26, 133, 102, 168, 121, 169, 172, 193, 63, 64, 65, 71, 81, 83, 120, 146, 54, 194, 195, 196, 197, 115, 103, 116, 179, 180, 181, 182, 206].indexOf(B.id) >= 0) {
+                        continue;
+                    }
+                    list.push(B);
+                }
+            }
+        }
+        return list;
+    }
+
+    // Возвращает координаты текстуры
+    static calcTexture(c) {
+        return [
+            (c[0] + 0.5) / TX_CNT,
+            (c[1] + 0.5) / TX_CNT,
+            1 / TX_CNT,
+            1 / TX_CNT,
+        ];
+    }
+
 }
 
 // Pushes the vertices necessary for rendering a
@@ -282,7 +263,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
 	        if(ao_transparent_blocks.indexOf(uXY.id) < 0 && !uXY.transparent)  {ao[3] += .2;}
 	        if(ao_transparent_blocks.indexOf(dXY.id) < 0 && !dXY.transparent)  {ao[1] += .2;}
     	}
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
         n = NORMALS.UP;
         vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
             1, 0, 0,
@@ -302,7 +283,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
     // neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [.5, .5, .5, .5];
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
         n = NORMALS.DOWN;
         vertices.push(x + 0.5, z + 0.5, y,
             1, 0, 0,
@@ -325,7 +306,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
         }
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
         n = NORMALS.FORWARD;
         vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
             1, 0, 0,
@@ -343,7 +324,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
         if(ao_enabled) {
             // @todo
         }
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
         n = NORMALS.BACK;
         vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
             1, 0, 0,
@@ -361,7 +342,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
         if(ao_enabled) {
             // @todo
         }
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
         n = NORMALS.LEFT;
         vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
             0, 1, 0,
@@ -384,7 +365,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
         }
-        c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
+        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
         n = NORMALS.RIGHT;
         vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
             0, 1, 0,
@@ -411,7 +392,7 @@ function push_ladder(block, vertices, world, lightmap, x, y, z) {
     var bH          = 1.0;
     var width       = block.width ? block.width : 1;
     var lm          = MULTIPLY.COLOR.WHITE;
-    var c           = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    var c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.S: {
@@ -513,7 +494,7 @@ function pushQuad(v, p1, p2, p3, p4) {
 }
 
 // push_plane
-function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, flags) {
+export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, flags) {
 
     z = [y, y = z][0];
     zp = [yp, yp = zp][0];
@@ -588,7 +569,7 @@ function push_plant(block, vertices, world, lightmap, x, y, z, biome) {
     // var block       = world.chunkManager.getBlock(x, y, z);
     var texture     = BLOCK.fromId(block.id).texture;
     var blockLit    = true; // z >= lightmap[x][y];
-    var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lm = MULTIPLY.COLOR.WHITE;
     var flags = QUAD_FLAGS.NORMAL_UP;
     // Texture color multiplier
@@ -610,7 +591,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z) {
     var texture = BLOCK.fromId(block.id).texture;
 	var blockLit = z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
-    var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lightMultiplier = z >= lightmap[x][y] ? 1.0 : 0.6;
     var lm = new Color(
         lightMultiplier,
@@ -633,7 +614,7 @@ function push_fence(block, vertices, world, lightmap, x, y, z) {
     var blockLit = true; // z >= lightmap[x][y];
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
-    var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     var lm = MULTIPLY.COLOR.WHITE;
     var n = NORMALS.UP;
     var dirs = check_xy_neighbor(world, x, y, z);
@@ -656,7 +637,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     block.transparent   = true;
 
     // полная текстура
-    var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
 
     // четверть текстуры
     var c_half = [
@@ -697,7 +678,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
     n = NORMALS.LEFT;
     push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
-    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
+    c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
     // дно
     n = NORMALS.DOWN;
@@ -798,7 +779,7 @@ function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
     var bH          = 1.0;
     var width       = block.width ? block.width : 1;
     var lm          = MULTIPLY.COLOR.WHITE;
-    var c           = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    var c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.N:
@@ -855,7 +836,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
     var blockLight = block.light ? block.light.toFloat() : null;
     block.transparent = true;
     // полная текстура
-    var c = calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    var c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
     // четверть текстуры
     var c_half = [
         c[0] - half/2,
@@ -905,7 +886,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
     n = NORMALS.LEFT;
     push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
 
-    c = calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
+    c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
     // дно
     lm = MULTIPLY.COLOR.WHITE;
@@ -930,7 +911,7 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
 }
 
 // pushVertices
-BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
+BLOCK_FUNC.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
     const style = 'style' in block ? block.style : '';
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z, biome);
@@ -952,7 +933,7 @@ BLOCK.pushVertices = function(vertices, block, world, lightmap, x, y, z, neighbo
 }
 
 // Pushes vertices with the data needed for picking.
-BLOCK.pushPickingVertices = function(vertices, x, y, z, pos) {
+BLOCK_FUNC.pushPickingVertices = function(vertices, x, y, z, pos) {
 
 	var color = {
         r: pos.x / 255,
@@ -1016,7 +997,7 @@ BLOCK.pushPickingVertices = function(vertices, x, y, z, pos) {
 }
 
 // Return inventory icon pos
-BLOCK.getInventoryIconPos = function(inventory_icon_id) {
+BLOCK_FUNC.getInventoryIconPos = function(inventory_icon_id) {
     var w = 32;
     var h = 32;
     return new Vector4(
@@ -1025,9 +1006,4 @@ BLOCK.getInventoryIconPos = function(inventory_icon_id) {
         w,
         h
     );
-}
-
-// Export to node.js
-if (typeof(exports) != 'undefined') {
-	exports.BLOCK = BLOCK;
 }

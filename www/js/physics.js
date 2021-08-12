@@ -6,7 +6,7 @@
 // ==========================================
 
 // Creates a new physics simulator.
-function Physics() {
+export default function Physics() {
 	this.lastStep = -1;
 }
 

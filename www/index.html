@@ -10,11 +10,16 @@
 	<!-- Stylesheet -->
     <link href="style/main.css" rel="stylesheet" type="text/css">
 	<link href="style/ui.css" rel="stylesheet" type="text/css">
-	<!-- Modules -->
+	<!-- Third party -->
     <script src="vendors/glMatrix-1.2.min.js" type="text/javascript"></script>
-	<script src="vendors/alea.js" type="text/javascript"></script>
+    <script src="vendors/howler.min.js" type="text/javascript"></script>
+    <script src="vendors/angular.min.js"></script>
+    <script src="vendors/webgl-utils.js"></script>
+    <script src="vendors/objParser.js"></script>
+	<!-- Modules -->
+    <!--
     <script src="js/helpers.js" type="text/javascript"></script>
-    <script src="/tools/gui/wm.js" type="text/javascript"></script>
+    <script src="tools/gui/wm.js" type="text/javascript"></script>
     <script src="js/server_client.js" type="text/javascript"></script>
     <script src="js/blocks.js" type="text/javascript"></script>
     <script src="js/blocks_func.js" type="text/javascript"></script>
@@ -30,7 +35,6 @@
     <script src="js/particles/sun.js" type="text/javascript"></script>
     <script src="js/mesh/default.js" type="text/javascript"></script>
     <script src="js/chunk.js" type="text/javascript"></script>
-    <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="js/sounds.js" type="text/javascript"></script>
     <script src="js/saves.js" type="text/javascript"></script>
 	<script src="js/world.js" type="text/javascript"></script>
@@ -45,15 +49,8 @@
     <script src="js/hotbar.js" type="text/javascript"></script>
     <script src="js/hud.js" type="text/javascript"></script>
     <script src="js/db.js" type="text/javascript"></script>
-    <script src="vendors/perlin.js"></script>
-    <script src="vendors/angular.min.js"></script>
-    <script src="js/controller.js" type="module"></script>
-    <!--
-    <script src="vendors/m4.js"></script>
-    <script src="resources/primitives.js"></script>
     -->
-    <script src="vendors/webgl-utils.js"></script>
-    <script src="vendors/objParser.js"></script>
+    <script src="js/controller.js" type="module"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>
 
@@ -158,12 +155,12 @@
             </button>
         </div>
 
-        <!-- Loading' -->
+        <!-- Loading -->
         <div ng-show="current_window == 'loading'" style="text-align: center;">
             Loading...
         </div>
 
-        <!-- New game' -->
+        <!-- New game -->
         <div ng-show="current_window == 'newgame'" style="text-align: center;">
             NEW GAME:
             <br><br>

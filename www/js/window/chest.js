@@ -1,4 +1,7 @@
-class ChestWindow extends Window {
+import {Window, Label, Button} from "../../tools/gui/wm.js";
+import {CraftTableInventorySlot} from "./craft_table.js";
+
+export default class ChestWindow extends Window {
 
     constructor(x, y, w, h, id, title, text, inventory) {
 

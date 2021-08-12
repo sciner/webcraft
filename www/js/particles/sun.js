@@ -1,4 +1,6 @@
-class Particles_Sun {
+import {NORMALS, Vector, Color} from '../helpers.js';
+
+export default class Particles_Sun {
 
     // Constructor
     constructor(gl, pos) {
@@ -12,8 +14,8 @@ class Particles_Sun {
         //
         const sz        = 1;
         // tex coord (позиция в текстуре)
-        var c_half_rad = calcTexture([24, 31]);
-        var c_half = calcTexture([25, 31]);
+        var c_half_rad = BLOCK.calcTexture([24, 31]);
+        var c_half = BLOCK.calcTexture([25, 31]);
         // позиция частицы (в границах блока)
         var x = 0;
         var y = 0;

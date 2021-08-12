@@ -1,7 +1,10 @@
+import Saves from './saves.js';
+import {Helpers} from './helpers.js';
+
 var app = angular.module('gameApp', []);
 
-var injectParams = ['$scope', '$interval', '$timeout'];
-var gameCtrl = function($scope, $interval, $timeout) {
+var injectParams = ['$scope', '$timeout'];
+var gameCtrl = function($scope, $timeout) {
 
     // Load text file
     $scope.loadTextFile = function(url) {
@@ -11,6 +14,7 @@ var gameCtrl = function($scope, $interval, $timeout) {
     import('./game.js')
         .then(module => {
             $scope.Game = window.Game = module.Game;
+            window.ROTATE   = module.ROTATE;
             window.MOUSE    = module.MOUSE;
             window.KEY      = module.KEY;
             $scope.settings.load();

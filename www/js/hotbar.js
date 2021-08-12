@@ -1,4 +1,6 @@
-function Hotbar(hud, inventory) {
+import {Vector} from "./helpers.js";
+
+export default function Hotbar(hud, inventory) {
     var that                = this;
     this.hud                = hud;
     this.inventory          = inventory;

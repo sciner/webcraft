@@ -24,10 +24,7 @@
 // THE SOFTWARE.
 
 
-
-(function(global, module, define) {
-
-function Alea(seed) {
+export function Alea(seed) {
   var me = this, mash = Mash();
 
   me.next = function() {
@@ -59,7 +56,7 @@ function copy(f, t) {
   return t;
 }
 
-function impl(seed, opts) {
+export function impl(seed, opts) {
   var xg = new Alea(seed),
       state = opts && opts.state,
       prng = xg.next;
@@ -95,20 +92,3 @@ function Mash() {
 
   return mash;
 }
-
-
-if (module && module.exports) {
-  module.exports = impl;
-} else if (define && define.amd) {
-  define(function() { return impl; });
-} else {
-  this.alea = impl;
-}
-
-})(
-  this,
-  (typeof module) == 'object' && module,    // present in node.js
-  (typeof define) == 'function' && define   // present with an AMD loader
-);
-
-

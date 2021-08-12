@@ -1,6 +1,8 @@
 "use strict";
+import GeometryTerrain from "./geometry_terrain.js";
+import {NORMALS, Vector, Helpers} from './helpers.js';
 
-function PlayerModel(props) {
+export default function PlayerModel(props) {
 
     this.texPlayer                  = null;
     this.texPlayer2                 = null;
