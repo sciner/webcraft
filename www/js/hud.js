@@ -15,6 +15,7 @@ function HUD(width, height) {
     canvas.width                    = width;
     canvas.height                   = height;
     // canvas.style.display            = 'none';
+    canvas.style.position           = 'fixed';
     canvas.style.zIndex             = 0;
     canvas.style.pointerEvents      = 'none';
     canvas.style.width = '100vw';

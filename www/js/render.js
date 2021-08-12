@@ -439,7 +439,9 @@ Renderer.prototype.draw = function(delta) {
 
     // 3. Draw players
     gl.uniform1f(this.u_mipmap, 0.0);
+    gl.disable(gl.CULL_FACE);
     this.drawPlayers(delta);
+    gl.enable(gl.CULL_FACE);
 
     // 4. Draw HUD
     if(that.HUD) {
