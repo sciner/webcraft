@@ -87,6 +87,15 @@ export default class BaseRenderer {
     _configure() {
 
     }
+
+    /**
+     * Create texture unit
+     * @param options
+     * @return {BaseTexture}
+     */
+    createTexture(options) {
+       throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
 }
 
 BaseRenderer.ID = 0;
