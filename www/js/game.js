@@ -8,6 +8,7 @@ import {fps} from "./fps.js";
 import {Hotbar} from "./hotbar.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
+import {Resources} from "./resources.js";
 
 // Mouse event enumeration
 export let MOUSE         = {};
@@ -57,6 +58,7 @@ export let Game = {
     canvas:             document.getElementById('renderSurface'),
     world:              null,
     render:             null, // renderer
+    resources:          null,
     physics:            null, // physics simulator
     player:             null,
     mouseX:             0,
@@ -94,32 +96,35 @@ export let Game = {
         return saved_state;
     },
     initGame: function(saved_world, settings) {
-        let that = this;
-        that.world_name = saved_world._id;
-        that.seed       = saved_world.seed;
-        saved_world     = that.ajustSavedState(saved_world);
-        that.sounds     = new Sounds();
+        this.world_name = saved_world._id;
+        this.seed       = saved_world.seed;
+        saved_world     = this.ajustSavedState(saved_world);
+        this.sounds     = new Sounds();
         // Create a new world
-        that.world = new World(saved_world, function() {
-            that.render = new Renderer(that.world, 'renderSurface', settings, function() {
-                that.physics    = new Physics();
-                that.player     = new Player();
-                that.inventory  = new Inventory(that.player, that.hud);
-                that.player.setInputCanvas('renderSurface');
-                that.hud.add(fps, 0);
-                that.hotbar = new Hotbar(that.hud, that.inventory);
-                that.physics.setWorld(that.world);
-                that.player.setWorld(that.world);
-                that.setupMousePointer();
-                that.world.renderer.updateViewport();
-                that.world.fixRotate();
-                //
-                that.readMouseMove();
-                that.startBackgroundMusic();
-                document.querySelector('body').classList.add('started');
-                // Run render loop
-                window.requestAnimationFrame(that.loop);
-                // setInterval(that.loop, 1);
+        this.world = new World(saved_world, () => {
+            this.resources = new Resources();
+            this.render = new Renderer();
+            this.resources.load({ hd: settings.hd, glsl: true}).then(() => {
+                this.render.init(this.world, 'renderSurface', settings, this.resources).then(() => {
+                    this.physics = new Physics();
+                    this.player = new Player();
+                    this.inventory = new Inventory(this.player, this.hud);
+                    this.player.setInputCanvas('renderSurface');
+                    this.hud.add(fps, 0);
+                    this.hotbar = new Hotbar(this.hud, this.inventory);
+                    this.physics.setWorld(this.world);
+                    this.player.setWorld(this.world);
+                    this.setupMousePointer();
+                    this.world.renderer.updateViewport();
+                    this.world.fixRotate();
+                    //
+                    this.readMouseMove();
+                    this.startBackgroundMusic();
+                    document.querySelector('body').classList.add('started');
+                    // Run render loop
+                    window.requestAnimationFrame(this.loop);
+                    // setInterval(this.loop, 1);
+                });
             });
         });
 
