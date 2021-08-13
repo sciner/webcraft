@@ -1,9 +1,10 @@
-import {Helpers, Vector} from "./helpers.js";
-import ServerClient from "./server_client.js";
 import {ChunkManager} from "./chunk_manager.js";
+import {Helpers, Vector} from "./helpers.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
+import PlayerModel from "./player_model.js";
+import ServerClient from "./server_client.js";
 
 const MAX_DIST_FOR_SHIFT = 800;
 
