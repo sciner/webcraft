@@ -1,6 +1,7 @@
 "use strict";
 import GeometryTerrain from "./geometry_terrain.js";
 import {NORMALS, Vector, Helpers} from './helpers.js';
+import {Resources} from "./resources.js";
 
 export default class PlayerModel {
 
@@ -51,16 +52,58 @@ export default class PlayerModel {
     }
 
     // loadMesh...
-    loadMesh() {
-        this.loadPlayerHeadModel();
-        this.loadPlayerBodyModel();
-        this.loadTextures();
+    /**
+     *
+     * @param {BaseRenderer} render
+     */
+    loadMesh(render) {
+        this.loadPlayerHeadModel(render);
+        this.loadPlayerBodyModel(render);
+        this.loadTextures(render);
     }
 
-    // loadTextures...
-    loadTextures() {
+    /**
+     *
+     * @param {BaseRenderer} render
+     */
+    loadTextures(render) {
         let that = this;
         let gl = this.gl;
+        let image1 = null;
+
+        Resources
+            .loadImage(this.skin.file, false)
+            .then(image => {
+                image1 = image;
+                return new Promise((res) => {
+                    Helpers.createSkinLayer2(null, image, res);
+                })
+            })
+            .then(file => {
+                return Resources.loadImage(URL.createObjectURL(file), false);
+            })
+            .then(image2 => {
+                const texture1 = render.createTexture({
+                    source: image1,
+                    minFilter: 'nearest',
+                    magFilter: 'nearest'
+                });
+                texture1.upload();
+
+                const texture2 = render.createTexture({
+                    source: image2,
+                    minFilter: 'nearest',
+                    magFilter: 'nearest'
+                });
+                texture2.upload();
+
+                this.texPlayer = texture1.texture;
+                this.texPlayer2 = texture2.texture;
+
+                document.getElementsByTagName('body')[0].append(image2);
+            })
+
+        /*
         // Load player texture
         let image = new Image();
         image.onload = function() {
@@ -90,6 +133,7 @@ export default class PlayerModel {
             });
         };
         image.src = this.skin.file;
+        */
     }
 
     // Loads the player head model into a vertex buffer for rendering.
@@ -461,7 +505,7 @@ export default class PlayerModel {
         // Load mesh
         if(!this.playerHead) {
             // console.log('Loading mesh');
-            this.loadMesh();
+            this.loadMesh(render);
         }
 
         // Wait loading texture
