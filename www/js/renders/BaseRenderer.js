@@ -43,6 +43,10 @@ export class BaseTexture {
     destroy() {
         delete this.context._textures[this.id];
     }
+
+    bind() {
+
+    }
 }
 
 export default class BaseRenderer {
