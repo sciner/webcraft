@@ -17,29 +17,8 @@ export class Resources {
      * @returns {Promise<void>}
      */
     async load(settings) {
-        function loadTextFile(url) {
-            return fetch(url).then(response => response.text());
-        }
-
-        function loadImage(url) {
-            if (settings.imageBitmap) {
-                return fetch(url)
-                    .then(r => r.blob())
-                    .then(blob => self.createImageBitmap(blob));
-            }
-
-            return new Promise((resolve, reject) => {
-                const image = new Image();
-                image.onload = function () {
-                    resolve(image);
-                };
-                image.onError = function () {
-                    reject();
-                };
-                image.src = url;
-            })
-
-        }
+        const loadTextFile = Resources.loadTextFile;
+        const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
 
         let all = [];
         if (settings.glsl) {
@@ -67,4 +46,28 @@ export class Resources {
         //TODO: add retry
         await Promise.all(all).then(() => { return this; });
     }
+}
+
+Resources.loadTextFile = (url) => {
+    return fetch(url).then(response => response.text());
+}
+
+Resources.loadImage = (url,  imageBitmap) => {
+    if (imageBitmap) {
+        return fetch(url)
+            .then(r => r.blob())
+            .then(blob => self.createImageBitmap(blob));
+    }
+
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = function () {
+            resolve(image);
+        };
+        image.onError = function () {
+            reject();
+        };
+        image.src = url;
+    })
+
 }
