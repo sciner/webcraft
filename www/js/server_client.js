@@ -29,7 +29,7 @@ export default class ServerClient {
 
     // Constructor
     constructor(url, onOpenCallback) {
-        let that = this;        
+        let that = this;
         that.ping_time                    = null;
         that.ping_value                   = null;
         this._loadID();
@@ -96,7 +96,6 @@ export default class ServerClient {
                 case ServerClient.EVENT_PLAYER_JOIN: {
                     let data = cmd.data;
                     Game.world.players[data.id] = new PlayerModel({
-                        gl:             Game.world.renderer.gl,
                         id:             data.id,
                         itsme:          data.id == Game.world.server.id,
                         pos:            data.pos,
@@ -179,7 +178,7 @@ export default class ServerClient {
     LoadChest(entity_id) {
         this.Send({name: ServerClient.CLIENT_LOAD_CHEST, data: {entity_id: entity_id}});
     }
-    
+
     // Отправка на сервер новых данных слота текущего сундука
     SendChestSlotItem(entity_id, slot_index, item) {
         this.Send({name: ServerClient.CLIENT_SET_CHEST_SLOT_ITEM, data: {
