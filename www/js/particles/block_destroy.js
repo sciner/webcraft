@@ -7,14 +7,12 @@ export default class Particles_Block_Destroy {
 
     // Constructor
     constructor(gl, block, pos) {
-
         let chunk_pos   = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_pos);
         if(!chunk.map) {
             debugger;
         }
         let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
-
         this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = .5;
         let lm          = new Color(cell.biome.dirt_color.r, cell.biome.dirt_color.g, cell.biome.dirt_color.b, 0);
@@ -59,7 +57,6 @@ export default class Particles_Block_Destroy {
             this.particles.push(p);
         }
         this.buffer = new GeometryTerrain(GeometryTerrain.convertFrom12(this.vertices));
-
     }
 
     // Draw

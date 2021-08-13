@@ -1,4 +1,7 @@
 import {TX_CNT, DIRECTION, NORMALS, Vector, Color} from '../helpers.js';
+import {BLOCK} from '../blocks.js';
+import {push_plane, QUAD_FLAGS} from '../blocks_func.js';
+import GeometryTerrain from "../geometry_terrain.js";
 
 export default class Particles_Raindrop {
 

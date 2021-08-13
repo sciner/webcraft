@@ -5,8 +5,8 @@ import GeometryTerrain from "./geometry_terrain.js";
 // Creates a new chunk
 export default class Chunk {
 
-    #chunkManager = null;
-    #vertices     = null;
+    // #chunkManager = null;
+    // #vertices     = null;
 
     constructor(chunkManager, pos, modify_list) {
 
@@ -48,12 +48,12 @@ export default class Chunk {
         chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
 
         // Objects & variables
-        this.#chunkManager              = chunkManager;
+        this.chunkManager               = chunkManager;
         this.inited                     = false;
         this.dirty                      = true;
         this.buildVerticesInProgress    = false;
         this.vertices_length            = 0;
-        this.#vertices                  = {};
+        this.vertices                   = {};
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
 
@@ -77,8 +77,8 @@ export default class Chunk {
         const z = shift.z - this.shift_orig.z;
         this.shift_orig = {...shift};
         let points = 0;
-        for(let key of Object.keys(this.#vertices)) {
-            let v = this.#vertices[key];
+        for(let key of Object.keys(this.vertices)) {
+            let v = this.vertices[key];
             let list = v.list;
             for(let i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
                 list[i + 0] -= x;
@@ -99,8 +99,8 @@ export default class Chunk {
     }
 
     drawBufferGroup(group, a_pos) {
-        if(this.#vertices[group]) {
-            Game.render.drawBuffer(this.#vertices[group].buffer, a_pos);
+        if(this.vertices[group]) {
+            Game.render.drawBuffer(this.vertices[group].buffer, a_pos);
         }
     }
 
@@ -108,27 +108,27 @@ export default class Chunk {
     applyVertices() {
         const args = this.vertices_args;
         delete(this['vertices_args']);
-        this.#chunkManager.vertices_length_total -= this.vertices_length;
+        this.chunkManager.vertices_length_total -= this.vertices_length;
         this.buildVerticesInProgress    = false;
-        this.#chunkManager.vertices_length_total -= this.vertices_length;
+        this.chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length            = 0;
         this.gravity_blocks             = args.gravity_blocks;
         this.fluid_blocks               = args.fluid_blocks;
         // Delete old WebGL buffers
-        for(let key of Object.keys(this.#vertices)) {
-            let v = this.#vertices[key];
+        for(let key of Object.keys(this.vertices)) {
+            let v = this.vertices[key];
             v.buffer.destroy();
-            delete(this.#vertices[key]);
+            delete(this.vertices[key]);
         }
         // Добавление чанка в отрисовщик
         for(let key of Object.keys(args.vertices)) {
             let v = args.vertices[key];
             this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
             v.buffer              = new GeometryTerrain(v.list);
-            this.#vertices[key]   = v;
+            this.vertices[key]   = v;
             delete(v.list);
         }
-        this.#chunkManager.vertices_length_total += this.vertices_length;
+        this.chunkManager.vertices_length_total += this.vertices_length;
         this.shift_orig            = args.shift;
         this.dirty                 = false;
         this.timers                = args.timers;
@@ -141,7 +141,7 @@ export default class Chunk {
             this.buffer.destroy();
         }
         // Run webworker method
-        this.#chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
+        this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
     }
 
     // buildVertices
@@ -151,7 +151,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.#chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
+        this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
         return true;
     }
 
@@ -232,7 +232,7 @@ export default class Chunk {
         }
 
         // Run webworker method
-        this.#chunkManager.postWorkerMessage(['setBlock', {
+        this.chunkManager.postWorkerMessage(['setBlock', {
             key:        this.key,
             x:          x + this.coord.x,
             y:          y + this.coord.y,
@@ -245,8 +245,8 @@ export default class Chunk {
 
         if(x == 0) {
             // left
-            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
-            this.#chunkManager.postWorkerMessage(['setBlock', {
+            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
+            this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x - 1,
                 y:          y + this.coord.y,
@@ -259,8 +259,8 @@ export default class Chunk {
         }
         if(z == 0) {
             // top
-            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
-            this.#chunkManager.postWorkerMessage(['setBlock', {
+            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
+            this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
@@ -273,8 +273,8 @@ export default class Chunk {
         }
         if(x == this.size.x - 1) {
             // right
-            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
-            this.#chunkManager.postWorkerMessage(['setBlock', {
+            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
+            this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x + 1,
                 y:          y + this.coord.y,
@@ -287,8 +287,8 @@ export default class Chunk {
         }
         if(z == this.size.z - 1) {
             // bottom
-            let key = this.#chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
-            this.#chunkManager.postWorkerMessage(['setBlock', {
+            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
+            this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
