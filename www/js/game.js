@@ -56,7 +56,13 @@ export let Game = {
     world_name:         null, // 'infinity',
     hud:                null,
     canvas:             document.getElementById('renderSurface'),
+    /**
+     * @type { World }
+     */
     world:              null,
+    /**
+     * @type { Renderer }
+     */
     render:             null, // renderer
     resources:          null,
     physics:            null, // physics simulator
@@ -98,7 +104,12 @@ export let Game = {
 
     load(settings) {
         this.resources = new Resources();
-        return this.resources.load({ hd: settings.hd, glsl: true});
+        return this.resources.load({
+            hd: settings.hd,
+            glsl: this.render.renderBackend.kind === 'webgl',
+            wgsl: this.render.renderBackend.kind === 'webgpu',
+            imageBitmap: true
+        });
     },
 
     initGame(saved_world, settings) {
@@ -110,11 +121,11 @@ export let Game = {
         this.world = new World(saved_world);
         this.world.init()
             .then(() => {
+                this.render = new Renderer('renderSurface');
                 return this.load(settings);
             })
             .then(()=>{
-                this.render = new Renderer();
-                return this.render.init(this.world, 'renderSurface', settings, this.resources);
+                return this.render.init(this.world, settings, this.resources);
             })
             .then(this.postInitGame.bind(this))
     },

@@ -39,9 +39,20 @@ let currentRenderState = {
 
 // Creates a new renderer with the specified canvas as target.
 export default class Renderer {
-    async init(world, renderSurfaceId, settings, resources) {
+    constructor(renderSurfaceId) {
+        this.canvas             = document.getElementById(renderSurfaceId);
+        this.canvas.renderer    = this;
+        this.renderBackend = rendererProvider.getRenderer(
+            this.canvas,
+            BACKEND, {
+                antialias: false,
+                depth: true,
+                premultipliedAlpha: false
+            });
+    }
+    async init(world, settings, resources) {
         return new Promise(res => {
-            this._init(world, renderSurfaceId, settings, resources, res);
+            this._init(world, settings, resources, res);
         })
     }
 
@@ -51,10 +62,8 @@ export default class Renderer {
 
     // todo
     //  GO TO PROMISE
-    async _init(world, renderSurfaceId, settings, resources, callback) {
+    async _init(world, settings, resources, callback) {
         let that                = this;
-        this.canvas             = document.getElementById(renderSurfaceId);
-        this.canvas.renderer    = that;
         this.resources          = resources;
         this.skyBox             = null;
         this.videoCardInfoCache = null;
@@ -68,8 +77,6 @@ export default class Renderer {
 
         this.setWorld(world);
 
-        this.renderBackend      = rendererProvider.getRenderer(
-            this.canvas, BACKEND, {antialias: false, depth: true, premultipliedAlpha: false});
 
         await this.renderBackend.init();
 
