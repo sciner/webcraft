@@ -37,7 +37,7 @@ export default class PlayerModel {
             draw_nametag:   false
         });
 
-        const gl = this.gl;
+        const gl = this.gl = render.gl;
         gl.disable(gl.CULL_FACE);
 
         this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
