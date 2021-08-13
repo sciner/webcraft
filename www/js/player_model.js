@@ -79,17 +79,15 @@ export default class PlayerModel {
                                 minFilter: 'nearest',
                                 magFilter: 'nearest'
                             });
-                            texture1.upload();
 
                             const texture2 = render.renderBackend.createTexture({
                                 source: image2,
                                 minFilter: 'nearest',
                                 magFilter: 'nearest'
                             });
-                            texture2.upload();
 
-                            this.texPlayer = texture1.texture;
-                            this.texPlayer2 = texture2.texture;
+                            this.texPlayer = texture1;
+                            this.texPlayer2 = texture2;
 
                             document.getElementsByTagName('body')[0].append(image2);
                         })
@@ -487,7 +485,9 @@ export default class PlayerModel {
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
 
         gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, options.texture);
+
+        options.texture.bind();
+        //gl.bindTexture(gl.TEXTURE_2D, options.texture);
         render.drawBuffer(this.playerHead, a_pos);
 
         // Draw body
@@ -536,8 +536,10 @@ export default class PlayerModel {
             mat4.rotateZ(modelMatrix, angZ);
             mat4.rotateX(modelMatrix, angX);
             mat4.scale(modelMatrix, [0.005, 1, 0.005]);
+
             gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-            gl.bindTexture(gl.TEXTURE_2D, this.nametag.texture.texture);
+
+            this.nametag.texture.bind();
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
@@ -574,8 +576,6 @@ export default class PlayerModel {
         const texture = render.renderBackend.createTexture({
             source: canvas,
         });
-        
-        texture.upload();
 
         // Create model
         let vertices = [

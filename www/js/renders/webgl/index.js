@@ -7,6 +7,23 @@ const TEXTURE_FILTER_GL = {
 }
 
 export class WebGLTexture extends BaseTexture {
+
+    bind() {
+        if (this.dirty) {
+            return this.upload();
+        }
+
+        const {
+            gl
+        } = this.context;
+
+        const {
+            texture
+        } = this;
+
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+    }
+
     upload() {
         const { gl } = this.context;
         /**
