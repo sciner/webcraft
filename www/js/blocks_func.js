@@ -7,7 +7,7 @@ let MULTIPLY = {
     }
 };
 
-let QUAD_FLAGS = {}
+export let QUAD_FLAGS = {}
 QUAD_FLAGS.NORMAL_UP = 1;
 QUAD_FLAGS.MASK_BIOME = 2;
 
