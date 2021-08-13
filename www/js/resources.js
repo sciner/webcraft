@@ -2,6 +2,8 @@ export class Resources {
     constructor() {
         this.glslMain = {};
         this.glslSky = {};
+        this.wgslMain = {};
+        this.wgslSky = {};
         this.terrain = {};
         this.sky = {};
     }
@@ -9,16 +11,23 @@ export class Resources {
      * @param settings
      * @param settings.hd hd textures
      * @param settings.glsl need glsl
+     * @param settings.wgsl need wgls for webgpu
+     * @param settings.imageBitmpa return imageBitmap for image instead of Image
      * @returns {Promise<void>}
      */
     async load(settings) {
         function loadTextFile(url) {
             return fetch(url).then(response => response.text());
         }
+
         function loadImage(url) {
+            if (settings.imageBitmap) {
+                return fetch(url).then(e => self.createImageBitmap(e.blob()));
+            }
+
             return new Promise((resolve, reject) => {
-                const image        = new Image();
-                image.onload = function() {
+                const image = new Image();
+                image.onload = function () {
                     resolve(image);
                 };
                 image.onError = function () {
@@ -26,6 +35,7 @@ export class Resources {
                 };
                 image.src = url;
             })
+
         }
 
         let all = [];
@@ -34,6 +44,11 @@ export class Resources {
             all.push(loadTextFile('./shaders/main/fragment.glsl').then((txt) => { this.glslMain.fragment = txt } ));
             all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.glslSky.vertex = txt } ));
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.glslSky.fragment = txt } ));
+        }
+
+        if (settings.wgsl) {
+            all.push(loadTextFile('./shaders/main_gpu/shader.wgsl').then((txt) => { this.wgslMain = { vertex: txt, fragment: txt} } ));
+            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.wgslSky.vertex = { vertex: txt, fragment: txt} } } ));
         }
 
         all.push(loadImage(settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png').then((img) => { this.terrain.image = img}));
