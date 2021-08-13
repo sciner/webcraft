@@ -54,7 +54,7 @@ export default class PlayerModel {
     // loadMesh...
     /**
      *
-     * @param {BaseRenderer} render
+     * @param {Renderer} render
      */
     loadMesh(render) {
         this.loadPlayerHeadModel(render);
@@ -64,44 +64,37 @@ export default class PlayerModel {
 
     /**
      *
-     * @param {BaseRenderer} render
+     * @param {Renderer} render
      */
     loadTextures(render) {
-        let that = this;
-        let gl = this.gl;
-        let image1 = null;
-
         Resources
             .loadImage(this.skin.file, false)
-            .then(image => {
-                image1 = image;
-                return new Promise((res) => {
-                    Helpers.createSkinLayer2(null, image, res);
-                })
-            })
-            .then(file => {
-                return Resources.loadImage(URL.createObjectURL(file), false);
-            })
-            .then(image2 => {
-                const texture1 = render.createTexture({
-                    source: image1,
-                    minFilter: 'nearest',
-                    magFilter: 'nearest'
+            .then(image1 => {
+                Helpers.createSkinLayer2(null, image1, (file) => {
+                    Resources
+                        .loadImage(URL.createObjectURL(file), false)
+                        .then(image2 => {
+                            const texture1 = render.renderBackend.createTexture({
+                                source: image1,
+                                minFilter: 'nearest',
+                                magFilter: 'nearest'
+                            });
+                            texture1.upload();
+
+                            const texture2 = render.renderBackend.createTexture({
+                                source: image2,
+                                minFilter: 'nearest',
+                                magFilter: 'nearest'
+                            });
+                            texture2.upload();
+
+                            this.texPlayer = texture1.texture;
+                            this.texPlayer2 = texture2.texture;
+
+                            document.getElementsByTagName('body')[0].append(image2);
+                        })
                 });
-                texture1.upload();
-
-                const texture2 = render.createTexture({
-                    source: image2,
-                    minFilter: 'nearest',
-                    magFilter: 'nearest'
-                });
-                texture2.upload();
-
-                this.texPlayer = texture1.texture;
-                this.texPlayer2 = texture2.texture;
-
-                document.getElementsByTagName('body')[0].append(image2);
-            })
+            });
 
         /*
         // Load player texture
