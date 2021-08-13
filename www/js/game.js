@@ -93,37 +93,43 @@ export let Game = {
     ajustSavedState: function(saved_state) {
         return saved_state;
     },
-    initGame: function(saved_world, settings) {
-        let that = this;
-        that.world_name = saved_world._id;
-        that.seed       = saved_world.seed;
-        saved_world     = that.ajustSavedState(saved_world);
-        that.sounds     = new Sounds();
-        // Create a new world
-        that.world = new World(saved_world, function() {
-            that.render = new Renderer(that.world, 'renderSurface', settings, function() {
-                that.physics    = new Physics();
-                that.player     = new Player();
-                that.inventory  = new Inventory(that.player, that.hud);
-                that.player.setInputCanvas('renderSurface');
-                that.hud.add(fps, 0);
-                that.hotbar = new Hotbar(that.hud, that.inventory);
-                that.physics.setWorld(that.world);
-                that.player.setWorld(that.world);
-                that.setupMousePointer();
-                that.world.renderer.updateViewport();
-                that.world.fixRotate();
-                //
-                that.readMouseMove();
-                that.startBackgroundMusic();
-                document.querySelector('body').classList.add('started');
-                // Run render loop
-                window.requestAnimationFrame(that.loop);
-                // setInterval(that.loop, 1);
-            });
-        });
 
+    initGame: function(saved_world, settings) {
+        this.world_name = saved_world._id;
+        this.seed       = saved_world.seed;
+        saved_world     = this.ajustSavedState(saved_world);
+        this.sounds     = new Sounds();
+        // Create a new world
+        this.world = new World(saved_world);
+        this.world.init()
+            .then(() => {
+                this.render = new Renderer(this.world, 'renderSurface', settings);
+                return this.render.init();
+            })
+            .then(this.postInitGame.bind(this))
     },
+
+    postInitGame() {
+        this.physics    = new Physics();
+        this.player     = new Player();
+        this.inventory  = new Inventory(that.player, that.hud);
+        this.player.setInputCanvas('renderSurface');
+        this.hud.add(fps, 0);
+        this.hotbar = new Hotbar(that.hud, that.inventory);
+        this.physics.setWorld(that.world);
+        this.player.setWorld(that.world);
+        this.setupMousePointer();
+        this.world.renderer.updateViewport();
+        this.world.fixRotate();
+        //
+        this.readMouseMove();
+        this.startBackgroundMusic();
+        document.querySelector('body').classList.add('started');
+        // Run render loop
+        window.requestAnimationFrame(this.loop);
+        // setInterval(that.loop, 1);
+    },
+
     startBackgroundMusic: function() {
         /*
         setTimeout(function(){
@@ -164,9 +170,9 @@ export let Game = {
         }
     },
     // Render loop
-    loop: function() {
+    loop: () => {
         let tm = performance.now();
-        let that = Game;
+        let that = this;
         if(that.controls.enabled) {
             // Simulate physics
             that.physics.simulate();
