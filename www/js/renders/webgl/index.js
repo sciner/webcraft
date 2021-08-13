@@ -1,6 +1,32 @@
 //@ts-check
-export default class WebGLRenderer {
-    
+import BaseRenderer from "../BaseRenderer.js";
+
+export default class WebGLRenderer extends BaseRenderer {
+    constructor(view, options) {
+        super(view, options);
+        /**
+         *
+         * @type {WebGL2RenderingContext}
+         */
+        this.gl = null;
+    }
+
+    async init() {
+        this.gl = this.view.getContext('webgl2', this.options);
+
+        return Promise.resolve(this);
+    }
+
+    resize(w, h) {
+        super.resize(w, h);
+
+        this.view.width = w;
+        this.view.height = h;
+    }
+
+    _configure() {
+        super._configure();
+    }
 }
 
 /**
