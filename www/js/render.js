@@ -38,12 +38,14 @@ let currentRenderState = {
 
 // Creates a new renderer with the specified canvas as target.
 export default class Renderer {
+    constructor() {
+    }
 
-    constructor(world, renderSurfaceId, settings, initCallback) {
-
+    init(world, renderSurfaceId, settings, resources) {
         let that                = this;
         that.canvas             = document.getElementById(renderSurfaceId);
         that.canvas.renderer    = that;
+        this.resources          = resources;
         this.skyBox             = null;
         this.videoCardInfoCache = null;
         this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
@@ -78,7 +80,7 @@ export default class Renderer {
         this.terrainBlockSize = 1;
 
         // Create main program
-        Helpers.createGLProgram(gl, './shaders/main/vertex.glsl', './shaders/main/fragment.glsl', function(info) {
+        Helpers.createGLProgram(gl, resources.glslMain, function(info) {
 
             let program = that.program = info.program;
 
@@ -171,22 +173,18 @@ export default class Renderer {
                     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
                 }
             }
-
             // Terrain texture
             gl.uniform1i(that.u_texture, 4);
             let terrainTexture          = that.texTerrain = gl.createTexture();
-            terrainTexture.image        = new Image();
-            terrainTexture.image.onload = function() {
-                    gl.activeTexture(gl.TEXTURE4);
-                    genTerrain(terrainTexture);
-            };
-            terrainTexture.image.src = settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png';
+            terrainTexture.image = resources.terrain.image;
+            gl.activeTexture(gl.TEXTURE4);
+            genTerrain(terrainTexture);
             //
             that.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
         });
 
         // SkyBox
-        Helpers.createGLProgram(gl, './shaders/skybox/vertex.glsl', './shaders/skybox/fragment.glsl', function(info) {
+        Helpers.createGLProgram(gl, resources.glslSky, function(info) {
             const program = info.program;
             gl.useProgram(program);
             const vao = gl.createVertexArray();
@@ -259,81 +257,47 @@ export default class Renderer {
                     this.gl.enable(this.gl.DEPTH_TEST);
                 }
             }
+            gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
-            const loadImageInTexture = (target, url) => {
-                return new Promise((resolve, reject) => {
-                    const level             = 0;
-                    const internalFormat    = gl.RGBA;
-                    const width             = 1;
-                    const height            = 1;
-                    const format            = gl.RGBA;
-                    const type              = gl.UNSIGNED_BYTE;
-                    gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
-                    const image = new Image();
-                    image.addEventListener('load', () => {
-                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.texImage2D(target, level, internalFormat, format, type, image);
-                        resolve();
-                    });
-                    image.addEventListener('error', () => {
-                        reject(new Error(`Ошибка загрузки изображения '${url}'.`));
-                    });
-                    image.src = url;
-                });
+            const loadImageInTexture = (target, image) => {
+                const level             = 0;
+                const internalFormat    = gl.RGBA;
+                const width             = 1;
+                const height            = 1;
+                const format            = gl.RGBA;
+                const type              = gl.UNSIGNED_BYTE;
+                gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.texImage2D(target, level, internalFormat, format, type, image);
             }
-            let skiybox_dir = './media/skybox/park';
-            Promise.all([
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_X, skiybox_dir + '/posx.jpg'),
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, skiybox_dir + '/negx.jpg'),
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, skiybox_dir + '/posy.jpg'),
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, skiybox_dir + '/negy.jpg'),
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, skiybox_dir + '/posz.jpg'),
-                loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, skiybox_dir + '/negz.jpg'),
-            ]).then(() => {
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
-                gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-                gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-                gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-                that.skyBox.loaded = true;
-            }).catch((error) => {
-                throw new Error(error);
-            });
+
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_X, resources.sky.posx);
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, resources.sky.negx);
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, resources.sky.posy);
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, resources.sky.negy);
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, resources.sky.posz);
+            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, resources.sky.negz);
+
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+            that.skyBox.loaded = true;
         });
 
         // HUD
-        Helpers.createGLProgram(gl, './shaders/hud/vertex.glsl', './shaders/hud/fragment.glsl', function(info) {
-            const program = info.program;
-            // Build main HUD
-            Game.hud = new HUD(0, 0);
-            that.HUD = {
-                gl: gl,
-                tick: 0,
-                program: program,
-                texture: gl.createTexture(),
-                bufRect: null,
-                uniform: {
-                    texture:        gl.getUniformLocation(program, 'u_texture'),
-                    u_noDraw:       gl.getUniformLocation(program, 'u_noDraw'),
-                    u_noCrosshair:  gl.getUniformLocation(program, 'u_noCrosshair'),
-                    u_resolution:   gl.getUniformLocation(program, 'u_resolution')
-                },
-                attribute: {
-                    // v_attr_inx:     gl.getAttribLocation(program, 'inPos')
-                },
-                draw: function() {
-                    Game.hud.draw();
-                }
+        // Build main HUD
+        Game.hud = new HUD(0, 0);
+        that.HUD = {
+            tick: 0,
+            bufRect: null,
+            draw: function() {
+                Game.hud.draw();
             }
-            // Create HUD texture
-            let texture = that.HUD.texture = gl.createTexture();
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            initCallback();
-        });
+        }
 
+        return new Promise((resolve, reject) => {
+            resolve();
+        });
         // let pos = new Vector(0, 0, 0);
         // Game.world.meshes.add(new Particles_Sun(Game.world.renderer.gl, pos));
     }

@@ -253,42 +253,34 @@ export class Helpers {
     }
 
     // createGLProgram...
-    static createGLProgram(gl, vertex, fragment, callback) {
-        function loadTextFile(url) {
-            return fetch(url).then(response => response.text());
-        };
-        async function loadShaders() {
-            const files = await Promise.all([vertex, fragment].map(loadTextFile));
-            let program = gl.createProgram();
-            // Compile vertex shader
-            let vertexShader = gl.createShader(gl.VERTEX_SHADER);
-            gl.shaderSource(vertexShader, files[0]);
-            gl.compileShader(vertexShader);
-            gl.attachShader(program, vertexShader);
-            gl.deleteShader(vertexShader);
-            if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-                throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
-            }
-            // Compile fragment shader
-            let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-            gl.shaderSource(fragmentShader, files[1]);
-            gl.compileShader(fragmentShader);
-            gl.attachShader(program, fragmentShader);
-            gl.deleteShader(fragmentShader);
-            if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-                throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
-            }
-            // Finish program
-            gl.linkProgram(program);
-            if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                throw 'Could not link the shader program!';
-            }
-            gl.useProgram(program);
-            callback({
-                program: program
-            });
+    static createGLProgram(gl, obj, callback) {
+        let program = gl.createProgram();
+        // Compile vertex shader
+        let vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, obj.vertex);
+        gl.compileShader(vertexShader);
+        gl.attachShader(program, vertexShader);
+        gl.deleteShader(vertexShader);
+        if(!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            throw "Could not compile vertex shader!\n" + gl.getShaderInfoLog(vertexShader);
         }
-        loadShaders();
+        // Compile fragment shader
+        let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, obj.fragment);
+        gl.compileShader(fragmentShader);
+        gl.attachShader(program, fragmentShader);
+        gl.deleteShader(fragmentShader);
+        if(!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            throw "Could not compile fragment shader!\n" + gl.getShaderInfoLog(fragmentShader);
+        }
+        // Finish program
+        gl.linkProgram(program);
+        if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            throw 'Could not link the shader program!';
+        }
+        callback({
+            program
+        });
     }
 
     // lineRectCollide( line, rect )

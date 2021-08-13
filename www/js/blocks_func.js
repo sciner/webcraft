@@ -668,7 +668,7 @@ function push_stairs(block, vertices, world, lightmap, x, y, z) {
         lm.a, lm.a, lm.a, lm.a, 0);
 
     // поверхность нижней ступени
-    bH = 0.5;
+    const bH = 0.5;
     n = NORMALS.UP;
     vertices.push(x + .5, z + .5, y + bH,
         1, 0, 0,

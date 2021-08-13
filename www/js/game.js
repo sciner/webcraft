@@ -8,6 +8,7 @@ import {fps} from "./fps.js";
 import {Hotbar} from "./hotbar.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
+import {Resources} from "./resources.js";
 
 // Mouse event enumeration
 export let MOUSE         = {};
@@ -57,6 +58,7 @@ export let Game = {
     canvas:             document.getElementById('renderSurface'),
     world:              null,
     render:             null, // renderer
+    resources:          null,
     physics:            null, // physics simulator
     player:             null,
     mouseX:             0,
