@@ -13,6 +13,10 @@ export default class BaseRenderer {
         };
     }
 
+    get kind() {
+        return this.constructor.kind;
+    }
+
     async init() {
 
     }
