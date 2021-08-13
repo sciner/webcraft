@@ -96,37 +96,6 @@ export default class PlayerModel {
                 });
             });
 
-        /*
-        // Load player texture
-        let image = new Image();
-        image.onload = function() {
-            Helpers.createSkinLayer2(null, image, function(file) {
-                let image2 = new Image();
-                image2.onload = function(e) {
-                    gl.activeTexture(gl.TEXTURE0);
-                    // Layer1
-                    let texture = gl.createTexture();
-                    texture.image = image;
-                    that.texPlayer = texture;
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    // Layer2
-                    let texture2 = gl.createTexture();
-                    texture2.image = image2;
-                    that.texPlayer2 = texture2;
-                    gl.bindTexture(gl.TEXTURE_2D, texture2);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture2.image);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    document.getElementsByTagName('body')[0].append(image2);
-                };
-                image2.src = URL.createObjectURL(file);
-            });
-        };
-        image.src = this.skin.file;
-        */
     }
 
     // Loads the player head model into a vertex buffer for rendering.
@@ -605,15 +574,8 @@ export default class PlayerModel {
         const texture = render.renderBackend.createTexture({
             source: canvas,
         });
-
-        /*
-        // Create texture
-        let tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        */
+        
+        texture.upload();
 
         // Create model
         let vertices = [
