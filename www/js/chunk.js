@@ -101,7 +101,9 @@ export default class Chunk {
     drawBufferGroup(group, a_pos) {
         if(this.vertices[group]) {
             Game.render.drawBuffer(this.vertices[group].buffer, a_pos);
+            return true;
         }
+        return false;
     }
 
     // Apply vertices
