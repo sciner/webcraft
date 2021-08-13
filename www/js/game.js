@@ -96,7 +96,12 @@ export let Game = {
         return saved_state;
     },
 
-    initGame: function(saved_world, settings) {
+    load(settings) {
+        this.resources = new Resources();
+        return this.resources.load({ hd: settings.hd, glsl: true});
+    },
+
+    initGame(saved_world, settings) {
         this.world_name = saved_world._id;
         this.seed       = saved_world.seed;
         saved_world     = this.ajustSavedState(saved_world);
@@ -105,8 +110,11 @@ export let Game = {
         this.world = new World(saved_world);
         this.world.init()
             .then(() => {
-                this.render = new Renderer(this.world, 'renderSurface', settings);
-                return this.render.init();
+                return this.load(settings);
+            })
+            .then(()=>{
+                this.render = new Renderer();
+                return this.render.init(this.world, 'renderSurface', settings, this.resources);
             })
             .then(this.postInitGame.bind(this))
     },
@@ -114,12 +122,12 @@ export let Game = {
     postInitGame() {
         this.physics    = new Physics();
         this.player     = new Player();
-        this.inventory  = new Inventory(that.player, that.hud);
+        this.inventory  = new Inventory(this.player, this.hud);
         this.player.setInputCanvas('renderSurface');
         this.hud.add(fps, 0);
-        this.hotbar = new Hotbar(that.hud, that.inventory);
-        this.physics.setWorld(that.world);
-        this.player.setWorld(that.world);
+        this.hotbar = new Hotbar(this.hud, this.inventory);
+        this.physics.setWorld(this.world);
+        this.player.setWorld(this.world);
         this.setupMousePointer();
         this.world.renderer.updateViewport();
         this.world.fixRotate();
@@ -127,6 +135,8 @@ export let Game = {
         this.readMouseMove();
         this.startBackgroundMusic();
         document.querySelector('body').classList.add('started');
+
+        this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);
         // setInterval(that.loop, 1);
@@ -172,7 +182,7 @@ export let Game = {
         }
     },
     // Render loop
-    loop: () => {
+    loop() {
         let tm = performance.now();
         let that = this;
         if(that.controls.enabled) {
