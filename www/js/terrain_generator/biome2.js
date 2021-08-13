@@ -157,7 +157,6 @@ export default class Terrain_Generator {
         let map = maps[4];
         
         const seed                  = chunk.id;
-        const seedn                 = 0;
         const amplitude             = 24;
         const noiseScale            = 15;
         const aleaRandom            = new alea(seed);
