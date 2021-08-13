@@ -263,7 +263,6 @@ class Chunk {
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
                     let block = this.blocks[x][z][y];
-                    const biome = this.map.info.cells[x][z].biome;
                     if(block == null) {
                         continue;
                     }
@@ -381,6 +380,7 @@ class Chunk {
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
+                        const biome = this.map.info.cells[x][z].biome;
                         BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
                     }
                     world.blocks_pushed++;
