@@ -518,7 +518,7 @@ export default class PlayerModel {
         if(options.draw_nametag) {
             // Draw player name
             if(!this.nametag) {
-                this.nametag = this.buildPlayerName(this.nick);
+                this.nametag = this.buildPlayerName(this.nick, render);
             }
 
             mat4.identity(modelMatrix);
@@ -531,7 +531,7 @@ export default class PlayerModel {
             mat4.rotateX(modelMatrix, angX);
             mat4.scale(modelMatrix, [0.005, 1, 0.005]);
             gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-            gl.bindTexture(gl.TEXTURE_2D, this.nametag.texture);
+            gl.bindTexture(gl.TEXTURE_2D, this.nametag.texture.texture);
 
             gl.disable(gl.CULL_FACE);
             gl.disable(gl.DEPTH_TEST);
@@ -544,7 +544,13 @@ export default class PlayerModel {
 
     // Returns the texture and vertex buffer for drawing the name
     // tag of the specified player over head.
-    buildPlayerName(nickname) {
+    /**
+     *
+     * @param {string} nickname
+     * @param render
+     * @return {{texture: BaseTexture, model: GeometryTerrain}}
+     */
+    buildPlayerName(nickname, render) {
         nickname        = nickname.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
         let gl          = this.gl;
         let canvas      = this.textCanvas;
@@ -557,12 +563,21 @@ export default class PlayerModel {
         ctx.fillStyle   = '#fff';
         ctx.font        = '24px Minecraftia';
         ctx.fillText(nickname, 10, 12);
+
+        // abstraction
+        const texture = render.renderBackend.createTexture({
+            source: canvas,
+        });
+
+        /*
         // Create texture
         let tex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        */
+
         // Create model
         let vertices = [
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
@@ -573,7 +588,7 @@ export default class PlayerModel {
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         ];
         return {
-            texture: tex,
+            texture: texture,
             model: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
         };
     }

@@ -1,5 +1,48 @@
 //@ts-check
-import BaseRenderer from "../BaseRenderer.js";
+import BaseRenderer,  { BaseTexture } from "../BaseRenderer.js";
+
+const TEXTURE_FILTER_GL = {
+    'linear': 'LINEAR',
+    'nearest': 'NEAREST'
+}
+
+export class WebGLTexture extends BaseTexture {
+    upload() {
+        const { gl } = this.context;
+        /**
+         * @type {WebGLTexture}
+         */
+        const t = this.texture = this.texture || gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, t);
+
+        if (this.source) {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+        } else {
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        }
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, TEXTURE_FILTER_GL[this.minFilter] || gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, TEXTURE_FILTER_GL[this.magFilter] || gl.LINEAR);
+
+        super.upload();
+    }
+
+    destroy() {
+        if (!this.texture) {
+            return;
+        }
+
+        const  { gl } = this.context;
+
+        gl.deleteTexture(this.texture);
+
+        this.texture = null;
+        this.source = null;
+        this.width = this.height = 0;
+
+        super.destroy();
+    }
+}
 
 export default class WebGLRenderer extends BaseRenderer {
     constructor(view, options) {
@@ -9,6 +52,8 @@ export default class WebGLRenderer extends BaseRenderer {
          * @type {WebGL2RenderingContext}
          */
         this.gl = null;
+
+        this._textures = [];
     }
 
     async init() {
@@ -26,6 +71,10 @@ export default class WebGLRenderer extends BaseRenderer {
 
     _configure() {
         super._configure();
+    }
+
+    createTexture(options) {
+        return new WebGLTexture(this, options);
     }
 }
 
