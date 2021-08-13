@@ -1,3 +1,50 @@
+export class BaseTexture {
+    /**
+     *
+     * @param {BaseRenderer} context
+     * @param {number} width
+     * @param {number} height
+     * @param {'linear' | 'nearest'} magFilter
+     * @param {'linear' | 'nearest'} minFilter
+     * @param {number} anisotropy
+     * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap } source
+     */
+    constructor(context, {
+        width = 1,
+        height = 1,
+        magFilter = 'linear',
+        minFilter = 'linear',
+        anisotropy = 16,
+        source = null
+    } = {}) {
+        this.width = width;
+        this.height = height;
+        this.magFilter = magFilter;
+        this.minFilter = minFilter;
+        this.anisotropy = anisotropy;
+        this.source = source;
+        this.context = context;
+
+        this.id = BaseRenderer.ID++;
+
+        if (source) {
+            this.width = source.width;
+            this.height = source.height;
+        }
+
+        this.dirty = true;
+    }
+
+    upload() {
+        this.context._textures[this.id] = this;
+        this.dirty = false;
+    }
+
+    destroy() {
+        delete this.context._textures[this.id];
+    }
+}
+
 export default class BaseRenderer {
     /**
      *
@@ -11,6 +58,9 @@ export default class BaseRenderer {
             width: 0,
             height: 0
         };
+
+        this._textures = {};
+        this._buffers = {};
     }
 
     get kind() {
@@ -38,3 +88,5 @@ export default class BaseRenderer {
 
     }
 }
+
+BaseRenderer.ID = 0;
