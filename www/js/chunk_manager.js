@@ -106,13 +106,14 @@ export class ChunkManager {
                     );
                     let chunk = this.getChunk(pos);
                     if(chunk) {
-                        this.rendered_chunks.fact += 0.33333;
                         if(chunk.hasOwnProperty('vertices_args')) {
                             if(applyVerticesCan-- > 0) {
                                 chunk.applyVertices();
                             }
                         }
-                        chunk.drawBufferGroup(group, a_pos);
+                        if(chunk.drawBufferGroup(group, a_pos)) {
+                            this.rendered_chunks.fact += 0.33333;
+                        }
                     }
                 }
                 if(transparent) {
