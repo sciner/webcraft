@@ -38,10 +38,15 @@ let currentRenderState = {
 
 // Creates a new renderer with the specified canvas as target.
 export default class Renderer {
-    constructor() {
+    async init(world, renderSurfaceId, settings, resources) {
+        return new Promise(res => {
+            this._init(world, renderSurfaceId, settings, resources, res);
+        })
     }
 
-    init(world, renderSurfaceId, settings, resources) {
+    // todo
+    //  GO TO PROMISE
+    _init(world, renderSurfaceId, settings, resources, callback) {
         let that                = this;
         that.canvas             = document.getElementById(renderSurfaceId);
         that.canvas.renderer    = that;
@@ -295,11 +300,7 @@ export default class Renderer {
             }
         }
 
-        return new Promise((resolve, reject) => {
-            resolve();
-        });
-        // let pos = new Vector(0, 0, 0);
-        // Game.world.meshes.add(new Particles_Sun(Game.world.renderer.gl, pos));
+        callback();
     }
 
     // Makes the renderer start tracking a new world and set up the chunk structure.
