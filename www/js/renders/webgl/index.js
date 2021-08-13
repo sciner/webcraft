@@ -9,6 +9,18 @@ export default class WebGLRenderer extends BaseRenderer {
          * @type {WebGL2RenderingContext}
          */
         this.gl = null;
+
+        // todo Remove this, this is proxy for native GL call to track used features
+        return new Proxy(this, {
+            get(target, p, receiver) {
+                if (p in this) {
+                    return this[p];
+                }
+
+                console.debug('[WebGLRenderer] Proxy access to gl context', p);
+                return this.gl[p];
+            }
+        });
     }
 
     async init() {
