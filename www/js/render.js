@@ -4,6 +4,7 @@ import PickAt from "./pickat.js";
 import HUD from "./hud.js";
 import {Helpers} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
+import rendererProvider from "./renders/rendererProvider.js";
 
 /**
 * Renderer
@@ -11,7 +12,7 @@ import {CHUNK_SIZE_X} from "./blocks.js";
 * This class contains the code that takes care of visualising the
 * elements in the specified world.
 **/
-
+const BACKEND               = 'webgl';
 const ZOOM_FACTOR           = 0.25;
 const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
@@ -44,12 +45,16 @@ export default class Renderer {
         })
     }
 
+    get gl() {
+        return this.renderBackend.gl;
+    }
+
     // todo
     //  GO TO PROMISE
-    _init(world, renderSurfaceId, settings, resources, callback) {
+    async _init(world, renderSurfaceId, settings, resources, callback) {
         let that                = this;
-        that.canvas             = document.getElementById(renderSurfaceId);
-        that.canvas.renderer    = that;
+        this.canvas             = document.getElementById(renderSurfaceId);
+        this.canvas.renderer    = that;
         this.resources          = resources;
         this.skyBox             = null;
         this.videoCardInfoCache = null;
@@ -62,14 +67,14 @@ export default class Renderer {
         mat4.identity(that.modelMatrix);
 
         this.setWorld(world);
+
+        this.renderBackend      = rendererProvider.getRenderer(
+            this.canvas, BACKEND, {antialias: false, depth: true, premultipliedAlpha: false});
+
+        await this.renderBackend.init();
+
         // Initialise WebGL
-        let gl;
-        try {
-            gl = that.gl = that.canvas.getContext('webgl2', {antialias: false, depth: true, premultipliedAlpha: false});
-            // gl.getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT);
-        } catch (e) {
-            throw 'Your browser doesn\'t support WebGL!';
-        }
+        const gl = this.renderBackend.gl;
 
         gl.viewportWidth        = that.canvas.width;
         gl.viewportHeight       = that.canvas.height;
