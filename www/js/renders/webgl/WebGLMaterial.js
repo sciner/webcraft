@@ -1,4 +1,4 @@
-import {BaseMaterial} from "../BaseRenderer";
+import {BaseMaterial} from "../BaseRenderer.js";
 
 export class WebGLMaterial extends BaseMaterial {
     constructor(context, options) {
