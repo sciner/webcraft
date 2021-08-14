@@ -87,7 +87,7 @@ export default class WebGPURenderer extends BaseRenderer{
             colorAttachments: [
                 {
                     view: this.currentBackTexture,
-                    loadValue: [1, 0, 1, 1],
+                    loadValue: fogColor,
                     storeOp: 'store',
                 }
             ],
@@ -198,8 +198,8 @@ export default class WebGPURenderer extends BaseRenderer{
 }
 
 /**
- * 
- * @param {HTMLCanvasElement} view 
+ *
+ * @param {HTMLCanvasElement} view
  */
 WebGPURenderer.test = function(view, options = {}) {
     const context = navigator.gpu && view.getContext('webgpu');
