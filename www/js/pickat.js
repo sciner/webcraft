@@ -15,7 +15,7 @@ export default class PickAt {
     get(callback) {
         this.callbacks.push(callback);
     }
-    
+
     draw() {
 
         const render = this.render;
@@ -24,26 +24,26 @@ export default class PickAt {
         // if (this.callbacks.length  === 0) {
         //     this.callbacks.push(()=>{});
         // }
-    
+
         if(this.callbacks.length > 0) {
-    
+
             const player = Game.world.localPlayer;
-    
+
             /*
             const render = this.render;
             const world = render.world;
             const bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
             const min = new Vector(bPos.x - PICKAT_DIST, bPos.y - PICKAT_DIST, bPos.z - PICKAT_DIST);
             const max = new Vector(bPos.x + PICKAT_DIST, bPos.y + PICKAT_DIST, bPos.z + PICKAT_DIST);
-    
+
             let playerPos = new Vector(
                 parseInt(player.pos.x) - PICKAT_DIST,
                 parseInt(player.pos.y) - PICKAT_DIST,
                 parseInt(player.pos.z) - PICKAT_DIST
             );
-    
+
             let block = false;
-    
+
             for(let x = min.x; x <= max.x; x++) {
                 for(let y = min.y; y <= max.y; y++) {
                     for(let z = min.z; z <= max.z; z++) {
@@ -72,13 +72,13 @@ export default class PickAt {
                     }
                 }
             }
-    
+
             while(this.callbacks.length > 0) {
                 let callback = this.callbacks.pop();
                 callback(block);
             }
             */
-    
+
             const x = gl.canvas.width * 0.5 / window.devicePixelRatio;
             const y = gl.canvas.height * 0.5 / window.devicePixelRatio;
             let bPos = new Vector(Math.floor(player.pos.x), Math.floor(player.pos.y), Math.floor(player.pos.z));
@@ -93,10 +93,10 @@ export default class PickAt {
                 let callback = this.callbacks.pop();
                 callback(block);
             }
-    
+
         }
     }
-    
+
     /**
     * Returns the block at mouse position mx and my.
     * The blocks that can be reached lie between min and max.
@@ -107,10 +107,11 @@ export default class PickAt {
     * can be retrieved by simply reading the pixel the mouse is over.
     **/
     pickAt(min, max, mx, my) {
-    
+
         let render = this.render;
+        const {renderBackend} = render;
         let world = render.world;
-    
+
         // Build buffer with block pick candidates
         let vertices = [];
         let playerPos = new Vector(
@@ -138,9 +139,9 @@ export default class PickAt {
             vertices[i + 0] -= (Game.shift.x);
             vertices[i + 1] -= (Game.shift.z);
         }
-    
+
         let gl = render.gl;
-    
+
         gl.useProgram(render.program);
         gl.activeTexture(gl.TEXTURE0);
         // Create framebuffer for picking render
@@ -156,7 +157,7 @@ export default class PickAt {
         gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, 512, 512);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, bt, 0);
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-    
+
         if (!this.pickBuffer) {
             this.pickBuffer = new GeometryTerrain(vertices);
         } else {
@@ -166,29 +167,28 @@ export default class PickAt {
         // Draw buffer
         gl.uniform1f(render.u_fogOn, false);
         gl.uniform1f(render.u_mipmap, 0.0);
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, render.texWhite);
+
+        render.texWhite.bind(4);
         gl.viewport(0, 0, 512, 512);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.disable(gl.BLEND);
         gl.disable(gl.CULL_FACE);
-        render.drawBuffer(this.pickBuffer, new Vector(0, 0, 0));
+        renderBackend.drawBuffer(this.pickBuffer, new Vector(0, 0, 0));
         gl.enable(gl.BLEND);
         gl.enable(gl.CULL_FACE);
-    
+
         // Read pixel
         let pixel = new Uint8Array(4);
         gl.readPixels(mx / gl.viewportWidth * 512, (1 - my / gl.viewportHeight) * 512, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-        gl.uniform1f(render.u_fogOn, true);
         // Reset states
-        gl.bindTexture(gl.TEXTURE_2D, render.texTerrain);
+        renderBackend.shader.update();
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         // Clean up
         gl.deleteRenderbuffer(renderbuffer);
         gl.deleteTexture(bt);
         gl.deleteFramebuffer(fbo);
-    
+
         // Build result
         if(pixel[0] == 255) {
             return false;

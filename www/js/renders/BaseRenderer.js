@@ -53,6 +53,7 @@ export class BaseMaterial {
     constructor(context, options) {
         this.context = context;
 
+        this.shader = options.shader;
         this.texture = options.texture || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
@@ -123,6 +124,14 @@ export default class BaseRenderer {
     }
 
     _configure() {
+
+    }
+
+    beginFrame(fogColor) {
+
+    }
+
+    endFrame() {
 
     }
 

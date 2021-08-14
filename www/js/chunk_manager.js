@@ -78,7 +78,6 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render) {
-        let gl = render.gl;
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
@@ -106,7 +105,7 @@ export class ChunkManager {
                                 chunk.applyVertices();
                             }
                         }
-                        if(chunk.drawBufferGroup(group, mat)) {
+                        if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
                             this.rendered_chunks.fact += 0.33333;
                         }
                     }

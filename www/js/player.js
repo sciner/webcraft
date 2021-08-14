@@ -452,6 +452,11 @@ export default class Player {
         let createBlock     = button_id == 3;
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
+
+        if (!this.canvas.renderer.pickAt) {
+            return;
+        }
+
         this.canvas.renderer.pickAt.get(function(block) {
             if(block != false) {
                 let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
