@@ -1,7 +1,7 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
 import {Helpers} from "../../helpers.js";
 
-class WebGLTerrainShader extends BaseTerrainShader {
+export class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {
         super(context, options);
 
