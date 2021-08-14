@@ -248,7 +248,8 @@ export default class Renderer {
                     gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
                     gl.uniformMatrix4fv(this.uniform.lookAtMatrix, false, _lookAtMatrix);
                     gl.uniformMatrix4fv(this.uniform.projectionMatrix, false, _projectionMatrix);
-                    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+                    //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
                     gl.disable(gl.CULL_FACE);
                     gl.disable(gl.DEPTH_TEST);
                     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0);
@@ -256,16 +257,17 @@ export default class Renderer {
                     gl.enable(gl.DEPTH_TEST);
                 }
             }
+
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
             const loadImageInTexture = (target, image) => {
                 const level = 0;
                 const internalFormat = gl.RGBA;
-                const width = 1;
-                const height = 1;
+                //const width = 1;
+                //const height = 1;
                 const format = gl.RGBA;
                 const type = gl.UNSIGNED_BYTE;
-                gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
+                //gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                 gl.texImage2D(target, level, internalFormat, format, type, image);
             }
