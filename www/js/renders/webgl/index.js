@@ -1,6 +1,7 @@
 //@ts-check
 import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
-import {WebGLMaterial} from "./WebGLMaterial.js";
+import { WebGLMaterial } from "./WebGLMaterial.js";
+import { WebGLTerrainShader } from "./WebGLTerrainShader.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -96,10 +97,10 @@ export default class WebGLRenderer extends BaseRenderer {
     _configure() {
         super._configure();
 
-        const {gl} = this;
+        const { gl } = this;
 
-        gl.viewportWidth        = this.canvas.width;
-        gl.viewportHeight       = this.canvas.height;
+        gl.viewportWidth = this.view.width;
+        gl.viewportHeight = this.view.height;
     }
 
     createMaterial(options) {
@@ -111,7 +112,7 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createShader(options) {
-        return new WebGLTerrainShader(this);
+        return new WebGLTerrainShader(this, options);
     }
 
     drawMesh(geom, material) {
