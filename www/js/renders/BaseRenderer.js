@@ -65,6 +65,7 @@ export class BaseMaterial {
 export class BaseTerrainShader {
     constructor(context, options) {
         this.context = context;
+        this.options = options;
 
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();

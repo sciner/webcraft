@@ -1,5 +1,8 @@
 //@ts-check
 import BaseRenderer from "../BaseRenderer.js";
+import {WebGPUTerrainShader} from "./WebGPUTerrainShader.js";
+import {WebGPUMaterial} from "./WebGPUMaterial.js";
+import {WebGPUTexture} from "./WebGPUTexture.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -30,12 +33,31 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPUBindGroup[]}
          */
         this.activeBindings = [];
+
+        this.format = '';
+    }
+
+    get currentBackTexture() {
+        return this.context.getCurrentTexture().createView();
+    }
+
+    createShader(options = {}) {
+        return new WebGPUTerrainShader(this, options);
+    }
+
+    createMaterial(options = {}) {
+        return new WebGPUMaterial(this, options);
+    }
+
+    createTexture(options = {}) {
+        return new WebGPUTexture(this, options);
     }
 
     async init() {
         this.adapter = await navigator.gpu.requestAdapter();
         this.device = await this.adapter.requestDevice();
         this.context = this.view.getContext('webgpu');
+        this.format = this.context.getPreferredFormat(this.adapter);
     }
 
     resize(w, h) {
@@ -47,6 +69,12 @@ export default class WebGPURenderer extends BaseRenderer{
 
     _configure() {
         super._configure();
+
+        this.context.configure({
+            size: this.size,
+            format: this.format,
+            device: this.device
+        });
     }
 }
 
@@ -56,13 +84,7 @@ export default class WebGPURenderer extends BaseRenderer{
  */
 WebGPURenderer.test = function(view, options = {}) {
     const context = navigator.gpu && view.getContext('webgpu');
-
-    if (context) {
-        context.dispose();
-        return true;
-    }
-
-    return false;
+    return !!context;
 }
 
 WebGPURenderer.kind = 'webgpu';
