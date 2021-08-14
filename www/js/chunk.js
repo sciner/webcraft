@@ -79,7 +79,7 @@ export default class Chunk {
         let points = 0;
         for(let key of Object.keys(this.vertices)) {
             let v = this.vertices[key];
-            let list = v.list;
+            let list = v.buffer.vertices;
             for(let i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
                 list[i + 0] -= x;
                 list[i + 1] -= z;
