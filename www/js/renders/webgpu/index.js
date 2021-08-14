@@ -54,11 +54,13 @@ export default class WebGPURenderer extends BaseRenderer{
          */
         this.quad = null;
 
+        this.passedBuffers = [];
+
         /**
          *
-         * @type {GPUBuffer}
+         * @type {GPUTexture}
          */
-        this.instance = null;
+        this.depth = null;
     }
 
     get currentBackTexture() {
@@ -88,7 +90,15 @@ export default class WebGPURenderer extends BaseRenderer{
                     loadValue: [1, 0, 1, 1],
                     storeOp: 'store',
                 }
-            ]
+            ],
+            depthStencilAttachment: {
+                view: this.depth.createView(),
+
+                depthLoadValue: 1.0,
+                depthStoreOp: 'store',
+                stencilLoadValue: 0,
+                stencilStoreOp: 'store',
+            },
         });
     }
 
@@ -113,19 +123,23 @@ export default class WebGPURenderer extends BaseRenderer{
         });
 
         new Float32Array(buff.getMappedRange()).set(data);
+        buff.unmap();
+
+        this.passedBuffers.push(buff);
 
         this.passEncoder.setPipeline(material.pipeline);
         this.passEncoder.setVertexBuffer(1, this.quad);
         this.passEncoder.setVertexBuffer(0, buff);
         this.passEncoder.setBindGroup(0, material.group);
 
-        this.passEncoder.draw(6, geom.size);
-        this.passEncoder.endPass();
+        this.passEncoder.draw(6, geom.size, 0, 0);
     }
 
     endFrame() {
         this.passEncoder.endPass();
         this.device.queue.submit([this.encoder.finish()]);
+        this.passedBuffers.forEach(e => e.destroy());
+        this.passedBuffers.length = 0;
     }
 
     async init() {
@@ -161,12 +175,24 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     _configure() {
+        if (this.size.width * this.size.height < 1)
+            return;
+
         super._configure();
 
         this.context.configure({
             size: this.size,
             format: this.format,
             device: this.device
+        });
+
+        if (this.depth)
+            this.depth.destroy();
+
+        this.depth = this.device.createTexture({
+            size: this.size,
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
         });
     }
 }

@@ -76,7 +76,7 @@ export class WebGPUMaterial extends BaseMaterial {
                 depthWriteEnabled: true,
                 depthCompare: 'less',
                 format: 'depth24plus',
-            },
+            }
         });
 
         this.vertexUbo = device.createBuffer({
