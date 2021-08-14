@@ -3,6 +3,8 @@ import {BLOCK} from '../blocks.js';
 import {push_plane, QUAD_FLAGS} from '../blocks_func.js';
 import GeometryTerrain from "../geometry_terrain.js";
 
+const {mat4} = glMatrix;
+
 export default class Particles_Raindrop {
 
     // Constructor
@@ -44,8 +46,8 @@ export default class Particles_Raindrop {
         let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
         //
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
-        mat4.rotateZ(modelMatrix, this.yaw);
+        mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
+        mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         // render
         render.drawBuffer(this.buffer, a_pos);

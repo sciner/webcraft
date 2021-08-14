@@ -3,6 +3,8 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {NORMALS, Vector, Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 
+const {mat4} = glMatrix;
+
 export default class PlayerModel {
 
     constructor(props) {
@@ -472,11 +474,11 @@ export default class PlayerModel {
 
         // Draw head
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + this.height * options.scale - z_minus]);
-        mat4.scale(modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
-        mat4.rotateX(modelMatrix, -pitch);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
+        mat4.translate(modelMatrix, modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + this.height * options.scale - z_minus]);
+        mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
+        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
+        mat4.rotateX(modelMatrix, modelMatrix, -pitch);
+        gl.uniformMatrix4fv(uModelMat, modelMatrix, false);
 
         gl.activeTexture(gl.TEXTURE4);
 
@@ -486,32 +488,32 @@ export default class PlayerModel {
 
         // Draw body
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + 0.01 - z_minus / 2]);
-        mat4.scale(modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
+        mat4.translate(modelMatrix, modelMatrix,[this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + 0.01 - z_minus / 2]);
+        mat4.scale(modelMatrix, modelMatrix,[scale, scale, scale]);
+        mat4.rotateZ(modelMatrix, modelMatrix,Math.PI - this.yaw);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         render.drawBuffer(this.playerBody, a_pos);
 
         // Left arm
-        mat4.translate(modelMatrix, [ 0, 0, 1.4]);
-        mat4.rotateX(modelMatrix, 0.75 * aniangle);
+        mat4.translate(modelMatrix, modelMatrix, [ 0, 0, 1.4]);
+        mat4.rotateX(modelMatrix, modelMatrix,0.75 * aniangle);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         render.drawBuffer(this.playerLeftArm, a_pos);
 
         // Right arm
-        mat4.rotateX(modelMatrix, -1.5 * aniangle);
+        mat4.rotateX(modelMatrix, modelMatrix, -1.5 * aniangle);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         render.drawBuffer(this.playerRightArm, a_pos);
-        mat4.rotateX(modelMatrix, 0.75 * aniangle);
-        mat4.translate(modelMatrix, [ 0, 0, -0.67] );
+        mat4.rotateX(modelMatrix, modelMatrix, 0.75 * aniangle);
+        mat4.translate(modelMatrix, modelMatrix, [ 0, 0, -0.67] );
 
         // Right leg
-        mat4.rotateX(modelMatrix, 0.5 * aniangle);
+        mat4.rotateX(modelMatrix, modelMatrix, 0.5 * aniangle);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         render.drawBuffer(this.playerRightLeg, a_pos);
 
         // Left leg
-        mat4.rotateX(modelMatrix, -aniangle);
+        mat4.rotateX(modelMatrix, modelMatrix, -aniangle);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         render.drawBuffer(this.playerLeftLeg, a_pos);
 
@@ -526,10 +528,10 @@ export default class PlayerModel {
             let angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
             let angX = 0; // @todo
 
-            mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
-            mat4.rotateZ(modelMatrix, angZ);
-            mat4.rotateX(modelMatrix, angX);
-            mat4.scale(modelMatrix, [0.005, 1, 0.005]);
+            mat4.translate(modelMatrix, modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
+            mat4.rotateZ(modelMatrix, modelMatrix, angZ);
+            mat4.rotateX(modelMatrix, modelMatrix, angX);
+            mat4.scale(modelMatrix, modelMatrix, [0.005, 1, 0.005]);
 
             gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
 

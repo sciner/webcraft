@@ -6,6 +6,8 @@ import {Helpers} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
 
+const {mat4} = glMatrix;
+
 /**
 * Renderer
 *
@@ -117,9 +119,6 @@ export default class Renderer {
         this.videoCardInfoCache = null;
         this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
-        // Create projection and view matrices
-        mat4.identity(this.modelMatrix);
-
         this.setWorld(world);
 
         const {renderBackend} = this;
@@ -134,6 +133,7 @@ export default class Renderer {
             transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
         }
 
+        // Create projection and view matrices
         this.projMatrix = this.shader.projMatrix;
         this.viewMatrix = this.shader.viewMatrix;
         this.modelMatrix = this.shader.modelMatrix;
@@ -234,7 +234,7 @@ export default class Renderer {
                         return;
                     }
                     _lookAtMatrix = new Float32Array(_lookAtMatrix)
-                    mat4.rotate(_lookAtMatrix, Math.PI / 2, [1, 0, 0], _lookAtMatrix);
+                    mat4.rotate(_lookAtMatrix, _lookAtMatrix, Math.PI / 2, [1, 0, 0]);
                     _lookAtMatrix[12] = 0;
                     _lookAtMatrix[13] = 0;
                     _lookAtMatrix[14] = 0;
@@ -347,7 +347,11 @@ export default class Renderer {
             width, height
         } = renderBackend.size;
 
-        mat4.perspective(this.fov, width / height, this.min, this.max, this.projMatrix);
+        if (renderBackend.gl) {
+            mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
+        } else {
+            mat4.perspectiveZO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
+        }
 
         // 1. Draw skybox
         if( this.skyBox) {
@@ -437,14 +441,14 @@ export default class Renderer {
         let y_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
         this.camPos = pos;
         mat4.identity(this.viewMatrix);
-        mat4.rotate(this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ], this.viewMatrix);
-        mat4.rotate(this.viewMatrix, ang[1], [ 0, 1, 0 ], this.viewMatrix);
-        mat4.rotate(this.viewMatrix, ang[2], [ 0, 0, 1 ], this.viewMatrix);
-        mat4.translate(this.viewMatrix, [
+        mat4.rotate(this.viewMatrix, this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, ang[1], [ 0, 1, 0 ]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, ang[2], [ 0, 0, 1 ]);
+        mat4.translate(this.viewMatrix, this.viewMatrix, [
             -pos[0] + Game.shift.x,
             -pos[2] + Game.shift.z,
             -pos[1] + y_add
-        ], this.viewMatrix);
+        ]);
     }
 
     // getVideoCardInfo...
