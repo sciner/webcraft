@@ -25,7 +25,7 @@ export default class Particles_Block_Destroy {
             this.life = 0;
             return;
         }
-        if(block.id == BLOCK.DIRT.id) {
+        if([BLOCK.DIRT.id, BLOCK.GRASS.id].indexOf(block.id) >= 0) {
             lm          = cell.biome.dirt_color;
             sideFlags   = QUAD_FLAGS.MASK_BIOME;
         }
