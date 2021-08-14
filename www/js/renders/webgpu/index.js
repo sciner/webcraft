@@ -48,6 +48,17 @@ export default class WebGPURenderer extends BaseRenderer{
          */
         this.passEncoder = null;
 
+        /**
+         *
+         * @type {GPUBuffer}
+         */
+        this.quad = null;
+
+        /**
+         *
+         * @type {GPUBuffer}
+         */
+        this.instance = null;
     }
 
     get currentBackTexture() {
@@ -81,7 +92,35 @@ export default class WebGPURenderer extends BaseRenderer{
         });
     }
 
+    /**
+     *
+     * @param geom
+     * @param {WebGPUMaterial} material
+     */
     drawMesh(geom, material) {
+        if (geom.size === 0) {
+            return;
+        }
+        material.bind(this);
+        /**
+         * @type {Float32Array}
+         */
+        const data = geom.data;
+        const buff = this.device.createBuffer({
+            size: data.byteLength,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
+            mappedAtCreation: true
+        });
+
+        new Float32Array(buff.getMappedRange()).set(data);
+
+        this.passEncoder.setPipeline(material.pipeline);
+        this.passEncoder.setVertexBuffer(1, this.quad);
+        this.passEncoder.setVertexBuffer(0, buff);
+        this.passEncoder.setBindGroup(0, material.group);
+
+        this.passEncoder.draw(6, geom.size);
+        this.passEncoder.endPass();
     }
 
     endFrame() {
@@ -94,6 +133,24 @@ export default class WebGPURenderer extends BaseRenderer{
         this.device = await this.adapter.requestDevice();
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
+
+        const quad = new Float32Array([
+            -.5, -.5, 1, 0, 0, 0,
+            .5, -.5, 0, 1, 0, 0,
+            .5, .5, 0, 0, 1, 0,
+            -.5, -.5, 1, 0, 0, 0,
+            .5, .5, 0, 0, 1, 0,
+            -.5, .5, 0, 0, 0, 1]);
+
+        this.quad = this.device.createBuffer({
+            usage: GPUBufferUsage.VERTEX,
+            size: quad.byteLength,
+            mappedAtCreation: true
+        });
+
+        new Float32Array(this.quad.getMappedRange()).set(quad);
+
+        this.quad.unmap();
     }
 
     resize(w, h) {

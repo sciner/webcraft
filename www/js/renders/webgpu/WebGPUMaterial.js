@@ -67,8 +67,16 @@ export class WebGPUMaterial extends BaseMaterial {
                 ...base.fragment,
             },
             primitive: {
-                ...base.primitive
-            }
+                ...base.primitive,
+                cullMode:  cullFace ? 'back' : 'none'
+            },
+            // Enable depth testing so that the fragment closest to the camera
+            // is rendered in front.
+            depthStencil: {
+                depthWriteEnabled: true,
+                depthCompare: 'less',
+                format: 'depth24plus',
+            },
         });
 
         this.vertexUbo = device.createBuffer({
@@ -89,7 +97,10 @@ export class WebGPUMaterial extends BaseMaterial {
      */
     bind(render) {
         const {
-            device
+            /**
+             * @type {GPUDevice}
+             */
+            device,
         } = this.context;
 
         const {
@@ -126,9 +137,26 @@ export class WebGPUMaterial extends BaseMaterial {
                         size: fragmentData.byteLength
                     }
                 },
+                {
+                    binding: 2,
+                    resource: shader.texture.sampler,
+                },
+                {
+                    binding: 3,
+                    resource: shader.texture.view,
+                },
+
             ]
         });
 
+
+        device.queue.writeBuffer(
+            this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
+        );
+
+        device.queue.writeBuffer(
+            this.fragmentUbo, 0, fragmentData.buffer, fragmentData.byteOffset, fragmentData.byteLength
+        );
 
     }
 

@@ -6,7 +6,7 @@ export class WebGPUTexture extends BaseTexture {
             return this.upload();
         }
 
-        console.warn('[WebGPUTexture] You can\'t bind WebGPU Texture');
+        //console.warn('[WebGPUTexture] You can\'t bind WebGPU Texture');
     }
 
     upload() {
