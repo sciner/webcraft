@@ -1,3 +1,5 @@
+const {mat4} = glMatrix;
+
 class Mesh_Default {
 
     // Constructor
@@ -59,7 +61,7 @@ class Mesh_Default {
         let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
         //
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
+        mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
         // render
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         gl.disable(gl.CULL_FACE);
