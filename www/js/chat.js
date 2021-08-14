@@ -3,6 +3,7 @@ import {BLOCK} from "./blocks.js";
 export default class Chat {
 
     constructor() {
+        this.max_show_time          = 10000; // максимальное время отображения текста, после закрытия чата (мс)
         this.active                 = false;
         this.buffer                 = [];
         this.history_max_messages   = 64;
@@ -175,15 +176,27 @@ export default class Chat {
         this.buffer = [];
         this.close();
     }
+
+    hasDrawContent() {
+        if(this.active) {
+            return true;
+        }
+        for(let m of this.messages.list) {
+            let time_diff = performance.now() - m.time;
+            if(this.active || time_diff < this.max_show_time) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     drawHUD(hud) {
-    
+
         const margin            = 10;
         const padding           = 5;
         const top               = 45;
         // const height            = 35;
         const now               = performance.now();
-        const max_show_time     = 10000; // максимальное время отображения текста, после закрытия чата (мс)
         const fadeout_time      = 2000; // время угасения текста перед счезновением (мс)
         const blink_period      = 500; // период моргания курсора ввода текста (мс)
     
@@ -200,7 +213,7 @@ export default class Chat {
             hud.ctx.fillStyle = '#000000aa';
             hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, line_height);
             let text = this.buffer.join('');
-            let how_long_open = Math.round(performance.now() - this.open_time);
+            let how_long_open = Math.round(now - this.open_time);
             if(how_long_open % blink_period < blink_period * 0.5) {
                 text += '_';
             }
@@ -209,11 +222,11 @@ export default class Chat {
     
         // Draw message history
         for(let m of this.messages.list) {
-            let time_diff = performance.now() - m.time;
-            if(this.active || time_diff < max_show_time) {
+            let time_diff = now - m.time;
+            if(this.active || time_diff < this.max_show_time) {
                 let alpha = 1;
                 if(!this.active) {
-                    let time_remains = max_show_time - time_diff;
+                    let time_remains = this.max_show_time - time_diff;
                     if(time_remains < fadeout_time) {
                         alpha = time_remains / fadeout_time;
                     }
@@ -240,10 +253,10 @@ export default class Chat {
                 }
             }
         }
-    
+
         // Restore original state
         hud.ctx.restore();
-    
+
     }
 
 }

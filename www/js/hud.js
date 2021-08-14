@@ -3,6 +3,7 @@ import {MainMenu} from "./window/index.js";
 import {fps} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
+import { Game } from "./game.js";
 
 export default class HUD {
 
@@ -178,7 +179,7 @@ export default class HUD {
         }
     
         // Make info for draw
-        if(!this.makeInfo() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0) {
+        if(!this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.hasDrawContent()) {
             return false;
         }
         this.prevDrawTime = performance.now();
@@ -241,7 +242,7 @@ export default class HUD {
     }
     
     //
-    makeInfo() {
+    prepareText() {
         this.text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(fps.avg);
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
