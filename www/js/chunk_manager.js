@@ -64,8 +64,8 @@ export class ChunkManager {
     shift(shift) {
         let points      = 0;
         const renderer  = this.world.renderer
-        const gl        = renderer.gl;
-        gl.useProgram(renderer.program);
+        //const gl        = renderer.gl;
+        //gl.useProgram(renderer.program);
         for(let key of Object.keys(this.chunks)) {
             points += this.chunks[key].doShift(shift);
         }

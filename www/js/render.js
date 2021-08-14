@@ -342,7 +342,12 @@ export default class Renderer {
         shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
         shader.fogAddColor = currentRenderState.fogAddColor;
-        mat4.perspective(this.fov, gl.viewportWidth / gl.viewportHeight, this.min, this.max, this.projMatrix);
+
+        const {
+            width, height
+        } = renderBackend.size;
+
+        mat4.perspective(this.fov, width / height, this.min, this.max, this.projMatrix);
 
         // 1. Draw skybox
         if( this.skyBox) {
