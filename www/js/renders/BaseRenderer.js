@@ -16,7 +16,7 @@ export class BaseTexture {
         height = 1,
         magFilter = 'linear',
         minFilter = 'linear',
-        anisotropy = 16,
+        anisotropy = 0,
         mode = '2d',
         source = null
     } = {}) {

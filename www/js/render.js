@@ -130,7 +130,7 @@ export default class Renderer {
         this.materials = {
             regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
             doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
-            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
+            transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
         }
 
         // Create projection and view matrices
@@ -152,7 +152,11 @@ export default class Renderer {
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
 
-        this.terrainTexture = renderBackend.createTexture({ source: await this.genTerrain(resources.terrain.image) });
+        this.terrainTexture = renderBackend.createTexture({
+            source: await this.genTerrain(resources.terrain.image),
+            minFilter: 'nearest',
+            magFilter: 'nearest',
+        });
 
         this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
         this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });

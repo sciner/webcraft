@@ -114,7 +114,19 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                 entryPoint: 'main_frag',
                 targets: [
                     {
-                        format
+                        format,
+                        blend: {
+                            alpha: {
+                                srcFactor: 'src-alpha',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add'
+                            },
+                            color: {
+                                srcFactor: 'src-alpha',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add'
+                            },
+                        },
                     },
                 ],
             },
