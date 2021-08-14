@@ -45,8 +45,8 @@ struct Attrs {
 };
 
 struct VertexOutput {
-    [[builtin(position)]] VPos : vec3<f32>;
-    [[location(0)] position : vec3<f32>;
+    [[builtin(position)]] VPos : vec4<f32>;
+    [[location(0)]] position : vec3<f32>;
     [[location(1)]] texcoord : vec2<f32>;
     [[location(2)]] texClamp : vec4<f32>;
     [[location(3)]] color : vec4<f32>;
@@ -64,7 +64,7 @@ struct VertexOutput {
 
 
 [[stage(vertex)]]
-fn main_vertex(a : Attrs) -> VertexOutput {
+fn main_vert(a : Attrs) -> VertexOutput {
     var v: VertexOutput;
 
     v.color = vec4<f32>(a.color, dot(a.occlusion, a.quadOcc));
@@ -80,7 +80,7 @@ fn main_vertex(a : Attrs) -> VertexOutput {
         v.normal = normalize(cross(a.axisX, a.axisY));
     }
 
-    v.normal.yz = v.normal.zy;
+    v.normal = vec3<f32>(v.normal.x, v.normal.z, v.normal.y);
 
     var pos : vec3<f32> = a.position + (a.axisX * a.quad.x) + (a.axisY * a.quad.y);
     v.texcoord = a.uvCenter + (a.uvSize * a.quad);
@@ -90,7 +90,7 @@ fn main_vertex(a : Attrs) -> VertexOutput {
     var n : vec3<f32> = normalize(v.normal);
     v.light = max(.5, dot(n, sun_dir) - v.color.a);
 
-    if(u.fogOn) {
+    if(u.fogOn > 0.0) {
         if (flagBiome < 0.5) {
             v.color.r = -1.0;
         }
@@ -107,7 +107,7 @@ fn main_vertex(a : Attrs) -> VertexOutput {
 [[stage(fragment)]]
 fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     var outColor: vec4<f32>;
-    var texCoord : vec3<f32> = clamp(v.texcoord, v.texClamp.xy, v.texClamp.zw);
+    var texCoord : vec2<f32> = clamp(v.texcoord, v.texClamp.xy, v.texClamp.zw);
     var texc : vec2<f32> = vec2<f32>(texCoord.x, texCoord.y);
 
     var mipScale : vec2<f32> = vec2<f32>(1.0);
@@ -118,26 +118,27 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         biome = biome * 0.5;
 
         // manual implementation of EXT_shader_texture_lod
-        var fw : vec2<f32> = fwidth(v.texcoord) * textureDimensions(u_texture, 0).x;
+        var fw : vec2<f32> = fwidth(v.texcoord) * f32(textureDimensions(u_texture, 0).x);
         fw = fw / 1.4;
         var steps : vec4<f32> = vec4<f32>(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
         
         mipOffset.x = dot(steps, vec4<f32>(0.5, 0.25, 0.125, 0.0625));
         mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
         
-        steps = vec4(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
+        steps = vec4<f32>(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
         
         mipOffset.y = dot(steps, vec4<f32>(0.5, 0.25, 0.125, 0.0625));
         mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
     }
 
     // Game
-    if(u.fogOn) {
+    if(u.fogOn > 0.0) {
         // Read texture
         var color : vec4<f32> = textureSample(u_texture, u_sampler, texc * mipScale + mipOffset);
         
-        if(color.a < 0.1)
+        if(color.a < 0.1) {
             discard;
+        }
         
         if (fu.opaqueThreshold > 0.1) {
             if (color.a < fu.opaqueThreshold) {
@@ -151,11 +152,17 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
             var color_mask: vec4<f32> = textureSample(u_texture, u_sampler, vec2<f32>(texc.x + fu.blockSize, texc.y) * mipScale + mipOffset);
             var color_mult: vec4<f32> = textureSample(u_texture, u_sampler, biome);
 
-            color.rgb = color.rgb + color_mask.rgb * color_mult.rgb;
+            color = vec4<f32>(
+                color.rgb + color_mask.rgb * color_mult.rgb,
+                color.a
+            );
         }
 
         // Apply light
-        color.rgb = color.rgb * u.brightness * v.light;
+        color = vec4<f32>(
+            color.rgb * u.brightness * v.light,
+            color.a
+        );
 
         outColor = color;
 
@@ -169,15 +176,20 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
 
         // Apply fog
         outColor = mix(outColor, fu.fogColor, fogAmount);
-        outColor.r = (outColor.r * (1. - fu.fogAddColor.a) + fu.fogAddColor.r * fu.fogAddColor.a);
-        outColor.g = (outColor.g * (1. - fu.fogAddColor.a) + fu.fogAddColor.g * fu.fogAddColor.a);
-        outColor.b = (outColor.b * (1. - fu.fogAddColor.a) + fu.fogAddColor.b * fu.fogAddColor.a);
+
+        outColor = vec4<f32>(
+            (outColor.r * (1. - fu.fogAddColor.a) + fu.fogAddColor.r * fu.fogAddColor.a),
+            (outColor.g * (1. - fu.fogAddColor.a) + fu.fogAddColor.g * fu.fogAddColor.a),
+            (outColor.b * (1. - fu.fogAddColor.a) + fu.fogAddColor.b * fu.fogAddColor.a),
+            outColor.a
+        );
 
     } else {
         outColor = textureSample(u_texture, u_sampler, texc);
 
-        if(outColor.a < 0.1)
+        if(outColor.a < 0.1) {
             discard;
+        }
 
         outColor = outColor * v.color;
     }
