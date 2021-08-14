@@ -83,6 +83,7 @@ export default class GeometryTerrain {
         if (this.uploadID === this.updateID) {
             return;
         }
+        this.uploadID = this.updateID;
         gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer);
         if (this.glSize < this.data.length) {
             gl.bufferData(gl.ARRAY_BUFFER, this.data, gl.DYNAMIC_DRAW);
