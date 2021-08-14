@@ -61,20 +61,26 @@ export default class Renderer {
     }
 
     async genTerrain(image) {
-        this.terrainTexSize = image.image.width;
-        this.terrainBlockSize = image.image.width / 512 * 16;
+        this.terrainTexSize = image.width;
+        this.terrainBlockSize = image.width / 512 * 16;
 
         if (!this.useAnisotropy) {
-            return await window.createImageBitmap(image);
+            if (image instanceof  self.ImageBitmap) {
+                return  image;
+            }
+            return await self.createImageBitmap(image);
         }
 
         const canvas2d = document.createElement('canvas');
         const context = canvas2d.getContext('2d');
-        const w = glTex.image.width;
+        const w = image.width;
         canvas2d.width = w * 2;
         canvas2d.height = w * 2;
+
         let offset = 0;
-        context.drawImage(glTex.image, 0, 0);
+
+        context.drawImage(image, 0, 0);
+
         for (let dd = 2; dd <= 16; dd *= 2) {
             const nextOffset = offset + w * 2 / dd;
             context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
@@ -88,16 +94,19 @@ export default class Renderer {
         }
         // canvas2d.width = 0;
         // canvas2d.height = 0;
-        return await window.createImageBitmap(canvas2d);
+        //return await self.createImageBitmap(canvas2d);
+        return canvas2d;
     }
 
     async genColorTexture(clr) {
         const canvas2d = document.createElement('canvas');
         canvas2d.width = canvas2d.height = 16;
+
         const context = canvas2d.getContext('2d');
         context.fillStyle = 'white';
         context.fillRect(0, 0, 16, 16);
-        return await window.createImageBitmap(canvas2d);
+
+        return canvas2d;
     }
 
     // todo
@@ -109,7 +118,7 @@ export default class Renderer {
         this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
         // Create projection and view matrices
-        mat4.identity(that.modelMatrix);
+        mat4.identity(this.modelMatrix);
 
         this.setWorld(world);
 
@@ -138,7 +147,7 @@ export default class Renderer {
 
         if (renderBackend.gl) {
             // PickAt
-            this.pickAt             = new PickAt(this, gl);
+            this.pickAt             = new PickAt(this, renderBackend.gl);
         }
 
         this.useAnisotropy = settings.mipmap;
@@ -173,6 +182,8 @@ export default class Renderer {
     initSky() {
         const { resources } = this;
         const { gl } = this.renderBackend;
+        const that = this;
+
         Helpers.createGLProgram(gl, resources.codeSky, (info) => {
             const program = info.program;
             gl.useProgram(program);
