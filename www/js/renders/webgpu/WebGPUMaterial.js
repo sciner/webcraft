@@ -19,8 +19,11 @@ export class WebGPUMaterial extends BaseMaterial {
          *
          * @type {GPUBuffer}
          */
-        this.ubo = null;
-        this.uboData = new Float32Array(1);
+        this.vertexUbo = null;
+        this.fragmentUbo = null;
+
+        this.vertexUboData = new Float32Array(1);
+        this.fragmentUboData = new Float32Array(1);
 
         /**
          *
@@ -53,16 +56,6 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const base = shader.description;
 
-        this.group = device.createBindGroup({
-            // we should restricted know group and layout
-            // will think that always 0
-            layout: activePipeline.getBindGroupLayout(0),
-            entries: [
-                // what should be this?
-            ]
-        });
-
-        const stride = 21  * 4;
         this.pipeline = device.createRenderPipeline({
             vertex: {
                 ...base.vertex,
@@ -73,7 +66,42 @@ export class WebGPUMaterial extends BaseMaterial {
             primitive: {
                 ...base.primitive
             }
-        })
+        });
+
+        const vsize = 4 * (16 + 16 + 16 + 1 + 1 + 3 + 1);
+        const fsize = 4 * (4 + 4 + 1 + 1 + 1 + 1);
+        this.vertexUbo = device.createBuffer({
+            size: vsize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
+        });
+
+        this.fragmentUbo = device.createBuffer({
+            size: fsize,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
+        });
+
+        this.group = device.createBindGroup({
+            // we should restricted know group and layout
+            // will think that always 0
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.vertexUbo,
+                        size: vsize
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: {
+                        buffer: this.fragmentUbo,
+                        size: fsize
+                    }
+                },
+            ]
+        });
+
     }
 
     /**
