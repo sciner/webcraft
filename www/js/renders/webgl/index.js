@@ -8,6 +8,11 @@ const TEXTURE_FILTER_GL = {
     'nearest': 'NEAREST'
 }
 
+const TEXTURE_MODE = {
+    '2d': 'TEXTURE_2D',
+    'cube': 'TEXTURE_CUBE_MAP'
+}
+
 export class WebGLTexture extends BaseTexture {
     bind(location) {
         location = location || 0;
@@ -26,7 +31,7 @@ export class WebGLTexture extends BaseTexture {
             texture
         } = this;
 
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D, texture);
     }
 
     upload() {
@@ -35,17 +40,34 @@ export class WebGLTexture extends BaseTexture {
          * @type {WebGLTexture}
          */
         const t = this.texture = this.texture || gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, t);
+        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
 
-        if (this.source) {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
-        } else {
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.bindTexture(type, t);
+
+        if (this.mode === '2d') {
+            if (this.source) {
+                gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+            } else {
+                gl.texImage2D(type, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            }
+
+            gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.LINEAR);
+            gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
+
+            super.upload();
+            return;
+        }
+        for(let i = 0; i < 6; i ++) {
+            const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
+            if (this.source) {
+                gl.texImage2D(start + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+            } else {
+                gl.texImage2D(start + i, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            }
         }
 
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
-
+        gl.generateMipmap(type);
+        gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
         super.upload();
     }
 

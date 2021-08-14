@@ -7,7 +7,7 @@ export class BaseTexture {
      * @param {'linear' | 'nearest'} magFilter
      * @param {'linear' | 'nearest'} minFilter
      * @param {number} anisotropy
-     * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap } source
+     * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
      */
     constructor(context, {
         width = 1,
@@ -15,6 +15,7 @@ export class BaseTexture {
         magFilter = 'linear',
         minFilter = 'linear',
         anisotropy = 16,
+        mode = '2d',
         source = null
     } = {}) {
         this.width = width;
@@ -24,6 +25,7 @@ export class BaseTexture {
         this.anisotropy = anisotropy;
         this.source = source;
         this.context = context;
+        this.mode = mode;
 
         this.id = BaseRenderer.ID++;
 
