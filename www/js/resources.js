@@ -1,10 +1,8 @@
 
 export class Resources {
     constructor() {
-        this.glslMain = {};
-        this.glslSky = {};
-        this.wgslMain = {};
-        this.wgslSky = {};
+        this.codeMain = {};
+        this.codeSky = {};
         this.terrain = {};
         this.sky = {};
     }
@@ -21,16 +19,14 @@ export class Resources {
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
 
         let all = [];
-        if (settings.glsl) {
-            all.push(loadTextFile('./shaders/main/vertex.glsl').then((txt) => { this.glslMain.vertex = txt } ));
-            all.push(loadTextFile('./shaders/main/fragment.glsl').then((txt) => { this.glslMain.fragment = txt } ));
-            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.glslSky.vertex = txt } ));
-            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.glslSky.fragment = txt } ));
-        }
-
         if (settings.wgsl) {
-            all.push(loadTextFile('./shaders/main_gpu/shader.wgsl').then((txt) => { this.wgslMain = { vertex: txt, fragment: txt} } ));
-            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.wgslSky.vertex = { vertex: txt, fragment: txt} } ));
+            all.push(loadTextFile('./shaders/main_gpu/shader.wgsl').then((txt) => { this.codeMain = { vertex: txt, fragment: txt} } ));
+            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.codeSky = { vertex: txt, fragment: txt} } ));
+        } else {
+            all.push(loadTextFile('./shaders/main/vertex.glsl').then((txt) => { this.codeMain.vertex = txt } ));
+            all.push(loadTextFile('./shaders/main/fragment.glsl').then((txt) => { this.codeMain.fragment = txt } ));
+            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.codeSky.vertex = txt } ));
+            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
         }
 
         all.push(loadImage(settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png').then((img) => { this.terrain.image = img}));

@@ -49,6 +49,40 @@ export class BaseTexture {
     }
 }
 
+export class BaseMaterial {
+    constructor(context, options) {
+        this.context = context;
+
+        this.texture = options.texture || null;
+        this.cullFace = options.cullFace || false;
+        this.opaque = options.opaque || false;
+    }
+}
+
+export class BaseTerrainShader {
+    constructor(context, options) {
+        this.context = context;
+
+        this.projMatrix         = mat4.create();
+        this.viewMatrix         = mat4.create();
+        this.modelMatrix        = mat4.create();
+
+        this.blockSize = 1;
+        this.pixelSize = 1;
+        this.chunkBlockDist = 1;
+        this.brightness = 1;
+        this.mipmap = 0;
+    }
+
+    bind() {
+
+    }
+
+    update() {
+
+    }
+}
+
 export default class BaseRenderer {
     /**
      *
@@ -99,6 +133,18 @@ export default class BaseRenderer {
      */
     createTexture(options) {
        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createMaterial(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    drawMesh(geom, material) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createShader(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 }
 
