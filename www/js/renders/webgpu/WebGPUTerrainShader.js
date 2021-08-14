@@ -14,7 +14,11 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          * @type {GPURenderPipelineDescriptor}
          */
         this.description = null;
-
+        /**
+         *
+         * @type {WebGPUTexture}
+         */
+        this.texture = null;
         this.vertexData = new Float32Array((16 + 16 + 16 + 1 + 1 + 3 + 1));
         this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
 
