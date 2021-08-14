@@ -19,6 +19,17 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPUCanvasContext}
          */
         this.context = null;
+        /**
+         *
+         * @type {GPURenderPipeline}
+         */
+        this.activePipeline = null;
+
+        /**
+         *
+         * @type {GPUBindGroup[]}
+         */
+        this.activeBindings = [];
     }
 
     async init() {
