@@ -2,9 +2,9 @@
     ProjMatrix : mat4x4<f32>;
     worldView : mat4x4<f32>;
     ModelMatrix : mat4x4<f32>;
+    add_pos : vec3<f32>;
     fogOn : f32;
     brightness : f32;
-    add_pos : vec3<f32>;
     pixelSize : f32;
 };
 
@@ -32,11 +32,11 @@ struct Attrs {
 
     [[location(3)]] uvCenter : vec2<f32>;
     [[location(4)]] uvSize : vec2<f32>;
-    
+
     [[location(5)]] color : vec3<f32>;
-    
+
     [[location(6)]] occlusion : vec4<f32>;
-    
+
     [[location(7)]] flags : f32;
 
     [[location(8)]] quad : vec2<f32>;
@@ -121,12 +121,12 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         var fw : vec2<f32> = fwidth(v.texcoord) * f32(textureDimensions(u_texture, 0).x);
         fw = fw / 1.4;
         var steps : vec4<f32> = vec4<f32>(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
-        
+
         mipOffset.x = dot(steps, vec4<f32>(0.5, 0.25, 0.125, 0.0625));
         mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
-        
+
         steps = vec4<f32>(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
-        
+
         mipOffset.y = dot(steps, vec4<f32>(0.5, 0.25, 0.125, 0.0625));
         mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
     }
@@ -135,11 +135,11 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     if(u.fogOn > 0.0) {
         // Read texture
         var color : vec4<f32> = textureSample(u_texture, u_sampler, texc * mipScale + mipOffset);
-        
+
         if(color.a < 0.1) {
             discard;
         }
-        
+
         if (fu.opaqueThreshold > 0.1) {
             if (color.a < fu.opaqueThreshold) {
                 discard;
@@ -169,7 +169,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         // Calc fog amount
         var fogDistance : f32 = length(v.position);
         var fogAmount : f32 = 0.0;
- 
+
         if(fogDistance > fu.chunkBlockDist) {
             fogAmount = clamp(0.05 * (fogDistance - fu.chunkBlockDist), 0., 1.);
         }
