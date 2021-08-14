@@ -28,13 +28,26 @@ export default class WebGPURenderer extends BaseRenderer{
          */
         this.activePipeline = null;
 
+        this.format = '';
+
         /**
          *
-         * @type {GPUBindGroup[]}
+         * @type {GPUQueue}
          */
-        this.activeBindings = [];
+        this.renderQueue = null;
 
-        this.format = '';
+        /**
+         *
+         * @type {GPUCommandEncoder}
+         */
+        this.encoder = null;
+
+        /**
+         *
+         * @type {GPURenderPassEncoder}
+         */
+        this.passEncoder = null;
+
     }
 
     get currentBackTexture() {
@@ -51,6 +64,29 @@ export default class WebGPURenderer extends BaseRenderer{
 
     createTexture(options = {}) {
         return new WebGPUTexture(this, options);
+    }
+
+    beginFrame(fogColor = [0,0,0,0]) {
+        super.beginFrame(fogColor);
+
+        this.encoder = this.device.createCommandEncoder();
+        this.passEncoder = this.encoder.beginRenderPass({
+            colorAttachments: [
+                {
+                    view: this.currentBackTexture,
+                    loadValue: [1, 0, 1, 1],
+                    storeOp: 'store',
+                }
+            ]
+        });
+    }
+
+    drawMesh(geom, material) {
+    }
+
+    endFrame() {
+        this.passEncoder.endPass();
+        this.device.queue.submit([this.encoder.finish()]);
     }
 
     async init() {
