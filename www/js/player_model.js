@@ -32,23 +32,19 @@ export default class PlayerModel {
 
     // draw
     draw(render, modelMatrix, uModelMat, camPos, delta) {
+        const gl = this.gl = render.gl;
+        gl.disable(gl.CULL_FACE);
         this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
             scale:          1.0,
             texture:        this.texPlayer,
             draw_nametag:   false
         });
-
-        const gl = this.gl = render.gl;
-        gl.disable(gl.CULL_FACE);
-
         this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
             scale:          1.05,
             texture:        this.texPlayer2,
             draw_nametag:   true
         });
-
         gl.enable(gl.CULL_FACE);
-
     }
 
     // loadMesh...
@@ -464,13 +460,11 @@ export default class PlayerModel {
 
         // Load mesh
         if(!this.playerHead) {
-            // console.log('Loading mesh');
             this.loadMesh(render);
         }
 
         // Wait loading texture
         if(!options.texture) {
-            // console.log('texPlayer not loaded');
             return;
         }
 
