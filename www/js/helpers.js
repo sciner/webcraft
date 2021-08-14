@@ -30,6 +30,13 @@ export class Vector {
         return new Vector( this.x*n, this.y*n, this.z*n );
     }
 
+    zero() {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
+        return this;
+    }
+
     length() {
         return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
     }
