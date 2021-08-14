@@ -20,7 +20,7 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          */
         this.texture = null;
 
-        this.vertexData = new Float32Array((16 + 16 + 16 + 1 + 1 + 3 + 1 + 8));
+        this.vertexData = new Float32Array((16 + 16 + 16 + 3 + 1 + 1 + 1));
         this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
 
         this._init();
@@ -133,14 +133,12 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         this.vertexData.set(this.projMatrix, 0);
         this.vertexData.set(this.viewMatrix, 16);
         this.vertexData.set(this.modelMatrix, 32);
-        // fog
-        this.vertexData.set([1], 32 + 16);
-
-        //
-        this.vertexData.set([this.brightness], 32 + 16 + 1);
         // add_pos
-        this.vertexData.set([0,0,0], 32 + 16 + 1 + 1);
-        this.vertexData.set([this.pixelSize], 32 + 16 + 1 + 1 + 3);
+        this.vertexData.set([0,0,0], 32 + 16);
+        //fog
+        this.vertexData.set([1], 32 + 16 + 3);
+        this.vertexData.set([this.brightness], 32 + 16 + 3 + 1);
+        this.vertexData.set([this.pixelSize], 32 + 16 + 3 + 1 + 1);
 
         //fragment data UBO
 
