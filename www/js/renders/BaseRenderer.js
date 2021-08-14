@@ -76,6 +76,8 @@ export class BaseTerrainShader {
         this.chunkBlockDist = 1;
         this.brightness = 1;
         this.mipmap = 0;
+        this.fogAddColor = [0,0,0,0];
+        this.fogColor = [1,1,1,1];
     }
 
     bind() {

@@ -15,21 +15,19 @@ export class WebGPUMaterial extends BaseMaterial {
          * @type {GPUBindGroup}
          */
         this.group = null;
-        /**
-         *
-         * @type {GPUBuffer}
-         */
-        this.vertexUbo = null;
-        this.fragmentUbo = null;
-
-        this.vertexUboData = new Float32Array(1);
-        this.fragmentUboData = new Float32Array(1);
 
         /**
          *
          * @type {GPURenderPipeline}
          */
         this.pipeline = null;
+
+        /**
+         *
+         * @type {GPUBuffer}
+         */
+        this.vertexUbo = null;
+        this.fragmentUbo = null;
 
         this._init();
     }
@@ -50,6 +48,11 @@ export class WebGPUMaterial extends BaseMaterial {
             opaque
         } = this;
 
+        const {
+            fragmentData,
+            vertexData
+        } = shader;
+
         if (this.group) {
             this.group.destroy();
         }
@@ -68,17 +71,41 @@ export class WebGPUMaterial extends BaseMaterial {
             }
         });
 
-        const vsize = 4 * (16 + 16 + 16 + 1 + 1 + 3 + 1);
-        const fsize = 4 * (4 + 4 + 1 + 1 + 1 + 1);
         this.vertexUbo = device.createBuffer({
-            size: vsize,
+            size: vertexData.byteLength,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
         });
 
         this.fragmentUbo = device.createBuffer({
-            size: fsize,
+            size: fragmentData.byteLength,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
         });
+
+    }
+
+    /**
+     *
+     * @param {WebGPURenderer} render
+     */
+    bind(render) {
+        const {
+            device
+        } = this.context;
+
+        const {
+            cullFace,
+            texture,
+            /**
+             * @type {WebGPUTerrainShader}
+             */
+            shader,
+            opaque
+        } = this;
+
+        const  {
+            vertexData,
+            fragmentData
+        } = shader;
 
         this.group = device.createBindGroup({
             // we should restricted know group and layout
@@ -89,26 +116,19 @@ export class WebGPUMaterial extends BaseMaterial {
                     binding: 0,
                     resource: {
                         buffer: this.vertexUbo,
-                        size: vsize
+                        size: vertexData.byteLength
                     }
                 },
                 {
                     binding: 1,
                     resource: {
                         buffer: this.fragmentUbo,
-                        size: fsize
+                        size: fragmentData.byteLength
                     }
                 },
             ]
         });
 
-    }
-
-    /**
-     *
-     * @param {WebGPURenderer} render
-     */
-    bind(render) {
 
     }
 

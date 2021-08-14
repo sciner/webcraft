@@ -15,6 +15,9 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          */
         this.description = null;
 
+        this.vertexData = new Float32Array((16 + 16 + 16 + 1 + 1 + 3 + 1));
+        this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
+
         this._init();
     }
 
@@ -114,5 +117,36 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                 topology: 'triangle-list',
             }
         };
+    }
+
+    bind() {
+        super.bind();
+    }
+
+    update() {
+        // vertex data UBO
+        this.vertexData.set(this.projMatrix, 0);
+        this.vertexData.set(this.viewMatrix, 16);
+        this.vertexData.set(this.modelMatrix, 32);
+        // fog
+        this.vertexData.set([1], 32 + 16);
+
+        //
+        this.vertexData.set([this.brightness], 32 + 16 + 1);
+        // add_pos
+        this.vertexData.set([0,0,0], 32 + 16 + 1 + 1);
+        this.vertexData.set([this.pixelSize], 32 + 16 + 1 + 1 + 3);
+
+        //fragment data UBO
+
+        // fog color
+        this.fragmentData.set(this.fogColor, 0);
+        // fog add color
+        this.fragmentData.set(this.fogAddColor, 4);
+        this.fragmentData.set([this.chunkBlockDist], 8);
+        this.fragmentData.set([this.mipmap], 9);
+        this.fragmentData.set([this.blockSize], 10);
+        // opaqueThreshold
+        this.fragmentData.set([0], 11);
     }
 }
