@@ -1,6 +1,7 @@
 //@ts-check
 import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
-import {WebGLMaterial} from "./WebGLMaterial";
+import {WebGLMaterial} from "./WebGLMaterial.js";
+import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -8,15 +9,18 @@ const TEXTURE_FILTER_GL = {
 }
 
 export class WebGLTexture extends BaseTexture {
-
-    bind() {
-        if (this.dirty) {
-            return this.upload();
-        }
+    bind(location) {
+        location = location || 0;
 
         const {
             gl
         } = this.context;
+
+        gl.activeTexture(gl.TEXTURE0 + location);
+
+        if (this.dirty) {
+            return this.upload();
+        }
 
         const {
             texture
@@ -81,6 +85,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         return Promise.resolve(this);
@@ -98,8 +103,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const {gl} = this;
 
-        gl.viewportWidth        = this.canvas.width;
-        gl.viewportHeight       = this.canvas.height;
+        gl.viewportWidth        = this.view.width;
+        gl.viewportHeight       = this.view.height;
     }
 
     createMaterial(options) {
@@ -111,10 +116,10 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createShader(options) {
-        return new WebGLTerrainShader(this);
+        return new WebGLTerrainShader(this, options);
     }
 
-    drawMesh(geom, material) {
+    drawMesh(geom, material, a_pos) {
         if (geom.size === 0) {
             return;
         }
@@ -125,21 +130,25 @@ export default class WebGLRenderer extends BaseRenderer {
             this._mat = material;
             this._mat.bind();
         }
-        geom.bind(this);
+        geom.bind(material.shader);
         let gl = this.gl;
-        gl.uniform3fv(this.u_add_pos, [0, 0, 0]);
+        if (a_pos) {
+            gl.uniform3fv(this.u_add_pos, a_pos);
+        } else {
+            gl.uniform3fv(this.u_add_pos, [0, 0, 0]);
+        }
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
     }
 
-    // used by Player and Rain
-    drawBuffer(geom, a_pos) {
-        if (geom.size === 0) {
-            return;
-        }
-        geom.bind(this);
-        let gl = this.gl;
-        gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
+    beginFrame(fogColor) {
+        const {gl} = this;
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.clearColor(...fogColor);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
+    endFrame() {
+
     }
 }
 
