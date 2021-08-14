@@ -1,5 +1,5 @@
-import {BaseTerrainShader} from "../BaseRenderer";
-import {Helpers} from "../../helpers";
+import {BaseTerrainShader} from "../BaseRenderer.js";
+import {Helpers} from "../../helpers.js";
 
 class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {

@@ -1,6 +1,6 @@
 //@ts-check
 import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
-import {WebGLMaterial} from "./WebGLMaterial";
+import {WebGLMaterial} from "./WebGLMaterial.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
