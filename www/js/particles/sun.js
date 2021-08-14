@@ -1,5 +1,7 @@
 import {NORMALS, Vector, Color} from '../helpers.js';
 
+const {mat4} = glMatrix;
+
 export default class Particles_Sun {
 
     // Constructor
@@ -45,11 +47,11 @@ export default class Particles_Sun {
         // this.pos        = Game.world.localPlayer.pos.add(new Vector(dist, dist, scale / 2));
         this.pos        = Game.world.localPlayer.pos.add(new Vector(Math.cos(t) * dist, Math.sin(t) * dist, scale / 2));
         let a_pos       = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
-        mat4.translate(modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
-        mat4.rotateZ(modelMatrix, this.yaw);
-        mat4.rotateX(modelMatrix, Math.sin(t) * (Math.PI / 4));
+        mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
+        mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
+        mat4.rotateX(modelMatrix, modelMatrix, Math.sin(t) * (Math.PI / 4));
         // mat4.lookAt(modelMatrix, Game.world.localPlayer.pos, new Vector(0, 1, 0));
-        mat4.scale(modelMatrix, [scale, 1, scale]);
+        mat4.scale(modelMatrix, modelMatrix, [scale, 1, scale]);
         gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
         // draw
         render.drawBuffer(this.buffer, [0, 0, 0]);

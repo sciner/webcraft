@@ -1,3 +1,5 @@
+const {mat4} = glMatrix;
+
 export class BaseTexture {
     /**
      *
