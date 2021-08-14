@@ -2,7 +2,7 @@
     ProjMatrix : mat4x4<f32>;
     worldView : mat4x4<f32>;
     ModelMatrix : mat4x4<f32>;
-    fogOn : bool;
+    fogOn : f32;
     brightness : f32;
     add_pos : vec3<f32>;
     pixelSize : f32;
@@ -13,7 +13,7 @@
     // Fog
     fogColor : vec4<f32>;
     fogAddColor : vec4<f32>;
-    fogDensity : f32;
+    //fogDensity : f32;
     //fogOn: bool;
     chunkBlockDist: f32;
 
@@ -114,7 +114,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     var mipOffset : vec2<f32> = vec2<f32>(0.0);
     var biome : vec2<f32> = v.color.rg;
 
-    if (u.mipmap > 0.0) {
+    if (fu.mipmap > 0.0) {
         biome = biome * 0.5;
 
         // manual implementation of EXT_shader_texture_lod
@@ -139,7 +139,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         if(color.a < 0.1)
             discard;
         
-        if (u.opaqueThreshold > 0.1) {
+        if (fu.opaqueThreshold > 0.1) {
             if (color.a < fu.opaqueThreshold) {
                 discard;
             } else {
@@ -155,7 +155,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         }
 
         // Apply light
-        color.rgb = color.rgb * fu.brightness * v.light;
+        color.rgb = color.rgb * u.brightness * v.light;
 
         outColor = color;
 
