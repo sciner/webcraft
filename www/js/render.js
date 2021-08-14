@@ -161,6 +161,8 @@ export default class Renderer {
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
+        shader.texture = this.terrainTexture;
+
         if (renderBackend.gl) {
             // SkyBox
             this.initSky();
@@ -375,6 +377,8 @@ export default class Renderer {
         if(this.HUD) {
             this.HUD.draw();
         }
+
+        renderBackend.endFrame();
     }
 
     // drawPlayers
