@@ -12,7 +12,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 * This class contains the code that takes care of visualising the
 * elements in the specified world.
 **/
-const BACKEND               = 'webgl';
+const BACKEND               = 'auto';
 const ZOOM_FACTOR           = 0.25;
 const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
