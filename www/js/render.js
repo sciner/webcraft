@@ -60,148 +60,120 @@ export default class Renderer {
         return this.renderBackend.gl;
     }
 
+    async genTerrain(image) {
+        this.terrainTexSize = image.image.width;
+        this.terrainBlockSize = image.image.width / 512 * 16;
+
+        if (!this.useAnisotropy) {
+            return await window.createImageBitmap(image);
+        }
+
+        const canvas2d = document.createElement('canvas');
+        const context = canvas2d.getContext('2d');
+        const w = glTex.image.width;
+        canvas2d.width = w * 2;
+        canvas2d.height = w * 2;
+        let offset = 0;
+        context.drawImage(glTex.image, 0, 0);
+        for (let dd = 2; dd <= 16; dd *= 2) {
+            const nextOffset = offset + w * 2 / dd;
+            context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
+            offset = nextOffset;
+        }
+        offset = 0;
+        for (let dd = 2; dd <= 16; dd *= 2) {
+            const nextOffset = offset + w * 2 / dd;
+            context.drawImage(canvas2d, 0, offset, w * 2, w * 2 / dd, 0, nextOffset, w * 2, w / dd);
+            offset = nextOffset;
+        }
+        // canvas2d.width = 0;
+        // canvas2d.height = 0;
+        return await window.createImageBitmap(canvas2d);
+    }
+
+    async genColorTexture(clr) {
+        const canvas2d = document.createElement('canvas');
+        canvas2d.width = canvas2d.height = 16;
+        const context = canvas2d.getContext('2d');
+        context.fillStyle = 'white';
+        context.fillRect(0, 0, 16, 16);
+        return await window.createImageBitmap(canvas2d);
+    }
+
     // todo
     //  GO TO PROMISE
     async _init(world, settings, resources, callback) {
-        let that                = this;
         this.resources          = resources;
         this.skyBox             = null;
         this.videoCardInfoCache = null;
         this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
         // Create projection and view matrices
-        that.projMatrix         = mat4.create();
-        that.viewMatrix         = mat4.create();
-        that.modelMatrix        = mat4.create(); // Create dummy model matrix
         mat4.identity(that.modelMatrix);
 
         this.setWorld(world);
 
+        const {renderBackend} = this;
 
-        await this.renderBackend.init();
+        await renderBackend.init();
+
+        this.shader = renderBackend.createShader({ code: resources.codeMain});
+
+        this.materials = {
+            regular: renderBackend.createMaterial({ cullFace: true, opaque: true}),
+            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true}),
+            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false}),
+        }
+
+        this.projMatrix = this.shader.projMatrix;
+        this.viewMatrix = this.shader.viewMatrix;
+        this.modelMatrix = this.shader.modelMatrix;
 
         // Initialise WebGL
-        const gl = this.renderBackend.gl;
+        // const gl = this.renderBackend.gl;
 
-        gl.viewportWidth        = that.canvas.width;
-        gl.viewportHeight       = that.canvas.height;
-        gl.enable(gl.DEPTH_TEST);
-        gl.enable(gl.CULL_FACE);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        this.viewportWidth        = this.canvas.width;
+        this.viewportHeight       = this.canvas.height;
+        renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
-        // PickAt
-        this.pickAt             = new PickAt(this, gl);
+        if (renderBackend.gl) {
+            // PickAt
+            this.pickAt             = new PickAt(this, gl);
+        }
 
         this.useAnisotropy = settings.mipmap;
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
 
-        // Create main program
-        Helpers.createGLProgram(gl, resources.glslMain, function(info) {
+        this.texture = renderBackend.createTexture(await this.genTerrain(resources.terrain.image));
 
-            let program = that.program = info.program;
+        this.whiteTexture = renderBackend.createTexture(await this.genColorTexture('white'));
 
-            gl.useProgram(program);
+        this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
-            // Store variable locations
-            that.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
-            that.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
-            that.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
-            that.u_texture          = gl.getUniformLocation(program, 'u_texture');
+        if (renderBackend.gl) {
+            // SkyBox
+            this.initSky();
+        }
 
-            that.a_position         = gl.getAttribLocation(program, 'a_position');
-            that.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
-            that.a_axisY            = gl.getAttribLocation(program, 'a_axisY');
-            that.a_uvCenter         = gl.getAttribLocation(program, 'a_uvCenter');
-            that.a_uvSize           = gl.getAttribLocation(program, 'a_uvSize');
-            that.a_color            = gl.getAttribLocation(program, 'a_color');
-            that.a_occlusion        = gl.getAttribLocation(program, 'a_occlusion');
-            that.a_flags            = gl.getAttribLocation(program, 'a_flags');
-            that.a_quad             = gl.getAttribLocation(program, 'a_quad');
-            that.a_quadOcc          = gl.getAttribLocation(program, 'a_quadOcc');
-            // fog
-            that.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
-            that.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
-            that.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
-            that.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
-            that.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
-            that.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
-            that.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
-            that.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
-            that.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
-            that.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
-            //
-            that.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
-            that.u_time             = gl.getUniformLocation(program, 'u_time');
-            that.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
-
-            that.setBrightness(that.world.saved_state.brightness ? that.world.saved_state.brightness : 1);
-            // Create projection and view matrices
-            gl.uniformMatrix4fv(that.uModelMat, false, that.modelMatrix);
-            // Create 1px white texture for pure vertex color operations (e.g. picking)
-            let whiteTexture        = that.texWhite = gl.createTexture();
-            let white               = new Uint8Array([255, 255, 255, 255]);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, whiteTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, white);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-            let blackTexture        = that.texBlack = gl.createTexture();
-            let black               = new Uint8Array([0, 0, 0, 255]);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, blackTexture);
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, black);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-            function genTerrain(glTex) {
-                that.terrainTexSize = glTex.image.width;
-                that.terrainBlockSize = glTex.image.width / 512 * 16;
-
-                gl.bindTexture(gl.TEXTURE_2D, glTex);
-                if (that.useAnisotropy) {
-                    const canvas2d = document.createElement('canvas');
-                    const context = canvas2d.getContext('2d');
-                    const w = glTex.image.width;
-                    canvas2d.width = w * 2;
-                    canvas2d.height = w * 2;
-                    let offset = 0;
-                    context.drawImage(glTex.image, 0, 0);
-                    for (let dd = 2; dd <= 16; dd *= 2) {
-                        const nextOffset = offset + w * 2 / dd;
-                        context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
-                        offset = nextOffset;
-                    }
-                    offset = 0;
-                    for (let dd = 2; dd <= 16; dd *= 2) {
-                        const nextOffset = offset + w * 2 / dd;
-                        context.drawImage(canvas2d, 0, offset, w * 2, w * 2 / dd, 0, nextOffset, w * 2, w / dd);
-                        offset = nextOffset;
-                    }
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas2d);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    // canvas2d.width = 0;
-                    // canvas2d.height = 0;
-                } else {
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, glTex.image);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                }
+        // HUD
+        // Build main HUD
+        Game.hud = new HUD(0, 0);
+        this.HUD = {
+            tick: 0,
+            bufRect: null,
+            draw: function() {
+                Game.hud.draw();
             }
-            // Terrain texture
-            gl.uniform1i(that.u_texture, 4);
-            let terrainTexture          = that.texTerrain = gl.createTexture();
-            terrainTexture.image = resources.terrain.image;
-            gl.activeTexture(gl.TEXTURE4);
-            genTerrain(terrainTexture);
-            //
-            that.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
-        });
+        }
 
-        // SkyBox
-        Helpers.createGLProgram(gl, resources.glslSky, function(info) {
+        callback();
+    }
+
+    initSky() {
+        const { resources } = this;
+        const { gl } = this.renderBackend;
+        Helpers.createGLProgram(gl, resources.codeSky, (info) => {
             const program = info.program;
             gl.useProgram(program);
             const vao = gl.createVertexArray();
@@ -209,19 +181,19 @@ export default class Renderer {
             const vertexBuffer = gl.createBuffer();
             const indexBuffer = gl.createBuffer();
             const vertexData = [
-                -1,-1, 1,
-                1,-1, 1,
+                -1, -1, 1,
+                1, -1, 1,
                 1, 1, 1,
                 -1, 1, 1,
-                -1,-1,-1,
-                1,-1,-1,
-                1, 1,-1,
-                -1, 1,-1
+                -1, -1, -1,
+                1, -1, -1,
+                1, 1, -1,
+                -1, 1, -1
             ];
             const indexData = [
-                0,1,2,2,3,0, 4,5,6,6,7,4,
-                1,5,6,6,2,1, 0,4,7,7,3,0,
-                3,2,6,6,7,3, 0,1,5,5,4,0
+                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
+                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
+                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
             ];
             gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
@@ -232,11 +204,10 @@ export default class Renderer {
             gl.vertexAttribPointer(attribVertex, 3, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(attribVertex);
 
-            that.skyBox = {
-                gl:         gl,
-                program:    program,
-                texture:    gl.createTexture(),
-                loaded:     false,
+            this.skyBox = {
+                program: program,
+                texture: gl.createTexture(),
+                loaded: false,
                 uniform: {
                     texture: gl.getUniformLocation(program, 'u_texture'),
                     lookAtMatrix: gl.getUniformLocation(program, 'u_lookAtMatrix'),
@@ -247,42 +218,42 @@ export default class Renderer {
                     vertex: vertexBuffer,
                     index: indexBuffer
                 },
-                draw: function(_lookAtMatrix, _projectionMatrix) {
-                    if(!this.loaded) {
+                draw: function (_lookAtMatrix, _projectionMatrix) {
+                    if (!this.loaded) {
                         return;
                     }
                     _lookAtMatrix = new Float32Array(_lookAtMatrix)
-                    mat4.rotate(_lookAtMatrix, Math.PI / 2, [ 1, 0, 0 ], _lookAtMatrix);
+                    mat4.rotate(_lookAtMatrix, Math.PI / 2, [1, 0, 0], _lookAtMatrix);
                     _lookAtMatrix[12] = 0;
                     _lookAtMatrix[13] = 0;
                     _lookAtMatrix[14] = 0;
-                    this.gl.useProgram(this.program);
-                    this.gl.bindVertexArray(vao);
+                    gl.useProgram(this.program);
+                    gl.bindVertexArray(vao);
                     // brightness
-                    this.gl.uniform1f(this.uniform.u_brightness_value, that.brightness);
+                    gl.uniform1f(this.uniform.u_brightness_value, that.brightness);
                     // skybox
-                    this.gl.uniform1i(this.uniform.texture, 0);
-                    this.gl.activeTexture(this.gl.TEXTURE0);
-                    this.gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
-                    this.gl.uniformMatrix4fv(this.uniform.lookAtMatrix, false, _lookAtMatrix);
-                    this.gl.uniformMatrix4fv(this.uniform.projectionMatrix, false, _projectionMatrix);
-                    this.gl.viewport(0,0, this.gl.canvas.width, this.gl.canvas.height);
-                    this.gl.disable(this.gl.CULL_FACE);
-                    this.gl.disable(this.gl.DEPTH_TEST);
-                    this.gl.drawElements(this.gl.TRIANGLES, 36, this.gl.UNSIGNED_BYTE, 0);
-                    this.gl.enable(this.gl.CULL_FACE);
-                    this.gl.enable(this.gl.DEPTH_TEST);
+                    gl.uniform1i(this.uniform.texture, 0);
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
+                    gl.uniformMatrix4fv(this.uniform.lookAtMatrix, false, _lookAtMatrix);
+                    gl.uniformMatrix4fv(this.uniform.projectionMatrix, false, _projectionMatrix);
+                    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+                    gl.disable(gl.CULL_FACE);
+                    gl.disable(gl.DEPTH_TEST);
+                    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0);
+                    gl.enable(gl.CULL_FACE);
+                    gl.enable(gl.DEPTH_TEST);
                 }
             }
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
             const loadImageInTexture = (target, image) => {
-                const level             = 0;
-                const internalFormat    = gl.RGBA;
-                const width             = 1;
-                const height            = 1;
-                const format            = gl.RGBA;
-                const type              = gl.UNSIGNED_BYTE;
+                const level = 0;
+                const internalFormat = gl.RGBA;
+                const width = 1;
+                const height = 1;
+                const format = gl.RGBA;
+                const type = gl.UNSIGNED_BYTE;
                 gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                 gl.texImage2D(target, level, internalFormat, format, type, image);
@@ -298,21 +269,8 @@ export default class Renderer {
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-            that.skyBox.loaded = true;
+            this.skyBox.loaded = true;
         });
-
-        // HUD
-        // Build main HUD
-        Game.hud = new HUD(0, 0);
-        that.HUD = {
-            tick: 0,
-            bufRect: null,
-            draw: function() {
-                Game.hud.draw();
-            }
-        }
-
-        callback();
     }
 
     // Makes the renderer start tracking a new world and set up the chunk structure.
@@ -398,8 +356,6 @@ export default class Renderer {
         gl.uniform1f(this.u_fogOn, true);
         gl.uniform1f(this.u_mipmap, this.useAnisotropy ? 4.0 : 0.0);
         // resolution
-        gl.uniform2f(this.u_resolution, gl.viewportWidth, gl.viewportHeight);
-        gl.uniform1f(this.u_time, performance.now() / 1000);
         gl.uniform1f(this.u_brightness, this.brightness);
 
         gl.enable(gl.BLEND);
@@ -414,13 +370,12 @@ export default class Renderer {
         this.drawPlayers(delta);
         gl.enable(gl.CULL_FACE);
 
+        gl.disable(gl.BLEND);
+
         // 4. Draw HUD
         if(that.HUD) {
             that.HUD.draw();
         }
-
-        gl.disable(gl.BLEND);
-
     }
 
     // drawPlayers
@@ -447,9 +402,9 @@ export default class Renderer {
     updateViewport() {
         let gl = this.gl;
         let canvas = this.canvas;
-        if (canvas.clientWidth != gl.viewportWidth || canvas.clientHeight != gl.viewportHeight) {
-            gl.viewportWidth  = canvas.clientWidth;
-            gl.viewportHeight = canvas.clientHeight;
+        if (canvas.clientWidth != this.viewportWidth || canvas.clientHeight != this.viewportHeight) {
+            this.renderBackend.resize(canvas.clientWidth, canvas.clientHeight);
+            this.renderBackend._configure();
             canvas.width      = window.innerWidth * window.devicePixelRatio;
             canvas.height     = window.innerHeight * window.devicePixelRatio;
             // Update perspective projection based on new w/h ratio

@@ -1,5 +1,6 @@
 //@ts-check
-import BaseRenderer,  { BaseTexture } from "../BaseRenderer.js";
+import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
+import {WebGLMaterial} from "./WebGLMaterial";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -71,10 +72,16 @@ export default class WebGLRenderer extends BaseRenderer {
         this.gl = null;
 
         this._textures = [];
+
+        this._mat = null;
     }
 
     async init() {
-        this.gl = this.view.getContext('webgl2', this.options);
+        const gl = this.gl = this.view.getContext('webgl2', this.options);
+
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         return Promise.resolve(this);
     }
@@ -88,16 +95,57 @@ export default class WebGLRenderer extends BaseRenderer {
 
     _configure() {
         super._configure();
+
+        const {gl} = this;
+
+        gl.viewportWidth        = this.canvas.width;
+        gl.viewportHeight       = this.canvas.height;
+    }
+
+    createMaterial(options) {
+        return new WebGLMaterial(this, options);
     }
 
     createTexture(options) {
         return new WebGLTexture(this, options);
     }
+
+    createShader(options) {
+        return new WebGLTerrainShader(this);
+    }
+
+    drawMesh(geom, material) {
+        if (geom.size === 0) {
+            return;
+        }
+        if (this._mat !== material) {
+            if (this._mat) {
+                this._mat.unbind();
+            }
+            this._mat = material;
+            this._mat.bind();
+        }
+        geom.bind(this);
+        let gl = this.gl;
+        gl.uniform3fv(this.u_add_pos, [0, 0, 0]);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
+    }
+
+    // used by Player and Rain
+    drawBuffer(geom, a_pos) {
+        if (geom.size === 0) {
+            return;
+        }
+        geom.bind(this);
+        let gl = this.gl;
+        gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
+    }
 }
 
 /**
- * 
- * @param {HTMLCanvasElement} view 
+ *
+ * @param {HTMLCanvasElement} view
  */
 WebGLRenderer.test = function(view, options = {}) {
     /**

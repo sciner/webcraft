@@ -85,19 +85,14 @@ export class ChunkManager {
         let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
         this.spiral_moves = this.createSpiralCoords(this.margin * 2);
+
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
             // draw
             for(let group of ['regular', 'doubleface', 'transparent']) {
                 let transparent = group != 'regular';
-                let opaque = group !== 'transparent';
-                if(transparent) {
-                    gl.disable(gl.CULL_FACE);
-                }
-                if (opaque) {
-                    gl.uniform1f(render.u_opaqueThreshold, 0.5);
-                }
+                const mat = render.materials[group];
                 for(let sm of this.spiral_moves) {
                     let pos = new Vector(
                         overChunk.addr.x + sm.x - this.margin,
@@ -111,16 +106,10 @@ export class ChunkManager {
                                 chunk.applyVertices();
                             }
                         }
-                        if(chunk.drawBufferGroup(group, a_pos)) {
+                        if(chunk.drawBufferGroup(group, mat)) {
                             this.rendered_chunks.fact += 0.33333;
                         }
                     }
-                }
-                if(transparent) {
-                    gl.enable(gl.CULL_FACE);
-                }
-                if (opaque) {
-                    gl.uniform1f(render.u_opaqueThreshold, 0.0);
                 }
             }
         }
