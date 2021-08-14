@@ -40,8 +40,8 @@ export class WebGPUTexture extends BaseTexture {
         this.sampler = this.sampler || device.createSampler( {
             minFilter: this.minFilter || 'linear',
             magFilter: this.magFilter || 'linear',
-            maxAnisotropy: this.anisotropy || 0,
-            mipmapFilter: 'linear'
+            // maxAnisotropy: this.anisotropy || 0,
+            // mipmapFilter: 'linear'
         });
 
         if (this.source) {
