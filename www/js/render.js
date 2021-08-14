@@ -146,9 +146,7 @@ export default class Renderer {
         this.viewportHeight       = this.canvas.height;
         renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
-        if (renderBackend.gl) {
-            this.pickAt = new PickAt(this, renderBackend.gl);
-        }
+        this.pickAt = new PickAt(this);
 
         this.useAnisotropy = settings.mipmap;
         this.terrainTexSize = 1;
@@ -369,7 +367,7 @@ export default class Renderer {
 
         // 3. Draw players and rain
         if (this.renderBackend.gl) {
-            this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
+            this.world.draw(this, delta, this.modelMatrix, shader.uModelMat);
             this.drawPlayers(delta);
         }
 
