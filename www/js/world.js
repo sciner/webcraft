@@ -80,7 +80,6 @@ export default class World {
     // 
     createClone() {
         this.players['itsme'] = new PlayerModel({
-            gl:             this.renderer.gl,
             id:             'itsme',
             itsme:          true,
             angles:         this.localPlayer.angles,
