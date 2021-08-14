@@ -66,11 +66,11 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_quadOcc, 4, gl.FLOAT, false, 6 * 4, 2 * 4);
     }
 
-    bind(render)
+    bind(shader)
     {
-        if (render) {
-            this.attribs = render;
-            this.gl = render.gl;
+        if (shader) {
+            this.attribs = shader;
+            this.gl = shader.context.gl;
         }
 
         const { gl } = this;

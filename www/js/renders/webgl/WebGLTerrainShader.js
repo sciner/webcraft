@@ -1,7 +1,7 @@
-import {BaseTerrainShader} from "../BaseRenderer";
-import {Helpers} from "../../helpers";
+import {BaseTerrainShader} from "../BaseRenderer.js";
+import {Helpers} from "../../helpers.js";
 
-class WebGLTerrainShader extends BaseTerrainShader {
+export class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {
         super(context, options);
 
@@ -19,7 +19,7 @@ class WebGLTerrainShader extends BaseTerrainShader {
 
         this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
         this.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
-        this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
+        // this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         this.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
         this.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
         this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
@@ -53,11 +53,17 @@ class WebGLTerrainShader extends BaseTerrainShader {
         const { gl } = this.context;
         gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
         gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
-        gl.uniform1f(this.u_fogDensity, this.fogDensity);
+        // gl.uniform1f(this.u_fogDensity, this.fogDensity);
         gl.uniform4fv(this.u_fogAddColor, this.fogAddColor);
         gl.uniform1f(this.u_mipmap, this.mipmap);
         gl.uniform1f(this.u_brightness, this.brightness);
+        gl.uniform1f(this.u_chunkBlockDist, this.chunkBlockDist);
+
+        gl.uniform1f(this.u_blockSize, this.blockSize);
+        gl.uniform1f(this.u_pixelSize, this.pixelSize);
+        gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
+        gl.uniform1i(this.u_texture, 4);
     }
 }

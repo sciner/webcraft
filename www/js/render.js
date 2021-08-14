@@ -61,11 +61,11 @@ export default class Renderer {
     }
 
     async genTerrain(image) {
-        this.terrainTexSize = image.image.width;
-        this.terrainBlockSize = image.image.width / 512 * 16;
+        this.terrainTexSize = image.width;
+        this.terrainBlockSize = image.width / 512 * 16;
 
         if (!this.useAnisotropy) {
-            return await window.createImageBitmap(image);
+            return image;
         }
 
         const canvas2d = document.createElement('canvas');
@@ -109,7 +109,7 @@ export default class Renderer {
         this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
         // Create projection and view matrices
-        mat4.identity(that.modelMatrix);
+        mat4.identity(this.modelMatrix);
 
         this.setWorld(world);
 
@@ -117,17 +117,18 @@ export default class Renderer {
 
         await renderBackend.init();
 
-        this.shader = renderBackend.createShader({ code: resources.codeMain});
+        const shader = this.shader = renderBackend.createShader({ code: resources.codeMain});
 
         this.materials = {
-            regular: renderBackend.createMaterial({ cullFace: true, opaque: true}),
-            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true}),
-            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false}),
+            regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
+            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
+            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
         }
 
         this.projMatrix = this.shader.projMatrix;
         this.viewMatrix = this.shader.viewMatrix;
         this.modelMatrix = this.shader.modelMatrix;
+        this.brightness = 1;
 
         // Initialise WebGL
         // const gl = this.renderBackend.gl;
@@ -137,17 +138,17 @@ export default class Renderer {
         renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
         if (renderBackend.gl) {
-            // PickAt
-            this.pickAt             = new PickAt(this, gl);
+            this.pickAt = new PickAt(this, renderBackend.gl);
         }
 
         this.useAnisotropy = settings.mipmap;
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
 
-        this.texture = renderBackend.createTexture(await this.genTerrain(resources.terrain.image));
+        this.terrainTexture = renderBackend.createTexture({ source: await this.genTerrain(resources.terrain.image) });
 
-        this.whiteTexture = renderBackend.createTexture(await this.genColorTexture('white'));
+        this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
+        this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
@@ -173,6 +174,7 @@ export default class Renderer {
     initSky() {
         const { resources } = this;
         const { gl } = this.renderBackend;
+        const that = this;
         Helpers.createGLProgram(gl, resources.codeSky, (info) => {
             const program = info.program;
             gl.useProgram(program);
@@ -304,9 +306,7 @@ export default class Renderer {
 
     // Render one frame of the world to the canvas.
     draw(delta) {
-
-        let that = this;
-        let gl = this.gl;
+        const { gl, shader, renderBackend } = this;
 
         // console.log(Game.world.renderer.camPos[2]);
         //if(Game.world.localPlayer.pos.z + 1.7 < 63.8) {
@@ -319,80 +319,67 @@ export default class Renderer {
         currentRenderState.fogAddColor  = settings.fogAddColor;
         //}
 
-        // Initialise view
-        gl.useProgram(this.program);
-        gl.uniform1f(this.u_blockSize, this.terrainBlockSize / this.terrainTexSize);
-        gl.uniform1f(this.u_pixelSize, 1.0 / this.terrainTexSize);
-
         this.updateViewport();
 
-        // Говорим WebGL, как преобразовать координаты
-        // из пространства отсечения в пиксели
-        // gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clearColor(...currentRenderState.fogColor);
-        gl.uniform4fv(this.u_fogColor, currentRenderState.fogColor);
-        gl.uniform1f(this.u_chunkBlockDist, this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        renderBackend.beginFrame(currentRenderState.fogColor);
+
+        shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
+        shader.pixelSize = 1.0 / this.terrainTexSize
+        shader.fogColor = currentRenderState.fogColor;
+        shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        shader.mipmap = this.useAnisotropy ? 4.0 : 0.0;
+        shader.brightness = this.brightness;
+        shader.fogDensity = currentRenderState.fogDensity;
+        shader.fogAddColor = currentRenderState.fogAddColor;
+        mat4.perspective(this.fov, gl.viewportWidth / gl.viewportHeight, this.min, this.max, this.projMatrix);
 
         // 1. Draw skybox
-        if( that.skyBox) {
-            that.skyBox.draw(this.viewMatrix, this.projMatrix);
+        if( this.skyBox) {
+            this.skyBox.draw(this.viewMatrix, this.projMatrix);
         }
 
-        // 2. Draw level chunks
-        gl.useProgram(this.program);
-        // setCamera
-        gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
-        // setPerspective
-        mat4.perspective(this.fov, gl.viewportWidth / gl.viewportHeight, this.min, this.max, this.projMatrix);
-        gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
-        // Picking
-        this.pickAt.draw();
-        // set the fog color and near, far settings
-        // fog1
-        gl.uniform1f(this.u_fogDensity, currentRenderState.fogDensity);
-        gl.uniform4fv(this.u_fogAddColor, currentRenderState.fogAddColor);
-        gl.uniform1f(this.u_fogOn, true);
-        gl.uniform1f(this.u_mipmap, this.useAnisotropy ? 4.0 : 0.0);
-        // resolution
-        gl.uniform1f(this.u_brightness, this.brightness);
+        shader.bind();
+        shader.update();
+        // 0. Picking
+        if (this.pickAt) {
+            this.pickAt.draw();
+        }
 
-        gl.enable(gl.BLEND);
-
-        // Draw chunks
+        this.terrainTexture.bind(4);
+        // 2. Draw chunks
         this.world.chunkManager.draw(this);
-        this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
 
-        // 3. Draw players
-        gl.uniform1f(this.u_mipmap, 0.0);
-        gl.disable(gl.CULL_FACE);
-        this.drawPlayers(delta);
-        gl.enable(gl.CULL_FACE);
-
-        gl.disable(gl.BLEND);
+        // 3. Draw players and rain
+        if (this.renderBackend.gl) {
+            this.world.draw(this, delta, this.modelMatrix, this.uModelMat);
+            this.drawPlayers(delta);
+        }
 
         // 4. Draw HUD
-        if(that.HUD) {
-            that.HUD.draw();
+        if(this.HUD) {
+            this.HUD.draw();
         }
     }
 
     // drawPlayers
     drawPlayers(delta) {
-        let gl = this.gl;
-        gl.useProgram(this.program);
+        const {renderBackend, shader} = this;
+        const {gl} = renderBackend;
+        shader.bind();
+
+        gl.uniform1f(shader.u_mipmap, 0.0);
+        gl.disable(gl.CULL_FACE);
+
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
             if(player.id != this.world.server.id) {
-                player.draw(this, this.modelMatrix, this.uModelMat, this.camPos, delta);
+                player.draw(renderBackend, this.modelMatrix, shader.uModelMat, this.camPos, delta);
             }
         }
         // Restore Matrix
         mat4.identity(this.modelMatrix);
-        gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, this.texTerrain);
+        gl.uniformMatrix4fv(shader.uModelMat, false, this.modelMatrix);
+        gl.enable(gl.CULL_FACE);
     }
 
     /**
@@ -442,23 +429,12 @@ export default class Renderer {
         ], this.viewMatrix);
     }
 
-    // drawBuffer...
-    drawBuffer(buffer, a_pos) {
-        if (buffer.size === 0) {
-            return;
-        }
-        buffer.bind(this);
-        let gl = this.gl;
-        gl.uniform3fv(this.u_add_pos, [a_pos.x, a_pos.y, a_pos.z]);
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, buffer.size);
-    }
-
     // getVideoCardInfo...
     getVideoCardInfo() {
         if(this.videoCardInfoCache) {
             return this.videoCardInfoCache;
         }
-        let gl = this.gl;
+        let gl = this.renderBackend.gl;
         if (!gl) {
             return {
                 error: 'no webgl',

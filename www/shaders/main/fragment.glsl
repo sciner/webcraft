@@ -11,7 +11,6 @@ uniform sampler2D u_texture_mask;
 // Fog
 uniform vec4 u_fogColor;
 uniform vec4 u_fogAddColor;
-uniform float u_fogDensity;
 uniform bool u_fogOn;
 uniform float u_chunkBlockDist;
 
