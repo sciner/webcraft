@@ -1,20 +1,57 @@
 import {BaseMaterial} from "../BaseRenderer.js";
 
 export class WebGPUMaterial extends BaseMaterial {
+
     /**
      *
-     * @param {WebGPURenderer} render
-     * @private
+     * @param {WebGPUMaterial} context
+     * @param {cullFace, opaque, shader} options
      */
-    _init(render) {
+    constructor(context, options) {
+        super(context, options);
+
+        /**
+         *
+         * @type {GPUBindGroup}
+         */
+        this.group = null;
+        /**
+         *
+         * @type {GPUBuffer}
+         */
+        this.ubo = null;
+        this.uboData = new Float32Array(1);
+
+        /**
+         *
+         * @type {GPURenderPipeline}
+         */
+        this.pipeline = null;
+
+        this._init();
+    }
+
+    _init() {
         const {
             device,
             activePipeline
-        } = render;
+        } = this.context;
+
+        const {
+            cullFace,
+            texture,
+            /**
+             * @type {WebGPUTerrainShader}
+             */
+            shader,
+            opaque
+        } = this;
 
         if (this.group) {
             this.group.destroy();
         }
+
+        const base = shader.description;
 
         this.group = device.createBindGroup({
             // we should restricted know group and layout
@@ -24,6 +61,19 @@ export class WebGPUMaterial extends BaseMaterial {
                 // what should be this?
             ]
         });
+
+        const stride = 21  * 4;
+        this.pipeline = device.createRenderPipeline({
+            vertex: {
+                ...base.vertex,
+            },
+            fragment: {
+                ...base.fragment,
+            },
+            primitive: {
+                ...base.primitive
+            }
+        })
     }
 
     /**
@@ -31,10 +81,7 @@ export class WebGPUMaterial extends BaseMaterial {
      * @param {WebGPURenderer} render
      */
     bind(render) {
-        if (!this.group)
-            this._init(render);
 
-        render.activeBindings.push(this.group);
     }
 
     /**
@@ -42,10 +89,6 @@ export class WebGPUMaterial extends BaseMaterial {
      * @param {WebGPURenderer} render
      */
     unbind(render) {
-        const index = render.activeBindings.indexOf(this.group);
 
-        if (index > -1) {
-            render.activeBindings.splice(index, 1);
-        }
     }
 }
