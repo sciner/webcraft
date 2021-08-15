@@ -157,6 +157,7 @@ export default class Renderer {
             regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
             doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
             transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
+            label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
         this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
