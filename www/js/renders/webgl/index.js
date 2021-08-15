@@ -40,12 +40,14 @@ export class WebGLTexture extends BaseTexture {
         /**
          * @type {WebGLTexture}
          */
+
+        const mode = Array.isArray(this.source) ? 'cube' : '2d';
         const t = this.texture = this.texture || gl.createTexture();
-        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
+        const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
 
         gl.bindTexture(type, t);
 
-        if (this.mode === '2d') {
+        if (mode === '2d') {
             if (this.source) {
                 gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
             } else {
@@ -61,7 +63,7 @@ export class WebGLTexture extends BaseTexture {
         for(let i = 0; i < 6; i ++) {
             const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
             if (this.source) {
-                gl.texImage2D(start + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+                gl.texImage2D(start + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source[i]);
             } else {
                 gl.texImage2D(start + i, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             }
