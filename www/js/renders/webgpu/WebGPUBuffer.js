@@ -37,11 +37,16 @@ export class WebGPUBuffer extends BaseBuffer {
 
             this.buffer = device.createBuffer({
                 size: this._data.byteLength,
-                usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+                usage: (this.index ? GPUBufferUsage.INDEX : GPUBufferUsage.VERTEX) | GPUBufferUsage.COPY_DST,
                 mappedAtCreation: true
             });
 
-            new Float32Array(this.buffer.getMappedRange()).set(this._data);
+            if (this.index) {
+                new Uint16Array(this.buffer.getMappedRange()).set(this._data);
+            } else {
+                new Float32Array(this.buffer.getMappedRange()).set(this._data);
+            }
+
             this.lastLength = this._data.length;
             this.buffer.unmap();
             return;
