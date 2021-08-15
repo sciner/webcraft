@@ -74,6 +74,10 @@ export default class WebGPURenderer extends BaseRenderer{
         return new WebGPUBuffer(this, options);
     }
 
+    createCubeMap(options) {
+        return null;
+    }
+
     beginFrame(fogColor = [0,0,0,0]) {
         super.beginFrame(fogColor);
 

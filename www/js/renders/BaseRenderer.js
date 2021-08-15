@@ -256,6 +256,7 @@ export class BaseCubeShader extends BaseShader{
         this.texture = context.createTexture({
             source: options.sides
         });
+        this.texture.bind();
 
         this.lookAt = mat4.create();
         this.proj = mat4.create();

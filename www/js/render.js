@@ -187,8 +187,9 @@ export default class Renderer {
     initSky() {
         const { resources } = this;
 
-        this.skyTexture = this.renderBackend.createTexture({
-            source: [
+        return this.skyBox = this.renderBackend.createCubeMap({
+            code: resources.codeSky,
+            sides: [
                 resources.sky.posx,
                 resources.sky.negx,
                 resources.sky.posy,
@@ -196,113 +197,6 @@ export default class Renderer {
                 resources.sky.posz,
                 resources.sky.negz
             ]
-        });
-
-        this.skyTexture.bind();
-
-        return;
-
-        const { gl } = this.renderBackend;
-        const that = this;
-        Helpers.createGLProgram(gl, resources.codeSky, (info) => {
-            const program = info.program;
-            gl.useProgram(program);
-            const vao = gl.createVertexArray();
-            gl.bindVertexArray(vao);
-            const vertexBuffer = gl.createBuffer();
-            const indexBuffer = gl.createBuffer();
-            const vertexData = [
-                -1, -1, 1,
-                1, -1, 1,
-                1, 1, 1,
-                -1, 1, 1,
-                -1, -1, -1,
-                1, -1, -1,
-                1, 1, -1,
-                -1, 1, -1
-            ];
-            const indexData = [
-                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
-                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
-                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
-            ];
-            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexData), gl.STATIC_DRAW);
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array(indexData), gl.STATIC_DRAW);
-
-            const attribVertex = gl.getAttribLocation(program, 'a_vertex');
-            gl.vertexAttribPointer(attribVertex, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(attribVertex);
-
-            this.skyBox = {
-                program: program,
-                texture: gl.createTexture(),
-                loaded: false,
-                uniform: {
-                    texture: gl.getUniformLocation(program, 'u_texture'),
-                    lookAtMatrix: gl.getUniformLocation(program, 'u_lookAtMatrix'),
-                    projectionMatrix: gl.getUniformLocation(program, 'u_projectionMatrix'),
-                    u_brightness_value: gl.getUniformLocation(program, 'u_brightness_value')
-                },
-                buffer: {
-                    vertex: vertexBuffer,
-                    index: indexBuffer
-                },
-                draw: function (_lookAtMatrix, _projectionMatrix) {
-                    if (!this.loaded) {
-                        return;
-                    }
-                    _lookAtMatrix = new Float32Array(_lookAtMatrix)
-                    mat4.rotate(_lookAtMatrix, _lookAtMatrix, Math.PI / 2, [1, 0, 0]);
-                    _lookAtMatrix[12] = 0;
-                    _lookAtMatrix[13] = 0;
-                    _lookAtMatrix[14] = 0;
-                    gl.useProgram(this.program);
-                    gl.bindVertexArray(vao);
-                    // brightness
-                    gl.uniform1f(this.uniform.u_brightness_value, that.brightness);
-                    // skybox
-                    gl.uniform1i(this.uniform.texture, 0);
-                    gl.activeTexture(gl.TEXTURE0);
-                    gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
-                    gl.uniformMatrix4fv(this.uniform.lookAtMatrix, false, _lookAtMatrix);
-                    gl.uniformMatrix4fv(this.uniform.projectionMatrix, false, _projectionMatrix);
-
-                    //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-                    gl.disable(gl.CULL_FACE);
-                    gl.disable(gl.DEPTH_TEST);
-                    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0);
-                    gl.enable(gl.CULL_FACE);
-                    gl.enable(gl.DEPTH_TEST);
-                }
-            }
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, that.skyBox.texture);
-            const loadImageInTexture = (target, image) => {
-                const level = 0;
-                const internalFormat = gl.RGBA;
-                //const width = 1;
-                //const height = 1;
-                const format = gl.RGBA;
-                const type = gl.UNSIGNED_BYTE;
-                //gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, new Uint8Array([255, 255, 255, 255]));
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-                gl.texImage2D(target, level, internalFormat, format, type, image);
-            }
-
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_X, resources.sky.posx);
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_X, resources.sky.negx);
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Y, resources.sky.posy);
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, resources.sky.negy);
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_POSITIVE_Z, resources.sky.posz);
-            loadImageInTexture(gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, resources.sky.negz);
-
-            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-            gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-            this.skyBox.loaded = true;
         });
     }
 
