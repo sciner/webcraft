@@ -167,7 +167,84 @@ export class BaseTerrainShader extends BaseShader{
     }
 }
 
+export class CubeMesh {
+    constructor(shader, geom) {
+        this.shader = shader;
+        this.geom = geom;
+    }
+
+    get lookAt() {
+        return this.shader.lookAt;
+    }
+
+    get proj() {
+        return this.shader.proj;
+    }
+
+    get brightness() {
+        return this.shader.brightness;
+    }
+
+    set brightness(v) {
+        this.shader.brightness = v;
+    }
+
+    draw (lookAtMatrix, projMatrix) {
+        const {
+            lookAt, proj
+        } = this;
+
+        proj.set(projMatrix);
+        lookAt.set(lookAtMatrix);
+        mat4.rotate(lookAt, lookAt, Math.PI / 2, [1, 0, 0]);
+
+        lookAt[12] = 0;
+        lookAt[13] = 0;
+        lookAt[14] = 0;
+
+        this.shader.context.drawCube(this);
+    }
+}
+
+export class BaseCubeGeometry {
+    constructor(context, options) {
+        this.context = context;
+        this.options = options;
+
+        this.index = context.createBuffer({
+            data: new Uint16Array([
+                0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4,
+                1, 5, 6, 6, 2, 1, 0, 4, 7, 7, 3, 0,
+                3, 2, 6, 6, 7, 3, 0, 1, 5, 5, 4, 0
+            ]),
+            index: true
+        });
+
+        this.vertex = context.createBuffer({
+            data: new Float32Array([
+                -1, -1, 1,
+                1, -1, 1,
+                1, 1, 1,
+                -1, 1, 1,
+                -1, -1, -1,
+                1, -1, -1,
+                1, 1, -1,
+                -1, 1, -1
+            ])
+        });
+
+        this.buffers = [
+            this.vertex, this.index
+        ];
+    }
+}
+
 export class BaseCubeShader extends BaseShader{
+    /**
+     *
+     * @param {BaseRenderer} context
+     * @param {{code, sides: *[]}} options
+     */
     constructor(context, options) {
         super(context, options);
 
@@ -176,11 +253,16 @@ export class BaseCubeShader extends BaseShader{
          *
          * @type {BaseTexture}
          */
-        this.texture = options.texture;
+        this.texture = context.createTexture({
+            source: options.sides
+        });
 
         this.lookAt = mat4.create();
         this.proj = mat4.create();
         this.brightness = 1;
+
+        this.cull = false;
+        this.depth = false;
     }
 
     bind() {
@@ -265,6 +347,18 @@ export default class BaseRenderer {
     }
 
     createBuffer(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createCubeMap(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    /**
+     *
+     * @param {CubeMesh} cube
+     */
+    drawCube(cube) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 }

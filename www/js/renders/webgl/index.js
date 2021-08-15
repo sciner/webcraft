@@ -1,8 +1,9 @@
 //@ts-check
-import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture} from "../BaseRenderer.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
+import {Helpers} from "../../helpers.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -12,6 +13,79 @@ const TEXTURE_FILTER_GL = {
 const TEXTURE_MODE = {
     '2d': 'TEXTURE_2D',
     'cube': 'TEXTURE_CUBE_MAP'
+}
+
+export class WebGLCubeShader extends BaseCubeShader {
+    constructor(context, options) {
+        super(context, options);
+
+        const {
+            gl
+        } = this.context;
+
+        Helpers.createGLProgram(gl, options.code, (ret) => {
+            this.program = ret.program;
+        });
+
+        this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
+        this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
+        this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
+        this.u_brightness_value = gl.getUniformLocation(this.program, 'u_brightness_value');
+        this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
+    }
+
+    bind() {
+        this.texture.bind(0);
+        const { gl } = this.context;
+
+        gl.useProgram(this.program);
+        //gl.bindVertexArray(vao);
+        // brightness
+        gl.uniform1f(this.u_brightness_value, this.brightness);
+        // skybox
+        //gl.uniform1i(this.uniform.texture, 0);
+        //gl.activeTexture(gl.TEXTURE0);
+        //gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
+        gl.uniformMatrix4fv(this.lookAtMatrix, false, this.lookAt);
+        gl.uniformMatrix4fv(this.projectionMatrix, false, this.proj);
+
+        //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        /*
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
+        */
+
+        super.bind();
+    }
+}
+
+export class WebGLCubeGeometry extends BaseCubeGeometry {
+    constructor(context, options) {
+        super(context, options);
+
+        this.vao = null;
+    }
+
+    bind(shader) {
+        if (this.vao) {
+            this.context.gl.bindVertexArray(this.vao)
+        } else {
+            this.vertex.bind();
+            this.index.bind();
+
+            const { gl } = this.context;
+
+            gl.vertexAttribPointer(shader.a_vertex, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(shader.a_vertex);
+        }
+    }
+
+    unbind() {
+        this.context.gl.bindVertexArray(null);
+    }
 }
 
 export class WebGLTexture extends BaseTexture {
