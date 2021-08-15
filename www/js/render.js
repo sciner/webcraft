@@ -413,13 +413,19 @@ export default class Renderer {
     * the render configuration if required.
     */
     updateViewport() {
-        let gl = this.gl;
         let canvas = this.canvas;
-        if (canvas.clientWidth != this.viewportWidth || canvas.clientHeight != this.viewportHeight) {
-            this.renderBackend.resize(canvas.clientWidth, canvas.clientHeight);
-            this.renderBackend._configure();
-            canvas.width      = window.innerWidth * window.devicePixelRatio;
-            canvas.height     = window.innerHeight * window.devicePixelRatio;
+        if (canvas.clientWidth !== this.viewportWidth ||
+            canvas.clientHeight !== this.viewportHeight
+        ) {
+            // resize call _configure automatically but ONLY if dimension changed
+            // _configure very slow!
+            this.renderBackend.resize(
+                window.innerWidth * self.devicePixelRatio | 0,
+                window.innerHeight * self.devicePixelRatio | 0);
+
+            this.viewportWidth = window.innerWidth | 0;
+            this.viewportHeight = window.innerHeight | 0;
+
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.fov, this.min, this.max);
         }
