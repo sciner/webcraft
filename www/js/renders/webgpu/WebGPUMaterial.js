@@ -132,8 +132,9 @@ export class WebGPUMaterial extends BaseMaterial {
 
     bind(render, supressExtend) {
         if (this.parent) {
-            parent.bind(render, true);
+            this.parent.bind(render, true);
             this.bindPosGroup();
+            return;
         }
 
         const {
