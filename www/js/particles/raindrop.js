@@ -32,24 +32,21 @@ export default class Particles_Raindrop {
             let z = (Math.random() - Math.random()) * 16;
             push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
         }
+
+        this.modelMatrix = mat4.create();
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
     }
 
     // Draw
-    draw(render, delta, modelMatrix, uModelMat) {
+    draw(render, delta) {
         let gl      = render.gl;
         this.life   -= delta / 100000;
         delta       /= 1000;
         this.pos.y  += delta * -.40;
         let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
-        //
-        mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
-        mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        // render
-        render.drawBuffer(this.buffer, a_pos);
+        render.renderBackend.drawMesh(this.buffer, render.materials.doubleface, a_pos, this.modelMatrix);
     }
 
     destroy(render) {
