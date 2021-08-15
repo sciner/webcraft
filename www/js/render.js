@@ -127,12 +127,6 @@ export default class Renderer {
 
         const shader = this.shader = renderBackend.createShader({ code: resources.codeMain});
 
-        this.materials = {
-            regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
-            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
-            transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
-        }
-
         // Create projection and view matrices
         this.projMatrix = this.shader.projMatrix;
         this.viewMatrix = this.shader.viewMatrix;
@@ -156,7 +150,14 @@ export default class Renderer {
             source: await this.genTerrain(resources.terrain.image),
             minFilter: 'nearest',
             magFilter: 'nearest',
+            anisotropy: this.useAnisotropy ? 4.0 : 0.0,
         });
+
+        this.materials = {
+            regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
+            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
+            transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
+        }
 
         this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
         this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
@@ -252,10 +253,11 @@ export default class Renderer {
         shader.pixelSize = 1.0 / this.terrainTexSize
         shader.fogColor = currentRenderState.fogColor;
         shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-        shader.mipmap = this.useAnisotropy ? 4.0 : 0.0;
         shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
         shader.fogAddColor = currentRenderState.fogAddColor;
+        shader.texture = this.terrainTexture;
+        shader.mipmap = this.terrainTexture.anisotropy;
         // shader.camPos.set([Game.shift.x, Game.shift.z, 0]);
 
         const {
@@ -285,9 +287,7 @@ export default class Renderer {
         this.world.chunkManager.draw(this);
         this.world.draw(this, delta);
         // 3. Draw players and rain
-        if (this.renderBackend.gl) {
-            this.drawPlayers(delta);
-        }
+        this.drawPlayers(delta);
 
         // 4. Draw HUD
         if(this.HUD) {
@@ -300,22 +300,14 @@ export default class Renderer {
     // drawPlayers
     drawPlayers(delta) {
         const {renderBackend, shader} = this;
-        const {gl} = renderBackend;
         shader.bind();
-
-        gl.uniform1f(shader.u_mipmap, 0.0);
-        gl.disable(gl.CULL_FACE);
 
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
             if(player.id != this.world.server.id) {
-                player.draw(renderBackend, this.modelMatrix, shader.uModelMat, this.camPos, delta);
+                player.draw(this, this.camPos, delta);
             }
         }
-        // Restore Matrix
-        mat4.identity(this.modelMatrix);
-        gl.uniformMatrix4fv(shader.uModelMat, false, this.modelMatrix);
-        gl.enable(gl.CULL_FACE);
     }
 
     /**

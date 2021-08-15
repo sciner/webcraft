@@ -13,6 +13,12 @@ export class WebGLMaterial extends BaseMaterial {
         if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
         }
+        if (WebGLMaterial.texState !== this.texture) {
+            const tex = this.texture || this.shader.texture;
+            gl.uniform1f(this.shader.u_mipmap, tex.anisotropy);
+            tex.bind(4);
+            WebGLMaterial.texState = this.texture;
+        }
     }
 
     unbind() {
@@ -44,4 +50,6 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniformMatrix4fv(this.uModelMatrix, false, modelMatrix);
         }
     }
+
+    static texState = null;
 }
