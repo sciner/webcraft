@@ -84,7 +84,7 @@ export class ChunkManager {
         let applyVerticesCan        = 1;
         let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
-        this.spiral_moves = SpiralGenerator.generate(this.margin * 2, this.margin);
+        this.spiral_moves = SpiralGenerator.generate(this.margin);
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
@@ -181,7 +181,7 @@ export class ChunkManager {
             return;
         }
         let world = this.world;
-        let spiral_moves = SpiralGenerator.generate(this.margin * 2, this.margin);
+        let spiral_moves = SpiralGenerator.generate(this.margin);
         let chunkPos = this.getChunkPos(world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z);
         if(world.localPlayer) {
             chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);

@@ -686,7 +686,7 @@ export default class Player {
                 velocity.z /= this.falling ? 1.01 : 1.5;
             }
             // Resolve collision
-            this.pos = this.resolveCollision(pos, bPos, velocity.mul(delta));
+            this.pos = this.resolveCollision(pos, bPos, velocity.mul(new Vector(delta, delta, delta)));
             this.pos.x = Math.round(this.pos.x * 1000) / 1000;
             this.pos.y = Math.round(this.pos.y * 1000) / 1000;
             this.pos.z = Math.round(this.pos.z * 1000) / 1000;
