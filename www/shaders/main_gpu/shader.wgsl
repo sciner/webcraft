@@ -1,8 +1,11 @@
+[[block]] struct VExtendUniform {
+    ModelMatrix : mat4x4<f32>;
+    add_pos : vec3<f32>;
+};
+
 [[block]] struct VUniforms {
     ProjMatrix : mat4x4<f32>;
     worldView : mat4x4<f32>;
-    ModelMatrix : mat4x4<f32>;
-    add_pos : vec3<f32>;
     fogOn : f32;
     brightness : f32;
     pixelSize : f32;
@@ -56,6 +59,7 @@ struct VertexOutput {
 
 [[group(0), binding(0)]] var<uniform> u : VUniforms;
 [[group(0), binding(1)]] var<uniform> fu : FUniforms;
+[[group(1), binding(0)]] var<uniform> eu : VExtendUniform;
 
 [[group(0), binding(2)]] var u_sampler: sampler;
 [[group(0), binding(3)]] var u_texture: texture_2d<f32>;
@@ -96,7 +100,7 @@ fn main_vert(a : Attrs) -> VertexOutput {
         }
     }
     // 1. Pass the view position to the fragment shader
-    v.position = (u.worldView * (u.ModelMatrix * vec4<f32>(pos, 1.0) + vec4<f32>(u.add_pos, 0.0))).xyz;
+    v.position = (u.worldView * (eu.ModelMatrix * vec4<f32>(pos, 1.0) + vec4<f32>(eu.add_pos, 0.0))).xyz;
     v.VPos = u.ProjMatrix * vec4<f32>(v.position, 1.0);
 
     return v;
