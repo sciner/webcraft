@@ -1,6 +1,8 @@
 import {Vector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_Y} from "./blocks.js";
 
+const {mat4} = glMatrix;
+
 const PICKAT_DIST = 5;
 
 export default class PickAt {
@@ -21,7 +23,7 @@ export default class PickAt {
         const player = Game.world.localPlayer;
         const render = this.render;
         const pos = new Vector(player.pos);
-        const m = mat4.inverse(render.viewMatrix, mat4.create());
+        const m = mat4.invert(mat4.create(), render.viewMatrix);
 
         pos.y = m[14];
         const startBlock = new Vector(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
