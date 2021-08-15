@@ -260,9 +260,11 @@ export class WebGPUMaterial extends BaseMaterial {
         }
     }
 
-    updateExtend(addPos, modelMatrix) {
-        this.extendData.set(modelMatrix)
-        this.extendData.set(addPos, 16);
+    updatePos(addPos, modelMatrix) {
+        const data = this.positionData || this.shader.positionData;
+
+        data.set(modelMatrix)
+        data.set(addPos, 16);
     }
 
     /**
