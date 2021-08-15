@@ -136,8 +136,8 @@ export default class WebGPURenderer extends BaseRenderer{
 
         this.passEncoder.setBindGroup(0, material.group);
 
-        if(material.posGroup)
-            this.passEncoder.setBindGroup(1, material.posGroup);
+        if(material.skinGroup)
+            this.passEncoder.setBindGroup(1, material.skinGroup);
 
         this.passEncoder.draw(6, geom.size, 0, 0);
     }
