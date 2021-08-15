@@ -206,7 +206,6 @@ export class WebGPUMaterial extends BaseMaterial {
             shader,
             cullFace,
         };
-        texture.bind();
 
         this._group = device.createBindGroup({
             // we should restricted know group and layout
@@ -236,10 +235,7 @@ export class WebGPUMaterial extends BaseMaterial {
             device
         } = this.context;
 
-        if (!this.texture) {
-            this.texture = this.shader.texture;
-        }
-
+        const texture = this.texture || this.shader.texture;
         const data = this.positionData || this.shader.positionData;
 
         if (!data) {
@@ -257,7 +253,7 @@ export class WebGPUMaterial extends BaseMaterial {
             this.positionUbo, 0, data.buffer, data.byteOffset, data.byteLength
         );
 
-        if (!this._skinGroup || this.texture !== this.lastState.texture) {
+        if (!this._skinGroup || texture !== this.lastState.texture) {
             this.texture.bind();
             this._skinGroup = device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(1),
@@ -270,17 +266,17 @@ export class WebGPUMaterial extends BaseMaterial {
                     },
                     {
                         binding: 1,
-                        resource: this.texture.sampler,
+                        resource: texture.sampler,
                     },
                     {
                         binding: 2,
-                        resource: this.texture.view,
+                        resource: texture.view,
                     },
                 ]
             });
         }
 
-        this.lastState.texture = this.texture;
+        this.lastState.texture = texture;
 
     }
 
