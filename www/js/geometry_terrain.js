@@ -32,6 +32,8 @@ export default class GeometryTerrain {
          * @type {BaseRenderer}
          */
         this.context = null;
+
+        this.buffers = [];
     }
 
     createVao()
@@ -94,6 +96,11 @@ export default class GeometryTerrain {
             });
 
             this.quad = GeometryTerrain.bindQuad(this.context, true);
+
+            this.buffers = [
+                this.buffer,
+                this.quad
+            ];
         }
 
         const { gl } = this;
