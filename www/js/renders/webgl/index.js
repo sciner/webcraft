@@ -44,7 +44,6 @@ export class WebGLCubeShader extends BaseCubeShader {
 
         gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
         gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
-        super.bind();
     }
 }
 
@@ -56,17 +55,21 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
     }
 
     bind(shader) {
+        const { gl } = this.context;
+
         if (this.vao) {
-            this.context.gl.bindVertexArray(this.vao)
-        } else {
-            this.vertex.bind();
-            this.index.bind();
-
-            const { gl } = this.context;
-
-            gl.vertexAttribPointer(shader.a_vertex, 3, gl.FLOAT, false, 0, 0);
-            gl.enableVertexAttribArray(shader.a_vertex);
+            this.context.gl.bindVertexArray(this.vao);
+            return;
         }
+
+        this.vao = gl.createVertexArray();
+        gl.bindVertexArray(this.vao);
+
+        this.vertex.bind();
+        this.index.bind();
+
+        gl.vertexAttribPointer(shader.a_vertex, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shader.a_vertex);
     }
 
     unbind() {
