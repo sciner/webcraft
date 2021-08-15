@@ -98,6 +98,7 @@ export class BaseMaterial {
         this.texture = options.texture || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
+        this.ignoreDepth = options.ignoreDepth || false;
     }
 
 
