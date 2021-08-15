@@ -234,30 +234,33 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const data = this.positionData || this.shader.positionData;
 
-        if (data) {
+        if (!data) {
+            return;
+        }
+
+        if (!this.positionUbo) {
             this.positionUbo = device.createBuffer({
                 size: data.byteLength,
                 usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
             })
         }
 
-        if (data && this.positionUbo) {
-            device.queue.writeBuffer(
-                this.positionUbo, 0, data.buffer, data.byteOffset, data.byteLength
-            );
+        device.queue.writeBuffer(
+            this.positionUbo, 0, data.buffer, data.byteOffset, data.byteLength
+        );
 
-            this._posGroup = this._posGroup || device.createBindGroup({
-                layout: this.pipeline.getBindGroupLayout(1),
-                entries: [
-                    {
-                        binding: 0,
-                        resource: {
-                            buffer: this.positionUbo
-                        }
+        this._posGroup = this._posGroup || device.createBindGroup({
+            layout: this.pipeline.getBindGroupLayout(1),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.positionUbo
                     }
-                ]
-            });
-        }
+                }
+            ]
+        });
+
     }
 
     updatePos(pos, modelMatrix = null) {
