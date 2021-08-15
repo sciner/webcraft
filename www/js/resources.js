@@ -52,7 +52,7 @@ Resources.loadImage = (url,  imageBitmap) => {
     if (imageBitmap) {
         return fetch(url)
             .then(r => r.blob())
-            .then(blob => self.createImageBitmap(blob));
+            .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}));
     }
 
     return new Promise((resolve, reject) => {
