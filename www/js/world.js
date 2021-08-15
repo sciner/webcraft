@@ -20,7 +20,12 @@ export default class World {
 
         let that = this;
 
+<<<<<<< HEAD
         let serverURL = Helpers.isDev() ? 'ws://127.0.0.1:5700/ws' : 'wss://webcraft.whiteframe.ru/ws';
+=======
+    async connect() {
+        let serverURL = Helpers.isDev() ? `ws://${location.hostname}:${location.port}/ws` : 'wss://webcraft.whiteframe.ru/ws';
+>>>>>>> 2e6cee2 (fix: localhost server)
 
         // Create server client
         that.server = new ServerClient(serverURL, function() {
