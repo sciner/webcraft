@@ -14,7 +14,7 @@ struct VertexOutput {
 };
 
 [[stage(vertex)]]
-fn main_vertex([[location(0)]] position : vec3<f32>) -> VertexOutput {
+fn main_vert([[location(0)]] position : vec3<f32>) -> VertexOutput {
     var output : VertexOutput;
     output.pos = ubo.proj * ubo.lookAt * vec4<f32>(position, 1.0);
     output.uv = position;
@@ -26,5 +26,5 @@ fn main_vertex([[location(0)]] position : vec3<f32>) -> VertexOutput {
 fn main_frag([[location(0)]] uv: vec3<f32>) -> [[location(0)]] vec4<f32> {
     var color: vec4<f32> = textureSample(u_texture, u_sampler, uv);
 
-    return vec4<f32>(color.rgb * ubo.brightness, color.a);
+    return vec4<f32>(1.0, 0.0, 1.0, 1.0);//color.rgb * ubo.brightness, color.a);
 }
