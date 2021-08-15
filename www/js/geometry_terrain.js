@@ -13,11 +13,25 @@ export default class GeometryTerrain {
         } else {
             this.data = vertices;
         }
+
         this.size = this.data.length / this.strideFloats;
 
-        this.glSize = 0;
-        this.glBuffer = 0;
+        /**
+         *
+         * @type {BaseBuffer}
+         */
+        this.buffer = null;
+        /**
+         *
+         * @type {BaseBuffer}
+         */
+        this.quad = null;
         this.vao = null;
+        /**
+         *
+         * @type {BaseRenderer}
+         */
+        this.context = null;
     }
 
     createVao()
@@ -38,11 +52,6 @@ export default class GeometryTerrain {
         gl.enableVertexAttribArray(attribs.a_quad);
         gl.enableVertexAttribArray(attribs.a_quadOcc);
 
-        this.glBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, this.data, gl.DYNAMIC_DRAW);
-        this.glSize = this.data.length;
-
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
@@ -61,7 +70,8 @@ export default class GeometryTerrain {
         gl.vertexAttribDivisor(attribs.a_occlusion, 1);
         gl.vertexAttribDivisor(attribs.a_flags, 1);
 
-        GeometryTerrain.bindQuad(gl);
+        this.quad.bind();
+
         gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 6 * 4, 0);
         gl.vertexAttribPointer(attribs.a_quadOcc, 4, gl.FLOAT, false, 6 * 4, 2 * 4);
     }
@@ -70,27 +80,40 @@ export default class GeometryTerrain {
     {
         if (shader) {
             this.attribs = shader;
+            this.context = shader.context;
+
+            // when WebGL
             this.gl = shader.context.gl;
         }
 
-        const { gl } = this;
-        if (!this.vao) {
-            this.createVao();
-            this.uploadID = this.updateID;
-            return;
+        if (!this.buffer) {
+            this.buffer = this.context.createBuffer({
+                data: this.data
+            });
+
+            this.quad = GeometryTerrain.bindQuad(this.context, true);
         }
-        gl.bindVertexArray(this.vao);
+
+        const { gl } = this;
+
+        if (gl) {
+            if (!this.vao) {
+                this.createVao();
+                this.uploadID = this.updateID;
+                return;
+            }
+
+            gl.bindVertexArray(this.vao);
+        }
+
         if (this.uploadID === this.updateID) {
             return;
         }
+
         this.uploadID = this.updateID;
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.glBuffer);
-        if (this.glSize < this.data.length) {
-            gl.bufferData(gl.ARRAY_BUFFER, this.data, gl.DYNAMIC_DRAW);
-            this.glSize = this.data.length;
-        } else {
-            gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.data);
-        }
+
+        this.buffer.data = this.data;
+        this.buffer.dirty = true;
     }
 
     updateInternal(data) {
@@ -106,30 +129,48 @@ export default class GeometryTerrain {
     }
 
     destroy() {
-        if (this.glBuffer) {
-            this.gl.deleteBuffer(this.glBuffer);
-            this.glBuffer = null;
+        // we not destroy it, it shared
+        this.quad = null;
+
+        if(this.buffer) {
+            this.buffer.destroy();
+            this.buffer = null;
+        }
+
+        if (this.vao) {
             this.gl.deleteVertexArray(this.vao);
             this.vao = null;
         }
     }
 
     static quadBuf = null;
-    static bindQuad(gl) {
+
+    /**
+     *
+     * @param {BaseRenderer} context
+     * @param noBind - only create, no bind
+     * @return {BaseBuffer}
+     */
+    static bindQuad(context, noBind = false) {
         if (GeometryTerrain.quadBuf) {
-            gl.bindBuffer(gl.ARRAY_BUFFER, GeometryTerrain.quadBuf);
-            return;
+            GeometryTerrain.quadBuf.bind();
+            return GeometryTerrain.quadBuf;
         }
-        const quadBuf = GeometryTerrain.quadBuf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, quadBuf);
-        const quad = new Float32Array([
-            -.5, -.5, 1, 0, 0, 0,
-            .5, -.5, 0, 1, 0, 0,
-            .5, .5, 0, 0, 1, 0,
-            -.5, -.5, 1, 0, 0, 0,
-            .5, .5, 0, 0, 1, 0,
-            -.5, .5, 0, 0, 0, 1]);
-        gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+        const quadBuf = GeometryTerrain.quadBuf = context.createBuffer({
+            data: new Float32Array([
+                -.5, -.5, 1, 0, 0, 0,
+                .5, -.5, 0, 1, 0, 0,
+                .5, .5, 0, 0, 1, 0,
+                -.5, -.5, 1, 0, 0, 0,
+                .5, .5, 0, 0, 1, 0,
+                -.5, .5, 0, 0, 0, 1]
+            ),
+            usage: 'static'
+        });
+
+        !noBind && quadBuf.bind();
+        return quadBuf;
     }
 
     static convertFrom12(vertices) {
