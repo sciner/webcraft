@@ -119,6 +119,7 @@ export default class WebGPURenderer extends BaseRenderer{
             this.subMats.push(material);
         }
 
+
         material.updatePos(a_pos, modelMatrix);
         material.bind(this);
 
