@@ -1,6 +1,6 @@
 import {TX_CNT, ROTATE, DIRECTION, NORMALS, Vector, Vector4, Color} from './helpers.js';
 
-let MULTIPLY = {
+export let MULTIPLY = {
     COLOR: {
         WHITE: new Color(816 / 1024, 1008 / 1024, 0, 0),
         GRASS: new Color(900 / 1024, 965 / 1024, 0, 0)
