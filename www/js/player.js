@@ -437,8 +437,8 @@ export default class Player {
         if(!Game.controls.enabled || this.chat.active || visibleWindows.length > 0) {
             return false
         }
-        x = Game.render.gl.canvas.width * 0.5;
-        y = Game.render.gl.canvas.height * 0.5;
+        x = Game.render.canvas.width * 0.5;
+        y = Game.render.canvas.height * 0.5;
         if (type == MOUSE.DOWN) {
             this.doBlockAction(button_id, shiftKey);
         }
@@ -452,6 +452,11 @@ export default class Player {
         let createBlock     = button_id == 3;
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
+
+        if (!this.canvas.renderer.pickAt) {
+            return;
+        }
+
         this.canvas.renderer.pickAt.get(function(block) {
             if(block != false) {
                 let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);

@@ -15,72 +15,82 @@ const MAX_DIST_FOR_SHIFT = 800;
 * using this class.
 */
 export default class World {
-    
-    constructor(saved_state, connectedCallback) {
 
-        let that = this;
+    constructor(saved_state) {
+        this._savedState = saved_state;
 
+        // Autosave
+        setInterval(() => {
+            console.log('Autosave ... OK');
+            Game.saves.save(this);
+        }, 60000 * 5);
+    }
+
+    async connect() {
         let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
             '//' + location.hostname +
             (location.port ? ':' + location.port : '') +
             '/ws';
+        return new Promise(res => {
+            const server = new ServerClient(serverURL, () => {
+                res(server);
+            });
+        });
+    }
+
+    async init() {
+        const saved_state = this._savedState;
 
         // Create server client
-        that.server = new ServerClient(serverURL, function() {
-            that.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
-            that.players        = [];
-            that.rainTim        = null;
-            that.saved_state    = saved_state;
-            that.seed           = saved_state.seed;
-            that.chunkManager   = new ChunkManager(that);
-            that.rotateRadians  = new Vector(0, 0, 0);
-            that.rotateDegree   = new Vector(0, 0, 0);
-            //
-            that.meshes         = {
-                list: {},
-                add: function(mesh, key) {
-                    if(!key) {
-                        key = Helpers.generateID();
-                    }
-                    this.list[key] = mesh;
-                },
-                remove: function(key, render) {
-                    this.list[key].destroy(render);
-                    delete(this.list[key]);
-                },
-                draw: function(render, delta, modelMatrix, uModelMat) {
-                    for(let key of Object.keys(this.list)) {
-                        let mesh = this.list[key];
-                        if(mesh.isAlive()) {
-                            mesh.draw(render, delta, modelMatrix, uModelMat);
-                        } else {
-                            this.remove(key, render)
-                        }
+        this.server = await this.connect();
+
+        this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
+        this.players        = [];
+        this.rainTim        = null;
+        this.saved_state    = saved_state;
+        this.seed           = saved_state.seed;
+        this.chunkManager   = new ChunkManager(this);
+        this.rotateRadians  = new Vector(0, 0, 0);
+        this.rotateDegree   = new Vector(0, 0, 0);
+        //
+        this.meshes         = {
+            list: {},
+            add: function(mesh, key) {
+                if(!key) {
+                    key = Helpers.generateID();
+                }
+                this.list[key] = mesh;
+            },
+            remove: function(key, render) {
+                this.list[key].destroy(render);
+                delete(this.list[key]);
+            },
+            draw: function(render, delta) {
+                for(let key of Object.keys(this.list)) {
+                    let mesh = this.list[key];
+                    if(mesh.isAlive()) {
+                        mesh.draw(render, delta);
+                    } else {
+                        this.remove(key, render)
                     }
                 }
-            };
-            that.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
-            that.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
-            if(saved_state.hasOwnProperty('chunk_render_dist')) {
-                that.chunkManager.setRenderDist(saved_state.chunk_render_dist);
             }
-            connectedCallback();
-        });
+        };
+        this.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
+        this.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
 
-        // Autosave
-        setInterval(function() {
-            console.log('Autosave ... OK');
-            Game.saves.save(that);
-        }, 60000 * 5);
+        if(saved_state.hasOwnProperty('chunk_render_dist')) {
+            this.chunkManager.setRenderDist(saved_state.chunk_render_dist);
+        }
     }
 
     // Draw
-    draw(render, delta, modelMatrix, uModelMat) {
-        this.meshes.draw(render, delta, modelMatrix, uModelMat);
+    draw(render, delta) {
+        this.meshes.draw(render, delta);
         return true;
     }
 
-    // 
+    //
     createClone() {
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
