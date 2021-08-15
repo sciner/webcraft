@@ -7,13 +7,14 @@ export class BaseBuffer {
         this.context = context;
         this.options = options;
         this._data = options.data;
+        this.index = options.index;
 
         this.dirty = true;
     }
 
     /**
      *
-     * @param {Float32Array} v
+     * @param {Float32Array | Uint16Array} v
      */
     set data(v) {
         this.dirty = true;
@@ -120,6 +121,8 @@ export class BaseShader {
          * @type {{vertex: string, fragment: string}}
          */
         this.code = options.code;
+
+        this.bindings = [];
     }
 
     bind() {
@@ -174,6 +177,10 @@ export class BaseCubeShader extends BaseShader{
          * @type {BaseTexture}
          */
         this.texture = options.texture;
+
+        this.lookAt = mat4.create();
+        this.proj = mat4.create();
+        this.brightness = 1;
     }
 
     bind() {

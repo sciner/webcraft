@@ -25,13 +25,15 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+
+        gl.bindBuffer(type, this.buffer);
 
         if (this.lastLenght < this.data.length) {
-            gl.bufferData(gl.ARRAY_BUFFER, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
+            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
             this.lastLenght = this.data.length
         } else {
-            gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.data);
+            gl.bufferSubData(type, 0, this.data);
         }
 
         super.update();
@@ -50,7 +52,7 @@ export class WebGLBuffer extends BaseBuffer {
             return;
         }
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+        gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
     }
 
     destroy() {

@@ -117,12 +117,17 @@ export default class WebGPURenderer extends BaseRenderer{
         material.updatePos(a_pos);
         material.bind(this);
 
-        geom.buffer.bind();
-        geom.quad.bind();
-
         this.passEncoder.setPipeline(material.pipeline);
-        this.passEncoder.setVertexBuffer(1, geom.quad.buffer);
-        this.passEncoder.setVertexBuffer(0, geom.buffer.buffer);
+
+        geom.buffers.forEach((e, i) => {
+            e.bind();
+            if (e.index) {
+                this.passEncoder.setIndexBuffer(e.buffer, 'uint16');
+                return;
+            }
+
+            this.passEncoder.setVertexBuffer(i, e.buffer);
+        })
 
 
         this.passEncoder.setBindGroup(0, material.group);
