@@ -13,6 +13,9 @@ export class WebGLMaterial extends BaseMaterial {
         if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
         }
+        if (this.ignoreDepth) {
+            gl.disable(gl.DEPTH_TEST);
+        }
         if (WebGLMaterial.texState !== this.texture) {
             const tex = this.texture || this.shader.texture;
             gl.uniform1f(this.shader.u_mipmap, tex.anisotropy);
@@ -29,11 +32,15 @@ export class WebGLMaterial extends BaseMaterial {
         if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
         }
+        if (this.ignoreDepth) {
+            gl.enable(gl.DEPTH_TEST);
+        }
     }
 
-    getSubMat() {
+    getSubMat(texture = null) {
         // nothing
-        return this;
+        return this.context.createMaterial({texture: texture || this.texture, shader: this.shader,
+            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
     }
 
     updatePos(addPos, modelMatrix = null) {
