@@ -294,12 +294,28 @@ export class WebGPUMaterial extends BaseMaterial {
     }
 
     destroy() {
+
+        if (this._posGroup) {
+            this.positionUbo.destroy();
+            this.positionUbo = null;
+        }
+
+        this.positionData = null;
+        this._posGroup = null;
+
+        // this is sub mat, not destroy parent mat
+        if(this.parent) {
+            this.parent = null;
+            super.destroy();
+            return;
+        }
+
         if (!this.group) {
             return;
         }
 
         this.lastState = {};
-        this.group = null;
+        this._group = null;
         this.fragmentUbo.destroy();
         this.vertexUbo.destroy();
 
