@@ -194,4 +194,17 @@ export class WebGPUMaterial extends BaseMaterial {
     unbind(render) {
 
     }
+
+    destroy() {
+        if (!this.group) {
+            return;
+        }
+
+        this.lastState = {};
+        this.group = null;
+        this.fragmentUbo.destroy();
+        this.vertexUbo.destroy();
+
+        super.destroy();
+    }
 }
