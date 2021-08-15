@@ -243,7 +243,12 @@ export default class HUD {
     
     //
     prepareText() {
+<<<<<<< HEAD
         this.text = 'FPS: ' + Math.round(fps.fps) + ' / ' + (Math.round(1000 / fps.avg * 100) / 100) + ' ms';
+=======
+        this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
+        this.text += 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(fps.avg);
+>>>>>>> 9a7aa5c392016961a7b9ff2319c19c721329bba6
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += '\nRenderer: ' + vci.renderer;
