@@ -2,6 +2,7 @@
 import BaseRenderer, {BaseTexture} from "../BaseRenderer.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
+import {WebGLBuffer} from "./WebGLBuffer.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -143,6 +144,10 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createShader(options) {
         return new WebGLTerrainShader(this, options);
+    }
+
+    createBuffer(options) {
+        return new WebGLBuffer(this, options);
     }
 
     drawMesh(geom, material, a_pos) {

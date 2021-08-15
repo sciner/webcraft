@@ -3,6 +3,7 @@ import BaseRenderer from "../BaseRenderer.js";
 import {WebGPUTerrainShader} from "./WebGPUTerrainShader.js";
 import {WebGPUMaterial} from "./WebGPUMaterial.js";
 import {WebGPUTexture} from "./WebGPUTexture.js";
+import {WebGPUBuffer} from "./WebGPUBuffer.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -79,6 +80,10 @@ export default class WebGPURenderer extends BaseRenderer{
         return new WebGPUTexture(this, options);
     }
 
+    createBuffer(options) {
+        return new WebGPUBuffer(this, options);
+    }
+
     beginFrame(fogColor = [0,0,0,0]) {
         super.beginFrame(fogColor);
 
@@ -111,25 +116,16 @@ export default class WebGPURenderer extends BaseRenderer{
         if (geom.size === 0) {
             return;
         }
+
+        geom.bind(material.shader);
         material.bind(this);
-        /**
-         * @type {Float32Array}
-         */
-        const data = geom.data;
-        const buff = this.device.createBuffer({
-            size: data.byteLength,
-            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.STORAGE,
-            mappedAtCreation: true
-        });
 
-        new Float32Array(buff.getMappedRange()).set(data);
-        buff.unmap();
-
-        this.passedBuffers.push(buff);
+        geom.buffer.bind();
+        geom.quad.bind();
 
         this.passEncoder.setPipeline(material.pipeline);
-        this.passEncoder.setVertexBuffer(1, this.quad);
-        this.passEncoder.setVertexBuffer(0, buff);
+        this.passEncoder.setVertexBuffer(1, geom.quad.buffer);
+        this.passEncoder.setVertexBuffer(0, geom.buffer.buffer);
         this.passEncoder.setBindGroup(0, material.group);
 
         this.passEncoder.draw(6, geom.size, 0, 0);
@@ -138,7 +134,7 @@ export default class WebGPURenderer extends BaseRenderer{
     endFrame() {
         this.passEncoder.endPass();
         this.device.queue.submit([this.encoder.finish()]);
-        this.passedBuffers.forEach(e => e.destroy());
+        //this.passedBuffers.forEach(e => e.destroy());
         this.passedBuffers.length = 0;
     }
 
