@@ -59,10 +59,10 @@ struct VertexOutput {
 
 [[group(0), binding(0)]] var<uniform> u : VUniforms;
 [[group(0), binding(1)]] var<uniform> fu : FUniforms;
-[[group(1), binding(0)]] var<uniform> eu : VExtendUniform;
 
-[[group(0), binding(2)]] var u_sampler: sampler;
-[[group(0), binding(3)]] var u_texture: texture_2d<f32>;
+[[group(1), binding(0)]] var<uniform> eu : VExtendUniform;
+[[group(1), binding(1)]] var u_sampler: sampler;
+[[group(1), binding(2)]] var u_texture: texture_2d<f32>;
 
 //[[group(0), binding(4)]] var u_texture_mask: texture_2d<f32>;
 
