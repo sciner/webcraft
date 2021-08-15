@@ -22,7 +22,7 @@ export class WebGPUCubeShader extends BaseCubeShader {
                             {
                                 shaderLocation: 0,
                                 offset: 0,
-                                format: "float32x2"
+                                format: "float32x3"
                             }
                         ]
                     }
