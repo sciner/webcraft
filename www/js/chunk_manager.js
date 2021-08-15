@@ -64,8 +64,8 @@ export class ChunkManager {
     shift(shift) {
         let points      = 0;
         const renderer  = this.world.renderer
-        const gl        = renderer.gl;
-        gl.useProgram(renderer.program);
+        //const gl        = renderer.gl;
+        //gl.useProgram(renderer.program);
         for(let key of Object.keys(this.chunks)) {
             points += this.chunks[key].doShift(shift);
         }
@@ -78,26 +78,20 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render) {
-        let gl = render.gl;
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
         let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
         this.spiral_moves = SpiralGenerator.generate(this.margin * 2, this.margin);
+
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
             // draw
             for(let group of ['regular', 'doubleface', 'transparent']) {
                 let transparent = group != 'regular';
-                let opaque = group !== 'transparent';
-                if(transparent) {
-                    gl.disable(gl.CULL_FACE);
-                }
-                if (opaque) {
-                    gl.uniform1f(render.u_opaqueThreshold, 0.5);
-                }
+                const mat = render.materials[group];
                 for(let sm of this.spiral_moves) {
                     let pos = new Vector(
                         overChunk.addr.x + sm.x - this.margin,
@@ -111,16 +105,10 @@ export class ChunkManager {
                                 chunk.applyVertices();
                             }
                         }
-                        if(chunk.drawBufferGroup(group, a_pos)) {
+                        if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
                             this.rendered_chunks.fact += 0.33333;
                         }
                     }
-                }
-                if(transparent) {
-                    gl.enable(gl.CULL_FACE);
-                }
-                if (opaque) {
-                    gl.uniform1f(render.u_opaqueThreshold, 0.0);
                 }
             }
         }

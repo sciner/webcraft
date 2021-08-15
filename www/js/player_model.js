@@ -1,12 +1,19 @@
 "use strict";
 import GeometryTerrain from "./geometry_terrain.js";
 import {NORMALS, Vector, Helpers} from './helpers.js';
+import {Resources} from "./resources.js";
+
+const {mat4} = glMatrix;
 
 export default class PlayerModel {
 
     constructor(props) {
         this.texPlayer                  = null;
         this.texPlayer2                 = null;
+
+        this.matPlayer = null;
+        this.matPlayer2 = null;
+
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
@@ -27,65 +34,70 @@ export default class PlayerModel {
         this.textContext.textAlign      = 'left';
         this.textContext.textBaseline   = 'top';
         this.textContext.font           = '24px Minecraftia';
+        this.modelMatrix = mat4.create();
     }
 
     // draw
-    draw(render, modelMatrix, uModelMat, camPos, delta) {
+    draw(render, camPos, delta) {
         const gl = this.gl = render.gl;
-        gl.disable(gl.CULL_FACE);
-        this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
+        this.drawLayer(render, camPos, delta, {
             scale:          1.0,
-            texture:        this.texPlayer,
+            material:       this.matPlayer,
             draw_nametag:   false
         });
-        this.drawLayer(render, modelMatrix, uModelMat, camPos, delta, {
+        this.drawLayer(render, camPos, delta, {
             scale:          1.05,
-            texture:        this.texPlayer2,
+            material:       this.matPlayer2,
             draw_nametag:   true
+            // draw_nametag:   true
         });
-        gl.enable(gl.CULL_FACE);
     }
 
     // loadMesh...
-    loadMesh() {
-        this.loadPlayerHeadModel();
-        this.loadPlayerBodyModel();
-        this.loadTextures();
+    /**
+     *
+     * @param {Renderer} render
+     */
+    loadMesh(render) {
+        this.loadPlayerHeadModel(render);
+        this.loadPlayerBodyModel(render);
+        this.loadTextures(render);
     }
 
-    // loadTextures...
-    loadTextures() {
-        let that = this;
-        let gl = this.gl;
-        // Load player texture
-        let image = new Image();
-        image.onload = function() {
-            Helpers.createSkinLayer2(null, image, function(file) {
-                let image2 = new Image();
-                image2.onload = function(e) {
-                    gl.activeTexture(gl.TEXTURE0);
-                    // Layer1
-                    let texture = gl.createTexture();
-                    texture.image = image;
-                    that.texPlayer = texture;
-                    gl.bindTexture(gl.TEXTURE_2D, texture);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.image);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    // Layer2
-                    let texture2 = gl.createTexture();
-                    texture2.image = image2;
-                    that.texPlayer2 = texture2;
-                    gl.bindTexture(gl.TEXTURE_2D, texture2);
-                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture2.image);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    document.getElementsByTagName('body')[0].append(image2);
-                };
-                image2.src = URL.createObjectURL(file);
+    /**
+     *
+     * @param {Renderer} render
+     */
+    loadTextures(render) {
+        Resources
+            .loadImage(this.skin.file, false)
+            .then(image1 => {
+                Helpers.createSkinLayer2(null, image1, (file) => {
+                    Resources
+                        .loadImage(URL.createObjectURL(file), false)
+                        .then(image2 => {
+                            const texture1 = render.renderBackend.createTexture({
+                                source: image1,
+                                minFilter: 'nearest',
+                                magFilter: 'nearest'
+                            });
+
+                            const texture2 = render.renderBackend.createTexture({
+                                source: image2,
+                                minFilter: 'nearest',
+                                magFilter: 'nearest'
+                            });
+
+                            this.texPlayer =  texture1;
+                            this.texPlayer2 = texture2;
+                            this.matPlayer = render.materials.doubleface.getSubMat(texture1);
+                            this.matPlayer2 = render.materials.doubleface.getSubMat(texture2);
+
+                            document.getElementsByTagName('body')[0].append(image2);
+                        })
+                });
             });
-        };
-        image.src = this.skin.file;
+
     }
 
     // Loads the player head model into a vertex buffer for rendering.
@@ -427,10 +439,10 @@ export default class PlayerModel {
     }
 
     // drawLayer
-    drawLayer(render, modelMatrix, uModelMat, camPos, delta, options) {
-
-        const gl        = this.gl;
-        const scale     = options.scale;
+    drawLayer(render, camPos, delta, options) {
+        const {modelMatrix} = this;
+        const {material, scale} = options;
+        const {renderBackend} = render;
         const z_minus   = (this.height * options.scale - this.height);
 
         let aniangle = 0;
@@ -456,11 +468,11 @@ export default class PlayerModel {
 
         // Load mesh
         if(!this.playerHead) {
-            this.loadMesh();
+            this.loadMesh(render);
         }
 
         // Wait loading texture
-        if(!options.texture) {
+        if(!options.material) {
             return;
         }
 
@@ -468,51 +480,42 @@ export default class PlayerModel {
 
         // Draw head
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + this.height * options.scale - z_minus]);
-        mat4.scale(modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
-        mat4.rotateX(modelMatrix, -pitch);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-
-        gl.activeTexture(gl.TEXTURE4);
-        gl.bindTexture(gl.TEXTURE_2D, options.texture);
-        render.drawBuffer(this.playerHead, a_pos);
+        mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * options.scale - z_minus]);
+        mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
+        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
+        mat4.rotateX(modelMatrix, modelMatrix, -pitch);
+        renderBackend.drawMesh(this.playerHead, material, a_pos, modelMatrix);
 
         // Draw body
         mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + 0.01 - z_minus / 2]);
-        mat4.scale(modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, Math.PI - this.yaw);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        render.drawBuffer(this.playerBody, a_pos);
+        mat4.translate(modelMatrix, modelMatrix,[0, 0, 0.01 - z_minus / 2]);
+        mat4.scale(modelMatrix, modelMatrix,[scale, scale, scale]);
+        mat4.rotateZ(modelMatrix, modelMatrix,Math.PI - this.yaw);
+        renderBackend.drawMesh(this.playerBody, material, a_pos, modelMatrix);
 
         // Left arm
-        mat4.translate(modelMatrix, [ 0, 0, 1.4]);
-        mat4.rotateX(modelMatrix, 0.75 * aniangle);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        render.drawBuffer(this.playerLeftArm, a_pos);
+        mat4.translate(modelMatrix, modelMatrix, [ 0, 0, 1.4]);
+        mat4.rotateX(modelMatrix, modelMatrix,0.75 * aniangle);
+        renderBackend.drawMesh(this.playerLeftArm, material, a_pos, modelMatrix);
 
         // Right arm
-        mat4.rotateX(modelMatrix, -1.5 * aniangle);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        render.drawBuffer(this.playerRightArm, a_pos);
-        mat4.rotateX(modelMatrix, 0.75 * aniangle);
-        mat4.translate(modelMatrix, [ 0, 0, -0.67] );
+        mat4.rotateX(modelMatrix, modelMatrix, -1.5 * aniangle);
+        renderBackend.drawMesh(this.playerRightArm, material, a_pos, modelMatrix);
+        mat4.rotateX(modelMatrix, modelMatrix, 0.75 * aniangle);
+        mat4.translate(modelMatrix, modelMatrix, [ 0, 0, -0.67] );
 
         // Right leg
-        mat4.rotateX(modelMatrix, 0.5 * aniangle);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        render.drawBuffer(this.playerRightLeg, a_pos);
+        mat4.rotateX(modelMatrix, modelMatrix, 0.5 * aniangle);
+        renderBackend.drawMesh(this.playerRightLeg, material, a_pos, modelMatrix);
 
         // Left leg
-        mat4.rotateX(modelMatrix, -aniangle);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        render.drawBuffer(this.playerLeftLeg, a_pos);
+        mat4.rotateX(modelMatrix, modelMatrix, -aniangle);
+        renderBackend.drawMesh(this.playerLeftLeg, material, a_pos, modelMatrix);
 
         if(options.draw_nametag) {
             // Draw player name
             if(!this.nametag) {
-                this.nametag = this.buildPlayerName(this.nick);
+                this.nametag = this.buildPlayerName(this.nick, render);
             }
 
             mat4.identity(modelMatrix);
@@ -520,25 +523,25 @@ export default class PlayerModel {
             let angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
             let angX = 0; // @todo
 
-            mat4.translate(modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
-            mat4.rotateZ(modelMatrix, angZ);
-            mat4.rotateX(modelMatrix, angX);
-            mat4.scale(modelMatrix, [0.005, 1, 0.005]);
-            gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-            gl.bindTexture(gl.TEXTURE_2D, this.nametag.texture);
+            mat4.translate(modelMatrix, modelMatrix, [0, 0, (this.height + 0.35) * options.scale - z_minus]);
+            mat4.rotateZ(modelMatrix, modelMatrix, angZ);
+            mat4.rotateX(modelMatrix, modelMatrix, angX);
+            mat4.scale(modelMatrix, modelMatrix, [0.005, 1, 0.005]);
 
-            gl.disable(gl.CULL_FACE);
-            gl.disable(gl.DEPTH_TEST);
-            render.drawBuffer(this.nametag.model, a_pos);
-            gl.enable(gl.CULL_FACE);
-            gl.enable(gl.DEPTH_TEST);
+            renderBackend.drawMesh(this.nametag.model, this.nametag.material, a_pos, modelMatrix);
         }
 
     }
 
     // Returns the texture and vertex buffer for drawing the name
     // tag of the specified player over head.
-    buildPlayerName(nickname) {
+    /**
+     *
+     * @param {string} nickname
+     * @param render
+     * @return {{texture: BaseTexture, model: GeometryTerrain}}
+     */
+    buildPlayerName(nickname, render) {
         nickname        = nickname.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
         let gl          = this.gl;
         let canvas      = this.textCanvas;
@@ -551,12 +554,12 @@ export default class PlayerModel {
         ctx.fillStyle   = '#fff';
         ctx.font        = '24px Minecraftia';
         ctx.fillText(nickname, 10, 12);
-        // Create texture
-        let tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // abstraction
+        const texture = render.renderBackend.createTexture({
+            source: canvas,
+        });
+
         // Create model
         let vertices = [
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
@@ -567,7 +570,7 @@ export default class PlayerModel {
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         ];
         return {
-            texture: tex,
+            material: render.materials.label.getSubMat(texture),
             model: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
         };
     }
