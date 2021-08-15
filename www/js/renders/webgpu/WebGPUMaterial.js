@@ -70,7 +70,7 @@ export class WebGPUMaterial extends BaseMaterial {
                 ...base.vertex,
             },
             fragment: {
-                ...base.fragment,
+                ...base.fragment
             },
             primitive: {
                 ...base.primitive,
@@ -123,6 +123,9 @@ export class WebGPUMaterial extends BaseMaterial {
             vertexData,
             fragmentData
         } = shader;
+
+        // we can't use compileConstant, update UBO
+        shader.opaqueThreshold = opaque  ? 0.5 : 0;
 
         // sync uniforms
         device.queue.writeBuffer(
