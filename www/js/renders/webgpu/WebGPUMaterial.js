@@ -82,7 +82,7 @@ export class WebGPUMaterial extends BaseMaterial {
             parent: this, ...this.options
         });
 
-        mat.texture = texture || this.shader.texture;
+        mat.texture = texture || this.texture;
         mat.positionData = new Float32Array(this.shader.positionData);
         return mat;
     }
@@ -258,6 +258,7 @@ export class WebGPUMaterial extends BaseMaterial {
         );
 
         if (!this._skinGroup || this.texture !== this.lastState.texture) {
+            this.texture.bind();
             this._skinGroup = device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(1),
                 entries: [
