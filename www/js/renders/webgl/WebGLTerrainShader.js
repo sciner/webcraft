@@ -66,4 +66,14 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1i(this.u_texture, 4);
     }
+
+    updatePos(pos) {
+        const { gl } = this.context;
+        const {camPos} = this;
+        if (pos) {
+            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z);
+        } else {
+            gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
+        }
+    }
 }

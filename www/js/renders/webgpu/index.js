@@ -112,12 +112,12 @@ export default class WebGPURenderer extends BaseRenderer{
      * @param geom
      * @param {WebGPUMaterial} material
      */
-    drawMesh(geom, material) {
+    drawMesh(geom, material, a_pos) {
         if (geom.size === 0) {
             return;
         }
-
         geom.bind(material.shader);
+        material.shader.updatePos(a_pos);
         material.bind(this);
 
         geom.buffer.bind();

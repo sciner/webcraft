@@ -1,3 +1,5 @@
+import {Vector} from '../helpers.js';
+
 const {mat4} = glMatrix;
 
 export class BaseBuffer {
@@ -113,6 +115,8 @@ export class BaseTerrainShader {
         this.mipmap = 0;
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
+
+        this.camPos = new Vector();
     }
 
     bind() {
@@ -120,6 +124,10 @@ export class BaseTerrainShader {
     }
 
     update() {
+
+    }
+
+    updatePos(pos) {
 
     }
 }
