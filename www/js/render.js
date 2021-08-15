@@ -165,7 +165,7 @@ export default class Renderer {
 
         shader.texture = this.terrainTexture;
 
-        if (renderBackend.gl) {
+        if (renderBackend) {
             // SkyBox
             this.initSky();
         }
@@ -186,6 +186,22 @@ export default class Renderer {
 
     initSky() {
         const { resources } = this;
+
+        this.skyTexture = this.renderBackend.createTexture({
+            source: [
+                resources.sky.posx,
+                resources.sky.negx,
+                resources.sky.posy,
+                resources.sky.negy,
+                resources.sky.posz,
+                resources.sky.negz
+            ]
+        });
+
+        this.skyTexture.bind();
+
+        return;
+
         const { gl } = this.renderBackend;
         const that = this;
         Helpers.createGLProgram(gl, resources.codeSky, (info) => {
