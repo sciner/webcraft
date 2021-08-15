@@ -48,7 +48,7 @@ export default class PlayerModel {
         this.drawLayer(render, camPos, delta, {
             scale:          1.05,
             material:       this.matPlayer2,
-            draw_nametag:   false
+            draw_nametag:   true
             // draw_nametag:   true
         });
     }
@@ -523,18 +523,12 @@ export default class PlayerModel {
             let angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
             let angX = 0; // @todo
 
-            mat4.translate(modelMatrix, modelMatrix, [this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y + (this.height + 0.35) * options.scale - z_minus]);
+            mat4.translate(modelMatrix, modelMatrix, [0, 0, (this.height + 0.35) * options.scale - z_minus]);
             mat4.rotateZ(modelMatrix, modelMatrix, angZ);
             mat4.rotateX(modelMatrix, modelMatrix, angX);
             mat4.scale(modelMatrix, modelMatrix, [0.005, 1, 0.005]);
 
-            this.nametag.texture.bind();
-
-            gl.disable(gl.CULL_FACE);
-            gl.disable(gl.DEPTH_TEST);
-            render.drawBuffer(this.nametag.model, a_pos);
-            gl.enable(gl.CULL_FACE);
-            gl.enable(gl.DEPTH_TEST);
+            renderBackend.drawMesh(this.nametag.model, this.nametag.material, a_pos, modelMatrix);
         }
 
     }
@@ -576,7 +570,7 @@ export default class PlayerModel {
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         ];
         return {
-            texture: texture,
+            material: render.renderBackend.createMaterial({ texture, shader: render.shader, depthTest: false}),
             model: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
         };
     }
