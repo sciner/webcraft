@@ -278,7 +278,6 @@ BIOMES.GRASSLAND = {
     title:      'ТРАВЯНАЯ ЗЕМЛЯ',
     max_height: 18,
     dirt_block: [blocks.DIRT],
-    trees:      {frequency: 0},
     plants: {
         frequency: .5,
         list: [
