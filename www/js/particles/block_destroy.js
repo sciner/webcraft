@@ -8,7 +8,7 @@ const {mat4} = glMatrix;
 export default class Particles_Block_Destroy {
 
     // Constructor
-    constructor(gl, block, pos) {
+    constructor(render, block, pos) {
         let chunk_pos   = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_pos);
         if(!chunk.map) {
@@ -70,7 +70,6 @@ export default class Particles_Block_Destroy {
 
     // Draw
     draw(render, delta, modelMatrix, uModelMat) {
-        let gl = render.gl;
         //
         this.life -= delta / 100000;
         //
@@ -85,16 +84,10 @@ export default class Particles_Block_Destroy {
             idx += p.vertices_count;
             p.gravity -= delta / 250000;
         }
-        //
         this.buffer.updateInternal(this.vertices);
-        //
-        mat4.identity(modelMatrix);
         let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
-        mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
-        mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
-        gl.uniformMatrix4fv(uModelMat, false, modelMatrix);
-        // render
-        render.drawBuffer(this.buffer, a_pos);
+        // mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
+        render.renderBackend.drawMesh(this.buffer, render.materials.doubleface, a_pos);
     }
 
     destroy(render) {

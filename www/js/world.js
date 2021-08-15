@@ -15,7 +15,7 @@ const MAX_DIST_FOR_SHIFT = 800;
 * using this class.
 */
 export default class World {
-    
+
     constructor(saved_state) {
         this._savedState = saved_state;
 
@@ -63,11 +63,11 @@ export default class World {
                 this.list[key].destroy(render);
                 delete(this.list[key]);
             },
-            draw: function(render, delta, modelMatrix, uModelMat) {
+            draw: function(render, delta) {
                 for(let key of Object.keys(this.list)) {
                     let mesh = this.list[key];
                     if(mesh.isAlive()) {
-                        mesh.draw(render, delta, modelMatrix, uModelMat);
+                        mesh.draw(render, delta);
                     } else {
                         this.remove(key, render)
                     }
@@ -83,12 +83,12 @@ export default class World {
     }
 
     // Draw
-    draw(render, delta, modelMatrix, uModelMat) {
-        this.meshes.draw(render, delta, modelMatrix, uModelMat);
+    draw(render, delta) {
+        this.meshes.draw(render, delta);
         return true;
     }
 
-    // 
+    //
     createClone() {
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
