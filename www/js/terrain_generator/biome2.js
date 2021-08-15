@@ -3,6 +3,7 @@ import noise from '../../vendors/perlin.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../blocks.js";
 import {Vector, Helpers, Color} from '../helpers.js';
 import {blocks, BIOMES} from '../biomes.js';
+import {CaveGenerator, Cave} from '../caves.js';
 
 // Terrain generator class
 export default class Terrain_Generator {
@@ -21,6 +22,16 @@ export default class Terrain_Generator {
         this.noisefn                = noise.perlin2;
         this.maps_cache             = {};
         this.setSeed(seed);
+        // Generate caves
+        /*
+        this.caves                  = new CaveGenerator();
+        let pn = performance.now();
+        for(let i = 0; i < 149; i++) {
+            this.caves.add({seed: 'seed', id: i});
+        }
+        pn = performance.now() - pn;
+        console.log('pn', pn);
+        */
     }
 
     setSeed(seed) {
