@@ -29,6 +29,12 @@ export class WebGPUMaterial extends BaseMaterial {
         this.vertexUbo = null;
         this.fragmentUbo = null;
 
+        this.lastState = {
+            shader: null,
+            texture: null,
+            cullFace: null
+        };
+
         this._init();
     }
 
@@ -118,6 +124,32 @@ export class WebGPUMaterial extends BaseMaterial {
             fragmentData
         } = shader;
 
+        // sync uniforms
+        device.queue.writeBuffer(
+            this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
+        );
+
+        device.queue.writeBuffer(
+            this.fragmentUbo, 0, fragmentData.buffer, fragmentData.byteOffset, fragmentData.byteLength
+        );
+
+        const l = this.lastState;
+        // no rebuild group
+        if (
+            l.shader === shader &&
+            l.texture === shader.texture &&
+            l.cullFace === cullFace &&
+            this.group
+        ) {
+            return;
+        }
+
+        this.lastState = {
+            shader,
+            cullFace,
+            texture: shader.texture,
+        };
+
         this.group = device.createBindGroup({
             // we should restricted know group and layout
             // will think that always 0
@@ -149,14 +181,6 @@ export class WebGPUMaterial extends BaseMaterial {
             ]
         });
 
-
-        device.queue.writeBuffer(
-            this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
-        );
-
-        device.queue.writeBuffer(
-            this.fragmentUbo, 0, fragmentData.buffer, fragmentData.byteOffset, fragmentData.byteLength
-        );
 
     }
 
