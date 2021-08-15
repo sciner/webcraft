@@ -185,9 +185,6 @@ export class WebGPUMaterial extends BaseMaterial {
             this.bindPosGroup();
         }
 
-        const texture = this.texture || shader.texture;
-        shader.updateMipmap(texture.anisotropy);
-
         // sync uniforms
         device.queue.writeBuffer(
             this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
@@ -242,6 +239,7 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const texture = this.texture || this.shader.texture;
         const data = this.positionData || this.shader.positionData;
+        data[16 + 3] = texture.anisotropy;
 
         if (!data) {
             return;
@@ -287,7 +285,6 @@ export class WebGPUMaterial extends BaseMaterial {
 
     updatePos(pos, modelMatrix = null) {
         const data = this.positionData || this.shader.positionData;
-
         if (modelMatrix) {
             data.set(modelMatrix)
         }
@@ -304,7 +301,6 @@ export class WebGPUMaterial extends BaseMaterial {
             data[shift+1] = - camPos.y;
             data[shift+2] = - camPos.z;
         }
-
     }
 
     /**
