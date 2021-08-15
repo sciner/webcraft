@@ -106,7 +106,7 @@ export default class WebGPURenderer extends BaseRenderer{
      * @param geom
      * @param {WebGPUMaterial} material
      */
-    drawMesh(geom, material, a_pos = null) {
+    drawMesh(geom, material, a_pos = null, modelMatrix = null) {
         if (geom.size === 0) {
             return;
         }
@@ -118,7 +118,7 @@ export default class WebGPURenderer extends BaseRenderer{
             this.subMats.push(material);
         }
 
-        material.updatePos(a_pos);
+        material.updatePos(a_pos, modelMatrix);
         material.bind(this);
 
         this.passEncoder.setPipeline(material.pipeline);

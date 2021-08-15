@@ -162,7 +162,7 @@ export class BaseTerrainShader extends BaseShader{
 
     }
 
-    updatePos(pos) {
+    updatePos(pos, modelMatrix) {
 
     }
 }

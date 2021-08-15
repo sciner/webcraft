@@ -42,6 +42,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
+
+        this.hasModelMatrix = false;
     }
 
     bind() {
@@ -67,13 +69,23 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1i(this.u_texture, 4);
     }
 
-    updatePos(pos) {
+    updatePos(pos, modelMatrix) {
         const { gl } = this.context;
         const {camPos} = this;
         if (pos) {
             gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z);
         } else {
             gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
+        }
+
+        if (modelMatrix) {
+            gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);
+            this.hasModelMatrix = true;
+        } else {
+            if (this.hasModelMatrix) {
+                gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
+            }
+            this.hasModelMatrix = false;
         }
     }
 }
