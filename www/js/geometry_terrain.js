@@ -52,6 +52,8 @@ export default class GeometryTerrain {
         gl.enableVertexAttribArray(attribs.a_quad);
         gl.enableVertexAttribArray(attribs.a_quadOcc);
 
+        this.buffer.bind();
+
         gl.vertexAttribPointer(attribs.a_position, 3, gl.FLOAT, false, stride, 0);
         gl.vertexAttribPointer(attribs.a_axisX, 3, gl.FLOAT, false, stride, 3 * 4);
         gl.vertexAttribPointer(attribs.a_axisY, 3, gl.FLOAT, false, stride, 6 * 4);
