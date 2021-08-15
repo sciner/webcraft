@@ -1,6 +1,7 @@
 [[block]] struct VExtendUniform {
     ModelMatrix : mat4x4<f32>;
     add_pos : vec3<f32>;
+    mipmap: f32;
 };
 
 [[block]] struct VUniforms {
@@ -19,11 +20,8 @@
     //fogDensity : f32;
     //fogOn: bool;
     chunkBlockDist: f32;
-
     //
     // brightness : f32;
-
-    mipmap : f32;
     blockSize : f32;
     opaqueThreshold : f32;
 };
@@ -116,7 +114,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     var mipOffset : vec2<f32> = vec2<f32>(0.0);
     var biome : vec2<f32> = v.color.rg;
 
-    if (fu.mipmap > 0.0) {
+    if (eu.mipmap > 0.0) {
         biome = biome * 0.5;
 
         // manual implementation of EXT_shader_texture_lod
