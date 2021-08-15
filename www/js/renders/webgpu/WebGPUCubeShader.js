@@ -1,28 +1,97 @@
 import {BaseCubeShader} from "../BaseRenderer.js";
 
 export class WebGPUCubeShader extends BaseCubeShader {
-    /**
-     *
-     * @param {WebGPURenderer} context
-     * @param options
-     */
     constructor(context, options) {
         super(context, options);
 
-        /**
-         *
-         * @type {GPURenderPipelineDescriptor}
-         */
-        this.description = null;
+        const {
+            device
+        } = this.context;
+
+        this.pipeline = device.createRenderPipeline({
+            vertex: {
+                module: device.createShaderModule({
+                    code: this.code.vertex,
+                }),
+                entryPoint: 'main_vert',
+                buffers: [
+                    {
+                        arrayStride: 3 * 4,
+                        stepMode: "vertex",
+                        attributes: [
+                            {
+                                shaderLocation: 0,
+                                offset: 0,
+                                format: "float32x2"
+                            }
+                        ]
+                    }
+                ],
+            },
+            fragment: {
+                module: device.createShaderModule({
+                    code: this.code.fragment,
+                }),
+                entryPoint: 'main_frag',
+                targets: [
+                    {
+                        format: this.context.format,
+                    },
+
+                ],
+            },
+            primitive: {
+                topology: 'triangle-list',
+                cullMode: 'none'
+            },
+            depthStencil: {
+                depthWriteEnabled: false,
+                depthCompare: 'less',
+                format: 'depth24plus',
+            }
+        });
+
+        this.ubo = device.createBuffer({
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+            size: 16 * 4 + 16 * 4 + 4
+        });
+
         /**
          *
          * @type {WebGPUTexture}
          */
-        this.texture = null;
+        const t = this.texture;
 
-        this.vertexData = new Float32Array((16 + 16 + 16 + 3 + 1 + 1 + 1));
-        this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
+        this.group = device.createBindGroup({
+            layout: this.pipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.ubo
+                    }
+                },
+                {
+                    binding: 1,
+                    resource: t.sampler
+                },
 
-        this._init();
+                {
+                    binding: 2,
+                    resource: t.view
+                }
+            ]
+        });
+    }
+
+    update() {
+        const {
+            device
+        } = this.context;
+
+        device.queue.writeBuffer(this.ubo, 0, this.mergedBuffer.buffer);
+    }
+
+    bind() {
     }
 }
