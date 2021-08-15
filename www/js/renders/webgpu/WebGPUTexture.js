@@ -17,13 +17,15 @@ export class WebGPUTexture extends BaseTexture {
             device
         } = this.context;
 
+        const isCube = Array.isArray(this.source) && this.source.length === 6;
         /**
          *
          * @type {GPUTexture}
          */
         this.texture = this.texture || device.createTexture({
             format: 'rgba8unorm',
-            size: [ this.width, this.height ],
+            dimension: '2d',
+            size: [ this.width, this.height, isCube ? 6 : 1 ],
             usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT
         });
 
@@ -31,7 +33,7 @@ export class WebGPUTexture extends BaseTexture {
          *
          * @type {GPUTextureView}
          */
-        this.view = this.view || this.texture.createView();
+        this.view = this.view || this.texture.createView({dimension: isCube ? 'cube' : '2d' });
 
         /**
          *
@@ -44,26 +46,28 @@ export class WebGPUTexture extends BaseTexture {
             // mipmapFilter: 'linear'
         });
 
-        if (this.source) {
-            if (this.source instanceof Image) {
-                this.source.decode()
-                    .then(e => self.createImageBitmap(this.source))
-                    .then((bitmap) => {
-                        device.queue.copyExternalImageToTexture(
-                            { source: bitmap },
-                            { texture: this.texture },
-                            [ this.width, this.height ]);
-                    });
-            } else {
-                device.queue.copyExternalImageToTexture(
-                    { source: this.source },
-                    { texture: this.texture },
-                    [ this.width, this.height ]);
-
-            }
+        if (!this.source) {
+            return;
         }
+
+        const source = Array.isArray(this.source) ? this.source : [this.source];
+
+        source.forEach((e, i) => {
+            if (e instanceof Image) {
+                self.createImageBitmap(e).then((bitmap) => this._copyTo(device, bitmap, i));
+            } else {
+                this._copyTo(device, e, i);
+            }
+        });
 
         super.upload();
     }
 
+    _copyTo (device, source, layer) {
+        device.queue.copyExternalImageToTexture(
+                { source },
+                { texture: this.texture, origin: [0,0, layer] },
+                [this.width, this.height,]
+        );
+    }
 }

@@ -52,7 +52,6 @@ export class BaseTexture {
         magFilter = 'linear',
         minFilter = 'linear',
         anisotropy = 0,
-        mode = '2d',
         source = null
     } = {}) {
         this.width = width;
@@ -62,13 +61,12 @@ export class BaseTexture {
         this.anisotropy = anisotropy;
         this.source = source;
         this.context = context;
-        this.mode = mode;
 
         this.id = BaseRenderer.ID++;
 
         if (source) {
-            this.width = source.width;
-            this.height = source.height;
+            this.width = Array.isArray(source) ? source[0].width : source.width;
+            this.height = Array.isArray(source) ? source[0].height : source.height;
         }
 
         this.dirty = true;
