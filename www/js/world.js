@@ -27,8 +27,10 @@ export default class World {
     }
 
     async connect() {
-        let serverURL = Helpers.isDev() ? `ws://${location.hostname}:${location.port}/ws` : 'wss://webcraft.whiteframe.ru/ws';
-
+        let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
+            '//' + location.hostname +
+            (location.port ? ':' + location.port : '') +
+            '/ws';
         return new Promise(res => {
             const server = new ServerClient(serverURL, () => {
                 res(server);
