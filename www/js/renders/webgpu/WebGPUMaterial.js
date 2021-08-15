@@ -69,7 +69,7 @@ export class WebGPUMaterial extends BaseMaterial {
 
     getSubMat() {
         const mat = new WebGPUMaterial(this.context, {
-            parent: this
+            parent: this, ...this.options
         });
 
         mat.positionData = new Float32Array(this.shader.positionData);
@@ -260,11 +260,26 @@ export class WebGPUMaterial extends BaseMaterial {
         }
     }
 
-    updatePos(addPos, modelMatrix) {
+    updatePos(pos, modelMatrix = null) {
         const data = this.positionData || this.shader.positionData;
 
-        data.set(modelMatrix)
-        data.set(addPos, 16);
+        if (modelMatrix) {
+            data.set(modelMatrix)
+        }
+
+        const { camPos } = this.shader;
+        const shift = 16;
+
+        if (pos) {
+            data[shift] = pos.x - camPos.x;
+            data[shift+1] = pos.y - camPos.y;
+            data[shift+2] = pos.z - camPos.z;
+        } else {
+            data[shift] = - camPos.x;
+            data[shift+1] = - camPos.y;
+            data[shift+2] = - camPos.z;
+        }
+
     }
 
     /**
@@ -286,9 +301,5 @@ export class WebGPUMaterial extends BaseMaterial {
         this.vertexUbo.destroy();
 
         super.destroy();
-    }
-
-    getSubMat() {
-        return new WebGPUMaterial()
     }
 }
