@@ -20,7 +20,8 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          */
         this.texture = null;
 
-        this.vertexData = new Float32Array((16 + 16 + 16 + 3 + 1 + 1 + 1));
+        this.vertexData = new Float32Array((16 + 16 + 1 + 1 + 1));
+        this.positionData = new Float32Array((16 + 3));
         this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
 
         this._init();
@@ -152,13 +153,15 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         // vertex data UBO
         this.vertexData.set(this.projMatrix, 0);
         this.vertexData.set(this.viewMatrix, 16);
-        this.vertexData.set(this.modelMatrix, 32);
-        // add_pos
-        this.vertexData.set([0,0,0], 32 + 16);
         //fog
-        this.vertexData.set([1], 32 + 16 + 3);
-        this.vertexData.set([this.brightness], 32 + 16 + 3 + 1);
-        this.vertexData.set([this.pixelSize], 32 + 16 + 3 + 1 + 1);
+        this.vertexData.set([1], 32);
+        this.vertexData.set([this.brightness], 32 + 1);
+        this.vertexData.set([this.pixelSize], 32  + 1 + 1);
+
+        // ModelMatrix
+        this.positionData.set(this.modelMatrix, 0);
+        // add_pos
+        this.positionData.set(this.addPos, 16);
 
         //fragment data UBO
 
@@ -174,17 +177,18 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
     }
 
     updatePos(pos) {
-        const { vertexData } = this;
+        const { positionData } = this;
         const { camPos } = this;
-        const shift = 32+16;
+        const shift = 16;
+
         if (pos) {
-            vertexData[shift] = pos.x - camPos.x;
-            vertexData[shift+1] = pos.y - camPos.y;
-            vertexData[shift+2] = pos.z - camPos.z;
+            positionData[shift] = pos.x - camPos.x;
+            positionData[shift+1] = pos.y - camPos.y;
+            positionData[shift+2] = pos.z - camPos.z;
         } else {
-            vertexData[shift] = - camPos.x;
-            vertexData[shift+1] = - camPos.y;
-            vertexData[shift+2] = - camPos.z;
+            positionData[shift] = - camPos.x;
+            positionData[shift+1] = - camPos.y;
+            positionData[shift+2] = - camPos.z;
         }
     }
 }

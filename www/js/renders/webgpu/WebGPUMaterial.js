@@ -5,7 +5,7 @@ export class WebGPUMaterial extends BaseMaterial {
     /**
      *
      * @param {WebGPUMaterial} context
-     * @param {cullFace, opaque, shader} options
+     * @param {{cullFace, opaque, shader, parent}} options
      */
     constructor(context, options) {
         super(context, options);
@@ -14,19 +14,25 @@ export class WebGPUMaterial extends BaseMaterial {
          *
          * @type {GPUBindGroup}
          */
-        this.group = null;
+        this._group = null;
+        /**
+         *
+         * @type {GPUBindGroup}
+         */
+        this._posGroup = null;
 
         /**
          *
          * @type {GPURenderPipeline}
          */
-        this.pipeline = null;
+        this._pipeline = null;
 
         /**
          *
          * @type {GPUBuffer}
          */
         this.vertexUbo = null;
+        this.positionUbo = null;
         this.fragmentUbo = null;
 
         this.lastState = {
@@ -35,13 +41,44 @@ export class WebGPUMaterial extends BaseMaterial {
             cullFace: null
         };
 
-        this._init();
+
+        if (!options.parent) {
+            this._init();
+        }
+
+        this.parent = options.parent;
+
+        /**
+         *
+         * @type {Float32Array}
+         */
+        this.positionData = null;
+    }
+
+    get posGroup() {
+        return this._posGroup;
+    }
+
+    get group() {
+        return this.parent ? this.parent.group : this._group;
+    }
+
+    get pipeline() {
+        return this.parent ? this.parent.pipeline : this._pipeline;
+    }
+
+    getSubMat() {
+        const mat = new WebGPUMaterial(this.context, {
+            parent: this
+        });
+
+        mat.positionData = new Float32Array(this.shader.positionData);
+        return mat;
     }
 
     _init() {
         const {
             device,
-            activePipeline
         } = this.context;
 
         const {
@@ -56,16 +93,13 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const {
             fragmentData,
-            vertexData
+            vertexData,
+            positionData
         } = shader;
-
-        if (this.group) {
-            this.group.destroy();
-        }
 
         const base = shader.description;
 
-        this.pipeline = device.createRenderPipeline({
+        this._pipeline = device.createRenderPipeline({
             vertex: {
                 ...base.vertex,
             },
@@ -94,14 +128,14 @@ export class WebGPUMaterial extends BaseMaterial {
             size: fragmentData.byteLength,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
         });
-
     }
 
-    /**
-     *
-     * @param {WebGPURenderer} render
-     */
-    bind(render) {
+    bind(render, supressExtend) {
+        if (this.parent) {
+            parent.bind(render, true);
+            this.bindPosGroup();
+        }
+
         const {
             /**
              * @type {GPUDevice}
@@ -113,7 +147,7 @@ export class WebGPUMaterial extends BaseMaterial {
             cullFace,
             texture,
             /**
-             * @type {WebGPUTerrainShader}
+             * @type {WebGPUTerrainShader | WebGPUCubeShader}
              */
             shader,
             opaque
@@ -124,8 +158,16 @@ export class WebGPUMaterial extends BaseMaterial {
             fragmentData
         } = shader;
 
-        // we can't use compileConstant, update UBO
-        shader.opaqueThreshold = opaque  ? 0.5 : 0;
+        if ('opaqueThreshold' in shader) {
+            // we can't use compileConstant, update UBO
+            shader.opaqueThreshold = opaque ? 0.5 : 0;
+        }
+
+        // update only when not extended
+
+        if (!supressExtend) {
+            this.bindPosGroup();
+        }
 
         // sync uniforms
         device.queue.writeBuffer(
@@ -142,7 +184,7 @@ export class WebGPUMaterial extends BaseMaterial {
             l.shader === shader &&
             l.texture === shader.texture &&
             l.cullFace === cullFace &&
-            this.group
+            this._group
         ) {
             return;
         }
@@ -153,7 +195,7 @@ export class WebGPUMaterial extends BaseMaterial {
             texture: shader.texture,
         };
 
-        this.group = device.createBindGroup({
+        this._group = device.createBindGroup({
             // we should restricted know group and layout
             // will think that always 0
             layout: this.pipeline.getBindGroupLayout(0),
@@ -183,8 +225,44 @@ export class WebGPUMaterial extends BaseMaterial {
 
             ]
         });
+    }
 
+    bindPosGroup() {
+        const {
+            device
+        } = this.context;
 
+        const data = this.positionData || this.shader.positionData;
+
+        if (data) {
+            this.positionUbo = device.createBuffer({
+                size: data.byteLength,
+                usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
+            })
+        }
+
+        if (data && this.positionUbo) {
+            device.queue.writeBuffer(
+                this.positionUbo, 0, data.buffer, data.byteOffset, data.byteLength
+            );
+
+            this._posGroup = this._posGroup || device.createBindGroup({
+                layout: this.pipeline.getBindGroupLayout(1),
+                entries: [
+                    {
+                        binding: 0,
+                        resource: {
+                            buffer: this.positionUbo
+                        }
+                    }
+                ]
+            });
+        }
+    }
+
+    updateExtend(addPos, modelMatrix) {
+        this.extendData.set(modelMatrix)
+        this.extendData.set(addPos, 16);
     }
 
     /**
@@ -206,5 +284,9 @@ export class WebGPUMaterial extends BaseMaterial {
         this.vertexUbo.destroy();
 
         super.destroy();
+    }
+
+    getSubMat() {
+        return new WebGPUMaterial()
     }
 }

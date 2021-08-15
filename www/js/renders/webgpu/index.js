@@ -33,12 +33,6 @@ export default class WebGPURenderer extends BaseRenderer{
 
         /**
          *
-         * @type {GPUQueue}
-         */
-        this.renderQueue = null;
-
-        /**
-         *
          * @type {GPUCommandEncoder}
          */
         this.encoder = null;
@@ -48,12 +42,6 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPURenderPassEncoder}
          */
         this.passEncoder = null;
-
-        /**
-         *
-         * @type {GPUBuffer}
-         */
-        this.quad = null;
 
         this.passedBuffers = [];
 
@@ -126,7 +114,12 @@ export default class WebGPURenderer extends BaseRenderer{
         this.passEncoder.setPipeline(material.pipeline);
         this.passEncoder.setVertexBuffer(1, geom.quad.buffer);
         this.passEncoder.setVertexBuffer(0, geom.buffer.buffer);
+
+
         this.passEncoder.setBindGroup(0, material.group);
+
+        if(material.posGroup)
+            this.passEncoder.setBindGroup(1, material.posGroup);
 
         this.passEncoder.draw(6, geom.size, 0, 0);
     }
@@ -144,23 +137,6 @@ export default class WebGPURenderer extends BaseRenderer{
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
 
-        const quad = new Float32Array([
-            -.5, -.5, 1, 0, 0, 0,
-            .5, -.5, 0, 1, 0, 0,
-            .5, .5, 0, 0, 1, 0,
-            -.5, -.5, 1, 0, 0, 0,
-            .5, .5, 0, 0, 1, 0,
-            -.5, .5, 0, 0, 0, 1]);
-
-        this.quad = this.device.createBuffer({
-            usage: GPUBufferUsage.VERTEX,
-            size: quad.byteLength,
-            mappedAtCreation: true
-        });
-
-        new Float32Array(this.quad.getMappedRange()).set(quad);
-
-        this.quad.unmap();
     }
 
     resize(w, h) {

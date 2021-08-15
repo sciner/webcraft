@@ -99,6 +99,11 @@ export class BaseMaterial {
         this.opaque = options.opaque || false;
     }
 
+
+    getSubMat() {
+        return null;
+    }
+
     destroy() {
         this.shader = null;
         this.context = null;
@@ -107,10 +112,28 @@ export class BaseMaterial {
     }
 }
 
-export class BaseTerrainShader {
+export class BaseShader {
     constructor(context, options) {
         this.context = context;
         this.options = options;
+        /**
+         * @type {{vertex: string, fragment: string}}
+         */
+        this.code = options.code;
+    }
+
+    bind() {
+
+    }
+
+    update() {
+
+    }
+}
+
+export class BaseTerrainShader extends BaseShader{
+    constructor(context, options) {
+        super(context, options);
 
         this.projMatrix         = mat4.create();
         this.viewMatrix         = mat4.create();
@@ -123,6 +146,7 @@ export class BaseTerrainShader {
         this.mipmap = 0;
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
+        this.addPos = [0,0,0];
 
         this.camPos = new Vector();
     }
@@ -136,6 +160,27 @@ export class BaseTerrainShader {
     }
 
     updatePos(pos) {
+
+    }
+}
+
+export class BaseCubeShader extends BaseShader{
+    constructor(context, options) {
+        super(context, options);
+
+        this.brightness = 1;
+        /**
+         *
+         * @type {BaseTexture}
+         */
+        this.texture = options.texture;
+    }
+
+    bind() {
+
+    }
+
+    update() {
 
     }
 }
