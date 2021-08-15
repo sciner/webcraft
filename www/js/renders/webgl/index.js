@@ -1,5 +1,5 @@
 //@ts-check
-import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture} from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture, CubeMesh} from "../BaseRenderer.js";
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
@@ -39,25 +39,11 @@ export class WebGLCubeShader extends BaseCubeShader {
         const { gl } = this.context;
 
         gl.useProgram(this.program);
-        //gl.bindVertexArray(vao);
-        // brightness
         gl.uniform1f(this.u_brightness_value, this.brightness);
-        // skybox
-        //gl.uniform1i(this.uniform.texture, 0);
-        //gl.activeTexture(gl.TEXTURE0);
-        //gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.texture);
-        gl.uniformMatrix4fv(this.lookAtMatrix, false, this.lookAt);
-        gl.uniformMatrix4fv(this.projectionMatrix, false, this.proj);
+        gl.uniform1i(this.u_texture, 0);
 
-        //gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        /*
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 0);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
-        */
-
+        gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
+        gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
         super.bind();
     }
 }
@@ -116,6 +102,8 @@ export class WebGLTexture extends BaseTexture {
          */
 
         const mode = Array.isArray(this.source) ? 'cube' : '2d';
+        this.mode = mode;
+
         const t = this.texture = this.texture || gl.createTexture();
         const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
 
@@ -136,6 +124,7 @@ export class WebGLTexture extends BaseTexture {
         }
         for(let i = 0; i < 6; i ++) {
             const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
             if (this.source) {
                 gl.texImage2D(start + i, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source[i]);
             } else {
@@ -252,6 +241,25 @@ export default class WebGLRenderer extends BaseRenderer {
 
     endFrame() {
 
+    }
+
+    createCubeMap(options) {
+        return new CubeMesh(new WebGLCubeShader(this, options), new WebGLCubeGeometry(this, options));
+    }
+
+    drawCube(cube) {
+        cube.shader.bind();
+        cube.geom.bind(cube.shader);
+
+        const  {
+            gl
+        } = this;
+
+        gl.disable(gl.CULL_FACE);
+        gl.disable(gl.DEPTH_TEST);
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+        gl.enable(gl.CULL_FACE);
+        gl.enable(gl.DEPTH_TEST);
     }
 }
 
