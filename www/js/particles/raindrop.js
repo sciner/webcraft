@@ -33,8 +33,7 @@ export default class Particles_Raindrop {
             push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
         }
         //
-        this.vertices = new Float32Array(this.vertices);
-        this.buffer = new GeometryTerrain(this.vertices);
+        this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
     }
 
     // Draw
