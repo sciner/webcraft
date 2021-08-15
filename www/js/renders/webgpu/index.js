@@ -168,6 +168,10 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     resize(w, h) {
+        if (this.size.width === w && this.size.height === h) {
+            return;
+        }
+
         super.resize(w, h);
 
         this.view.width = w;
