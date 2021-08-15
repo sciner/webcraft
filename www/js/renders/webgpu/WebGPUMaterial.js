@@ -259,7 +259,7 @@ export class WebGPUMaterial extends BaseMaterial {
         );
 
         if (!this._skinGroup || texture !== this.lastState.texture) {
-            this.texture.bind();
+            texture.bind();
             this._skinGroup = device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(1),
                 entries: [
