@@ -54,10 +54,7 @@ void main() {
         if (flagBiome < 0.5) {
             v_color.r = -1.0;
         }
-        gl_Position = uProjMatrix * u_worldView * (uModelMatrix * vec4(pos, 1.0));
-        // 1. Pass the view position to the fragment shader
-        v_position = (u_worldView * vec4(pos + u_add_pos, 1.0)).xyz;
-    } else {
-        gl_Position = uProjMatrix * u_worldView * ( uModelMatrix * vec4(pos, 1.0));
     }
+    v_position = (u_worldView * (uModelMatrix * vec4(pos, 1.0) + vec4(u_add_pos, 0.0))).xyz;
+    gl_Position = uProjMatrix * vec4(v_position, 1.0);
 }

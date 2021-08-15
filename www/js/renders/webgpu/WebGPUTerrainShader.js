@@ -172,4 +172,19 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         // opaqueThreshold
         //this.fragmentData.set([this.opaqueThreshold], 11);
     }
+
+    updatePos(pos) {
+        const { vertexData } = this;
+        const { camPos } = this;
+        const shift = 32+16;
+        if (pos) {
+            vertexData[shift] = pos.x - camPos.x;
+            vertexData[shift+1] = pos.y - camPos.y;
+            vertexData[shift+2] = pos.z - camPos.z;
+        } else {
+            vertexData[shift] = - camPos.x;
+            vertexData[shift+1] = - camPos.y;
+            vertexData[shift+2] = - camPos.z;
+        }
+    }
 }

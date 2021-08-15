@@ -162,12 +162,8 @@ export default class WebGLRenderer extends BaseRenderer {
             this._mat.bind();
         }
         geom.bind(material.shader);
+        material.shader.updatePos(a_pos);
         let gl = this.gl;
-        if (a_pos) {
-            gl.uniform3fv(material.shader.u_add_pos, a_pos);
-        } else {
-            gl.uniform3fv(material.shader.u_add_pos, [0, 0, 0]);
-        }
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
     }
 

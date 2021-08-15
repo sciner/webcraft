@@ -362,6 +362,7 @@ export default class Renderer {
         shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
         shader.fogAddColor = currentRenderState.fogAddColor;
+        // shader.camPos.set([Game.shift.x, Game.shift.z, 0]);
 
         const {
             width, height
@@ -388,10 +389,9 @@ export default class Renderer {
         this.terrainTexture.bind(4);
         // 2. Draw chunks
         this.world.chunkManager.draw(this);
-
+        this.world.draw(this, delta);
         // 3. Draw players and rain
         if (this.renderBackend.gl) {
-            this.world.draw(this, delta, this.modelMatrix, shader.uModelMat);
             this.drawPlayers(delta);
         }
 

@@ -94,12 +94,10 @@ fn main_vert(a : Attrs) -> VertexOutput {
         if (flagBiome < 0.5) {
             v.color.r = -1.0;
         }
-        v.VPos = u.ProjMatrix * u.worldView * (u.ModelMatrix * vec4<f32>(pos, 1.0));
-        // 1. Pass the view position to the fragment shader
-        v.position = (u.worldView * vec4<f32>(pos + u.add_pos, 1.0)).xyz;
-    } else {
-        v.VPos = u.ProjMatrix * u.worldView * ( u.ModelMatrix * vec4<f32>(pos, 1.0));
     }
+    // 1. Pass the view position to the fragment shader
+    v.position = (u.worldView * (u.ModelMatrix * vec4<f32>(pos, 1.0) + vec4<f32>(u.add_pos, 0.0))).xyz;
+    v.VPos = u.ProjMatrix * vec4<f32>(v.position, 1.0);
 
     return v;
 }
