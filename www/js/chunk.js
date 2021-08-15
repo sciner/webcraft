@@ -98,9 +98,9 @@ export default class Chunk {
         }
     }
 
-    drawBufferGroup(group, a_pos) {
+    drawBufferGroup(render, group, mat) {
         if(this.vertices[group]) {
-            Game.render.drawBuffer(this.vertices[group].buffer, a_pos);
+            render.drawMesh(this.vertices[group].buffer, mat);
             return true;
         }
         return false;

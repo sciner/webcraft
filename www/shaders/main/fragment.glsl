@@ -11,16 +11,11 @@ uniform sampler2D u_texture_mask;
 // Fog
 uniform vec4 u_fogColor;
 uniform vec4 u_fogAddColor;
-uniform float u_fogDensity;
 uniform bool u_fogOn;
 uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
-
-// HUD
-uniform vec2 u_resolution;
-uniform sampler2D u_HUDTexture;
 
 in vec3 v_position;
 in vec2 v_texcoord;
@@ -30,7 +25,6 @@ in vec3 v_normal;
 in float light;
 in float v_fogDepth;
 
-uniform float u_time;
 uniform float u_mipmap;
 uniform float u_blockSize;
 uniform float u_opaqueThreshold;

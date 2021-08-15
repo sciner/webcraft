@@ -57,7 +57,13 @@ export let Game = {
     world_name:         null, // 'infinity',
     hud:                null,
     canvas:             document.getElementById('renderSurface'),
+    /**
+     * @type { World }
+     */
     world:              null,
+    /**
+     * @type { Renderer }
+     */
     render:             null, // renderer
     resources:          null,
     physics:            null, // physics simulator
@@ -96,40 +102,58 @@ export let Game = {
     ajustSavedState: function(saved_state) {
         return saved_state;
     },
-    initGame: function(saved_world, settings) {
+
+    load(settings) {
+        this.resources = new Resources();
+        return this.resources.load({
+            hd: settings.hd,
+            glsl: this.render.renderBackend.kind === 'webgl',
+            wgsl: this.render.renderBackend.kind === 'webgpu',
+            imageBitmap: true
+        });
+    },
+
+    initGame(saved_world, settings) {
         this.world_name = saved_world._id;
         this.seed       = saved_world.seed;
         saved_world     = this.ajustSavedState(saved_world);
         this.sounds     = new Sounds();
         // Create a new world
-        this.world = new World(saved_world, () => {
-            this.resources = new Resources();
-            this.render = new Renderer();
-            this.resources.load({ hd: settings.hd, glsl: true}).then(() => {
-                this.render.init(this.world, 'renderSurface', settings, this.resources).then(() => {
-                    this.physics = new Physics();
-                    this.player = new Player();
-                    this.inventory = new Inventory(this.player, this.hud);
-                    this.player.setInputCanvas('renderSurface');
-                    this.hud.add(fps, 0);
-                    this.hotbar = new Hotbar(this.hud, this.inventory);
-                    this.physics.setWorld(this.world);
-                    this.player.setWorld(this.world);
-                    this.setupMousePointer();
-                    this.world.renderer.updateViewport();
-                    this.world.fixRotate();
-                    //
-                    this.readMouseMove();
-                    this.startBackgroundMusic();
-                    document.querySelector('body').classList.add('started');
-                    // Run render loop
-                    window.requestAnimationFrame(this.loop);
-                    // setInterval(this.loop, 1);
-                });
-            });
-        });
-
+        this.world = new World(saved_world);
+        this.world.init()
+            .then(() => {
+                this.render = new Renderer('renderSurface');
+                return this.load(settings);
+            })
+            .then(()=>{
+                return this.render.init(this.world, settings, this.resources);
+            })
+            .then(this.postInitGame.bind(this))
     },
+
+    postInitGame() {
+        this.physics    = new Physics();
+        this.player     = new Player();
+        this.inventory  = new Inventory(this.player, this.hud);
+        this.player.setInputCanvas('renderSurface');
+        this.hud.add(fps, 0);
+        this.hotbar = new Hotbar(this.hud, this.inventory);
+        this.physics.setWorld(this.world);
+        this.player.setWorld(this.world);
+        this.setupMousePointer();
+        this.world.renderer.updateViewport();
+        this.world.fixRotate();
+        //
+        this.readMouseMove();
+        this.startBackgroundMusic();
+        document.querySelector('body').classList.add('started');
+
+        this.loop = this.loop.bind(this);
+        // Run render loop
+        window.requestAnimationFrame(this.loop);
+        // setInterval(that.loop, 1);
+    },
+
     startBackgroundMusic: function() {
         /*
         setTimeout(function(){
@@ -170,9 +194,9 @@ export let Game = {
         }
     },
     // Render loop
-    loop: function() {
+    loop() {
         let tm = performance.now();
-        let that = Game;
+        let that = this;
         if(that.controls.enabled) {
             // Simulate physics
             that.physics.simulate();
