@@ -113,7 +113,10 @@ export default class GeometryTerrain {
         this.uploadID = this.updateID;
 
         this.buffer.data = this.data;
-        this.buffer.dirty = true;
+
+        if (gl) {
+            this.buffer.bind();
+        }
     }
 
     updateInternal(data) {
