@@ -249,7 +249,6 @@ export class BaseCubeShader extends BaseShader{
     constructor(context, options) {
         super(context, options);
 
-        this.brightness = 1;
         /**
          *
          * @type {BaseTexture}
@@ -259,13 +258,25 @@ export class BaseCubeShader extends BaseShader{
         });
         this.texture.bind();
 
-        this.lookAt = mat4.create();
-        this.proj = mat4.create();
-        this.brightness = 1;
+        this.mergedBuffer = new Float32Array(16 * 2 + 1);
+
+        this.lookAt = new Float32Array(this.mergedBuffer.buffer,0, 16);
+        this.proj = new Float32Array(this.mergedBuffer.buffer, 16 * 4, 16 );
+
+        this.mergedBuffer[32] = 1;
 
         this.cull = false;
         this.depth = false;
     }
+
+    set brightness (v) {
+        this.mergedBuffer[16 * 2] = v;
+    }
+
+    get brightness () {
+        return this.mergedBuffer[16 * 2];
+    }
+
 
     bind() {
 
