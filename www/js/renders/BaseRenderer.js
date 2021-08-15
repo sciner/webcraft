@@ -1,5 +1,40 @@
 const {mat4} = glMatrix;
 
+export class BaseBuffer {
+    constructor(context, options = {}) {
+        this.context = context;
+        this.options = options;
+        this._data = options.data;
+
+        this.dirty = true;
+    }
+
+    /**
+     *
+     * @param {Float32Array} v
+     */
+    set data(v) {
+        this.dirty = true;
+        this._data = v;
+    }
+
+    get data() {
+        return this._data;
+    }
+
+    update() {
+        this.dirty = false;
+    }
+
+    bind() {
+
+    }
+
+    destroy() {
+
+    }
+}
+
 export class BaseTexture {
     /**
      *
@@ -160,6 +195,10 @@ export default class BaseRenderer {
     }
 
     createShader(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createBuffer(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 }
