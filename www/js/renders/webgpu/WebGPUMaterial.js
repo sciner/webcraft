@@ -60,6 +60,10 @@ export class WebGPUMaterial extends BaseMaterial {
         this.texture = this.shader.texture;
     }
 
+    get isSub() {
+        return !!this.parent;
+    }
+
     get skinGroup() {
         return this._skinGroup;
     }
@@ -82,7 +86,8 @@ export class WebGPUMaterial extends BaseMaterial {
             parent: this, ...this.options
         });
 
-        mat.texture = texture || this.texture;
+        texture && texture.bind();
+        mat.texture = texture || this.texture || this.shader.texture;
         mat.positionData = new Float32Array(this.shader.positionData);
         return mat;
     }
