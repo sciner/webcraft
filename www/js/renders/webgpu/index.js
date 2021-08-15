@@ -50,6 +50,8 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPUTexture}
          */
         this.depth = null;
+
+        this.subMats = [];
     }
 
     get currentBackTexture() {
@@ -100,12 +102,19 @@ export default class WebGPURenderer extends BaseRenderer{
      * @param geom
      * @param {WebGPUMaterial} material
      */
-    drawMesh(geom, material, a_pos) {
+    drawMesh(geom, material, a_pos = null) {
         if (geom.size === 0) {
             return;
         }
+
         geom.bind(material.shader);
-        material.shader.updatePos(a_pos);
+
+        if (a_pos) {
+            material = material.getSubMat();
+            this.subMats.push(material);
+        }
+
+        material.updatePos(a_pos);
         material.bind(this);
 
         geom.buffer.bind();
@@ -127,8 +136,9 @@ export default class WebGPURenderer extends BaseRenderer{
     endFrame() {
         this.passEncoder.endPass();
         this.device.queue.submit([this.encoder.finish()]);
-        //this.passedBuffers.forEach(e => e.destroy());
-        this.passedBuffers.length = 0;
+
+        this.subMats.forEach(e => e.destroy());
+        this.subMats.length = 0;
     }
 
     async init() {
