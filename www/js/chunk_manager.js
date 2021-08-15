@@ -1,4 +1,4 @@
-import {Vector, MyArray} from "./helpers.js";
+import {Vector, MyArray, SpiralGenerator} from "./helpers.js";
 import Chunk from "./chunk.js";
 import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Z} from "./blocks.js";
 import ServerClient from "./server_client.js";
@@ -84,7 +84,7 @@ export class ChunkManager {
         let applyVerticesCan        = 1;
         let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
-        this.spiral_moves = this.createSpiralCoords(this.margin * 2);
+        this.spiral_moves = SpiralGenerator.generate(this.margin * 2, this.margin);
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
@@ -175,45 +175,13 @@ export class ChunkManager {
         }
     }
 
-    // createSpiralMoves ...
-    createSpiralCoords(size) {
-        if(this.hasOwnProperty(size)) {
-            return this[size];
-        }
-        let resp = [];
-        let margin = this.margin;
-        function rPush(vec) {
-            // Если позиция на расстояние видимости (считаем честно, по кругу)
-            let dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
-            if(dist < margin) {
-                resp.push(vec);
-            }
-        }
-        let iInd = parseInt(size / 2);
-        let jInd = parseInt(size / 2);
-        let iStep = 1;
-        let jStep = 1;
-        rPush(new Vector(iInd, 0, jInd));
-        for(let i = 0; i < size; i++) {
-            for (let h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
-            for (let v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
-            jStep = -jStep;
-            iStep = -iStep;
-        }
-        for(let h = 0; h < size - 1; h++) {
-            rPush(new Vector(iInd, 0, jInd += jStep));
-        }
-        this[size] = resp;
-        return resp;
-    }
-
     // Update
     update() {
         if(!this.update_chunks) {
             return;
         }
         let world = this.world;
-        let spiral_moves = this.createSpiralCoords(this.margin * 2);
+        let spiral_moves = SpiralGenerator.generate(this.margin * 2, this.margin);
         let chunkPos = this.getChunkPos(world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z);
         if(world.localPlayer) {
             chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);

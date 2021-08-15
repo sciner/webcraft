@@ -321,6 +321,44 @@ export class Helpers {
 
 }
 
+// SpiralGenerator ...
+export class SpiralGenerator {
+
+    // generate ...
+    static generate(size, margin) {
+
+        if(this.hasOwnProperty(size)) {
+            return this[size];
+        }
+        let resp = [];
+        function rPush(vec) {
+            // Если позиция на расстояние видимости (считаем честно, по кругу)
+            let dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
+            if(dist < margin) {
+                resp.push(vec);
+            }
+        }
+        let iInd = parseInt(size / 2);
+        let jInd = parseInt(size / 2);
+        let iStep = 1;
+        let jStep = 1;
+        rPush(new Vector(iInd, 0, jInd));
+        for(let i = 0; i < size; i++) {
+            for (let h = 0; h < i; h++) rPush(new Vector(iInd, 0, jInd += jStep));
+            for (let v = 0; v < i; v++) rPush(new Vector(iInd += iStep, 0, jInd));
+            jStep = -jStep;
+            iStep = -iStep;
+        }
+        for(let h = 0; h < size - 1; h++) {
+            rPush(new Vector(iInd, 0, jInd += jStep));
+        }
+        this[size] = resp;
+        return resp;
+    }
+
+}
+
+// Color
 export class Color {
 
     constructor(r, g, b, a) {
