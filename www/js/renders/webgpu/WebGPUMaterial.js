@@ -146,7 +146,6 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const {
             cullFace,
-            texture,
             /**
              * @type {WebGPUTerrainShader | WebGPUCubeShader}
              */
@@ -170,6 +169,9 @@ export class WebGPUMaterial extends BaseMaterial {
             this.bindPosGroup();
         }
 
+        const texture = this.texture || shader.texture;
+        shader.updateMipmap(texture.anisotropy);
+
         // sync uniforms
         device.queue.writeBuffer(
             this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
@@ -183,7 +185,7 @@ export class WebGPUMaterial extends BaseMaterial {
         // no rebuild group
         if (
             l.shader === shader &&
-            l.texture === shader.texture &&
+            l.texture === texture &&
             l.cullFace === cullFace &&
             this._group
         ) {
@@ -193,8 +195,9 @@ export class WebGPUMaterial extends BaseMaterial {
         this.lastState = {
             shader,
             cullFace,
-            texture: shader.texture,
+            texture,
         };
+        texture.bind();
 
         this._group = device.createBindGroup({
             // we should restricted know group and layout
@@ -217,11 +220,11 @@ export class WebGPUMaterial extends BaseMaterial {
                 },
                 {
                     binding: 2,
-                    resource: shader.texture.sampler,
+                    resource: texture.sampler,
                 },
                 {
                     binding: 3,
-                    resource: shader.texture.view,
+                    resource: texture.view,
                 },
 
             ]

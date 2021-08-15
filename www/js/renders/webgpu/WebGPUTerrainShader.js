@@ -14,12 +14,6 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          * @type {GPURenderPipelineDescriptor}
          */
         this.description = null;
-        /**
-         *
-         * @type {WebGPUTexture}
-         */
-        this.texture = null;
-
         this.vertexData = new Float32Array((16 + 16 + 1 + 1 + 1));
         this.positionData = new Float32Array((16 + 3));
         this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
@@ -176,6 +170,11 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         //this.fragmentData.set([this.opaqueThreshold], 11);
 
         this.hasModelMatrix = false;
+    }
+
+    updateMipmap(level) {
+        const {fragmentData} = this;
+        fragmentData[9] = level;
     }
 
     updatePos(pos, modelMatrix) {

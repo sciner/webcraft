@@ -55,6 +55,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const { gl } = this.context;
         gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
         gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
+        gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
+        this.hasModelMatrix = false;
         // gl.uniform1f(this.u_fogDensity, this.fogDensity);
         gl.uniform4fv(this.u_fogAddColor, this.fogAddColor);
         gl.uniform1f(this.u_mipmap, this.mipmap);

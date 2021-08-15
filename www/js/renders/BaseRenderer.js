@@ -150,6 +150,7 @@ export class BaseTerrainShader extends BaseShader{
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
         this.addPos = [0,0,0];
+        this.texture = null;
 
         this.camPos = new Vector();
     }
