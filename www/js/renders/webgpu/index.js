@@ -1,9 +1,10 @@
 //@ts-check
-import BaseRenderer from "../BaseRenderer.js";
+import BaseRenderer, {BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
 import {WebGPUTerrainShader} from "./WebGPUTerrainShader.js";
 import {WebGPUMaterial} from "./WebGPUMaterial.js";
 import {WebGPUTexture} from "./WebGPUTexture.js";
 import {WebGPUBuffer} from "./WebGPUBuffer.js";
+import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -75,7 +76,7 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     createCubeMap(options) {
-        return null;
+        return new CubeMesh(new WebGPUCubeShader(this, options), new BaseCubeGeometry(this, options));
     }
 
     beginFrame(fogColor = [0,0,0,0]) {
@@ -140,6 +141,19 @@ export default class WebGPURenderer extends BaseRenderer{
             this.passEncoder.setBindGroup(1, material.skinGroup);
 
         this.passEncoder.draw(6, geom.size, 0, 0);
+    }
+
+    drawCube(cube) {
+        cube.shader.update();
+        this.passEncoder.setPipeline(cube.shader.pipeline);
+        this.passEncoder.setBindGroup(0, cube.shader.group);
+
+        cube.geom.vertex.bind();
+        this.passEncoder.setVertexBuffer(0, cube.geom.vertex.buffer);
+
+        cube.geom.index.bind();
+        this.passEncoder.setIndexBuffer(cube.geom.index.buffer, 'uint16');
+        this.passEncoder.drawIndexed(36);
     }
 
     endFrame() {
