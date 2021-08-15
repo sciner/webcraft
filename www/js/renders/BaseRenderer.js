@@ -91,11 +91,19 @@ export class BaseTexture {
 export class BaseMaterial {
     constructor(context, options) {
         this.context = context;
+        this.options = options;
 
         this.shader = options.shader;
         this.texture = options.texture || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
+    }
+
+    destroy() {
+        this.shader = null;
+        this.context = null;
+        this.texture = null;
+        this.options = null;
     }
 }
 
