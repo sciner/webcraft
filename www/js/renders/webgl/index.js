@@ -218,7 +218,7 @@ export default class WebGLRenderer extends BaseRenderer {
         return new WebGLBuffer(this, options);
     }
 
-    drawMesh(geom, material, a_pos) {
+    drawMesh(geom, material, a_pos = null, modelMatrix = null) {
         if (geom.size === 0) {
             return;
         }
@@ -230,7 +230,7 @@ export default class WebGLRenderer extends BaseRenderer {
             this._mat.bind();
         }
         geom.bind(material.shader);
-        material.shader.updatePos(a_pos);
+        material.shader.updatePos(a_pos, modelMatrix);
         let gl = this.gl;
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
     }

@@ -174,9 +174,11 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         this.fragmentData.set([this.blockSize], 10);
         // opaqueThreshold
         //this.fragmentData.set([this.opaqueThreshold], 11);
+
+        this.hasModelMatrix = false;
     }
 
-    updatePos(pos) {
+    updatePos(pos, modelMatrix) {
         const { positionData } = this;
         const { camPos } = this;
         const shift = 16;
@@ -189,6 +191,16 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
             positionData[shift] = - camPos.x;
             positionData[shift+1] = - camPos.y;
             positionData[shift+2] = - camPos.z;
+        }
+
+        if (modelMatrix) {
+            positionData.set(0, modelMatrix);
+            this.hasModelMatrix = true;
+        } else {
+            if (this.hasModelMatrix) {
+                positionData.set(0, this.modelMatrix);
+            }
+            this.hasModelMatrix = false;
         }
     }
 }

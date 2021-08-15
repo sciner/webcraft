@@ -66,10 +66,12 @@ export default class Particles_Block_Destroy {
             this.particles.push(p);
         }
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+        this.modelMatrix = mat4.create();
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
     }
 
     // Draw
-    draw(render, delta, modelMatrix, uModelMat) {
+    draw(render, delta) {
         //
         this.life -= delta / 100000;
         //
@@ -86,8 +88,7 @@ export default class Particles_Block_Destroy {
         }
         this.buffer.updateInternal(this.vertices);
         let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
-        // mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
-        render.renderBackend.drawMesh(this.buffer, render.materials.doubleface, a_pos);
+        render.renderBackend.drawMesh(this.buffer, render.materials.doubleface, a_pos, this.modelMatrix);
     }
 
     destroy(render) {
