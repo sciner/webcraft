@@ -26,6 +26,14 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         this._init();
     }
 
+    set opaqueThreshold(v) {
+        this.fragmentData[11] = v;
+    }
+
+    get opaqueThreshold() {
+        return this.fragmentData[11];
+    }
+
     _init() {
         const {
             device, format
@@ -162,6 +170,6 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         this.fragmentData.set([this.mipmap], 9);
         this.fragmentData.set([this.blockSize], 10);
         // opaqueThreshold
-        this.fragmentData.set([0], 11);
+        //this.fragmentData.set([this.opaqueThreshold], 11);
     }
 }
