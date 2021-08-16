@@ -11,6 +11,15 @@ let gameCtrl = function($scope, $timeout) {
         return fetch(url).then(response => response.text());
     };
 
+    // Texture packs
+    $scope.texture_pack = {
+        list: [
+            {id: 'default', name: 'Default', value: 'terrain'},
+            {id: 'hd', name: '32', value: 'terrain_hd'},
+            {id: '128', name: '128', value: 'terrain_128'}
+        ]
+    }
+
     import('/js/game.js')
         .then(module => {
             $scope.Game = window.Game = module.Game;
