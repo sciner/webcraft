@@ -3,7 +3,7 @@ import {BLOCK, CHUNK_SIZE_Y} from "./blocks.js";
 
 const {mat4} = glMatrix;
 
-const PICKAT_DIST = 5;
+const PICKAT_DIST = 500;
 
 export default class PickAt {
 

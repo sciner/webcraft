@@ -11,7 +11,7 @@ let gameCtrl = function($scope, $timeout) {
         return fetch(url).then(response => response.text());
     };
 
-    import('./game.js')
+    import('/js/game.js')
         .then(module => {
             $scope.Game = window.Game = module.Game;
             window.MOUSE    = module.MOUSE;
