@@ -57,29 +57,31 @@ fn main_frag([[location(0)]] coord : vec2<f32>) -> [[location(0)]] vec4<f32> {
   let size = vec2<f32>(textureDimensions(u_depth, 0));
   let fp = vec2<i32>(coord.xy * size);
   
-  var result =  (1. - textureLoad(u_depth, fp,0)) * 120.0;
- 
- // result = worldDistToTexel(coord, result);
+  var texDepth = textureLoad(u_depth, fp,0);
+  var glDepth = 0.5 * (1. + texDepth);
+  var viewZ = perspectiveDepthToViewZ(glDepth, ubo.near, ubo.far);
+  //viewZ = viewZ / 120.0;
   
+  //viewZ = worldDistToTexel(coord.xy, viewZ);
+ 
   let dof = clamp(0.0, 1.0, ubo.distance / 120.0);
   
-  result = 1. - step(result, dof);
+  var result = 1. - step(viewZ, dof);
 
   var c = textureSample(u_color, u_sampler, coord);
   var blur: vec4<f32> = c;
   var count = i32(ubo.count);
   var runs = count * 2 + 1;
 
-  for(var i: i32 = -count; i < count; i = i + 1) {
-      for(var j: i32 = -count; j < count; j = j + 1) {
+  for(var i: i32 = -count; i <= count; i = i + 1) {
+      for(var j: i32 = -count; j <= count; j = j + 1) {
          blur = blur + ubo.intensity * textureSample(u_color, u_sampler, coord + result * vec2<f32>(f32(i), f32(j)) / size);
       }
   }
   
-  c = blur / f32(runs * runs);
+  //c = blur / f32(runs * runs);
   
-  
-  return vec4<f32> (c.rgb, 1.0);
+  return vec4<f32> (c.rgb * glDepth, 1.0);
 }
 `;
 
