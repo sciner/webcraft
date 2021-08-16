@@ -107,6 +107,7 @@ export let Game = {
         this.resources = new Resources();
         return this.resources.load({
             hd: settings.hd,
+            texture_pack: settings.texture_pack,
             glsl: this.render.renderBackend.kind === 'webgl',
             wgsl: this.render.renderBackend.kind === 'webgpu',
             imageBitmap: true
