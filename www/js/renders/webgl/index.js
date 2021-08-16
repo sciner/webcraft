@@ -112,6 +112,7 @@ export class WebGLTexture extends BaseTexture {
 
         gl.bindTexture(type, t);
 
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
         if (mode === '2d') {
             if (this.source) {
                 gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
@@ -177,7 +178,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
         return Promise.resolve(this);
     }
