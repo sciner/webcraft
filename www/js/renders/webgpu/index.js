@@ -52,6 +52,11 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPUTexture}
          */
         this.depth = null;
+        /**
+         *
+         * @type {GPUTexture}
+         */
+        this.main = null;
 
         this.subMats = [];
 
@@ -62,7 +67,7 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     get currentBackTexture() {
-        return this.context.getCurrentTexture().createView();
+        return this.postProcess ? this.main.createView() : this.context.getCurrentTexture().createView();
     }
 
     createShader(options = {}) {
@@ -167,7 +172,8 @@ export default class WebGPURenderer extends BaseRenderer{
         this.passEncoder.endPass();
 
         if (this.postProcess) {
-            this.postProcess.run(this.encoder);
+            this.postProcess.run(this.encoder, this.context.getCurrentTexture().createView());
+            //this.postProcess.blit(this.encoder, this.context.getCurrentTexture().createView());
         }
 
         this.device.queue.submit([this.encoder.finish()]);
@@ -215,6 +221,12 @@ export default class WebGPURenderer extends BaseRenderer{
         this.depth = this.device.createTexture({
             size: this.size,
             format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+        });
+
+        this.main = this.device.createTexture({
+            size: this.size,
+            format: this.format,
             usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         });
 

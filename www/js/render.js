@@ -278,9 +278,11 @@ export default class Renderer {
 
         shader.bind();
         shader.update();
+
+        let pickedDist = 0;
         // 0. Picking
         if (this.pickAt) {
-            this.pickAt.draw();
+            pickedDist = this.pickAt.draw(this.renderBackend.postProcess, 500);
         }
 
         this.terrainTexture.bind(4);
@@ -293,6 +295,16 @@ export default class Renderer {
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();
+        }
+
+        if (renderBackend.postProcess) {
+            console.log(pickedDist);
+            renderBackend.postProcess.setAttribs({
+                near: this.min,
+                far: this.max,
+                distance: pickedDist,
+                intensity: 1
+            });
         }
 
         renderBackend.endFrame();

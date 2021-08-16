@@ -16,9 +16,10 @@ export default class PickAt {
         this.callbacks.push(callback);
     }
 
-    draw() {
-        if(this.callbacks.length === 0) {
-            return;
+    draw(direct = false, maxDist = PICKAT_DIST) {
+        const max = direct ? maxDist :  PICKAT_DIST;
+        if(this.callbacks.length === 0 && !direct) {
+            return 0;
         }
         const player = Game.world.localPlayer;
         const render = this.render;
@@ -39,10 +40,11 @@ export default class PickAt {
         const INF = 100000.0;
         const eps = 1e-3;
         const coord = ['x', 'y', 'z'];
-
-        while (Math.abs(block.x - startBlock.x) < PICKAT_DIST
-        && Math.abs(block.y - startBlock.y) < PICKAT_DIST
-        && Math.abs(block.z - startBlock.z) < PICKAT_DIST) {
+        let dd = {};
+        let dist = 0;
+        while (Math.abs(block.x - startBlock.x) < max
+        && Math.abs(block.y - startBlock.y) < max
+        && Math.abs(block.z - startBlock.z) < max) {
             let tMin = INF;
             for(let d of coord) {
                 if (dir[d] > eps && tMin > (block[d] + 0.5 - pos[d]) / dir[d]) {
@@ -58,6 +60,7 @@ export default class PickAt {
             if (tMin >= INF) {
                 break;
             }
+
             pos.x += dir.x * tMin;
             pos.y += dir.y * tMin;
             pos.z += dir.z * tMin;
@@ -65,6 +68,12 @@ export default class PickAt {
             if (block.y > CHUNK_SIZE_Y || block.y < 0) {
                 break;
             }
+
+            dist = Math.sqrt(
+                (block.x - startBlock.x) ** 2,
+                (block.y - startBlock.y) ** 2,
+                (block.z - startBlock.z) ** 2,
+            );
 
             const ix = block.x |0, iy = block.y|0, iz = block.z|0;
             let b = Game.world.chunkManager.getBlock(ix, iy, iz);
@@ -83,5 +92,7 @@ export default class PickAt {
             this.callbacks[i](res);
         }
         this.callbacks.length = 0;
+
+        return dist;
     }
 }
