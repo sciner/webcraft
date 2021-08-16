@@ -5,6 +5,7 @@ import {WebGPUMaterial} from "./WebGPUMaterial.js";
 import {WebGPUTexture} from "./WebGPUTexture.js";
 import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
+import {Postprocess} from "./Postprocess.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -53,6 +54,11 @@ export default class WebGPURenderer extends BaseRenderer{
         this.depth = null;
 
         this.subMats = [];
+
+        /**
+         * @type {Postprocess}
+         */
+        this.postProcess = null;
     }
 
     get currentBackTexture() {
@@ -159,6 +165,11 @@ export default class WebGPURenderer extends BaseRenderer{
 
     endFrame() {
         this.passEncoder.endPass();
+
+        if (this.postProcess) {
+            this.postProcess.run(this.encoder);
+        }
+
         this.device.queue.submit([this.encoder.finish()]);
 
         this.subMats.forEach(e => e.destroy());
@@ -171,6 +182,7 @@ export default class WebGPURenderer extends BaseRenderer{
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
 
+        this.postProcess = new Postprocess(this, {});
     }
 
     resize(w, h) {
@@ -182,6 +194,7 @@ export default class WebGPURenderer extends BaseRenderer{
 
         this.view.width = w;
         this.view.height = h;
+
     }
 
     _configure() {
@@ -202,8 +215,11 @@ export default class WebGPURenderer extends BaseRenderer{
         this.depth = this.device.createTexture({
             size: this.size,
             format: 'depth24plus',
-            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+            usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
         });
+
+        if(this.postProcess)
+            this.postProcess.resize(this.size.width, this.size.height);
     }
 }
 
