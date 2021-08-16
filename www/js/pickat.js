@@ -69,11 +69,7 @@ export default class PickAt {
                 break;
             }
 
-            dist = Math.sqrt(
-                (block.x - startBlock.x) ** 2,
-                (block.y - startBlock.y) ** 2,
-                (block.z - startBlock.z) ** 2,
-            );
+            dist += tMin;
 
             const ix = block.x |0, iy = block.y|0, iz = block.z|0;
             let b = Game.world.chunkManager.getBlock(ix, iy, iz);
@@ -87,9 +83,12 @@ export default class PickAt {
                 break;
             }
         }
-
-        for (let i=0;i<this.callbacks.length;i++){
-            this.callbacks[i](res);
+        if (Math.abs(block.x - startBlock.x) < PICKAT_DIST
+        && Math.abs(block.y - startBlock.y) < PICKAT_DIST
+        && Math.abs(block.z - startBlock.z) < PICKAT_DIST) {
+            for (let i = 0; i < this.callbacks.length; i++) {
+                this.callbacks[i](res);
+            }
         }
         this.callbacks.length = 0;
 
