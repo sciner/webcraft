@@ -13,7 +13,7 @@ export class Cave {
         //
         let index = this.alea.double();
         // проверяем нужно или нет начало пещеры в этом чанке
-        if(index < .1) {
+        if(index < .3) {
             // общее количество блоков в чанке
             let block_count = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
             // генерируем абсолютную позицию начала пещеры в этом чанке
@@ -24,6 +24,22 @@ export class Cave {
                 parseInt(index / (CHUNK_SIZE_X * CHUNK_SIZE_Z)),
                 parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
             ));
+            // Add head point
+            this.points.push(this.head_pos);
+            let point_pos = this.head_pos;
+            // Add more points
+            for(let _ of [1, 2, 3]) {
+                let pts_count = parseInt(this.alea.double() * 10) + 1;
+                let speed = new Vector(
+                    (this.alea.double() - this.alea.double()) * 5,
+                    (this.alea.double() - this.alea.double()) * .7,
+                    (this.alea.double() - this.alea.double()) * 5,
+                );
+                for(let i = 0; i < pts_count; i++) {
+                    point_pos = point_pos.add(speed);
+                    this.points.push(point_pos.add(new Vector(0, 0, 0)).round());
+                }
+            }
         }
     }
 
