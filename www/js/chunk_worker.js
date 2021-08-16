@@ -492,7 +492,7 @@ async function importModules(terrain_type) {
     queue = [];
 }
 
-importModules('city');
+importModules('biome2');
 
 // On message callback function
 onmessage = async function(e) {
