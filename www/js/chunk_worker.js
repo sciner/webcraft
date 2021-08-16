@@ -444,8 +444,10 @@ const GeometryTerrain = {
     strideFloats: 21,
 }
 
-// Import all modules
-async function importModules() {
+/**
+ * @param {string} terrain_type 
+ */
+async function importModules(terrain_type) {
     // load module
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
@@ -463,7 +465,7 @@ async function importModules() {
     });
     // load module
     // await import("./terrain_generator/flat.js").then(module => {
-    await import("./terrain_generator/biome2.js").then(module => {
+    await import("./terrain_generator/" + terrain_type + ".js").then(module => {
         terrainGenerator = new module.default();
     });
     // Init vars
@@ -490,7 +492,7 @@ async function importModules() {
     queue = [];
 }
 
-importModules();
+importModules('city');
 
 // On message callback function
 onmessage = async function(e) {
