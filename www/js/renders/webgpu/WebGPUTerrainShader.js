@@ -120,7 +120,7 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                         format,
                         blend: {
                             alpha: {
-                                srcFactor: 'src-alpha',
+                                srcFactor: 'one',
                                 dstFactor: 'one-minus-src-alpha',
                                 operation: 'add'
                             },
