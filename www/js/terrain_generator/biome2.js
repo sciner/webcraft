@@ -67,7 +67,6 @@ export default class Terrain_Generator {
                 let diff = value - options.WATER_LINE;
                 if(diff < 0) {
                     value -= (options.WATER_LINE - value) * .65 - 1.5;
-                    // value = (options.WATER_LINE + diff * .7);
                 } else {
                     value = options.WATER_LINE + Math.pow(diff, 1 + diff / 64);
                 }
@@ -159,22 +158,21 @@ export default class Terrain_Generator {
 
         let maps                    = this.generateMaps(chunk);
         let map                     = maps[4];
-        const chunk_addr            = new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z);
-        
+
+        const chunk_addr            = new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z);        
         const seed                  = chunk.id;
-        const amplitude             = 24;
-        const noiseScale            = 15;
         const aleaRandom            = new alea(seed);
-        const noisefn               = this.noisefn;
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let NEIGHBOORS_CAVES_RADIUS = 3;
+        let NEIGHBOORS_CAVES_RADIUS = 5;
         let neighboors_caves        = [];
         for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
             for(let cz = -NEIGHBOORS_CAVES_RADIUS; cz < NEIGHBOORS_CAVES_RADIUS; cz++) {
                 let map_cave = this.caveManager.get(chunk_addr.add(new Vector(cx, 0, cz)));
                 if(map_cave && map_cave.head_pos) {
-                    neighboors_caves.push(map_cave);
+                    if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
+                        neighboors_caves.push(map_cave.chunks[chunk_addr]);
+                    }
                 }
             }
         }
@@ -205,13 +203,14 @@ export default class Terrain_Generator {
 
                 for(let y = 1; y < value; y++) {
 
+                    // Caves | Пещеры
                     if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
                         let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
                         for(let map_cave of neighboors_caves) {
                             for(let cave_point of map_cave.points) {
-                                if(vec.distance(cave_point) < 4) {
+                                if(vec.distance(cave_point.pos) < cave_point.rad) {
                                     is_cave_block = true;
                                     break;
                                 }
@@ -221,9 +220,9 @@ export default class Terrain_Generator {
                             }
                         }
                         if(is_cave_block) {
-                            let px          = (x + chunk.coord.x);
-                            let py          = (y + chunk.coord.y);
-                            let pz          = (z + chunk.coord.z);
+                            let px          = x + chunk.coord.x;
+                            let py          = y + chunk.coord.y;
+                            let pz          = z + chunk.coord.z;
                             // Чтобы не удалять землю из под деревьев
                             let near_tree = false;
                             for(let m of maps) {
@@ -239,34 +238,6 @@ export default class Terrain_Generator {
                             }
                         }
                     }
-
-                    /*
-                    // Caves | Пещеры
-                    if(y > 5 && ['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
-                        let px          = (x + chunk.coord.x);
-                        let py          = (y + chunk.coord.y);
-                        let pz          = (z + chunk.coord.z);
-                        let xNoise      = noisefn(py / noiseScale, pz / noiseScale) * amplitude;
-                        let yNoise      = noisefn(px / noiseScale, pz / noiseScale) * amplitude;
-                        let zNoise      = noisefn(px / noiseScale, py / noiseScale) * amplitude;
-                        let density     = xNoise + yNoise + zNoise + (py / 4);
-                        if (density < -5 || density > 97) {
-                            // Чтобы не удалять землю из под деревьев
-                            let near_tree = false;
-                            for(let m of maps) {
-                                for(let tree of m.info.trees) {
-                                    if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
-                                        near_tree = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if(!near_tree) {
-                                continue;
-                            }
-                        }
-                    }
-                    */
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(y < value - (rnd < .005 ? 0 : 3)) {
