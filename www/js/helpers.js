@@ -55,6 +55,14 @@ export class Vector {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
 
+    round() {
+        return new Vector(
+            Math.round(this.x),
+            Math.round(this.y),
+            Math.round(this.z)
+        );
+    }
+
     toArray() {
         return [ this.x, this.y, this.z ];
     }
@@ -431,77 +439,6 @@ export class Vector4 {
         this.y = y;
         this.width = width;
         this.height = height;
-    }
-
-}
-
-export class Math2 {
-
-    // функция определения расстояния
-    static dotSectionDist(dot, sec1, sec2) {
-        // let dot_x, dot_y, sec_x1, sec_x2, sec_y1, sec_y2; // координаты точки и концов отрезка
-        // let x1, x2, x3, y1, y2, y3; // координаты векторов, построенных на сторонах треугольника
-        // let out; // расстояние между точкой и отрезком
-        // let hx, hy, ax, ay; // координаты точки пересечения перпендикуляра с отрезком и 
-    
-        /*
-        // координаты точки
-        dot_x = 0;
-        dot_y = 0;
-        
-        // координаты одного из концов отрезка
-        sec_x1 = 100;
-        sec_y1 = 0;
-        // координаты другого конца отрезка; рисуем точку и отрезок
-        sec_x2 = 0;
-        sec_y2 = 100;
-        */
-
-        x1 = sec_x1 - dot_x;
-        y1 = sec_y1 - dot_y;
-
-        x2 = sec_x2 - dot_x;
-        y2 = sec_y2 - dot_y;
-
-        x3 = sec_x2 - sec_x1;
-        y3 = sec_y2 - sec_y1;
-
-        if (IN(x1, x2, x3, y1, y2, y3)) {
-            ax = sec_x2 - sec_x1;
-            ay = sec_y2 - sec_y1;
-            if (ax == 0) {
-                hx = sec_x1;
-                hy = dot_y;
-            }
-            else if (ay == 0) {
-                hx = dot_x;
-                hy = sec_y1;
-            }
-            else {
-                hy = (ax * (sec_y1 * (ax / ay) - sec_x1 + dot_x) + ay * dot_y) / ((ax * ax / ay)+ ay);
-                hx = (hy - sec_y1) * (ax / ay) + sec_x1;
-            }
-            let cs = (x1 * x2 + y1 * y2) / (md (x1, y1,) * md (x2, y2));
-            let sn = Math.sqrt (1 - cs * cs);
-            return (sn * md (x1, y1,) * md (x2, y2)) / md (x3, y3);
-        }
-        return Math.min(md(x1, y1), md(x2, y2));        
-    }
-
-    // функция, проверяющая: тупоугольный ли треугольник (с помощью скалярного произведения векторов)
-    static IN() { 
-        if ((dot.x - sec2.x) * (sec1.x - sec2.x) + (dot.y - sec2.y) * (sec1.y - sec2.y) + (dot.z - sec2.z) * (sec1.z - sec2.z) <= 0) {
-            return 0;
-        }
-        else if ( (dot.x - sec1.x) * (sec2.x - sec1.x) + (dot.y - sec1.y) * (sec2.y - sec1.y) + (dot.z - sec1.z) * (sec2.z - sec1.z) <= 0) {
-            return 0;
-        }
-        else return 1;
-    }
-
-    // функция считающая модуль вектора по его координатам
-    static md(x, y, z) {
-        return Math.sqrt(x * x + y * y + z * z);
     }
 
 }

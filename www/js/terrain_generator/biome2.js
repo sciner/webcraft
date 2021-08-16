@@ -168,7 +168,6 @@ export default class Terrain_Generator {
         const noisefn               = this.noisefn;
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        /*
         let NEIGHBOORS_CAVES_RADIUS = 3;
         let neighboors_caves        = [];
         for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
@@ -179,7 +178,6 @@ export default class Terrain_Generator {
                 }
             }
         }
-        */
 
         //
         for(let x = 0; x < chunk.size.x; x++) {
@@ -207,21 +205,42 @@ export default class Terrain_Generator {
 
                 for(let y = 1; y < value; y++) {
 
-                    /*
-                    let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-                    // Проверка не является ли этот блок пещерой
-                    let is_cave_block = false;
-                    for(let map_cave of neighboors_caves) {
-                        if(vec.distance(map_cave.head_pos) <= 3) {
-                            is_cave_block = true;
-                            break;
+                    if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
+                        let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+                        // Проверка не является ли этот блок пещерой
+                        let is_cave_block = false;
+                        for(let map_cave of neighboors_caves) {
+                            for(let cave_point of map_cave.points) {
+                                if(vec.distance(cave_point) < 4) {
+                                    is_cave_block = true;
+                                    break;
+                                }
+                            }
+                            if(is_cave_block) {
+                                break;
+                            }
+                        }
+                        if(is_cave_block) {
+                            let px          = (x + chunk.coord.x);
+                            let py          = (y + chunk.coord.y);
+                            let pz          = (z + chunk.coord.z);
+                            // Чтобы не удалять землю из под деревьев
+                            let near_tree = false;
+                            for(let m of maps) {
+                                for(let tree of m.info.trees) {
+                                    if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
+                                        near_tree = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!near_tree) {
+                                continue;
+                            }
                         }
                     }
-                    if(is_cave_block) {
-                        continue;
-                    }
-                    */
 
+                    /*
                     // Caves | Пещеры
                     if(y > 5 && ['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
                         let px          = (x + chunk.coord.x);
@@ -247,6 +266,7 @@ export default class Terrain_Generator {
                             }
                         }
                     }
+                    */
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(y < value - (rnd < .005 ? 0 : 3)) {
