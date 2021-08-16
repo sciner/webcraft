@@ -58,15 +58,14 @@ fn main_frag([[location(0)]] coord : vec2<f32>) -> [[location(0)]] vec4<f32> {
   let fp = vec2<i32>(coord.xy * size);
   
   var texDepth = textureLoad(u_depth, fp,0);
-  var glDepth = 0.5 * (1. + texDepth);
-  var viewZ = perspectiveDepthToViewZ(glDepth, ubo.near, ubo.far);
-  //viewZ = viewZ / 120.0;
+  //var glDepth = 200. * (1. - texDepth);
+  //var viewZ = perspectiveDepthToViewZ(glDepth, ubo.near, ubo.far);
   
   //viewZ = worldDistToTexel(coord.xy, viewZ);
  
-  let dof = clamp(0.0, 1.0, ubo.distance / 120.0);
-  
-  var result = 1. - step(viewZ, dof);
+  //let dof = clamp(0.0, 1.0, ubo.distance / 120.0);
+
+  var blurFactor = clamp(0., 1., 1. - 300. * (1. - texDepth));
 
   var c = textureSample(u_color, u_sampler, coord);
   var blur: vec4<f32> = c;
@@ -75,13 +74,13 @@ fn main_frag([[location(0)]] coord : vec2<f32>) -> [[location(0)]] vec4<f32> {
 
   for(var i: i32 = -count; i <= count; i = i + 1) {
       for(var j: i32 = -count; j <= count; j = j + 1) {
-         blur = blur + ubo.intensity * textureSample(u_color, u_sampler, coord + result * vec2<f32>(f32(i), f32(j)) / size);
+         blur = blur + ubo.intensity * textureSample(u_color, u_sampler, coord + blurFactor * vec2<f32>(f32(i), f32(j)) / size);
       }
   }
   
-  //c = blur / f32(runs * runs);
+  c = blur / f32(runs * runs);
   
-  return vec4<f32> (c.rgb * glDepth, 1.0);
+  return vec4<f32> (c.rgb, 1.0);
 }
 `;
 
