@@ -15,18 +15,18 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          */
         this.description = null;
         this.vertexData = new Float32Array((16 + 16 + 1 + 1 + 1));
-        this.positionData = new Float32Array((16 + 3));
-        this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1 + 1));
+        this.positionData = new Float32Array((16 + 3 + 1));
+        this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1));
 
         this._init();
     }
 
     set opaqueThreshold(v) {
-        this.fragmentData[11] = v;
+        this.fragmentData[10] = v;
     }
 
     get opaqueThreshold() {
-        return this.fragmentData[11];
+        return this.fragmentData[10];
     }
 
     _init() {
@@ -120,7 +120,7 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                         format,
                         blend: {
                             alpha: {
-                                srcFactor: 'src-alpha',
+                                srcFactor: 'one',
                                 dstFactor: 'one-minus-src-alpha',
                                 operation: 'add'
                             },
@@ -150,7 +150,7 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         //fog
         this.vertexData.set([1], 32);
         this.vertexData.set([this.brightness], 32 + 1);
-        this.vertexData.set([this.pixelSize], 32  + 1 + 1);
+        this.vertexData.set([this.pixelSize], 32 + 1 + 1);
 
         // ModelMatrix
         this.positionData.set(this.modelMatrix, 0);
@@ -164,42 +164,10 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         // fog add color
         this.fragmentData.set(this.fogAddColor, 4);
         this.fragmentData.set([this.chunkBlockDist], 8);
-        this.fragmentData.set([this.mipmap], 9);
-        this.fragmentData.set([this.blockSize], 10);
+        this.fragmentData.set([this.blockSize], 9);
         // opaqueThreshold
-        //this.fragmentData.set([this.opaqueThreshold], 11);
+        //this.fragmentData.set([this.opaqueThreshold], 10);
 
         this.hasModelMatrix = false;
-    }
-
-    updateMipmap(level) {
-        const {fragmentData} = this;
-        fragmentData[9] = level;
-    }
-
-    updatePos(pos, modelMatrix) {
-        const { positionData } = this;
-        const { camPos } = this;
-        const shift = 16;
-
-        if (pos) {
-            positionData[shift] = pos.x - camPos.x;
-            positionData[shift+1] = pos.y - camPos.y;
-            positionData[shift+2] = pos.z - camPos.z;
-        } else {
-            positionData[shift] = - camPos.x;
-            positionData[shift+1] = - camPos.y;
-            positionData[shift+2] = - camPos.z;
-        }
-
-        if (modelMatrix) {
-            positionData.set(0, modelMatrix);
-            this.hasModelMatrix = true;
-        } else {
-            if (this.hasModelMatrix) {
-                positionData.set(0, this.modelMatrix);
-            }
-            this.hasModelMatrix = false;
-        }
     }
 }
