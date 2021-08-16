@@ -70,7 +70,7 @@ export default class Renderer {
             if (image instanceof  self.ImageBitmap) {
                 return  image;
             }
-            return await self.createImageBitmap(image);
+            return await self.createImageBitmap(image, {premultiplyAlpha: 'none'});
         }
 
         const canvas2d = document.createElement('canvas');
