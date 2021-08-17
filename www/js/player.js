@@ -679,7 +679,7 @@ export default class Player {
                 if(this.running) {
                     mul *= 1.5;
                     if(this.flying) {
-                        mul *= 2.0;
+                        mul *= 10.0;
                     }
                 }
                 walkVelocity = walkVelocity.normal();

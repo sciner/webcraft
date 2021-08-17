@@ -16,6 +16,7 @@ let gameCtrl = function($scope, $timeout) {
         list: [
             {id: 'default', name: 'Default', value: 'terrain'},
             {id: 'hd', name: '32', value: 'terrain_hd'},
+            {id: 'kenney', name: 'Kenney', value: 'terrain_kenney'},
             {id: '128', name: '128', value: 'terrain_128'}
         ]
     }
