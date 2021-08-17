@@ -38,6 +38,7 @@ let gameCtrl = function($scope, $timeout) {
     $scope.settings = {
         form: {
             hd: false,
+            texture_pack: 'terrain_hd',
             mipmap: false
         },
         save: function() {
@@ -46,7 +47,7 @@ let gameCtrl = function($scope, $timeout) {
         load: function() {
             let form = localStorage.getItem('settings');
             if(form) {
-                this.form = JSON.parse(form);
+                this.form = Object.assign(this.form, JSON.parse(form));
             }
         }
     };
