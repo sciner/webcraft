@@ -187,6 +187,7 @@ export default class Terrain_Generator {
 
                 // Bedrock
                 chunk.blocks[x][z][0] = blocks.BEDROCK;
+
                 let ar      = aleaRandom.double();
                 let rnd     = ar;
 

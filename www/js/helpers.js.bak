@@ -110,15 +110,6 @@ export let DIRECTION = {};
     DIRECTION.FORWARD   = 5;
     DIRECTION.BACK      = 6;
 
-// Direction names
-export let DIRECTION_NAME = {};
-    DIRECTION_NAME.up        = DIRECTION.UP;
-    DIRECTION_NAME.down      = DIRECTION.DOWN;
-    DIRECTION_NAME.left      = DIRECTION.LEFT;
-    DIRECTION_NAME.right     = DIRECTION.RIGHT;
-    DIRECTION_NAME.forward   = DIRECTION.FORWARD;
-    DIRECTION_NAME.back      = DIRECTION.BACK;
-
 export class Helpers {
 
     // clamp
