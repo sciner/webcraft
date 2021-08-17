@@ -29,7 +29,7 @@ export class Resources {
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
         }
 
-        all.push(loadImage(settings.hd ? 'media/terrain_hd.png' : 'media/terrain.png').then((img) => { this.terrain.image = img}));
+        all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
 
         let skiybox_dir = './media/skybox/park';
         all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));

@@ -58,14 +58,19 @@
                 </div>
 
                 <br><br><h4 class="text-center">Settings:</h4>
+                <!-- Skin -->
                 <button class="btn" ng-click="skin.open()">
                     <span>🙂 Change skin</span>
                 </button>
-                <div style="display: flex; align-items: center; justify-content: center;">
-                    <input type="checkbox" id="input-hd" ng-model="settings.form.hd" style="width: 20px; height: 20px; margin-right: 10px;"></input>
-                    <label for="input-hd">HD textures</label>
+                <!-- Texture pack -->
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <label>Texture pack</label>
+                    <div>
+                        <div ng-repeat="tp in texture_pack.list"><label for="input-texture_pack-{{tp.id}}"><input type="radio" id="input-texture_pack-{{tp.id}}" ng-model="settings.form.texture_pack" value="{{tp.value}}" style="width: 20px; height: 20px; margin-right: 10px;"></input> {{tp.name}}</label></div>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; justify-content: center;">
+                <!-- Generate mipmap -->
+                <div style="display: flex; align-items: center; justify-content: center; margin-top: 1em;">
                     <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
                     <label for="input-mipmap">Generate mipmap</label>
                 </div>
@@ -78,7 +83,7 @@
             <form>
                 <h4 class="text-center">Commands:</h4>
                 <div style="font-size: 14px;">
-                    <br><strong>WASD</strong> - Moving
+                    <strong>WASD</strong> - Moving
                     <br><strong>F2</strong> - Save
                     <br><strong>F4</strong> - Set position as spawnpoint
                     <br><strong>R</strong> - Respawn
@@ -94,6 +99,15 @@
                     <br><strong>F8</strong> - Teleport to random location
                     <br><strong>F9</strong> - Night (toggle)
                 </div>
+
+
+                <br>
+                <h4 class="text-center">Thank you:</h4>
+                <div style="font-size: 14px;">
+                    <strong>128 texture pack</strong> - <a href="https://gitlab.com/drummyfish/minetest-texturepack" style="color: #2196f3;">@drummyfish</a>
+                </div>
+
+                
             </form>
 
         </div>

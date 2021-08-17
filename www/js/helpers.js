@@ -30,6 +30,10 @@ export class Vector {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
+    div(vec) {
+        return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
+    }
+
     zero() {
         this.x = 0;
         this.y = 0;
@@ -60,6 +64,14 @@ export class Vector {
             Math.round(this.x),
             Math.round(this.y),
             Math.round(this.z)
+        );
+    }
+
+    toInt() {
+        return new Vector(
+            parseInt(this.x),
+            parseInt(this.y),
+            parseInt(this.z)
         );
     }
 

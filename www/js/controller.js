@@ -11,7 +11,16 @@ let gameCtrl = function($scope, $timeout) {
         return fetch(url).then(response => response.text());
     };
 
-    import('./game.js')
+    // Texture packs
+    $scope.texture_pack = {
+        list: [
+            {id: 'default', name: 'Default', value: 'terrain'},
+            {id: 'hd', name: '32', value: 'terrain_hd'},
+            {id: '128', name: '128', value: 'terrain_128'}
+        ]
+    }
+
+    import('/js/game.js')
         .then(module => {
             $scope.Game = window.Game = module.Game;
             window.MOUSE    = module.MOUSE;
@@ -29,6 +38,7 @@ let gameCtrl = function($scope, $timeout) {
     $scope.settings = {
         form: {
             hd: false,
+            texture_pack: 'terrain_hd',
             mipmap: false,
             dof: false
         },
@@ -38,7 +48,7 @@ let gameCtrl = function($scope, $timeout) {
         load: function() {
             let form = localStorage.getItem('settings');
             if(form) {
-                this.form = JSON.parse(form);
+                this.form = Object.assign(this.form, JSON.parse(form));
             }
         }
     };

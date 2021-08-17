@@ -6,38 +6,64 @@ export class Cave {
 
     // Constructor
     constructor(seed, addr) {
-        this.alea       = new alea(seed + addr.toString());
-        this.head_pos   = null;
-        this.coord      = addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
-        this.points     = [];
+        this.alea           = new alea(seed + addr.toString());
+        this.head_pos       = null;
+        this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+        this.points         = [];
+        this.chunks         = {};
         //
-        let index = this.alea.double();
+        let r               = this.alea.double();
+        let index           = r;
         // проверяем нужно или нет начало пещеры в этом чанке
-        if(index < .3) {
-            // общее количество блоков в чанке
+        if(index < .99) {
+            let addPoint = (point) => {
+                let chunk_addr = point.pos.div(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)).toInt();
+                if(!(chunk_addr in this.chunks)) {
+                    this.chunks[chunk_addr] = {points: []};
+                }
+                this.chunks[chunk_addr].points.push(point);
+            };
+            // Общее количество блоков в чанке
             let block_count = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-            // генерируем абсолютную позицию начала пещеры в этом чанке
-            index = parseInt(block_count * .05 + this.alea.double() * block_count * .4);
-            // конвертируем позицию в 3D вектор
+            // Генерируем абсолютную позицию начала пещеры в этом чанке
+            index = parseInt(block_count * .05 + this.alea.double() * block_count * .5);
+            // Конвертируем позицию в 3D вектор
             this.head_pos = addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)).add(new Vector(
                 index % CHUNK_SIZE_X,
                 parseInt(index / (CHUNK_SIZE_X * CHUNK_SIZE_Z)),
                 parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
             ));
-            // Add head point
-            this.points.push(this.head_pos);
+            const DEF_RAD   = 5;
+            const MIN_RAD   = 2; // минимальный радиус секции
+            const MAX_RAD   = 10; // максимальный радиус секции
+            let rad         = DEF_RAD;
+            // Добавляем "голову" пещеры
+            addPoint({rad: rad, pos: this.head_pos});
             let point_pos = this.head_pos;
-            // Add more points
+            // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
             for(let _ of [1, 2, 3]) {
-                let pts_count = parseInt(this.alea.double() * 10) + 1;
-                let speed = new Vector(
-                    (this.alea.double() - this.alea.double()) * 5,
-                    (this.alea.double() - this.alea.double()) * .7,
-                    (this.alea.double() - this.alea.double()) * 5,
+                let pts_count = parseInt(this.alea.double() * MAX_RAD) + 1;
+                // Генерация нового направления группы секций
+                let direction = new Vector(
+                    (this.alea.double() * 2 - 1) * 4,
+                    (this.alea.double() * 2 - 1) * 1.25,
+                    (this.alea.double() * 2 - 1) * 4,
                 );
                 for(let i = 0; i < pts_count; i++) {
-                    point_pos = point_pos.add(speed);
-                    this.points.push(point_pos.add(new Vector(0, 0, 0)).round());
+                    point_pos = point_pos.add(direction);
+                    rad = parseInt((rad + this.alea.double() * DEF_RAD + MIN_RAD) / 2);
+                    let point = {
+                        rad: rad,
+                        pos: point_pos
+                    };
+                    addPoint(point);
+                    // В редких случаях генерируем высокие пещеры
+                    if(r < .1) {
+                        addPoint({rad: point.rad, pos: point.pos.add(new Vector(0, -DEF_RAD * .9, 0))});
+                        if(r < .065) {
+                            addPoint({rad: point.rad, pos: point.pos.add(new Vector(0, -DEF_RAD * 2 * .9, 0))});
+                        }
+                    }
                 }
             }
         }
