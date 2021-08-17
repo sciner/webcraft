@@ -254,8 +254,9 @@ class Chunk {
             {x: -1, y:  0, z:  0},
             {x:  1, y:  0, z:  0}
         ];
-        for(let x = 0; x < this.size.x; x++) {
-            for(let z = 0; z < this.size.z; z++) {
+    
+        for(let y = 0; y < this.size.y; y++) {
+            for(let x = 0; x < this.size.x; x++) {
                 let y_count = Math.min(this.size.y, this.blocks[x][z].length);
                 for(let y = 0; y < y_count; y++) {
                     let block = this.blocks[x][z][y];
