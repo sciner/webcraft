@@ -10,6 +10,8 @@ import {Postprocess} from "./Postprocess.js";
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
         super(view, options);
+
+        this.useDof = options.dof;
         /**
          *
          * @type {GPUDevice} {null}
@@ -25,11 +27,6 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPUCanvasContext}
          */
         this.context = null;
-        /**
-         *
-         * @type {GPURenderPipeline}
-         */
-        this.activePipeline = null;
 
         this.format = '';
 
@@ -44,8 +41,6 @@ export default class WebGPURenderer extends BaseRenderer{
          * @type {GPURenderPassEncoder}
          */
         this.passEncoder = null;
-
-        this.passedBuffers = [];
 
         /**
          *
@@ -182,13 +177,15 @@ export default class WebGPURenderer extends BaseRenderer{
         this.subMats.length = 0;
     }
 
-    async init() {
+    async init({dof = false} = {}) {
         this.adapter = await navigator.gpu.requestAdapter();
         this.device = await this.adapter.requestDevice();
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
 
-        this.postProcess = new Postprocess(this, {});
+        this.useDof = dof;
+        if(dof)
+            this.postProcess = new Postprocess(this, {});
     }
 
     resize(w, h) {

@@ -123,7 +123,9 @@ export default class Renderer {
 
         const {renderBackend} = this;
 
-        await renderBackend.init();
+        await renderBackend.init({
+            dof: settings.dof
+        });
 
         const shader = this.shader = renderBackend.createShader({ code: resources.codeMain});
 
@@ -298,7 +300,6 @@ export default class Renderer {
         }
 
         if (renderBackend.postProcess) {
-            console.log(pickedDist);
             renderBackend.postProcess.setAttribs({
                 near: this.min,
                 far: this.max,

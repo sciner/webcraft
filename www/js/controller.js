@@ -29,7 +29,8 @@ let gameCtrl = function($scope, $timeout) {
     $scope.settings = {
         form: {
             hd: false,
-            mipmap: false
+            mipmap: false,
+            dof: false
         },
         save: function() {
             localStorage.setItem('settings', JSON.stringify(this.form));
