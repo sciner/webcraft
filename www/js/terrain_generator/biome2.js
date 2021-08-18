@@ -193,11 +193,10 @@ export default class Terrain_Generator {
                     }
 
                     // Caves | Пещеры
-                    let is_cave_block = false;
                     if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
                         let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
                         // Проверка не является ли этот блок пещерой
-                        is_cave_block = false;
+                        let is_cave_block = false;
                         for(let map_cave of neighboors_caves) {
                             for(let cave_point of map_cave.points) {
                                 if(vec.distance(cave_point.pos) < cave_point.rad) {
@@ -209,10 +208,25 @@ export default class Terrain_Generator {
                                 break;
                             }
                         }
-                    }
-
-                    if(is_cave_block) {
-                        break;
+                        // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
+                        if(is_cave_block) {
+                            let px          = x + chunk.coord.x;
+                            let py          = y + chunk.coord.y;
+                            let pz          = z + chunk.coord.z;
+                            // Чтобы не удалять землю из под деревьев
+                            let near_tree = false;
+                            for(let m of maps) {
+                                for(let tree of m.info.trees) {
+                                    if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
+                                        near_tree = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!near_tree) {
+                                continue;
+                            }
+                        }
                     }
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
