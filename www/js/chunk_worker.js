@@ -64,6 +64,10 @@ class ChunkManager {
 // Chunk
 class Chunk {
 
+    constructor(args) {
+        Object.assign(this, args);
+    }
+
     init() {
         // Variables
         this.vertices_length    = 0;
@@ -84,7 +88,7 @@ class Chunk {
         for(let x = 0; x < this.size.x; x++) {
             this.blocks[x] = new Array(this.size.z);
             for(let z = 0; z < this.size.z; z++) {
-                this.blocks[x][z] = []; // new Array(this.size.y).fill(null);
+                this.blocks[x][z] = [];
             }
         }
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
@@ -95,7 +99,7 @@ class Chunk {
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
-        this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;    
+        this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
         // 4. Result
         postMessage(['blocks_generated', {
             key:    this.key,
@@ -501,10 +505,9 @@ onmessage = async function(e) {
         case 'createChunk': {
             if(!terrainGenerator.seed) {
                 terrainGenerator.setSeed(args.seed);
-                // terrainGenerator = new Terrain_Generator(args.seed);
             }
             if(!chunks.hasOwnProperty(args.key)) {
-                chunks[args.key] = Object.assign(new Chunk(), args);
+                chunks[args.key] = new Chunk(args);
                 chunks[args.key].init();
             }
             break;

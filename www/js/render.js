@@ -272,7 +272,7 @@ export default class Renderer {
         }
 
         // 1. Draw skybox
-        if( this.skyBox) {
+        if(this.skyBox) {
             this.skyBox.draw(this.viewMatrix, this.projMatrix);
         }
 

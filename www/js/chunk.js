@@ -111,11 +111,11 @@ export default class Chunk {
         const args = this.vertices_args;
         delete(this['vertices_args']);
         this.chunkManager.vertices_length_total -= this.vertices_length;
-        this.buildVerticesInProgress    = false;
+        this.buildVerticesInProgress            = false;
         this.chunkManager.vertices_length_total -= this.vertices_length;
-        this.vertices_length            = 0;
-        this.gravity_blocks             = args.gravity_blocks;
-        this.fluid_blocks               = args.fluid_blocks;
+        this.vertices_length                    = 0;
+        this.gravity_blocks                     = args.gravity_blocks;
+        this.fluid_blocks                       = args.fluid_blocks;
         // Delete old WebGL buffers
         for(let key of Object.keys(this.vertices)) {
             let v = this.vertices[key];

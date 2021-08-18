@@ -1,7 +1,10 @@
 import {Vector, MyArray, SpiralGenerator} from "./helpers.js";
 import Chunk from "./chunk.js";
-import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Z} from "./blocks.js";
+import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import ServerClient from "./server_client.js";
+
+const CHUNKS_ADD_PER_UPDATE = 64;
+const CHUNKS_BUILD_VERTICES_PER_UPDATE = 64;
 
 //
 export class ChunkManager {
@@ -81,22 +84,16 @@ export class ChunkManager {
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
-        let a_pos                   = new Vector(0, 0, 0);
         // Для отрисовки чанков по спирали от центрального вокруг игрока
-        this.spiral_moves = SpiralGenerator.generate(this.margin);
+        this.spiral_moves_3d = SpiralGenerator.generate3D(this.margin);
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
             // draw
             for(let group of ['regular', 'doubleface', 'transparent']) {
-                let transparent = group != 'regular';
                 const mat = render.materials[group];
-                for(let sm of this.spiral_moves) {
-                    let pos = new Vector(
-                        overChunk.addr.x + sm.x - this.margin,
-                        overChunk.addr.y + sm.y,
-                        overChunk.addr.z + sm.z - this.margin
-                    );
+                for(let sm of this.spiral_moves_3d) {
+                    let pos = overChunk.addr.add(sm);
                     let chunk = this.getChunk(pos);
                     if(chunk) {
                         if(chunk.hasOwnProperty('vertices_args')) {
@@ -154,11 +151,11 @@ export class ChunkManager {
     setChunkState(state) {
         let k = this.getPosChunkKey(state.pos);
         if(this.chunks_prepare.hasOwnProperty(k)) {
-            let prepare = this.chunks_prepare[k];
-            let chunk = new Chunk(this, state.pos, state.modify_list);
+            let prepare     = this.chunks_prepare[k];
+            let chunk       = new Chunk(this, state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
+            this.chunks[k]  = chunk;
             delete(this.chunks_prepare[k]);
-            this.chunks[k] = chunk;
         }
     }
 
@@ -168,31 +165,29 @@ export class ChunkManager {
             return;
         }
         let world = this.world;
-        let spiral_moves = SpiralGenerator.generate(this.margin);
         let chunkPos = this.getChunkPos(world.spawnPoint.x, world.spawnPoint.y, world.spawnPoint.z);
         if(world.localPlayer) {
             chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         }
-        if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
+        let spiral_moves_3d = SpiralGenerator.generate3D(this.margin/*, chunkPos, true*/);
+        if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves_3d.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
             let actual_keys = {};
-            let can_add = 3;
+            let can_add = CHUNKS_ADD_PER_UPDATE;
             for(let key of Object.keys(this.chunks)) {
                 if(!this.chunks[key].inited) {
                     can_add = 0;
                     break;
                 }
             }
-            for(let sm of spiral_moves) {
-                let pos = new Vector(
-                    chunkPos.x + sm.x - this.margin,
-                    chunkPos.y + sm.y,
-                    chunkPos.z + sm.z - this.margin
-                );
+            for(let sm of spiral_moves_3d) {
+                let pos = chunkPos.add(sm);
                 actual_keys[this.getPosChunkKey(pos)] = pos;
-                if(can_add > 0) {
-                    if(this.addChunk(pos)) {
-                        can_add--;
+                if(pos.y >= 0) {
+                    if(can_add > 0) {
+                        if(this.addChunk(pos)) {
+                            can_add--;
+                        }
                     }
                 }
             }
@@ -234,7 +229,7 @@ export class ChunkManager {
                 // sort dirty chunks by dist from player
                 dirty_chunks = MyArray.from(dirty_chunks).sortBy('coord');
                 // rebuild dirty chunks
-                let buildCount = 1;
+                let buildCount = CHUNKS_BUILD_VERTICES_PER_UPDATE;
                 for(let dc of dirty_chunks) {
                     if(this.chunks[dc.key].buildVertices()) {
                         if(--buildCount == 0) {
@@ -259,7 +254,7 @@ export class ChunkManager {
     getChunkPos(x, y, z) {
         let v = new Vector(
             parseInt(x / CHUNK_SIZE_X),
-            0,
+            parseInt(y / CHUNK_SIZE_Y),
             parseInt(z / CHUNK_SIZE_Z)
         );
         if(x < 0) {v.x--;}

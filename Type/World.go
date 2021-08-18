@@ -12,7 +12,7 @@ import (
 
 const (
 	CHUNK_SIZE_X int = 16
-	CHUNK_SIZE_Y int = 256
+	CHUNK_SIZE_Y int = 16
 	CHUNK_SIZE_Z int = 16
 )
 

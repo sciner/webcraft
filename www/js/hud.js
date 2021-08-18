@@ -56,7 +56,7 @@ export default class HUD {
                         cl++;
                     }
                 }
-                let nc = 45;
+                let nc = 0; // #3dchunk (для 2D чанков было 45)
                 this.loading = cl < nc;
                 if(!this.loading) {
                     return false;

@@ -6,9 +6,10 @@ export class Cave {
 
     // Constructor
     constructor(seed, addr) {
+        let csy             = 256; // CHUNK_SIZE_Y
         this.alea           = new alea(seed + addr.toString());
         this.head_pos       = null;
-        this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+        this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z));
         this.points         = [];
         this.chunks         = {};
         //
@@ -83,7 +84,8 @@ export class CaveGenerator {
 
     // add
     add(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         let key = chunk_addr.toString();
         if(typeof this.caves[key] == 'undefined') {
             this.caves[key] = new Cave(this.seed, chunk_addr);
@@ -93,14 +95,16 @@ export class CaveGenerator {
 
     // get
     get(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         let key = chunk_addr.toString();
         return this.caves[key];
     }
 
     // addSpiral
     addSpiral(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         this.add(chunk_addr.add(new Vector(0, 0, 0)));
         for(let sm of this.spiral_moves) {
             this.add(chunk_addr.add(sm));

@@ -19,11 +19,11 @@ export class Vector {
     }
 
     add(vec) {
-        return new Vector( this.x + vec.x, this.y + vec.y, this.z + vec.z );
+        return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
     sub(vec) {
-        return new Vector( this.x - vec.x, this.y - vec.y, this.z - vec.z );
+        return new Vector(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
 
     mul(vec) {
@@ -354,6 +354,7 @@ export class Helpers {
 export class SpiralGenerator {
 
     static cache = {};
+    static cache3D = {};
 
     // generate ...
     static generate(margin) {
@@ -384,6 +385,37 @@ export class SpiralGenerator {
             rPush(new Vector(iInd, 0, jInd += jStep));
         }
         SpiralGenerator.cache[margin] = resp;
+        return resp;
+    }
+
+    // generate3D ...
+    static generate3D(margin, vec_add, remove_neg_y) {
+        if(SpiralGenerator.cache3D.hasOwnProperty(margin)) {
+            return SpiralGenerator.cache3D[margin];
+        }
+        let resp = [];
+        let center = new Vector(0, 0, 0);
+        let exists = [];
+        for(let q = 0; q < margin; q++) {
+            for(let y = q; y > -q; y--) {
+                for(let x = -q; x < q; x++) {
+                    for(let z = -q; z < q; z++) {
+                        let vec = new Vector(x, y, z);
+                        if(vec.distance(center) < q) {
+                            if(exists.indexOf(vec.toString()) >= 0) {
+                                continue;
+                            }
+                            /*if(remove_neg_y && vec.add(vec_add).y < 0) {
+                                continue;
+                            }*/
+                            resp.push(vec);
+                            exists[vec.toString()] = true;
+                        }
+                    }
+                }
+            }
+        }
+        SpiralGenerator.cache3D[margin] = resp;
         return resp;
     }
 
