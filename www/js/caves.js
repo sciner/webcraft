@@ -18,18 +18,19 @@ export class Cave {
         // проверяем нужно или нет начало пещеры в этом чанке
         if(index < .99) {
             let addPoint = (point) => {
-                let chunk_addr = point.pos.div(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)).toInt();
+                point.pos = point.pos.toInt();
+                let chunk_addr = point.pos.div(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z)).toInt();
                 if(!(chunk_addr in this.chunks)) {
                     this.chunks[chunk_addr] = {points: []};
                 }
                 this.chunks[chunk_addr].points.push(point);
             };
             // Общее количество блоков в чанке
-            let block_count = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+            let block_count = CHUNK_SIZE_X * csy * CHUNK_SIZE_Z;
             // Генерируем абсолютную позицию начала пещеры в этом чанке
             index = parseInt(block_count * .05 + this.alea.double() * block_count * .5);
             // Конвертируем позицию в 3D вектор
-            this.head_pos = addr.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)).add(new Vector(
+            this.head_pos = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z)).add(new Vector(
                 index % CHUNK_SIZE_X,
                 parseInt(index / (CHUNK_SIZE_X * CHUNK_SIZE_Z)),
                 parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
@@ -84,7 +85,6 @@ export class CaveGenerator {
 
     // add
     add(chunk_addr) {
-        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         let key = chunk_addr.toString();
         if(typeof this.caves[key] == 'undefined') {
@@ -95,15 +95,35 @@ export class CaveGenerator {
 
     // get
     get(chunk_addr) {
-        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         let key = chunk_addr.toString();
         return this.caves[key];
     }
 
+    /**
+     * getNeighboors
+     * @param { Vector } chunk_addr 
+     * @returns 
+     */
+    getNeighboors(chunk_addr) {
+        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
+        let NEIGHBOORS_CAVES_RADIUS = 5;
+        let neighboors_caves        = [];
+        for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
+            for(let cz = -NEIGHBOORS_CAVES_RADIUS; cz < NEIGHBOORS_CAVES_RADIUS; cz++) {
+                let map_cave = this.get(chunk_addr.add(new Vector(cx, 0, cz)));
+                if(map_cave && map_cave.head_pos) {
+                    if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
+                        neighboors_caves.push(map_cave.chunks[chunk_addr]);
+                    }
+                }
+            }
+        }
+        return neighboors_caves;
+    }
+
     // addSpiral
     addSpiral(chunk_addr) {
-        // chunk_addr = new Vector(chunk_addr.x, chunk_addr.y, chunk_addr.z);
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         this.add(chunk_addr.add(new Vector(0, 0, 0)));
         for(let sm of this.spiral_moves) {

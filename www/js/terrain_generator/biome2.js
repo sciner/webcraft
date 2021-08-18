@@ -162,23 +162,11 @@ export default class Terrain_Generator {
         let maps                    = this.generateMaps(chunk);
         let map                     = maps[4];
 
-        const chunk_addr            = new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z);        
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let NEIGHBOORS_CAVES_RADIUS = 5;
-        let neighboors_caves        = [];
-        for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
-            for(let cz = -NEIGHBOORS_CAVES_RADIUS; cz < NEIGHBOORS_CAVES_RADIUS; cz++) {
-                let map_cave = this.caveManager.get(chunk_addr.add(new Vector(cx, 0, cz)));
-                if(map_cave && map_cave.head_pos) {
-                    if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
-                        neighboors_caves.push(map_cave.chunks[chunk_addr]);
-                    }
-                }
-            }
-        }
+        let neighboors_caves        = this.caveManager.getNeighboors(chunk.addr);
 
         //
         for(let x = 0; x < chunk.size.x; x++) {
@@ -205,10 +193,11 @@ export default class Terrain_Generator {
                     }
 
                     // Caves | Пещеры
+                    let is_cave_block = false;
                     if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
                         let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
                         // Проверка не является ли этот блок пещерой
-                        let is_cave_block = false;
+                        is_cave_block = false;
                         for(let map_cave of neighboors_caves) {
                             for(let cave_point of map_cave.points) {
                                 if(vec.distance(cave_point.pos) < cave_point.rad) {
@@ -220,6 +209,10 @@ export default class Terrain_Generator {
                                 break;
                             }
                         }
+                    }
+
+                    if(is_cave_block) {
+                        break;
                     }
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
@@ -254,9 +247,11 @@ export default class Terrain_Generator {
 
         // Plant herbs
         for(let p of map.info.plants) {
-            let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
-            if(b && b.id == blocks.DIRT.id) {
-                chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
+            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
+                if(b && b.id == blocks.DIRT.id) {
+                    chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
+                }
             }
         }
 
