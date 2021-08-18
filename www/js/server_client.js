@@ -142,6 +142,8 @@ export default class ServerClient {
     }
 
     ChunkAdd(pos) {
+        // #3dchunk
+        // Game.world.chunkManager.setChunkState({"pos":pos,"modify_list":{}});
         this.Send({name: ServerClient.EVENT_CHUNK_ADD, data: {pos: pos}});
     }
 

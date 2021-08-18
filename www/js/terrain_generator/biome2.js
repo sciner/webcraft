@@ -33,8 +33,9 @@ export default class Terrain_Generator {
 
     // generateMap
     generateMap(chunk, noisefn) {
-        if(this.maps_cache.hasOwnProperty(chunk.id)) {
-            return this.maps_cache[chunk.addr.toString()];
+        let addr_string = chunk.addr.toString();
+        if(this.maps_cache.hasOwnProperty(addr_string)) {
+            return this.maps_cache[addr_string];
         }
         const options               = this.options;
         const SX                    = chunk.coord.x;
@@ -47,6 +48,7 @@ export default class Terrain_Generator {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
+                // высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 +
                     noisefn(px / 650, pz / 650) * .25 +
@@ -110,7 +112,7 @@ export default class Terrain_Generator {
             }
         }
         //
-        return this.maps_cache[chunk.addr.toString()] = map;
+        return this.maps_cache[addr_string] = map;
     }
 
     // generateMaps
@@ -122,7 +124,7 @@ export default class Terrain_Generator {
 
         for(let x = -1; x <= 1; x++) {
             for(let z = -1; z <= 1; z++) {
-                const addr = new Vector(chunk.addr.x + x, chunk.addr.y, chunk.addr.z + z);
+                const addr = new Vector(chunk.addr.x + x, 0 /*chunk.addr.y*/, chunk.addr.z + z);
                 const c = {
                     blocks: {},
                     seed: chunk.seed,
@@ -143,7 +145,8 @@ export default class Terrain_Generator {
         }
 
         // Smooth (for central and part of neighboors)
-        map.info.smooth(this, chunk.addr);
+        // @todo Временно закрыто (#3dchunk)
+        map.info.smooth(this);
 
         // Generate vegetation
         for(let map of maps) {
@@ -185,19 +188,21 @@ export default class Terrain_Generator {
                 const biome = cell.biome;
                 const value = cell.value2;
 
-                // Bedrock
-                chunk.blocks[x][z][0] = blocks.BEDROCK;
                 let ar      = aleaRandom.double();
                 let rnd     = ar;
+                let min_y   = 0;
 
-                // Sin wave
-                //let px = (x + chunk.coord.x);
-                //let pz = (z + chunk.coord.z);
-                //for(let y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
-                //    chunk.blocks[x][z][y] = blocks.CONCRETE;
-                //}
+                // Bedrock
+                if(chunk.coord.y == 0) {
+                    chunk.blocks[x][z][0] = blocks.BEDROCK;
+                    min_y++;
+                }
 
-                for(let y = 1; y < value; y++) {
+                for(let y = min_y; y < chunk.size.y; y++) {
+
+                    if(chunk.coord.y + y >= value) {
+                        continue;
+                    }
 
                     // Caves | Пещеры
                     if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
@@ -215,31 +220,12 @@ export default class Terrain_Generator {
                                 break;
                             }
                         }
-                        // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
-                        if(is_cave_block) {
-                            let px          = x + chunk.coord.x;
-                            let py          = y + chunk.coord.y;
-                            let pz          = z + chunk.coord.z;
-                            // Чтобы не удалять землю из под деревьев
-                            let near_tree = false;
-                            for(let m of maps) {
-                                for(let tree of m.info.trees) {
-                                    if(tree.pos.distance(new Vector(px - m.chunk.coord.x, py - m.chunk.coord.y, pz - m.chunk.coord.z)) < 5) {
-                                        near_tree = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if(!near_tree) {
-                                continue;
-                            }
-                        }
                     }
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
-                    if(y < value - (rnd < .005 ? 0 : 3)) {
+                    if(y + chunk.coord.y < value - (rnd < .005 ? 0 : 3)) {
                         let r = aleaRandom.double() * 1.33;
-                        if(r < 0.0025 && y < value - 5) {
+                        if(r < 0.0025 && y + chunk.coord.y < value - 5) {
                             chunk.blocks[x][z][y] = blocks.DIAMOND_ORE;
                         } else if(r < 0.01) {
                             chunk.blocks[x][z][y] = blocks.COAL_ORE;
@@ -257,49 +243,14 @@ export default class Terrain_Generator {
                         chunk.blocks[x][z][y] = biome.dirt_block;
                     }
                 }
-
-                if(biome.code == 'OCEAN') {
-                    chunk.blocks[x][z][map.info.options.WATER_LINE] = blocks.STILL_WATER;
+                // `Y` of waterline
+                let ywl = map.info.options.WATER_LINE - chunk.coord.y;
+                if(biome.code == 'OCEAN' && ywl >= 0 && ywl < chunk.size.y) {
+                    chunk.blocks[x][z][ywl] = blocks.STILL_WATER;
                 }
 
             }
         }
-
-        /*
-        const tree_types = [
-            {style: 'spruce', trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, height: 7},
-            {style: 'wood', trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, height: 5},
-            {style: 'stump', trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, height: 1},
-            {style: 'cactus', trunk: blocks.CACTUS, leaves: null, height: 5},
-        ];
-
-        let x = 8;
-        let z = 8;
-        let type = tree_types[chunk.addr.x % tree_types.length];
-        let tree_options = {
-            type: type,
-            height: type.height,
-            rad: 4,
-            pos: new Vector(x, 2, z)
-        };
-        this.plantTree(
-            tree_options,
-            chunk,
-            tree_options.pos.x,
-            tree_options.pos.y,
-            tree_options.pos.z,
-        );
-
-        return map;
-        */
-
-        // Remove herbs and trees on air
-        /*
-        map.info.trees = map.info.trees.filter(function(item, index, arr) {
-            let block = chunk.blocks[item.pos.x][item.pos.z][item.pos.y - 1];
-            return block && block.id != blocks.AIR.id;
-        });
-        */
 
         // Plant herbs
         for(let p of map.info.plants) {
@@ -451,8 +402,8 @@ class Map {
         this.#chunk         = chunk;
     }
 
-    smooth(generator, chunk_addr) {
-    
+    smooth(generator) {
+
         const SMOOTH_RAD    = 3;
 
         let neighbour_map   = null;
