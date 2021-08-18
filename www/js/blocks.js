@@ -10,6 +10,7 @@ import {BLOCK_FUNC} from './blocks_func.js';
 export const CHUNK_SIZE_X      = 16;
 export const CHUNK_SIZE_Y      = 16;
 export const CHUNK_SIZE_Z      = 16;
+export const CHUNK_SIZE_Y_MAX  = 8192;
 
 let TRANS_TEX = [4, 12];
 
