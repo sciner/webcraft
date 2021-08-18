@@ -6,6 +6,7 @@ let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
+let CHUNK_SIZE_Y_MAX    = null;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
@@ -455,9 +456,10 @@ async function importModules(terrain_type) {
     // load module
     await import("./blocks.js").then(module => {
         BLOCK = module.BLOCK;
-        CHUNK_SIZE_X = module.CHUNK_SIZE_X;
-        CHUNK_SIZE_Y = module.CHUNK_SIZE_Y;
-        CHUNK_SIZE_Z = module.CHUNK_SIZE_Z;
+        CHUNK_SIZE_X        = module.CHUNK_SIZE_X;
+        CHUNK_SIZE_Y        = module.CHUNK_SIZE_Y;
+        CHUNK_SIZE_Z        = module.CHUNK_SIZE_Z;
+        CHUNK_SIZE_Y_MAX    = module.CHUNK_SIZE_Y_MAX;
     });
     // load module
     await import("./biomes.js").then(module => {

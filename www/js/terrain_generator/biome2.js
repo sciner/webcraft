@@ -1,9 +1,9 @@
 import {impl as alea} from '../../vendors/alea.js';
 import noise from '../../vendors/perlin.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_Y_MAX} from "../blocks.js";
 import {Vector, Helpers, Color} from '../helpers.js';
 import {blocks, BIOMES} from '../biomes.js';
-import {CaveGenerator, Cave} from '../caves.js';
+import {CaveGenerator} from '../caves.js';
 
 // Terrain generator class
 export default class Terrain_Generator {
