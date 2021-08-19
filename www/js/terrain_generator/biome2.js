@@ -176,6 +176,20 @@ export default class Terrain_Generator {
             min_y++;
         }
 
+        // island
+        let islands = [
+            {
+                pos: new Vector(2865, 118, 2787),
+                rad: 15
+            },
+            {
+                pos: new Vector(2920, 1024, 2787),
+                rad: 20
+            }
+        ];
+
+        let main_island = islands[0];
+
         if(chunk.addr.x == 180 && chunk.addr.z == 174) {
             for(let y = min_y; y < chunk.size.y; y += .25) {
                 let y_abs = y + chunk.coord.y;
@@ -214,12 +228,40 @@ export default class Terrain_Generator {
 
                 for(let y = min_y; y < chunk.size.y; y++) {
 
+                    let xyz = new Vector(x, y, z).add(chunk.coord);
+                    let in_ocean = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
+
+                    // island
+                    for(let island of islands) {
+                        let dist = xyz.distance(island.pos);
+                        if(dist < island.rad) {
+                            if(xyz.y < island.pos.y) {
+                                if(xyz.y < island.pos.y - 3) {
+                                    chunk.blocks[x][z][y] = blocks.CONCRETE;
+                                } else {
+                                    if(dist < island.rad * 0.9) {
+                                        chunk.blocks[x][z][y] = blocks.CONCRETE;
+                                    } else {
+                                        chunk.blocks[x][z][y] = blocks.DIRT;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Remove island form from terrain
+                    let dist = xyz.add(new Vector(0, main_island.pos.y - 70, 0)).distance(main_island.pos);
+                    if(dist < main_island.rad) {
+                        continue;
+                    }
+
+                    // Exit
                     if(chunk.coord.y + y >= value) {
                         continue;
                     }
 
                     // Caves | Пещеры
-                    if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
+                    if(!in_ocean) {
                         let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
@@ -275,6 +317,7 @@ export default class Terrain_Generator {
                     } else {
                         chunk.blocks[x][z][y] = biome.dirt_block;
                     }
+
                 }
                 // `Y` of waterline
                 let ywl = map.info.options.WATER_LINE - chunk.coord.y;
