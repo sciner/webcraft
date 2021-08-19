@@ -169,6 +169,26 @@ export default class Terrain_Generator {
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
         let neighboors_caves        = this.caveManager.getNeighboors(chunk.addr);
 
+
+        // Bedrock
+        let min_y   = 0;
+        if(chunk.coord.y == 0) {
+            min_y++;
+        }
+
+        if(chunk.addr.x == 180 && chunk.addr.z == 174) {
+            for(let y = min_y; y < chunk.size.y; y += .25) {
+                let y_abs = y + chunk.coord.y;
+                let y_int = parseInt(y);
+                let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
+                let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
+                chunk.blocks[x][z][y_int] = blocks.BEDROCK;
+                if(y >= 1) {
+                    chunk.blocks[x][z][y_int - 1] = blocks.BEDROCK;
+                }
+            }
+        }
+
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -179,12 +199,10 @@ export default class Terrain_Generator {
 
                 let ar      = aleaRandom.double();
                 let rnd     = ar;
-                let min_y   = 0;
 
                 // Bedrock
                 if(chunk.coord.y == 0) {
                     chunk.blocks[x][z][0] = blocks.BEDROCK;
-                    min_y++;
                 }
 
                 for(let y = min_y; y < chunk.size.y; y++) {

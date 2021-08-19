@@ -8,9 +8,9 @@ import {BLOCK_FUNC} from './blocks_func.js';
 // ==========================================
 
 export const CHUNK_SIZE_X      = 16;
-export const CHUNK_SIZE_Y      = 16;
+export const CHUNK_SIZE_Y      = 32;
 export const CHUNK_SIZE_Z      = 16;
-export const CHUNK_SIZE_Y_MAX  = 8192;
+export const CHUNK_SIZE_Y_MAX  = 1024;
 export const MAX_CAVES_LEVEL   = 256;
 
 let TRANS_TEX = [4, 12];

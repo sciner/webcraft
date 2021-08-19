@@ -26,7 +26,7 @@ func (this *Chunk) AddUserConn(conn *UserConn) bool {
 		// return false
 	}
 	this.Connections[conn.ID] = conn
-	log.Println("AddUserConn ... OK", this.Pos)
+	// log.Println("AddUserConn ... OK", this.Pos)
 	return true
 }
 
@@ -42,7 +42,7 @@ func (this *Chunk) RemoveUserConn(conn *UserConn) bool {
 
 // Chunk loaded
 func (this *Chunk) Loaded(conn *UserConn) bool {
-	log.Println("SendChunkLoaded", this.Pos)
+	// log.Println("SendChunkLoaded", this.Pos)
 	data := &Struct.CmdChunkState{
 		Pos:        this.Pos,
 		ModifyList: this.ModifyList,
@@ -75,7 +75,7 @@ func (this *Chunk) GetFileName() string {
 func (this *Chunk) Load() {
 	// file, _ := json.Marshal(this.ModifyList)
 	fileName := this.GetFileName()
-	log.Println("Before load from " + fileName)
+	//  log.Println("Before load from " + fileName)
 	s, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		// Chunk file not found

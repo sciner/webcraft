@@ -85,7 +85,7 @@ export class ChunkManager {
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
         // Для отрисовки чанков по спирали от центрального вокруг игрока
-        this.spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin + 1, Math.ceil(this.margin * 2), this.margin + 1));
+        this.spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin + 1, this.margin + 1, this.margin + 1));
         // чанк, в котором стоит игрок
         let overChunk = Game.world.localPlayer.overChunk;
         if(overChunk) {
@@ -150,6 +150,9 @@ export class ChunkManager {
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
         let k = this.getPosChunkKey(state.pos);
+        if(k == 'c_171_4_148') {
+            console.log(state);
+        }
         if(this.chunks_prepare.hasOwnProperty(k)) {
             let prepare     = this.chunks_prepare[k];
             let chunk       = new Chunk(this, state.pos, state.modify_list);
@@ -169,7 +172,7 @@ export class ChunkManager {
         if(world.localPlayer) {
             chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         }
-        let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin + 1, Math.ceil(this.margin * 2), this.margin + 1));
+        let spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin + 1, this.margin + 1, this.margin + 1));
         if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves_3d.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
             let actual_keys = {};
