@@ -11,7 +11,7 @@ export class ChunkManager {
 
     constructor(world) {
         let that                    = this;
-        this.CHUNK_RENDER_DIST      = 7; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+        this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
         this.chunks                 = {};
         this.chunks_prepare         = {};
         this.modify_list            = {};
