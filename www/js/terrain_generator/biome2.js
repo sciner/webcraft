@@ -182,10 +182,17 @@ export default class Terrain_Generator {
                 let y_int = parseInt(y);
                 let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
                 let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
-                chunk.blocks[x][z][y_int] = blocks.BEDROCK;
+                let block = blocks.BEDROCK;
                 if(y >= 1) {
-                    chunk.blocks[x][z][y_int - 1] = blocks.BEDROCK;
+                    chunk.blocks[x][z][y_int - 1] = block;
                 }
+                if(y_abs % 16 == 1) {
+                    block = blocks.GOLD;
+                }
+                if(y_abs % 32 == 1) {
+                    block = blocks.DIAMOND_ORE;
+                }
+                chunk.blocks[x][z][y_int] = block;
             }
         }
 

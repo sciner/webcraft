@@ -48,6 +48,7 @@ export let blocks = {
     GRASS:          BLOCK.GRASS,
     RED_MUSHROOM:   BLOCK.RED_MUSHROOM,
     BROWN_MUSHROOM: BLOCK.BROWN_MUSHROOM,
+    GOLD:           BLOCK.GOLD,
     WOOD:           BLOCK.WOOD,
     SPRUCE:         BLOCK.SPRUCE,
     SAND:           BLOCK.SAND,
