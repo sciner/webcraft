@@ -6,7 +6,7 @@ export class Cave {
 
     // Constructor
     constructor(seed, addr) {
-        let csy             = CHUNK_SIZE_Y_MAX; // CHUNK_SIZE_Y
+        let csy             = MAX_CAVES_LEVEL; // CHUNK_SIZE_Y_MAX | CHUNK_SIZE_Y
         this.alea           = new alea(seed + addr.toString());
         this.head_pos       = null;
         this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z));

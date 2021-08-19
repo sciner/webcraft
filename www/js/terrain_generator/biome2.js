@@ -100,7 +100,7 @@ export default class Terrain_Generator {
         }
         // Clear maps_cache
         let keys = Object.keys(this.maps_cache);
-        let MAX_ENTR = 2000;
+        let MAX_ENTR = 20000;
         if(keys.length > MAX_ENTR) {
             let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
             console.info('Clear maps_cache, del_count: ' + del_count);
