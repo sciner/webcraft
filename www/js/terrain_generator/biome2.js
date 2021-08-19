@@ -3,7 +3,7 @@ import noise from '../../vendors/perlin.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../blocks.js";
 import {Vector, Helpers, Color} from '../helpers.js';
 import {blocks, BIOMES} from '../biomes.js';
-import {CaveGenerator, Cave} from '../caves.js';
+import {CaveGenerator} from '../caves.js';
 
 // Terrain generator class
 export default class Terrain_Generator {
@@ -34,9 +34,9 @@ export default class Terrain_Generator {
     // generateMap
     generateMap(chunk, noisefn) {
         let chunk_addr_string = chunk.addr.toString();
-        //if(this.maps_cache.hasOwnProperty(chunk_addr_string)) {
-        //    return this.maps_cache[chunk_addr_string];
-        //}
+        if(this.maps_cache.hasOwnProperty(chunk_addr_string)) {
+            return this.maps_cache[chunk_addr_string];
+        }
         const options               = this.options;
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
@@ -190,13 +190,6 @@ export default class Terrain_Generator {
                 chunk.blocks[x][z][0] = blocks.BEDROCK;
                 let ar      = aleaRandom.double();
                 let rnd     = ar;
-
-                // Sin wave
-                //let px = (x + chunk.coord.x);
-                //let pz = (z + chunk.coord.z);
-                //for(let y = 4; y < 4 + Math.abs((Math.sin(px / 8) + Math.cos(pz / 8)) * 3); y++) {
-                //    chunk.blocks[x][z][y] = blocks.CONCRETE;
-                //}
 
                 for(let y = 1; y < value; y++) {
 
@@ -439,7 +432,6 @@ export default class Terrain_Generator {
 class Map {
 
     // Private properties
-    #aleaRandom = null;
     #chunk      = null;
 
     // Constructor
@@ -448,7 +440,6 @@ class Map {
         this.trees          = [];
         this.plants         = [];
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
-        this.#aleaRandom    = new alea(chunk.seed + '_' + chunk.id);
         this.#chunk         = chunk;
     }
 
@@ -523,7 +514,7 @@ class Map {
     // Генерация растительности
     generateVegetation() {
         let chunk       = this.#chunk;
-        let aleaRandom  = this.#aleaRandom;
+        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id);
         this.trees      = [];
         this.plants     = [];
         for(let x = 0; x < chunk.size.x; x++) {
