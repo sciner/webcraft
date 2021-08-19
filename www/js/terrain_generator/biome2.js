@@ -33,9 +33,10 @@ export default class Terrain_Generator {
 
     // generateMap
     generateMap(chunk, noisefn) {
-        if(this.maps_cache.hasOwnProperty(chunk.id)) {
-            return this.maps_cache[chunk.addr.toString()];
-        }
+        let chunk_addr_string = chunk.addr.toString();
+        //if(this.maps_cache.hasOwnProperty(chunk_addr_string)) {
+        //    return this.maps_cache[chunk_addr_string];
+        //}
         const options               = this.options;
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
@@ -110,7 +111,7 @@ export default class Terrain_Generator {
             }
         }
         //
-        return this.maps_cache[chunk.addr.toString()] = map;
+        return this.maps_cache[chunk_addr_string] = map;
     }
 
     // generateMaps
@@ -451,7 +452,7 @@ class Map {
         this.#chunk         = chunk;
     }
 
-    smooth(generator, chunk_addr) {
+    smooth(generator) {
     
         const SMOOTH_RAD    = 3;
 
