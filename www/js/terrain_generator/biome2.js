@@ -35,7 +35,7 @@ export default class Terrain_Generator {
     generateMap(chunk, noisefn) {
         let addr_string = chunk.addr.toString();
         if(this.maps_cache.hasOwnProperty(addr_string)) {
-            return this.maps_cache[addr_string];
+            // return this.maps_cache[addr_string];
         }
         const options               = this.options;
         const SX                    = chunk.coord.x;
