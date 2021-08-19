@@ -1,4 +1,4 @@
-import {Helpers} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import PlayerModel from "./player_model.js";
 import {BLOCK} from "./blocks.js";
 
