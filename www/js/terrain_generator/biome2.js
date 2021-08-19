@@ -35,7 +35,7 @@ export default class Terrain_Generator {
     generateMap(chunk, noisefn) {
         let addr_string = chunk.addr.toString();
         if(this.maps_cache.hasOwnProperty(addr_string)) {
-            // return this.maps_cache[addr_string];
+            return this.maps_cache[addr_string];
         }
         const options               = this.options;
         const SX                    = chunk.coord.x;
@@ -124,15 +124,16 @@ export default class Terrain_Generator {
 
         for(let x = -1; x <= 1; x++) {
             for(let z = -1; z <= 1; z++) {
-                const addr = new Vector(chunk.addr.x + x, 0 /*chunk.addr.y*/, chunk.addr.z + z);
+                let addr = chunk.addr.add(new Vector(x, -chunk.addr.y, z));
+                let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
                 const c = {
+                    id: [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
                     blocks: {},
                     seed: chunk.seed,
                     addr: addr,
-                    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z),
+                    size: size,
                     coord: new Vector(addr.x * CHUNK_SIZE_X, addr.y * CHUNK_SIZE_Y, addr.z * CHUNK_SIZE_Z),
                 };
-                c.id = [c.addr.x, c.addr.y, c.addr.z, c.size.x, c.size.y, c.size.z].join('_');
                 let item = {
                     chunk: c,
                     info: this.generateMap(c, noisefn)
@@ -482,7 +483,7 @@ class Map {
     // Генерация растительности
     generateVegetation() {
         let chunk       = this.#chunk;
-        let aleaRandom  = this.#aleaRandom;
+        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id); // this.#aleaRandom;
         this.trees      = [];
         this.plants     = [];
         for(let x = 0; x < chunk.size.x; x++) {

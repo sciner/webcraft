@@ -68,6 +68,7 @@ class Chunk {
 
     constructor(args) {
         Object.assign(this, args);
+        this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
 
     init() {
@@ -488,7 +489,6 @@ async function importModules(terrain_type) {
         blocks = module.blocks;
     });
     // load module
-    // await import("./terrain_generator/flat.js").then(module => {
     await import("./terrain_generator/" + terrain_type + ".js").then(module => {
         terrainGenerator = new module.default();
     });
