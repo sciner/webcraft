@@ -39,7 +39,7 @@ let gameCtrl = function($scope, $timeout) {
     $scope.settings = {
         form: {
             hd: false,
-            texture_pack: 'terrain_kenney',
+            texture_pack: 'terrain_hd',
             mipmap: false
         },
         save: function() {
