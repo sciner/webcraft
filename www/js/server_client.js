@@ -1,4 +1,4 @@
-import {Helpers} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import PlayerModel from "./player_model.js";
 import {BLOCK} from "./blocks.js";
 
@@ -142,6 +142,8 @@ export default class ServerClient {
     }
 
     ChunkAdd(pos) {
+        // #3dchunk
+        // Game.world.chunkManager.setChunkState({"pos":pos,"modify_list":{}});
         this.Send({name: ServerClient.EVENT_CHUNK_ADD, data: {pos: pos}});
     }
 

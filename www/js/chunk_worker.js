@@ -6,6 +6,8 @@ let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
+let CHUNK_SIZE_Y_MAX    = null;
+let MAX_CAVES_LEVEL     = null;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
@@ -64,6 +66,11 @@ class ChunkManager {
 // Chunk
 class Chunk {
 
+    constructor(args) {
+        Object.assign(this, args);
+        this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
+    }
+
     init() {
         // Variables
         this.vertices_length    = 0;
@@ -84,7 +91,7 @@ class Chunk {
         for(let x = 0; x < this.size.x; x++) {
             this.blocks[x] = new Array(this.size.z);
             for(let z = 0; z < this.size.z; z++) {
-                this.blocks[x][z] = []; // new Array(this.size.y).fill(null);
+                this.blocks[x][z] = [];
             }
         }
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
@@ -95,7 +102,7 @@ class Chunk {
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
-        this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;    
+        this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
         // 4. Result
         postMessage(['blocks_generated', {
             key:    this.key,
@@ -242,10 +249,12 @@ class Chunk {
         let neighbour_chunks = {
             nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
             nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
             pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
         };
-    
+
         let cc = [
             {x:  0, y:  1, z:  0},
             {x:  0, y: -1, z:  0},
@@ -296,6 +305,24 @@ class Chunk {
                                 } else {
                                     b = this.blocks[x + 1][z][y];
                                 }
+                            // Y
+                            } else if (p.y == -1) {
+                                if(y == 0) {
+                                    if(neighbour_chunks.ny) {
+                                        b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                                    }
+                                } else {
+                                    b = this.blocks[x][z][y - 1];
+                                }
+                            } else if (p.y == 1) {
+                                if(y == this.size.y - 1) {
+                                    if(neighbour_chunks.py) {
+                                        b = neighbour_chunks.py.blocks[x][z][0];
+                                    }
+                                } else {
+                                    b = this.blocks[x][z][y + 1];
+                                }
+                            // Z
                             } else if (p.z == -1) {
                                 if(z == 0) {
                                     b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
@@ -308,11 +335,11 @@ class Chunk {
                                 } else {
                                     b = this.blocks[x][z + 1][y];
                                 }
-                            } else if (p.y == -1) {
+                            } /*else if (p.y == -1) {
                                 b = this.blocks[x][z][y - 1];
                             } else if (p.y == 1) {
                                 b = this.blocks[x][z][y + 1];
-                            }
+                            }*/
                         }
                         if(p.y == 1) {
                             neighbours.UP = b;
@@ -451,16 +478,17 @@ async function importModules(terrain_type) {
     // load module
     await import("./blocks.js").then(module => {
         BLOCK = module.BLOCK;
-        CHUNK_SIZE_X = module.CHUNK_SIZE_X;
-        CHUNK_SIZE_Y = module.CHUNK_SIZE_Y;
-        CHUNK_SIZE_Z = module.CHUNK_SIZE_Z;
+        CHUNK_SIZE_X        = module.CHUNK_SIZE_X;
+        CHUNK_SIZE_Y        = module.CHUNK_SIZE_Y;
+        CHUNK_SIZE_Z        = module.CHUNK_SIZE_Z;
+        CHUNK_SIZE_Y_MAX    = module.CHUNK_SIZE_Y_MAX;
+        MAX_CAVES_LEVEL     = module.MAX_CAVES_LEVEL;
     });
     // load module
     await import("./biomes.js").then(module => {
         blocks = module.blocks;
     });
     // load module
-    // await import("./terrain_generator/flat.js").then(module => {
     await import("./terrain_generator/" + terrain_type + ".js").then(module => {
         terrainGenerator = new module.default();
     });
@@ -501,10 +529,9 @@ onmessage = async function(e) {
         case 'createChunk': {
             if(!terrainGenerator.seed) {
                 terrainGenerator.setSeed(args.seed);
-                // terrainGenerator = new Terrain_Generator(args.seed);
             }
             if(!chunks.hasOwnProperty(args.key)) {
-                chunks[args.key] = Object.assign(new Chunk(), args);
+                chunks[args.key] = new Chunk(args);
                 chunks[args.key].init();
             }
             break;

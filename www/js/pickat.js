@@ -1,5 +1,5 @@
 import {Vector} from "./helpers.js";
-import {BLOCK, CHUNK_SIZE_Y} from "./blocks.js";
+import {BLOCK, CHUNK_SIZE_Y_MAX} from "./blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -62,7 +62,7 @@ export default class PickAt {
             pos.y += dir.y * tMin;
             pos.z += dir.z * tMin;
             block = block.add(side);
-            if (block.y > CHUNK_SIZE_Y || block.y < 0) {
+            if (block.y > CHUNK_SIZE_Y_MAX || block.y < 0) {
                 break;
             }
 

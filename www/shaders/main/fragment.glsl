@@ -57,6 +57,8 @@ void main() {
     if(u_fogOn) {
         // Read texture
         vec4 color = texture(u_texture, texc * mipScale + mipOffset);
+        color *= vec4(1.2, 1.2, 1.2, 1.);
+
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
             if (color.a < u_opaqueThreshold) {
