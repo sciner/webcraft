@@ -7,6 +7,7 @@ let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
 let CHUNK_SIZE_Y_MAX    = null;
+let MAX_CAVES_LEVEL     = null;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
@@ -247,10 +248,12 @@ class Chunk {
         let neighbour_chunks = {
             nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
             nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
             pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
         };
-    
+
         let cc = [
             {x:  0, y:  1, z:  0},
             {x:  0, y: -1, z:  0},
@@ -301,6 +304,24 @@ class Chunk {
                                 } else {
                                     b = this.blocks[x + 1][z][y];
                                 }
+                            // Y
+                            } else if (p.y == -1) {
+                                if(y == 0) {
+                                    if(neighbour_chunks.ny) {
+                                        b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                                    }
+                                } else {
+                                    b = this.blocks[x][z][y - 1];
+                                }
+                            } else if (p.y == 1) {
+                                if(y == this.size.y - 1) {
+                                    if(neighbour_chunks.py) {
+                                        b = neighbour_chunks.py.blocks[x][z][0];
+                                    }
+                                } else {
+                                    b = this.blocks[x][z][y + 1];
+                                }
+                            // Z
                             } else if (p.z == -1) {
                                 if(z == 0) {
                                     b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
@@ -313,11 +334,11 @@ class Chunk {
                                 } else {
                                     b = this.blocks[x][z + 1][y];
                                 }
-                            } else if (p.y == -1) {
+                            } /*else if (p.y == -1) {
                                 b = this.blocks[x][z][y - 1];
                             } else if (p.y == 1) {
                                 b = this.blocks[x][z][y + 1];
-                            }
+                            }*/
                         }
                         if(p.y == 1) {
                             neighbours.UP = b;
@@ -460,6 +481,7 @@ async function importModules(terrain_type) {
         CHUNK_SIZE_Y        = module.CHUNK_SIZE_Y;
         CHUNK_SIZE_Z        = module.CHUNK_SIZE_Z;
         CHUNK_SIZE_Y_MAX    = module.CHUNK_SIZE_Y_MAX;
+        MAX_CAVES_LEVEL     = module.MAX_CAVES_LEVEL;
     });
     // load module
     await import("./biomes.js").then(module => {

@@ -169,7 +169,7 @@ export class ChunkManager {
         if(world.localPlayer) {
             chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         }
-        let spiral_moves_3d = SpiralGenerator.generate3D(this.margin/*, chunkPos, true*/);
+        let spiral_moves_3d = SpiralGenerator.generate3D(this.margin);
         if(Object.keys(Game.world.chunkManager.chunks).length != spiral_moves_3d.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
             let actual_keys = {};
@@ -184,6 +184,13 @@ export class ChunkManager {
                 let pos = chunkPos.add(sm);
                 actual_keys[this.getPosChunkKey(pos)] = pos;
                 if(pos.y >= 0) {
+                    /*
+                    let k = this.getPosChunkKey(pos);
+                    if(!this.chunks.hasOwnProperty(k)) {
+                        let chunk       = new Chunk(this, pos, {});
+                        this.chunks[k]  = chunk;
+                    }
+                    */
                     if(can_add > 0) {
                         if(this.addChunk(pos)) {
                             can_add--;
