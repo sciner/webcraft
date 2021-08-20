@@ -229,6 +229,8 @@ class Chunk {
         this.gravity_blocks     = [];
     
         this.makeLights();
+
+        BLOCK.clearBlockCache();
     
         // Add vertices for blocks
         this.vertices = {

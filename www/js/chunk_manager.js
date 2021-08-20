@@ -277,6 +277,7 @@ export class ChunkManager {
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
+        let resp = BLOCK.DUMMY;
         // определяем относительные координаты чанка
         let chunkPos = this.getChunkPos(x, y, z);
         // обращаемся к чанку
@@ -284,9 +285,9 @@ export class ChunkManager {
         // если чанк найден
         if(chunk) {
             // просим вернуть блок передав абсолютные координаты
-            return chunk.getBlock(x, y, z);
+            resp = chunk.getBlock(x, y, z);
         }
-        return BLOCK.DUMMY;
+        return resp;
     }
 
     // setBlock

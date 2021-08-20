@@ -144,245 +144,297 @@ export class BLOCK_FUNC {
         ];
     }
 
-}
-
-// Pushes the vertices necessary for rendering a
-// specific block into the array.
-function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome) {
-
-    if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-        return;
+    /**
+     * clearBlockCache...
+     */
+    static clearBlockCache() {
+        this.block_cache = {};
+        this.cachedBlocksUsed = 0;
+        this.cachedBlocksMiss = 0;
     }
 
-    const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
-    const ao_enabled            = true;
-    const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
-    let flags = 0;
-    let sideFlags = 0;
-    let upFlags = 0;
-
-    // Texture color multiplier
-    let lm = MULTIPLY.COLOR.WHITE;
-    if(block.id == BLOCK.DIRT.id) {
-        lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-        sideFlags = QUAD_FLAGS.MASK_BIOME;
-        upFlags = QUAD_FLAGS.MASK_BIOME;
-    }
-
-    let DIRECTION_UP            = DIRECTION.UP;
-    let DIRECTION_DOWN          = DIRECTION.DOWN;
-    let DIRECTION_BACK          = DIRECTION.BACK;
-    let DIRECTION_RIGHT         = DIRECTION.RIGHT;
-    let DIRECTION_FORWARD       = DIRECTION.FORWARD;
-    let DIRECTION_LEFT          = DIRECTION.LEFT;
-
-    if(!block.name) {
-        console.log('block', JSON.stringify(block), block.id);
-        debugger;
-    }
-
-    let c, ao, neighbourBlock;
-    let width                   = block.width ? block.width : 1;
-    let height                  = block.height ? block.height : 1;
-    let drawAllSides            = width != 1 || height != 1;
-    let texture                 = BLOCK[block.name].texture;
-    let blockLit                = true;
-
-    // F R B L
-    switch(cardinal_direction) {
-        case ROTATE.S: {
-            break;
+    /**
+     * getCachedBlock...
+     * @param { int } x 
+     * @param { int } y 
+     * @param { int } z 
+     * @returns 
+     */
+    static getCachedBlock(x, y, z) {
+        let key = new Vector(x, y, z).toString();
+        if(this.block_cache[key]) {
+            this.cachedBlocksUsed++;
+            return this.block_cache[key];
         }
-        case ROTATE.W: {
-            DIRECTION_BACK      = DIRECTION.LEFT;
-            DIRECTION_RIGHT     = DIRECTION.BACK;
-            DIRECTION_FORWARD   = DIRECTION.RIGHT;
-            DIRECTION_LEFT      = DIRECTION.FORWARD;
-            break;
+        this.cachedBlocksMiss++;
+        return this.block_cache[key] = world.chunkManager.getBlock(x, y, z);
+    }
+    
+    // Pushes the vertices necessary for rendering a
+    // specific block into the array.
+    static push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome) {
+
+        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+            return;
         }
-        case ROTATE.N: {
-            DIRECTION_BACK      = DIRECTION.FORWARD;
-            DIRECTION_RIGHT     = DIRECTION.LEFT;
-            DIRECTION_FORWARD   = DIRECTION.BACK;
-            DIRECTION_LEFT      = DIRECTION.RIGHT;
-            break;
+
+        const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
+        const ao_enabled            = true;
+        const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
+        let flags = 0;
+        let sideFlags = 0;
+        let upFlags = 0;
+
+        // Texture color multiplier
+        let lm = MULTIPLY.COLOR.WHITE;
+        if(block.id == BLOCK.DIRT.id) {
+            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            sideFlags = QUAD_FLAGS.MASK_BIOME;
+            upFlags = QUAD_FLAGS.MASK_BIOME;
         }
-        case ROTATE.E: {
-            DIRECTION_BACK      = DIRECTION.RIGHT;
-            DIRECTION_RIGHT     = DIRECTION.FORWARD;
-            DIRECTION_FORWARD   = DIRECTION.LEFT;
-            DIRECTION_LEFT      = DIRECTION.BACK;
-            break;
+
+        let DIRECTION_UP            = DIRECTION.UP;
+        let DIRECTION_DOWN          = DIRECTION.DOWN;
+        let DIRECTION_BACK          = DIRECTION.BACK;
+        let DIRECTION_RIGHT         = DIRECTION.RIGHT;
+        let DIRECTION_FORWARD       = DIRECTION.FORWARD;
+        let DIRECTION_LEFT          = DIRECTION.LEFT;
+
+        if(!block.name) {
+            console.log('block', JSON.stringify(block), block.id);
+            debugger;
         }
-    }
 
-    // Can change height
-    let bH         = 1.0;
-    if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
-        bH = Math.min(block.power, .9)
-        let blockOver  = world.chunkManager.getBlock(x, y + 1, z);
-        if(blockOver) {
-	        let blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
-	        if(blockOverIsFluid) {
-	            bH = 1.0;
-	        }
-	 	}
-    }
+        let c, ao, neighbourBlock;
+        let width                   = block.width ? block.width : 1;
+        let height                  = block.height ? block.height : 1;
+        let drawAllSides            = width != 1 || height != 1;
+        let texture                 = BLOCK[block.name].texture;
+        let blockLit                = true;
 
-    if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SNOW_DIRT.id) {
-        if(neighbours.UP && !neighbours.UP.transparent) {
-            DIRECTION_BACK      = DIRECTION.DOWN;
-            DIRECTION_RIGHT     = DIRECTION.DOWN;
-            DIRECTION_FORWARD   = DIRECTION.DOWN;
-            DIRECTION_LEFT      = DIRECTION.DOWN;
-            sideFlags = 0;
+        // F R B L
+        switch(cardinal_direction) {
+            case ROTATE.S: {
+                break;
+            }
+            case ROTATE.W: {
+                DIRECTION_BACK      = DIRECTION.LEFT;
+                DIRECTION_RIGHT     = DIRECTION.BACK;
+                DIRECTION_FORWARD   = DIRECTION.RIGHT;
+                DIRECTION_LEFT      = DIRECTION.FORWARD;
+                break;
+            }
+            case ROTATE.N: {
+                DIRECTION_BACK      = DIRECTION.FORWARD;
+                DIRECTION_RIGHT     = DIRECTION.LEFT;
+                DIRECTION_FORWARD   = DIRECTION.BACK;
+                DIRECTION_LEFT      = DIRECTION.RIGHT;
+                break;
+            }
+            case ROTATE.E: {
+                DIRECTION_BACK      = DIRECTION.RIGHT;
+                DIRECTION_RIGHT     = DIRECTION.FORWARD;
+                DIRECTION_FORWARD   = DIRECTION.LEFT;
+                DIRECTION_LEFT      = DIRECTION.BACK;
+                break;
+            }
         }
-    }
 
-    // Top
-    neighbourBlock = neighbours.UP;
-    // neighbourBlock = world.chunkManager.getBlock(x, y + 1, z);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
-        ao = [0, 0, 0, 0];
-        if(ao_enabled) {
-	        let nX = world.chunkManager.getBlock(x, y + 1, z - 1); // слева
-	        let nY = world.chunkManager.getBlock(x - 1, y + 1, z); // сверху
-	        let nXY = world.chunkManager.getBlock(x - 1, y + 1, z - 1); // левый верхний угол
-	        let pX = world.chunkManager.getBlock(x, y + 1, z + 1);  // справа
-	        let pY = world.chunkManager.getBlock(x + 1, y + 1, z); // снизу
-	        let pXY = world.chunkManager.getBlock(x + 1, y + 1, z + 1); // правый нижний угол
-	        let uXY = world.chunkManager.getBlock(x - 1, y + 1, z + 1); // правый верхний
-	        let dXY = world.chunkManager.getBlock(x + 1, y + 1, z - 1); // левый нижний
-	        if(ao_transparent_blocks.indexOf(nX.id) < 0 && !nX.transparent) {ao[0] += .2; ao[1] += .2;}
-	        if(ao_transparent_blocks.indexOf(nY.id) < 0 && !nY.transparent)  {ao[0] += .2; ao[3] += .2;}
-	        if(ao_transparent_blocks.indexOf(nXY.id) < 0 && !nXY.transparent)  {ao[0] += .2; }
-	        if(ao_transparent_blocks.indexOf(pX.id) < 0 && !pX.transparent)  {ao[2] += .2; ao[3] += .2; }
-	        if(ao_transparent_blocks.indexOf(pY.id) < 0 && !pY.transparent)  {ao[1] += .2; ao[2] += .2; }
-	        if(ao_transparent_blocks.indexOf(pXY.id) < 0 && !pXY.transparent)  {ao[2] += .2;}
-	        if(ao_transparent_blocks.indexOf(uXY.id) < 0 && !uXY.transparent)  {ao[3] += .2;}
-	        if(ao_transparent_blocks.indexOf(dXY.id) < 0 && !dXY.transparent)  {ao[1] += .2;}
-    	}
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        // n = NORMALS.UP;
-        vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
-            1, 0, 0,
-            0, 1, 0,
-            c[0], c[1], c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | upFlags);
-    }
-
-    // Waters
-    if([200, 202].indexOf(block.id) >= 0) {
-        return;
-    }
-
-    // Bottom
-    neighbourBlock = neighbours.DOWN;
-    // neighbourBlock = world.chunkManager.getBlock(x, y - 1, z);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [.5, .5, .5, .5];
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
-        vertices.push(x + 0.5, z + 0.5, y,
-            1, 0, 0,
-            0, -1, 0,
-            c[0], c[1], c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags);
-    }
-
-    // South | Front/Forward
-    neighbourBlock = neighbours.FORWARD;
-    // neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [0, 0, 0, 0];
-        if(ao_enabled) {
-            let aa = world.chunkManager.getBlock(x - 1, y, z - 1); // слева
-            let ab = world.chunkManager.getBlock(x + 1, y, z - 1); // справа
-            let ac = world.chunkManager.getBlock(x, y - 1, z - 1); // снизу
-            if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
-            if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
-            if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
+        // Can change height
+        let bH         = 1.0;
+        if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
+            bH = Math.min(block.power, .9)
+            let blockOver  = world.chunkManager.getBlock(x, y + 1, z);
+            if(blockOver) {
+                let blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+                if(blockOverIsFluid) {
+                    bH = 1.0;
+                }
+            }
         }
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-        vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
-            1, 0, 0,
-            0, 0, bH,
-            c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-    }
 
-    // North | Back
-    neighbourBlock = neighbours.BACK;
-    // neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [0, 0, 0, 0];
-        if(ao_enabled) {
-            // @todo
+        if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SNOW_DIRT.id) {
+            if(neighbours.UP && !neighbours.UP.transparent) {
+                DIRECTION_BACK      = DIRECTION.DOWN;
+                DIRECTION_RIGHT     = DIRECTION.DOWN;
+                DIRECTION_FORWARD   = DIRECTION.DOWN;
+                DIRECTION_LEFT      = DIRECTION.DOWN;
+                sideFlags = 0;
+            }
         }
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
-        vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
-            1, 0, 0,
-            0, 0, -bH,
-            c[0], c[1], -c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-    }
 
-    // West | Left
-    neighbourBlock = neighbours.LEFT;
-    // neighbourBlock = world.chunkManager.getBlock(x - 1, y, z);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [0, 0, 0, 0];
-        if(ao_enabled) {
-            // @todo
+        // Top
+        neighbourBlock = neighbours.UP;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
+            ao = [0, 0, 0, 0];
+            if(ao_enabled) {
+                let aa = this.getCachedBlock(x, y + 1, z - 1); // слева
+                let ab = this.getCachedBlock(x - 1, y + 1, z); // сверху
+                let ac = this.getCachedBlock(x - 1, y + 1, z - 1); // левый верхний угол
+                let ad = this.getCachedBlock(x, y + 1, z + 1);  // справа
+                let ae = this.getCachedBlock(x + 1, y + 1, z); // снизу
+                let af = this.getCachedBlock(x + 1, y + 1, z + 1); // правый нижний угол
+                let ag = this.getCachedBlock(x - 1, y + 1, z + 1); // правый верхний
+                let ah = this.getCachedBlock(x + 1, y + 1, z - 1); // левый нижний
+                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent)  {ao[0] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent)  {ao[0] = .2; }
+                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent)  {ao[2] = .2; ao[3] = .2; }
+                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent)  {ao[1] = .2; ao[2] = .2; }
+                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent)  {ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent)  {ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent)  {ao[1] = .2;}
+            }
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
+            // n = NORMALS.UP;
+            vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+                1, 0, 0,
+                0, 1, 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | upFlags);
         }
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
-        vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
-            0, 1, 0,
-            0, 0, -bH,
-            c[0], c[1], -c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-    }
 
-    // East | Right
-    neighbourBlock = neighbours.RIGHT;
-    // neighbourBlock = world.chunkManager.getBlock(x + 1, y, z);
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
-        ao = [0, 0, 0, 0];
-        if(ao_enabled) {
-            // ao[0] - левый нижний
-            // ao[1] - правый нижний
-            // ao[2] - правый верхний
-            // ao[3] - левый верхний
-            let aa = world.chunkManager.getBlock(x + 1, y, z - 1); // правый верхний
-            let ab = world.chunkManager.getBlock(x + 1, y, z + 1); // правый нижний
-            let ac = world.chunkManager.getBlock(x + 1, y - 1, z);
-            let ad = world.chunkManager.getBlock(x + 1, y - 1, z + 1);
-            let ae = world.chunkManager.getBlock(x + 1, y + 1, z + 1);
-            let af = world.chunkManager.getBlock(x + 1, y - 1, z - 1);
-            let ag = world.chunkManager.getBlock(x + 1, y + 1, z);
-            let ah = world.chunkManager.getBlock(x + 1, y + 1, z - 1);
-            if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
-            if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
-            if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
-            if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] += .2;}
-            if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] += .2;}
-            if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] += .2;}
-            if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[2] += .2; ao[3] += .2;}
-            if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] += .2;}
+        // Waters
+        if([200, 202].indexOf(block.id) >= 0) {
+            return;
         }
-        c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
-        vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
-            0, 1, 0,
-            0, 0, bH,
-            c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-    }
 
+        // Bottom
+        neighbourBlock = neighbours.DOWN;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+            ao = [.5, .5, .5, .5];
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+            vertices.push(x + 0.5, z + 0.5, y,
+                1, 0, 0,
+                0, -1, 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags);
+        }
+
+        // South | Front/Forward
+        neighbourBlock = neighbours.FORWARD;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+            ao = [0, 0, 0, 0];
+            if(ao_enabled) {
+                // ao[0] - левый нижний
+                // ao[1] - правый нижний
+                // ao[2] - правый верхний
+                // ao[3] - левый верхний
+                let aa = this.getCachedBlock(x - 1, y, z - 1);
+                let ab = this.getCachedBlock(x + 1, y, z - 1);
+                let ac = this.getCachedBlock(x, y - 1, z - 1);
+                let ad = this.getCachedBlock(x + 1, y - 1, z - 1);
+                let ae = this.getCachedBlock(x, y + 1, z - 1);
+                let af = this.getCachedBlock(x + 1, y + 1, z - 1);
+                let ag = this.getCachedBlock(x - 1, y - 1, z - 1);
+                let ah = this.getCachedBlock(x - 1, y + 1, z - 1);
+                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] = .2; ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] = .2; ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2;}
+                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] = .2;}
+            }
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+            vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
+                1, 0, 0,
+                0, 0, bH,
+                c[0], c[1], c[2], -c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        }
+
+        // North | Back
+        neighbourBlock = neighbours.BACK;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+            ao = [0, 0, 0, 0];
+            if(ao_enabled) {
+                // ao[0] - правый верхний
+                // ao[1] - левый верхний
+                // ao[2] - левый нижний
+                // ao[3] - правый нижний
+                let aa = this.getCachedBlock(x + 1, y - 1, z + 1);
+                let ab = this.getCachedBlock(x, y - 1, z + 1);
+                let ac = this.getCachedBlock(x + 1, y, z + 1);
+                let ad = this.getCachedBlock(x - 1, y, z + 1);
+                let ae = this.getCachedBlock(x - 1, y - 1, z + 1);
+                let af = this.getCachedBlock(x, y + 1, z + 1);
+                let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
+                let ah = this.getCachedBlock(x + 1, y + 1, z + 1);
+                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[2] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[1] = .2; ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[0] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2; ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2;}
+                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[1] = .2;}
+            }
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
+            vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
+                1, 0, 0,
+                0, 0, -bH,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        }
+
+        // West | Left
+        neighbourBlock = neighbours.LEFT;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+            ao = [0, 0, 0, 0];
+            if(ao_enabled) {
+                // @todo
+            }
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+            vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
+                0, 1, 0,
+                0, 0, -bH,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        }
+
+        // East | Right
+        neighbourBlock = neighbours.RIGHT;
+        if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+            ao = [0, 0, 0, 0];
+            if(ao_enabled) {
+                // ao[0] - левый нижний
+                // ao[1] - правый нижний
+                // ao[2] - правый верхний
+                // ao[3] - левый верхний
+                let aa = this.getCachedBlock(x + 1, y, z - 1);
+                let ab = this.getCachedBlock(x + 1, y, z + 1);
+                let ac = this.getCachedBlock(x + 1, y - 1, z);
+                let ad = this.getCachedBlock(x + 1, y - 1, z + 1);
+                let ae = this.getCachedBlock(x + 1, y + 1, z + 1);
+                let af = this.getCachedBlock(x + 1, y - 1, z - 1);
+                let ag = this.getCachedBlock(x + 1, y + 1, z);
+                let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
+                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] = .2; ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] = .2; ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2;}
+                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[2] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] = .2;}
+            }
+            c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
+            vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
+                0, 1, 0,
+                0, 0, bH,
+                c[0], c[1], c[2], -c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        }
+
+    }
 }
 
 // Pushes the vertices necessary for rendering a
@@ -896,7 +948,7 @@ BLOCK_FUNC.pushVertices = function(vertices, block, world, lightmap, x, y, z, ne
     } else if (style == 'fence') {
         push_fence(block, vertices, world, lightmap, x, y, z);
     } else {
-        push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
+        this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
     }
 }
 
