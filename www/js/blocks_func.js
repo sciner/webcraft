@@ -936,8 +936,6 @@ BLOCK_FUNC.pushVertices = function(vertices, block, world, lightmap, x, y, z, ne
     if (['planting', 'torch', 'sign'].indexOf(style) >= 0) {
         push_plant(block, vertices, world, lightmap, x, y, z, biome);
     } else if (style == 'pane') {
-        // throw 'Unsupported style';
-        // push_plant(block, vertices, world, lightmap, x, y, z);
         push_pane(block, vertices, world, lightmap, x, y, z, neighbours);
     } else if (style == 'stairs') {
         push_stairs(block, vertices, world, lightmap, x, y, z);
@@ -950,70 +948,6 @@ BLOCK_FUNC.pushVertices = function(vertices, block, world, lightmap, x, y, z, ne
     } else {
         this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
     }
-}
-
-// Pushes vertices with the data needed for picking.
-BLOCK_FUNC.pushPickingVertices = function(vertices, x, y, z, pos) {
-
-	let color = {
-        r: pos.x / 255,
-        g: pos.y / 255,
-        b: pos.z / 255,
-    };
-
-    // Top
-    let a = 1/255;
-	vertices.push(x + .5, z + .5, y + 1,
-        1, 0, 0,
-        0, 1, 0,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
-
-    // Bottom
-    a = 2/255;
-    vertices.push(x + .5, z + .5, y,
-        1, 0, 0,
-        0, -1, 0,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
-
-    // Front
-    a = 3/255;
-    vertices.push(x + .5, z, y + .5,
-        1, 0, 0,
-        0, 0, 1,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
-
-	// Back
-    a = 4/255;
-    vertices.push(x + .5, z + 1, y + .5,
-        1, 0, 0,
-        0, 0, -1,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
-
-	// Left
-    a = 5/255;
-    vertices.push(x, z + .5, y + .5,
-        0, 1, 0,
-        0, 0, -1,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
-
-	// Right
-    a = 6/255;
-    vertices.push(x + 1, z + .5, y + .5,
-        0, 1, 0,
-        0, 0, 1,
-        .5, .5, 1, 1,
-        color.r, color.g, color.b,
-        a, a, a, a, 1);
 }
 
 // Return inventory icon pos
