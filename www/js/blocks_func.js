@@ -1,4 +1,5 @@
 import {TX_CNT, ROTATE, DIRECTION, NORMALS, Vector, Vector4, Color} from './helpers.js';
+import {BLOCK} from './blocks.js';
 
 export let MULTIPLY = {
     COLOR: {

@@ -2,7 +2,6 @@
 
 import PickAt from "./pickat.js";
 import HUD from "./hud.js";
-import {Helpers} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
 
@@ -278,9 +277,10 @@ export default class Renderer {
 
         shader.bind();
         shader.update();
-        // 0. Picking
+
+        // 0. Picking target
         if (this.pickAt) {
-            this.pickAt.draw();
+            this.pickAt.drawTarget(this, Game.shift);
         }
 
         this.terrainTexture.bind(4);

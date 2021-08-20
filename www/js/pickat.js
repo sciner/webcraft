@@ -1,5 +1,7 @@
-import {Vector} from "./helpers.js";
+import {Color, Vector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_Y_MAX} from "./blocks.js";
+import { BaseTerrainShader } from "./renders/BaseRenderer.js";
+import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4} = glMatrix;
 
@@ -9,17 +11,12 @@ export default class PickAt {
 
     constructor(render) {
         this.render = render;
-        this.callbacks = [];
+        this.target_block = false;
+        this.target_buffer = null;
     }
 
+    //
     get(callback) {
-        this.callbacks.push(callback);
-    }
-
-    draw() {
-        if(this.callbacks.length === 0) {
-            return;
-        }
         const player = Game.world.localPlayer;
         const render = this.render;
         const pos = new Vector(player.pos);
@@ -27,9 +24,11 @@ export default class PickAt {
         pos.y = m[14];
         const startBlock = new Vector(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
         let dir = new Vector(-m[8], -m[10], -m[9]);
-        if (dir.length() < 0.01) {
-            this.callbacks.length = 0;
-            return;
+        if(dir.length() < 0.01) {
+            if(callback) {
+                callback(false);
+            }
+            return false;
         }
         dir = dir.normal();
         let block = new Vector(startBlock);
@@ -74,9 +73,92 @@ export default class PickAt {
                 break;
             }
         }
-        for(let i = 0; i < this.callbacks.length; i++) {
-            this.callbacks[i](res);
+        if(callback) {
+            callback(res);
         }
-        this.callbacks.length = 0;
+        return res;
     }
+
+    /**
+     * drawTarget...
+     * @returns bool
+     */
+    drawTarget(render, shift) {
+        let b = this.get();
+        if(b) {
+            if(!this.target_block ||
+                (this.target_block.x != b.x || this.target_block.y != b.y || this.target_block.z != b.z ||
+                    this.target_block.n.x != b.n.x || this.target_block.n.y != b.n.y || this.target_block.n.z != b.n.z)) {
+                // @todo need update target block
+                this.target_block = b;
+                let vertices    = [];
+                let ao          = [0, 0, 0, 0];
+                let c           = BLOCK.calcTexture([0, 17]);
+                let lm          = new Color(0, 0, 0);
+                let flags       = 0, sideFlags = 0, upFlags = 0;
+                let bH          = 1;
+                let width       = 1;
+                let height      = 1;
+                let x           = b.x - shift.x;
+                let y           = b.y - shift.y;
+                let z           = b.z - shift.z;
+                // Up;
+                vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+                    1, 0, 0,
+                    0, 1, 0,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+                // Bottom
+                vertices.push(x + 0.5, z + 0.5, y,
+                    1, 0, 0,
+                    0, -1, 0,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags);
+                // Forward
+                vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
+                    1, 0, 0,
+                    0, 0, bH,
+                    c[0], c[1], c[2], -c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                // Back
+                vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
+                    1, 0, 0,
+                    0, 0, -bH,
+                    c[0], c[1], -c[2], c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                // Left
+                vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
+                    0, 1, 0,
+                    0, 0, -bH,
+                    c[0], c[1], -c[2], c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                // Right
+                vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
+                    0, 1, 0,
+                    0, 0, bH,
+                    c[0], c[1], c[2], -c[3],
+                    lm.r, lm.g, lm.b,
+                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                // Delete old buffer
+                if(this.target_buffer) {
+                    this.target_buffer.destroy();
+                }
+                // Create buffer
+                this.target_buffer = new GeometryTerrain(vertices);
+            }
+        } else {
+            return this.target_block = false;
+        }
+        // draw
+        const mat = render.materials['regular'];
+        render.renderBackend.drawMesh(this.target_buffer, mat);
+        // return true
+        return true;
+    }
+
 }
