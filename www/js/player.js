@@ -457,88 +457,90 @@ export default class Player {
             return;
         }
 
+        // Picking
         this.canvas.renderer.pickAt.get(function(block) {
-            if(block != false) {
-                let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
-                let playerPos = that.getBlockPos();
-                if(createBlock) {
-                    if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
-                        if(!shiftKey) {
-                            switch(world_block.id) {
-                                case BLOCK.CRAFTING_TABLE.id: {
-                                    Game.hud.wm.getWindow('ct1').toggleVisibility();
-                                    break;
-                                }
-                                case BLOCK.CHEST.id: {
-                                    Game.hud.wm.getWindow('frmChest').load(world_block);
-                                    break;
-                                }
+            if(block === false) {
+                return;
+            }
+            let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
+            let playerPos = that.getBlockPos();
+            if(createBlock) {
+                if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
+                    if(!shiftKey) {
+                        switch(world_block.id) {
+                            case BLOCK.CRAFTING_TABLE.id: {
+                                Game.hud.wm.getWindow('ct1').toggleVisibility();
+                                break;
                             }
-                            return;
+                            case BLOCK.CHEST.id: {
+                                Game.hud.wm.getWindow('frmChest').load(world_block);
+                                break;
+                            }
                         }
-                    }
-                    if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y - 1 || block.y <= playerPos.y + 1)) {
-                        // block is occupied by player
                         return;
                     }
-                    if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
-                        return;
-                    }
-                    let matBlock = BLOCK.fromId(that.buildMaterial.id);
-                    if(world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id)) {
-                        // Replace block
-                        if(matBlock.is_item || matBlock.is_entity) {
-                            if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
-                            }
-                        } else {
-                            world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
+                }
+                if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y - 1 || block.y <= playerPos.y + 1)) {
+                    // block is occupied by player
+                    return;
+                }
+                if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
+                    return;
+                }
+                let matBlock = BLOCK.fromId(that.buildMaterial.id);
+                if(world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id)) {
+                    // Replace block
+                    if(matBlock.is_item || matBlock.is_entity) {
+                        if(matBlock.is_entity) {
+                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
                         }
                     } else {
-                        // Create block
-                        let blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z);
-                        if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
-                            return;
-                        }
-                        if(matBlock.is_item || matBlock.is_entity) {
-                            if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
-                                let b = BLOCK.fromId(that.buildMaterial.id);
-                                if(b.sound) {
-                                    Game.sounds.play(b.sound, 'place');
-                                }
-                            }
-                        } else {
-                            if(['ladder'].indexOf(that.buildMaterial.style) >= 0) {
-                                if(block.n.z != 0 || world_block.transparent) {
-                                    return;
-                                }
-                            }
-                            world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
-                        }
+                        world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
                     }
-                    that.inventory.decrement();
-                } else if(destroyBlock) {
-                    // Destroy block
-                    if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
+                } else {
+                    // Create block
+                    let blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z);
+                    if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
+                        return;
+                    }
+                    if(matBlock.is_item || matBlock.is_entity) {
+                        if(matBlock.is_entity) {
+                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
+                            let b = BLOCK.fromId(that.buildMaterial.id);
+                            if(b.sound) {
+                                Game.sounds.play(b.sound, 'place');
+                            }
+                        }
+                    } else {
+                        if(['ladder'].indexOf(that.buildMaterial.style) >= 0) {
+                            if(block.n.z != 0 || world_block.transparent) {
+                                return;
+                            }
+                        }
+                        world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
+                    }
+                }
+                that.inventory.decrement();
+            } else if(destroyBlock) {
+                // Destroy block
+                if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
+                    world.chunkManager.destroyBlock(block, true);
+                    if(world_block.id == BLOCK.CONCRETE.id) {
+                        world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
+                    }
+                    if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
+                        that.inventory.increment(Object.assign({count: 1}, world_block));
+                    }
+                    let block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
+                    // delete plant over deleted block
+                    if(BLOCK.isPlants(block_over.id)) {
+                        block.y++;
                         world.chunkManager.destroyBlock(block, true);
-                        if(world_block.id == BLOCK.CONCRETE.id) {
-                            world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
-                        }
-                        if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
-                            that.inventory.increment(Object.assign({count: 1}, world_block));
-                        }
-                        let block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
-                        // delete plant over deleted block
-                        if(BLOCK.isPlants(block_over.id)) {
-                            block.y++;
-                            world.chunkManager.destroyBlock(block, true);
-                        }
                     }
-                } else if(cloneBlock) {
-                    if(world_block) {
-                        that.inventory.cloneMaterial(world_block);
-                    }
+                }
+            } else if(cloneBlock) {
+                if(world_block) {
+                    that.inventory.cloneMaterial(world_block);
                 }
             }
         });
