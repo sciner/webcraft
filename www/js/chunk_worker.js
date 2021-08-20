@@ -489,7 +489,7 @@ async function importModules(terrain_type) {
         blocks = module.blocks;
     });
     // load module
-    await import("./terrain_generator/" + terrain_type + ".js").then(module => {
+    await import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
         terrainGenerator = new module.default();
     });
     // Init vars
@@ -516,7 +516,8 @@ async function importModules(terrain_type) {
     queue = [];
 }
 
-importModules('biome2');
+// Init modules
+importModules('biome2'); // biome2 | city | flat
 
 // On message callback function
 onmessage = async function(e) {

@@ -1,9 +1,10 @@
-import {impl as alea} from '../../vendors/alea.js';
-import noise from '../../vendors/perlin.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../blocks.js";
-import {Vector, Helpers, Color} from '../helpers.js';
-import {blocks, BIOMES} from '../biomes.js';
-import {CaveGenerator} from '../caves.js';
+import {impl as alea} from '../../../vendors/alea.js';
+import noise from '../../../vendors/perlin.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_Y_MAX} from "../../blocks.js";
+import {Vector, Helpers, Color} from '../../helpers.js';
+import {blocks, BIOMES} from '../../biomes.js';
+import {CaveGenerator} from '../../caves.js';
+import {Map, MapCell} from './map.js';
 
 // Terrain generator class
 export default class Terrain_Generator {
@@ -33,9 +34,9 @@ export default class Terrain_Generator {
 
     // generateMap
     generateMap(chunk, noisefn) {
-        let chunk_addr_string = chunk.addr.toString();
-        if(this.maps_cache.hasOwnProperty(chunk_addr_string)) {
-            return this.maps_cache[chunk_addr_string];
+        let addr_string = chunk.addr.toString();
+        if(this.maps_cache.hasOwnProperty(addr_string)) {
+            return this.maps_cache[addr_string];
         }
         const options               = this.options;
         const SX                    = chunk.coord.x;
@@ -48,6 +49,7 @@ export default class Terrain_Generator {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
+                // высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 +
                     noisefn(px / 650, pz / 650) * .25 +
@@ -99,7 +101,7 @@ export default class Terrain_Generator {
         }
         // Clear maps_cache
         let keys = Object.keys(this.maps_cache);
-        let MAX_ENTR = 2000;
+        let MAX_ENTR = 20000;
         if(keys.length > MAX_ENTR) {
             let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
             console.info('Clear maps_cache, del_count: ' + del_count);
@@ -111,7 +113,7 @@ export default class Terrain_Generator {
             }
         }
         //
-        return this.maps_cache[chunk_addr_string] = map;
+        return this.maps_cache[addr_string] = map;
     }
 
     // generateMaps
@@ -123,15 +125,16 @@ export default class Terrain_Generator {
 
         for(let x = -1; x <= 1; x++) {
             for(let z = -1; z <= 1; z++) {
-                const addr = new Vector(chunk.addr.x + x, chunk.addr.y, chunk.addr.z + z);
+                let addr = chunk.addr.add(new Vector(x, -chunk.addr.y, z));
+                let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
                 const c = {
+                    id: [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
                     blocks: {},
                     seed: chunk.seed,
                     addr: addr,
-                    size: new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z),
+                    size: size,
                     coord: new Vector(addr.x * CHUNK_SIZE_X, addr.y * CHUNK_SIZE_Y, addr.z * CHUNK_SIZE_Z),
                 };
-                c.id = [c.addr.x, c.addr.y, c.addr.z, c.size.x, c.size.y, c.size.z].join('_');
                 let item = {
                     chunk: c,
                     info: this.generateMap(c, noisefn)
@@ -144,7 +147,8 @@ export default class Terrain_Generator {
         }
 
         // Smooth (for central and part of neighboors)
-        map.info.smooth(this, chunk.addr);
+        // @todo Временно закрыто (#3dchunk)
+        map.info.smooth(this);
 
         // Generate vegetation
         for(let map of maps) {
@@ -160,21 +164,50 @@ export default class Terrain_Generator {
         let maps                    = this.generateMaps(chunk);
         let map                     = maps[4];
 
-        const chunk_addr            = new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z);        
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let NEIGHBOORS_CAVES_RADIUS = 5;
-        let neighboors_caves        = [];
-        for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
-            for(let cz = -NEIGHBOORS_CAVES_RADIUS; cz < NEIGHBOORS_CAVES_RADIUS; cz++) {
-                let map_cave = this.caveManager.get(chunk_addr.add(new Vector(cx, 0, cz)));
-                if(map_cave && map_cave.head_pos) {
-                    if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
-                        neighboors_caves.push(map_cave.chunks[chunk_addr]);
-                    }
+        let neighboors_caves        = this.caveManager.getNeighboors(chunk.addr);
+
+
+        // Bedrock
+        let min_y   = 0;
+        if(chunk.coord.y == 0) {
+            min_y++;
+        }
+
+        // island
+        let islands = [
+            {
+                pos: new Vector(2865, 118, 2787),
+                rad: 15
+            },
+            {
+                pos: new Vector(2920, 1024, 2787),
+                rad: 20
+            }
+        ];
+
+        let main_island = islands[0];
+
+        if(chunk.addr.x == 180 && chunk.addr.z == 174) {
+            for(let y = min_y; y < chunk.size.y; y += .25) {
+                let y_abs = y + chunk.coord.y;
+                let y_int = parseInt(y);
+                let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
+                let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
+                let block = blocks.BEDROCK;
+                if(y >= 1) {
+                    chunk.blocks[x][z][y_int - 1] = block;
                 }
+                if(y_abs % 16 == 1) {
+                    block = blocks.GOLD;
+                }
+                if(y_abs % 32 == 1) {
+                    block = blocks.DIAMOND_ORE;
+                }
+                chunk.blocks[x][z][y_int] = block;
             }
         }
 
@@ -186,15 +219,50 @@ export default class Terrain_Generator {
                 const biome = cell.biome;
                 const value = cell.value2;
 
-                // Bedrock
-                chunk.blocks[x][z][0] = blocks.BEDROCK;
                 let ar      = aleaRandom.double();
                 let rnd     = ar;
 
-                for(let y = 1; y < value; y++) {
+                // Bedrock
+                if(chunk.coord.y == 0) {
+                    chunk.blocks[x][z][0] = blocks.BEDROCK;
+                }
+
+                for(let y = min_y; y < chunk.size.y; y++) {
+
+                    let xyz = new Vector(x, y, z).add(chunk.coord);
+                    let in_ocean = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
+
+                    // island
+                    for(let island of islands) {
+                        let dist = xyz.distance(island.pos);
+                        if(dist < island.rad) {
+                            if(xyz.y < island.pos.y) {
+                                if(xyz.y < island.pos.y - 3) {
+                                    chunk.blocks[x][z][y] = blocks.CONCRETE;
+                                } else {
+                                    if(dist < island.rad * 0.9) {
+                                        chunk.blocks[x][z][y] = blocks.CONCRETE;
+                                    } else {
+                                        chunk.blocks[x][z][y] = blocks.DIRT;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Remove island form from terrain
+                    let dist = xyz.add(new Vector(0, main_island.pos.y - 70, 0)).distance(main_island.pos);
+                    if(dist < main_island.rad) {
+                        continue;
+                    }
+
+                    // Exit
+                    if(chunk.coord.y + y >= value) {
+                        continue;
+                    }
 
                     // Caves | Пещеры
-                    if(['OCEAN', 'BEACH'].indexOf(biome.code) < 0) {
+                    if(!in_ocean) {
                         let vec = new Vector(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
@@ -231,9 +299,9 @@ export default class Terrain_Generator {
                     }
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
-                    if(y < value - (rnd < .005 ? 0 : 3)) {
+                    if(y + chunk.coord.y < value - (rnd < .005 ? 0 : 3)) {
                         let r = aleaRandom.double() * 1.33;
-                        if(r < 0.0025 && y < value - 5) {
+                        if(r < 0.0025 && y + chunk.coord.y < value - 5) {
                             chunk.blocks[x][z][y] = blocks.DIAMOND_ORE;
                         } else if(r < 0.01) {
                             chunk.blocks[x][z][y] = blocks.COAL_ORE;
@@ -250,56 +318,24 @@ export default class Terrain_Generator {
                     } else {
                         chunk.blocks[x][z][y] = biome.dirt_block;
                     }
-                }
 
-                if(biome.code == 'OCEAN') {
-                    chunk.blocks[x][z][map.info.options.WATER_LINE] = blocks.STILL_WATER;
+                }
+                // `Y` of waterline
+                let ywl = map.info.options.WATER_LINE - chunk.coord.y;
+                if(biome.code == 'OCEAN' && ywl >= 0 && ywl < chunk.size.y) {
+                    chunk.blocks[x][z][ywl] = blocks.STILL_WATER;
                 }
 
             }
         }
 
-        /*
-        const tree_types = [
-            {style: 'spruce', trunk: blocks.SPRUCE, leaves: blocks.SPRUCE_LEAVES, height: 7},
-            {style: 'wood', trunk: blocks.WOOD, leaves: blocks.WOOD_LEAVES, height: 5},
-            {style: 'stump', trunk: blocks.WOOD, leaves: blocks.RED_MUSHROOM, height: 1},
-            {style: 'cactus', trunk: blocks.CACTUS, leaves: null, height: 5},
-        ];
-
-        let x = 8;
-        let z = 8;
-        let type = tree_types[chunk.addr.x % tree_types.length];
-        let tree_options = {
-            type: type,
-            height: type.height,
-            rad: 4,
-            pos: new Vector(x, 2, z)
-        };
-        this.plantTree(
-            tree_options,
-            chunk,
-            tree_options.pos.x,
-            tree_options.pos.y,
-            tree_options.pos.z,
-        );
-
-        return map;
-        */
-
-        // Remove herbs and trees on air
-        /*
-        map.info.trees = map.info.trees.filter(function(item, index, arr) {
-            let block = chunk.blocks[item.pos.x][item.pos.z][item.pos.y - 1];
-            return block && block.id != blocks.AIR.id;
-        });
-        */
-
         // Plant herbs
         for(let p of map.info.plants) {
-            let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - 1];
-            if(b && b.id == blocks.DIRT.id) {
-                chunk.blocks[p.pos.x][p.pos.z][p.pos.y] = p.block;
+            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
+                if(b && b.id == blocks.DIRT.id) {
+                    chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
+                }
             }
         }
 
@@ -425,157 +461,6 @@ export default class Terrain_Generator {
                 break;
             }
         }
-    }
-
-}
-
-class Map {
-
-    // Private properties
-    #chunk      = null;
-
-    // Constructor
-    constructor(chunk, options) {
-        this.options        = options;
-        this.trees          = [];
-        this.plants         = [];
-        this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
-        this.#chunk         = chunk;
-    }
-
-    smooth(generator) {
-    
-        const SMOOTH_RAD    = 3;
-
-        let neighbour_map   = null;
-        let map             = null;
-        let chunk_coord     = this.#chunk.coord;
-
-        let z_min = -SMOOTH_RAD;
-        let z_max = CHUNK_SIZE_Z + SMOOTH_RAD;
-
-        if(chunk_coord.z < 0) {
-            z_min = (CHUNK_SIZE_Z + SMOOTH_RAD) * -1;
-            z_max = SMOOTH_RAD;
-        }
-
-        // Smoothing | Сглаживание
-        for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-            for(let z = z_min; z < z_max; z++) {
-                // absolute cell coord
-                let px      = chunk_coord.x + x;
-                let pz      = chunk_coord.z + z;
-                // calc chunk addr for this cell
-                let addr    = new Vector(parseInt(px / CHUNK_SIZE_X), 0, parseInt(pz / CHUNK_SIZE_Z));
-                // get chunk map from cache
-                let map_addr_ok = map && (map.#chunk.addr.x == addr.x) && (map.#chunk.addr.z == addr.z);
-                if(!map || !map_addr_ok) {
-                    map = generator.maps_cache[addr.toString()];
-                }
-                let cell = map.cells[px - map.#chunk.coord.x][pz - map.#chunk.coord.z];
-                if(!cell) {
-                    continue;
-                }
-                // Не сглаживаем блоки пляжа и океана
-                if(cell.value > this.options.WATER_LINE - 2 && [BIOMES.OCEAN.code, BIOMES.BEACH.code].indexOf(cell.biome.code) >= 0) {
-                    continue;
-                }
-                let height_sum  = 0;
-                let cnt         = 0;
-                let dirt_color  = new Color(0, 0, 0, 0);
-                for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
-                    for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        // calc chunk addr for this cell
-                        let neighbour_addr  = new Vector(parseInt((px + i) / CHUNK_SIZE_X), 0, parseInt((pz + j) / CHUNK_SIZE_Z));
-                        let addr_ok = neighbour_map &&
-                                      (neighbour_map.#chunk.addr.x == neighbour_addr.x) &&
-                                      (neighbour_map.#chunk.addr.z == neighbour_addr.z);
-                        if(!neighbour_map || !addr_ok) {
-                            neighbour_map = generator.maps_cache[neighbour_addr.toString()];
-                        }
-                        if(!neighbour_map) {
-                            debugger;
-                        }
-                        let neighbour_cell = neighbour_map.cells[px + i - neighbour_map.#chunk.coord.x][pz + j - neighbour_map.#chunk.coord.z];
-                        if(neighbour_cell) {
-                            height_sum += neighbour_cell.value;
-                            dirt_color.add(neighbour_cell.biome.dirt_color);
-                            cnt++;
-                        }
-                    }
-                }
-                cell.value2           = parseInt(height_sum / cnt);
-                cell.biome.dirt_color = dirt_color.divide(new Color(cnt, cnt, cnt, cnt));
-            }
-        }
-
-    }
-
-    // Генерация растительности
-    generateVegetation() {
-        let chunk       = this.#chunk;
-        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id);
-        this.trees      = [];
-        this.plants     = [];
-        for(let x = 0; x < chunk.size.x; x++) {
-            for(let z = 0; z < chunk.size.z; z++) {
-                let cell = this.cells[x][z];
-                let biome = BIOMES[cell.biome.code];
-                let y = cell.value2;
-                // Если наверху блок земли
-                let dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
-                if(dirt_block_ids.indexOf(cell.block.id) >= 0) {
-                    // Динамическая рассадка растений
-                    let rnd = aleaRandom.double();
-                    if(rnd > 0 && rnd <= biome.plants.frequency) {
-                        let s = 0;
-                        let r = rnd / biome.plants.frequency;
-                        for(let p of biome.plants.list) {
-                            s += p.percent;
-                            if(r < s) {
-                                this.plants.push({
-                                    pos: new Vector(x, y, z),
-                                    block: p.block
-                                });
-                                break;
-                            }
-                        }
-                    }
-                    // Посадка деревьев
-                    if(rnd > 0 && rnd <= biome.trees.frequency) {   
-                        let s = 0;
-                        let r = rnd / biome.trees.frequency;
-                        for(let type of biome.trees.list) {
-                            s += type.percent;
-                            if(r < s) {
-                                const height = Helpers.clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);
-                                const rad = Math.max(parseInt(height / 2), 2);
-                                this.trees.push({
-                                    pos:    new Vector(x, y, z),
-                                    height: height,
-                                    rad:    rad,
-                                    type:   type
-                                });
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-}
-
-class MapCell {
-
-    constructor(value, humidity, equator, biome, block) {
-        this.value      = value;
-        this.value2     = value;
-        this.humidity   = humidity;
-        this.equator    = equator;
-        this.biome      = biome;
-        this.block      = block;
     }
 
 }

@@ -39,6 +39,7 @@ export let blocks = {
     SNOW_DIRT:      BLOCK.SNOW_DIRT,
     AIR:            BLOCK.AIR,
     BRICK:          BLOCK.BRICK,
+    STONE_BRICK:    BLOCK.STONE_BRICK,
     DIAMOND_ORE:    BLOCK.DIAMOND_ORE,
     COAL_ORE:       BLOCK.COAL_ORE,
     CONCRETE:       BLOCK.CONCRETE,
@@ -70,6 +71,9 @@ export let blocks = {
     TALLGRASS:      BLOCK.GRASS,
     TULIP:          BLOCK.TULIP,
     DANDELION:      BLOCK.DANDELION,
+    //
+    WOOL_GRAY:      BLOCK.WOOL_GRAY,
+    WOOL_BLACK:     BLOCK.WOOL_BLACK
 };
 
 for(let key of Object.keys(blocks)) {
