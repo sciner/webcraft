@@ -291,7 +291,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             ao[0], ao[1], ao[2], ao[3], flags);
     }
 
-    // Front/Forward
+    // South | Front/Forward
     neighbourBlock = neighbours.FORWARD;
     // neighbourBlock = world.chunkManager.getBlock(x, y, z - 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
@@ -313,7 +313,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
-    // Back
+    // North | Back
     neighbourBlock = neighbours.BACK;
     // neighbourBlock = world.chunkManager.getBlock(x, y, z + 1);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
@@ -330,7 +330,7 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
-    // Left
+    // West | Left
     neighbourBlock = neighbours.LEFT;
     // neighbourBlock = world.chunkManager.getBlock(x - 1, y, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
@@ -347,18 +347,32 @@ function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome)
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
     }
 
-    // Right
+    // East | Right
     neighbourBlock = neighbours.RIGHT;
     // neighbourBlock = world.chunkManager.getBlock(x + 1, y, z);
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
+            // ao[0] - левый нижний
+            // ao[1] - правый нижний
+            // ao[2] - правый верхний
+            // ao[3] - левый верхний
             let aa = world.chunkManager.getBlock(x + 1, y, z - 1); // правый верхний
             let ab = world.chunkManager.getBlock(x + 1, y, z + 1); // правый нижний
             let ac = world.chunkManager.getBlock(x + 1, y - 1, z);
+            let ad = world.chunkManager.getBlock(x + 1, y - 1, z + 1);
+            let ae = world.chunkManager.getBlock(x + 1, y + 1, z + 1);
+            let af = world.chunkManager.getBlock(x + 1, y - 1, z - 1);
+            let ag = world.chunkManager.getBlock(x + 1, y + 1, z);
+            let ah = world.chunkManager.getBlock(x + 1, y + 1, z - 1);
             if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] += .2; ao[3] += .2;}
             if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] += .2; ao[2] += .2;}
             if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] += .2; ao[1] += .2;}
+            if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] += .2;}
+            if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] += .2;}
+            if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] += .2;}
+            if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[2] += .2; ao[3] += .2;}
+            if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] += .2;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
         vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,

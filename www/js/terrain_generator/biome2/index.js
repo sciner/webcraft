@@ -51,8 +51,8 @@ export default class Terrain_Generator {
                 let pz = SZ + z;
                 // высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
-                    noisefn(px / 1650, pz / 1650) * .1 +
-                    noisefn(px / 650, pz / 650) * .25 +
+                    noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
+                    noisefn(px / 650, pz / 650) * .25 + // 65 | 650
                     noisefn(px / 20, pz / 20) * .05 +
                     noisefn(px / 350, pz / 350) * .5;
                 value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
