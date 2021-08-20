@@ -162,6 +162,8 @@ export class BLOCK_FUNC {
      * @returns 
      */
     static getCachedBlock(x, y, z) {
+        return world.chunkManager.getBlock(x, y, z);
+        /*
         let key = new Vector(x, y, z).toString();
         if(this.block_cache[key]) {
             this.cachedBlocksUsed++;
@@ -169,6 +171,7 @@ export class BLOCK_FUNC {
         }
         this.cachedBlocksMiss++;
         return this.block_cache[key] = world.chunkManager.getBlock(x, y, z);
+        */
     }
     
     // Pushes the vertices necessary for rendering a
