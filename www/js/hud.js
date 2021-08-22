@@ -135,6 +135,10 @@ export default class HUD {
         }
         this.items[zIndex].push({item: item});
     }
+
+    refresh() {
+        this.need_refresh = true;
+    }
     
     clear() {
         this.ctx.fillStyle = '#000000';
@@ -179,9 +183,10 @@ export default class HUD {
         }
     
         // Make info for draw
-        if(!this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.hasDrawContent()) {
+        if(!this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.hasDrawContent()) {
             return false;
         }
+        this.need_refresh = false;
         this.prevDrawTime = performance.now();
     
         this.clear();

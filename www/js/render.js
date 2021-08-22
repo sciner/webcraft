@@ -14,7 +14,7 @@ const {mat4} = glMatrix;
 * elements in the specified world.
 **/
 const BACKEND               = 'auto';
-const ZOOM_FACTOR           = 0.25;
+export const ZOOM_FACTOR    = 0.25;
 const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
 const FOV_WIDE              = FOV_NORMAL * 1.15;
@@ -39,7 +39,7 @@ let currentRenderState = {
 };
 
 // Creates a new renderer with the specified canvas as target.
-export default class Renderer {
+export class Renderer {
     constructor(renderSurfaceId) {
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;

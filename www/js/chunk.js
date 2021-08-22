@@ -100,8 +100,10 @@ export default class Chunk {
 
     drawBufferGroup(render, group, mat) {
         if(this.vertices[group]) {
-            render.drawMesh(this.vertices[group].buffer, mat);
-            return true;
+            if(this.vertices[group].buffer) {
+                render.drawMesh(this.vertices[group].buffer, mat);
+                return true;
+            }
         }
         return false;
     }
@@ -110,7 +112,6 @@ export default class Chunk {
     applyVertices() {
         const args = this.vertices_args;
         delete(this['vertices_args']);
-        this.chunkManager.vertices_length_total -= this.vertices_length;
         this.buildVerticesInProgress            = false;
         this.chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length                    = 0;
@@ -119,16 +120,20 @@ export default class Chunk {
         // Delete old WebGL buffers
         for(let key of Object.keys(this.vertices)) {
             let v = this.vertices[key];
-            v.buffer.destroy();
+            if(v.buffer) {
+                v.buffer.destroy();
+            }
             delete(this.vertices[key]);
         }
         // Добавление чанка в отрисовщик
         for(let key of Object.keys(args.vertices)) {
             let v = args.vertices[key];
-            this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
-            v.buffer              = new GeometryTerrain(v.list);
-            this.vertices[key]   = v;
-            delete(v.list);
+            if(v.list.length > 0) {
+                this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
+                v.buffer              = new GeometryTerrain(v.list);
+                this.vertices[key]   = v;
+                delete(v.list);
+            }
         }
         this.chunkManager.vertices_length_total += this.vertices_length;
         this.shift_orig            = args.shift;
