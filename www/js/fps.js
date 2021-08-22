@@ -14,7 +14,7 @@ export const fps = {
             this.delta  = now - this.t;
             this.avg    = 1000 / Game.loopTime.avg;
             this.t      = now;
-            console.log('FPS: ' + Math.round(this.fps) + ' /' + Math.round(Game.loopTime.avg * 1000) / 1000);
+            // console.log('FPS: ' + Math.round(this.fps) + ' /' + Math.round(Game.loopTime.avg * 1000) / 1000);
         };
     },
     drawHUD: function(hud) {
