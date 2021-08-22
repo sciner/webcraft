@@ -6,11 +6,10 @@ import {Vector} from "./helpers.js";
 
 export default class Inventory {
     
-    constructor(player, hud, hotbar) {
+    constructor(player, hud) {
         let that            = this;
         this.player         = player;
         this.hud            = hud;
-        this.hotbar         = hotbar;
         this.all            = [];
         this.current        = null;
         this.index          = 0;
@@ -74,6 +73,11 @@ export default class Inventory {
     getCurrent() {
         return this.current;
     };
+
+    // Refresh
+    refresh() {
+        this.hud.refresh();
+    }
     
     increment(mat) {
         const MAX_COUNT = 64;
@@ -84,11 +88,13 @@ export default class Inventory {
                     if(this.items[i].count < MAX_COUNT) {
                         if(this.items[i].count + mat.count <= MAX_COUNT) {
                             this.items[i].count = Math.min(this.items[i].count + mat.count, MAX_COUNT);
+                            this.refresh();
                             return;
                         } else {
                             let remains = (this.items[i].count + mat.count) - MAX_COUNT;
                             this.items[i].count = MAX_COUNT;
                             mat.count = remains;
+                            this.refresh();
                         }
                     }
                 }
@@ -111,6 +117,7 @@ export default class Inventory {
                 if(mat.count > 0) {
                     this.increment(mat);
                 }
+                this.refresh();
                 return;
             }
         }
@@ -124,6 +131,7 @@ export default class Inventory {
         if(this.current.count < 1) {
             this.current = this.player.buildMaterial = this.items[this.index] = null;
         }
+        this.refresh();
     }
     
     //
@@ -164,7 +172,7 @@ export default class Inventory {
                         if(index < this.hotbar_count) {
                             this.select(index);
                         }
-                        return;
+                        return this.refresh();
                     }
                 }
             }
@@ -177,7 +185,7 @@ export default class Inventory {
                 if(index < this.hotbar_count) {
                     this.select(index);
                 }
-                return;
+                return this.refresh();
             }
         }
         /*

@@ -1,6 +1,6 @@
 import Sounds from "./sounds.js";
 import World from "./world.js";
-import Renderer from "./render.js";
+import {Renderer, ZOOM_FACTOR} from "./render.js";
 import Physics from "./physics.js";
 import Player from "./player.js";
 import Inventory from "./inventory.js";
@@ -148,7 +148,6 @@ export let Game = {
         this.readMouseMove();
         this.startBackgroundMusic();
         document.querySelector('body').classList.add('started');
-
         this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);

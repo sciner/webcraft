@@ -815,128 +815,16 @@ BLOCK.WOOL_GREEN = {
 // Терракота
 BLOCK.TERRACOTTA_BLACK = {
     id: 450,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [0, 19];
-    }
-};
-BLOCK.TERRACOTTA_BLUE = {
-    id: 451,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [1, 19];
-    }
-};
-BLOCK.TERRACOTTA_BROWN = {
-    id: 452,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [2, 19];
-    }
-};
-BLOCK.TERRACOTTA_CYAN = {
-    id: 453,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [3, 19];
-    }
-};
-BLOCK.TERRACOTTA_GRAY = {
-    id: 454,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [4, 19];
-    }
-};
-BLOCK.TERRACOTTA_GREEN = {
-    id: 455,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [5, 19];
-    }
-};
-
-// Шерсть
-BLOCK.WOOL_BLACK = {
-    id: 350,
-    inventory_icon_id: 708,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [0, 18];
-    }
-};
-BLOCK.WOOL_BLUE = {
-    id: 351,
-    inventory_icon_id: 714,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [1, 18];
-    }
-};
-BLOCK.WOOL_BROWN = {
-    id: 352,
     inventory_icon_id: 729,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [2, 18];
-    }
-};
-BLOCK.WOOL_CYAN = {
-    id: 353,
-    inventory_icon_id: 726,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [3, 18];
-    }
-};
-BLOCK.WOOL_GRAY = {
-    id: 354,
-    inventory_icon_id: 229,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [4, 18];
-    }
-};
-BLOCK.WOOL_GREEN = {
-    id: 355,
-    inventory_icon_id: 738,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [5, 18];
-    }
-};
-
-// Терракота
-BLOCK.TERRACOTTA_BLACK = {
-    id: 450,
-    // inventory_icon_id: 1535,
-    spawnable: true,
-    transparent: false,
-	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 19];
     }
 };
 BLOCK.TERRACOTTA_BLUE = {
     id: 451,
-    // inventory_icon_id: 1535,
+    inventory_icon_id: 711,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -945,7 +833,7 @@ BLOCK.TERRACOTTA_BLUE = {
 };
 BLOCK.TERRACOTTA_BROWN = {
     id: 452,
-    // inventory_icon_id: 1535,
+    inventory_icon_id: 717,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -954,7 +842,7 @@ BLOCK.TERRACOTTA_BROWN = {
 };
 BLOCK.TERRACOTTA_CYAN = {
     id: 453,
-    // inventory_icon_id: 1535,
+    inventory_icon_id: 723,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -963,7 +851,7 @@ BLOCK.TERRACOTTA_CYAN = {
 };
 BLOCK.TERRACOTTA_GRAY = {
     id: 454,
-    // inventory_icon_id: 1535,
+    inventory_icon_id: 729,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -972,7 +860,7 @@ BLOCK.TERRACOTTA_GRAY = {
 };
 BLOCK.TERRACOTTA_GREEN = {
     id: 455,
-    // inventory_icon_id: 1535,
+    inventory_icon_id: 735,
     spawnable: true,
     transparent: false,
 	texture: function(world, lightmap, lit, x, y, z, dir) {
