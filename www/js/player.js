@@ -236,7 +236,7 @@ export default class Player {
             // F3 (Set spawnpoint)
             case KEY.F3: {
                 if(!down) {
-                    Game.hud.draw_info = !Game.hud.draw_info;
+                    Game.hud.toggleInfo();
                 }
                 return true;
                 break;
