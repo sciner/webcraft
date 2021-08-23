@@ -12,14 +12,15 @@ export default class Terrain_Generator {
 
     generate(chunk) {
 
+        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? blocks.BEDROCK : blocks.SAND;
+
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     // BEDROCK
                     for(let y = 0; y < 1; y++) {
-                        chunk.blocks[x][z][y] = blocks.BEDROCK;
+                        chunk.blocks[x][z][y] = b;
                     }
-
                 }
             }
         }
