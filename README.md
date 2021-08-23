@@ -8,7 +8,7 @@ open http://localhost:5700/
 ```
 
 # Commands
-```
+```JS
 // Export current player state to JSON
 Game.world.exportJSON();
 
