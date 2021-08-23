@@ -151,6 +151,7 @@ export default class HUD {
     //
     toggleActive() {
         this.active = !this.active;
+        this.refresh();
     }
     
     //
@@ -244,6 +245,11 @@ export default class HUD {
             this.wm.draw(false);
         }
     
+    }
+
+    toggleInfo() {
+        this.draw_info = !this.draw_info;
+        this.refresh();
     }
     
     //
