@@ -32,6 +32,10 @@ export default class ServerClient {
         let that = this;
         that.ping_time                    = null;
         that.ping_value                   = null;
+        this.stat                         = {
+            out_packets: {},
+            in_packets: {}
+        };
         this._loadID();
         this.ws = new WebSocket(url + '?token=' + this.id + '&username=' + Game.username + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
         this.ws.onmessage = function(e) {
@@ -69,6 +73,14 @@ export default class ServerClient {
         let that = this;
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
+            // stat
+            if(!this.stat.in_packets[cmd.event]) {
+                this.stat.in_packets[cmd.event] = {count: 0, size: 0}
+            }
+            let in_packets = this.stat.in_packets[cmd.event];
+            in_packets.count++;
+            in_packets.size += event.data.length;
+            // parse command
             switch(cmd.event) {
                 case ServerClient.EVENT_BLOCK_SET: {
                     let pos = cmd.data.pos;
@@ -135,9 +147,15 @@ export default class ServerClient {
     }
 
     Send(packet) {
-        let that = this;
-        setTimeout(function() {
-            that.ws.send(JSON.stringify(packet));
+        setTimeout(() => {
+            let json = JSON.stringify(packet);
+            if(!this.stat.out_packets[packet.name]) {
+                this.stat.out_packets[packet.name] = {count: 0, size: 0}
+            }
+            let out_packets = this.stat.out_packets[packet.name];
+            out_packets.count++;
+            out_packets.size += json.length;
+            this.ws.send(json);
         }, 0);
     }
 

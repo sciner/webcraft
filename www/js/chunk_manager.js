@@ -207,7 +207,7 @@ export class ChunkManager {
                 }
             }
         }
-        // detect dirty chunks
+        // Detect dirty chunks
         let dirty_chunks = [];
         for(let key of Object.keys(this.chunks)) {
             let chunk = this.chunks[key];
