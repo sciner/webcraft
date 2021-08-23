@@ -78,7 +78,6 @@ export default class World {
         };
         this.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
         this.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
-
         if(saved_state.hasOwnProperty('chunk_render_dist')) {
             this.chunkManager.setRenderDist(saved_state.chunk_render_dist);
         }
