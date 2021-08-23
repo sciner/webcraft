@@ -195,9 +195,8 @@ export default class Chat {
         const margin            = 10;
         const padding           = 5;
         const top               = 45;
-        // const height            = 35;
         const now               = performance.now();
-        const fadeout_time      = 2000; // время угасения текста перед счезновением (мс)
+        const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
         const blink_period      = 500; // период моргания курсора ввода текста (мс)
     
         hud.ctx.save();
