@@ -50,9 +50,9 @@ export class Vector {
     }
 
     normal() {
-        if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector( 0, 0, 0 );
+        if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector(0, 0, 0);
         let l = this.length();
-        return new Vector( this.x/l, this.y/l, this.z/l );
+        return new Vector(this.x / l, this.y / l, this.z / l);
     }
 
     dot(vec) {
@@ -69,18 +69,22 @@ export class Vector {
 
     toInt() {
         return new Vector(
-            parseInt(this.x),
-            parseInt(this.y),
-            parseInt(this.z)
+            this.x | 0,
+            this.y | 0,
+            this.z | 0
         );
     }
 
     toArray() {
-        return [ this.x, this.y, this.z ];
+        return [this.x, this.y, this.z];
     }
 
     toString() {
         return '(' + this.x + ',' + this.y + ',' + this.z + ')';
+    }
+
+    toChunkKey() {
+        return 'c_' + this.x + '_' + this.y + '_' + this.z;
     }
 
 }
@@ -398,25 +402,28 @@ export class SpiralGenerator {
         if(SpiralGenerator.cache3D.hasOwnProperty(cache_key)) {
             return SpiralGenerator.cache3D[cache_key];
         }
-        let resp = [];
-        let center = new Vector(0, 0, 0);
-        let exists = [];
-        for(let q = 0; q < vec_margin.x; q++) {
-            for(let y = Math.min(q, vec_margin.y); y > Math.max(-q, -vec_margin.y); y--) {
-                for(let x = -q; x < q; x++) {
-                    for(let z = -q; z < q; z++) {
-                        let vec = new Vector(x, y, z);
-                        if(vec.distance(center) < q) {
-                            if(exists.indexOf(vec.toString()) >= 0) {
-                                continue;
-                            }
-                            resp.push(vec);
-                            exists[vec.toString()] = true;
+        let resp        = [];
+        let center      = new Vector(0, 0, 0);
+        let exists      = [];
+        const MAX_DIST  = vec_margin.x;
+        for(let y = -vec_margin.y; y <= vec_margin.y; y++) {
+            for(let x = -vec_margin.x; x <= vec_margin.x; x++) {
+                for(let z = -vec_margin.z; z <= vec_margin.z; z++) {
+                    let vec = new Vector(x, y, z);
+                    let dist = Math.round(vec.distance(center) * 1000) / 1000;
+                    if(dist <= MAX_DIST) {
+                        let key = vec.toString();
+                        if(exists.indexOf(key) < 0) {
+                            resp.push({pos: vec, dist: dist});
+                            exists[key] = true;
                         }
                     }
                 }
             }
         }
+        resp.sort(function(a, b) {
+            return a.dist - b.dist;
+        });
         SpiralGenerator.cache3D[cache_key] = resp;
         return resp;
     }
