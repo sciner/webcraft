@@ -138,9 +138,9 @@ export default class World {
 
     // randomTeleport
     randomTeleport() {
-        this.localPlayer.pos.x = 10 + Math.random() * 2000000;
-        this.localPlayer.pos.y = 80;
-        this.localPlayer.pos.z = 10 + Math.random() * 2000000
+        this.localPlayer.pos.x = 1000 + Math.random() * 2000000;
+        this.localPlayer.pos.y = 120;
+        this.localPlayer.pos.z = 1000 + Math.random() * 2000000
     }
 
     // underWaterfall

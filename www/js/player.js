@@ -1,6 +1,7 @@
 import Chat from "./chat.js";
 import {Helpers, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
+import {Kb} from "./kb.js";
 
 // ==========================================
 // Player
@@ -35,7 +36,6 @@ export default class Player {
         this.world                  = world;
         this.world.localPlayer      = this;
         this.keys                   = {};
-        this.keys_fired             = {down: {}, up: {}};
         this.eventHandlers          = {};
         this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
         if(world.saved_state) {
@@ -56,36 +56,12 @@ export default class Player {
 
     // Set the canvas the renderer uses for some input operations.
     setInputCanvas(id) {
-        let canvas = this.canvas = document.getElementById( id );
-        let t = this;
-        document.onkeydown = function(e) {
-            if (e.target.tagName != 'INPUT') {
-                if(t._onKeyEvent(e, e.keyCode, true)) {
-                    return false;
-                }
-            }
-            if (e.ctrlKey) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            }
-        }
-        document.onkeyup = function(e) {
-            if (e.target.tagName != 'INPUT') {
-                if(t._onKeyEvent(e, e.keyCode, false)) {
-                    return false;
-                }
-            }
-        }
-        document.onkeypress = function(e) {
-            if(t.onKeyPress(e)) {
-                return false;
-            }
-        }
-        canvas.onmousedown  = function(e) {t.onMouseEvent(e, e.clientX, e.clientY, MOUSE.DOWN, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
-        canvas.onmouseup    = function(e) {t.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
-        canvas.onmousemove  = function(e) {t.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
-        canvas.onclick      = function(e) {t.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
+        this.canvas = document.getElementById(id);
+        this.kb = new Kb(this.canvas, {
+            onMouseEvent: (...args) => {return this.onMouseEvent(...args);},
+            onKeyPress: (...args) => {return this.onKeyPress(...args);},
+            onKeyEvent: (...args) => {return this.onKeyEvent(...args);}
+        });
     }
 
     // Hook a player event.
@@ -107,31 +83,6 @@ export default class Player {
         let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
         let typedChar = String.fromCharCode(charCode);
         this.chat.typeChar(typedChar);
-    }
-
-    // Hook for keyboard input.
-    _onKeyEvent(e, keyCode, down) {
-
-        let resp = null;
-
-        if(down) {
-            if(this.keys_fired.up[keyCode]) {
-                this.keys_fired.up[keyCode] = false;
-            }
-            let first_press = this.keys_fired.down[keyCode];
-            resp = this.onKeyEvent(e, keyCode, down, !first_press);
-            this.keys_fired.down[keyCode] = true;
-        } else {
-            if(this.keys_fired.down[keyCode]) {
-                this.keys_fired.down[keyCode] = false;
-            }
-            let first_press = this.keys_fired.up[keyCode];
-            resp = this.onKeyEvent(e, keyCode, down, !first_press);
-            this.keys_fired.up[keyCode] = true;
-        }
-
-        return resp;
-
     }
 
     // Hook for keyboard input.
@@ -187,27 +138,29 @@ export default class Player {
             return;
         }
 
-        //
+        // Page Up
         if(keyCode == KEY.PAGE_UP) {
             if(down) {
                 Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST + 1);
             }
         }
 
-        //
+        // Set render distance [Page Down]
         if(keyCode == KEY.PAGE_DOWN) {
             if(down) {
                 Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST - 1);
             }
         }
 
-        //
+        // Flying [Space]
         if(keyCode == KEY.SPACE) {
             if(this.velocity.y > 0) {
-                if(down && first && !this.flying) {
-                    console.log('flying');
-                    this.velocity.y = 0;
-                    this.flying = true;
+                if(down && first) {
+                    if(!this.flying) {
+                        console.log('flying');
+                        this.velocity.y = 0;
+                        this.flying = true;
+                    }
                 }
             }
         }
@@ -216,7 +169,7 @@ export default class Player {
         this.zoom = this.keys[KEY.C];
 
         switch(keyCode) {
-            // F1
+            // [F1]
             case KEY.F1: {
                 if(!down) {
                     Game.hud.toggleActive();
@@ -224,7 +177,7 @@ export default class Player {
                 return true;
                 break;
             }
-            // F2 (Save)
+            // Save [F2]
             case KEY.F2: {
                 if(!down) {
                     Game.world.saveToDB();
@@ -233,7 +186,7 @@ export default class Player {
                 return true;
                 break;
             }
-            // F3 (Set spawnpoint)
+            // Set spawnpoint [F3]
             case KEY.F3: {
                 if(!down) {
                     Game.hud.toggleInfo();
@@ -241,7 +194,7 @@ export default class Player {
                 return true;
                 break;
             }
-            // F4 (Draw all blocks)
+            // Draw all blocks [F4]
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
@@ -273,13 +226,11 @@ export default class Player {
                 return true;
                 break;
             }
-            // F7 (Export world)
+            // Export world [F7]
             case KEY.F7: {
                 if(!down) {
                     if(e.shiftKey) {
                         Game.world.createClone();
-                    } else {
-                        Game.world.exportJSON();
                     }
                 }
                 return true;
@@ -361,16 +312,6 @@ export default class Player {
                 }
                 break;
             }
-            /*
-            default: {
-                if(!down) {
-                    if(this.chat.active) {
-                        this.chat.keyPress(keyCode);
-                        return;
-                    }
-                }
-                break;
-            }*/
         }
         // 0...9 (Select material)
         if(!down && (keyCode >= 48 && keyCode <= 57)) {
@@ -380,7 +321,7 @@ export default class Player {
             Game.inventory.select(keyCode - 49);
             return true;
         }
-        // running
+        // Running
         // w = 87 // up
         // d = 68 // right
         // a = 65 // left
@@ -554,9 +495,9 @@ export default class Player {
     // getBlockPos
     getBlockPos() {
         let v = new Vector(
-            parseInt(this.pos.x),
-            parseInt(this.pos.y),
-            parseInt(this.pos.z)
+            this.pos.x | 0,
+            this.pos.y | 0,
+            this.pos.z | 0
         );
         if(this.pos.x < 0) {
             v.x--;
