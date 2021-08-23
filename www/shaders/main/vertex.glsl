@@ -48,7 +48,8 @@ void main() {
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
-    light = max(.5, dot(n, sun_dir) - v_color.a);
+    // light = 1. - v_color.a; 
+    light = max(.5, max(.7, dot(n, sun_dir)) - v_color.a);
 
     if(u_fogOn) {
         if (flagBiome < 0.5) {

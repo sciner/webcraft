@@ -390,7 +390,26 @@ export class BLOCK_FUNC {
         if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
             ao = [0, 0, 0, 0];
             if(ao_enabled) {
-                // @todo
+                // ao[0] - правый верхний
+                // ao[1] - левый верхний
+                // ao[2] - левый нижний
+                // ao[3] - правый нижний
+                let aa = this.getCachedBlock(x - 1, y - 1, z - 1);
+                let ab = this.getCachedBlock(x - 1, y - 1, z);
+                let ac = this.getCachedBlock(x - 1, y - 1, z + 1);
+                let ad = this.getCachedBlock(x - 1, y, z - 1);
+                let ae = this.getCachedBlock(x - 1, y, z + 1);
+                let af = this.getCachedBlock(x - 1, y + 1, z - 1);
+                let ag = this.getCachedBlock(x - 1, y + 1, z);
+                let ah = this.getCachedBlock(x - 1, y + 1, z + 1);
+                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[2] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[0] = .2; ao[3] = .2;}
+                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[1] = .2; ao[2] = .2;}
+                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2;}
+                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2; ao[1] = .2;}
+                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[1] = .2;} 
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
             vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,

@@ -86,26 +86,18 @@ export class ChunkManager {
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
-        // Для отрисовки чанков по спирали от центрального вокруг игрока
-        this.spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        // чанк, в котором стоит игрок
-        let overChunk = Game.world.localPlayer.overChunk;
-        if(overChunk) {
-            // draw
-            for(let group of ['regular', 'doubleface', 'transparent']) {
-                const mat = render.materials[group];
-                for(let sm of this.spiral_moves_3d) {
-                    let pos = overChunk.addr.add(sm.pos);
-                    let chunk = this.getChunk(pos);
-                    if(chunk) {
-                        if(chunk.hasOwnProperty('vertices_args')) {
-                            if(applyVerticesCan-- > 0) {
-                                chunk.applyVertices();
-                            }
+        for(let group of ['regular', 'doubleface', 'transparent']) {
+            const mat = render.materials[group];
+            for(let pos of this.poses) {
+                let chunk = this.getChunk(pos);
+                if(chunk) {
+                    if(chunk.hasOwnProperty('vertices_args')) {
+                        if(applyVerticesCan-- > 0) {
+                            chunk.applyVertices();
                         }
-                        if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
-                            this.rendered_chunks.fact += 0.33333;
-                        }
+                    }
+                    if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
+                        this.rendered_chunks.fact += 0.33333;
                     }
                 }
             }
@@ -172,7 +164,17 @@ export class ChunkManager {
         }
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
         let chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
-        if(Object.keys(this.chunks).length != spiral_moves_3d.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
+        if(!this.chunkPos || this.chunkPos.distance(chunkPos) > 0) {
+            this.poses = [];
+            this.chunkPos = chunkPos;
+            for(let sm of spiral_moves_3d) {
+                let pos = chunkPos.add(sm.pos);
+                if(pos.y >= 0) {
+                    this.poses.push(pos);
+                }
+            }
+        }
+        if(Object.keys(this.chunks).length != this.poses.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
             let can_add = CHUNKS_ADD_PER_UPDATE;
             for(let key of Object.keys(this.chunks)) {
@@ -183,9 +185,8 @@ export class ChunkManager {
                 }
                 chunk.isLive = false;
             }
-            // check for add
-            for(let sm of spiral_moves_3d) {
-                let pos = chunkPos.add(sm.pos);
+            // Check for add
+            for(let pos of this.poses) {
                 if(pos.y >= 0) {
                     if(can_add > 0) {
                         if(this.addChunk(pos)) {
