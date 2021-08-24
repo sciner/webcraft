@@ -165,7 +165,11 @@ export default class Player {
             }
         }
 
-        this.keys[keyCode] = down;
+        if(this.keys[keyCode] && down) {
+            // do nothing
+        } else {
+            this.keys[keyCode] = down ? performance.now(): false;
+        }
         this.zoom = this.keys[KEY.C];
 
         switch(keyCode) {
@@ -335,7 +339,6 @@ export default class Player {
                 this.moving = true;
                 if(n - this.previousForwardDown < 250 && n - this.previousForwardUp < 250) {
                     this.running = true;
-                    // Game.render.fov = 90; // setPerspective(85, 0.01, RENDER_DISTANCE);
                 }
                 this.previousForwardDown = n;
             } else {
@@ -513,15 +516,12 @@ export default class Player {
         let velocity  = this.velocity;
         let pos       = this.pos;
         let bPos      = new Vector(
-            Math.floor(pos.x),
-            Math.floor(pos.y),
-            Math.floor(pos.z)
+            pos.x | 0,
+            pos.y | 0,
+            pos.z | 0
         );
-
         const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = Game.render.options;
-
         if(this.lastUpdate != null) {
-            // let delta = ( new Date().getTime() - this.lastUpdate ) / 1000;
             let delta = (performance.now() - this.lastUpdate) / 1000;
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
@@ -555,46 +555,62 @@ export default class Player {
             if(this.keys[KEY.J] && !this.falling) {
                 velocity.y = 20;
             }
+            // Remove small changes
             if(Math.round(velocity.x * 100000) / 100000 == 0) velocity.x = 0;
             if(Math.round(velocity.y * 100000) / 100000 == 0) velocity.y = 0;
             if(Math.round(velocity.z * 100000) / 100000 == 0) velocity.z = 0;
             this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.z) > 1) && !this.flying;
-            if(this.prev_walking != this.walking) {
-                // @toggle walking
-                // this.walking_frame = 0;
-            }
             if(this.walking) {
                 this.walking_frame += delta;
-                // console.log('this.walking_frame', Math.round(this.walking_frame * 1000) / 1000);
-            } else {
-                /*if(this.walking_frame != 0) {
-                    this.walking_frame += delta;
-                    if(Math.round(Math.cos(this.walking_frame * 15) * 100) / 100 == 0) {
-                        this.walking_frame = 0;
-                    }
-                }*/
             }
             this.prev_walking = this.walking;
-            // Walking
-            let walkVelocity = new Vector(0, 0, 0);
-            if (!this.falling || this.flying) {
-                if(this.keys[KEY.W] && !this.keys[KEY.S]) {
-                    walkVelocity.x += Math.cos(Math.PI / 2 - this.angles[2]);
-                    walkVelocity.z += Math.sin(Math.PI / 2 - this.angles[2]);
+
+            // New walking
+            let speed = 0;
+            const SPEED_MUL = 0.4;
+            let calcSpeed = (v) => {
+                let passed = performance.now() - v;
+                if(!this.flying) {
+                    passed = 1000;
                 }
-                if(this.keys[KEY.S] && !this.keys[KEY.W]) {
-                    walkVelocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]);
-                    walkVelocity.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]);
-                }
-                if(this.keys[KEY.A] && !this.keys[KEY.D]) {
-                    walkVelocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]);
-                    walkVelocity.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]);
-                }
-                if(this.keys[KEY.D] && !this.keys[KEY.A]) {
-                    walkVelocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]);
-                    walkVelocity.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]);
-                }
+                let resp = Math.max(speed, Math.min(passed / 1000, 1) * SPEED_MUL);
+                return Math.min(resp, 5);
             }
+            //
+            if(this.keys[KEY.W] && !this.keys[KEY.S]) {
+                speed = calcSpeed(this.keys[KEY.W]);
+                velocity.x += Math.cos(Math.PI / 2 - this.angles[2]) * speed;
+                velocity.z += Math.sin(Math.PI / 2 - this.angles[2]) * speed;
+            }
+            if(this.keys[KEY.S] && !this.keys[KEY.W]) {
+                speed = calcSpeed(this.keys[KEY.S]);
+                velocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
+                velocity.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
+            }
+            if(this.keys[KEY.A] && !this.keys[KEY.D]) {
+                speed = calcSpeed(this.keys[KEY.A]);
+                velocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                velocity.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+            }
+            if(this.keys[KEY.D] && !this.keys[KEY.A]) {
+                speed = calcSpeed(this.keys[KEY.D]);
+                velocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                velocity.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+            }
+
+            let mul = 1;
+
+            let d = delta / (1 / 60);
+            velocity.x *= (this.flying ? .97 : .9) / d;
+            velocity.z *= (this.flying ? .97 : .9) / d;
+            
+            if(this.running) {
+                mul *= this.flying ? 1.15 : 1.5;
+            }
+
+            velocity = velocity.mul(new Vector(mul, 1, mul));
+
+            let current_speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
 
             if(this.zoom) {
                 if(Game.render.fov > FOV_ZOOM) {
@@ -617,46 +633,31 @@ export default class Player {
                     }
                 }
             }
-            if(walkVelocity.length() > 0) {
-                let mul = 1; // this.flying ? 1 : 1;
-                if(this.running) {
-                    mul *= 1.5;
-                    if(this.flying) {
-                        mul *= 2.0;
-                    }
-                }
-                walkVelocity = walkVelocity.normal();
-                velocity.x = walkVelocity.x * 4 * mul;
-                velocity.z = walkVelocity.z * 4 * mul;
-            } else {
-                // энерция торможения разная
-                velocity.x /= this.falling ? 1.01 : 1.5;
-                velocity.z /= this.falling ? 1.01 : 1.5;
-            }
             // Resolve collision
             this.pos = this.resolveCollision(pos, bPos, velocity.mul(new Vector(delta, delta, delta)));
             this.pos.x = Math.round(this.pos.x * 1000) / 1000;
             this.pos.y = Math.round(this.pos.y * 1000) / 1000;
             this.pos.z = Math.round(this.pos.z * 1000) / 1000;
-            // this.pos.y = Math.max(this.pos.y, 100);
             //
             let playerBlockPos  = Game.world.localPlayer.getBlockPos();
             let chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);
             this.overChunk      = Game.world.chunkManager.getChunk(chunkPos);
         }
-        this.lastUpdate = performance.now(); // new Date().getTime();
+        this.lastUpdate = performance.now();
     }
 
     // Resolves collisions between the player and blocks on XY level for the next movement step.
     resolveCollision(pos, bPos, velocity) {
         let world = this.world;
+        let v_margin = 0.3; // 0.125
+        let size = 0.6; // 0.25
         let playerRect = {
             x: pos.x + velocity.x,
             y: pos.y + velocity.y,
             z: pos.z + velocity.z,
-            size: 0.25
+            size: size
         };
-        const shiftPressed = !!this.keys[KEY.SHIFT];
+        let shiftPressed = !!this.keys[KEY.SHIFT];
         // Collect XZ collision sides
         let collisionCandidates = [];
         for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
@@ -667,10 +668,10 @@ export default class Player {
                     if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
                         let blockUnder = world.chunkManager.getBlock(x, y - 1, z);
                         if(blockUnder.passable) {
-                            if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
-                            if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
-                            if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
-                            if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
+                            if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x + .5,      dir: -1,    z1: z, z2: z + 1});
+                            if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1 - .5,  dir:  1,    z1: z, z2: z + 1});
+                            if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z + .5,      dir: -1,    x1: x, x2: x + 1});
+                            if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1 - .5,  dir:  1,    x1: x, x2: x + 1});
                             continue;
                         }
                     }
@@ -688,20 +689,20 @@ export default class Player {
             let side = collisionCandidates[i];
             if (Helpers.lineRectCollide(side, playerRect)) {
                 if(side.x != null && velocity.x * side.dir < 0) {
-                    pos.x = side.x + playerRect.size / 2 * ( velocity.x > 0 ? -1 : 1);
+                    pos.x = side.x + playerRect.size / 2 * (velocity.x > 0 ? -1 : 1);
                     velocity.x = 0;
                 } else if(side.z != null && velocity.z * side.dir < 0) {
-                    pos.z = side.z + playerRect.size / 2 * ( velocity.z > 0 ? -1 : 1);
+                    pos.z = side.z + playerRect.size / 2 * (velocity.z > 0 ? -1 : 1);
                     velocity.z = 0;
                 }
             }
         }
         let falling = true;
         let playerFace = {
-            x1: pos.x + velocity.x - 0.125,
-            z1: pos.z + velocity.z - 0.125,
-            x2: pos.x + velocity.x + 0.125,
-            z2: pos.z + velocity.z + 0.125
+            x1: pos.x + velocity.x - v_margin,
+            z1: pos.z + velocity.z - v_margin,
+            x2: pos.x + velocity.x + v_margin,
+            z2: pos.z + velocity.z + v_margin
         };
         let newBYLower = Math.floor(pos.y + velocity.y);
         let newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
