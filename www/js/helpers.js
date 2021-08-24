@@ -42,15 +42,15 @@ export class Vector {
     }
 
     length() {
-        return Math.sqrt( this.x*this.x + this.y*this.y + this.z*this.z );
+        return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
     distance(vec) {
-        return this.sub( vec ).length();
+        return this.sub(vec).length();
     }
 
     normal() {
-        if(this.x == 0 && this.y == 0 && this.z == 0 ) return new Vector(0, 0, 0);
+        if(this.x == 0 && this.y == 0 && this.z == 0) return new Vector(0, 0, 0);
         let l = this.length();
         return new Vector(this.x / l, this.y / l, this.z / l);
     }
@@ -72,6 +72,14 @@ export class Vector {
             this.x | 0,
             this.y | 0,
             this.z | 0
+        );
+    }
+
+    clone() {
+        return new Vector(
+            this.x,
+            this.y,
+            this.z
         );
     }
 

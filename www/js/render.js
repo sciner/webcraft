@@ -279,7 +279,7 @@ export class Renderer {
         shader.update();
 
         // 0. Picking target
-        if (this.pickAt) {
+        if (this.pickAt && Game.hud.active) {
             this.pickAt.drawTarget(this, Game.shift);
         }
 
@@ -302,7 +302,6 @@ export class Renderer {
     drawPlayers(delta) {
         const {renderBackend, shader} = this;
         shader.bind();
-
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
             if(player.id != this.world.server.id) {

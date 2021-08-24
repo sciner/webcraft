@@ -15,13 +15,16 @@ export default class Chat {
                 Game.setupMousePointerIfNoOpenWindows();
             },
             addSystem: function(text) {
-                this.add('<WebCraft>', text);
+                this.add('<WebCraft>', text, 7000);
             },
-            add: function(nickname, text) {
+            add: function(nickname, text, timeout) {
+                if(!timeout) {
+                    timeout = 0;
+                }
                 this.list.unshift({
                     nickname:   nickname,
                     text:       text,
-                    time:       performance.now()
+                    time:       performance.now() - timeout
                 });
                 if(this.list.length > this.history_max_messages) {
                     this.list.pop();
