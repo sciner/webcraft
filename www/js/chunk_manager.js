@@ -6,7 +6,7 @@ import ServerClient from "./server_client.js";
 const CHUNKS_ADD_PER_UPDATE = 16;
 const CHUNKS_BUILD_VERTICES_PER_UPDATE = 16;
 
-export const MAX_Y_MARGIN = 5;
+export const MAX_Y_MARGIN = 3;
 
 //
 export class ChunkManager {
@@ -22,6 +22,7 @@ export class ChunkManager {
         this.rendered_chunks        = {fact: 0, total: 0};
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
+        this.dirty_chunks           = [];
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         // Message received from worker
         this.worker.onmessage = function(e) {
@@ -67,10 +68,7 @@ export class ChunkManager {
 
     // shift
     shift(shift) {
-        let points      = 0;
-        const renderer  = this.world.renderer
-        //const gl        = renderer.gl;
-        //gl.useProgram(renderer.program);
+        let points = 0;
         for(let key of Object.keys(this.chunks)) {
             points += this.chunks[key].doShift(shift);
         }
@@ -164,8 +162,9 @@ export class ChunkManager {
         }
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
         let chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
-        if(!this.chunkPos || this.chunkPos.distance(chunkPos) > 0) {
+        if(!this.chunkPos || this.chunkPos.distance(chunkPos) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
             this.poses = [];
+            this.prev_margin = this.margin;
             this.chunkPos = chunkPos;
             for(let sm of spiral_moves_3d) {
                 let pos = chunkPos.add(sm.pos);
@@ -174,10 +173,11 @@ export class ChunkManager {
                 }
             }
         }
-        if(Object.keys(this.chunks).length != this.poses.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
+        let keys = Object.keys(this.chunks);
+        if(keys.length != this.poses.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
             this.prevChunkPos = chunkPos;
             let can_add = CHUNKS_ADD_PER_UPDATE;
-            for(let key of Object.keys(this.chunks)) {
+            for(let key of keys) {
                 let chunk = this.chunks[key];
                 if(!chunk.inited) {
                     can_add = 0;
@@ -200,17 +200,16 @@ export class ChunkManager {
                     chunk.isLive = true;
                 }
             }
-            // check for remove
+            // Check for remove
             for(let key of Object.keys(this.chunks)) {
                 if(!this.chunks[key].isLive) {
                     this.removeChunk(this.parseChunkPos(key));
                 }
             }
         }
-        // Detect dirty chunks
-        let dirty_chunks = [];
-        for(let key of Object.keys(this.chunks)) {
-            let chunk = this.chunks[key];
+
+        // Build dirty chunks
+        for(let chunk of this.dirty_chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 if(
                     this.getChunk(new Vector(chunk.addr.x - 1, chunk.addr.y, chunk.addr.z)) &&
@@ -218,36 +217,26 @@ export class ChunkManager {
                     this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z - 1)) &&
                     this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z + 1))
                 ) {
-                    dirty_chunks.push({
-                        coord: chunk.coord,
-                        key: chunk.key
-                    });
+                    chunk.buildVertices();
                 }
             }
         }
-        if(dirty_chunks.length > 0) {
-            if(dirty_chunks.length == 2 || dirty_chunks.length == 3) {
-                let keys = [];
-                for(let dc of dirty_chunks) {
-                    this.chunks[dc.key].buildVerticesInProgress = true;
-                    keys.push(dc.key)
-                }
-                // Run webworker method
-                this.postWorkerMessage(['buildVerticesMany', {keys: keys, shift: Game.shift}]);
-            } else {
-                // sort dirty chunks by dist from player
-                dirty_chunks = MyArray.from(dirty_chunks).sortBy('coord');
-                // rebuild dirty chunks
-                let buildCount = CHUNKS_BUILD_VERTICES_PER_UPDATE;
-                for(let dc of dirty_chunks) {
-                    if(this.chunks[dc.key].buildVertices()) {
-                        if(--buildCount == 0) {
-                            break;
-                        }
-                    }
-                }
+
+    }
+
+    addToDirty(chunk) {
+        this.dirty_chunks.push(chunk);
+    }
+
+    deleteFromDirty(chunk_key) {
+        for(let i in this.dirty_chunks) {
+            let chunk = this.dirty_chunks[i];
+            if(chunk.key == chunk_key) {
+                this.dirty_chunks.splice(i, 1);
+                return true;
             }
         }
+        return false;
     }
 
     getPosChunkKey(pos) {

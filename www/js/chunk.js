@@ -57,6 +57,8 @@ export default class Chunk {
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
 
+        this.chunkManager.addToDirty(this);
+
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -112,6 +114,7 @@ export default class Chunk {
     applyVertices() {
         const args = this.vertices_args;
         delete(this['vertices_args']);
+        this.chunkManager.deleteFromDirty(this.key);
         this.buildVerticesInProgress            = false;
         this.chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length                    = 0;
