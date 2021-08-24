@@ -56,7 +56,7 @@ export class ChunkManager {
     //
     setRenderDist(value) {
         value = Math.max(value, 4);
-        value = Math.min(value, 50);
+        value = Math.min(value, 10);
         this.CHUNK_RENDER_DIST = value;
         this.margin = Math.max(this.CHUNK_RENDER_DIST + 1, 1)
     }

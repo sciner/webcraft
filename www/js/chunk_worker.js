@@ -67,6 +67,9 @@ class ChunkManager {
 class Chunk {
 
     constructor(args) {
+        this.instanced_blocks = {
+            CONCRETE: blocks.CONCRETE
+        };
         Object.assign(this, args);
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
@@ -443,11 +446,6 @@ class Chunk {
                         let block = this.blocks[x][z][y];
                         if(block && typeof block === 'object') {
                             if(block.hasOwnProperty('vertices')) {
-                                /*
-                                if(!('id' in block)) {
-                                    console.log(JSON.stringify(block));
-                                    debugger;
-                                }*/
                                 delete(block['vertices']);
                             }
                         }
