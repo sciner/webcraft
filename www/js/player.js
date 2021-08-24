@@ -408,7 +408,17 @@ export default class Player {
             }
             let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
             let playerPos = that.getBlockPos();
+            let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
             if(createBlock) {
+                if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
+                    return;
+                }
+                if(!replaceBlock) {
+                    block = new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z);
+                }
+                if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y && block.y <= playerPos.y + 1)) {
+                    return;
+                }
                 if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
                     if(!shiftKey) {
                         switch(world_block.id) {
@@ -424,32 +434,25 @@ export default class Player {
                         return;
                     }
                 }
-                if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y - 1 || block.y <= playerPos.y + 1)) {
-                    // block is occupied by player
-                    return;
-                }
-                if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
-                    return;
-                }
                 let matBlock = BLOCK.fromId(that.buildMaterial.id);
-                if(world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id)) {
+                if(replaceBlock) {
                     // Replace block
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
-                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
+                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
                         }
                     } else {
                         world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
                     }
                 } else {
                     // Create block
-                    let blockUnder = that.world.chunkManager.getBlock(block.x + block.n.x, block.y + block.n.y - 1, block.z + block.n.z);
+                    let blockUnder = that.world.chunkManager.getBlock(block.x, block.y, block.z);
                     if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
                         return;
                     }
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
-                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z), playerRotate);
+                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
                             let b = BLOCK.fromId(that.buildMaterial.id);
                             if(b.sound) {
                                 Game.sounds.play(b.sound, 'place');
@@ -461,7 +464,7 @@ export default class Player {
                                 return;
                             }
                         }
-                        world.setBlock(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z, that.buildMaterial, null, playerRotate);
+                        world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
                     }
                 }
                 that.inventory.decrement();
@@ -572,6 +575,8 @@ export default class Player {
                 let passed = performance.now() - v;
                 if(!this.flying) {
                     passed = 1000;
+                } else if(passed < 500) {
+                    passed = 500;
                 }
                 let resp = Math.max(speed, Math.min(passed / 1000, 1) * SPEED_MUL);
                 return Math.min(resp, 5);
@@ -600,10 +605,13 @@ export default class Player {
 
             let mul = 1;
 
-            let d = delta / (1 / 60);
-            velocity.x *= (this.flying ? .97 : .9) / d;
-            velocity.z *= (this.flying ? .97 : .9) / d;
-            
+            let y = delta / (1 / 60);
+            let p = this.flying ? .97 : .9;
+            p = (1 - (1 - p) * y);
+            // x - (x - x * p) * y
+            velocity.x *= p;
+            velocity.z *= p;
+
             if(this.running) {
                 mul *= this.flying ? 1.15 : 1.5;
             }
