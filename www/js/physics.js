@@ -1,3 +1,6 @@
+
+import {BLOCK} from "./blocks.js";
+
 // ==========================================
 // Physics
 //
@@ -20,7 +23,6 @@ export default class Physics {
     // Perform one iteration of physics simulation.
     // Should be called about once every second.
     simulate() {
-        return;
         let world = this.world;
         let step = Math.floor(new Date().getTime() / 100);
         if(step == this.lastStep) {
