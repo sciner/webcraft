@@ -10,6 +10,7 @@ import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
+import {GameMode} from "./game_mode.js";
 
 // Mouse event enumeration
 export let MOUSE         = {};
@@ -98,27 +99,33 @@ export let Game = {
             }
         })
     },
+
     // Ajust world state
     ajustSavedState: function(saved_state) {
+        if(!saved_state.hasOwnProperty('game_mode')) {
+            let gm = new GameMode();
+            saved_state.game_mode = gm.getCurrent().id;
+        }
         return saved_state;
     },
 
     load(settings) {
         this.resources = new Resources();
         return this.resources.load({
-            hd: settings.hd,
-            texture_pack: settings.texture_pack,
-            glsl: this.render.renderBackend.kind === 'webgl',
-            wgsl: this.render.renderBackend.kind === 'webgpu',
-            imageBitmap: true
+            hd:             settings.hd,
+            texture_pack:   settings.texture_pack,
+            glsl:           this.render.renderBackend.kind === 'webgl',
+            wgsl:           this.render.renderBackend.kind === 'webgpu',
+            imageBitmap:    true
         });
     },
 
+    // initGame...
     initGame(saved_world, settings) {
-        this.world_name = saved_world._id;
-        this.seed       = saved_world.seed;
-        saved_world     = this.ajustSavedState(saved_world);
-        this.sounds     = new Sounds();
+        this.world_name     = saved_world._id;
+        this.seed           = saved_world.seed;
+        saved_world         = this.ajustSavedState(saved_world);
+        this.sounds         = new Sounds();
         // Create a new world
         this.world = new World(saved_world);
         this.world.init()
@@ -132,6 +139,7 @@ export let Game = {
             .then(this.postInitGame.bind(this))
     },
 
+    // postInitGame...
     postInitGame() {
         this.physics    = new Physics();
         this.player     = new Player();

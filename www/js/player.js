@@ -390,9 +390,12 @@ export default class Player {
 
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(button_id, shiftKey) {
+        if(this.world.game_mode.isSpectator()) {
+            return;
+        }
         let that            = this;
         let destroyBlock    = button_id == 1;
-        let cloneBlock      = button_id == 2;
+        let cloneBlock      = button_id == 2 && this.world.game_mode.isCreative();
         let createBlock     = button_id == 3;
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
@@ -665,7 +668,7 @@ export default class Player {
             z: pos.z + velocity.z,
             size: size
         };
-        let shiftPressed = !!this.keys[KEY.SHIFT];
+        let shiftPressed = !!this.keys[KEY.SHIFT] && !this.flying;
         // Collect XZ collision sides
         let collisionCandidates = [];
         if(!this.world.game_mode.isSpectator()) {

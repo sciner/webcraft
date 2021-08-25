@@ -4,17 +4,13 @@ import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
 import PlayerModel from "./player_model.js";
-import {GameMode, GAME_MODE} from "./game_mode.js";
+import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
+import {MeshManager} from "./mesh_manager.js";
 
 const MAX_DIST_FOR_SHIFT = 800;
 
-/* World container
-*
-* This class contains the elements that make up the game world.
-* Other modules retrieve information from the world or alter it
-* using this class.
-*/
+// World container
 export class World {
 
     constructor(saved_state) {
@@ -40,10 +36,8 @@ export class World {
 
     async init() {
         const saved_state = this._savedState;
-
         // Create server client
         this.server = await this.connect();
-
         this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
         this.players        = [];
         this.rainTim        = null;
@@ -52,37 +46,14 @@ export class World {
         this.chunkManager   = new ChunkManager(this);
         this.rotateRadians  = new Vector(0, 0, 0);
         this.rotateDegree   = new Vector(0, 0, 0);
-        //
-        this.meshes         = {
-            list: {},
-            add: function(mesh, key) {
-                if(!key) {
-                    key = Helpers.generateID();
-                }
-                this.list[key] = mesh;
-            },
-            remove: function(key, render) {
-                this.list[key].destroy(render);
-                delete(this.list[key]);
-            },
-            draw: function(render, delta) {
-                for(let key of Object.keys(this.list)) {
-                    let mesh = this.list[key];
-                    if(mesh.isAlive()) {
-                        mesh.draw(render, delta);
-                    } else {
-                        this.remove(key, render)
-                    }
-                }
-            }
-        };
+        this.meshes         = new MeshManager();
         this.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
         this.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
         if(saved_state.hasOwnProperty('chunk_render_dist')) {
             this.chunkManager.setRenderDist(saved_state.chunk_render_dist);
         }
         // Game mode
-        this.game_mode = new GameMode(this);
+        this.game_mode = new GameMode(this, saved_state.game_mode);
     }
 
     // Draw
@@ -206,6 +177,7 @@ export class World {
             chunk_render_dist:  Game.world.chunkManager.CHUNK_RENDER_DIST,
             rotate:             that.rotate,
             brightness:         that.renderer.brightness,
+            game_mode:          that.game_mode.getCurrent().id,
             inventory:  {
                 items: Game.world.localPlayer.inventory.items,
                 current: {
