@@ -270,6 +270,7 @@ export default class HUD {
         } else {
             this.text += 'NULL';
         }
+        this.text += '\nGame mode: ' + Game.world.game_mode.getCurrent().title;
         if(performance.now() - Game.last_saved_time < 3000) {
             this.text += '\nSaved ... OK';
         }
