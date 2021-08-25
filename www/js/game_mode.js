@@ -2,54 +2,81 @@ export const GAME_MODE = {};
     GAME_MODE.CREATIVE = 'creative';
     GAME_MODE.SURVIVAL = 'survival';
     GAME_MODE.SPECTATOR = 'spectator';
-    GAME_MODE._DEFAULT = GAME_MODE.CREATIVE;
 
 export class GameMode {
 
     constructor(world, game_mode_id) {
         this.world = world;
-        this.game_mode = game_mode_id ? game_mode_id : GAME_MODE._DEFAULT;
-        this.modes = {
-            creative: {id: GAME_MODE.CREATIVE, title: 'Creative'},
-            survival: {id: GAME_MODE.SURVIVAL, title: 'Survival'},
-            spectator: {id: GAME_MODE.SPECTATOR, title: 'Spectator'},
-        };
+        this.modes = [];
+        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false});
+        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true});
+        if(game_mode_id) {
+            this.setMode(game_mode_id);
+        }
+    }
+
+    // Добавление режима игры
+    add(mode) {
+        if(!this.current) {
+            this.current = mode;
+        }
+        this.modes.push(mode);
     }
 
     getCurrent() {
-        return this.modes[this.game_mode];
-    }
-
-    // Наблюдатель
-    isSpectator() {
-        return this.game_mode == GAME_MODE.SPECTATOR;
-    }
-
-    // Творчество
-    isCreative() {
-        return this.game_mode == GAME_MODE.CREATIVE;
+        return this.current;
     }
 
     // Выживание
     isSurvival() {
-        return this.game_mode == GAME_MODE.SURVIVAL;
+        return this.current.id == GAME_MODE.SURVIVAL;
     }
 
-    //
-    setMode(value) {
-        let player = this.world.localPlayer;
-        player.flying = value == GAME_MODE.SPECTATOR;
-        this.game_mode = value;
-        player.chat.messages.addSystem('Game mode changed to ... ' + this.getCurrent().title);
-        return true;
+    // Наблюдатель
+    isSpectator() {
+        return this.current.id == GAME_MODE.SPECTATOR;
     }
 
-    //
-    toggleSpectator() {
-        if(this.game_mode == GAME_MODE.SPECTATOR) {
-            return this.setMode(GAME_MODE._DEFAULT);
+    // Творчество
+    isCreative() {
+        return this.current.id == GAME_MODE.CREATIVE;
+    }
+
+    canFly() {
+        return this.getCurrent().can_fly;
+    }
+
+    // Смена режима игры
+    setMode(id) {
+        for(let mode of this.modes) {
+            if(mode.id == id) {
+                this.current = mode;
+                let player = this.world.localPlayer;
+                if(player) {
+                    if(!mode.can_fly) {
+                        player.flying = false;
+                    } else if(id == GAME_MODE.SPECTATOR) {
+                        player.flying = true;
+                    }
+                    player.chat.messages.addSystem('Game mode changed to ... ' + this.getCurrent().title);
+                }
+                return true;
+            }
         }
-        return this.setMode(GAME_MODE.SPECTATOR);
+    }
+
+    // Переключить на следующий игровой режим
+    next() {
+        let index = 0;
+        for(let mode of this.modes) {
+            index++;
+            if(mode.id == this.getCurrent().id) {
+                break;
+            }
+        }
+        let id = this.modes[index % this.modes.length].id;
+        this.setMode(id);
     }
 
 }

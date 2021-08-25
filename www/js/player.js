@@ -153,7 +153,7 @@ export default class Player {
         }
 
         // Flying [Space]
-        if(keyCode == KEY.SPACE) {
+        if(keyCode == KEY.SPACE && Game.world.game_mode.canFly()) {
             if(this.velocity.y > 0) {
                 if(down && first) {
                     if(!this.flying) {
@@ -260,7 +260,7 @@ export default class Player {
             // F10 (toggleUpdateChunks)
             case KEY.F10: {
                 if(!down) {
-                    this.world.game_mode.toggleSpectator();
+                    this.world.game_mode.next();
                 }
                 return true;
                 break;
