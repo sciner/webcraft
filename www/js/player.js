@@ -260,7 +260,7 @@ export default class Player {
             // F10 (toggleUpdateChunks)
             case KEY.F10: {
                 if(!down) {
-                    Game.world.chunkManager.toggleUpdateChunks();
+                    this.world.game_mode.toggleSpectator();
                 }
                 return true;
                 break;
@@ -668,26 +668,28 @@ export default class Player {
         let shiftPressed = !!this.keys[KEY.SHIFT];
         // Collect XZ collision sides
         let collisionCandidates = [];
-        for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-            for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                for(let y = bPos.y; y <= bPos.y + 1; y++) {
-                    let block = world.chunkManager.getBlock(x, y, z);
-                    // Позволяет не падать с края блоков, если зажат [Shift]
-                    if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
-                        let blockUnder = world.chunkManager.getBlock(x, y - 1, z);
-                        if(blockUnder.passable) {
-                            if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x + .5,      dir: -1,    z1: z, z2: z + 1});
-                            if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1 - .5,  dir:  1,    z1: z, z2: z + 1});
-                            if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z + .5,      dir: -1,    x1: x, x2: x + 1});
-                            if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1 - .5,  dir:  1,    x1: x, x2: x + 1});
-                            continue;
+        if(!this.world.game_mode.isSpectator()) {
+            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
+                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
+                    for(let y = bPos.y; y <= bPos.y + 1; y++) {
+                        let block = world.chunkManager.getBlock(x, y, z);
+                        // Позволяет не падать с края блоков, если зажат [Shift]
+                        if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
+                            let blockUnder = world.chunkManager.getBlock(x, y - 1, z);
+                            if(blockUnder.passable) {
+                                if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x + .5,      dir: -1,    z1: z, z2: z + 1});
+                                if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1 - .5,  dir:  1,    z1: z, z2: z + 1});
+                                if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z + .5,      dir: -1,    x1: x, x2: x + 1});
+                                if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1 - .5,  dir:  1,    x1: x, x2: x + 1});
+                                continue;
+                            }
                         }
-                    }
-                    if (!block.passable) {
-                        if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
-                        if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
-                        if (world.chunkManager.getBlock(x, y, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
-                        if (world.chunkManager.getBlock(x, y, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
+                        if (!block.passable) {
+                            if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
+                            if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
+                            if (world.chunkManager.getBlock(x, y, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
+                            if (world.chunkManager.getBlock(x, y, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
+                        }
                     }
                 }
             }
@@ -716,12 +718,14 @@ export default class Player {
         let newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
         // Collect Y collision sides
         collisionCandidates = [];
-        for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-            for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
-                    collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
-                if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
-                    collisionCandidates.push({y: newBYUpper, dir: -1, x1: x, z1: z, x2: x + 1, z2: z + 1});
+        if(!this.world.game_mode.isSpectator()) {
+            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
+                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
+                    if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
+                        collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
+                    if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
+                        collisionCandidates.push({y: newBYUpper, dir: -1, x1: x, z1: z, x2: x + 1, z2: z + 1});
+                }
             }
         }
         // Solve Y collisions

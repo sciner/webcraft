@@ -1,5 +1,5 @@
 import Sounds from "./sounds.js";
-import World from "./world.js";
+import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
 import Physics from "./physics.js";
 import Player from "./player.js";
