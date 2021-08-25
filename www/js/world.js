@@ -4,6 +4,7 @@ import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
 import PlayerModel from "./player_model.js";
+import {GameMode, GAME_MODE} from "./game_mode.js";
 import ServerClient from "./server_client.js";
 
 const MAX_DIST_FOR_SHIFT = 800;
@@ -14,11 +15,10 @@ const MAX_DIST_FOR_SHIFT = 800;
 * Other modules retrieve information from the world or alter it
 * using this class.
 */
-export default class World {
+export class World {
 
     constructor(saved_state) {
         this._savedState = saved_state;
-
         // Autosave
         setInterval(() => {
             console.log('Autosave ... OK');
@@ -81,6 +81,8 @@ export default class World {
         if(saved_state.hasOwnProperty('chunk_render_dist')) {
             this.chunkManager.setRenderDist(saved_state.chunk_render_dist);
         }
+        // Game mode
+        this.game_mode = new GameMode(this);
     }
 
     // Draw

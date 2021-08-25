@@ -1,39 +1,28 @@
-import DB from './db.js';
-
 export default class Saves {
 
     // Constructor
     constructor(callback) {
-        let that = this;
         this.table_name = 'worlds';
-        DB.open(this.table_name, function(instance) {
-            that.DB = instance;
-            callback(that);
-        });    
+        callback(this);
     }
 
     // Load
-    load(world_name, callback, callback_error) {
-        let that = this;
-        if(!that.DB) {
-            throw('DB not inited');
-        }
-        try {
-            that.DB.get(this.table_name, world_name, function(row) {
-                callback(row);
-            }, function(err) {     
-                callback_error(err);
-            });
+    load(world_id, callback, callback_error) {
+        let key = this.table_name + '_' + world_id;
+        let world = localStorage.getItem(key);
+        if(world) {
+            callback(JSON.parse(world));
             return true;
-        } catch(e) {
-            console.error(e);
-            return false;
         }
+        let err = {message: 'Not found'};
+        callback_error(err);
+        return false;
     }
 
     // Add new
-    addNew(row, callback) {
-        DB.put(this.table_name, row);
+    addNew(world, callback) {
+        let key = this.table_name + '_' + world._id;
+        localStorage.setItem(key, JSON.stringify(world));
         if(callback) {
             callback();
         }
@@ -41,14 +30,10 @@ export default class Saves {
 
     // Save
     save(world, callback) {
-        let that = this;
-        if(!that.DB) {
-            throw('DB not inited');
-        }
-        let t = performance.now();
+        let table_name = this.table_name;
         world.exportJSON(function(row) {
-            DB.put(that.table_name, row);
-            t = performance.now() - t;
+            let key = table_name + '_' + row._id;
+            localStorage.setItem(key, JSON.stringify(row));
             if(callback) {
                 callback();
             }

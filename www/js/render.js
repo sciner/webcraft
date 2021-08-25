@@ -279,7 +279,7 @@ export class Renderer {
         shader.update();
 
         // 0. Picking target
-        if (this.pickAt && Game.hud.active) {
+        if (this.pickAt && Game.hud.active && !this.world.game_mode.isSpectator()) {
             this.pickAt.drawTarget(this, Game.shift);
         }
 
