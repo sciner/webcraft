@@ -278,15 +278,15 @@ export class Renderer {
         shader.bind();
         shader.update();
 
-        // 0. Picking target
-        if (this.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
-            this.pickAt.update(Game.shift);
-        }
-
         this.terrainTexture.bind(4);
         // 2. Draw chunks
         this.world.chunkManager.draw(this);
         this.world.draw(this, delta);
+        // 0. Picking target
+        this.terrainTexture.bind(4);
+        if (this.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
+            this.pickAt.update(Game.shift);
+        }
         // 3. Draw players and rain
         this.drawPlayers(delta);
 
