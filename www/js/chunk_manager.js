@@ -290,13 +290,13 @@ export class ChunkManager {
         }
         let pos = new Vector(x, y, z);
         let item = {
-            id: block.id,
-            power: power ? power : 1.0,
-            rotate: rotate,
-            entity_id: entity_id
+            id:         block.id,
+            power:      power ? power : 1.0,
+            rotate:     rotate,
+            entity_id:  entity_id
         };
         if(is_modify) {
-            // @server
+            // @server Отправляем на сервер инфу об установке блока
             this.world.server.Send({
                 name: ServerClient.EVENT_BLOCK_SET,
                 data: {
@@ -304,8 +304,7 @@ export class ChunkManager {
                     item: item
                 }
             });
-        }
-        if(is_modify) {
+            // заменяемый блок
             let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
             let b = null;
             let action = null;

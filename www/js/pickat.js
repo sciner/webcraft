@@ -6,13 +6,30 @@ import GeometryTerrain from "./geometry_terrain.js";
 const {mat4} = glMatrix;
 
 const PICKAT_DIST = 5;
+const TARGET_TEXTURES = [0, 17];
 
 export default class PickAt {
 
     constructor(render) {
-        this.render = render;
-        this.target_block = false;
-        this.target_buffer = null;
+        this.render             = render;
+        //
+        this.target_block       = {
+            pos:                null,
+            visible:            false,
+            mesh:               null
+        }
+        //
+        this.damage_block       = {
+            pos:        null,
+            mesh:       null,
+            event:      null,
+            frame:      0,
+            number:     0,
+            times:      0, // количество миллисекунд, в течение которого на блок было воздействие
+            prev_time:  null, // точное время, когда в последний раз было воздействие на блок
+            start:      null
+        }
+        this.onTarget           = null; // (block, target_event, elapsed_time) => {...};
     }
 
     //
@@ -79,86 +96,209 @@ export default class PickAt {
         return res;
     }
 
+    // setEvent...
+    setEvent(e) {
+        e.start_time        = performance.now();
+        e.destroyBlock      = e.button_id == 1;
+        e.cloneBlock        = e.button_id == 2; // && this.world.game_mode.isCreative();
+        e.createBlock       = e.button_id == 3;
+        e.number            = 0;
+        let damage_block = this.damage_block;
+        damage_block.event = Object.assign(e, {number: 0});
+        damage_block.start = performance.now();
+        this.updateDamageBlock();
+    }
+
+    // clearEvent...
+    clearEvent() {
+        let damage_block = this.damage_block;
+        damage_block.event = null;
+        if(damage_block.mesh) {
+            damage_block.mesh.destroy();
+            damage_block.mesh = null;
+        }
+    }
+
+    // setDamagePercent...
+    setDamagePercent(percent) {
+        //
+        console.log('percent', percent);
+        let damage_block = this.damage_block;
+        let new_frame = Math.round(percent * 9);
+        if(damage_block.frame != new_frame) {
+            damage_block.frame = new_frame;
+            if(damage_block.mesh) {
+                damage_block.mesh = this.createTargetBuffer(damage_block.pos, this.shift, [new_frame, 15]);
+            }
+        }
+    }
+
+    // updateDamageBlock...
+    updateDamageBlock() {
+        let target_block = this.target_block;
+        if(target_block.visible) {
+            let damage_block = this.damage_block;
+            if(damage_block.mesh) {
+                damage_block.mesh.destroy();
+            }
+            damage_block.pos        = target_block.pos;
+            damage_block.number     = 0;
+            damage_block.frame      = 0;
+            damage_block.times      = 0;
+            damage_block.prev_time  = null;
+            damage_block.mesh       = this.createTargetBuffer(damage_block.pos, this.shift, [damage_block.frame, 15]);
+        }
+    }
+
     /**
-     * drawTarget...
-     * @returns bool
+     * update...
      */
-    drawTarget(render, shift) {
-        let b = this.get();
-        if(b) {
-            if(!this.target_block ||
-                (this.target_block.x != b.x || this.target_block.y != b.y || this.target_block.z != b.z ||
-                    this.target_block.n.x != b.n.x || this.target_block.n.y != b.n.y || this.target_block.n.z != b.n.z)) {
-                // @todo need update target block
-                this.target_block = b;
-                let vertices    = [];
-                let ao          = [0, 0, 0, 0];
-                let c           = BLOCK.calcTexture([0, 17]);
-                let lm          = new Color(0, 0, 0);
-                let flags       = 0, sideFlags = 0, upFlags = 0;
-                let bH          = 1;
-                let width       = 1;
-                let height      = 1;
-                let x           = b.x - shift.x;
-                let y           = b.y - shift.y;
-                let z           = b.z - shift.z;
-                // Up;
-                vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
-                    1, 0, 0,
-                    0, 1, 0,
-                    c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags | upFlags);
-                // Bottom
-                vertices.push(x + 0.5, z + 0.5, y,
-                    1, 0, 0,
-                    0, -1, 0,
-                    c[0], c[1], c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags);
-                // Forward
-                vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
-                    1, 0, 0,
-                    0, 0, bH,
-                    c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-                // Back
-                vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
-                    1, 0, 0,
-                    0, 0, -bH,
-                    c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-                // Left
-                vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
-                    0, 1, 0,
-                    0, 0, -bH,
-                    c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-                // Right
-                vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
-                    0, 1, 0,
-                    0, 0, bH,
-                    c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b,
-                    ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-                // Delete old buffer
-                if(this.target_buffer) {
-                    this.target_buffer.destroy();
+    update(shift) {
+        // Get actual pick-at block
+        let bPos = this.get();
+        let target_block = this.target_block;
+        let damage_block = this.damage_block;
+        this.shift = shift;
+        if(!shift) {
+            debugger;
+        }
+        target_block.visible = !!bPos;
+        if(bPos) {
+            // Check if pick-at block changed
+            let tbp = target_block.pos;
+            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z /*|| tbp.n.x != bPos.n.x || tbp.n.y != bPos.n.y || tbp.n.z != bPos.n.z*/)) {
+                // 1. Target block
+                if(target_block.mesh) {
+                    target_block.mesh.destroy();
+                    target_block.mesh = null;
                 }
-                // Create buffer
-                this.target_buffer = new GeometryTerrain(vertices);
+                target_block.pos = bPos;
+                target_block.mesh = this.createTargetBuffer(target_block.pos, shift, TARGET_TEXTURES);
+                // 2. Damage block
+                if(damage_block.event) {
+                    damage_block.pos = bPos;
+                    this.updateDamageBlock();
+                }
             }
         } else {
-            return this.target_block = false;
+            damage_block.prev_time = null;
         }
+        this.calcDamage();
+        /*
+        let textures = [5, 15];
+        let need_update_frame = false;
+        if(tbp && tbp.start && tbp.destroy_time) {
+            let frame = Math.min((performance.now() - tbp.start) / (tbp.destroy_time * 1000) * 9 | 0, 9);
+            need_update_frame = this.target_frame != frame;
+            textures = [frame, 15];
+            this.target_frame = frame;
+        }
+        */
         // draw
+        this.draw();
+    }
+
+    // calcDamage...
+    calcDamage() {
+        let target_block = this.target_block;
+        let damage_block = this.damage_block;
+        if(!target_block.visible) {
+            return false;
+        }
+        if(!damage_block.event || !damage_block.mesh) {
+            return false;
+        }
+        damage_block.number++;
+        damage_block.event.number++;
+        let pn = performance.now();
+        if(damage_block.prev_time) {
+            damage_block.times += pn - damage_block.prev_time;
+        }
+        damage_block.prev_time = pn;
+        if(this.onTarget instanceof Function) {
+            if(this.onTarget({...damage_block.pos}, {...damage_block.event}, damage_block.times / 1000, damage_block.number)) {
+                this.updateDamageBlock();
+                if(damage_block.mesh) {
+                    damage_block.mesh.destroy();
+                    damage_block.mesh = null;
+                }
+            }
+        }
+        return false;
+    }
+
+    // Draw meshes
+    draw() {
+        let render = this.render;
         const mat = render.materials['regular'];
-        render.renderBackend.drawMesh(this.target_buffer, mat);
-        // return true
-        return true;
+        let target_block = this.target_block;
+        let damage_block = this.damage_block;
+        // 1. Target block
+        if(target_block.mesh && target_block.visible) {
+            render.renderBackend.drawMesh(target_block.mesh, mat);
+        }
+        // 2. Damage block
+        if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
+            render.renderBackend.drawMesh(damage_block.mesh, mat);
+        }
+    }
+
+    // createTargetBuffer...
+    createTargetBuffer(b, shift, textures) {
+        let vertices    = [];
+        let ao          = [0, 0, 0, 0];
+        let c           = BLOCK.calcTexture(textures);
+        let lm          = new Color(0, 0, 0);
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        let bH          = 1;
+        let width       = 1;
+        let height      = 1;
+        let x           = b.x - shift.x;
+        let y           = b.y - shift.y;
+        let z           = b.z - shift.z;
+        // Up;
+        vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+            1, 0, 0,
+            0, 1, 0,
+            c[0], c[1], c[2], c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+        // Bottom
+        vertices.push(x + 0.5, z + 0.5, y,
+            1, 0, 0,
+            0, -1, 0,
+            c[0], c[1], c[2], c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags);
+        // Forward
+        vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
+            1, 0, 0,
+            0, 0, bH,
+            c[0], c[1], c[2], -c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        // Back
+        vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
+            1, 0, 0,
+            0, 0, -bH,
+            c[0], c[1], -c[2], c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        // Left
+        vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
+            0, 1, 0,
+            0, 0, -bH,
+            c[0], c[1], -c[2], c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        // Right
+        vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
+            0, 1, 0,
+            0, 0, bH,
+            c[0], c[1], c[2], -c[3],
+            lm.r, lm.g, lm.b,
+            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        return new GeometryTerrain(vertices);
     }
 
 }

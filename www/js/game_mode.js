@@ -1,6 +1,7 @@
 export const GAME_MODE = {};
     GAME_MODE.CREATIVE = 'creative';
     GAME_MODE.SURVIVAL = 'survival';
+    GAME_MODE.ADVENTURE = 'adventure';
     GAME_MODE.SPECTATOR = 'spectator';
 
 export class GameMode {
@@ -8,9 +9,10 @@ export class GameMode {
     constructor(world, game_mode_id) {
         this.world = world;
         this.modes = [];
-        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false});
-        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true});
+        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false});
+        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true});
+        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false});
         if(game_mode_id) {
             this.setMode(game_mode_id);
         }
@@ -45,6 +47,14 @@ export class GameMode {
 
     canFly() {
         return this.getCurrent().can_fly;
+    }
+
+    canBlockAction() {
+        return this.getCurrent().block_action;
+    }
+
+    canBlockClone() {
+        return this.getCurrent().block_clone;
     }
 
     // Смена режима игры

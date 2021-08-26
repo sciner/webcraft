@@ -55,7 +55,7 @@ export let Game = {
     shift:              {x: 0, y: 0, z: 0},
     start_time:         performance.now(),
     last_saved_time:    performance.now() - 20000,
-    world_name:         null, // 'infinity',
+    world_name:         null,
     hud:                null,
     canvas:             document.getElementById('renderSurface'),
     /**
@@ -245,7 +245,6 @@ export let Game = {
             // this.canvas.exitPointerLock();
             // Attempt to unlock
             document.exitPointerLock();
-            console.info('ok');
         } catch(e) {
             console.error(e);
         }

@@ -2,13 +2,15 @@ import Chat from "./chat.js";
 import {Helpers, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
+import { Game } from "./game.js";
 
 // ==========================================
 // Player
 // This class contains the code that manages the local player.
 // ==========================================
 
-const PLAYER_HEIGHT     = 1.8;
+const PLAYER_HEIGHT                     = 1.8;
+const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 
 // Creates a new local player manager.
 export default class Player {
@@ -42,6 +44,43 @@ export default class Player {
             this.flying = !!world.saved_state.flying;
         }
         this.overChunk              = null;
+        // onTarget
+        this.world.renderer.pickAt.onTarget = (...args) => {
+            return this.onTarget(...args);
+        };
+    }
+
+    // onTarget
+    onTarget(bPos, e, times, number) {
+        // createBlock
+        if(e.createBlock) {
+            if(e.number > 1 && times < .2) {
+                return false;
+            }
+        // cloneBlock
+        } else if(e.cloneBlock) {
+            if(number > 1) {
+                return false;
+            }
+        // destroyBlock
+        } else if(e.destroyBlock) {
+            let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
+            let block           = BLOCK.BLOCK_BY_ID[world_block.id];
+            let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative());
+            if(destroy_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
+                return false;
+            }
+            if(times < destroy_time) {
+                this.world.renderer.pickAt.setDamagePercent(times / destroy_time);
+                return false;
+            }
+            if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
+                this.world.renderer.pickAt.setDamagePercent(times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
+                return false;
+            }
+        }
+        this.doBlockAction(e);
+        return true;
     }
 
     // Assign the local player to a socket client.
@@ -383,27 +422,25 @@ export default class Player {
         }
         x = Game.render.canvas.width * 0.5;
         y = Game.render.canvas.height * 0.5;
+        // Mouse actions
         if (type == MOUSE.DOWN) {
-            this.doBlockAction(button_id, shiftKey);
+            Game.world.renderer.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+        } else if (type == MOUSE.UP) {
+            Game.world.renderer.pickAt.clearEvent();
         }
     }
 
     // Called to perform an action based on the player's block selection and input.
-    doBlockAction(button_id, shiftKey) {
-        if(this.world.game_mode.isSpectator()) {
+    doBlockAction(e) {
+        if(!this.world.game_mode.canBlockAction() || !this.canvas.renderer.pickAt) {
             return;
         }
         let that            = this;
-        let destroyBlock    = button_id == 1;
-        let cloneBlock      = button_id == 2 && this.world.game_mode.isCreative();
-        let createBlock     = button_id == 3;
+        let destroyBlock    = e.destroyBlock;
+        let cloneBlock      = e.cloneBlock;
+        let createBlock     = e.createBlock;
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
-
-        if (!this.canvas.renderer.pickAt) {
-            return;
-        }
-
         // Picking
         this.canvas.renderer.pickAt.get(function(block) {
             if(block === false) {
@@ -423,7 +460,7 @@ export default class Player {
                     return;
                 }
                 if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
-                    if(!shiftKey) {
+                    if(!e.shiftKey) {
                         switch(world_block.id) {
                             case BLOCK.CRAFTING_TABLE.id: {
                                 Game.hud.wm.getWindow('ct1').toggleVisibility();
@@ -489,7 +526,7 @@ export default class Player {
                     }
                 }
             } else if(cloneBlock) {
-                if(world_block) {
+                if(world_block && world.game_mode.canBlockClone()) {
                     that.inventory.cloneMaterial(world_block);
                 }
             }

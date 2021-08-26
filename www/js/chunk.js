@@ -190,6 +190,12 @@ export default class Chunk {
 
     // setBlock
     setBlock(x, y, z, type, is_modify, power, rotate, entity_id) {
+        x -= this.coord.x;
+        y -= this.coord.y;
+        z -= this.coord.z;
+        if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
+            return;
+        };
         // fix rotate
         if(rotate && typeof rotate === 'object') {
             rotate = new Vector(
@@ -208,39 +214,18 @@ export default class Chunk {
         if(power <= 0) {
             return;
         }
-        if(is_modify) {
-            let modify_item = {
-                id: type.id,
-                power: power,
-                rotate: rotate
-            };
-            this.modify_list[[x, y, z]] = modify_item;
-            /*
-            // @server
-            this.world.server.Send({
-                name: ServerClient.EVENT_BLOCK_SET,
-                data: {
-                    pos: new Vector(x, y, z),
-                    item: modify_item
-                }
-            });
-            */
-        }
-        x -= this.coord.x;
-        y -= this.coord.y;
-        z -= this.coord.z;
-        if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
-            return;
-        };
+        //
         if(!is_modify) {
             type = {...BLOCK[type.name]};
-            this.blocks[x][z][y]            = type;
-            this.blocks[x][z][y].power      = power;
-            this.blocks[x][z][y].rotate     = rotate;
-            this.blocks[x][z][y].entity_id  = entity_id;
-            this.blocks[x][z][y].texture    = null;
+            type.power      = power;
+            type.rotate     = rotate;
+            type.entity_id  = entity_id;
+            type.texture    = null;
+            if(type.gravity) {
+                type.falling = true;
+            }
+            this.blocks[x][z][y] = type;
         }
-
         // Run webworker method
         this.chunkManager.postWorkerMessage(['setBlock', {
             key:        this.key,
@@ -252,7 +237,6 @@ export default class Chunk {
             power:      power,
             rotate:     rotate
         }]);
-
         if(x == 0) {
             // left
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
@@ -267,14 +251,14 @@ export default class Chunk {
                 rotate:     rotate
             }]);
         }
-        if(z == 0) {
+        if(y == 0) {
             // top
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z - 1,
+                y:          y + this.coord.y - 1,
+                z:          z + this.coord.z,
                 type:       null,
                 is_modify:  is_modify,
                 power:      power,
@@ -295,14 +279,14 @@ export default class Chunk {
                 rotate:     rotate
             }]);
         }
-        if(z == this.size.z - 1) {
+        if(y == this.size.y - 1) {
             // bottom
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z + 1,
+                y:          y + this.coord.y + 1,
+                z:          z + this.coord.z,
                 type:       null,
                 is_modify:  is_modify,
                 power:      power,
