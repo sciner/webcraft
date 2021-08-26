@@ -181,7 +181,7 @@ export default class PickAt {
                     target_block.mesh = null;
                 }
                 target_block.pos = bPos;
-                target_block.mesh = this.createTargetBuffer(target_block.pos, shift, TARGET_TEXTURES);
+                target_block.mesh = this.createTargetBuffer(TARGET_TEXTURES);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
