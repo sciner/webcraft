@@ -1,6 +1,6 @@
 import {Color, Vector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_Y_MAX} from "./blocks.js";
-import { BaseTerrainShader } from "./renders/BaseRenderer.js";
+import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4} = glMatrix;
@@ -30,6 +30,8 @@ export default class PickAt {
             start:      null
         }
         this.onTarget           = null; // (block, target_event, elapsed_time) => {...};
+        this.material = render.renderBackend.createMaterial({ cullFace: true, opaque: true,
+            blendMode: BLEND_MODES.MULTIPLY, shader:render.shader});
     }
 
     //
@@ -230,7 +232,7 @@ export default class PickAt {
     // Draw meshes
     draw() {
         let render = this.render;
-        const mat = render.materials['regular'];
+        const mat = this.material;
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         // 1. Target block

@@ -1,4 +1,4 @@
-import {BaseMaterial} from "../BaseRenderer.js";
+import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
 
 export class WebGLMaterial extends BaseMaterial {
     constructor(context, options) {
@@ -22,6 +22,13 @@ export class WebGLMaterial extends BaseMaterial {
             tex.bind(4);
             WebGLMaterial.texState = this.texture;
         }
+        if (this.blendMode !== BLEND_MODES.NORMAL) {
+            switch (this.blendMode) {
+                case BLEND_MODES.ADD: gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); break;
+                case BLEND_MODES.MULTIPLY: gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
+                case BLEND_MODES.SCREEN: gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
+            }
+        }
     }
 
     unbind() {
@@ -34,6 +41,9 @@ export class WebGLMaterial extends BaseMaterial {
         }
         if (this.ignoreDepth) {
             gl.enable(gl.DEPTH_TEST);
+        }
+        if (this.blendMode !== BLEND_MODES.NORMAL) {
+            gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }
     }
 
