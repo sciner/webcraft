@@ -252,6 +252,10 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     drawCube(cube) {
+        if (this._mat) {
+            this._mat.unbind();
+            this._mat = null;
+        }
         cube.shader.bind();
         cube.geom.bind(cube.shader);
 

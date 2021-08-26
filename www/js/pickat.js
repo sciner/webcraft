@@ -8,6 +8,8 @@ const {mat4} = glMatrix;
 const PICKAT_DIST = 5;
 const TARGET_TEXTURES = [0, 17];
 
+const half = new Vector(0.5, 0.5, 0.5);
+
 export default class PickAt {
 
     constructor(render) {
@@ -32,6 +34,9 @@ export default class PickAt {
         this.onTarget           = null; // (block, target_event, elapsed_time) => {...};
         this.material = render.renderBackend.createMaterial({ cullFace: true, opaque: true,
             blendMode: BLEND_MODES.MULTIPLY, shader:render.shader});
+
+        const modelMatrix = this.modelMatrix = mat4.create();
+        mat4.scale(modelMatrix, modelMatrix, [1.01, 1.01, 1.01]);
     }
 
     //
@@ -130,7 +135,8 @@ export default class PickAt {
         if(damage_block.frame != new_frame) {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
-                damage_block.mesh = this.createTargetBuffer(damage_block.pos, this.shift, [new_frame, 15]);
+                damage_block.mesh.destroy();
+                damage_block.mesh = this.createTargetBuffer([new_frame, 15]);
             }
         }
     }
@@ -148,7 +154,7 @@ export default class PickAt {
             damage_block.frame      = 0;
             damage_block.times      = 0;
             damage_block.prev_time  = null;
-            damage_block.mesh       = this.createTargetBuffer(damage_block.pos, this.shift, [damage_block.frame, 15]);
+            damage_block.mesh       = this.createTargetBuffer([damage_block.frame, 15]);
         }
     }
 
@@ -237,16 +243,18 @@ export default class PickAt {
         let damage_block = this.damage_block;
         // 1. Target block
         if(target_block.mesh && target_block.visible) {
-            render.renderBackend.drawMesh(target_block.mesh, mat);
+            const a_pos = half.add(this.target_block.pos).sub(this.shift).swapYZ();
+            render.renderBackend.drawMesh(target_block.mesh, mat, a_pos, this.modelMatrix);
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
-            render.renderBackend.drawMesh(damage_block.mesh, mat);
+            const a_pos = half.add(this.damage_block.pos).sub(this.shift).swapYZ();
+            render.renderBackend.drawMesh(damage_block.mesh, mat, a_pos, this.modelMatrix);
         }
     }
 
     // createTargetBuffer...
-    createTargetBuffer(b, shift, textures) {
+    createTargetBuffer(textures) {
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
         let c           = BLOCK.calcTexture(textures);
@@ -255,46 +263,43 @@ export default class PickAt {
         let bH          = 1;
         let width       = 1;
         let height      = 1;
-        let x           = b.x - shift.x;
-        let y           = b.y - shift.y;
-        let z           = b.z - shift.z;
         // Up;
-        vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+        vertices.push(0, 0, bH - 1.5 + height,
             1, 0, 0,
             0, 1, 0,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags | upFlags);
         // Bottom
-        vertices.push(x + 0.5, z + 0.5, y,
+        vertices.push(0, 0, -0.5,
             1, 0, 0,
             0, -1, 0,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags);
         // Forward
-        vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
+        vertices.push(0, -width / 2, bH / 2 - 0.5,
             1, 0, 0,
             0, 0, bH,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
         // Back
-        vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
+        vertices.push(0, +width / 2, bH / 2 - 0.5,
             1, 0, 0,
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
         // Left
-        vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
+        vertices.push(- width / 2, 0, bH / 2 - 0.5,
             0, 1, 0,
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
         // Right
-        vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
+        vertices.push(+ width / 2, 0, bH / 2 - 0.5,
             0, 1, 0,
             0, 0, bH,
             c[0], c[1], c[2], -c[3],

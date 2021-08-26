@@ -41,6 +41,10 @@ export class Vector {
         return this;
     }
 
+    swapYZ() {
+        return new Vector(this.x, this.z, this.y);
+    }
+
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
@@ -402,8 +406,8 @@ export class SpiralGenerator {
 
     /**
      * generate3D
-     * @param {Vector} vec_margin 
-     * @returns 
+     * @param {Vector} vec_margin
+     * @returns
      */
     static generate3D(vec_margin) {
         let cache_key = vec_margin.toString();
