@@ -80,7 +80,7 @@ export default class Chat {
         if(text != '' && text != '/') {
             this.messages.send(text);
             // Parse commands
-            let temp = text.split(' ');
+            let temp = text.replace(/  +/g, ' ').split(' ');
             let cmd = temp.shift();
             switch(cmd.trim().toLowerCase()) {
                 case '/tp': {

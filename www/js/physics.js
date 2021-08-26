@@ -1,14 +1,6 @@
-
 import {BLOCK} from "./blocks.js";
 
-// ==========================================
-// Physics
-//
-// This class contains the code that takes care of simulating
-// processes like gravity and fluid flow in the world.
-// ==========================================
-
-// Creates a new physics simulator.
+// Physics simulator.
 export default class Physics {
 	
     constructor() {
@@ -23,11 +15,14 @@ export default class Physics {
     // Perform one iteration of physics simulation.
     // Should be called about once every second.
     simulate() {
-        let world = this.world;
+        return false;
+        // Защита от большого FPS (максимум 10 раз в секунду)
         let step = Math.floor(new Date().getTime() / 100);
         if(step == this.lastStep) {
             return;
         }
+        //
+        let world = this.world;
         this.lastStep = step;
         // Gravity
         if (step % 2 == 0) {
@@ -40,7 +35,7 @@ export default class Physics {
                     let x = pos.x;
                     let y = pos.y;
                     let z = pos.z;
-                    if(y <= 0) {
+                    if(y <= 1) {
                         continue;
                     }
                     let block_under = world.chunkManager.getBlock(x, y - 1, z);

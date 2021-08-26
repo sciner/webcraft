@@ -279,8 +279,8 @@ export class Renderer {
         shader.update();
 
         // 0. Picking target
-        if (this.pickAt && Game.hud.active && !this.world.game_mode.isSpectator()) {
-            this.pickAt.drawTarget(this, Game.shift);
+        if (this.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
+            this.pickAt.update(Game.shift);
         }
 
         this.terrainTexture.bind(4);

@@ -103,6 +103,36 @@ export class BLOCK_FUNC {
         }
         let list = this.list = [];
         let id_list = [];
+        // Function calc and return destroy time for specific block
+        let calcDestroyTime = (block)  => {
+            let destroy_time = .4;
+            if(block.hasOwnProperty('style')) {
+                if(block.style == 'planting') {
+                    return 0;
+                }
+            }
+            if(block.hasOwnProperty('sound')) {
+                switch(block.sound) {
+                    case 'webcraft:block.grass':
+                        destroy_time = 1.;
+                        break;
+                    case 'webcraft:block.gravel':
+                    case 'webcraft:block.sand': {
+                        destroy_time = 2.;
+                        break;
+                    }
+                    case 'webcraft:block.wood': {
+                        destroy_time = 4.;
+                        break;
+                    }
+                    case 'webcraft:block.stone': {
+                        destroy_time = 7.;
+                        break;
+                    }
+                }
+            }
+            return destroy_time;
+        };
         for(let mat in this) {
             let B = this[mat];
             B.power = 1;
@@ -110,6 +140,9 @@ export class BLOCK_FUNC {
                 if(id_list.indexOf(B.id) >= 0)  {
                     console.error('Duplicate block id ', B.id, B);
                 }
+                // calc destroy time
+                B.destroy_time = calcDestroyTime(B);
+                //
                 id_list.push(B.id);
                 B.name = mat;
                 if(!B.light) {
@@ -133,6 +166,20 @@ export class BLOCK_FUNC {
             }
         }
         return list;
+    }
+
+    /**
+     * Возвращает время, необходимое для того, чтобы разбить блок голыми руками
+     * @param { Object } block 
+     * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
+     * @return float
+     */
+    static getDestroyTime(block, force) {
+        let destroy_time = block.destroy_time;
+        if(force) {
+            destroy_time = 0; // Math.min(destroy_time, .2);
+        }
+        return destroy_time;
     }
 
     // Возвращает координаты текстуры
@@ -171,7 +218,14 @@ export class BLOCK_FUNC {
         this.cachedBlocksMiss++;
         return this.block_cache[key] = world.chunkManager.getBlock(x, y, z);
     }
-    
+
+    // Функция определяет, отбрасывает ли указанный блок тень
+    static visibleForAO(block) {
+        const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
+        return ao_transparent_blocks.indexOf(block.id) < 0 &&
+            block.style != 'planting';
+    }
+
     // Pushes the vertices necessary for rendering a
     // specific block into the array.
     static push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome) {
@@ -180,9 +234,11 @@ export class BLOCK_FUNC {
             return;
         }
 
+        // Ambient occlusion
+        const ao_enabled = true;
+        const ao_value = .23;
+
         const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
-        const ao_enabled            = true;
-        const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
         let flags = 0;
         let sideFlags = 0;
         let upFlags = 0;
@@ -270,22 +326,22 @@ export class BLOCK_FUNC {
         if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
             ao = [0, 0, 0, 0];
             if(ao_enabled) {
-                let aa = this.getCachedBlock(x, y + 1, z - 1); // слева
-                let ab = this.getCachedBlock(x - 1, y + 1, z); // сверху
-                let ac = this.getCachedBlock(x - 1, y + 1, z - 1); // левый верхний угол
-                let ad = this.getCachedBlock(x, y + 1, z + 1);  // справа
-                let ae = this.getCachedBlock(x + 1, y + 1, z); // снизу
-                let af = this.getCachedBlock(x + 1, y + 1, z + 1); // правый нижний угол
-                let ag = this.getCachedBlock(x - 1, y + 1, z + 1); // правый верхний
-                let ah = this.getCachedBlock(x + 1, y + 1, z - 1); // левый нижний
-                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent)  {ao[0] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent)  {ao[0] = .2; }
-                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent)  {ao[2] = .2; ao[3] = .2; }
-                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent)  {ao[1] = .2; ao[2] = .2; }
-                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent)  {ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent)  {ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent)  {ao[1] = .2;}
+                let aa = this.getCachedBlock(x, y + 1, z - 1);
+                let ab = this.getCachedBlock(x - 1, y + 1, z);
+                let ac = this.getCachedBlock(x - 1, y + 1, z - 1);
+                let ad = this.getCachedBlock(x, y + 1, z + 1);
+                let ae = this.getCachedBlock(x + 1, y + 1, z);
+                let af = this.getCachedBlock(x + 1, y + 1, z + 1);
+                let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
+                let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
+                if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(this.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ac)) {ao[0] = ao_value; }
+                if(this.visibleForAO(ad)) {ao[2] = ao_value; ao[3] = ao_value; }
+                if(this.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value; }
+                if(this.visibleForAO(af)) {ao[2] = ao_value;}
+                if(this.visibleForAO(ag)) {ao[3] = ao_value;}
+                if(this.visibleForAO(ah)) {ao[1] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
             // n = NORMALS.UP;
@@ -332,14 +388,14 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x + 1, y + 1, z - 1);
                 let ag = this.getCachedBlock(x - 1, y - 1, z - 1);
                 let ah = this.getCachedBlock(x - 1, y + 1, z - 1);
-                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] = .2; ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] = .2; ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2;}
-                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] = .2;}
+                if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(this.visibleForAO(ad)) {ao[1] = ao_value;}
+                if(this.visibleForAO(ae)) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(af)) {ao[2] = ao_value;}
+                if(this.visibleForAO(ag)) {ao[0] = ao_value;}
+                if(this.visibleForAO(ah)) {ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
             vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
@@ -367,14 +423,14 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x, y + 1, z + 1);
                 let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
                 let ah = this.getCachedBlock(x + 1, y + 1, z + 1);
-                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[2] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[1] = .2; ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[0] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2; ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2;}
-                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[1] = .2;}
+                if(this.visibleForAO(aa)) {ao[2] = ao_value;}
+                if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(this.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ae)) {ao[3] = ao_value;}
+                if(this.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(this.visibleForAO(ag)) {ao[0] = ao_value;}
+                if(this.visibleForAO(ah)) {ao[1] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
             vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
@@ -402,14 +458,14 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x - 1, y + 1, z - 1);
                 let ag = this.getCachedBlock(x - 1, y + 1, z);
                 let ah = this.getCachedBlock(x - 1, y + 1, z + 1);
-                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[2] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[0] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[1] = .2; ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2;}
-                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[0] = .2; ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[1] = .2;} 
+                if(this.visibleForAO(aa)) {ao[3] = ao_value;}
+                if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ac)) {ao[2] = ao_value;}
+                if(this.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(this.visibleForAO(af)) {ao[0] = ao_value;}
+                if(this.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(this.visibleForAO(ah)) {ao[1] = ao_value;} 
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
             vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
@@ -437,14 +493,14 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x + 1, y - 1, z - 1);
                 let ag = this.getCachedBlock(x + 1, y + 1, z);
                 let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
-                if(ao_transparent_blocks.indexOf(aa.id) < 0 && !aa.transparent) {ao[0] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ab.id) < 0 && !ab.transparent) {ao[1] = .2; ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(ac.id) < 0 && !ac.transparent) {ao[0] = .2; ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ad.id) < 0 && !ad.transparent) {ao[1] = .2;}
-                if(ao_transparent_blocks.indexOf(ae.id) < 0 && !ae.transparent) {ao[2] = .2;}
-                if(ao_transparent_blocks.indexOf(af.id) < 0 && !af.transparent) {ao[0] = .2;}
-                if(ao_transparent_blocks.indexOf(ag.id) < 0 && !ag.transparent) {ao[2] = .2; ao[3] = .2;}
-                if(ao_transparent_blocks.indexOf(ah.id) < 0 && !ah.transparent) {ao[3] = .2;}
+                if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(this.visibleForAO(ad)) {ao[1] = ao_value;}
+                if(this.visibleForAO(ae)) {ao[2] = ao_value;}
+                if(this.visibleForAO(af)) {ao[0] = ao_value;}
+                if(this.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(this.visibleForAO(ah)) {ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
             vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
@@ -547,27 +603,6 @@ function check_xy_neighbor(world, x, y, z) {
         y_dir ++;
     */
     return [x_dir, y_dir];
-}
-
-/**
-* Build up to <count> dirty chunks.
-*/
-function pushQuad(v, p1, p2, p3, p4) {
-    v.push(...p1);
-    v.push(...p2);
-    v.push(...p3);
-    v.push(...p3);
-    v.push(...p4);
-    v.push(...p1);
-	/*
-    v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
-    v.push(p2[0], p2[1], p2[2], p2[3], p2[4], p2[5], p2[6], p2[7], p2[8], p2[9], p2[10], p2[11]);
-    v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
-
-    v.push(p3[0], p3[1], p3[2], p3[3], p3[4], p3[5], p3[6], p3[7], p3[8], p3[9], p3[10], p3[11]);
-    v.push(p4[0], p4[1], p4[2], p4[3], p4[4], p4[5], p4[6], p4[7], p4[8], p4[9], p4[10], p4[11]);
-    v.push(p1[0], p1[1], p1[2], p1[3], p1[4], p1[5], p1[6], p1[7], p1[8], p1[9], p1[10], p1[11]);
-	*/
 }
 
 // push_plane

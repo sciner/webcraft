@@ -395,7 +395,7 @@ class Chunk {
                     }
                     */
                     // if block with gravity
-                    if(block.gravity && z > 0) {
+                    if(block.gravity && y > 1 && block.falling) {
                         let block_under = this.blocks[x][z][y - 1];
                         if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                             this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
@@ -435,6 +435,7 @@ class Chunk {
     }
     
     // setDirtyBlocks
+    // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
         for(let cx = -1; cx <= 1; cx++) {
             for(let cz = -1; cz <= 1; cz++) {
@@ -445,6 +446,11 @@ class Chunk {
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
                         let block = this.blocks[x][z][y];
                         if(block && typeof block === 'object') {
+                            if(block.gravity) {
+                                if(cy == 1 && cx == 0 && cz == 0) {
+                                    block.falling = true;
+                                }
+                            }
                             if(block.hasOwnProperty('vertices')) {
                                 delete(block['vertices']);
                             }
