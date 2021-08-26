@@ -89,6 +89,13 @@ export class BaseTexture {
     }
 }
 
+export const BLEND_MODES = {
+    NORMAL: 0,
+    ADD: 1,
+    MULTIPLY: 2,
+    SCREEN: 3
+}
+
 export class BaseMaterial {
     constructor(context, options) {
         this.context = context;
@@ -99,6 +106,7 @@ export class BaseMaterial {
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
         this.ignoreDepth = options.ignoreDepth || false;
+        this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
     }
 
 
