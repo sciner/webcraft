@@ -128,8 +128,6 @@ export default class PickAt {
 
     // setDamagePercent...
     setDamagePercent(percent) {
-        //
-        console.log('percent', percent);
         let damage_block = this.damage_block;
         let new_frame = Math.round(percent * 9);
         if(damage_block.frame != new_frame) {
