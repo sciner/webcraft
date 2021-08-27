@@ -152,6 +152,11 @@
                 Seed:
                 <br><input type="text" ng-model="newgame.form.seed" autofocus>
             </div>
+            <div>
+                <button class="btn" ng-click="generators.next()">
+                    <span>Тип мира: {{generators.getCurrent().title}}</span>
+                </button>
+            </div>
             <button class="btn" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">
                 <span>✅ Create</span>
             </button>

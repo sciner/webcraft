@@ -170,11 +170,31 @@ let gameCtrl = function($scope, $timeout) {
         }
     };
 
+    // Генараторы мира
+    $scope.generators = {
+        index: 0,
+        list: [
+            {id: 'biome2', title: 'Стандартный'},
+            {id: 'city', title: 'Город'},
+            {id: 'flat', title: 'Плоский мир'}
+        ],
+        next: function() {
+            this.index = (this.index + 1) % this.list.length;
+            $scope.newgame.form.generator.id = this.getCurrent().id;
+        },
+        getCurrent: function() {
+            return this.list[this.index];
+        }
+    };
+
     // New world
     $scope.newgame = {
         form: {
             _id: '',
             title: '',
+            generator: {
+                id: $scope.generators.list[0].id
+            },
             seed: ''
         },
         submit: function() {

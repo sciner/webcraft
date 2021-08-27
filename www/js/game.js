@@ -106,6 +106,9 @@ export let Game = {
             let gm = new GameMode();
             saved_state.game_mode = gm.getCurrent().id;
         }
+        if(!saved_state.hasOwnProperty('generator')) {
+            saved_state.generator = {id: 'biome2'};
+        }
         return saved_state;
     },
 
