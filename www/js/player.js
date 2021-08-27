@@ -274,9 +274,9 @@ export default class Player {
             // Export world [F7]
             case KEY.F7: {
                 if(!down) {
-                    if(e.shiftKey) {
-                        Game.world.createClone();
-                    }
+                    //if(e.shiftKey) {
+                    Game.world.createClone();
+                    //}
                 }
                 return true;
                 break;
