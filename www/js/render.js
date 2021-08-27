@@ -139,8 +139,6 @@ export class Renderer {
         this.viewportHeight       = this.canvas.height;
         renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
-        this.pickAt = new PickAt(this);
-
         this.useAnisotropy = settings.mipmap;
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
@@ -158,6 +156,8 @@ export class Renderer {
             transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
+
+        this.pickAt = new PickAt(this);
 
         this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
         this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });

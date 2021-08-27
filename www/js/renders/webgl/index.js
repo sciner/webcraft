@@ -219,9 +219,23 @@ export default class WebGLRenderer extends BaseRenderer {
         return new WebGLBuffer(this, options);
     }
 
-    drawMesh(geom, material, a_pos = null, modelMatrix = null) {
+    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type) {
         if (geom.size === 0) {
             return;
+        }
+        let gl = this.gl;
+        if(!draw_type) {
+            draw_type = 'triangles';
+        }
+        switch(draw_type) {
+            case 'triangles': {
+                draw_type = gl.TRIANGLES;
+                break;
+            }
+            case 'line_loop': {
+                draw_type = gl.LINE_LOOP;
+                break;
+            }
         }
         if (this._mat !== material) {
             if (this._mat) {
@@ -232,8 +246,7 @@ export default class WebGLRenderer extends BaseRenderer {
         }
         geom.bind(material.shader);
         material.shader.updatePos(a_pos, modelMatrix);
-        let gl = this.gl;
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
+        gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
     }
 
     beginFrame(fogColor) {

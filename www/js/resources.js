@@ -4,6 +4,7 @@ export class Resources {
         this.codeMain = {};
         this.codeSky = {};
         this.terrain = {};
+        this.pickat = {};
         this.sky = {};
     }
     /**
@@ -30,6 +31,7 @@ export class Resources {
         }
 
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
+        all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
 
         let skiybox_dir = './media/skybox/park';
         all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));
