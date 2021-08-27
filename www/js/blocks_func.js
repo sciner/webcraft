@@ -944,46 +944,50 @@ function push_slab(block, vertices, world, lightmap, x, y, z) {
         c[3] - half,
     ];
 
-    // задняя стенка
+    // South | Front/Forward
     let lm = MULTIPLY.COLOR.WHITE;
-    let n = NORMALS.BACK;
-    push_plane(vertices, x, y - 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
-    // передняя стенка
+    let n = NORMALS.FORWARD;
+    push_plane(vertices, x, y, z - .5, c_half_bottom, lm, n, true, false, null, .5, null);
+
+    // North | Back
     lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.FORWARD;
-    push_plane(vertices, x, y + 0.5, z, c_half_bottom, lm, n, true, false, null, null, .5);
+    n = NORMALS.BACK;
+    push_plane(vertices, x, y, z + .5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // правая стенка
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
+    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
+
     // левая стенка
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.LEFT;
-    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, null, .5);
+    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
+    // Up and down
     c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
-
-    // дно
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.DOWN;
-    vertices.push(x + .5, y + .5, z,
-        1, 0, 0,
-        0, -1, 0,
-        c[0], c[1], c[2], -c[3],
-        lm.r, lm.g, lm.b,
-        lm.a, lm.a, lm.a, lm.a, 0);
-
-    // поверхность нижней ступени
-    const bH = 0.5;
-    lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.UP;
-    vertices.push(x + .5, y + .5, z + bH,
+    let ao = [0, 0, 0, 0];
+    let flags = 0, sideFlags = 0, upFlags = 0;
+    
+    // Up
+    vertices.push(x + 0.5, z + 0.5, y + .5,
         1, 0, 0,
         0, 1, 0,
         c[0], c[1], c[2], c[3],
         lm.r, lm.g, lm.b,
-        lm.a, lm.a, lm.a, lm.a, 0);
+        ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+    
+    // Down
+    //c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+    vertices.push(x + 0.5, z + 0.5, y,
+        1, 0, 0,
+        0, -1, 0,
+        c[0], c[1], c[2], c[3],
+        lm.r, lm.g, lm.b,
+        ao[0], ao[1], ao[2], ao[3], flags);
+
 }
 
 // pushVertices

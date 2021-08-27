@@ -1,4 +1,5 @@
 import {blocks} from '../../biomes.js';
+import {Color} from '../../helpers.js';
 
 export default class Terrain_Generator {
 
@@ -25,8 +26,8 @@ export default class Terrain_Generator {
             }
         }
 
-        let biome = {};
-        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(biome));
+        let cell = {biome: {dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0), code: 'Flat'}};
+        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
         return {
             chunk: chunk,
