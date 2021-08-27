@@ -39,16 +39,11 @@ export default class PickAt {
             cullFace: true,
             opaque: false,
             blendMode: BLEND_MODES.MULTIPLY,
-            shader:render.shader
+            shader: render.shader
         });
 
         // Material (target)
-        this.material_target = render.renderBackend.createMaterial({
-            cullFace: true,
-            opaque: false,
-            blendMode: BLEND_MODES.MULTIPLY,
-            shader: render.shader
-        }).getSubMat(render.renderBackend.createTexture({
+        this.material_target = this.material_damage.getSubMat(render.renderBackend.createTexture({
             source: render.resources.pickat.target,
             minFilter: 'nearest',
             magFilter: 'nearest'
