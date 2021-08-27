@@ -174,6 +174,7 @@ export class World {
             spawnPoint:         that.spawnPoint,
             pos:                that.localPlayer.pos,
             flying:             that.localPlayer.flying,
+            generator:          this._savedState.generator,
             chunk_render_dist:  Game.world.chunkManager.CHUNK_RENDER_DIST,
             rotate:             that.rotate,
             brightness:         that.renderer.brightness,

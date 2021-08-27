@@ -522,16 +522,19 @@ async function importModules(terrain_type) {
     queue = [];
 }
 
-// Init modules
-importModules('biome2'); // biome2 | city | flat
-
 // On message callback function
 onmessage = async function(e) {
+    const cmd = e.data[0];
+    const args = e.data[1];
+    if(cmd == 'init') {
+        // Init modules
+        let generator_params = args;
+        importModules(generator_params.id); // biome2 | city | flat
+        return;
+    }
     if (!BLOCK || !terrainGenerator) {
         return queue.push(e);
     }
-    const cmd = e.data[0];
-    const args = e.data[1];
     switch(cmd) {
         case 'createChunk': {
             if(!terrainGenerator.seed) {
