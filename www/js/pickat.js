@@ -1,12 +1,13 @@
 import {Color, Vector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_Y_MAX} from "./blocks.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
+import {Resources} from "./resources.js";
 import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4} = glMatrix;
 
 const PICKAT_DIST = 5;
-const TARGET_TEXTURES = [0, 17];
+const TARGET_TEXTURES = [.5, .5, 1, 1];
 
 const half = new Vector(0.5, 0.5, 0.5);
 
@@ -32,11 +33,30 @@ export default class PickAt {
             start:      null
         }
         this.onTarget           = null; // (block, target_event, elapsed_time) => {...};
-        this.material = render.renderBackend.createMaterial({ cullFace: true, opaque: true,
-            blendMode: BLEND_MODES.MULTIPLY, shader:render.shader});
 
+        // Material (damage)
+        this.material_damage = render.renderBackend.createMaterial({
+            cullFace: true,
+            opaque: false,
+            blendMode: BLEND_MODES.MULTIPLY,
+            shader:render.shader
+        });
+
+        // Material (target)
+        this.material_target = render.renderBackend.createMaterial({
+            cullFace: true,
+            opaque: false,
+            blendMode: BLEND_MODES.MULTIPLY,
+            shader: render.shader
+        }).getSubMat(render.renderBackend.createTexture({
+            source: render.resources.pickat.target,
+            minFilter: 'nearest',
+            magFilter: 'nearest'
+        }));
+
+        //
         const modelMatrix = this.modelMatrix = mat4.create();
-        mat4.scale(modelMatrix, modelMatrix, [1.01, 1.01, 1.01]);
+        mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
     }
 
     //
@@ -134,7 +154,7 @@ export default class PickAt {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
                 damage_block.mesh.destroy();
-                damage_block.mesh = this.createTargetBuffer([new_frame, 15]);
+                damage_block.mesh = this.createTargetBuffer(BLOCK.calcTexture([new_frame, 15]));
             }
         }
     }
@@ -152,7 +172,7 @@ export default class PickAt {
             damage_block.frame      = 0;
             damage_block.times      = 0;
             damage_block.prev_time  = null;
-            damage_block.mesh       = this.createTargetBuffer([damage_block.frame, 15]);
+            damage_block.mesh       = this.createTargetBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
         }
     }
 
@@ -236,26 +256,26 @@ export default class PickAt {
     // Draw meshes
     draw() {
         let render = this.render;
-        const mat = this.material;
+
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         // 1. Target block
         if(target_block.mesh && target_block.visible) {
             const a_pos = half.add(this.target_block.pos).sub(this.shift).swapYZ();
-            render.renderBackend.drawMesh(target_block.mesh, mat, a_pos, this.modelMatrix);
+            render.renderBackend.drawMesh(target_block.mesh, this.material_target, a_pos, this.modelMatrix);
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
             const a_pos = half.add(this.damage_block.pos).sub(this.shift).swapYZ();
-            render.renderBackend.drawMesh(damage_block.mesh, mat, a_pos, this.modelMatrix);
+            render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, this.modelMatrix);
         }
     }
 
     // createTargetBuffer...
-    createTargetBuffer(textures) {
+    createTargetBuffer(c) {
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
-        let c           = BLOCK.calcTexture(textures);
+        // let c           = BLOCK.calcTexture(textures);
         let lm          = new Color(0, 0, 0);
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let bH          = 1;

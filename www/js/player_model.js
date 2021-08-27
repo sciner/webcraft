@@ -81,18 +81,15 @@ export default class PlayerModel {
                                 minFilter: 'nearest',
                                 magFilter: 'nearest'
                             });
-
                             const texture2 = render.renderBackend.createTexture({
                                 source: image2,
                                 minFilter: 'nearest',
                                 magFilter: 'nearest'
                             });
-
                             this.texPlayer =  texture1;
                             this.texPlayer2 = texture2;
                             this.matPlayer = render.materials.doubleface.getSubMat(texture1);
                             this.matPlayer2 = render.materials.doubleface.getSubMat(texture2);
-
                             document.getElementsByTagName('body')[0].append(image2);
                         })
                 });
