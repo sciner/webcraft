@@ -241,22 +241,24 @@ export default class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        let z = Math.round(Game.player.pos.z);
-                        let x, startx = Math.round(Game.player.pos.x);
-                        let y = Math.round(Game.player.pos.y);
+                        let x = (Game.player.pos.x | 0) - 11;
+                        let y = Game.player.pos.y | 0;
+                        let z = (Game.player.pos.z | 0) - 13;
                         let d = 10;
                         let cnt = 0;
+                        let startx = x;
                         for(let i = 0; i < Game.player.inventory.all.length; i++) {
-                            if(Game.player.inventory.all[i].fluid) {
+                            let block = Game.player.inventory.all[i]
+                            if(block.fluid || block.is_item) {
                                 continue;
                             }
                             if(cnt % d == 0) {
                                 x = startx;
-                                y = y - 2;
+                                z += 2;
                             }
-                            x = x - 2;
+                            x += 2;
                             Game.player.inventory.select(i);
-                            Game.world.setBlock(x, y, z, Game.player.inventory.all[i]);
+                            Game.world.setBlock(x, y, z, block);
                             cnt++;
                         }
                     } else {
