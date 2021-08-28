@@ -4,6 +4,7 @@ import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
+import {Instrument_Hand} from "./instrument/hand.js";
 
 // ==========================================
 // Player
@@ -251,8 +252,9 @@ export default class Player {
                         let d = 10;
                         let cnt = 0;
                         let startx = x;
-                        for(let i = 0; i < Game.player.inventory.all.length; i++) {
-                            let block = Game.player.inventory.all[i]
+                        let all_items = BLOCK.getAll();
+                        for(let i = 0; i < all_items.length; i++) {
+                            let block = all_items[i]
                             if(block.fluid || block.is_item) {
                                 continue;
                             }
@@ -261,7 +263,6 @@ export default class Player {
                                 z += 2;
                             }
                             x += 2;
-                            Game.player.inventory.select(i);
                             Game.world.setBlock(x, y, z, block);
                             cnt++;
                         }
@@ -447,18 +448,18 @@ export default class Player {
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
         // Picking
-        this.pickAt.get((block) => {
-            if(block === false) {
+        this.pickAt.get((pos) => {
+            if(pos === false) {
                 return;
             }
-            let world_block = this.world.chunkManager.getBlock(block.x, block.y, block.z);
+            let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             let playerPos = this.getBlockPos();
             let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
             if(createBlock) {
                 if(!replaceBlock) {
-                    block = new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z);
+                    pos = new Vector(pos.x + pos.n.x, pos.y + pos.n.y, pos.z + pos.n.z);
                 }
-                if(playerPos.x == block.x && playerPos.z == block.z && (block.y >= playerPos.y && block.y <= playerPos.y + 1)) {
+                if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
                 }
                 if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
@@ -483,25 +484,25 @@ export default class Player {
                 }
                 let matBlock = BLOCK.fromId(this.buildMaterial.id);
                 // Запрет на списание инструментов как блоков
-                if(!matBlock.is_instrument) {
+                if(!matBlock.instrument_id) {
                     if(replaceBlock) {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), playerRotate);
                             }
                         } else {
-                            world.setBlock(block.x, block.y, block.z, this.buildMaterial, null, playerRotate);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate);
                         }
                     } else {
                         // Create block
-                        let blockUnder = this.world.chunkManager.getBlock(block.x, block.y, block.z);
+                        let blockUnder = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                         if(BLOCK.isPlants(this.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
                             return;
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), playerRotate);
                                 let b = BLOCK.fromId(this.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');
@@ -509,11 +510,11 @@ export default class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(block.n.z != 0 || world_block.transparent) {
+                                if(pos.n.z != 0 || world_block.transparent) {
                                     return;
                                 }
                             }
-                            world.setBlock(block.x, block.y, block.z, this.buildMaterial, null, playerRotate);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate);
                         }
                     }
                     this.inventory.decrement();
@@ -521,18 +522,12 @@ export default class Player {
             } else if(destroyBlock) {
                 // Destroy block
                 if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
-                    world.chunkManager.destroyBlock(block, true);
-                    if(world_block.id == BLOCK.CONCRETE.id) {
-                        world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
-                    }
-                    if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
-                        this.inventory.increment(Object.assign({count: 1}, world_block));
-                    }
-                    let block_over = this.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
+                    this.destroyBlock(world_block, pos, this.getCurrentInstrument());
+                    let block_over = this.world.chunkManager.getBlock(pos.x, pos.y + 1, pos.z);
                     // delete plant over deleted block
                     if(BLOCK.isPlants(block_over.id)) {
-                        block.y++;
-                        world.chunkManager.destroyBlock(block, true);
+                        pos.y++;
+                        world.chunkManager.destroyBlock(pos, true);
                     }
                 }
             } else if(cloneBlock) {
@@ -541,6 +536,22 @@ export default class Player {
                 }
             }
         });
+    }
+
+    //
+    getCurrentInstrument() {
+        let buildMaterial = this.buildMaterial;
+        let instrument = new Instrument_Hand(buildMaterial, this.inventory);
+        if(buildMaterial && buildMaterial.instrument_id) {
+            // instrument = new Instrument_Hand();
+        }
+        return instrument;
+    }
+
+    // Удалить блок используя инструмент
+    destroyBlock(block, pos, instrument) {
+        instrument.destroyBlock(block);
+        this.world.chunkManager.destroyBlock(pos, true);
     }
 
     // Returns the position of the eyes of the player for rendering.

@@ -53,6 +53,7 @@ BLOCK.BEDROCK = {
     passable: 0,
     transparent: false,
     sound: 'webcraft:block.stone',
+    tags: ['stone'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [ 1, 1]; }
 };
 
@@ -91,6 +92,7 @@ BLOCK.COBBLESTONE = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.stone',
+    tags: ['cobblestone'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [ 0, 1]; }
 };
 
@@ -105,14 +107,15 @@ BLOCK.WOODEN_PICKAXE = {
     fluid: false,
     stackable: false,
     is_item: true,
-    is_instrument: true,
+    instrument_id: 'pickaxe',
+    tags: ['pickaxe'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 31]; }
 };
 
 // Каменная кирка
 BLOCK.STONE_PICKAXE = {
     id: 500,
-    inventory_icon_id: 3575,
+    inventory_icon_id: 3585,
     spawnable: true,
     transparent: true,
     selflit: false,
@@ -120,7 +123,8 @@ BLOCK.STONE_PICKAXE = {
     fluid: false,
     stackable: false,
     is_item: true,
-    is_instrument: true,
+    instrument_id: 'pickaxe',
+    tags: ['pickaxe'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 31]; }
 };
 
@@ -135,7 +139,8 @@ BLOCK.WOODEN_AXE = {
     fluid: false,
     stackable: false,
     is_item: true,
-    is_instrument: true,
+    instrument_id: 'axe',
+    tags: ['axe'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 30]; }
 };
 
@@ -151,7 +156,8 @@ BLOCK.WOODEN_SHOVEL = {
 	fluid: false,
     stackable: false,
     is_item: true,
-    is_instrument: true,
+    instrument_id: 'shovel',
+    tags: ['shovel'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 28]; }
 };
 
@@ -277,6 +283,7 @@ BLOCK.WOOD = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.wood',
+    tags: ['wood'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
             return [ 5, 1 ];
@@ -295,6 +302,7 @@ BLOCK.SPRUCE = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.wood',
+    tags: ['wood'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
 			return [23, 17];
@@ -332,6 +340,7 @@ BLOCK.PLANK = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.wood',
+    tags: ['plank'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 0 ]; }
 };
 
@@ -342,6 +351,7 @@ BLOCK.GLOWSTONE = {
     transparent:    true,
     lightPower:     new Color(255, 235, 35, 255),
     sound: 			'webcraft:block.stone',
+    tags:           ['stone'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [9, 6];
     }
@@ -357,6 +367,7 @@ BLOCK.CONCRETE = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.stone',
+    tags: ['stone'],
     texture: function(world, lightmap, lit, x, y, z, dir) { return [ 1, 0 ]; }
 };
 
@@ -369,6 +380,7 @@ BLOCK.POLISHED_STONE = {
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.stone',
+    tags: ['stone'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 6, 0 ]; }
 };
 
@@ -433,6 +445,7 @@ BLOCK.WOOD_ACACIA = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.wood',
+    tags: ['wood'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
             return [22, 17];
@@ -458,6 +471,7 @@ BLOCK.WOOD_BIRCH = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.wood',
+    tags: ['wood'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
             return [19, 16];
@@ -978,6 +992,7 @@ BLOCK.MOSS_STONE = {
     spawnable: true,
     transparent: false,
     sound: 'webcraft:block.stone',
+    tags: ['stone'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [4, 2]; }
 };
 

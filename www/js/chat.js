@@ -1,9 +1,12 @@
 import {BLOCK} from "./blocks.js";
 
+const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
+const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
+const SYSTEM_NAME               = '<WebCraft>';
+
 export default class Chat {
 
     constructor() {
-        this.max_show_time          = 10000; // максимальное время отображения текста, после закрытия чата (мс)
         this.active                 = false;
         this.buffer                 = [];
         this.history_max_messages   = 64;
@@ -15,7 +18,10 @@ export default class Chat {
                 Game.setupMousePointerIfNoOpenWindows();
             },
             addSystem: function(text) {
-                this.add('<WebCraft>', text, 7000);
+                this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
+            },
+            addError: function(text) {
+                this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
             add: function(nickname, text, timeout) {
                 if(!timeout) {
@@ -42,12 +48,10 @@ export default class Chat {
         this.active = true;
         this.open_time = performance.now();
         document.exitPointerLock();
-        console.info('chat opened');
     }
     
     close() {
         this.active = false;
-        console.info('chat closed');
     }
     
     typeChar(ch) {
@@ -91,6 +95,8 @@ export default class Chat {
                         Game.world.localPlayer.pos.x = x;
                         Game.world.localPlayer.pos.y = y;
                         Game.world.localPlayer.pos.z = z;
+                    } else {
+                        Game.world.localPlayer.chat.messages.addError(`Incorrect argument for command`);
                     }
                     break;
                 }
@@ -100,7 +106,7 @@ export default class Chat {
                 }
                 case '/help': {
                     let commands = [
-                        '/weather (clear|rain)',
+                        '/weather (clear | rain)',
                         '/tp -> teleport',
                         '/spawnpoint',
                         '/seed',
@@ -134,6 +140,9 @@ export default class Chat {
                                 Game.world.setRain(false);
                                 Game.world.localPlayer.chat.messages.addSystem('Установлена ясная погода');
                                 break;
+                            }
+                            default: {
+                                Game.world.localPlayer.chat.messages.addError(`Incorrect argument for command`);
                             }
                         }
                     }
@@ -170,6 +179,9 @@ export default class Chat {
                             delete(block.texture);
                             block.count = cnt;
                             Game.world.localPlayer.inventory.increment(block);
+                            Game.world.localPlayer.chat.messages.addSystem('Выдан: ' + block.name);
+                        } else {
+                            Game.world.localPlayer.chat.messages.addError(`Unknown item '${name}'`);
                         }
                     }
                     break;
@@ -186,7 +198,7 @@ export default class Chat {
         }
         for(let m of this.messages.list) {
             let time_diff = performance.now() - m.time;
-            if(this.active || time_diff < this.max_show_time) {
+            if(this.active || time_diff < MESSAGE_SHOW_TIME) {
                 return true;
             }
         }
@@ -225,10 +237,10 @@ export default class Chat {
         // Draw message history
         for(let m of this.messages.list) {
             let time_diff = now - m.time;
-            if(this.active || time_diff < this.max_show_time) {
+            if(this.active || time_diff < MESSAGE_SHOW_TIME) {
                 let alpha = 1;
                 if(!this.active) {
-                    let time_remains = this.max_show_time - time_diff;
+                    let time_remains = MESSAGE_SHOW_TIME - time_diff;
                     if(time_remains < fadeout_time) {
                         alpha = time_remains / fadeout_time;
                     }
