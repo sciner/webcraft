@@ -186,7 +186,7 @@ export class World {
             brightness:         that.renderer.brightness,
             game_mode:          that.game_mode.getCurrent().id,
             inventory:  {
-                items: Game.world.localPlayer.inventory.items,
+                items: Game.world.localPlayer.inventory.exportItems(),
                 current: {
                     index: Game.world.localPlayer.inventory.index
                 }

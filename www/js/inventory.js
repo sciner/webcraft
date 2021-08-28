@@ -10,7 +10,6 @@ export default class Inventory {
         let that            = this;
         this.player         = player;
         this.hud            = hud;
-        this.all            = [];
         this.current        = null;
         this.index          = 0;
         this.max_count      = 36;
@@ -19,26 +18,10 @@ export default class Inventory {
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-        for(let k in Game.world.saved_state.inventory.items) {
-            if(k >= this.items.length) {
-                console.error('Limit reach of inventory');
-                break;
-            }
-            const item = Game.world.saved_state.inventory.items[k];
-            if(item) {
-                const world_block = BLOCK.fromId(item.id);
-                if(world_block.inventory_icon_id) {
-                    item.inventory_icon_id = world_block.inventory_icon_id;
-                }
-                this.items[k] = item;
-            }
-        }
+        //
+        this.restoreItems(Game.world.saved_state.inventory.items);
         // set inventory to user
         this.player.setInventory(this);
-        // make default inventory
-        for(let B of BLOCK.getAll()) {
-            this.all.push(B);
-        }
         //
         this.select(Game.world.saved_state.inventory.current.index);
         //
@@ -59,20 +42,52 @@ export default class Inventory {
         hud.wm.add(this.frmChest);
     }
 
-    set(items) {
+    //
+    exportItems() {
+        let resp = [];
+        for(var item of this.items) {
+            let t = null;
+            if(item) {
+                t = {
+                    id:         item.id,
+                    count:      item.count,
+                    power:      item.power
+                };
+                // Individual properties
+                for(let prop of ['entity_id', 'entity_name']) {
+                    t[prop] = null;
+                    if(item.hasOwnProperty(prop)) {
+                        t.entity_id = item[prop];
+                    }
+                }
+            }
+            resp.push(t);
+        }
+        return resp;
+    }
+
+    //
+    restoreItems(items) {
         this.items = new Array(this.max_count);
         this.index = 0;
-        for(let i in items) {
-            const item = items[i];
-            if(i < this.max_count) {
-                this.items[i] = item;
+        for(let k in items) {
+            if(k >= this.items.length) {
+                console.error('Limit reach of inventory');
+                break;
+            }
+            let item = items[k];
+            if(item) {
+                const block = BLOCK.fromId(item.id);
+                item = Object.assign(block, items[k]);
+                this.items[k] = item;
             }
         }
-    };
+        console.log(this.items);
+    }
     
     getCurrent() {
         return this.current;
-    };
+    }
 
     // Refresh
     refresh() {
