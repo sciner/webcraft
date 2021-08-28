@@ -1,6 +1,5 @@
 "use strict";
 
-import PickAt from "./pickat.js";
 import HUD from "./hud.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
@@ -157,8 +156,6 @@ export class Renderer {
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
-        this.pickAt = new PickAt(this);
-
         this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
         this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
 
@@ -233,7 +230,6 @@ export class Renderer {
     // Render one frame of the world to the canvas.
     draw(delta) {
         const { gl, shader, renderBackend } = this;
-
         // console.log(Game.world.renderer.camPos[2]);
         //if(Game.world.localPlayer.pos.z + 1.7 < 63.8) {
         //    currentRenderState.fogDensity   = settings.fogDensityUnderWater;
@@ -244,11 +240,9 @@ export class Renderer {
         // currentRenderState.fogColor     = settings.fogColor;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         //}
-
         this.updateViewport();
-
         renderBackend.beginFrame(currentRenderState.fogColor);
-
+        //
         shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
         shader.pixelSize = 1.0 / this.terrainTexSize
         shader.fogColor = currentRenderState.fogColor;
@@ -259,42 +253,30 @@ export class Renderer {
         shader.texture = this.terrainTexture;
         shader.mipmap = this.terrainTexture.anisotropy;
         // shader.camPos.set([Game.shift.x, Game.shift.z, 0]);
-
         const {
             width, height
         } = renderBackend.size;
-
         if (renderBackend.gl) {
             mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         } else {
             mat4.perspectiveZO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         }
-
         // 1. Draw skybox
         if(this.skyBox) {
             this.skyBox.draw(this.viewMatrix, this.projMatrix);
         }
-
         shader.bind();
         shader.update();
-
-        this.terrainTexture.bind(4);
         // 2. Draw chunks
+        this.terrainTexture.bind(4);
         this.world.chunkManager.draw(this);
         this.world.draw(this, delta);
-        // 0. Picking target
-        this.terrainTexture.bind(4);
-        if (this.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
-            this.pickAt.update(Game.shift);
-        }
         // 3. Draw players and rain
         this.drawPlayers(delta);
-
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();
         }
-
         renderBackend.endFrame();
     }
 

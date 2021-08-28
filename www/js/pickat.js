@@ -11,9 +11,9 @@ const TARGET_TEXTURES = [.5, .5, 1, 1];
 
 const half = new Vector(0.5, 0.5, 0.5);
 
-export default class PickAt {
+export class PickAt {
 
-    constructor(render) {
+    constructor(render, onTarget) {
         this.render             = render;
         //
         this.target_block       = {
@@ -32,8 +32,7 @@ export default class PickAt {
             prev_time:  null, // точное время, когда в последний раз было воздействие на блок
             start:      null
         }
-        this.onTarget           = null; // (block, target_event, elapsed_time) => {...};
-
+        this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
         // Material (damage)
         this.material_damage = render.renderBackend.createMaterial({
             cullFace: true,
@@ -41,14 +40,12 @@ export default class PickAt {
             blendMode: BLEND_MODES.MULTIPLY,
             shader: render.shader
         });
-
         // Material (target)
         this.material_target = this.material_damage.getSubMat(render.renderBackend.createTexture({
             source: render.resources.pickat.target,
             minFilter: 'nearest',
             magFilter: 'nearest'
         }));
-
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
@@ -205,16 +202,6 @@ export default class PickAt {
             damage_block.prev_time = null;
         }
         this.calcDamage();
-        /*
-        let textures = [5, 15];
-        let need_update_frame = false;
-        if(tbp && tbp.start && tbp.destroy_time) {
-            let frame = Math.min((performance.now() - tbp.start) / (tbp.destroy_time * 1000) * 9 | 0, 9);
-            need_update_frame = this.target_frame != frame;
-            textures = [frame, 15];
-            this.target_frame = frame;
-        }
-        */
         // draw
         this.draw();
     }
@@ -238,6 +225,7 @@ export default class PickAt {
         damage_block.prev_time = pn;
         if(this.onTarget instanceof Function) {
             if(this.onTarget({...damage_block.pos}, {...damage_block.event}, damage_block.times / 1000, damage_block.number)) {
+                damage_block.event = false;
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
                     damage_block.mesh.destroy();

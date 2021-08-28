@@ -106,6 +106,9 @@ export class BLOCK_FUNC {
         // Function calc and return destroy time for specific block
         let calcDestroyTime = (block)  => {
             let destroy_time = .4;
+            if(block.id == BLOCK.BEDROCK.id) {
+                return -1;
+            }
             if(block.hasOwnProperty('style')) {
                 if(block.style == 'planting') {
                     return 0;
