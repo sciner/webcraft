@@ -364,6 +364,33 @@ export class Helpers {
         return false;
     }
 
+    // Return from green to red color depend on percentage
+    static getColorForPercentage(pct) {
+        var percentColors = [
+            {pct: 0.0, color: {r: 0xff, g: 0x00, b: 0}},
+            {pct: 0.5, color: {r: 0xff, g: 0xff, b: 0}},
+            {pct: 1.0, color: {r: 0x00, g: 0xff, b: 0}}
+        ];
+        for (var i = 1; i < percentColors.length - 1; i++) {
+            if (pct < percentColors[i].pct) {
+                break;
+            }
+        }
+        var lower = percentColors[i - 1];
+        var upper = percentColors[i];
+        var range = upper.pct - lower.pct;
+        var rangePct = (pct - lower.pct) / range;
+        var pctLower = 1 - rangePct;
+        var pctUpper = rangePct;
+        var color = {
+            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+        };
+        return new Color(color.r, color.g, color.b, 1);
+        // or output as hex if preferred
+    }
+
 }
 
 // SpiralGenerator ...
@@ -470,6 +497,10 @@ export class Color {
 
     toFloat()  {
         return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
+    }
+
+    toCSS()  {
+        return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
     }
 
 }

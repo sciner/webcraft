@@ -225,7 +225,7 @@ export default class HUD {
                 this.ctx.strokeStyle = cs.color;
             this.ctx.stroke();
             }
-    
+
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
