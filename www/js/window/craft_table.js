@@ -150,7 +150,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
         // Drag & drop
         this.onDrop = function(e) {
-            const MAX_COUNT = 64;
             let that        = this;
             let drag        = e.drag;
             // @todo check instanceof!
@@ -160,10 +159,13 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(!dropData) {
                 return;
             }
+            const MAX_COUNT = 64;
+            let item_max_count = dropData.item.stackable ? MAX_COUNT : 1;
+            //
             if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
-                if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < MAX_COUNT) {
-                    let need_count = MAX_COUNT - dropData.item.count;
+                if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < item_max_count) {
+                    let need_count = item_max_count - dropData.item.count;
                     // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
                     let craft_slots = this.parent.craft.slots;
@@ -174,7 +176,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const slot = craft_slots[i];
                         if(slot && slot.item) {
                             if(slot.item.id == dropData.item.id) {
-                                if(slot.item.count != MAX_COUNT) {
+                                if(slot.item.count != item_max_count) {
                                     let minus_count = 0;
                                     if(slot.item.count < need_count) {
                                         minus_count = slot.item.count;
@@ -200,7 +202,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const item = inventory_items[i];
                         if(item) {
                             if(item.id == dropData.item.id) {
-                                if(item.count != MAX_COUNT) {
+                                if(item.count != item_max_count) {
                                     let minus_count = 0;
                                     if(item.count < need_count) {
                                         minus_count = item.count;
@@ -227,16 +229,16 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(targetItem) {
                 // @todo
                 if(targetItem.id == dropData.item.id) {
-                    if(targetItem.count < MAX_COUNT) {
+                    if(targetItem.count < item_max_count) {
                         if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                             targetItem.count++;
                             dropData.item.count--;
                         } else {
                             let new_count = targetItem.count + dropData.item.count;
                             let remains = 0;
-                            if(new_count > MAX_COUNT) {
-                                remains = new_count - MAX_COUNT;
-                                new_count = MAX_COUNT;
+                            if(new_count > item_max_count) {
+                                remains = new_count - item_max_count;
+                                new_count = item_max_count;
                             }
                             targetItem.count = new_count;
                             dropData.item.count = remains;
