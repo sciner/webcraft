@@ -168,11 +168,12 @@ export default class Chat {
                             cnt = 1;
                         } else if(temp.length == 2) {
                             name = temp[0].trim();
-                            cnt = parseInt(temp[1].trim());
+                            cnt = temp[1].trim();
                         } else {
                             name = temp[1].trim();
-                            cnt = parseInt(temp[2].trim());
+                            cnt = temp[2].trim();
                         }
+                        cnt = Math.max(cnt | 0, 1);
                         let block = BLOCK[name.toUpperCase()];
                         if(block) {
                             block = {...block};

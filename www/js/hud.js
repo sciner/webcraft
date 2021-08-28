@@ -34,6 +34,9 @@ export default class HUD {
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
 
+        // Vignette
+        this.makeVignette(width, height);
+
         // Splash screen (Loading...)
         this.splash = {
             loading:    true,
@@ -158,7 +161,18 @@ export default class HUD {
     isActive() {
         return this.active;
     }
-    
+
+    makeVignette(width, height) {
+        this.vignette = this.ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
+        this.vignette.addColorStop(0, 'rgba(255, 255, 255, 0)');
+        this.vignette.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+    }
+
+    drawVignette() {
+        // this.ctx.fillStyle = this.vignette;
+        // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
     draw() {
 
         this.frmMainMenu.parent.center(this.frmMainMenu);
@@ -181,6 +195,8 @@ export default class HUD {
             this.height = this.ctx.canvas.height  = new_height;
             this.ctx.font = '24px Minecraftia';
             Game.hud.wm.resize(this.width, this.height);
+            // Vignette
+            this.makeVignette(this.width, this.height);
         }
     
         // Make info for draw
@@ -191,6 +207,9 @@ export default class HUD {
         this.prevDrawTime = performance.now();
     
         this.clear();
+
+        // Draw vignette
+        this.drawVignette();
     
         // Draw splash screen...
         if(this.splash.draw()) {
@@ -211,6 +230,7 @@ export default class HUD {
             this.drawInfo();
     
             // Crosshair
+            /*
             for(let cs of [{width: '2', color: 'black'}, {width: '1', color: 'white'}]) {
             this.ctx.beginPath();
                 let x = this.ctx.canvas.width / 2;
@@ -225,6 +245,7 @@ export default class HUD {
                 this.ctx.strokeStyle = cs.color;
             this.ctx.stroke();
             }
+            */
 
             // Draw HUD components
             for(let t of this.items) {
@@ -246,12 +267,12 @@ export default class HUD {
         }
     
     }
-
+ 
     toggleInfo() {
         this.draw_info = !this.draw_info;
         this.refresh();
     }
-    
+
     //
     prepareText() {
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';

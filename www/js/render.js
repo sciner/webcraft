@@ -244,7 +244,7 @@ export class Renderer {
         renderBackend.beginFrame(currentRenderState.fogColor);
         //
         shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
-        shader.pixelSize = 1.0 / this.terrainTexSize
+        shader.pixelSize = 1.0 / this.terrainTexSize;
         shader.fogColor = currentRenderState.fogColor;
         shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         shader.brightness = this.brightness;
@@ -256,6 +256,7 @@ export class Renderer {
         const {
             width, height
         } = renderBackend.size;
+        shader.resolution = [width, height];
         if (renderBackend.gl) {
             mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         } else {
@@ -263,7 +264,7 @@ export class Renderer {
         }
         // 1. Draw skybox
         if(this.skyBox) {
-            this.skyBox.draw(this.viewMatrix, this.projMatrix);
+            this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }
         shader.bind();
         shader.update();

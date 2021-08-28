@@ -16,6 +16,7 @@ uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
+uniform vec2 u_resolution;
 
 in vec3 v_position;
 in vec2 v_texcoord;
@@ -24,6 +25,7 @@ in vec4 v_color;
 in vec3 v_normal;
 in float light;
 in float v_fogDepth;
+in vec4 crosshair;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
@@ -31,7 +33,25 @@ uniform float u_opaqueThreshold;
 
 out vec4 outColor;
 
+void drawCrosshair() {
+    float w = u_resolution.x;
+    float h = u_resolution.y;
+    float x = gl_FragCoord.x;
+    float y = gl_FragCoord.y;
+    if((x > w / 2.0 - crosshair.w && x < w / 2.0 + crosshair.w &&
+        y > h / 2.0 - crosshair.z && y < h / 2.0 + crosshair.z) || 
+        (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
+        y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
+        ) {
+            outColor.r = 1.0 - outColor.r;
+            outColor.g = 1.0 - outColor.g;
+            outColor.b = 1.0 - outColor.b;
+            outColor.a = 1.0;
+    }
+}
+
 void main() {
+
     vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
     vec2 texc = vec2(texCoord.s, texCoord.t);
 
@@ -92,9 +112,13 @@ void main() {
         outColor.g = (outColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
         outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
 
+        // Draw crosshair
+        drawCrosshair();
+
     } else {
         outColor = texture(u_texture, texc);
         if(outColor.a < 0.1) discard;
         outColor *= v_color;
     }
+
 }

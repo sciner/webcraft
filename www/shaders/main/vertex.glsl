@@ -18,6 +18,7 @@ uniform bool u_fogOn;
 uniform float u_brightness;
 uniform vec3 u_add_pos;
 uniform float u_pixelSize;
+uniform vec2 u_resolution;
 
 out vec3 v_position;
 out vec2 v_texcoord;
@@ -25,6 +26,7 @@ out vec4 v_texClamp;
 out vec4 v_color;
 out vec3 v_normal;
 out float light;
+out vec4 crosshair;
 
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
@@ -38,6 +40,13 @@ void main() {
         v_normal = -a_axisY;
     } else {
         v_normal = normalize(cross(a_axisX, a_axisY));
+    }
+
+    // Crosshair
+    if(u_resolution.x > u_resolution.y) {
+        crosshair = vec4(0., 0., u_resolution.x * 0.001, u_resolution.x * 0.001 * 7.);
+    } else {
+        crosshair = vec4(0., 0., u_resolution.y * 0.001, u_resolution.y * 0.001 * 7.);
     }
 
     v_normal.yz = v_normal.zy;

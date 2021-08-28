@@ -16,21 +16,23 @@ const TEXTURE_MODE = {
 }
 
 export class WebGLCubeShader extends BaseCubeShader {
+
     constructor(context, options) {
         super(context, options);
-
+        //
         const {
             gl
         } = this.context;
-
+        //
         Helpers.createGLProgram(gl, options.code, (ret) => {
             this.program = ret.program;
         });
-
+        //
         this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
         this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
         this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
         this.u_brightness_value = gl.getUniformLocation(this.program, 'u_brightness_value');
+        this.u_resolution = gl.getUniformLocation(this.program, 'u_resolution');
         this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
     }
 
@@ -39,7 +41,10 @@ export class WebGLCubeShader extends BaseCubeShader {
         const { gl } = this.context;
 
         gl.useProgram(this.program);
+
         gl.uniform1f(this.u_brightness_value, this.brightness);
+        gl.uniform2fv(this.u_resolution, this.resolution);
+
         gl.uniform1i(this.u_texture, 0);
 
         gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
@@ -187,18 +192,15 @@ export default class WebGLRenderer extends BaseRenderer {
         if (this.size.width === w && this.size.height === h) {
             return;
         }
-
         super.resize(w, h);
-
         this.view.width = w;
         this.view.height = h;
+        this.resolution = [w, h];
     }
 
     _configure() {
         super._configure();
-
         const {gl} = this;
-
         gl.viewportWidth        = this.view.width;
         gl.viewportHeight       = this.view.height;
     }
