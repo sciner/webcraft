@@ -8,7 +8,7 @@ const {mat4} = glMatrix;
 export default class Particles_Block_Destroy {
 
     // Constructor
-    constructor(render, block, pos) {
+    constructor(render, block, pos, small) {
         let chunk_pos   = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_pos);
         if(!chunk.map) {
@@ -40,13 +40,20 @@ export default class Particles_Block_Destroy {
         this.vertices   = [];
         this.particles  = [];
         //
-        for(let i = 0; i < 30; i++) {
-            const sz        = Math.random() * (3 / 16) + 1 / 16; // часть текстуры
+        let count = small ? 5 : 30;
+        for(let i = 0; i < count; i++) {
+            const max_sz    = small ? .25 / 16 : 3 / 16;
+            const sz        = Math.random() * max_sz + 1 / 16; // случайный размер текстуры
             const half      = sz / TX_CNT;
             // random tex coord (случайная позиция в текстуре)
             let cx = c[0] + Math.random() * (half * 3);
             let cy = c[1] + Math.random() * (half * 3);
-            let c_half = [cx - c[2] / 2 + half / 2, cy - c[3] / 2 + half / 2, half, half];
+            let c_half = [
+                cx - c[2] / 2 + half / 2,
+                cy - c[3] / 2 + half / 2,
+                half,
+                half
+            ];
             // случайная позиция частицы (в границах блока)
             let x = (Math.random() - Math.random()) * .5;
             let y = (Math.random() - Math.random()) * .5;

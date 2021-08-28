@@ -2,7 +2,8 @@ import Chat from "./chat.js";
 import {Helpers, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
-import { Game } from "./game.js";
+import {Game} from "./game.js";
+import {PickAt} from "./pickat.js";
 
 // ==========================================
 // Player
@@ -44,10 +45,10 @@ export default class Player {
             this.flying = !!world.saved_state.flying;
         }
         this.overChunk              = null;
-        // onTarget
-        this.world.renderer.pickAt.onTarget = (...args) => {
+        // pickAt
+        this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
             return this.onTarget(...args);
-        };
+        });
     }
 
     // onTarget
@@ -67,15 +68,18 @@ export default class Player {
             let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             let block           = BLOCK.BLOCK_BY_ID[world_block.id];
             let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative());
+            if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
+                this.world.destroyBlock(block, bPos, true);
+            }
             if(destroy_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
             }
             if(times < destroy_time) {
-                this.world.renderer.pickAt.setDamagePercent(times / destroy_time);
+                this.pickAt.setDamagePercent(times / destroy_time);
                 return false;
             }
             if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
-                this.world.renderer.pickAt.setDamagePercent(times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
+                this.pickAt.setDamagePercent(times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
                 return false;
             }
         }
@@ -426,35 +430,31 @@ export default class Player {
         y = Game.render.canvas.height * 0.5;
         // Mouse actions
         if (type == MOUSE.DOWN) {
-            Game.world.renderer.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
         } else if (type == MOUSE.UP) {
-            Game.world.renderer.pickAt.clearEvent();
+            this.pickAt.clearEvent();
         }
     }
 
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(e) {
-        if(!this.world.game_mode.canBlockAction() || !this.canvas.renderer.pickAt) {
+        if(!this.world.game_mode.canBlockAction() || !this.pickAt) {
             return;
         }
-        let that            = this;
         let destroyBlock    = e.destroyBlock;
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         let world           = this.world;
         const playerRotate  = Game.world.rotateDegree;
         // Picking
-        this.canvas.renderer.pickAt.get(function(block) {
+        this.pickAt.get((block) => {
             if(block === false) {
                 return;
             }
-            let world_block = that.world.chunkManager.getBlock(block.x, block.y, block.z);
-            let playerPos = that.getBlockPos();
+            let world_block = this.world.chunkManager.getBlock(block.x, block.y, block.z);
+            let playerPos = this.getBlockPos();
             let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
             if(createBlock) {
-                if(!that.buildMaterial || that.inventory.getCurrent().count < 1) {
-                    return;
-                }
                 if(!replaceBlock) {
                     block = new Vector(block.x + block.n.x, block.y + block.n.y, block.z + block.n.z);
                 }
@@ -476,40 +476,48 @@ export default class Player {
                         return;
                     }
                 }
-                let matBlock = BLOCK.fromId(that.buildMaterial.id);
-                if(replaceBlock) {
-                    // Replace block
-                    if(matBlock.is_item || matBlock.is_entity) {
-                        if(matBlock.is_entity) {
-                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
-                        }
-                    } else {
-                        world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
-                    }
-                } else {
-                    // Create block
-                    let blockUnder = that.world.chunkManager.getBlock(block.x, block.y, block.z);
-                    if(BLOCK.isPlants(that.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
-                        return;
-                    }
-                    if(matBlock.is_item || matBlock.is_entity) {
-                        if(matBlock.is_entity) {
-                            Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
-                            let b = BLOCK.fromId(that.buildMaterial.id);
-                            if(b.sound) {
-                                Game.sounds.play(b.sound, 'place');
-                            }
-                        }
-                    } else {
-                        if(['ladder'].indexOf(that.buildMaterial.style) >= 0) {
-                            if(block.n.z != 0 || world_block.transparent) {
-                                return;
-                            }
-                        }
-                        world.setBlock(block.x, block.y, block.z, that.buildMaterial, null, playerRotate);
-                    }
+                // Эта проверка обязательно должна быть тут, а не выше!
+                // Иначе не будут открываться сундуки и прочее
+                if(!this.buildMaterial || this.inventory.getCurrent().count < 1) {
+                    return;
                 }
-                that.inventory.decrement();
+                let matBlock = BLOCK.fromId(this.buildMaterial.id);
+                // Запрет на списание инструментов как блоков
+                if(!matBlock.is_instrument) {
+                    if(replaceBlock) {
+                        // Replace block
+                        if(matBlock.is_item || matBlock.is_entity) {
+                            if(matBlock.is_entity) {
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
+                            }
+                        } else {
+                            world.setBlock(block.x, block.y, block.z, this.buildMaterial, null, playerRotate);
+                        }
+                    } else {
+                        // Create block
+                        let blockUnder = this.world.chunkManager.getBlock(block.x, block.y, block.z);
+                        if(BLOCK.isPlants(this.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
+                            return;
+                        }
+                        if(matBlock.is_item || matBlock.is_entity) {
+                            if(matBlock.is_entity) {
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(block.x, block.y, block.z), playerRotate);
+                                let b = BLOCK.fromId(this.buildMaterial.id);
+                                if(b.sound) {
+                                    Game.sounds.play(b.sound, 'place');
+                                }
+                            }
+                        } else {
+                            if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
+                                if(block.n.z != 0 || world_block.transparent) {
+                                    return;
+                                }
+                            }
+                            world.setBlock(block.x, block.y, block.z, this.buildMaterial, null, playerRotate);
+                        }
+                    }
+                    this.inventory.decrement();
+                }
             } else if(destroyBlock) {
                 // Destroy block
                 if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
@@ -518,9 +526,9 @@ export default class Player {
                         world_block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
                     }
                     if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(world_block.id) < 0) {
-                        that.inventory.increment(Object.assign({count: 1}, world_block));
+                        this.inventory.increment(Object.assign({count: 1}, world_block));
                     }
-                    let block_over = that.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
+                    let block_over = this.world.chunkManager.getBlock(block.x, block.y + 1, block.z);
                     // delete plant over deleted block
                     if(BLOCK.isPlants(block_over.id)) {
                         block.y++;
@@ -529,7 +537,7 @@ export default class Player {
                 }
             } else if(cloneBlock) {
                 if(world_block && world.game_mode.canBlockClone()) {
-                    that.inventory.cloneMaterial(world_block);
+                    this.inventory.cloneMaterial(world_block);
                 }
             }
         });

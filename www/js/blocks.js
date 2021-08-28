@@ -105,7 +105,23 @@ BLOCK.WOODEN_PICKAXE = {
     fluid: false,
     stackable: false,
     is_item: true,
+    is_instrument: true,
     texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 31]; }
+};
+
+// Каменная кирка
+BLOCK.STONE_PICKAXE = {
+    id: 500,
+    inventory_icon_id: 3575,
+    spawnable: true,
+    transparent: true,
+    selflit: false,
+    gravity: false,
+    fluid: false,
+    stackable: false,
+    is_item: true,
+    is_instrument: true,
+    texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 31]; }
 };
 
 // Деревянный топор
@@ -119,6 +135,7 @@ BLOCK.WOODEN_AXE = {
     fluid: false,
     stackable: false,
     is_item: true,
+    is_instrument: true,
     texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 30]; }
 };
 
@@ -134,6 +151,7 @@ BLOCK.WOODEN_SHOVEL = {
 	fluid: false,
     stackable: false,
     is_item: true,
+    is_instrument: true,
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 28]; }
 };
 

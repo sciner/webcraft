@@ -58,7 +58,13 @@ export class World {
 
     // Draw
     draw(render, delta) {
+        // Meshes
         this.meshes.draw(render, delta);
+        // Picking target
+        let player = this.localPlayer;
+        if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
+            player.pickAt.update(Game.shift);
+        }
         return true;
     }
 
@@ -82,8 +88,8 @@ export class World {
     }
 
     // destroyBlock
-    destroyBlock(block, pos) {
-        this.meshes.add(new Particles_Block_Destroy(this.renderer.gl, block, pos));
+    destroyBlock(block, pos, small) {
+        this.meshes.add(new Particles_Block_Destroy(this.renderer.gl, block, pos, small));
     }
 
     // rainDrop

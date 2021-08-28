@@ -136,42 +136,42 @@
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "P",
             "P"
         ],
         "key": {
             "P": {
-                "item": "minecraft:plank"
+                "item": "webcraft:plank"
             }
         },
         "result": {
-            "item": "minecraft:stick",
+            "item": "webcraft:stick",
             "count": 4
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "X",
             "#"
         ],
         "key": {
             "#": {
-                "item": "minecraft:stick"
+                "item": "webcraft:stick"
             },
             "X": {
-                "item": "minecraft:coal"
+                "item": "webcraft:coal"
             }
         },
         "result": {
-            "item": "minecraft:torch",
+            "item": "webcraft:torch",
             "count": 4
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "# #",
             "###",
@@ -179,16 +179,16 @@
         ],
         "key": {
             "#": {
-                "item": "minecraft:stick"
+                "item": "webcraft:stick"
             }
         },
         "result": {
-            "item": "minecraft:ladder",
+            "item": "webcraft:ladder",
             "count": 3
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "###",
             " | ",
@@ -196,19 +196,39 @@
         ],
         "key": {
             "|": {
-                "item": "minecraft:stick"
+                "item": "webcraft:stick"
             },
             "#": {
-                "item": "minecraft:plank"
+                "item": "webcraft:plank"
             }
         },
         "result": {
-            "item": "minecraft:wooden_pickaxe",
+            "item": "webcraft:wooden_pickaxe",
             "count": 1
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "###",
+            " | ",
+            " | "
+        ],
+        "key": {
+            "|": {
+                "item": "webcraft:stick"
+            },
+            "#": {
+                "item": "webcraft:cobblestone"
+            }
+        },
+        "result": {
+            "item": "webcraft:stone_pickaxe",
+            "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "##",
             "#|",
@@ -216,19 +236,19 @@
         ],
         "key": {
             "|": {
-                "item": "minecraft:stick"
+                "item": "webcraft:stick"
             },
             "#": {
-                "item": "minecraft:plank"
+                "item": "webcraft:plank"
             }
         },
         "result": {
-            "item": "minecraft:wooden_axe",
+            "item": "webcraft:wooden_axe",
             "count": 1
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "#",
             "|",
@@ -236,19 +256,19 @@
         ],
         "key": {
             "|": {
-                "item": "minecraft:stick"
+                "item": "webcraft:stick"
             },
             "#": {
-                "item": "minecraft:plank"
+                "item": "webcraft:plank"
             }
         },
         "result": {
-            "item": "minecraft:wooden_shovel",
+            "item": "webcraft:wooden_shovel",
             "count": 1
         }
     },
     {
-        "type": "minecraft:crafting_shaped",
+        "type": "webcraft:crafting_shaped",
         "pattern": [
             "###",
             "# #",
@@ -256,11 +276,11 @@
         ],
         "key": {
             "#": {
-                "item": "minecraft:plank"
+                "item": "webcraft:plank"
             }
         },
         "result": {
-            "item": "minecraft:chest",
+            "item": "webcraft:chest",
             "count": 1
         }
     }
