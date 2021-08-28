@@ -277,6 +277,7 @@ export default class Inventory {
                     hud.ctx.fillStyle = '#ffffffff';
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size - 2);
                 }
+                // Draw instrument life
                 if(item.instrument_id && item.power < 1) {
                     let cx = hud_pos.x + 14;
                     let cy = hud_pos.y + 14;

@@ -1,6 +1,7 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import RECIPES from "../recipes.js";
 import {BLOCK} from "../blocks.js";
+import {Helpers} from "../helpers.js";
 
 class CraftTableSlot extends Label {
 
@@ -76,6 +77,19 @@ class CraftTableSlot extends Label {
             ctx.fillText(item.count, x + width, y + height);
         }
         // ctx.restore();
+        // Draw instrument life
+        if(item.instrument_id && item.power < 1) {
+            let cx = x + 4;
+            let cy = y + 3;
+            let cw = width - 8;
+            let ch = height - 6;
+            ctx.fillStyle = '#000000ff';
+            ctx.fillRect(cx, cy + ch - 6, cw, 6);
+            //
+            let rgb = Helpers.getColorForPercentage(item.power);
+            ctx.fillStyle = rgb.toCSS();
+            ctx.fillRect(cx, cy + ch - 6, cw * item.power | 0, 4);
+        }
     }
 
     setSlotIndex(index) {
