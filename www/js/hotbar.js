@@ -7,7 +7,7 @@ export class Hotbar {
         this.hud                = hud;
         this.inventory          = inventory;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
-        this.lives              = 0.95;
+        this.lives              = 1; // 0.95;
         this.foods              = 1.;
         this.image.onload = function() {
             that.hud.add(that, 0);

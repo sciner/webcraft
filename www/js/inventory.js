@@ -1,6 +1,6 @@
 import {BLOCK} from "./blocks.js";
 import {CraftTable, InventoryWindow, ChestWindow} from "./window/index.js";
-import {Vector} from "./helpers.js";
+import {Vector, Helpers} from "./helpers.js";
 
 // Player inventory
 
@@ -77,9 +77,11 @@ export default class Inventory {
             }
             let item = items[k];
             if(item) {
-                const block = BLOCK.fromId(item.id);
-                item = Object.assign(block, items[k]);
-                this.items[k] = item;
+                const block = {...BLOCK.fromId(item.id)};
+                if(block) {
+                    item = Object.assign(block, items[k]);
+                    this.items[k] = item;
+                }
             }
         }
         console.log(this.items);
@@ -96,18 +98,20 @@ export default class Inventory {
     
     increment(mat) {
         const MAX_COUNT = 64;
+        let item_max_count = mat.stackable ? MAX_COUNT : 1;
         // update cell if exists
         for(let i in this.items) {
-            if(this.items[i]) {
-                if(this.items[i].id == mat.id) {
-                    if(this.items[i].count < MAX_COUNT) {
-                        if(this.items[i].count + mat.count <= MAX_COUNT) {
-                            this.items[i].count = Math.min(this.items[i].count + mat.count, MAX_COUNT);
+            let item = this.items[i];
+            if(item) {
+                if(item.id == mat.id) {
+                    if(item.count < item_max_count) {
+                        if(item.count + mat.count <= item_max_count) {
+                            item.count = Math.min(item.count + mat.count, item_max_count);
                             this.refresh();
                             return;
                         } else {
-                            let remains = (this.items[i].count + mat.count) - MAX_COUNT;
-                            this.items[i].count = MAX_COUNT;
+                            let remains = (item.count + mat.count) - item_max_count;
+                            item.count = item_max_count;
                             mat.count = remains;
                             this.refresh();
                         }
@@ -119,9 +123,9 @@ export default class Inventory {
         for(let i = 0; i < this.items.length; i++) {
             if(!this.items[i]) {
                 this.items[i] = {...mat};
-                if(this.items[i].count > MAX_COUNT) {
-                    mat.count -= MAX_COUNT;
-                    this.items[i].count = MAX_COUNT;
+                if(this.items[i].count > item_max_count) {
+                    mat.count -= item_max_count;
+                    this.items[i].count = item_max_count;
                 } else {
                     mat.count = 0;
                 }
@@ -269,6 +273,18 @@ export default class Inventory {
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size);
                     hud.ctx.fillStyle = '#ffffffff';
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size - 2);
+                }
+                if(item.instrument_id && item.power < 1) {
+                    let cx = hud_pos.x + 14;
+                    let cy = hud_pos.y + 14;
+                    let cw = 40;
+                    let ch = 43;
+                    hud.ctx.fillStyle = '#000000ff';
+                    hud.ctx.fillRect(cx, cy + ch - 8, cw, 8);
+                    //
+                    let rgb = Helpers.getColorForPercentage(item.power);
+                    hud.ctx.fillStyle = rgb.toCSS();
+                    hud.ctx.fillRect(cx, cy + ch - 8, cw * item.power | 0, 4);
                 }
             }
             hud_pos.x += cell_size;
