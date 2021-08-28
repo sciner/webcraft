@@ -101,25 +101,25 @@ export class CaveGenerator {
     }
 
     /**
-     * getNeighboors
+     * getNeighbors
      * @param { Vector } chunk_addr 
      * @returns 
      */
-    getNeighboors(chunk_addr) {
+    getNeighbors(chunk_addr) {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        let NEIGHBOORS_CAVES_RADIUS = 5;
-        let neighboors_caves        = [];
-        for(let cx = -NEIGHBOORS_CAVES_RADIUS; cx < NEIGHBOORS_CAVES_RADIUS; cx++) {
-            for(let cz = -NEIGHBOORS_CAVES_RADIUS; cz < NEIGHBOORS_CAVES_RADIUS; cz++) {
+        let NEIGHBORS_CAVES_RADIUS = 5;
+        let neighbors_caves        = [];
+        for(let cx = -NEIGHBORS_CAVES_RADIUS; cx < NEIGHBORS_CAVES_RADIUS; cx++) {
+            for(let cz = -NEIGHBORS_CAVES_RADIUS; cz < NEIGHBORS_CAVES_RADIUS; cz++) {
                 let map_cave = this.get(chunk_addr.add(new Vector(cx, 0, cz)));
                 if(map_cave && map_cave.head_pos) {
                     if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
-                        neighboors_caves.push(map_cave.chunks[chunk_addr]);
+                        neighbors_caves.push(map_cave.chunks[chunk_addr]);
                     }
                 }
             }
         }
-        return neighboors_caves;
+        return neighbors_caves;
     }
 
     // addSpiral

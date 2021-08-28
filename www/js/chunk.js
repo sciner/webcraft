@@ -238,7 +238,7 @@ export default class Chunk {
             rotate:     rotate
         }]);
         if(x == 0) {
-            // left
+            // West neighbor
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
@@ -251,14 +251,14 @@ export default class Chunk {
                 rotate:     rotate
             }]);
         }
-        if(y == 0) {
-            // top
+        if(z == 0) {
+            // South neighbor
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
-                y:          y + this.coord.y - 1,
-                z:          z + this.coord.z,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z - 1,
                 type:       null,
                 is_modify:  is_modify,
                 power:      power,
@@ -266,7 +266,7 @@ export default class Chunk {
             }]);
         }
         if(x == this.size.x - 1) {
-            // right
+            // East neighbor
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
@@ -279,14 +279,14 @@ export default class Chunk {
                 rotate:     rotate
             }]);
         }
-        if(y == this.size.y - 1) {
-            // bottom
+        if(z == this.size.z - 1) {
+            // North neighbor
             let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
             this.chunkManager.postWorkerMessage(['setBlock', {
                 key:        key,
                 x:          x + this.coord.x,
-                y:          y + this.coord.y + 1,
-                z:          z + this.coord.z,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z + 1,
                 type:       null,
                 is_modify:  is_modify,
                 power:      power,
