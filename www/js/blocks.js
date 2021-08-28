@@ -37,6 +37,7 @@ BLOCK.DUMMY = {
     sound: 'webcraft:block.wood',
     texture: function(world, lightmap, lit, x, y, z, dir) { return [9, 9]; }
 };
+
 // Air
 BLOCK.AIR = {
 	id: 0,

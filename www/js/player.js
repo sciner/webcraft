@@ -474,6 +474,7 @@ export default class Player {
                                 break;
                             }
                         }
+                        this.pickAt.clearEvent();
                         return;
                     }
                 }

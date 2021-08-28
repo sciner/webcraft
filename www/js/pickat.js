@@ -225,7 +225,7 @@ export class PickAt {
         damage_block.prev_time = pn;
         if(this.onTarget instanceof Function) {
             if(this.onTarget({...damage_block.pos}, {...damage_block.event}, damage_block.times / 1000, damage_block.number)) {
-                damage_block.event = false;
+                // damage_block.event = false;
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
                     damage_block.mesh.destroy();

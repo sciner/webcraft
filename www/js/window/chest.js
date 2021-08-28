@@ -79,7 +79,6 @@ export default class ChestWindow extends Window {
     load(block) {
         let that = this;
         this.lbl1.setText('LOADING...');
-        console.table(block);
         this.entity_id  = block.entity_id;
         this.loading    = true;
         this.clear();

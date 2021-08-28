@@ -24,6 +24,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_fogOn            = gl.getUniformLocation(program, 'u_fogOn');
         this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
+        this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         this.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
         this.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
@@ -66,6 +67,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         gl.uniform1f(this.u_blockSize, this.blockSize);
         gl.uniform1f(this.u_pixelSize, this.pixelSize);
+        gl.uniform2fv(this.u_resolution, this.resolution);
         gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
@@ -80,7 +82,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         } else {
             gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
         }
-
         if (modelMatrix) {
             gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);
             this.hasModelMatrix = true;
@@ -91,4 +92,5 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             this.hasModelMatrix = false;
         }
     }
+
 }

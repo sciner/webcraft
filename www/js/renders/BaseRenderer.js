@@ -155,6 +155,7 @@ export class BaseTerrainShader extends BaseShader{
         this.pixelSize = 1;
         this.chunkBlockDist = 1;
         this.brightness = 1;
+        this.resolution = [1, 1];
         this.mipmap = 0;
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
@@ -199,7 +200,15 @@ export class CubeMesh {
         this.shader.brightness = v;
     }
 
-    draw (lookAtMatrix, projMatrix) {
+    get resolution() {
+        return this.shader.resolution;
+    }
+
+    set resolution(v) {
+        this.shader.resolution = v;
+    }
+
+    draw (lookAtMatrix, projMatrix, width, height) {
         const {
             lookAt, proj
         } = this;
@@ -212,11 +221,14 @@ export class CubeMesh {
         lookAt[13] = 0;
         lookAt[14] = 0;
 
+        this.shader.resolution = [width, height];
+
         this.shader.context.drawCube(this);
     }
 }
 
 export class BaseCubeGeometry {
+
     constructor(context, options) {
         this.context = context;
         this.options = options;
@@ -249,7 +261,7 @@ export class BaseCubeGeometry {
     }
 }
 
-export class BaseCubeShader extends BaseShader{
+export class BaseCubeShader extends BaseShader {
     /**
      *
      * @param {BaseRenderer} context
@@ -266,6 +278,8 @@ export class BaseCubeShader extends BaseShader{
             source: options.sides
         });
         this.texture.bind();
+
+        this.resolution_value = [1, 1];
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -284,6 +298,14 @@ export class BaseCubeShader extends BaseShader{
 
     get brightness () {
         return this.mergedBuffer[16 * 2];
+    }
+
+    set resolution(v) {
+        this.resolution_value = v;
+    }
+
+    get resolution() {
+        return this.resolution_value;
     }
 
 

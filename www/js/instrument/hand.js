@@ -14,6 +14,9 @@ export class Instrument_Hand {
             if(inventory_item.instrument_id) {
                 let damage = .01;
                 inventory_item.power = Math.round((inventory_item.power - damage) * 100) / 100;
+                if(inventory_item.power <= 0) {
+                    this.inventory.decrement();
+                }
             }
         }
         if(block.id == BLOCK.CONCRETE.id) {

@@ -68,7 +68,11 @@ export default class Inventory {
 
     //
     restoreItems(items) {
-        this.items = new Array(this.max_count);
+        this.items          = []; // new Array(this.max_count);
+        for(let i = 0; i < this.max_count; i++) {
+            this.items.push(null);
+        }
+
         this.index = 0;
         for(let k in items) {
             if(k >= this.items.length) {
@@ -84,7 +88,6 @@ export default class Inventory {
                 }
             }
         }
-        console.log(this.items);
     }
     
     getCurrent() {

@@ -109,6 +109,10 @@ export class BLOCK_FUNC {
             if(block.id == BLOCK.BEDROCK.id) {
                 return -1;
             }
+            // stackable
+            if(!block.hasOwnProperty('stackable')) {
+                block.stackable = true;
+            }
             if(block.hasOwnProperty('style')) {
                 if(block.style == 'planting') {
                     return 0;
