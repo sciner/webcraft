@@ -497,7 +497,7 @@ export default class Player {
                         }
                     } else {
                         // Create block
-                        let blockUnder = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                        let blockUnder = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
                         if(BLOCK.isPlants(this.buildMaterial.id) && blockUnder.id != BLOCK.DIRT.id) {
                             return;
                         }
