@@ -100,8 +100,7 @@ export default class Inventory {
     }
     
     increment(mat) {
-        const MAX_COUNT = 64;
-        let item_max_count = mat.stackable ? MAX_COUNT : 1;
+        let item_max_count = mat.max_in_stack;
         // update cell if exists
         for(let i in this.items) {
             let item = this.items[i];

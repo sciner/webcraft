@@ -1,8 +1,41 @@
-// ==========================================
-// Helpers
-//
-// This file contains helper classes and functions.
-// ==========================================
+export const TX_CNT                         = 32;
+export const INVENTORY_STACK_DEFAUL_SIZE    = 64;
+
+// Color
+export class Color {
+
+    constructor(r, g, b, a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+
+    add(color) {
+        this.r += color.r;
+        this.g += color.g;
+        this.b += color.b;
+        this.a += color.a;
+        return this;
+    }
+
+    divide(color) {
+        this.r /= color.r;
+        this.g /= color.g;
+        this.b /= color.b;
+        this.a /= color.a;
+        return this;
+    }
+
+    toFloat()  {
+        return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
+    }
+
+    toCSS()  {
+        return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
+    }
+
+}
 
 export class Vector {
 
@@ -101,21 +134,31 @@ export class Vector {
 
 }
 
-export let ROTATE = {};
-ROTATE.S = 1; // BACK
-ROTATE.W = 2; // LEFT
-ROTATE.N = 3; // FRONT
-ROTATE.E = 4; // RIGHT
+export let MULTIPLY = {
+    COLOR: {
+        WHITE: new Color(816 / 1024, 1008 / 1024, 0, 0),
+        GRASS: new Color(900 / 1024, 965 / 1024, 0, 0)
+    }
+};
 
-export const TX_CNT = 32;
+export let QUAD_FLAGS = {}
+    QUAD_FLAGS.NORMAL_UP = 1;
+    QUAD_FLAGS.MASK_BIOME = 2;
+
+export let ROTATE = {};
+    ROTATE.S = 1; // BACK
+    ROTATE.W = 2; // LEFT
+    ROTATE.N = 3; // FRONT
+    ROTATE.E = 4; // RIGHT
+
 
 export let NORMALS = {};
-NORMALS.FORWARD          = new Vector(0, 0, 1);
-NORMALS.BACK             = new Vector(0, 0, -1);
-NORMALS.LEFT             = new Vector(-1, 0, 0);
-NORMALS.RIGHT            = new Vector(1, 0, 0);
-NORMALS.UP               = new Vector(0, 1, 0);
-NORMALS.DOWN             = new Vector(0, -1, 0);
+    NORMALS.FORWARD          = new Vector(0, 0, 1);
+    NORMALS.BACK             = new Vector(0, 0, -1);
+    NORMALS.LEFT             = new Vector(-1, 0, 0);
+    NORMALS.RIGHT            = new Vector(1, 0, 0);
+    NORMALS.UP               = new Vector(0, 1, 0);
+    NORMALS.DOWN             = new Vector(0, -1, 0);
 
 // Direction enumeration
 export let DIRECTION = {};
@@ -465,42 +508,6 @@ export class SpiralGenerator {
         });
         SpiralGenerator.cache3D[cache_key] = resp;
         return resp;
-    }
-
-}
-
-// Color
-export class Color {
-
-    constructor(r, g, b, a) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-        this.a = a;
-    }
-
-    add(color) {
-        this.r += color.r;
-        this.g += color.g;
-        this.b += color.b;
-        this.a += color.a;
-        return this;
-    }
-
-    divide(color) {
-        this.r /= color.r;
-        this.g /= color.g;
-        this.b /= color.b;
-        this.a /= color.a;
-        return this;
-    }
-
-    toFloat()  {
-        return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
-    }
-
-    toCSS()  {
-        return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
     }
 
 }

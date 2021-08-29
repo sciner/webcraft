@@ -159,8 +159,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(!dropData) {
                 return;
             }
-            const MAX_COUNT = 64;
-            let item_max_count = dropData.item.stackable ? MAX_COUNT : 1;
+            let item_max_count = dropData.item.max_in_stack;
             //
             if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
