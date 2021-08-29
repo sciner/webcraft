@@ -174,6 +174,7 @@ export default class Inventory {
         this.index = index;
         this.current = this.player.buildMaterial = this.items[index];
         this.refresh();
+        this.player.onInventorySelect(this.current);
     }
     
     next() {

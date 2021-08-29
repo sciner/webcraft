@@ -168,6 +168,14 @@ export class PickAt {
         }
     }
 
+    // Сбросить текущий прогресс разрушения
+    resetProgress() {
+        let damage_block = this.damage_block;
+        if(damage_block) {
+            damage_block.times = 0;
+        }
+    }
+
     /**
      * update...
      */
