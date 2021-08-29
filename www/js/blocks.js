@@ -1,31 +1,31 @@
-import {DIRECTION, Color} from './helpers.js';
+import {Color, DIRECTION, INVENTORY_STACK_DEFAUL_SIZE} from './helpers.js';
 import {BLOCK_FUNC} from './blocks_func.js';
-
-// ==========================================
-// Block types
-//
-// This file contains all available block types and their properties.
-// ==========================================
 
 export const CHUNK_SIZE_X      = 16;
 export const CHUNK_SIZE_Y      = 32;
 export const CHUNK_SIZE_Z      = 16;
 export const CHUNK_SIZE_Y_MAX  = 4096;
 export const MAX_CAVES_LEVEL   = 256;
-
-let TRANS_TEX = [4, 12];
+export const TRANS_TEX         = [4, 12];
 
 export class BLOCK extends BLOCK_FUNC {};
 
-// Each block has the following properties:
-// id,
-// spawnable (always true for creative mode),
-// transparent,
-// selflit (always false for annotation purpose),
-// gravity (always false for annotation purpose),
-// fluid (always false for annotation purpose),
-// style: 'planting', 'pane, 'fence'
-// texture
+// BLOCK PROPERTIES:
+// id (int)                 - Unique ID
+// fluid (bool)             - Is fluid
+// gravity (bool)           - May fall
+// is_item (bool)           - 
+// instrument_id (string)   - Unique code of instrument type
+// inventory_icon_id (int)  - Position in inventory atlas
+// max_in_stack (int)       - Max count in inventory or other stack
+// name (string)            - Unique name
+// passable (float)         - Passable value 0...1
+// sound (string)           - Resource ID
+// spawnable (bool)         - Cannot be /give for player
+// style (string)           - used for drawing style (cube, fence, ladder, plant, pane, sign, slab, stairs)
+// tags (string[])          - Array of string tags
+// texture (function)       - 
+// transparent (bool)       - Not cube
 
 // A purple dummy block
 BLOCK.DUMMY = {
@@ -106,7 +106,7 @@ BLOCK.WOODEN_PICKAXE = {
     selflit: false,
     gravity: false,
     fluid: false,
-    stackable: false,
+    max_in_stack: 1,
     is_item: true,
     instrument_id: 'pickaxe',
     tags: ['pickaxe'],
@@ -122,7 +122,7 @@ BLOCK.STONE_PICKAXE = {
     selflit: false,
     gravity: false,
     fluid: false,
-    stackable: false,
+    max_in_stack: 1,
     is_item: true,
     instrument_id: 'pickaxe',
     tags: ['pickaxe'],
@@ -138,7 +138,7 @@ BLOCK.WOODEN_AXE = {
     selflit: false,
     gravity: false,
     fluid: false,
-    stackable: false,
+    max_in_stack: 1,
     is_item: true,
     instrument_id: 'axe',
     tags: ['axe'],
@@ -155,7 +155,7 @@ BLOCK.WOODEN_SHOVEL = {
 	selflit: false,
 	gravity: false,
 	fluid: false,
-    stackable: false,
+    max_in_stack: 1,
     is_item: true,
     instrument_id: 'shovel',
     tags: ['shovel'],
@@ -1007,6 +1007,7 @@ BLOCK.TORCH = {
     passable:       1,
     transparent:    true,
     lightPower:     new Color(253, 241, 131, 180),
+    style: 'torch',
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         if (dir == DIRECTION.UP) {
@@ -1303,12 +1304,13 @@ BLOCK.JUKEBOX = {
 
 BLOCK.OAK_FENCE = {
     id: 85,
+    inventory_icon_id: 3229,
     spawnable: true,
     transparent: true,
     style: 'fence',
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
+        return [4, 0];
     }
 };
 

@@ -1,4 +1,5 @@
-import {NORMALS, Vector, Color} from '../helpers.js';
+import {Color, NORMALS, Vector} from '../helpers.js';
+import {push_plane} from '../block_style/plane.js';
 
 const {mat4} = glMatrix;
 

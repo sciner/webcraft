@@ -1,6 +1,6 @@
-import {TX_CNT, DIRECTION, NORMALS, Vector, Color} from '../helpers.js';
+import {DIRECTION, MULTIPLY, NORMALS, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
 import {BLOCK} from '../blocks.js';
-import {push_plane, QUAD_FLAGS, MULTIPLY} from '../blocks_func.js';
+import {push_plane} from '../block_style/plane.js';
 import GeometryTerrain from "../geometry_terrain.js";
 
 const {mat4} = glMatrix;
