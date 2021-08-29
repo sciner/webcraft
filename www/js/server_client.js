@@ -144,6 +144,11 @@ export default class ServerClient {
                     }
                     break;
                 }
+                case ServerClient.WORLD_STATE: {
+                    let data = cmd.data;
+                    Game.world.setServerState(data);
+                    break;
+                }
             }
         }
     }

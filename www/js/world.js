@@ -15,6 +15,7 @@ export class World {
 
     constructor(saved_state) {
         this._savedState = saved_state;
+        this.server_state = null;
         // Autosave
         setInterval(() => {
             console.log('Autosave ... OK');
@@ -54,6 +55,30 @@ export class World {
         }
         // Game mode
         this.game_mode = new GameMode(this, saved_state.game_mode);
+    }
+
+    setServerState(server_state) {
+        this.server_state = server_state;
+        this.server_state_give_time = performance.now();
+    }
+
+    // 
+    getTime() {
+        if(!this.server_state) {
+            return null;
+        }
+        let add = (performance.now() - this.server_state_give_time) / 1000 / 1200 * 24000 | 0;
+        let time = (this.server_state.day_time + 6000 + add) % 24000 | 0;
+        let hours = time / 1000 | 0;
+        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
+        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
+        let hours_string = hours > 9 ? hours : '0' + hours;
+        return {
+            day:        this.server_state.age,
+            hours:      hours,
+            minutes:    minutes,
+            string:     hours_string + ':' + minutes_string
+        };
     }
 
     // Draw

@@ -299,6 +299,10 @@ export default class HUD {
         if(Game.world.server.ping_value) {
             this.text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
         }
+        let time = Game.world.getTime();
+        if(time) {
+            this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
+        }
         // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
         // Chunks inited
         this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';

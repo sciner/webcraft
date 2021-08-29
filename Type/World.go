@@ -1,8 +1,12 @@
+//+build windows
+
+// linux darwin
 package Type
 
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
 	"sync"
@@ -27,19 +31,29 @@ type (
 		Entities    *EntityManager
 		CreateTime  time.Time // Время создания, time.Now()
 		Directory   string
+		State       *Struct.WorldState
 	}
 )
 
 func (this *World) Load() {
 	this.Directory = this.GetDir()
-	dir, err := os.Stat(this.Directory)
-	if err == nil {
-		this.CreateTime = dir.ModTime()
-	} else {
-		this.CreateTime = time.Now()
-	}
-	log.Println(this.CreateTime)
+	this.CreateTime = this.getDirectoryCTime(this.Directory)
+	this.State = &Struct.WorldState{}
 	this.Entities.Load(this)
+}
+
+func (this *World) updateWorldState() {
+	currentTime := time.Now()
+	// возраст в реальных секундах
+	diff_sec := currentTime.Sub(this.CreateTime).Seconds()
+	// один игровой день в реальных секундах
+	game_day_in_real_seconds := float64(86400 / Struct.GAME_ONE_SECOND) // 1200
+	// возраст в игровых днях
+	age := diff_sec / game_day_in_real_seconds // например 215.23
+	// возраст в ЦЕЛЫХ игровых днях
+	this.State.Age = int64(math.Floor(age)) // например 215
+	// количество игровых секунд прошедших в текущем игровом дне
+	this.State.DayTime = int64((age - float64(this.State.Age)) * float64(Struct.GAME_DAY_SECONDS))
 }
 
 func (this *World) OnPlayer(conn *UserConn) {
@@ -87,6 +101,22 @@ func (this *World) OnPlayer(conn *UserConn) {
 	packets2 := []Struct.JSONResponse{packet2}
 	this.SendAll(packets2, []string{conn.ID})
 
+	// Send World State to new player
+	cons := make(map[string]*UserConn, 0)
+	cons[conn.ID] = conn
+	this.SendWorldState(cons)
+}
+
+// Send World State
+func (this *World) SendWorldState(connections map[string]*UserConn) {
+	this.updateWorldState()
+	packet3 := Struct.JSONResponse{Name: Struct.WORLD_STATE, Data: this.State, ID: nil}
+	packets3 := []Struct.JSONResponse{packet3}
+	if len(connections) > 0 {
+		this.SendSelected(packets3, connections, []string{})
+	} else {
+		this.SendAll(packets3, []string{})
+	}
 }
 
 //
