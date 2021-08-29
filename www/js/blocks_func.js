@@ -397,6 +397,7 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x + 1, y + 1, z - 1);
                 let ag = this.getCachedBlock(x - 1, y - 1, z - 1);
                 let ah = this.getCachedBlock(x - 1, y + 1, z - 1);
+                let aj = this.getCachedBlock(x, y, z - 1); // to South
                 if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
                 if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
@@ -405,6 +406,7 @@ export class BLOCK_FUNC {
                 if(this.visibleForAO(af)) {ao[2] = ao_value;}
                 if(this.visibleForAO(ag)) {ao[0] = ao_value;}
                 if(this.visibleForAO(ah)) {ao[3] = ao_value;}
+                if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
             vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
@@ -432,6 +434,7 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x, y + 1, z + 1);
                 let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
                 let ah = this.getCachedBlock(x + 1, y + 1, z + 1);
+                let aj = this.getCachedBlock(x, y, z + 1); // to North
                 if(this.visibleForAO(aa)) {ao[2] = ao_value;}
                 if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
@@ -440,6 +443,7 @@ export class BLOCK_FUNC {
                 if(this.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
                 if(this.visibleForAO(ag)) {ao[0] = ao_value;}
                 if(this.visibleForAO(ah)) {ao[1] = ao_value;}
+                if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
             vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
@@ -467,6 +471,7 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x - 1, y + 1, z - 1);
                 let ag = this.getCachedBlock(x - 1, y + 1, z);
                 let ah = this.getCachedBlock(x - 1, y + 1, z + 1);
+                let aj = this.getCachedBlock(x - 1, y, z); // to West
                 if(this.visibleForAO(aa)) {ao[3] = ao_value;}
                 if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ac)) {ao[2] = ao_value;}
@@ -474,7 +479,8 @@ export class BLOCK_FUNC {
                 if(this.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
                 if(this.visibleForAO(af)) {ao[0] = ao_value;}
                 if(this.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(this.visibleForAO(ah)) {ao[1] = ao_value;} 
+                if(this.visibleForAO(ah)) {ao[1] = ao_value;}
+                if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
             vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
@@ -502,6 +508,7 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x + 1, y - 1, z - 1);
                 let ag = this.getCachedBlock(x + 1, y + 1, z);
                 let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
+                let aj = this.getCachedBlock(x + 1, y, z); // to East
                 if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
                 if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
@@ -510,6 +517,7 @@ export class BLOCK_FUNC {
                 if(this.visibleForAO(af)) {ao[0] = ao_value;}
                 if(this.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ah)) {ao[3] = ao_value;}
+                if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
             vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,

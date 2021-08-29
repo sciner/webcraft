@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"whiteframe.ru/webcraft/Struct"
 )
@@ -24,8 +25,22 @@ type (
 		Connections map[string]*UserConn // Registered connections.
 		Chunks      map[Struct.Vector3]*Chunk
 		Entities    *EntityManager
+		CreateTime  time.Time // Время создания, time.Now()
+		Directory   string
 	}
 )
+
+func (this *World) Load() {
+	this.Directory = this.GetDir()
+	dir, err := os.Stat(this.Directory)
+	if err == nil {
+		this.CreateTime = dir.ModTime()
+	} else {
+		this.CreateTime = time.Now()
+	}
+	log.Println(this.CreateTime)
+	this.Entities.Load(this)
+}
 
 func (this *World) OnPlayer(conn *UserConn) {
 	if val, ok := this.Connections[conn.ID]; ok {
