@@ -184,7 +184,7 @@ export class BLOCK_FUNC {
     static getDestroyTime(block, force) {
         let destroy_time = block.destroy_time;
         if(force) {
-            destroy_time = 0; // Math.min(destroy_time, .2);
+            destroy_time = 0;
         }
         return destroy_time;
     }
@@ -341,6 +341,7 @@ export class BLOCK_FUNC {
                 let af = this.getCachedBlock(x + 1, y + 1, z + 1);
                 let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
                 let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
+                let aj = this.getCachedBlock(x, y + 1, z);
                 if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
                 if(this.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
                 if(this.visibleForAO(ac)) {ao[0] = ao_value; }
@@ -349,6 +350,7 @@ export class BLOCK_FUNC {
                 if(this.visibleForAO(af)) {ao[2] = ao_value;}
                 if(this.visibleForAO(ag)) {ao[3] = ao_value;}
                 if(this.visibleForAO(ah)) {ao[1] = ao_value;}
+                if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[1] = ao_value;}
             }
             c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
             // n = NORMALS.UP;

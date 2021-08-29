@@ -75,7 +75,7 @@ export class World {
             itsme:          true,
             angles:         this.localPlayer.angles,
             pos:            new Vector(this.localPlayer.pos.x, this.localPlayer.pos.y, this.localPlayer.pos.z),
-            yaw:            this.localPlayer.angles[1],
+            yaw:            this.localPlayer.angles[2],
             pitch:          this.localPlayer.angles[0],
             skin:           Game.skins.getById(Game.skin.id),
             nick:           Game.username

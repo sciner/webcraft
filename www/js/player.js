@@ -88,6 +88,13 @@ export default class Player {
         return true;
     }
 
+    // Вызывается при переключении активного слота в инвентаре
+    onInventorySelect(inventory_item) {
+        if(this.pickAt) {
+            this.pickAt.resetProgress();
+        }
+    }
+
     // Assign the local player to a socket client.
     setClient(client) {
         this.client = client;
