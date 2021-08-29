@@ -1,6 +1,3 @@
-//+build windows
-
-// linux darwin
 package Type
 
 import (
