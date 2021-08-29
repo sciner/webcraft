@@ -1,9 +1,9 @@
 package Struct
 
-import "time"
-
 const (
-	BLOCK_CHEST int = 54
+	BLOCK_CHEST      int   = 54
+	GAME_ONE_SECOND  int64 = 72
+	GAME_DAY_SECONDS int64 = 24000
 
 	// команды
 	COMMAND_MSG_HELLO          int = 1
@@ -130,7 +130,11 @@ type (
 		Pos Vector3 `json:"pos"`
 	}
 	WorldState struct {
-		Time time.Time `json:"time"`
+		// 1 игровая секунда = 72 реальных
+		// В 1 игровом дне 24000 игровых секунд
+		Age      int64 `json:"age"`       // Возраст мира с момента его создания в игровых днях
+		AgeShift int64 `json:"age_shift"` // Смещение времени в игровых секундах
+		DayTime  int64 `json:"day_time"`  // Текущее время в игровых секундах (0 ... 23999)
 	}
 	// JSONResponse ...
 	JSONResponse struct {
