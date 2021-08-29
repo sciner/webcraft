@@ -1,5 +1,7 @@
 package Struct
 
+import "time"
+
 const (
 	BLOCK_CHEST int = 54
 
@@ -24,6 +26,7 @@ const (
 	CLIENT_LOAD_CHEST          int = 45 // Клиент запросил содержимое сундука
 	COMMAND_CHEST              int = 46 // Отправка клиенту содержимого сундука
 	CLIENT_SET_CHEST_SLOT_ITEM int = 47 // Получены новые данные о содержимом слоте сундука
+	WORLD_STATE                int = 60 // состояние мира
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -125,6 +128,9 @@ type (
 	}
 	ParamChunkRemove struct {
 		Pos Vector3 `json:"pos"`
+	}
+	WorldState struct {
+		Time time.Time `json:"time"`
 	}
 	// JSONResponse ...
 	JSONResponse struct {

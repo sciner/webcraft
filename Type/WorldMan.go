@@ -25,6 +25,6 @@ func (this *WorldMan) Get(ID string, Seed string) *World {
 		Chunks:      make(map[Struct.Vector3]*Chunk, 0),
 		Entities:    &EntityManager{},
 	}
-	this.Worlds[ID].Entities.Load(this.Worlds[ID])
+	this.Worlds[ID].Load()
 	return this.Worlds[ID]
 }

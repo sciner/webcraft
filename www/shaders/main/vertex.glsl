@@ -53,6 +53,11 @@ void main() {
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
     v_texcoord = a_uvCenter + (a_uvSize * a_quad);
+
+    //if (v_normal.y == 1.) {
+    //    v_texcoord.y = a_uvCenter.y - (a_uvSize * a_quad).y;
+    //}
+
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     vec3 sun_dir = vec3(0.7, 1.0, 0.85);

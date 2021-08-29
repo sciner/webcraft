@@ -26,6 +26,8 @@ export default class ServerClient {
     static CLIENT_LOAD_CHEST            = 45;
     static COMMAND_CHEST                = 46;
     static CLIENT_SET_CHEST_SLOT_ITEM   = 47; // Отправка на сервер новых данных слота текущего сундука
+    //
+    static WORLD_STATE                  = 60;
 
     // Constructor
     constructor(url, onOpenCallback) {
