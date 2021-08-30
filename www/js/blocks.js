@@ -1050,7 +1050,7 @@ BLOCK.OAK_STAIRS = {
     style: 'stairs',
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
-		return [4, 0];
+		return [21, 19];
 	}
 };
 
