@@ -76,7 +76,7 @@ export default class Terrain_Generator {
                     // ЖД
                     for(let z = 0; z < chunk.size.z; z++) {
                         // рельсы
-                        chunk.blocks[7][z][12] = blocks.PLANK;
+                        chunk.blocks[7][z][12] = blocks.OAK_PLANK;
                         // по краям рельс
                         chunk.blocks[6][z][12] = blocks.STONE_BRICK;
                         chunk.blocks[7][z][12] = blocks.STONE_BRICK;

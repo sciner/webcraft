@@ -8,11 +8,11 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:wood"
+                "item": "webcraft:oak_trunk"
             }
         },
         "result": {
-            "item": "webcraft:plank",
+            "item": "webcraft:oak_plank",
             "count": 4
         }
     },
@@ -25,11 +25,11 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:wood_birch"
+                "item": "webcraft:birch_trunk"
             }
         },
         "result": {
-            "item": "webcraft:plank",
+            "item": "webcraft:oak_plank",
             "count": 4
         }
     },
@@ -42,7 +42,7 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
@@ -76,11 +76,11 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:wood_stairs",
+            "item": "webcraft:oak_stairs",
             "count": 4
         }
     },
@@ -93,11 +93,11 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:wood_slab",
+            "item": "webcraft:oak_slab",
             "count": 6
         }
     },
@@ -143,7 +143,7 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
@@ -199,7 +199,7 @@
                 "item": "webcraft:stick"
             },
             "#": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
@@ -239,7 +239,7 @@
                 "item": "webcraft:stick"
             },
             "#": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
@@ -259,7 +259,7 @@
                 "item": "webcraft:stick"
             },
             "#": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
@@ -276,7 +276,7 @@
         ],
         "key": {
             "#": {
-                "item": "webcraft:plank"
+                "item": "webcraft:oak_plank"
             }
         },
         "result": {
