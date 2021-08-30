@@ -409,6 +409,10 @@ class Chunk {
                         block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
                         const biome = this.map.info.cells[x][z].biome;
+                        neighbours.NORTH = neighbours.BACK && neighbours.BACK.id > 0 ? neighbours.BACK : null;
+                        neighbours.SOUTH = neighbours.FORWARD && neighbours.FORWARD.id > 0 ? neighbours.FORWARD : null;
+                        neighbours.WEST = neighbours.LEFT && neighbours.LEFT.id > 0 ? neighbours.LEFT : null;
+                        neighbours.EAST = neighbours.RIGHT && neighbours.RIGHT.id > 0 ? neighbours.RIGHT : null;
                         BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
                     }
                     world.blocks_pushed++;

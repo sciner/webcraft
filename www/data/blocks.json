@@ -663,7 +663,7 @@
     "fluid": false,
     "sound": "webcraft:block.wood",
     "power": 1,
-    "name": "PLANK",
+    "name": "OAK_PLANK",
     "light": null,
     "textures": {
       "up": [
@@ -6803,7 +6803,7 @@
       "fluid": false,
       "sound": "webcraft:block.wood",
       "power": 1,
-      "name": "PLANK",
+      "name": "OAK_PLANK",
       "light": null,
       "textures": {
         "up": [
@@ -10944,7 +10944,7 @@
       "fluid": false,
       "sound": "webcraft:block.wood",
       "power": 1,
-      "name": "PLANK",
+      "name": "OAK_PLANK",
       "light": null,
       "textures": {
         "up": [

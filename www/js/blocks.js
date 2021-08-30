@@ -274,8 +274,8 @@ BLOCK.SPRUCE_LEAVES = {
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 8]; }
 };
 
-// Wood
-BLOCK.WOOD = {
+// Ствол дуба
+BLOCK.OAK_TRUNK = {
     id: 3,
     inventory_icon_id: 3429,
     spawnable: true,
@@ -287,14 +287,14 @@ BLOCK.WOOD = {
     tags: ['wood'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
-            return [ 5, 1 ];
+            return [ 21, 17 ];
         else
-            return [ 4, 1 ];
+            return [ 21, 16 ];
     }
 };
 
 // Spruce
-BLOCK.SPRUCE = {
+BLOCK.SPRUCE_TRUNK = {
 	id: 138,
     inventory_icon_id: 3442,
 	spawnable: true,
@@ -331,8 +331,8 @@ BLOCK.BOOKCASE = {
 	}
 };
 
-// Plank
-BLOCK.PLANK = {
+// Planks
+BLOCK.OAK_PLANK = {
 	id: 7,
     inventory_icon_id: 902,
 	spawnable: true,
@@ -342,7 +342,31 @@ BLOCK.PLANK = {
 	fluid: false,
     sound: 'webcraft:block.wood',
     tags: ['plank'],
-	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 4, 0 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [21, 19]; }
+};
+BLOCK.BIRCH_PLANK = {
+	id: 456,
+    inventory_icon_id: 858,
+	spawnable: true,
+	transparent: false,
+	selflit: false,
+	gravity: false,
+	fluid: false,
+    sound: 'webcraft:block.wood',
+    tags: ['plank'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [19, 19]; }
+};
+BLOCK.SPRUCE_PLANK = {
+	id: 457,
+    inventory_icon_id: 895, // 853, 928
+	spawnable: true,
+	transparent: false,
+	selflit: false,
+	gravity: false,
+	fluid: false,
+    sound: 'webcraft:block.wood',
+    tags: ['plank'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [22, 19]; }
 };
 
 BLOCK.GLOWSTONE = {
@@ -440,7 +464,7 @@ BLOCK.OAK_SAPLING = {
 };
 
 // Ствол акации
-BLOCK.WOOD_ACACIA = {
+BLOCK.ACACIA_TRUNK = {
     id: 165,
     inventory_icon_id: 2237,
     spawnable: true,
@@ -456,7 +480,7 @@ BLOCK.WOOD_ACACIA = {
 };
 
 // Листья акации
-BLOCK.LEAVES_ACACIA = {
+BLOCK.ACACIA_LEAVES = {
     id: 220,
     inventory_icon_id: 3403,
     spawnable: true,
@@ -466,7 +490,7 @@ BLOCK.LEAVES_ACACIA = {
 };
 
 // Ствол берёзы
-BLOCK.WOOD_BIRCH = {
+BLOCK.BIRCH_TRUNK = {
     id: 162,
     inventory_icon_id: 2237,
     spawnable: true,
@@ -636,7 +660,6 @@ BLOCK.COAL_ORE = {
     sound: 'webcraft:block.stone',
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [2, 2]; }
 };
-
 
 BLOCK.LEAVES = {
     id: 18,
@@ -1019,7 +1042,7 @@ BLOCK.TORCH = {
     }
 };
 
-BLOCK.WOOD_STAIRS = {
+BLOCK.OAK_STAIRS = {
     id: 53,
     inventory_icon_id: 3318,
     spawnable: true,
@@ -1124,7 +1147,7 @@ BLOCK.STANDING_SIGN = {
     }
 };
 
-BLOCK.WOOD_DOOR = {
+BLOCK.OAK_DOOR = {
     id: 64,
     spawnable: true,
     transparent: true,
@@ -1177,7 +1200,7 @@ BLOCK.IRON_DOOR = {
     }
 };
 
-BLOCK.WOOD_PLATE = {
+BLOCK.OAK_PLATE = {
     id: 72,
     spawnable: true,
     transparent: false,
@@ -1304,15 +1327,41 @@ BLOCK.JUKEBOX = {
 
 BLOCK.OAK_FENCE = {
     id: 85,
+    inventory_icon_id: 3283,
+    spawnable: true,
+    transparent: true,
+    style: 'fence',
+    sound: 'webcraft:block.wood',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [21, 19];
+    }
+};
+
+BLOCK.SPRUCE_FENCE = {
+    id: 188,
+    inventory_icon_id: 3221,
+    spawnable: true,
+    transparent: true,
+    style: 'fence',
+    sound: 'webcraft:block.wood',
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [22, 19];
+    }
+};
+
+BLOCK.BIRCH_FENCE = {
+    id: 189,
     inventory_icon_id: 3229,
     spawnable: true,
     transparent: true,
     style: 'fence',
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [4, 0];
+        return [19, 19];
     }
 };
+
+// 190...192
 
 BLOCK.PUMPKIN = {
     id: 86,
@@ -1633,7 +1682,7 @@ BLOCK.DOUBLE_SLAB2 = {
     }
 };
 
-BLOCK.WOOD_SLAB = {
+BLOCK.OAK_SLAB = {
     id: 126,
     inventory_icon_id: 3317,
     spawnable: true,
@@ -1641,7 +1690,31 @@ BLOCK.WOOD_SLAB = {
     style: 'slab',
     sound: 'webcraft:block.wood',
     texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [4, 0];
+        return [21, 19];
+    }
+};
+
+BLOCK.BIRCH_SLAB = {
+    id: 458,
+    inventory_icon_id: 3230,
+    spawnable: true,
+    transparent: true,
+    style: 'slab',
+    sound: 'webcraft:block.wood',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [19, 19];
+    }
+};
+
+BLOCK.SPRUCE_SLAB = {
+    id: 459,
+    inventory_icon_id: 3268,
+    spawnable: true,
+    transparent: true,
+    style: 'slab',
+    sound: 'webcraft:block.wood',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [22, 19];
     }
 };
 
@@ -1983,56 +2056,6 @@ BLOCK.FENCE_GATE6 = {
     style: 'fence',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 13];
-    }
-};
-
-BLOCK.FENCE2 = {
-    id: 188,
-    spawnable: true,
-    transparent: true,
-    style: 'fence',
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
-    }
-};
-
-BLOCK.FENCE3 = {
-    id: 189,
-    spawnable: true,
-    transparent: true,
-    style: 'fence',
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
-    }
-};
-
-BLOCK.FENCE4 = {
-    id: 190,
-    spawnable: true,
-    transparent: true,
-    style: 'fence',
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
-    }
-};
-
-BLOCK.FENCE5 = {
-    id: 191,
-    spawnable: true,
-    transparent: true,
-    style: 'fence',
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
-    }
-};
-
-BLOCK.FENCE6 = {
-    id: 192,
-    spawnable: true,
-    transparent: true,
-    style: 'fence',
-	texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [8, 13];
     }
 };
 
