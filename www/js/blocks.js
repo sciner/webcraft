@@ -499,9 +499,9 @@ BLOCK.BIRCH_TRUNK = {
     tags: ['wood'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP || dir == DIRECTION.DOWN )
-            return [19, 16];
+            return [19, 17];
         else
-            return [5, 7];
+            return [19, 16];
     }
 };
 
