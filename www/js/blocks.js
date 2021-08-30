@@ -173,7 +173,7 @@ BLOCK.CRAFTING_TABLE = {
         if (dir == DIRECTION.UP) {
             return [11, 2];
         } else if(dir == DIRECTION.DOWN) {
-            return [4, 0];
+            return [21, 19];
         } else {
             if(dir == DIRECTION.RIGHT || dir == DIRECTION.FORWARD) {
                 return [12, 3];
@@ -324,7 +324,7 @@ BLOCK.BOOKCASE = {
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
-            return [ 4, 0 ];
+            return [ 21, 19 ];
         } else {
             return [ 3, 2 ];
         }
