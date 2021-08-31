@@ -205,9 +205,9 @@ class Chunk {
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
                     let block = this.blocks[x][z][y];
-                    if(block && block.lightPower) {
+                    if(block && block.light_power) {
                         this.lights.push({
-                            power: block.lightPower,
+                            power: block.light_power,
                             x: x,
                             y: y,
                             z: z
