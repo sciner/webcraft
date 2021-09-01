@@ -117,7 +117,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             if(this.visibleForAO(af)) {ao[2] = ao_value;}
             if(this.visibleForAO(ag)) {ao[3] = ao_value;}
             if(this.visibleForAO(ah)) {ao[1] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[1] = ao_value;}
+            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
         // n = NORMALS.UP;
