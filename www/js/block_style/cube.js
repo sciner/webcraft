@@ -95,6 +95,20 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         }
     }
 
+    // Примятая земля
+    if([BLOCK.DIRT.id].indexOf(block.id) >= 0) {
+        if(block.power < 1) {
+            bH = block.power;
+            DIRECTION_UP        = DIRECTION.DOWN;
+            DIRECTION_BACK      = DIRECTION.DOWN;
+            DIRECTION_RIGHT     = DIRECTION.DOWN;
+            DIRECTION_FORWARD   = DIRECTION.DOWN;
+            DIRECTION_LEFT      = DIRECTION.DOWN;
+            sideFlags           = 0;
+            upFlags             = 0;
+        }
+    }
+
     // Top
     neighbourBlock = neighbours.UP;
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {

@@ -513,5 +513,45 @@
             "item": "webcraft:spruce_trapdoor",
             "count": 2
         }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "DG",
+            "GD"
+        ],
+        "key": {
+            "D": {
+                "item": "webcraft:dirt"
+            },
+            "G": {
+                "item": "webcraft:gravel"
+            }
+        },
+        "result": {
+            "item": "webcraft:coarse_dirt",
+            "count": 2
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "GD",
+            "DG"
+        ],
+        "key": {
+            "D": {
+                "item": "webcraft:dirt"
+            },
+            "G": {
+                "item": "webcraft:gravel"
+            }
+        },
+        "result": {
+            "item": "webcraft:coarse_dirt",
+            "count": 2
+        }
     }
 ]

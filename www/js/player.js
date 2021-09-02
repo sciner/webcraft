@@ -461,7 +461,7 @@ export default class Player {
             let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             let playerPos       = this.getBlockPos();
             let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
-            let isTrapdoor      = createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
+            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
                 world_block.extra_data.opened = !world_block.extra_data.opened;
@@ -501,7 +501,17 @@ export default class Player {
                 }
                 let matBlock = BLOCK.fromId(this.buildMaterial.id);
                 // Запрет на списание инструментов как блоков
-                if(!matBlock.instrument_id) {
+                if(matBlock.instrument_id) {
+                    if(matBlock.instrument_id == 'shovel') {
+                        if(world_block.id == BLOCK.DIRT.id) {
+                            let extra_data = null;
+                            pos.x -= pos.n.x;
+                            pos.y -= pos.n.y;
+                            pos.z -= pos.n.z;
+                            world.setBlock(pos.x, pos.y, pos.z, world_block, 15/16, world_block.rotate, null, extra_data);
+                        }
+                    }
+                } else {
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
