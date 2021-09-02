@@ -63,6 +63,12 @@ export function push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbo
         }
     }
     let ao = calcAOForBlock(x, y, z);
+    if(!block.extra_data) {
+        block.extra_data = {
+            opened: true,
+            point: new Vector(0, 0, 0),
+        };
+    }
     let on_ceil = block.extra_data.point.y >= .5;
     let thickness = 3/16; // толщина блока
     if(block.extra_data.opened) {
