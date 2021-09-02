@@ -8,6 +8,23 @@
         ],
         "key": {
             "W": {
+                "item": "webcraft:birch_trunk"
+            }
+        },
+        "result": {
+            "item": "webcraft:oak_plank",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "W  "
+        ],
+        "key": {
+            "W": {
                 "item": "webcraft:oak_trunk"
             }
         },
@@ -25,11 +42,28 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:birch_trunk"
+                "item": "webcraft:acacia_trunk"
             }
         },
         "result": {
-            "item": "webcraft:oak_plank",
+            "item": "webcraft:acacia_plank",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "   ",
+            "W  "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:spruce_trunk"
+            }
+        },
+        "result": {
+            "item": "webcraft:spruce_plank",
             "count": 4
         }
     },
@@ -143,7 +177,55 @@
         ],
         "key": {
             "P": {
+                "item": "webcraft:birch_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:stick",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "P",
+            "P"
+        ],
+        "key": {
+            "P": {
                 "item": "webcraft:oak_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:stick",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "P",
+            "P"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:acacia_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:stick",
+            "count": 4
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "P",
+            "P"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:spruce_plank"
             }
         },
         "result": {
@@ -282,6 +364,154 @@
         "result": {
             "item": "webcraft:chest",
             "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PSP",
+            "PSP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:birch_plank"
+            },
+            "S": {
+                "item": "webcraft:stick"
+            }
+        },
+        "result": {
+            "item": "webcraft:birch_fence",
+            "count": 3
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PSP",
+            "PSP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:oak_plank"
+            },
+            "S": {
+                "item": "webcraft:stick"
+            }
+        },
+        "result": {
+            "item": "webcraft:oak_fence",
+            "count": 3
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PSP",
+            "PSP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:acacia_plank"
+            },
+            "S": {
+                "item": "webcraft:stick"
+            }
+        },
+        "result": {
+            "item": "webcraft:acacia_fence",
+            "count": 3
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PSP",
+            "PSP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:spruce_plank"
+            },
+            "S": {
+                "item": "webcraft:stick"
+            }
+        },
+        "result": {
+            "item": "webcraft:spruce_fence",
+            "count": 3
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PPP",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:birch_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:birch_trapdoor",
+            "count": 2
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PPP",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:oak_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:oak_trapdoor",
+            "count": 2
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PPP",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:acacia_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:acacia_trapdoor",
+            "count": 2
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "PPP",
+            "PPP"
+        ],
+        "key": {
+            "P": {
+                "item": "webcraft:spruce_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:spruce_trapdoor",
+            "count": 2
         }
     }
 ]

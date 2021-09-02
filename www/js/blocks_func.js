@@ -171,9 +171,6 @@ export class BLOCK_FUNC {
                     B.light = null;
                 }
                 if(B.spawnable == true) {
-                    if(B.style && B.style == 'fence') {
-                        continue;
-                    }
                     if(B.style && B.style == 'planting') {
                         B.planting = true;
                     }
