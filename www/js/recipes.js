@@ -32,7 +32,7 @@ const RECIPES = {
                     throw 'Invalid recipe result block type ' + recipe.result.item;
                 }
                 recipe.result.item_id = result_block.id;
-                // create key map
+                // Create key map
                 let keys = {};
                 for(let key of Object.keys(recipe.key)) {
                     let value = recipe.key[key];
@@ -43,31 +43,21 @@ const RECIPES = {
                         }
                         keys[key] = block.id;
                     } else if(value.hasOwnProperty('tag')) {
-                        throw 'Recipe key not implemented `tag`';
+                        let tag = value.tag;
+                        if(BLOCK.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
+                            for(let block of BLOCK.BLOCK_BY_TAGS[tag]) {
+                            }
+                        } else {
+                            throw 'items with tag `' + tag + '` not found';
+                        }
+                        debugger;
                     } else {
                         throw 'Recipe key not have valie property `item` or `tag`';
                     }
                 }
-                // Make pattern
-                for(let pk in recipe.pattern) {
-                    if(recipe.pattern[pk].length < 3) {
-                        recipe.pattern[pk] = (recipe.pattern[pk] + '   ').substring(0, 3);
-                    }
-                }
-                recipe.pattern_array = recipe.pattern
-                    .join('')
-                    .trim()
-                    .split('')
-                    .map(function(key) {
-                        if(key == ' ') {
-                            return null;
-                        }
-                        if(!keys.hasOwnProperty(key)) {
-                            throw 'Invalid recipe pattern key `' + key + '`';
-                        }
-                        return keys[key];
-                    });
-                this.crafting_shaped.list.push(recipe);
+                let r = Object.assign({}, recipe);
+                r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
+                this.crafting_shaped.list.push(r);
                 break;
             }
             default: {
@@ -75,6 +65,27 @@ const RECIPES = {
                 break;
             }
         }
+    },
+    makeRecipePattern: function(pattern, keys) {
+        // Make pattern
+        for(let pk in pattern) {
+            if(pattern[pk].length < 3) {
+                pattern[pk] = (pattern[pk] + '   ').substring(0, 3);
+            }
+        }
+        return pattern
+            .join('')
+            .trim()
+            .split('')
+            .map(function(key) {
+                if(key == ' ') {
+                    return null;
+                }
+                if(!keys.hasOwnProperty(key)) {
+                    throw 'Invalid recipe pattern key `' + key + '`';
+                }
+                return keys[key];
+            });
     }
 }
 

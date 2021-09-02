@@ -1373,7 +1373,7 @@ BLOCK.ACACIA_FENCE = {
 // Еловый забор
 BLOCK.SPRUCE_FENCE = {
     id: 191,
-    inventory_icon_id: 3221,
+    inventory_icon_id: 3316,
     spawnable: true,
     transparent: true,
     style: 'fence',
@@ -1802,7 +1802,7 @@ BLOCK.ACACIA_SLAB = {
 
 BLOCK.SPRUCE_SLAB = {
     id: 461,
-    inventory_icon_id: 3268,
+    inventory_icon_id: 3317,
     spawnable: true,
     transparent: true,
     style: 'slab',
@@ -1850,7 +1850,7 @@ BLOCK.EMERALD = {
 
 BLOCK.BIRCH_STAIRS = {
     id: 135,
-    inventory_icon_id: 2255,
+    inventory_icon_id: 3231,
     spawnable: true,
     transparent: false,
     style: 'stairs',
@@ -1861,7 +1861,7 @@ BLOCK.BIRCH_STAIRS = {
 
 BLOCK.OAK_STAIRS = {
     id: 53,
-    inventory_icon_id: 3318,
+    inventory_icon_id: 3285,
     spawnable: true,
     transparent: false,
     style: 'stairs',
@@ -1883,7 +1883,7 @@ BLOCK.ACACIA_STAIRS = {
 };
 BLOCK.SPRUCE_STAIRS = {
     id: 134,
-    inventory_icon_id: 2262,
+    inventory_icon_id: 3318,
     spawnable: true,
     transparent: false,
     style: 'stairs',
@@ -2189,9 +2189,18 @@ BLOCK.ICE3 = {
 BLOCK.getAll();
 
 BLOCK.BLOCK_BY_ID = {};
+BLOCK.BLOCK_BY_TAGS = {};
 for(let key of Object.keys(BLOCK)) {
     let block = BLOCK[key];
     if(typeof(block) == 'object' && ('spawnable' in block)) {
         BLOCK.BLOCK_BY_ID[block.id] = block;
+        if(block.hasOwnProperty('tags')) {
+            for(let tag of block.tags) {
+                if(!BLOCK.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
+                    BLOCK.BLOCK_BY_TAGS[tag] = [];
+                }
+                BLOCK.BLOCK_BY_TAGS[tag].push(block);
+            }
+        }
     }
 }
