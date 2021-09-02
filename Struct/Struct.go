@@ -61,11 +61,12 @@ type (
 		Z float32 `json:"z"`
 	}
 	BlockItem struct {
-		ID       int      `json:"id"`
-		Power    float32  `json:"power"`
-		Rotate   Vector3f `json:"rotate"`
-		Count    int      `json:"count"`
-		EntityID string   `json:"entity_id"`
+		ID        int                    `json:"id"`
+		Power     float32                `json:"power"`
+		Rotate    Vector3f               `json:"rotate"`
+		Count     int                    `json:"count"`
+		EntityID  string                 `json:"entity_id"`
+		ExtraData map[string]interface{} `json:"extra_data"`
 	}
 	///////////////////////////////////////////////////////
 	// Command ...

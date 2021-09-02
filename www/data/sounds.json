@@ -117,5 +117,27 @@
         "place": [
             "/sounds/gravel1.mp3"
         ]
+    },
+    {
+        "type": "webcraft:block.wooden_trapdoor",
+        "open": [
+            "/sounds/Wooden_trapdoor_open1.ogg",
+            "/sounds/Wooden_trapdoor_open2.ogg",
+            "/sounds/Wooden_trapdoor_open3.ogg",
+            "/sounds/Wooden_trapdoor_open4.ogg",
+            "/sounds/Wooden_trapdoor_open5.ogg"
+        ],
+        "dig": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ],
+        "place": [
+            "/sounds/wood1.mp3",
+            "/sounds/wood2.mp3",
+            "/sounds/wood3.mp3",
+            "/sounds/wood4.mp3"
+        ]
     }
 ]

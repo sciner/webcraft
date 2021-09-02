@@ -281,7 +281,7 @@ export class ChunkManager {
     }
 
     // setBlock
-    setBlock(x, y, z, block, is_modify, power, rotate, entity_id) {
+    setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data) {
         // определяем относительные координаты чанка
         let chunkPos = this.getChunkPos(x, y, z);
         // обращаемся к чанку
@@ -295,7 +295,8 @@ export class ChunkManager {
             id:         block.id,
             power:      power ? power : 1.0,
             rotate:     rotate,
-            entity_id:  entity_id
+            entity_id:  entity_id,
+            extra_data: extra_data ? extra_data : null
         };
         if(is_modify) {
             // @server Отправляем на сервер инфу об установке блока
@@ -314,18 +315,22 @@ export class ChunkManager {
                 // dig
                 action = 'dig';
                 b = world_block;
+            } else if(world_block && world_block.id == block.id) {
+                // do nothing
             } else {
                 // place
                 action = 'place';
                 b = block;
             }
-            b = BLOCK.BLOCK_BY_ID[b.id];
-            if(b.hasOwnProperty('sound')) {
-                Game.sounds.play(b.sound, action);
+            if(action) {
+                b = BLOCK.BLOCK_BY_ID[b.id];
+                if(b.hasOwnProperty('sound')) {
+                    Game.sounds.play(b.sound, action);
+                }
             }
         }
         // устанавливаем блок
-        return chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
+        return chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
     }
 
     // destroyBlock

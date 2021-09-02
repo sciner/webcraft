@@ -22,9 +22,9 @@ class ChunkManager {
     // Возвращает относительные координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
         let v = new Vector(
-            parseInt(x / CHUNK_SIZE_X),
-            parseInt(y / CHUNK_SIZE_Y),
-            parseInt(z / CHUNK_SIZE_Z)
+            x / CHUNK_SIZE_X | 0,
+            y / CHUNK_SIZE_Y | 0,
+            z / CHUNK_SIZE_Z | 0
         );
         if(x < 0) {v.x--;}
         if(z < 0) {v.z--;}
@@ -122,7 +122,8 @@ class Chunk {
             let type        = BLOCK.fromId(m.id);
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
-            this.setBlock(parseInt(pos[0]), parseInt(pos[1]), parseInt(pos[2]), type, false, m.power, rotate, entity_id);
+            let extra_data  = m.extra_data ? m.extra_data : null;
+            this.setBlock(pos[0] | 0, pos[1] | 0, pos[2] | 0, type, false, m.power, rotate, entity_id, extra_data);
         }
     }
     
@@ -154,7 +155,7 @@ class Chunk {
     }
     
     // setBlock
-    setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id) {
+    setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
         // fix rotate
         if(rotate && typeof rotate === 'object') {
             rotate = new Vector(
@@ -195,6 +196,7 @@ class Chunk {
         this.blocks[x][z][y].rotate     = rotate;
         this.blocks[x][z][y].entity_id  = entity_id;
         this.blocks[x][z][y].texture    = null;
+        this.blocks[x][z][y].extra_data = extra_data;
     }
     
     // makeLights
@@ -611,7 +613,7 @@ onmessage = async function(e) {
                 let chunk = chunks[args.key];
                 // 2. Set new block
                 if(args.type) {
-                    chunk.setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate);
+                    chunk.setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate, null, args.extra_data);
                 }
                 let pos = new Vector(args.x - chunk.coord.x, args.y - chunk.coord.y, args.z - chunk.coord.z);
                 // 3. Clear vertices for new block and around near
