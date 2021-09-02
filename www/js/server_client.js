@@ -88,7 +88,8 @@ export default class ServerClient {
                     let pos = cmd.data.pos;
                     let item = cmd.data.item;
                     let block = BLOCK.fromId(item.id);
-                    Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id);
+                    let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
+                    Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
                     break;
                 }
                 case ServerClient.EVENT_CHUNK_LOADED: {

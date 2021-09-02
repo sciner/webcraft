@@ -104,8 +104,15 @@ export class PickAt {
                 side.y = -side.y;
                 side.z = -side.z;
                 res = {
-                    x: ix, y: iy, z: iz, n: side
+                    x: ix,
+                    y: iy,
+                    z: iz,
+                    n: side,
+                    point: new Vector(pos.x, pos.y, pos.z).sub(new Vector(ix, iy, iz))
                 };
+                if(res.point.y == 1) {
+                    res.point.y = 0;
+                }
                 break;
             }
         }

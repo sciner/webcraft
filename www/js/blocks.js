@@ -1393,6 +1393,86 @@ BLOCK.NETHER_BRICK_FENCE = {
     }
 };
 
+// Березовый люк
+BLOCK.BIRCH_TRAPDOOR = {
+    id: 462,
+    inventory_icon_id: 1647,
+    spawnable: true,
+    transparent: true,
+    style: 'trapdoor',
+    sound: 'webcraft:block.wooden_trapdoor',
+    tags: ['trapdoor'],
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
+            return [20, 20];
+        }  else if(dir == DIRECTION.LEFT || dir == DIRECTION.RIGHT) {
+            return [20, 21];
+        } else {
+            return [20, 22];
+        }
+    }
+};
+
+// Дубовый люк
+BLOCK.OAK_TRAPDOOR = {
+    id: 463,
+    inventory_icon_id: 957,
+    spawnable: true,
+    transparent: true,
+    style: 'trapdoor',
+    sound: 'webcraft:block.wooden_trapdoor',
+    tags: ['trapdoor'],
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
+            return [21, 20];
+        } else if(dir == DIRECTION.LEFT || dir == DIRECTION.RIGHT) {
+            return [21, 21];
+        } else {
+            return [21, 22];
+        }
+    }
+};
+
+// Акациевый люк
+BLOCK.ACACIA_TRAPDOOR = {
+    id: 464,
+    inventory_icon_id: 1649,
+    spawnable: true,
+    transparent: true,
+    style: 'trapdoor',
+    sound: 'webcraft:block.wooden_trapdoor',
+    tags: ['trapdoor'],
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
+            return [22, 20];
+        } else if(dir == DIRECTION.LEFT || dir == DIRECTION.RIGHT) {
+            return [22, 21];
+        } else {
+            return [22, 22];
+        }
+    }
+};
+
+// Еловый люк
+BLOCK.SPRUCE_TRAPDOOR = {
+    id: 465,
+    inventory_icon_id: 1646,
+    spawnable: true,
+    transparent: true,
+    style: 'trapdoor',
+    sound: 'webcraft:block.wooden_trapdoor',
+    tags: ['trapdoor'],
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
+            return [23, 20];
+        }  else if(dir == DIRECTION.LEFT || dir == DIRECTION.RIGHT) {
+            return [23, 21];
+        } else {
+            return [23, 22];
+        }
+    }
+};
+
 // 190...192
 
 BLOCK.PUMPKIN = {

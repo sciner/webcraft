@@ -7,6 +7,7 @@ import { push_pane } from './block_style/pane.js';
 import { push_plant } from './block_style/plant.js';
 import { push_slab } from './block_style/slab.js';
 import { push_stairs } from './block_style/stairs.js';
+import { push_trapdoor } from './block_style/trapdoor.js';
 
 export class BLOCK_FUNC {
 
@@ -25,6 +26,24 @@ export class BLOCK_FUNC {
             }
         }
         return result;
+    }
+
+    // Call before setBlock
+    static makeExtraData(block, pos) {
+        block = BLOCK.BLOCK_BY_ID[block.id];
+        let extra_data = null;
+        if(block.tags && block.tags.indexOf('trapdoor') >= 0) {
+            extra_data = {
+                point: new Vector(pos.point.x, pos.point.y, pos.point.z),
+                opened: false
+            };
+            if(pos.n.y == 1) {
+                extra_data.point.y = 0;
+            } else if(pos.n.y == -1) {
+                extra_data.point.y = 1;
+            }
+        }
+        return extra_data;
     }
 
     // Returns a block structure for the given id.
@@ -244,6 +263,8 @@ export class BLOCK_FUNC {
             push_ladder(block, vertices, world, lightmap, x, y, z);
         } else if (style == 'fence') {
             this.push_fence(block, vertices, world, lightmap, x, y, z, neighbours, biome);
+        } else if (style == 'trapdoor') {
+            this.push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbours, biome);
         } else if (['torch'].indexOf(style) >= 0) {
             this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
         } else {
@@ -272,3 +293,4 @@ BLOCK_FUNC.push_pane = push_pane;
 BLOCK_FUNC.push_plant = push_plant;
 BLOCK_FUNC.push_slab = push_slab;
 BLOCK_FUNC.push_stairs = push_stairs;
+BLOCK_FUNC.push_trapdoor = push_trapdoor;

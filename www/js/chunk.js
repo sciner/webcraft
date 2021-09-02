@@ -189,7 +189,7 @@ export default class Chunk {
     }
 
     // setBlock
-    setBlock(x, y, z, type, is_modify, power, rotate, entity_id) {
+    setBlock(x, y, z, type, is_modify, power, rotate, entity_id, extra_data) {
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
@@ -221,11 +221,13 @@ export default class Chunk {
             type.rotate     = rotate;
             type.entity_id  = entity_id;
             type.texture    = null;
+            type.extra_data = extra_data;
             if(type.gravity) {
                 type.falling = true;
             }
             this.blocks[x][z][y] = type;
         }
+        // type.extra_data = extra_data;
         // Run webworker method
         this.chunkManager.postWorkerMessage(['setBlock', {
             key:        this.key,
@@ -235,7 +237,8 @@ export default class Chunk {
             type:       type,
             is_modify:  is_modify,
             power:      power,
-            rotate:     rotate
+            rotate:     rotate,
+            extra_data: extra_data
         }]);
         if(x == 0) {
             // West neighbor

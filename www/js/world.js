@@ -108,8 +108,8 @@ export class World {
     };
 
     // setBlock
-    setBlock(x, y, z, type, power, rotate) {
-        this.chunkManager.setBlock(x, y, z, type, true, power, rotate);
+    setBlock(x, y, z, type, power, rotate, entity_id, extra_data) {
+        this.chunkManager.setBlock(x, y, z, type, true, power, rotate, entity_id, extra_data);
     }
 
     // destroyBlock

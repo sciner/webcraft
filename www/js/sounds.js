@@ -31,6 +31,7 @@ export default class Sounds {
         const list = this.tags[tag][action];
         let i = Math.floor(Math.random() * list.length);
         list[i].play();
+        return true;
     }
 
 }

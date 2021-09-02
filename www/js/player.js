@@ -208,7 +208,6 @@ export default class Player {
             if(this.velocity.y > 0) {
                 if(down && first) {
                     if(!this.flying) {
-                        console.log('flying');
                         this.velocity.y = 0;
                         this.flying = true;
                     }
@@ -459,12 +458,22 @@ export default class Player {
             if(pos === false) {
                 return;
             }
-            let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            let playerPos = this.getBlockPos();
-            let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
-            if(createBlock) {
+            let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            let playerPos       = this.getBlockPos();
+            let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
+            let isTrapdoor      = createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
+            if(isTrapdoor) {
+                // Trapdoor
+                world_block.extra_data.opened = !world_block.extra_data.opened;
+                if(world_block.sound) {
+                    Game.sounds.play(world_block.sound, 'open');
+                }
+                world.setBlock(pos.x, pos.y, pos.z, world_block, null, world_block.rotate, null, world_block.extra_data);
+            } else if(createBlock) {
                 if(!replaceBlock) {
-                    pos = new Vector(pos.x + pos.n.x, pos.y + pos.n.y, pos.z + pos.n.z);
+                    pos.x += pos.n.x;
+                    pos.y += pos.n.y;
+                    pos.z += pos.n.z;
                 }
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
@@ -493,6 +502,7 @@ export default class Player {
                 let matBlock = BLOCK.fromId(this.buildMaterial.id);
                 // Запрет на списание инструментов как блоков
                 if(!matBlock.instrument_id) {
+                    let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
@@ -500,7 +510,7 @@ export default class Player {
                                 Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), playerRotate);
                             }
                         } else {
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);
                         }
                     } else {
                         // Create block
@@ -522,7 +532,7 @@ export default class Player {
                                     return;
                                 }
                             }
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);
                         }
                     }
                     this.inventory.decrement();
