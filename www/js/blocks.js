@@ -203,6 +203,41 @@ BLOCK.DIRT = {
     }
 };
 
+// Podzol
+BLOCK.PODZOL = {
+    id: 466,
+    inventory_icon_id: 3371,
+    spawnable: true,
+    transparent: false,
+    selflit: false,
+    gravity: false,
+    fluid: false,
+    sound: 'webcraft:block.gravel',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        if(dir == DIRECTION.UP && lit )
+            return [4, 0];
+        else if(dir == DIRECTION.DOWN || !lit )
+            return [ 2, 0 ];
+        else
+            return [4, 1];
+    }
+};
+
+// Кменистая земля
+BLOCK.COARSE_DIRT = {
+    id: 467,
+    inventory_icon_id: 462,
+    spawnable: true,
+    transparent: false,
+    selflit: false,
+    gravity: false,
+    fluid: false,
+    sound: 'webcraft:block.gravel',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [4, 3];
+    }
+};
+
 // Dirt
 BLOCK.SNOW_DIRT = {
 	id: 145,

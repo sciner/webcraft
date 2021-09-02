@@ -348,6 +348,9 @@ class Chunk {
                                 b = this.blocks[x][z][y + 1];
                             }*/
                         }
+                        if(b && b.id == BLOCK.DIRT.id && b.power != 1) {
+                            b = null;
+                        }
                         if(p.y == 1) {
                             neighbours.UP = b;
                         } else if(p.y == -1) {
