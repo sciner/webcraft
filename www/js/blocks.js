@@ -244,7 +244,7 @@ BLOCK.DIRT_PATH = {
     id: 468,
     inventory_icon_id: 980,
     spawnable: true,
-    transparent: false,
+    transparent: true,
     selflit: false,
     gravity: false,
     fluid: false,
