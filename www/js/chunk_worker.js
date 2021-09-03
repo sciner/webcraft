@@ -342,14 +342,7 @@ class Chunk {
                                 } else {
                                     b = this.blocks[x][z + 1][y];
                                 }
-                            } /*else if (p.y == -1) {
-                                b = this.blocks[x][z][y - 1];
-                            } else if (p.y == 1) {
-                                b = this.blocks[x][z][y + 1];
-                            }*/
-                        }
-                        if(b && b.id == BLOCK.DIRT_PATH.id) {
-                            b = null;
+                            }
                         }
                         if(p.y == 1) {
                             neighbours.UP = b;

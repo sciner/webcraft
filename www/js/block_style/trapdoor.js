@@ -170,54 +170,83 @@ export function push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbo
 
 //
 function push_part(vertices, x, y, z, xs, zs, ys, ao, tex_up_down, tex_front, tex_side, cardinal_direction, opened, on_ceil) {
-    let lm          = MULTIPLY.COLOR.WHITE;
-    let flags       = 0;
-    let sideFlags   = 0;
-    let upFlags     = 0;
+
+    let lm              = MULTIPLY.COLOR.WHITE;
+    let flags           = 0;
+    let sideFlags       = 0;
+    let upFlags         = 0;
 
     let top_rotate      = [xs, 0, 0, 0, zs, 0]; // Поворот верхней поверхностной текстуры
     let bottom_rotate   = [xs, 0, 0, 0, -zs, 0];
-    let south_rotate    = [xs, 0, 0, 0, 0, ys];
     let north_rotate    = [xs, 0, 0, 0, 0, -ys];
-    let west_rotate     = [0, zs, 0, 0, 0, -ys];
+    let south_rotate    = [xs, 0, 0, 0, 0, ys];
+    let west_rotate     = [0, -zs, 0, 0, 0, ys];
     let east_rotate     = [0, zs, 0, 0, 0, ys];
 
     if(opened) {
         switch(cardinal_direction) {
             // SOUTH
             case ROTATE.S: {
-                east_rotate = [0, 0, -ys, 0, zs, 0];
-                west_rotate = [0, 0, -ys, 0, -zs, 0];
+                if(on_ceil) {
+                    top_rotate = [-xs, 0, 0, 0, -zs, 0];
+                    west_rotate = [0, 0, -ys, 0, -zs, 0];
+                    east_rotate = [0, 0, ys, 0, -zs, 0];
+                } else {
+                    bottom_rotate = [-xs, 0, 0, 0, zs, 0];
+                    north_rotate = [-xs, 0, 0, 0, 0, ys];
+                    south_rotate = [-xs, 0, 0, 0, 0, -ys];
+                    west_rotate = [0, 0, ys, 0, zs, 0];
+                    east_rotate = [0, 0, -ys, 0, zs, 0];
+                }
                 break;
             }
             // NORTH
             case ROTATE.N: {
-                east_rotate = [0, 0, -ys, 0, zs, 0];
-                west_rotate = [0, 0, -ys, 0, -zs, 0];
+                if(on_ceil) {
+                    bottom_rotate = [-xs, 0, 0, 0, zs, 0];
+                    west_rotate = [0, 0, ys, 0, zs, 0];
+                    east_rotate = [0, 0, -ys, 0, zs, 0];
+                } else {
+                    top_rotate = [-xs, 0, 0, 0, -zs, 0];
+                    north_rotate = [-xs, 0, 0, 0, 0, ys];
+                    south_rotate = [-xs, 0, 0, 0, 0, -ys];
+                    west_rotate = [0, 0,- ys, 0, -zs, 0];
+                    east_rotate = [0, 0, ys, 0, -zs, 0];
+                }
                 break;
             }
             case ROTATE.E: {
                 if(on_ceil) {
+                    top_rotate = [0, -zs, 0, xs, 0, 0];
+                    bottom_rotate = [0, zs, 0, xs, 0, 0];
+                    north_rotate = [0, 0, -ys, -xs, 0, 0];
+                    south_rotate = [0, 0, -ys, xs, 0, 0];
                     west_rotate = [0, -zs, 0, 0, 0, ys];
                 } else {
+                    top_rotate = [0, zs, 0, -xs, 0, 0];
+                    bottom_rotate = [0, -zs, 0, -xs, 0, 0];
+                    north_rotate = [0, 0, ys, xs, 0, 0];
+                    south_rotate = [0, 0, ys, -xs, 0, 0];
+                    west_rotate = [0, zs, 0, 0, 0, -ys];
                     east_rotate = [0, -zs, 0, 0, 0, -ys];
                 }
-                top_rotate = [0, -zs, 0, xs, 0, 0];
-                south_rotate = [0, 0, -ys, xs, 0, 0];
-                north_rotate = [0, 0, ys, xs, 0, 0];
-                bottom_rotate = [0, zs, 0, xs, 0, 0];
                 break;
             }
             case ROTATE.W: {
                 if(on_ceil) {
+                    top_rotate = [0, zs, 0, -xs, 0, 0];
+                    bottom_rotate = [0, -zs, 0, -xs, 0, 0];
+                    north_rotate = [0, 0, ys, xs, 0, 0];
+                    south_rotate = [0, 0, ys, -xs, 0, 0];
                     west_rotate = [0, -zs, 0, 0, 0, ys];
                 } else {
+                    top_rotate = [0, -zs, 0, xs, 0, 0];
+                    bottom_rotate = [0, zs, 0, xs, 0, 0];
+                    north_rotate = [0, 0, -ys, -xs, 0, 0];
+                    south_rotate = [0, 0, -ys, xs, 0, 0];
+                    west_rotate = [0, zs, 0, 0, 0, -ys];
                     east_rotate = [0, -zs, 0, 0, 0, -ys];
                 }
-                top_rotate = [0, -zs, 0, xs, 0, 0];
-                south_rotate = [0, 0, -ys, xs, 0, 0];
-                north_rotate = [0, 0, ys, xs, 0, 0];
-                bottom_rotate = [0, zs, 0, xs, 0, 0];
                 break;
             }
         }
@@ -243,23 +272,6 @@ function push_part(vertices, x, y, z, xs, zs, ys, ao, tex_up_down, tex_front, te
                 bottom_rotate = [0, zs, 0, xs, 0, 0];
                 break;
             }
-        }
-    }
-    switch(cardinal_direction) {
-        case ROTATE.N:
-        case ROTATE.S: {
-            if(!on_ceil) {
-                south_rotate = [-xs, 0, 0, 0, 0, -ys];
-                north_rotate[0] = -north_rotate[0];
-                north_rotate[5] = -north_rotate[5];
-            }
-            break;
-        }
-        case ROTATE.E: {
-            break;
-        }
-        case ROTATE.W: {
-            break;
         }
     }
     // TOP

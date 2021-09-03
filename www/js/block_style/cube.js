@@ -86,13 +86,18 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         }
     }
 
-    if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SNOW_DIRT.id) {
-        if(neighbours.UP && !neighbours.UP.transparent) {
+    // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
+    if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
+        /*if(x == 2694 && y == 76 && z == 2609) {
+            debugger;
+        }*/
+        if(neighbours.UP && (!neighbours.UP.transparent || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
             DIRECTION_BACK      = DIRECTION.DOWN;
             DIRECTION_RIGHT     = DIRECTION.DOWN;
             DIRECTION_FORWARD   = DIRECTION.DOWN;
             DIRECTION_LEFT      = DIRECTION.DOWN;
             sideFlags = 0;
+            height = 1;
         }
     }
 
