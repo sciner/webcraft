@@ -508,7 +508,8 @@ export default class Player {
                             pos.x -= pos.n.x;
                             pos.y -= pos.n.y;
                             pos.z -= pos.n.z;
-                            world.setBlock(pos.x, pos.y, pos.z, world_block, 15/16, world_block.rotate, null, extra_data);
+                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, world_block.rotate, null, extra_data);
+                            // world.setBlock(pos.x, pos.y, pos.z, world_block, 15/16, world_block.rotate, null, extra_data);
                         }
                     }
                 } else {

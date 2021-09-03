@@ -193,6 +193,7 @@ BLOCK.DIRT = {
     gravity: false,
     fluid: false,
     sound: 'webcraft:block.grass',
+    tags: ['dirt'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         if(dir == DIRECTION.UP && lit )
             return [ 0, 16 ];
@@ -223,7 +224,7 @@ BLOCK.PODZOL = {
     }
 };
 
-// Кменистая земля
+// Каменистая земля
 BLOCK.COARSE_DIRT = {
     id: 467,
     inventory_icon_id: 462,
@@ -238,7 +239,29 @@ BLOCK.COARSE_DIRT = {
     }
 };
 
-// Dirt
+// Тропинка
+BLOCK.DIRT_PATH = {
+    id: 468,
+    inventory_icon_id: 980,
+    spawnable: true,
+    transparent: false,
+    selflit: false,
+    gravity: false,
+    fluid: false,
+    height: 15 / 16,
+    sound: 'webcraft:block.grass',
+    tags: ['dirt'],
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        if(dir == DIRECTION.UP && lit )
+            return [4, 5];
+        else if(dir == DIRECTION.DOWN || !lit )
+            return [ 2, 0 ];
+        else
+            return [4, 6];
+    }
+};
+
+// SNOW_DIRT
 BLOCK.SNOW_DIRT = {
 	id: 145,
     inventory_icon_id: 2244,

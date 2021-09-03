@@ -348,7 +348,7 @@ class Chunk {
                                 b = this.blocks[x][z][y + 1];
                             }*/
                         }
-                        if(b && b.id == BLOCK.DIRT.id && b.power != 1) {
+                        if(b && b.id == BLOCK.DIRT_PATH.id) {
                             b = null;
                         }
                         if(p.y == 1) {

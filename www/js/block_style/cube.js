@@ -1,4 +1,5 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
+import {impl as alea} from '../../vendors/alea.js';
 
 // Pushes the vertices necessary for rendering a
 // specific block into the array.
@@ -33,7 +34,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
     let DIRECTION_LEFT          = DIRECTION.LEFT;
 
     if(!block.name) {
-        console.log('block', JSON.stringify(block), block.id);
+        console.error('block', JSON.stringify(block), block.id);
         debugger;
     }
 
@@ -95,20 +96,6 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         }
     }
 
-    // Примятая земля
-    if([BLOCK.DIRT.id].indexOf(block.id) >= 0) {
-        if(block.power < 1) {
-            bH = block.power;
-            DIRECTION_UP        = DIRECTION.DOWN;
-            DIRECTION_BACK      = DIRECTION.DOWN;
-            DIRECTION_RIGHT     = DIRECTION.DOWN;
-            DIRECTION_FORWARD   = DIRECTION.DOWN;
-            DIRECTION_LEFT      = DIRECTION.DOWN;
-            sideFlags           = 0;
-            upFlags             = 0;
-        }
-    }
-
     // Top
     neighbourBlock = neighbours.UP;
     if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
@@ -132,15 +119,56 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             if(this.visibleForAO(ag)) {ao[3] = ao_value;}
             if(this.visibleForAO(ah)) {ao[1] = ao_value;}
             if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            // Если это тропинка
+            if(block.id == BLOCK.DIRT_PATH.id) {
+                if(neighbours.SOUTH && neighbours.SOUTH.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(neighbours.NORTH && neighbours.NORTH.id != BLOCK.DIRT_PATH.id) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(neighbours.WEST && neighbours.WEST.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(neighbours.EAST && neighbours.EAST.id != BLOCK.DIRT_PATH.id) {ao[1] = ao_value; ao[2] = ao_value;}
+                let ai = this.getCachedBlock(x - 1, y, z - 1);
+                let ak = this.getCachedBlock(x + 1, y, z + 1);
+                let al = this.getCachedBlock(x + 1, y, z - 1);
+                let am = this.getCachedBlock(x - 1, y, z + 1);
+                if(this.visibleForAO(ai) && ai.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value;}
+                if(this.visibleForAO(ak) && ak.id != BLOCK.DIRT_PATH.id) {ao[2] = ao_value;}
+                if(this.visibleForAO(al) && al.id != BLOCK.DIRT_PATH.id) {ao[1] = ao_value;}
+                if(this.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
+            }
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        // n = NORMALS.UP;
+        let top_vectors = [1, 0, 0, 0, 1, 0];
+        // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
+        if(block.id == BLOCK.DIRT.id) {
+            let a = new alea([x, y, z].join('x'));
+            a = a.int32();
+            if(a < 0) a = -a;
+            let rv = a % 4;
+            switch(rv) {
+                case 0: {
+                    top_vectors = [0, -1, 0, 1, 0, 0];
+                    ao = [ao[3], ao[0], ao[1], ao[2]];
+                    break;
+                }
+                case 1: {
+                    top_vectors = [-1, 0, 0, 0, -1, 0];
+                    ao = [ao[2], ao[3], ao[0], ao[1]];
+                    break;
+                }
+                case 2: {
+                    top_vectors = [0, 1, 0, -1, 0, 0];
+                    ao = [ao[1], ao[2], ao[3], ao[0]];
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
         vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
-            1, 0, 0,
-            0, 1, 0,
-            c[0], c[1], c[2], c[3],
+            ...top_vectors,
+            ...c,
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+            ...ao, flags | upFlags);
     }
 
     // Waters
@@ -156,9 +184,9 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         vertices.push(x + 0.5, z + 0.5, y,
             1, 0, 0,
             0, -1, 0,
-            c[0], c[1], c[2], c[3],
+            ...c,
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags);
+            ...ao, flags);
     }
 
     // South | Front/Forward
@@ -195,7 +223,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             0, 0, bH,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            ...ao, flags | sideFlags);
     }
 
     // North | Back
@@ -232,7 +260,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            ...ao, flags | sideFlags);
     }
 
     // West | Left
@@ -269,7 +297,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             0, 0, -bH,
             c[0], c[1], -c[2], c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            ...ao, flags | sideFlags);
     }
 
     // East | Right
@@ -306,7 +334,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             0, 0, bH,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            ...ao, flags | sideFlags);
     }
 
 }
