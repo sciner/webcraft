@@ -22,6 +22,9 @@ export class Instrument_Hand {
         if(block.id == BLOCK.CONCRETE.id) {
             block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
         }
+        if(block.id == BLOCK.DIRT_PATH.id) {
+            block = BLOCK.fromId(BLOCK.DIRT.id);
+        }
         if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(block.id) < 0) {
             this.inventory.increment(Object.assign({count: 1}, block));
         }

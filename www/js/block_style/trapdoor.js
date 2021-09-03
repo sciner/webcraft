@@ -264,37 +264,37 @@ function push_part(vertices, x, y, z, xs, zs, ys, ao, tex_up_down, tex_front, te
     }
     // TOP
     vertices.push(x, z, y + ys,
-        top_rotate[0], top_rotate[1], top_rotate[2], top_rotate[3], top_rotate[4], top_rotate[5],
+        ...top_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b,
         ao.TOP[0], ao.TOP[1], ao.TOP[2], ao.TOP[3], flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y, 
-        bottom_rotate[0], bottom_rotate[1], bottom_rotate[2], bottom_rotate[3], bottom_rotate[4], bottom_rotate[5],
+        ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b,
         ao.BOTTOM[0], ao.BOTTOM[1], ao.BOTTOM[2], ao.BOTTOM[3], flags);
     // SOUTH
     vertices.push(x, z - zs/2, y + ys/2,
-        south_rotate[0], south_rotate[1], south_rotate[2], south_rotate[3], south_rotate[4], south_rotate[5],
+        ...south_rotate,
         tex_front[0], tex_front[1], tex_front[2], -tex_front[3],
         lm.r, lm.g, lm.b,
         ao.SOUTH[0], ao.SOUTH[1], ao.SOUTH[2], ao.SOUTH[3], flags | sideFlags);
     // NORTH
     vertices.push(x, z + zs/2, y + ys/2,
-        north_rotate[0], north_rotate[1], north_rotate[2], north_rotate[3], north_rotate[4], north_rotate[5],
+        ...north_rotate,
         tex_front[0], tex_front[1], -tex_front[2], tex_front[3],
         lm.r, lm.g, lm.b,
         ao.NORTH[0], ao.NORTH[1], ao.NORTH[2], ao.NORTH[3], flags | sideFlags);
     // WEST
     vertices.push(x - xs/2, z, y + ys/2,
-        west_rotate[0], west_rotate[1], west_rotate[2], west_rotate[3], west_rotate[4], west_rotate[5],
+        ...west_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b,
         ao.WEST[0], ao.WEST[1], ao.WEST[2], ao.WEST[3], flags | sideFlags);
     // EAST
     vertices.push(x + xs/2, z, y + ys/2,
-        east_rotate[0], east_rotate[1], east_rotate[2], east_rotate[3], east_rotate[4], east_rotate[5],
+        ...east_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b,
         ao.EAST[0], ao.EAST[1], ao.EAST[2], ao.EAST[3], flags | sideFlags);
