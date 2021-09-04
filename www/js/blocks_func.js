@@ -193,7 +193,7 @@ export class BLOCK_FUNC {
      * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
      * @return float
      */
-    static getDestroyTime(block, force) {
+    static getDestroyTime(block, force, instrument) {
         let destroy_time = block.destroy_time;
         if(force) {
             destroy_time = 0;
