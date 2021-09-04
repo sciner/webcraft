@@ -49,7 +49,6 @@ export default class PlayerModel {
             scale:          1.05,
             material:       this.matPlayer2,
             draw_nametag:   true
-            // draw_nametag:   true
         });
     }
 
@@ -89,7 +88,7 @@ export default class PlayerModel {
                             this.texPlayer =  texture1;
                             this.texPlayer2 = texture2;
                             this.matPlayer = render.materials.doubleface.getSubMat(texture1);
-                            this.matPlayer2 = render.materials.doubleface.getSubMat(texture2);
+                            this.matPlayer2 = render.materials.transparent.getSubMat(texture2);
                             document.getElementsByTagName('body')[0].append(image2);
                         })
                 });

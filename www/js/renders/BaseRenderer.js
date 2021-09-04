@@ -156,6 +156,7 @@ export class BaseTerrainShader extends BaseShader{
         this.chunkBlockDist = 1;
         this.brightness = 1;
         this.resolution = [1, 1];
+        this.shift = [0, 0, 0];
         this.mipmap = 0;
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
@@ -208,6 +209,22 @@ export class CubeMesh {
         this.shader.resolution = v;
     }
 
+    get shift() {
+        return this.shader.shift;
+    }
+
+    set shift(v) {
+        this.shader.shift = v;
+    }
+
+    get testLightOn() {
+        return this.shader.testLightOn;
+    }
+
+    set testLightOn(v) {
+        this.shader.testLightOn = v;
+    }
+
     draw (lookAtMatrix, projMatrix, width, height) {
         const {
             lookAt, proj
@@ -222,6 +239,7 @@ export class CubeMesh {
         lookAt[14] = 0;
 
         this.shader.resolution = [width, height];
+        this.shader.shift = [0, 0, 0];
 
         this.shader.context.drawCube(this);
     }
@@ -307,7 +325,6 @@ export class BaseCubeShader extends BaseShader {
     get resolution() {
         return this.resolution_value;
     }
-
 
     bind() {
 

@@ -33,6 +33,8 @@ export class WebGLCubeShader extends BaseCubeShader {
         this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
         this.u_brightness_value = gl.getUniformLocation(this.program, 'u_brightness_value');
         this.u_resolution = gl.getUniformLocation(this.program, 'u_resolution');
+        this.u_shift = gl.getUniformLocation(this.program, 'u_shift');
+        this.u_TestLightOn = gl.getUniformLocation(this.program, 'u_TestLightOn');
         this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
     }
 
@@ -44,7 +46,9 @@ export class WebGLCubeShader extends BaseCubeShader {
 
         gl.uniform1f(this.u_brightness_value, this.brightness);
         gl.uniform2fv(this.u_resolution, this.resolution);
-
+        gl.uniform3fv(this.u_shift, this.shift);
+        gl.uniform1f(this.u_TestLightOn, this.testLightOn);
+        
         gl.uniform1i(this.u_texture, 0);
 
         gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);

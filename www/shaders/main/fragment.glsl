@@ -17,6 +17,8 @@ uniform float u_chunkBlockDist;
 //
 uniform float u_brightness;
 uniform vec2 u_resolution;
+uniform vec3 u_shift;
+uniform bool u_TestLightOn;
 
 in vec3 v_position;
 in vec2 v_texcoord;
@@ -26,12 +28,19 @@ in vec3 v_normal;
 in float light;
 in float v_fogDepth;
 in vec4 crosshair;
+in vec3 world_pos;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
 uniform float u_opaqueThreshold;
 
 out vec4 outColor;
+
+struct PointLight {
+    vec3 WorldSpacePos;
+    vec4 Color;
+    float Radius;
+};
 
 void drawCrosshair() {
     float w = u_resolution.x;
@@ -94,8 +103,28 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
+        float u_brightness2 = u_brightness;
+
+        if(u_TestLightOn) {
+            u_brightness2 = clamp(1. + u_brightness2, 0., 1.);
+            color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
+        }
+
+        // Static point light
+        /*
+        PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
+        float lightDistance = distance(pl.WorldSpacePos - u_shift, world_pos);
+        if(lightDistance < pl.Radius) {
+            float percent = 1. - lightDistance / pl.Radius;
+            if(percent < 1.) {
+                u_brightness2 = clamp(percent + u_brightness2, 0., 1.);
+                // color = mix(color, pl.Color, percent);
+            }
+        }
+        */
+
         // Apply light
-        color.rgb *= u_brightness * light;
+        color.rgb *= u_brightness2 * light;
 
         outColor = color;
 

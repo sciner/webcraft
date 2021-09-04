@@ -44,6 +44,7 @@ export let KEY           = {};
     KEY.F3        = 114;
     KEY.F4        = 115;
     KEY.F5        = 116;
+    KEY.F6        = 117;
     KEY.F7        = 118;
     KEY.F8        = 119;
     KEY.F9        = 120;
