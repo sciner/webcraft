@@ -17,6 +17,7 @@ let gameCtrl = function($scope, $timeout) {
             {id: 'default', name: 'Default', value: 'terrain'},
             {id: 'hd', name: '32', value: 'terrain_hd'},
             {id: 'kenney', name: 'Kenney', value: 'terrain_kenney'},
+            {id: '1px', name: '1px', value: 'terrain_1px'},
             {id: '128', name: '128', value: 'terrain_128'}
         ]
     }
