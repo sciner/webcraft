@@ -282,6 +282,14 @@ export default class Player {
                 return true;
                 break;
             }
+            // F6 (Test light)
+            case KEY.F6: {
+                if(!down) {
+                    Game.world.renderer.testLightOn = !Game.world.renderer.testLightOn;
+                }
+                return true;
+                break;
+            }
             // Export world [F7]
             case KEY.F7: {
                 if(!down) {

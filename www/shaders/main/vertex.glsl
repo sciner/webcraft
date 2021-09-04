@@ -19,6 +19,8 @@ uniform float u_brightness;
 uniform vec3 u_add_pos;
 uniform float u_pixelSize;
 uniform vec2 u_resolution;
+uniform vec3 u_shift;
+uniform bool u_TestLightOn;
 
 out vec3 v_position;
 out vec2 v_texcoord;
@@ -27,6 +29,7 @@ out vec4 v_color;
 out vec3 v_normal;
 out float light;
 out vec4 crosshair;
+out vec3 world_pos;
 
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
@@ -73,6 +76,8 @@ void main() {
             v_color.r = -1.0;
         }
     }
+
+    world_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz + u_add_pos;
 
     v_position = (u_worldView * (uModelMatrix * vec4(pos, 1.0) + vec4(u_add_pos, 0.0))).xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);

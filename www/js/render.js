@@ -39,9 +39,11 @@ let currentRenderState = {
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
+
     constructor(renderSurfaceId) {
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;
+        this.testLightOn        = false;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -257,6 +259,8 @@ export class Renderer {
             width, height
         } = renderBackend.size;
         shader.resolution = [width, height];
+        shader.shift = [Game.shift.x, Game.shift.z, Game.shift.y];
+        shader.testLightOn = this.testLightOn;
         if (renderBackend.gl) {
             mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         } else {
