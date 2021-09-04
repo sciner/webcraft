@@ -140,6 +140,7 @@ export class Map {
                                 const height = Helpers.clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);
                                 const rad = Math.max(parseInt(height / 2), 2);
                                 this.trees.push({
+                                    biome_code: biome.code,
                                     pos:    new Vector(x, y, z),
                                     height: height,
                                     rad:    rad,

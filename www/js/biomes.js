@@ -36,7 +36,6 @@ export let blocks = {
     DIRT:           BLOCK.DIRT,
     GLOWSTONE:      BLOCK.GLOWSTONE,
     COBBLESTONE:    BLOCK.COBBLESTONE,
-    SNOW_DIRT:      BLOCK.SNOW_DIRT,
     AIR:            BLOCK.AIR,
     BRICK:          BLOCK.BRICK,
     STONE_BRICK:    BLOCK.STONE_BRICK,
@@ -65,6 +64,8 @@ export let blocks = {
     DEAD_BUSH:      BLOCK.DEAD_BUSH,
     LEAVES2:        BLOCK.LEAVES2,
     STILL_WATER:    BLOCK.STILL_WATER,
+    SNOW:           BLOCK.SNOW,
+    SNOW_DIRT:      BLOCK.SNOW_DIRT,
     SNOW_BLOCK:     BLOCK.SNOW_BLOCK,
     CACTUS:         BLOCK.CACTUS,
     //
@@ -240,7 +241,7 @@ BIOMES.TAIGA = {
 };
 
 BIOMES.SNOW = {
-    block: blocks.SNOW_BLOCK,
+    block:      blocks.SNOW_BLOCK,
     code:       'SNOW',
     color:      '#f5f5ff',
     dirt_color: new Color(1020 / 1024, 990 / 1024, 0, 0),

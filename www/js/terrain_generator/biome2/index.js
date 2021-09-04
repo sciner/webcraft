@@ -435,6 +435,7 @@ export default class Terrain_Generator {
                 let rad = Math.round(r);
                 if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
                     chunk.blocks[x][z][ystart] = type.leaves;
+                    chunk.blocks[x][z][ystart + 1] = blocks.SNOW;
                 }
                 let step = 0;
                 for(let y = ystart - 1; y > ystart - (height - 1); y--) {
@@ -450,6 +451,11 @@ export default class Terrain_Generator {
                                     let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                                     if(b.id == blocks.AIR.id) {
                                         chunk.blocks[i][j][y] = type.leaves;
+                                        if(options.biome_code == 'SNOW') {
+                                            if(!chunk.blocks[i][j][y + 1]) {
+                                                chunk.blocks[i][j][y + 1] = blocks.SNOW;
+                                            }
+                                        }
                                     }
                                 }
                             }

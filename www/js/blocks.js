@@ -1325,6 +1325,22 @@ BLOCK.ICE = {
 	}
 };
 
+BLOCK.SNOW = {
+    id: 469,
+    height: 1/16,
+    inventory_icon_id: 3314,
+    spawnable: true,
+    transparent: true,
+    passable: 1,
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        if (dir == DIRECTION.UP || dir == DIRECTION.DOWN) {
+            return [2, 4];
+        } else {
+            return [4, 7];
+        }
+    }
+};
+
 BLOCK.SNOW_BLOCK = {
     id: 80,
     inventory_icon_id: 3314,
