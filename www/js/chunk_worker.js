@@ -283,7 +283,7 @@ class Chunk {
                     }
                     let group = 'regular';
                     // make vertices array
-                    if([200, 202].indexOf(block.id) >= 0) {
+                    if([200, 202].indexOf(block.id) >= 0 || (block.tags && block.tags.indexOf('glass') >= 0)) {
                         // если это блок воды
                         group = 'transparent';
                     } else if(block.style == 'planting') {

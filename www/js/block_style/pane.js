@@ -26,13 +26,13 @@ export function push_pane(block, vertices, world, lightmap, x, y, z, neighbours)
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b,
                 lm.a, lm.a, lm.a, lm.a, 0);
-            n = NORMALS.BACK;
+            /*n = NORMALS.BACK;
             vertices.push(x + .5, z + .5, y + bH/2,
                 1, 0, 0,
                 0, 0, -bH,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);
+                lm.a, lm.a, lm.a, lm.a, 0);*/
             break;
         }
         case ROTATE.E:
@@ -46,13 +46,13 @@ export function push_pane(block, vertices, world, lightmap, x, y, z, neighbours)
                 lm.r, lm.g, lm.b,
                 lm.a, lm.a, lm.a, lm.a, 0);
             // Right
-            n = NORMALS.RIGHT;
+            /*n = NORMALS.RIGHT;
             vertices.push(x + .5, z + .5, y + bH/2,
                 0, 1, 0,
                 0, 0, bH,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);
+                lm.a, lm.a, lm.a, lm.a, 0);*/
             break;
         }
     }
