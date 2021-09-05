@@ -1651,9 +1651,83 @@ BLOCK.GLASS_PANE = {
     transparent: true,
     style: 'pane',
     sound: 'webcraft:block.glass',
+    tags: ['glass'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
 };
 
+// STAINED_GLASS
+BLOCK.BLUE_STAINED_GLASS = {
+    id: 470,
+    inventory_icon_id: 713,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 20]; }
+};
+BLOCK.BLACK_STAINED_GLASS = {
+    id: 471,
+    inventory_icon_id: 731,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 20]; }
+};
+BLOCK.PINK_STAINED_GLASS = {
+    id: 472,
+    inventory_icon_id: 773,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [2, 20]; }
+};
+BLOCK.RED_STAINED_GLASS = {
+    id: 473,
+    inventory_icon_id: 785,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [3, 20]; }
+};
+BLOCK.WHITE_STAINED_GLASS = {
+    id: 474,
+    inventory_icon_id: 791,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [4, 20]; }
+};
+BLOCK.YELLOW_STAINED_GLASS = {
+    id: 475,
+    inventory_icon_id: 797,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [5, 20]; }
+};
+BLOCK.GREEN_STAINED_GLASS = {
+    id: 476,
+    inventory_icon_id: 737,
+    spawnable: true,
+    transparent: true,
+    style: 'pane',
+    sound: 'webcraft:block.glass',
+    tags: ['glass'],
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [6, 20]; }
+};
+
+//
 BLOCK.MELON = {
     id: 103,
     spawnable: true,
