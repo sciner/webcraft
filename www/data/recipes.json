@@ -76,7 +76,58 @@
         ],
         "key": {
             "W": {
+                "item": "webcraft:birch_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:crafting_table",
+            "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "WW ",
+            "WW "
+        ],
+        "key": {
+            "W": {
                 "item": "webcraft:oak_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:crafting_table",
+            "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "WW ",
+            "WW "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:acacia_plank"
+            }
+        },
+        "result": {
+            "item": "webcraft:crafting_table",
+            "count": 1
+        }
+    },
+    {
+        "type": "webcraft:crafting_shaped",
+        "pattern": [
+            "   ",
+            "WW ",
+            "WW "
+        ],
+        "key": {
+            "W": {
+                "item": "webcraft:spruce_plank"
             }
         },
         "result": {

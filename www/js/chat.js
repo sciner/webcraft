@@ -37,21 +37,74 @@ export default class Chat {
                 }
             }
         };
+        // 
+        this.history = {
+            list: [],
+            draft: [],
+            index: -1,
+            add: function(buffer) {
+                this.list.push(buffer);
+                this.reset();
+            },
+            reset: function() {
+                this.index = -1;
+                this.draft = [];
+            },
+            navigate: function(go_back, buffer, onchange) {
+                if(this.list.length < 1) {
+                    return false;
+                }
+                if(buffer.length > 0 && this.index == -1) {
+                    this.draft = buffer;
+                }
+                if(go_back) {
+                    // up
+                    this.index++;
+                    if(this.index >= this.list.length - 1) {
+                        this.index = this.list.length - 1;
+                    }
+                    onchange([...this.list[this.list.length - this.index - 1]]);
+                } else {
+                    // down
+                    this.index--;
+                    if(this.index >= 0) {
+                        onchange([...this.list[this.list.length - this.index - 1]]);
+                    } else if(this.index == -1) {
+                        onchange(this.draft);
+                        onchange([...this.draft]);
+                        this.draft = [];
+                    } else {
+                        this.index = -1;
+                    }
+                }
+            }
+        };
+        //
         Game.hud.add(this, 1);
+    }
+
+    //
+    historyNavigate(go_back) {
+        this.history.navigate(go_back, this.buffer, (new_buffer) => {
+            this.buffer = new_buffer;
+        });
     }
 
     open(start_buffer) {
         if(this.active) {
             return;
         }
+        this.history.reset();
         this.buffer = start_buffer;
         this.active = true;
         this.open_time = performance.now();
+        Game.hud.refresh();
         document.exitPointerLock();
     }
     
     close() {
         this.active = false;
+        Game.hud.refresh();
     }
     
     typeChar(ch) {
@@ -189,7 +242,8 @@ export default class Chat {
                 }
             }
         }
-        this.buffer = [];
+        this.history.add(this.buffer);
+        this.buffer         = [];
         this.close();
     }
 
@@ -205,7 +259,7 @@ export default class Chat {
         }
         return false;
     }
-    
+
     drawHUD(hud) {
 
         const margin            = 10;

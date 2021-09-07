@@ -1,4 +1,4 @@
-import {Color, DIRECTION, INVENTORY_STACK_DEFAUL_SIZE} from './helpers.js';
+import {Color, DIRECTION} from './helpers.js';
 import {BLOCK_FUNC} from './blocks_func.js';
 
 export const CHUNK_SIZE_X      = 16;
@@ -1082,6 +1082,7 @@ BLOCK.SLAB = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.stone',
+    tags: ['slab'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [6, 0];
     }
@@ -1249,6 +1250,7 @@ BLOCK.COBBLESTONE_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.stone',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 1];
     }
@@ -1779,6 +1781,7 @@ BLOCK.BRICK_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.stone',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [7, 0]; }
 };
 
@@ -1789,6 +1792,7 @@ BLOCK.STONE_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.stone',
+    tags: ['stairs'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [1, 0];
     }
@@ -1823,6 +1827,7 @@ BLOCK.NETHER_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [7, 6];
     }
@@ -1919,6 +1924,7 @@ BLOCK.OAK_SLAB = {
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.wood',
+    tags: ['slab'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [21, 19];
     }
@@ -1931,6 +1937,7 @@ BLOCK.BIRCH_SLAB = {
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.wood',
+    tags: ['slab'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [20, 19];
     }
@@ -1943,6 +1950,7 @@ BLOCK.ACACIA_SLAB = {
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.wood',
+    tags: ['slab'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [22, 19];
     }
@@ -1955,18 +1963,20 @@ BLOCK.SPRUCE_SLAB = {
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.wood',
+    tags: ['slab'],
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [23, 19];
     }
 };
 
-BLOCK.BRICK_SLAB = {
+BLOCK.g = {
     id: 127,
     inventory_icon_id: 3240,
     spawnable: true,
     transparent: true,
     style: 'slab',
     sound: 'webcraft:block.stone',
+    tags: ['slab'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {return [7, 0];}
 };
 
@@ -1975,6 +1985,7 @@ BLOCK.SANDSTONE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
@@ -2002,6 +2013,7 @@ BLOCK.BIRCH_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [20, 19];
 	}
@@ -2014,6 +2026,7 @@ BLOCK.OAK_STAIRS = {
     transparent: false,
     style: 'stairs',
     sound: 'webcraft:block.wood',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [21, 19];
 	}
@@ -2025,16 +2038,19 @@ BLOCK.ACACIA_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [22, 19];
     }
 };
+
 BLOCK.SPRUCE_STAIRS = {
     id: 134,
     inventory_icon_id: 3318,
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [23, 19];
 	}
@@ -2045,6 +2061,7 @@ BLOCK.JUNGLE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
 		return [23, 19];
 	}
@@ -2120,6 +2137,7 @@ BLOCK.QUARTZ_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 13];
     }
@@ -2170,6 +2188,7 @@ BLOCK.DARK_OAK_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [4, 7];
     }
@@ -2245,6 +2264,7 @@ BLOCK.RED_SANDSTONE_STAIRS = {
     spawnable: true,
     transparent: false,
     style: 'stairs',
+    tags: ['stairs'],
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [0, 12]; }
 };
 
@@ -2260,6 +2280,7 @@ BLOCK.RED_SANDSTONE_SLAB = {
     spawnable: true,
     transparent: true,
     sound: 'webcraft:block.stone',
+    tags: ['slab'],
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [0, 12];
     }
