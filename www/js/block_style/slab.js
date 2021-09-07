@@ -10,6 +10,16 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
 	let blockLit = true;
     block.transparent = true;
 
+    let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
+    if(on_ceil) {
+        console.log(1);
+    }
+    
+    let yt = y;
+    if(on_ceil) {
+        yt += .5;
+    }
+
     // полная текстура
     let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
 
@@ -24,22 +34,22 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     // South | Front/Forward
     let lm = MULTIPLY.COLOR.WHITE;
     let n = NORMALS.FORWARD;
-    push_plane(vertices, x, y, z - .5, c_half_bottom, lm, n, true, false, null, .5, null);
+    push_plane(vertices, x, yt, z - .5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // North | Back
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.BACK;
-    push_plane(vertices, x, y, z + .5, c_half_bottom, lm, n, true, false, null, .5, null);
+    push_plane(vertices, x, yt, z + .5, c_half_bottom, lm, n, true, false, null, .5, null);
 
     // правая стенка
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    push_plane(vertices, x + 0.5, yt, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
     // левая стенка
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.LEFT;
-    push_plane(vertices, x - 0.5, y, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
     // Up and down
     c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
@@ -49,7 +59,7 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     let flags = 0, sideFlags = 0, upFlags = 0;
     
     // Up
-    vertices.push(x + 0.5, z + 0.5, y + .5,
+    vertices.push(x + 0.5, z + 0.5, yt + .5,
         1, 0, 0,
         0, 1, 0,
         c[0], c[1], c[2], c[3],
@@ -58,7 +68,7 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     
     // Down
     //c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
-    vertices.push(x + 0.5, z + 0.5, y,
+    vertices.push(x + 0.5, z + 0.5, yt,
         1, 0, 0,
         0, -1, 0,
         c[0], c[1], c[2], c[3],

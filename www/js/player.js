@@ -142,6 +142,14 @@ export default class Player {
         // Chat
         if(this.chat.active) {
             switch(keyCode) {
+                case KEY.ARROW_UP:
+                case KEY.ARROW_DOWN: {
+                    if(down) {
+                        this.chat.historyNavigate(keyCode == KEY.ARROW_UP);
+                        return true;
+                    }
+                    break;
+                }
                 case KEY.F5: {
                     return false;
                     break;

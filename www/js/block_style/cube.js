@@ -1,5 +1,6 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {impl as alea} from '../../vendors/alea.js';
+import { BLOCK } from '../blocks.js';
 
 // Pushes the vertices necessary for rendering a
 // specific block into the array.

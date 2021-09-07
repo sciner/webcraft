@@ -146,10 +146,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.MASK_BIOME = 2;
 
 export let ROTATE = {};
-    ROTATE.S = 1; // BACK
-    ROTATE.W = 2; // LEFT
-    ROTATE.N = 3; // FRONT
-    ROTATE.E = 4; // RIGHT
+    ROTATE.S = 1; // front
+    ROTATE.W = 2; // left
+    ROTATE.N = 3; // back
+    ROTATE.E = 4; // right
 
 
 export let NORMALS = {};

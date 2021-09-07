@@ -32,11 +32,19 @@ export class BLOCK_FUNC {
     static makeExtraData(block, pos) {
         block = BLOCK.BLOCK_BY_ID[block.id];
         let extra_data = null;
-        if(block.tags && block.tags.indexOf('trapdoor') >= 0) {
+        if(!block.tags) {
+            return extra_data;
+        }
+        let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
+        let is_stairs = block.tags.indexOf('stairs') >= 0;
+        let is_slab = block.tags.indexOf('slab') >= 0;
+        if(is_trapdoor || is_stairs || is_slab) {
             extra_data = {
-                point: new Vector(pos.point.x, pos.point.y, pos.point.z),
-                opened: false
+                point: new Vector(pos.point.x, pos.point.y, pos.point.z)
             };
+            if(is_trapdoor) {
+                extra_data.opened = false;
+            }
             if(pos.n.y == 1) {
                 extra_data.point.y = 0;
             } else if(pos.n.y == -1) {
@@ -253,7 +261,7 @@ export class BLOCK_FUNC {
         } else if (style == 'pane') {
             push_pane(block, vertices, world, lightmap, x, y, z, neighbours);
         } else if (style == 'stairs') {
-            push_stairs(block, vertices, world, lightmap, x, y, z);
+            push_stairs(block, vertices, world, lightmap, x, y, z, neighbours);
         } else if (style == 'slab') {
             push_slab(block, vertices, world, lightmap, x, y, z);
         } else if (style == 'ladder') {

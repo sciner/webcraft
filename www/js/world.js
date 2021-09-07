@@ -21,6 +21,7 @@ export class World {
             console.log('Autosave ... OK');
             Game.saves.save(this);
         }, 60000 * 5);
+
     }
 
     async connect() {
