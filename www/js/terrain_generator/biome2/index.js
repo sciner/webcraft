@@ -36,7 +36,7 @@ export default class Terrain_Generator {
         this.caveManager            = new CaveGenerator(seed);
         // Voxel buildings
         this.voxel_buildings        = [
-            new Vox_Mesh(vox_templates.castle, new Vector(2869, 60, 2810), new Vector(0, 0, 0), null)
+            new Vox_Mesh(vox_templates.castle, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null)
         ];
         // Islands
         this.islands = [
@@ -366,7 +366,9 @@ export default class Terrain_Generator {
                 // `Y` of waterline
                 let ywl = map.info.options.WATER_LINE - chunk.coord.y;
                 if(biome.code == 'OCEAN' && ywl >= 0 && ywl < chunk.size.y) {
-                    chunk.blocks[x][z][ywl] = blocks.STILL_WATER;
+                    if(!chunk.blocks[x][z][ywl]) {
+                        chunk.blocks[x][z][ywl] = blocks.STILL_WATER;
+                    }
                 }
 
             }
