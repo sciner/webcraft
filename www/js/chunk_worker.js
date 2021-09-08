@@ -12,7 +12,6 @@ let MAX_CAVES_LEVEL     = null;
 // Vars
 let all_blocks          = []; // 1. All blocks
 let blocks              = [];
-let plant_blocks        = []; // 2. Plants
 let chunks              = {};
 let terrainGenerator    = null;
 
@@ -478,7 +477,7 @@ const GeometryTerrain = {
 /**
  * @param {string} terrain_type 
  */
-async function importModules(terrain_type) {
+async function importModules(terrain_type, seed) {
     // load module
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
@@ -498,7 +497,7 @@ async function importModules(terrain_type) {
     });
     // load module
     await import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
-        terrainGenerator = new module.default();
+        terrainGenerator = new module.default(seed);
     });
     // Init vars
     // 1. Fill all_blocks
@@ -510,12 +509,6 @@ async function importModules(terrain_type) {
     for(let k in all_blocks) {
         all_blocks[k] = {...all_blocks[k]};
         delete(all_blocks[k].texture);
-    }
-    // 2. Plants
-    for(let b of BLOCK.getPlants()) {
-        b = {...b};
-        delete(b.texture);
-        plant_blocks.push(b);
     }
     // Run queue items
     for(let item of queue) {
@@ -531,7 +524,8 @@ onmessage = async function(e) {
     if(cmd == 'init') {
         // Init modules
         let generator_params = args;
-        importModules(generator_params.id); // biome2 | city | flat
+        let seed = e.data[2];
+        importModules(generator_params.id, seed); // biome2 | city | flat
         return;
     }
     if (!BLOCK || !terrainGenerator) {
@@ -539,9 +533,6 @@ onmessage = async function(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            if(!terrainGenerator.seed) {
-                terrainGenerator.setSeed(args.seed);
-            }
             if(!chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = new Chunk(args);
                 chunks[args.key].init();

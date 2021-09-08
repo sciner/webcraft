@@ -5,7 +5,8 @@ import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
-import { Game } from "./game.js";
+import {Game} from "./game.js";
+import {Vector} from "./helpers.js";
 
 const {mat4} = glMatrix;
 
@@ -279,17 +280,18 @@ export class Renderer {
         // 2. Draw chunks
         this.terrainTexture.bind(4);
         this.world.chunkManager.draw(this);
+        
         /*
         if(!this.vl && Game.shift.x != 0) {
             this.vl = new Vox_Loader('/data/monu10.vox', (chunks) => {
-                this.voxel_mesh = new Vox_Mesh(chunks[0], Game.shift);
+                this.voxel_mesh = new Vox_Mesh(chunks[0], new Vector(3120, 65, 2863), Game.shift, this.materials['regular']);
             });
         }
         if(this.voxel_mesh) {
-            const mat_regular = this.materials['regular'];
-            this.renderBackend.drawMesh(this.voxel_mesh, mat_regular);
+            this.voxel_mesh.draw(this.renderBackend);
         }
         */
+        
         this.world.draw(this, delta);
         // 3. Draw players and rain
         this.drawPlayers(delta);

@@ -1917,6 +1917,19 @@ BLOCK.DOUBLE_SLAB2 = {
     }
 };
 
+BLOCK.BRICK_SLAB = {
+    id: 501,
+    inventory_icon_id: 3240,
+    spawnable: true,
+    transparent: true,
+    style: 'slab',
+    sound: 'webcraft:block.stone',
+    tags: ['slab'],
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [7, 0];
+    }
+};
+
 BLOCK.OAK_SLAB = {
     id: 126,
     inventory_icon_id: 3284,

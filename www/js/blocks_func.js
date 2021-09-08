@@ -163,6 +163,7 @@ export class BLOCK_FUNC {
             }
             return destroy_time;
         };
+        let max_id = -1;
         for(let mat in this) {
             let B = this[mat];
             B.power = 1;
@@ -172,6 +173,10 @@ export class BLOCK_FUNC {
                 }
                 // calc destroy time
                 B.destroy_time = calcDestroyTime(B);
+                //
+                if(B.id > max_id) {
+                    max_id = B.id;
+                }
                 //
                 id_list.push(B.id);
                 B.name = mat;
@@ -192,6 +197,7 @@ export class BLOCK_FUNC {
                 }
             }
         }
+        console.log('max block.id = ', max_id);
         return list;
     }
 

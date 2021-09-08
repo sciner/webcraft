@@ -23,14 +23,6 @@ for(let k in all_blocks) {
     delete(all_blocks[k].texture);
 }
 
-// 2. Plants
-let plant_blocks = []
-for(let b of BLOCK.getPlants()) {
-    b = {...b},
-    delete(b.texture);
-    plant_blocks.push(b);
-}
-
 // 4. Blocks used for generators
 export let blocks = {
     DIRT:           BLOCK.DIRT,

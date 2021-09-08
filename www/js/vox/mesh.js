@@ -4,11 +4,13 @@ import {BLOCK} from "../blocks.js";
 
 export class Vox_Mesh {
 
-    constructor(chunk, shift) {
+    constructor(chunk, coord, shift, material) {
 
         const data = chunk.data;
-        const size = chunk.size;
-        this.coord = new Vector(3120, 65, 2863);
+        const size = this.size = chunk.size;
+
+        this.coord = coord;
+        this.material = material;
 
         let DIRECTION_UP            = DIRECTION.UP;
         let DIRECTION_DOWN          = DIRECTION.DOWN;
@@ -37,9 +39,12 @@ export class Vox_Mesh {
         let upFlags     = 0;
 
         // Store data in a volume for sampling
-        const offsety   = size.x;
-        const offsetz   = size.x * size.y;
+        const offsety   = this.offsety = size.x;
+        const offsetz   = this.offsetz = size.x * size.y;
         const array     = new Uint8Array(size.x * size.y * size.z);
+        
+        //
+        this.blocks = new Array(size.x * size.y * size.z);
 
         // Add vertices
         const add = (normals, x, y, z, tex) => {
@@ -100,12 +105,19 @@ export class Vox_Mesh {
                     DOWN:       BLOCK.calcTexture(block.texture(null, {}, 1, x, y, z, DIRECTION_DOWN)),
                     FORWARD:    BLOCK.calcTexture(block.texture(null, {}, 1, x, y, z, DIRECTION_FORWARD)),
                     BACK:       BLOCK.calcTexture(block.texture(null, {}, 1, x, y, z, DIRECTION_BACK)),
+                    block:      block
                 };
                 this.block_textures[block_id] = tex;
             }
             let tex = this.block_textures[block_id];
             // 
             const index = x + (y * offsety) + (z * offsetz);
+            //
+            let block = tex.block;
+            this.blocks[index] = {
+                id: block.id,
+                name: block.name
+            };
             // X
             if (array[index + 1] === 0 || x === size.x - 1) add(vectors.EAST, x + .5, z, -y, tex.LEFT);
             if (array[index - 1] === 0 || x === 0) add(vectors.WEST, x - .5, z, -y, tex.RIGHT);
@@ -117,8 +129,24 @@ export class Vox_Mesh {
             if (array[index + offsety] === 0 || y === size.y - 1) add(vectors.SOUTH, x, z, -y - .5, tex.BACK);
         }
 
-        return new GeometryTerrain(vertices);
+        this.geometry = new GeometryTerrain(vertices);
+        this.vertices = vertices;
 
+    }
+
+    // getBlock
+    getBlock(xyz) {
+        xyz = xyz.sub(this.coord);
+        const index = xyz.x + (xyz.z * this.offsety) + (xyz.y * this.offsetz);
+        if(index < 0 || index >= this.blocks.length) {
+            return null;
+        }
+        return this.blocks[index];
+    }
+
+    // Draw
+    draw(render) {
+        render.drawMesh(this.geometry, this.material);
     }
 
 }

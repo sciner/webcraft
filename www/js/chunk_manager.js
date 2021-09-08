@@ -52,7 +52,7 @@ export class ChunkManager {
             }
         }
         // Init webworker
-        this.postWorkerMessage(['init', world.saved_state.generator]);
+        this.postWorkerMessage(['init', world.saved_state.generator, world.seed]);
     }
 
     //
