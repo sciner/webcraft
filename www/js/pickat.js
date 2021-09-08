@@ -94,7 +94,7 @@ export class PickAt {
             pos.y += dir.y * tMin;
             pos.z += dir.z * tMin;
             block = block.add(side);
-            if (block.y > CHUNK_SIZE_Y_MAX || block.y < 0) {
+            if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
                 break;
             }
             const ix = block.x | 0, iy = block.y | 0, iz = block.z | 0;

@@ -33,7 +33,7 @@ await Vox_Loader.load('/data/castle.vox', (chunks) => {
         150: BLOCK.OAK_LEAVES,
         139: BLOCK.OAK_LEAVES,
         58: BLOCK.OAK_TRUNK,
-        107: BLOCK.SAND,
+        107: BLOCK.DIRT,
         144: BLOCK.OAK_LEAVES,
         143: BLOCK.DIRT,
         253: BLOCK.OAK_PLANK,
@@ -68,7 +68,7 @@ export default class Terrain_Generator {
         this.voxel_buildings        = [
             new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null),
             // new Vox_Mesh(vox_templates.small_castle, new Vector(2938, 65, 2813), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(vox_templates.castle, new Vector(2890, 12, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0))
+            new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0))
         ];
         // Islands
         this.islands = [
@@ -210,7 +210,6 @@ export default class Terrain_Generator {
         }
 
         // Smooth (for central and part of neighbors)
-        // @todo Временно закрыто (#3dchunk)
         map.info.smooth(this);
 
         // Generate vegetation
@@ -219,6 +218,19 @@ export default class Terrain_Generator {
         }
 
         return maps;
+    }
+
+    //
+    getVoxelBuilding(xyz) {
+        for(var vb of this.voxel_buildings) {
+            if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
+                xyz.x < vb.coord.x + vb.size.x &&
+                xyz.y < vb.coord.y + vb.size.z && 
+                xyz.z < vb.coord.z + vb.size.y) {
+                    return vb;
+                }
+        }
+        return null;
     }
 
     // Generate
@@ -240,7 +252,6 @@ export default class Terrain_Generator {
         }
 
         // Static objects
-        let voxel_buildings = this.voxel_buildings;
         let islands = this.islands;
         let extruders = this.extruders;
 
@@ -284,17 +295,10 @@ export default class Terrain_Generator {
 
                     let xyz = new Vector(x, y, z).add(chunk.coord);
 
-                    let in_vb = false;
-                    for(var vb of voxel_buildings) {
-                        if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
-                            xyz.x < vb.coord.x + vb.size.x &&
-                            xyz.y < vb.coord.y + vb.size.z && 
-                            xyz.z < vb.coord.z + vb.size.y) {
-                                chunk.blocks[x][z][y] = vb.getBlock(xyz);
-                                in_vb = true;
-                            }
-                    }
-                    if(in_vb) {
+                    // Draw voxel buildings
+                    let vb = this.getVoxelBuilding(xyz);
+                    if(vb) {
+                        chunk.blocks[x][z][y] = vb.getBlock(xyz);
                         continue;
                     }
 
@@ -411,7 +415,9 @@ export default class Terrain_Generator {
             if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
                 let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
                 if(b && b.id == blocks.DIRT.id) {
-                    chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
+                    if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
+                        chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
+                    }
                 }
             }
         }
@@ -438,12 +444,21 @@ export default class Terrain_Generator {
         const height        = options.height;
         const type          = options.type;
         let ystart = y + height;
+        // setBlock
+        let setBlock = (x, y, z, block) => {
+            if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
+                if(!chunk.blocks[x][z][y]) {
+                    let xyz = new Vector(x, y, z)
+                    if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
+                        chunk.blocks[x][z][y] = block;
+                    }
+                }
+            }
+        };
         // ствол
         for(let p = y; p < ystart; p++) {
             if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    chunk.blocks[x][z][p] = type.trunk;
-                }
+                setBlock(x, p, z, type.trunk);
             }
         }
         // листва над стволом
@@ -454,9 +469,7 @@ export default class Terrain_Generator {
             }
             case 'stump': {
                 // пенёк
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    chunk.blocks[x][z][ystart] = type.leaves;
-                }
+                setBlock(x, ystart, z, type.leaves);
                 break;
             }
             case 'wood': {
@@ -477,7 +490,7 @@ export default class Terrain_Generator {
                                 }
                                 let b = chunk.blocks[i][j][py];
                                 if(!b || b.id >= 0 && b.id != type.trunk.id) {
-                                    chunk.blocks[i][j][py] = type.leaves;
+                                    setBlock(i, py, j, type.leaves);
                                 }
                             }
                         }
@@ -498,7 +511,7 @@ export default class Terrain_Generator {
                                 }
                                 let b = chunk.blocks[i][j][py];
                                 if(!b || b.id >= 0 && b.id != type.trunk.id) {
-                                    chunk.blocks[i][j][py] = type.leaves;
+                                    setBlock(i, py, j, type.leaves);
                                 }
                             }
                         }
@@ -512,9 +525,9 @@ export default class Terrain_Generator {
                 let r = 1;
                 let rad = Math.round(r);
                 if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    chunk.blocks[x][z][ystart] = type.leaves;
+                    setBlock(x, ystart, z, type.leaves);
                     if(options.biome_code == 'SNOW') {
-                        chunk.blocks[x][z][ystart + 1] = blocks.SNOW;
+                        setBlock(x, ystart + 1, z, blocks.SNOW);
                     }
                 }
                 let step = 0;
@@ -530,11 +543,9 @@ export default class Terrain_Generator {
                                 if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
                                     let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                                     if(b.id == blocks.AIR.id) {
-                                        chunk.blocks[i][j][y] = type.leaves;
+                                        setBlock(i, y, j, type.leaves);
                                         if(options.biome_code == 'SNOW') {
-                                            if(!chunk.blocks[i][j][y + 1]) {
-                                                chunk.blocks[i][j][y + 1] = blocks.SNOW;
-                                            }
+                                            setBlock(i, y + 1, j, blocks.SNOW);
                                         }
                                     }
                                 }

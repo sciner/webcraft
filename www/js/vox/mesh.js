@@ -106,8 +106,8 @@ export class Vox_Mesh {
             //
             let block = tex.block;
             this.blocks[index] = {
-                id: block.id,
-                name: block.name
+                id:                 block.id,
+                name:               block.name
             };
             // X
             if (array[index + 1] === 0 || x === size.x - 1) add(vectors.EAST, x + .5, z, -y, tex.LEFT);
