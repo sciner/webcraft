@@ -410,18 +410,6 @@ export default class Terrain_Generator {
             }
         }
 
-        // Plant herbs
-        for(let p of map.info.plants) {
-            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
-                if(b && b.id == blocks.DIRT.id) {
-                    if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
-                        chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
-                    }
-                }
-            }
-        }
-
         // Plant trees
         for(const m of maps) {
             for(let p of m.info.trees) {
@@ -432,6 +420,18 @@ export default class Terrain_Generator {
                     m.chunk.coord.y + p.pos.y - chunk.coord.y,
                     m.chunk.coord.z + p.pos.z - chunk.coord.z
                 );
+            }
+        }
+
+        // Plant herbs
+        for(let p of map.info.plants) {
+            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
+                if(b && b.id == blocks.DIRT.id) {
+                    if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
+                        chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y] = p.block;
+                    }
+                }
             }
         }
 
