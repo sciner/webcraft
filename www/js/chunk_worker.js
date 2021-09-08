@@ -115,6 +115,9 @@ class Chunk {
     
     //
     applyModifyList() {
+        if(!this.modify_list) {
+            return;
+        }
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');

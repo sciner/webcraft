@@ -100,6 +100,20 @@ export default class Inventory {
     }
     
     increment(mat) {
+        if(!mat.id) {
+            throw 'Empty mat ID';
+        }
+        let block = BLOCK.BLOCK_BY_ID[mat.id];
+        if(!block) {
+            throw 'Invalid mat ID';
+        }
+        // Restore material default properties
+        mat = Object.assign({
+            count:              1,
+            name:               block.name,
+            inventory_icon_id:  block.inventory_icon_id,
+            max_in_stack:       block.max_in_stack,
+        }, mat);
         let item_max_count = mat.max_in_stack;
         // update cell if exists
         for(let i in this.items) {

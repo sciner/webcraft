@@ -64,9 +64,9 @@ type (
 		ID        int                    `json:"id"`
 		Power     float32                `json:"power"`
 		Rotate    Vector3f               `json:"rotate"`
-		Count     int                    `json:"count"`
-		EntityID  string                 `json:"entity_id"`
-		ExtraData map[string]interface{} `json:"extra_data"`
+		Count     int                    `json:"count,omitempty"`
+		EntityID  string                 `json:"entity_id,omitempty"`
+		ExtraData map[string]interface{} `json:"extra_data,omitempty"`
 	}
 	///////////////////////////////////////////////////////
 	// Command ...
@@ -83,7 +83,7 @@ type (
 	// CmdChunkState
 	CmdChunkState struct {
 		Pos        Vector3              `json:"pos"`
-		ModifyList map[string]BlockItem `json:"modify_list"`
+		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
 	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {
