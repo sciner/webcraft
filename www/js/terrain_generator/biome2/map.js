@@ -19,7 +19,6 @@ export class MapCell {
 export class Map {
 
     // Private properties
-    #aleaRandom = null;
     #chunk      = null;
 
     // Constructor
@@ -28,7 +27,6 @@ export class Map {
         this.trees          = [];
         this.plants         = [];
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
-        this.#aleaRandom    = new alea(chunk.seed + '_' + chunk.id);
         this.#chunk         = chunk;
     }
 
@@ -103,7 +101,7 @@ export class Map {
     // Генерация растительности
     generateVegetation() {
         let chunk       = this.#chunk;
-        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id); // this.#aleaRandom;
+        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id);
         this.trees      = [];
         this.plants     = [];
         for(let x = 0; x < chunk.size.x; x++) {

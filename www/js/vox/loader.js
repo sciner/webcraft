@@ -1,9 +1,13 @@
-// import {Helpers} from './helpers.js';
-
 export class Vox_Loader {
 
     constructor(url, onload) {
-        fetch(url)
+        if(url) {
+            Vox_Loader.load(url, onload);
+        }
+    }
+
+    static async load(url, onload) {
+        await fetch(url)
             .then(r => r.arrayBuffer())
             .then(buffer => {
                 const data = new DataView(buffer);

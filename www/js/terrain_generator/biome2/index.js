@@ -1,10 +1,18 @@
 import {impl as alea} from '../../../vendors/alea.js';
 import noise from '../../../vendors/perlin.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_Y_MAX} from "../../blocks.js";
-import {Vector, Helpers, Color} from '../../helpers.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../blocks.js";
+import {Vector, Helpers} from '../../helpers.js';
 import {blocks, BIOMES} from '../../biomes.js';
 import {CaveGenerator} from '../../caves.js';
 import {Map, MapCell} from './map.js';
+import {Vox_Loader} from "../../vox/loader.js";
+import {Vox_Mesh} from "../../vox/mesh.js";
+
+//
+let vox_templates = {};
+await Vox_Loader.load('/data/monu10.vox', (chunks) => {
+    vox_templates.castle = chunks[0];
+});
 
 // Terrain generator class
 export default class Terrain_Generator {
@@ -22,12 +30,35 @@ export default class Terrain_Generator {
         //
         this.noisefn                = noise.perlin2;
         this.maps_cache             = {};
+        this.seed                   = null;
         this.setSeed(seed);
         // Сaves manager
         this.caveManager            = new CaveGenerator(seed);
+        // Voxel buildings
+        this.voxel_buildings        = [
+            new Vox_Mesh(vox_templates.castle, new Vector(2869, 60, 2810), new Vector(0, 0, 0), null)
+        ];
+        // Islands
+        this.islands = [
+            {
+                pos: new Vector(2865, 118, 2787),
+                rad: 15
+            },
+            {
+                pos: new Vector(2920, 1024, 2787),
+                rad: 20
+            }
+        ];
+        // Extruders
+        this.extruders = [
+            {
+                pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
+                rad: this.islands[0].rad
+            }
+        ];
     }
 
-    setSeed(seed) {
+    async setSeed(seed) {
         this.seed = seed;
         noise.seed(this.seed);
     }
@@ -176,19 +207,10 @@ export default class Terrain_Generator {
             min_y++;
         }
 
-        // island
-        let islands = [
-            {
-                pos: new Vector(2865, 118, 2787),
-                rad: 15
-            },
-            {
-                pos: new Vector(2920, 1024, 2787),
-                rad: 20
-            }
-        ];
-
-        let main_island = islands[0];
+        // Static objects
+        let voxel_buildings = this.voxel_buildings;
+        let islands = this.islands;
+        let extruders = this.extruders;
 
         if(chunk.addr.x == 180 && chunk.addr.z == 174) {
             for(let y = min_y; y < chunk.size.y; y += .25) {
@@ -229,6 +251,21 @@ export default class Terrain_Generator {
                 for(let y = min_y; y < chunk.size.y; y++) {
 
                     let xyz = new Vector(x, y, z).add(chunk.coord);
+
+                    let in_vb = false;
+                    for(var vb of voxel_buildings) {
+                        if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
+                            xyz.x < vb.coord.x + vb.size.x &&
+                            xyz.y < vb.coord.y + vb.size.z && 
+                            xyz.z < vb.coord.z + vb.size.y) {
+                                chunk.blocks[x][z][y] = vb.getBlock(xyz);
+                                in_vb = true;
+                            }
+                    }
+                    if(in_vb) {
+                        continue;
+                    }
+
                     let in_ocean = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
 
                     // island
@@ -250,8 +287,15 @@ export default class Terrain_Generator {
                     }
 
                     // Remove island form from terrain
-                    let dist = xyz.add(new Vector(0, main_island.pos.y - 70, 0)).distance(main_island.pos);
-                    if(dist < main_island.rad) {
+                    let need_extrude = false;
+                    for(let extruder of extruders) {
+                        let dist = xyz.distance(extruder.pos);
+                        if(dist < extruder.rad) {
+                            need_extrude = true;
+                            break;
+                        }
+                    }
+                    if(need_extrude) {
                         continue;
                     }
 
