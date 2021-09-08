@@ -73,9 +73,13 @@ export class PickAt {
         const INF = 100000.0;
         const eps = 1e-3;
         const coord = ['x', 'y', 'z'];
-        while (Math.abs(block.x - startBlock.x) < PICKAT_DIST
-            && Math.abs(block.y - startBlock.y) < PICKAT_DIST
-            && Math.abs(block.z - startBlock.z) < PICKAT_DIST) {
+        let PICKAT_DISTANCE = PICKAT_DIST;
+        if(Game.world.game_mode.isCreative()) {
+            PICKAT_DISTANCE = PICKAT_DISTANCE * 2 | 0;
+        }
+        while (Math.abs(block.x - startBlock.x) < PICKAT_DISTANCE
+            && Math.abs(block.y - startBlock.y) < PICKAT_DISTANCE
+            && Math.abs(block.z - startBlock.z) < PICKAT_DISTANCE) {
             let tMin = INF;
             for(let d of coord) {
                 if(dir[d] > eps && tMin > (block[d] + 0.5 - pos[d]) / dir[d]) {
