@@ -11,7 +11,37 @@ import {Vox_Mesh} from "../../vox/mesh.js";
 //
 let vox_templates = {};
 await Vox_Loader.load('/data/monu10.vox', (chunks) => {
-    vox_templates.castle = chunks[0];
+    vox_templates.monu10 = {chunk: chunks[0], palette: {
+        81: BLOCK.CONCRETE,
+        97: BLOCK.OAK_PLANK,
+        121: BLOCK.STONE_BRICK,
+        122: BLOCK.POLISHED_STONE,
+        123: BLOCK.GRAVEL,
+    }};
+});
+await Vox_Loader.load('/data/small_castle.vox', (chunks) => {
+    vox_templates.small_castle = {chunk: chunks[0], palette: {}};
+});
+await Vox_Loader.load('/data/castle.vox', (chunks) => {
+    vox_templates.castle = {chunk: chunks[0], palette: {
+        93: BLOCK.GRAVEL,
+        106: BLOCK.STONE_BRICK,
+        114: BLOCK.CONCRETE,
+        72: BLOCK.DIRT,
+        235: BLOCK.SNOW_BLOCK,
+        54: BLOCK.SPRUCE_PLANK,
+        150: BLOCK.OAK_LEAVES,
+        139: BLOCK.OAK_LEAVES,
+        58: BLOCK.OAK_TRUNK,
+        107: BLOCK.SAND,
+        144: BLOCK.OAK_LEAVES,
+        143: BLOCK.DIRT,
+        253: BLOCK.OAK_PLANK,
+        238: BLOCK.SPRUCE_PLANK,
+        79: BLOCK.BIRCH_PLANK,
+        184: BLOCK.DIRT,
+        174: BLOCK.DIRT,
+    }};
 });
 
 // Terrain generator class
@@ -36,7 +66,9 @@ export default class Terrain_Generator {
         this.caveManager            = new CaveGenerator(seed);
         // Voxel buildings
         this.voxel_buildings        = [
-            new Vox_Mesh(vox_templates.castle, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null)
+            new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null),
+            // new Vox_Mesh(vox_templates.small_castle, new Vector(2938, 65, 2813), new Vector(0, 0, 0), null, null),
+            new Vox_Mesh(vox_templates.castle, new Vector(2890, 12, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0))
         ];
         // Islands
         this.islands = [

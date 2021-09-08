@@ -4,8 +4,10 @@ import {BLOCK} from "../blocks.js";
 
 export class Vox_Mesh {
 
-    constructor(chunk, coord, shift, material) {
+    constructor(model, coord, shift, material, rotate) {
 
+        const chunk = model.chunk;
+        const palette = model.palette ? model.palette : {};
         const data = chunk.data;
         const size = this.size = chunk.size;
 
@@ -60,43 +62,32 @@ export class Vox_Mesh {
         }
 
         for(let j = 0; j < data.length; j += 4) {
-            const x = data[ j + 0 ];
-            const y = data[ j + 1 ];
-            const z = data[ j + 2 ];
+            let x = data[ j + 0 ];
+            let y = data[ j + 1 ];
+            let z = data[ j + 2 ];
+            if(rotate && rotate.y == 1) {
+                y = this.size.y - y;
+            }
             const index = x + (y * offsety) + (z * offsetz);
             array[index] = 255;
         }
 
         // Construct geometry
         for (let j = 0; j < data.length; j += 4) {
-            const x         = data[j + 0];
-            const y         = data[j + 1];
-            const z         = data[j + 2];
+            let x           = data[j + 0];
+            let y           = data[j + 1];
+            let z           = data[j + 2];
             const block_id  = data[j + 3];
+            if(rotate && rotate.y == 1) {
+                y = this.size.y - y;
+            }
             if(this.block_types.indexOf(block_id) < 0) {
                 this.block_types.push(block_id);
                 let block = BLOCK.CONCRETE;
-                switch(block_id) {
-                    case 81: {
-                        block = BLOCK.CONCRETE;
-                        break;
-                    }
-                    case 97: {
-                        block = BLOCK.OAK_PLANK;
-                        break;
-                    }
-                    case 121: {
-                        block = BLOCK.STONE_BRICK;
-                        break;
-                    }
-                    case 122: {
-                        block = BLOCK.POLISHED_STONE;
-                        break;
-                    }
-                    case 123: {
-                        block = BLOCK.GRAVEL;
-                        break;
-                    }
+                if(palette.hasOwnProperty(block_id)) {
+                    block = palette[block_id];
+                } else {
+                    console.log(block_id);
                 }
                 let tex = {
                     LEFT:       BLOCK.calcTexture(block.texture(null, {}, 1, x, y, z, DIRECTION_LEFT)),

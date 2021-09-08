@@ -11,10 +11,7 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     block.transparent = true;
 
     let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
-    if(on_ceil) {
-        console.log(1);
-    }
-    
+
     let yt = y;
     if(on_ceil) {
         yt += .5;
