@@ -21,6 +21,7 @@ uniform float u_pixelSize;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
+uniform vec3 u_SunDir; // = vec3(0.7, 1.0, 0.85);
 
 out vec3 v_position;
 out vec2 v_texcoord;
@@ -66,10 +67,9 @@ void main() {
 
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
-    vec3 sun_dir = vec3(0.7, 1.0, 0.85);
     vec3 n = normalize(v_normal);
     // light = 1. - v_color.a; 
-    light = max(.5, max(.7, dot(n, sun_dir)) - v_color.a);
+    light = max(.5, max(.7, dot(n, u_SunDir)) - v_color.a);
 
     if(u_fogOn) {
         if (flagBiome < 0.5) {

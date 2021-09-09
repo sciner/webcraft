@@ -100,7 +100,6 @@ export class BaseMaterial {
     constructor(context, options) {
         this.context = context;
         this.options = options;
-
         this.shader = options.shader;
         this.texture = options.texture || null;
         this.cullFace = options.cullFace || false;
@@ -130,17 +129,15 @@ export class BaseShader {
          * @type {{vertex: string, fragment: string}}
          */
         this.code = options.code;
-
         this.bindings = [];
     }
 
     bind() {
-
     }
 
     update() {
-
     }
+
 }
 
 export class BaseTerrainShader extends BaseShader{
@@ -167,19 +164,18 @@ export class BaseTerrainShader extends BaseShader{
     }
 
     bind() {
-
     }
 
     update() {
-
     }
 
     updatePos(pos, modelMatrix) {
-
     }
+
 }
 
 export class CubeMesh {
+
     constructor(shader, geom) {
         this.shader = shader;
         this.geom = geom;
@@ -191,38 +187,6 @@ export class CubeMesh {
 
     get proj() {
         return this.shader.proj;
-    }
-
-    get brightness() {
-        return this.shader.brightness;
-    }
-
-    set brightness(v) {
-        this.shader.brightness = v;
-    }
-
-    get resolution() {
-        return this.shader.resolution;
-    }
-
-    set resolution(v) {
-        this.shader.resolution = v;
-    }
-
-    get shift() {
-        return this.shader.shift;
-    }
-
-    set shift(v) {
-        this.shader.shift = v;
-    }
-
-    get testLightOn() {
-        return this.shader.testLightOn;
-    }
-
-    set testLightOn(v) {
-        this.shader.testLightOn = v;
     }
 
     draw (lookAtMatrix, projMatrix, width, height) {
@@ -277,9 +241,11 @@ export class BaseCubeGeometry {
             this.vertex, this.index
         ];
     }
+
 }
 
 export class BaseCubeShader extends BaseShader {
+
     /**
      *
      * @param {BaseRenderer} context
@@ -297,7 +263,10 @@ export class BaseCubeShader extends BaseShader {
         });
         this.texture.bind();
 
-        this.resolution_value = [1, 1];
+        // Default values
+        this.resolution_value   = [1, 1];
+        this.testLightOn_value  = false;
+        this.shift_value        = [0, 0, 0];
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -326,13 +295,28 @@ export class BaseCubeShader extends BaseShader {
         return this.resolution_value;
     }
 
-    bind() {
+    set testLightOn(v) {
+        this.testLightOn_value = v;
+    }
 
+    get testLightOn() {
+        return this.testLightOn_value;
+    }
+
+    set shift(v) {
+        this.shift_value = v;
+    }
+
+    get shift() {
+        return this.shift_value;
+    }
+
+    bind() {
     }
 
     update() {
-
     }
+
 }
 
 export default class BaseRenderer {

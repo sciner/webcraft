@@ -19,6 +19,7 @@ uniform float u_brightness;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
+uniform vec3 sun_dir;
 
 in vec3 v_position;
 in vec2 v_texcoord;
