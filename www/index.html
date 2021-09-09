@@ -39,8 +39,8 @@
                 <div ng-init="mygames.load()">
                     <div ng-if="mygames.list.length > 0">
                         <h4 class="text-center">My Games:</h4>
-                        <div ng-repeat="item in mygames.list track by item._id">
-                            <button class="btn" ng-click="StartWorld(item._id)"><span>{{item.title}}</span></button>
+                        <div ng-repeat="item in mygames.list track by item.id">
+                            <button class="btn" ng-click="StartWorld(item.id)"><span>{{item.title}}</span></button>
                         </div>
                     </div>
                     <button class="btn" ng-click="newgame.open()">

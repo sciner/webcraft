@@ -40,7 +40,7 @@ export class World {
         const saved_state = this._savedState;
         // Create server client
         this.server = await this.connect();
-        this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state._id, seed: saved_state.seed + ''}});
+        this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state.id, seed: saved_state.seed + ''}});
         this.players        = [];
         this.rainTim        = null;
         this.saved_state    = saved_state;
@@ -201,7 +201,7 @@ export class World {
     exportJSON(callback) {
         let that = this;
         let row = {
-            _id:                Game.world_name,
+            id:                 Game.world_name,
             seed:               Game.seed,
             spawnPoint:         that.spawnPoint,
             pos:                that.localPlayer.pos,

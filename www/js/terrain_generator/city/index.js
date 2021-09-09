@@ -50,7 +50,7 @@ export default class Terrain_Generator {
 
             let r = aleaRandom.double();
             if(r < .2) {
-                BRICK = blocks.STONE;
+                BRICK = blocks.CONCRETE;
             } else if (r < .4) {
                 BRICK = blocks.STONE_BRICK;
             }
@@ -66,7 +66,7 @@ export default class Terrain_Generator {
                             if(x == 0 || x >= 14) {
                                 chunk.blocks[x][z][0] = blocks.BEDROCK;
                             } else if (x == 1 || x == 13) {
-                                chunk.blocks[x][z][0] = blocks.STONE;
+                                chunk.blocks[x][z][0] = blocks.CONCRETE;
                             } else if(x) {
                                 chunk.blocks[x][z][0] = blocks.DIRT;
                             }
@@ -83,7 +83,7 @@ export default class Terrain_Generator {
                         // шпалы
                         if(z % 2 == 0) {
                             for(let a of [4, 5, 6, 7, 8, 9]) {
-                                chunk.blocks[a][z][12 + 1] = blocks.STONE;
+                                chunk.blocks[a][z][12 + 1] = blocks.CONCRETE;
                             }
                         }
                         // рельсы
@@ -131,7 +131,7 @@ export default class Terrain_Generator {
                                     if (x >= 2 && x <= 12 && z >= 3 && z <= 13) {
                                         chunk.blocks[x][z][y] = blocks.DIRT;
                                     } else {
-                                        chunk.blocks[x][z][y] = blocks.STONE;
+                                        chunk.blocks[x][z][y] = blocks.CONCRETE;
                                     }
                                 } else {
                                     // дороги вокруг дома

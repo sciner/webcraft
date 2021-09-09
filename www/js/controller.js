@@ -158,6 +158,11 @@ let gameCtrl = function($scope, $timeout) {
             if(list) {
                 list = JSON.parse(list);
                 if(list) {
+                    for(let item of list) {
+                        if(!item.hasOwnProperty('id')) {
+                            item.id = item._id;
+                        }
+                    }
                     this.list = list;
                 }
             }
@@ -191,7 +196,7 @@ let gameCtrl = function($scope, $timeout) {
     // New world
     $scope.newgame = {
         form: {
-            _id: '',
+            id: '',
             title: '',
             generator: {
                 id: $scope.generators.list[0].id
@@ -209,7 +214,7 @@ let gameCtrl = function($scope, $timeout) {
         open: function() {
             $scope.current_window = 'newgame';
             this.form.seed = Helpers.getRandomInt(1000000, 4000000000) + '';
-            this.form._id = Helpers.generateID();
+            this.form.id = Helpers.generateID();
         },
         close: function() {
             $scope.current_window = 'main';

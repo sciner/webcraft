@@ -2,6 +2,7 @@ package Type
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -29,14 +30,42 @@ type (
 		CreateTime  time.Time // Время создания, time.Now()
 		Directory   string
 		State       *Struct.WorldState
+		Attr        *Struct.WorldAttrs
 	}
 )
 
 func (this *World) Load() {
 	this.Directory = this.GetDir()
 	this.CreateTime = this.getDirectoryCTime(this.Directory)
+	//
+	this.Attr = this.LoadAttr()
+	//
 	this.State = &Struct.WorldState{}
 	this.Entities.Load(this)
+}
+
+func (this *World) LoadAttr() *Struct.WorldAttrs {
+	fileName := this.GetFileName()
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		// path does not exist
+		attr := &Struct.WorldAttrs{
+			ID:       this.ID,
+			Seed:     this.Seed,
+			CTime:    time.Now(),
+			Title:    "",
+			AuthodID: "",
+		}
+		this.SaveAttr(attr)
+		return attr
+	}
+	s, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		// Chunk file not found
+		return nil
+	}
+	attr := &Struct.WorldAttrs{}
+	err = json.Unmarshal([]byte(s), attr)
+	return attr
 }
 
 func (this *World) updateWorldState() {
@@ -283,6 +312,18 @@ func (this *World) GetDir() string {
 		return ""
 	}
 	return dir
+}
+
+// GetFileName...
+func (this *World) GetFileName() string {
+	return this.GetDir() + "/attr.json"
+}
+
+// SaveAttr...
+func (this *World) SaveAttr(info *Struct.WorldAttrs) {
+	file, _ := json.Marshal(info)
+	fileName := this.GetFileName()
+	_ = ioutil.WriteFile(fileName, file, 0644)
 }
 
 func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {

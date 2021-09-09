@@ -4,7 +4,7 @@
         "url": "/data/map_demo.json",
         "title": "♾️ Demo public server",
         "state": {
-            "_id":"demo",
+            "id":"demo",
             "seed":"demo",
             "pos": {"x":2895.7,"y": 67,"z": 2783.06},
             "rotate": {"x": 71, "y": 104206, "z": 513.9},

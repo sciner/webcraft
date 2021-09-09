@@ -1,5 +1,7 @@
 package Struct
 
+import "time"
+
 const (
 	BLOCK_CHEST      int   = 54
 	GAME_ONE_SECOND  int64 = 72
@@ -84,6 +86,14 @@ type (
 	CmdChunkState struct {
 		Pos        Vector3              `json:"pos"`
 		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
+	}
+	//
+	WorldAttrs struct {
+		ID       string    `json:"id"`
+		Seed     string    `json:"seed"`
+		CTime    time.Time `json:"time"` // Время создания, time.Now()
+		Title    string    `json:"title"`
+		AuthodID string    `json:"author_id"`
 	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {

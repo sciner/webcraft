@@ -11,7 +11,7 @@ let MAX_CAVES_LEVEL     = null;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
-let blocks              = [];
+// let blocks              = [];
 let chunks              = {};
 let terrainGenerator    = null;
 
@@ -100,17 +100,26 @@ class Chunk {
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = terrainGenerator.generate(this);
+        let c = {
+            key:    this.key,
+            blocks: this.blocks,
+            map:    this.map
+        };
+        /*
+        delete(c.map.info.plants);
+        delete(c.map.info.trees);
+        delete(c.map.info.chunk);
+        console.log(JSON.stringify(c).length, c);
+        debugger;
+        */
+        // console.log(JSON.stringify(c).length);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
         // 4. Result
-        postMessage(['blocks_generated', {
-            key:    this.key,
-            blocks: this.blocks,
-            map:    this.map
-        }]);
+        postMessage(['blocks_generated', c]);
     }
     
     //
@@ -280,6 +289,12 @@ class Chunk {
                     if(!block) {
                         continue;
                     }
+                    if(typeof block === 'number') {
+                        block = BLOCK.BLOCK_BY_ID[block];
+                        if(!block) {
+                            throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
+                        }
+                    }
                     if(block.id == BLOCK.AIR.id) {
                         continue;
                     }
@@ -345,6 +360,9 @@ class Chunk {
                                     b = this.blocks[x][z + 1][y];
                                 }
                             }
+                        }
+                        if(typeof b == 'number') {
+                            b = BLOCK.BLOCK_BY_ID[b];
                         }
                         if(p.y == 1) {
                             neighbours.UP = b;

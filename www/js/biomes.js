@@ -12,72 +12,16 @@ let biome_stat = {
 };
 
 // 1. All blocks
+export let blocks = {};
 let all_blocks = [];
 for(let b of BLOCK.getAll()) {
     b = {...b},
     delete(b.texture);
     all_blocks.push(b);
-}
-for(let k in all_blocks) {
-    all_blocks[k] = {...all_blocks[k]};
-    delete(all_blocks[k].texture);
+    blocks[b.name] = b;
 }
 
-// 4. Blocks used for generators
-export let blocks = {
-    DIRT:           BLOCK.DIRT,
-    GLOWSTONE:      BLOCK.GLOWSTONE,
-    COBBLESTONE:    BLOCK.COBBLESTONE,
-    AIR:            BLOCK.AIR,
-    BRICK:          BLOCK.BRICK,
-    STONE_BRICK:    BLOCK.STONE_BRICK,
-    DIAMOND_ORE:    BLOCK.DIAMOND_ORE,
-    COAL_ORE:       BLOCK.COAL_ORE,
-    CONCRETE:       BLOCK.CONCRETE,
-    BEDROCK:        BLOCK.BEDROCK,
-    GRAVEL:         BLOCK.GRAVEL,
-    OAK_PLANK:      BLOCK.OAK_PLANK,
-    GRASS:          BLOCK.GRASS,
-    RED_MUSHROOM:   BLOCK.RED_MUSHROOM,
-    BROWN_MUSHROOM: BLOCK.BROWN_MUSHROOM,
-    GOLD:           BLOCK.GOLD,
-    // Trunks
-    OAK_TRUNK:      BLOCK.OAK_TRUNK,
-    SPRUCE_TRUNK:   BLOCK.SPRUCE_TRUNK,
-    BIRCH_TRUNK:    BLOCK.BIRCH_TRUNK,
-    ACACIA_TRUNK:   BLOCK.ACACIA_TRUNK,
-    // Leaves
-    SPRUCE_LEAVES:  BLOCK.SPRUCE_LEAVES,
-    OAK_LEAVES:     BLOCK.OAK_LEAVES,
-    ACACIA_LEAVES:  BLOCK.ACACIA_LEAVES,
-
-    SAND:           BLOCK.SAND,
-    GLASS:          BLOCK.GLASS,
-    DEAD_BUSH:      BLOCK.DEAD_BUSH,
-    LEAVES2:        BLOCK.LEAVES2,
-    STILL_WATER:    BLOCK.STILL_WATER,
-    SNOW:           BLOCK.SNOW,
-    SNOW_DIRT:      BLOCK.SNOW_DIRT,
-    SNOW_BLOCK:     BLOCK.SNOW_BLOCK,
-    CACTUS:         BLOCK.CACTUS,
-    //
-    GRASS_BLOCK:    BLOCK.DIRT,
-    STONE:          BLOCK.CONCRETE,
-    TALLGRASS:      BLOCK.GRASS,
-    TULIP:          BLOCK.TULIP,
-    DANDELION:      BLOCK.DANDELION,
-    //
-    WOOL_GRAY:      BLOCK.WOOL_GRAY,
-    WOOL_BLACK:     BLOCK.WOOL_BLACK
-};
-
-for(let key of Object.keys(blocks)) {
-    let b = blocks[key];
-    b = {...b},
-    delete(b.texture);
-    blocks[key] = b;
-}
-
+// 2. Biomes
 export const BIOMES = {};
 
 BIOMES.OCEAN = {
