@@ -465,7 +465,7 @@ export default class Terrain_Generator {
             }
         };
         //
-        let getBlockID = (b) => {
+        /*let getBlockID = (b) => {
             if(!b) {
                 return null;
             }
@@ -473,7 +473,7 @@ export default class Terrain_Generator {
                 return b;
             }
             return b.id;
-        };
+        };*/
         // ствол
         for(let p = y; p < ystart; p++) {
             //let b = getBlockID(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z));
