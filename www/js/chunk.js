@@ -185,6 +185,9 @@ export default class Chunk {
         if(!block) {
             block = BLOCK.AIR;
         }
+        if(typeof block == 'number') {
+            block = BLOCK.BLOCK_BY_ID[block];
+        }
         return block;
     }
 
