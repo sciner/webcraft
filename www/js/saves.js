@@ -11,7 +11,13 @@ export default class Saves {
         let key = this.table_name + '_' + world_id;
         let world = localStorage.getItem(key);
         if(world) {
-            callback(JSON.parse(world));
+            world = JSON.parse(world);
+            // @Migrate to new version
+            if(!world.hasOwnProperty('id')) {
+                world.id = world._id;
+                delete(world._id);
+            }
+            callback(world);
             return true;
         }
         let err = {message: 'Not found'};
@@ -21,7 +27,7 @@ export default class Saves {
 
     // Add new
     addNew(world, callback) {
-        let key = this.table_name + '_' + world._id;
+        let key = this.table_name + '_' + world.id;
         localStorage.setItem(key, JSON.stringify(world));
         if(callback) {
             callback();
@@ -32,7 +38,7 @@ export default class Saves {
     save(world, callback) {
         let table_name = this.table_name;
         world.exportJSON(function(row) {
-            let key = table_name + '_' + row._id;
+            let key = table_name + '_' + row.id;
             localStorage.setItem(key, JSON.stringify(row));
             if(callback) {
                 callback();

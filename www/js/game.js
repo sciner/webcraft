@@ -83,6 +83,12 @@ export let Game = {
     },
     // createNewWorld
     createNewWorld: function(form) {
+        /*
+        this.world.server.Send({
+            name: ServerClient.WORLD_CREATE,
+            data: form
+        });
+        */
         let spawnPoint = new Vector(
             2914.5,
             150.0,
@@ -129,7 +135,7 @@ export let Game = {
 
     // initGame...
     initGame(saved_world, settings) {
-        this.world_name     = saved_world._id;
+        this.world_name     = saved_world.id;
         this.seed           = saved_world.seed;
         saved_world         = this.ajustSavedState(saved_world);
         this.sounds         = new Sounds();

@@ -183,18 +183,16 @@ export class BLOCK_FUNC {
                 if(!B.light) {
                     B.light = null;
                 }
-                if(B.spawnable == true) {
-                    if(B.style && B.style == 'planting') {
-                        B.planting = true;
-                    }
-                    if(B.style && B.style == 'stairs') {
-                        B.transparent = true;
-                    }
-                    if([18, 118, 152, 203, 159, 160, 74, 26, 133, 102, 168, 121, 169, 172, 193, 63, 64, 65, 71, 81, 83, 120, 146, 54, 194, 195, 196, 197, 115, 103, 116, 179, 180, 181, 182, 206].indexOf(B.id) >= 0) {
-                        continue;
-                    }
-                    list.push(B);
+                if(B.style && B.style == 'planting') {
+                    B.planting = true;
                 }
+                if(B.style && B.style == 'stairs') {
+                    B.transparent = true;
+                }
+                if([18, 118, 152, 203, 159, 160, 74, 26, 133, 102, 168, 121, 169, 172, 193, 63, 64, 65, 71, 81, 83, 120, 146, 54, 194, 195, 196, 197, 115, 103, 116, 179, 180, 181, 182, 206].indexOf(B.id) >= 0) {
+                    continue;
+                }
+                list.push(B);
             }
         }
         console.log('max block.id = ', max_id);
