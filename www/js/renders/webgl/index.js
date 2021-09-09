@@ -39,6 +39,7 @@ export class WebGLCubeShader extends BaseCubeShader {
     }
 
     bind() {
+
         this.texture.bind(0);
         const { gl } = this.context;
 
@@ -48,12 +49,13 @@ export class WebGLCubeShader extends BaseCubeShader {
         gl.uniform2fv(this.u_resolution, this.resolution);
         gl.uniform3fv(this.u_shift, this.shift);
         gl.uniform1f(this.u_TestLightOn, this.testLightOn);
-        
+
         gl.uniform1i(this.u_texture, 0);
 
         gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
         gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
     }
+
 }
 
 export class WebGLCubeGeometry extends BaseCubeGeometry {
@@ -84,26 +86,23 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
     unbind() {
         this.context.gl.bindVertexArray(null);
     }
+
 }
 
 export class WebGLTexture extends BaseTexture {
+
     bind(location) {
         location = location || 0;
-
         const {
             gl
         } = this.context;
-
         gl.activeTexture(gl.TEXTURE0 + location);
-
         if (this.dirty) {
             return this.upload();
         }
-
         const {
             texture
         } = this;
-
         gl.bindTexture(gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D, texture);
     }
 
@@ -154,20 +153,18 @@ export class WebGLTexture extends BaseTexture {
         if (!this.texture) {
             return;
         }
-
         const  { gl } = this.context;
-
         gl.deleteTexture(this.texture);
-
         this.texture = null;
         this.source = null;
         this.width = this.height = 0;
-
         super.destroy();
     }
+
 }
 
 export default class WebGLRenderer extends BaseRenderer {
+
     constructor(view, options) {
         super(view, options);
         /**
@@ -175,20 +172,16 @@ export default class WebGLRenderer extends BaseRenderer {
          * @type {WebGL2RenderingContext}
          */
         this.gl = null;
-
         this._textures = [];
-
         this._mat = null;
     }
 
     async init() {
         const gl = this.gl = this.view.getContext('webgl2', this.options);
-
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
         return Promise.resolve(this);
     }
 
@@ -288,6 +281,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
     }
+
 }
 
 /**
@@ -299,7 +293,6 @@ WebGLRenderer.test = function(view, options = {}) {
      * @type {*}
      */
     const context = view.getContext('webgl2', options);
-
     return !!context;
 }
 

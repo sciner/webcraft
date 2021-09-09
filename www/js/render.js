@@ -48,6 +48,7 @@ export class Renderer {
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;
         this.testLightOn        = false;
+        this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -266,6 +267,7 @@ export class Renderer {
         shader.resolution = [width, height];
         shader.shift = [Game.shift.x, Game.shift.z, Game.shift.y];
         shader.testLightOn = this.testLightOn;
+        shader.sunDir = this.sunDir;
         if (renderBackend.gl) {
             mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         } else {

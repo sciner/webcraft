@@ -1,5 +1,5 @@
 import Saves from './saves.js';
-import {Helpers} from './helpers.js';
+import {Vector, Helpers} from './helpers.js';
 
 let app = angular.module('gameApp', []);
 
@@ -9,6 +9,21 @@ let gameCtrl = function($scope, $timeout) {
     // Load text file
     $scope.loadTextFile = function(url) {
         return fetch(url).then(response => response.text());
+    };
+
+    // sun dir
+    $scope.sunDir = {
+        value: new Vector(1.1493, 1.0293, 0.6293),
+        apply: function() {
+            // 0.84 1 -1
+            if(typeof Game != 'undefined') {
+                Game.world.renderer.sunDir = [this.value.x, this.value.y, this.value.z];
+            }
+        },
+        getValue: function() {
+            // 1.1493, 1.0293, 0.6293
+            return [this.value.x, this.value.y, this.value.z].join(', ');
+        }
     };
 
     // Texture packs
