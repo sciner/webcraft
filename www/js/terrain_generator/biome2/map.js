@@ -111,7 +111,7 @@ export class Map {
                 let y = cell.value2;
                 // Если наверху блок земли
                 let dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
-                if(dirt_block_ids.indexOf(cell.block.id) >= 0) {
+                if(dirt_block_ids.indexOf(cell.block) >= 0) {
                     // Динамическая рассадка растений
                     let rnd = aleaRandom.double();
                     if(rnd > 0 && rnd <= biome.plants.frequency) {
