@@ -374,16 +374,20 @@ export class Renderer {
             let f = player.walkDist - player.walkDistO;
             let f1 = -(player.walkDist + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            let effect_power = 0.025;
-            z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
-            x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
             add_x = (Math.sin(f1 * Math.PI) * f2 * 0.5);
             add_z = (-Math.abs(Math.cos(f1 * Math.PI) * f2));
+            let effect_power = .03; // 0.03;
+            z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
+            x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
         }
 
         mat4.identity(this.viewMatrix);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2 + x_mul_degree, [1, 0, 0]); // x
-        mat4.rotate(this.viewMatrix, this.viewMatrix, roll + z_mul_degree, [0, 1, 0]); // z
+        //
+        mat4.rotate(this.viewMatrix, this.viewMatrix, x_mul_degree, [1, 0, 0]); // x
+        mat4.rotate(this.viewMatrix, this.viewMatrix, z_mul_degree, [0, 1, 0]); // z
+        //
+        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
+        mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
 
         mat4.translate(this.viewMatrix, this.viewMatrix, [
