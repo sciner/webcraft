@@ -4,7 +4,6 @@ import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import ServerClient from "./server_client.js";
 
 const CHUNKS_ADD_PER_UPDATE = 16;
-const CHUNKS_BUILD_VERTICES_PER_UPDATE = 16;
 
 export const MAX_Y_MARGIN = 3;
 

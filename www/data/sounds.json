@@ -18,6 +18,14 @@
         ],
         "close": [
             "/sounds/Chest_close.ogg"
+        ],
+        "hit": [
+            "/sounds/Wood_hit1.ogg",
+            "/sounds/Wood_hit2.ogg",
+            "/sounds/Wood_hit3.ogg",
+            "/sounds/Wood_hit4.ogg",
+            "/sounds/Wood_hit5.ogg",
+            "/sounds/Wood_hit6.ogg"
         ]
     },
     {
@@ -33,6 +41,14 @@
             "/sounds/wood2.mp3",
             "/sounds/wood3.mp3",
             "/sounds/wood4.mp3"
+        ],
+        "hit": [
+            "/sounds/Wood_hit1.ogg",
+            "/sounds/Wood_hit2.ogg",
+            "/sounds/Wood_hit3.ogg",
+            "/sounds/Wood_hit4.ogg",
+            "/sounds/Wood_hit5.ogg",
+            "/sounds/Wood_hit6.ogg"
         ]
     },
     {
@@ -48,6 +64,13 @@
             "/sounds/Sand_dig2.ogg",
             "/sounds/Sand_dig3.ogg",
             "/sounds/Sand_dig4.ogg"
+        ],
+        "hit": [
+            "/sounds/Sand_hit1.ogg",
+            "/sounds/Sand_hit2.ogg",
+            "/sounds/Sand_hit3.ogg",
+            "/sounds/Sand_hit4.ogg",
+            "/sounds/Sand_hit5.ogg"
         ]
     },
     {
@@ -62,6 +85,14 @@
             "/sounds/stone2.mp3",
             "/sounds/stone3.mp3",
             "/sounds/stone4.mp3"
+        ],
+        "hit": [
+            "/sounds/Stone_hit1.ogg",
+            "/sounds/Stone_hit2.ogg",
+            "/sounds/Stone_hit3.ogg",
+            "/sounds/Stone_hit4.ogg",
+            "/sounds/Stone_hit5.ogg",
+            "/sounds/Stone_hit6.ogg"
         ]
     },
     {
@@ -92,6 +123,14 @@
             "/sounds/grass2.mp3",
             "/sounds/grass3.mp3",
             "/sounds/grass4.mp3"
+        ],
+        "hit": [
+            "/sounds/Grass_hit1.ogg",
+            "/sounds/Grass_hit2.ogg",
+            "/sounds/Grass_hit3.ogg",
+            "/sounds/Grass_hit4.ogg",
+            "/sounds/Grass_hit5.ogg",
+            "/sounds/Grass_hit6.ogg"
         ]
     },
     {
@@ -107,6 +146,14 @@
             "/sounds/stone2.mp3",
             "/sounds/stone3.mp3",
             "/sounds/stone4.mp3"
+        ],
+        "hit": [
+            "/sounds/Stone_hit1.ogg",
+            "/sounds/Stone_hit2.ogg",
+            "/sounds/Stone_hit3.ogg",
+            "/sounds/Stone_hit4.ogg",
+            "/sounds/Stone_hit5.ogg",
+            "/sounds/Stone_hit6.ogg"
         ]
     },
     {
@@ -116,6 +163,12 @@
         ],
         "place": [
             "/sounds/gravel1.mp3"
+        ],
+        "hit": [
+            "/sounds/Gravel_hit1.ogg",
+            "/sounds/Gravel_hit2.ogg",
+            "/sounds/Gravel_hit3.ogg",
+            "/sounds/Gravel_hit4.ogg"
         ]
     },
     {
@@ -138,6 +191,14 @@
             "/sounds/wood2.mp3",
             "/sounds/wood3.mp3",
             "/sounds/wood4.mp3"
+        ],
+        "hit": [
+            "/sounds/Wood_hit1.ogg",
+            "/sounds/Wood_hit2.ogg",
+            "/sounds/Wood_hit3.ogg",
+            "/sounds/Wood_hit4.ogg",
+            "/sounds/Wood_hit5.ogg",
+            "/sounds/Wood_hit6.ogg"
         ]
     }
 ]
