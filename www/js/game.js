@@ -179,17 +179,21 @@ export let Game = {
     // Звуки шагов
     setupHitSounds: function() {
         let playHit = () => {
-            let pos = Game.world.localPlayer.getBlockPos();
-            let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-            if(world_block && world_block.id > 0) {
-                let default_sound = 'webcraft:block.wood';
-                let action = 'hit';
-                let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
-                let sound_list = Game.sounds.getList(sound, action);
-                if(!sound_list) {
-                    sound = default_sound;
+            let player = Game.world.localPlayer;
+            let f = player.walkDist - player.walkDistO;
+            if(f > 0) {
+                let pos = Game.world.localPlayer.getBlockPos();
+                let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+                if(world_block && world_block.id > 0) {
+                    let default_sound = 'webcraft:block.wood';
+                    let action = 'hit';
+                    let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
+                    let sound_list = Game.sounds.getList(sound, action);
+                    if(!sound_list) {
+                        sound = default_sound;
+                    }
+                    Game.sounds.play(sound, action);
                 }
-                Game.sounds.play(sound, action);
             }
         };
         this.interval425 = setInterval(() => {
