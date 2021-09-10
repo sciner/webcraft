@@ -173,6 +173,35 @@ export let Game = {
         // Run render loop
         window.requestAnimationFrame(this.loop);
         // setInterval(that.loop, 1);
+        this.setupHitSounds();
+    },
+
+    // Звуки шагов
+    setupHitSounds: function() {
+        let playHit = () => {
+            let pos = Game.world.localPlayer.getBlockPos();
+            let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+            if(world_block && world_block.id > 0) {
+                let default_sound = 'webcraft:block.wood';
+                let action = 'hit';
+                let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
+                let sound_list = Game.sounds.getList(sound, action);
+                if(!sound_list) {
+                    sound = default_sound;
+                }
+                Game.sounds.play(sound, action);
+            }
+        };
+        this.interval425 = setInterval(() => {
+            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && !this.world.localPlayer.running) {
+                playHit();
+            }
+        }, 425);
+        this.interval300 = setInterval(() => {
+            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && this.world.localPlayer.running) {
+                playHit();
+            }
+        }, 300);
     },
 
     startBackgroundMusic: function() {

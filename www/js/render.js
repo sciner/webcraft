@@ -356,16 +356,25 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(pos, ang) {
-        let y_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .025;
+        pos = [...pos];
+        let pitch   = ang[0]; // X
+        let roll    = ang[1]; // Z
+        let yaw     = ang[2]; // Y
+        let v_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .045;
+        let h_add = Math.cos(this.world.localPlayer.walking_frame * (7.5 * (this.world.localPlayer.running ? 1.5 : 1))) * .045;
+        if(v_add < -.01) v_add = -.01;
+        pos[0] += Math.cos(yaw) * h_add;
+        pos[2] += Math.sin(yaw) * h_add;
+        roll += h_add / 15;
         this.camPos = pos;
         mat4.identity(this.viewMatrix);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, -ang[0] - Math.PI / 2, [ 1, 0, 0 ]);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, ang[1], [ 0, 1, 0 ]);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, ang[2], [ 0, 0, 1 ]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]);
         mat4.translate(this.viewMatrix, this.viewMatrix, [
             -pos[0] + Game.shift.x,
             -pos[2] + Game.shift.z,
-            -pos[1] + y_add
+            -pos[1] + v_add
         ]);
     }
 

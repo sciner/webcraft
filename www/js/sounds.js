@@ -13,11 +13,15 @@ export default class Sounds {
     }
 
     add(item) {
-        for(let action of ['dig', 'place', 'open', 'close']) {
+        for(let action of ['dig', 'place', 'open', 'close', 'hit']) {
             if(item.hasOwnProperty(action)) {
+                let volume = 1.;
+                if(action == 'hit') {
+                    volume = 0.2;
+                }
                 for(let i in item[action]) {
                     let src = item[action][i];
-                    item[action][i] = new Howl({src: [src]})
+                    item[action][i] = new Howl({src: [src], volume: volume})
                 }
             }
         }
@@ -32,6 +36,13 @@ export default class Sounds {
         let i = Math.floor(Math.random() * list.length);
         list[i].play();
         return true;
+    }
+
+    getList(tag, action) {
+        if(!this.tags.hasOwnProperty(tag)) {
+            return null;
+        }
+        return this.tags[tag][action];
     }
 
 }
