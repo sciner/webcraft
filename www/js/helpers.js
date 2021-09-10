@@ -1,6 +1,14 @@
 export const TX_CNT                         = 32;
 export const INVENTORY_STACK_DEFAUL_SIZE    = 64;
 
+export class Mth {
+    static lerp(amount, value1, value2) {
+        amount = amount < 0 ? 0 : amount;
+        amount = amount > 1 ? 1 : amount;
+        return value1 + (value2 - value1) * amount;
+    }
+}
+
 // Color
 export class Color {
 
@@ -84,6 +92,13 @@ export class Vector {
 
     distance(vec) {
         return this.sub(vec).length();
+    }
+
+    //
+    horizontalDistance(vec) {
+        let vec1 = new Vector(this.x, 0, this.z);
+        let vec2 = new Vector(vec.x, 0, vec.z);
+        return vec1.sub(vec2).length();
     }
 
     normal() {
