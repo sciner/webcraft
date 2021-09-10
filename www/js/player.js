@@ -31,6 +31,10 @@ export default class Player {
         this.angles                 = [0, 0, Math.PI];
         this.chat                   = new Chat();
         this.velocity               = new Vector(0, 0, 0);
+        this.walkDist               = 0;
+        this.walkDistO              = 0;
+        this.bob                    = 0;
+        this.oBob                   = 0;
     }
 
     // Assign the local player to a world.
@@ -42,6 +46,7 @@ export default class Player {
         this.keys                   = {};
         this.eventHandlers          = {};
         this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+        this.posO                   = new Vector(0, 0, 0);
         if(world.saved_state) {
             this.flying = !!world.saved_state.flying;
         }
@@ -747,11 +752,25 @@ export default class Player {
                     }
                 }
             }
+            //
+            this.posO = this.pos;
+            this.walkDistO = this.walkDist;
             // Resolve collision
             this.pos = this.resolveCollision(pos, bPos, velocity.mul(new Vector(delta, delta, delta)));
             this.pos.x = Math.round(this.pos.x * 1000) / 1000;
             this.pos.y = Math.round(this.pos.y * 1000) / 1000;
             this.pos.z = Math.round(this.pos.z * 1000) / 1000;
+            //
+            this.walkDist += this.pos.horizontalDistance(this.posO) * 0.6;
+            //
+            this.oBob = this.bob;
+            let f = 0;
+            //if (this.onGround && !this.isDeadOrDying()) {
+            f = Math.min(0.1, this.pos.horizontalDistance(this.posO));
+            //} else {
+            //   f = 0.0F;
+            //}
+            this.bob += (f - this.bob) * 0.4;
             //
             let playerBlockPos  = Game.world.localPlayer.getBlockPos();
             let chunkPos        = Game.world.chunkManager.getChunkPos(playerBlockPos.x, playerBlockPos.y, playerBlockPos.z);

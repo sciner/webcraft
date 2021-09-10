@@ -6,7 +6,7 @@ import rendererProvider from "./renders/rendererProvider.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {Game} from "./game.js";
-import {Vector} from "./helpers.js";
+import {Mth, Vector} from "./helpers.js";
 
 const {mat4} = glMatrix;
 
@@ -352,31 +352,69 @@ export class Renderer {
     }
 
     // Moves the camera to the specified orientation.
-    //
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(pos, ang) {
-        pos = [...pos];
-        let pitch   = ang[0]; // X
-        let roll    = ang[1]; // Z
-        let yaw     = ang[2]; // Y
-        let v_add = Math.cos(this.world.localPlayer.walking_frame * (15 * (this.world.localPlayer.running ? 1.5 : 1))) * .045;
-        let h_add = Math.cos(this.world.localPlayer.walking_frame * (7.5 * (this.world.localPlayer.running ? 1.5 : 1))) * .045;
-        if(v_add < -.01) v_add = -.01;
-        pos[0] += Math.cos(yaw) * h_add;
-        pos[2] += Math.sin(yaw) * h_add;
-        roll += h_add / 15;
-        this.camPos = pos;
+
+        let pitch           = ang[0]; // X
+        let roll            = ang[1]; // Z
+        let yaw             = ang[2]; // Y
+        let player          = this.world.localPlayer;
+
+        this.camPos         = pos;
+
+        let x_mul_degree    = 0;
+        let z_mul_degree    = 0;
+        let add_x           = 0;
+        let add_z           = 0;
+
+        // Original bobView
+        if(player && player.walking && !player.flying) {
+            let p_109140_ = player.walking_frame * 2 % 1;
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
+            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+            let effect_power = 0.025;
+            z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
+            x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
+            add_x = (Math.sin(f1 * Math.PI) * f2 * 0.5);
+            add_z = (-Math.abs(Math.cos(f1 * Math.PI) * f2));
+        }
+
         mat4.identity(this.viewMatrix);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]);
-        mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]);
+        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2 + x_mul_degree, [1, 0, 0]); // x
+        mat4.rotate(this.viewMatrix, this.viewMatrix, roll + z_mul_degree, [0, 1, 0]); // z
+        mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
+
         mat4.translate(this.viewMatrix, this.viewMatrix, [
-            -pos[0] + Game.shift.x,
-            -pos[2] + Game.shift.z,
-            -pos[1] + v_add
+            -pos[0] + Game.shift.x + add_x,
+            -pos[2] + Game.shift.z + add_z,
+            -pos[1]
         ]);
+
     }
+
+    /*
+    // Original bobView
+    bobView(viewMatrix, p_109140_) {
+        let player = this.world.localPlayer;
+        if(player) {
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
+            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+            let effect_power = 0.05;
+            let z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
+            let x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
+            mat4.rotate(viewMatrix, viewMatrix, x_mul_degree, [1, 0, 0]); // x
+            mat4.rotate(viewMatrix, viewMatrix, z_mul_degree, [0, 1, 0]); // z
+            mat4.translate(viewMatrix, viewMatrix, [
+                (Math.sin(f1 * Math.PI) * f2 * 0.5),
+                (-Math.abs(Math.cos(f1 * Math.PI) * f2)),
+                0
+            ]);
+        }
+    }
+    */
 
     // getVideoCardInfo...
     getVideoCardInfo() {
