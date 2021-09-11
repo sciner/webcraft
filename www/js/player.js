@@ -760,9 +760,10 @@ export default class Player {
             this.oBob = this.bob;
             let f = 0;
             //if (this.onGround && !this.isDeadOrDying()) {
-            f = Math.min(0.1, this.pos.horizontalDistance(this.posO));
+                // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
+                f = Math.min(0.1, this.pos.horizontalDistance(this.posO));
             //} else {
-            //   f = 0.0F;
+                //   f = 0.0F;
             //}
             this.bob += (f - this.bob) * 0.4;
             //

@@ -197,12 +197,12 @@ export let Game = {
             }
         };
         this.interval425 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && !this.world.localPlayer.running) {
+            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && !this.world.localPlayer.running && this.controls.enabled) {
                 playHit();
             }
         }, 425);
         this.interval300 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && this.world.localPlayer.running) {
+            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && this.world.localPlayer.running && this.controls.enabled) {
                 playHit();
             }
         }, 300);
