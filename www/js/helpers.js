@@ -2,11 +2,21 @@ export const TX_CNT                         = 32;
 export const INVENTORY_STACK_DEFAUL_SIZE    = 64;
 
 export class Mth {
+
     static lerp(amount, value1, value2) {
         amount = amount < 0 ? 0 : amount;
         amount = amount > 1 ? 1 : amount;
         return value1 + (value2 - value1) * amount;
     }
+
+    static sin(a) {
+        return Math.sin(a);
+    }
+
+    static cos(a) {
+        return Math.cos(a);
+    }
+
 }
 
 // Color
@@ -46,6 +56,14 @@ export class Color {
 }
 
 export class Vector {
+
+    static XN = new Vector(-1.0, 0.0, 0.0);
+    static XP = new Vector(1.0, 0.0, 0.0);
+    static YN = new Vector(0.0, -1.0, 0.0);
+    static YP = new Vector(0.0, 1.0, 0.0);
+    static ZN = new Vector(0.0, 0.0, -1.0);
+    static ZP = new Vector(0.0, 0.0, 1.0);
+    static ZERO = new Vector(0.0, 0.0, 0.0);
 
     constructor(x, y, z) {
         if(x instanceof Vector) {

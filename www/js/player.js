@@ -729,8 +729,6 @@ export default class Player {
 
             velocity = velocity.mul(new Vector(mul, 1, mul));
 
-            let current_speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-
             if(this.zoom) {
                 if(Game.render.fov > FOV_ZOOM) {
                     let fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
