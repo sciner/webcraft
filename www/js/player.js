@@ -680,8 +680,6 @@ export default class Player {
             this.prev_walking = this.walking;
 
             // New walking
-            let speed = 0;
-            const SPEED_MUL = 0.4;
             let calcSpeed = (v) => {
                 let passed = performance.now() - v;
                 if(!this.flying) {
@@ -689,45 +687,43 @@ export default class Player {
                 } else if(passed < 500) {
                     passed = 500;
                 }
-                let resp = Math.max(speed, Math.min(passed / 1000, 1) * SPEED_MUL);
-                return Math.min(resp, 5);
+                let resp = Math.max(0, Math.min(passed / 1000, 1));
+                resp = Math.min(resp, 5);
+                return resp;
             }
             //
+            let add_force = new Vector(0, 0, 0);
             if(this.keys[KEY.W] && !this.keys[KEY.S]) {
-                speed = calcSpeed(this.keys[KEY.W]);
-                velocity.x += Math.cos(Math.PI / 2 - this.angles[2]) * speed;
-                velocity.z += Math.sin(Math.PI / 2 - this.angles[2]) * speed;
+                let speed = calcSpeed(this.keys[KEY.W]);
+                add_force.x += Math.cos(Math.PI / 2 - this.angles[2]) * speed;
+                add_force.z += Math.sin(Math.PI / 2 - this.angles[2]) * speed;
             }
             if(this.keys[KEY.S] && !this.keys[KEY.W]) {
-                speed = calcSpeed(this.keys[KEY.S]);
-                velocity.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
-                velocity.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
+                let speed = calcSpeed(this.keys[KEY.S]);
+                add_force.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
+                add_force.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
             }
             if(this.keys[KEY.A] && !this.keys[KEY.D]) {
-                speed = calcSpeed(this.keys[KEY.A]);
-                velocity.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-                velocity.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                let speed = calcSpeed(this.keys[KEY.A]);
+                add_force.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                add_force.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
             }
             if(this.keys[KEY.D] && !this.keys[KEY.A]) {
-                speed = calcSpeed(this.keys[KEY.D]);
-                velocity.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-                velocity.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                let speed = calcSpeed(this.keys[KEY.D]);
+                add_force.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
+                add_force.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
             }
 
-            let mul = 1;
+            // Multiplier
+            let mul = (this.running ? this.flying ? 1.15 : 1.5 : 1) / 2.8;
 
             let y = delta / (1 / 60);
             let p = this.flying ? .97 : .9;
             p = (1 - (1 - p) * y);
-            // x - (x - x * p) * y
-            velocity.x *= p;
-            velocity.z *= p;
 
-            if(this.running) {
-                mul *= this.flying ? 1.15 : 1.5;
-            }
-
-            velocity = velocity.mul(new Vector(mul, 1, mul));
+            this.velocity = velocity = velocity
+                .add(add_force.normal())
+                .mul(new Vector(p, 1, p));
 
             if(this.zoom) {
                 if(Game.render.fov > FOV_ZOOM) {
@@ -754,7 +750,7 @@ export default class Player {
             this.posO = this.pos;
             this.walkDistO = this.walkDist;
             // Resolve collision
-            this.pos = this.resolveCollision(pos, bPos, velocity.mul(new Vector(delta, delta, delta)));
+            this.pos = this.resolveCollision(pos, bPos, velocity.mul(new Vector(delta * mul, delta, delta * mul)));
             this.pos.x = Math.round(this.pos.x * 1000) / 1000;
             this.pos.y = Math.round(this.pos.y * 1000) / 1000;
             this.pos.z = Math.round(this.pos.z * 1000) / 1000;
