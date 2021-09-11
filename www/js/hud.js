@@ -316,7 +316,7 @@ export default class HUD {
         // Console =)
         let playerBlockPos = Game.world.localPlayer.getBlockPos();
         let chunk = Game.world.localPlayer.overChunk;
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z;
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + fps.speed + ' km/h';
         if(chunk) {
             let biome = null;
             if(chunk.map) {

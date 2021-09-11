@@ -363,38 +363,38 @@ export class Renderer {
 
         this.camPos         = pos;
 
-        let x_mul_degree    = 0;
-        let z_mul_degree    = 0;
         let add_x           = 0;
         let add_z           = 0;
 
+        mat4.identity(this.viewMatrix);
+
         // Original bobView
         if(player && player.walking && !player.flying) {
-            let p_109140_ = player.walking_frame * 2 % 1;
+            let p_109140_ = player.walking_frame % 1;
             let f = player.walkDist - player.walkDistO;
             let f1 = -(player.walkDist + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
             add_x = (Math.sin(f1 * Math.PI) * f2 * 0.5);
             add_z = (-Math.abs(Math.cos(f1 * Math.PI) * f2));
-            let effect_power = .03; // 0.03;
-            z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
-            x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
-        }
+            //
+            let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
+            let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
+            //
+            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromZRotation([], zmul * Math.PI / 180));
+            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromXRotation([], xmul * Math.PI / 180));
+        }    
 
-        mat4.identity(this.viewMatrix);
-        //
-        mat4.rotate(this.viewMatrix, this.viewMatrix, x_mul_degree, [1, 0, 0]); // x
-        mat4.rotate(this.viewMatrix, this.viewMatrix, z_mul_degree, [0, 1, 0]); // z
         //
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
         mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
-
+        
         mat4.translate(this.viewMatrix, this.viewMatrix, [
-            -pos[0] + Game.shift.x + add_x,
-            -pos[2] + Game.shift.z + add_z,
+            -pos[0] + Game.shift.x,// + add_x,
+            -pos[2] + Game.shift.z,// + add_z,
             -pos[1]
         ]);
+
 
     }
 
