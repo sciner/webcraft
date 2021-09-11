@@ -363,27 +363,10 @@ export class Renderer {
 
         this.camPos         = pos;
 
-        let add_x           = 0;
-        let add_z           = 0;
-
         mat4.identity(this.viewMatrix);
 
-        // Original bobView
-        if(player && player.walking && !player.flying) {
-            let p_109140_ = player.walking_frame % 1;
-            let f = player.walkDist - player.walkDistO;
-            let f1 = -(player.walkDist + f * p_109140_);
-            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            add_x = (Math.sin(f1 * Math.PI) * f2 * 0.5);
-            add_z = (-Math.abs(Math.cos(f1 * Math.PI) * f2));
-            //
-            let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
-            let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
-            //
-            let m = (Math.PI / 180);
-            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromZRotation([], zmul * m));
-            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromXRotation([], xmul * m));
-        }    
+        // bobView
+        this.bobView(this.viewMatrix);
 
         //
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
@@ -391,35 +374,38 @@ export class Renderer {
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
         
         mat4.translate(this.viewMatrix, this.viewMatrix, [
-            -pos[0] + Game.shift.x,// + add_x,
-            -pos[2] + Game.shift.z,// + add_z,
+            -pos[0] + Game.shift.x,
+            -pos[2] + Game.shift.z,
             -pos[1]
         ]);
 
 
     }
 
-    /*
     // Original bobView
-    bobView(viewMatrix, p_109140_) {
+    bobView(viewMatrix) {
         let player = this.world.localPlayer;
-        if(player) {
-            let f = player.walkDist - player.walkDistO;
-            let f1 = -(player.walkDist + f * p_109140_);
+        if(player && player.walking && !player.flying) {
+            let p_109140_ = player.walking_frame * 2 % 1;
+            //
+            let speed_mul = 1.2;
+            let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
+            let f1 = -(player.walkDist * speed_mul + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
-            let effect_power = 0.05;
-            let z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
-            let x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
-            mat4.rotate(viewMatrix, viewMatrix, x_mul_degree, [1, 0, 0]); // x
-            mat4.rotate(viewMatrix, viewMatrix, z_mul_degree, [0, 1, 0]); // z
+            //
+            let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
+            let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
+            let m = Math.PI / 180;
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
+            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+            //
             mat4.translate(viewMatrix, viewMatrix, [
-                (Math.sin(f1 * Math.PI) * f2 * 0.5),
-                (-Math.abs(Math.cos(f1 * Math.PI) * f2)),
-                0
+                Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                0.0,
+                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
             ]);
         }
     }
-    */
 
     // getVideoCardInfo...
     getVideoCardInfo() {
