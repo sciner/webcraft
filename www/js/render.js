@@ -380,8 +380,9 @@ export class Renderer {
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
             let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
             //
-            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromZRotation([], zmul * (Math.PI / 180)));
-            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromXRotation([], xmul * (Math.PI / 180)));
+            let m = (Math.PI / 180);
+            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromZRotation([], zmul * m));
+            mat4.multiply(this.viewMatrix, this.viewMatrix, mat4.fromXRotation([], xmul * m));
         }    
 
         //
