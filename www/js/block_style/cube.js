@@ -93,13 +93,15 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
 
     // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
     if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
-        if(neighbours.UP && (!neighbours.UP.transparent || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
+        if(neighbours.UP && (!neighbours.UP.transparent || neighbours.UP.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
+            DIRECTION_UP        = DIRECTION.DOWN;
             DIRECTION_BACK      = DIRECTION.DOWN;
             DIRECTION_RIGHT     = DIRECTION.DOWN;
             DIRECTION_FORWARD   = DIRECTION.DOWN;
             DIRECTION_LEFT      = DIRECTION.DOWN;
             sideFlags = 0;
             height = 1;
+            upFlags = 0;
         }
     }
 
