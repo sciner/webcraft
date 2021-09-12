@@ -378,6 +378,7 @@ class Chunk {
                             neighbours.RIGHT = b;
                         }
                         if(!b || (b.transparent || b.fluid)) {
+                            // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                             // break;
                             pcnt = -40;
                         }
@@ -431,6 +432,10 @@ class Chunk {
                         neighbours.SOUTH = neighbours.FORWARD && neighbours.FORWARD.id > 0 ? neighbours.FORWARD : null;
                         neighbours.WEST = neighbours.LEFT && neighbours.LEFT.id > 0 ? neighbours.LEFT : null;
                         neighbours.EAST = neighbours.RIGHT && neighbours.RIGHT.id > 0 ? neighbours.RIGHT : null;
+                        delete(neighbours.LEFT);
+                        delete(neighbours.RIGHT);
+                        delete(neighbours.FORWARD);
+                        delete(neighbours.BACK);
                         BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
                     }
                     world.blocks_pushed++;

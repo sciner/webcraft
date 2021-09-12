@@ -160,7 +160,7 @@ export class Renderer {
         this.materials = {
             regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
             doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
-            transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
+            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 

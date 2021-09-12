@@ -412,7 +412,9 @@ export default class Terrain_Generator {
                 let ywl = map.info.options.WATER_LINE - chunk.coord.y;
                 if(biome.code == 'OCEAN' && ywl >= 0 && ywl < chunk.size.y) {
                     if(!chunk.blocks[x][z][ywl]) {
-                        setBlock(x, ywl, z, blocks.STILL_WATER);
+                        for(let y = value; y <= map.info.options.WATER_LINE; y++) {
+                            setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER);
+                        }
                     }
                 }
 
