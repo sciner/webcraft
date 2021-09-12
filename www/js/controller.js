@@ -197,6 +197,7 @@ let gameCtrl = function($scope, $timeout) {
         list: [
             {id: 'biome2', title: 'Стандартный'},
             {id: 'city', title: 'Город'},
+            {id: 'city2', title: 'Город 2'},
             {id: 'flat', title: 'Плоский мир'}
         ],
         next: function() {
