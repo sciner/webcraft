@@ -706,13 +706,13 @@ export default class Player {
             // Walking
             // Calculate new velocity
             let add_force = this.calcForce();
-            let y = delta / (1 / 60);
+            let y = delta/(1/(60/(delta/(1/60))));
             let p = this.flying ? .97 : .9;
-            p = (1 - (1 - p) * y);
+            p = Math.pow(p, y);
             this.velocity = velocity
                 .add(add_force.normal())
                 .mul(new Vector(p, 1, p));
-            //
+            // applyFov
             this.applyFov(delta);
             //
             this.posO = this.pos;
@@ -741,7 +741,6 @@ export default class Player {
             //}
             this.bob += (f - this.bob) * 0.4;
             //
-            this.eyes_in_water_o = this.eyes_in_water;
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkPos           = Game.world.chunkManager.getChunkPos(this.blockPos.x, this.blockPos.y, this.blockPos.z);
@@ -759,17 +758,18 @@ export default class Player {
                 this.flying = false;
             }
             this.in_water_o = this.in_water;
-            // внутри какого блока находится голова
-            let hby                 = this.pos.y + this.height;
-            this.headBlock          = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
-            this.eyes_in_water      = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
+            // Внутри какого блока находится голова (в идеале глаза)
+            let hby = this.pos.y + this.height;
+            this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
+            this.eyes_in_water_o = this.eyes_in_water;
+            this.eyes_in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
                 let blockOverIsFluid = (headBlockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
-                    this.eyes_in_water = hby < (hby | 0) + power;
+                    this.eyes_in_water = hby < (hby | 0) + power + .01;
                 }
             }
         }

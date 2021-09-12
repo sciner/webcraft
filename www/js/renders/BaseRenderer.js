@@ -108,7 +108,6 @@ export class BaseMaterial {
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
     }
 
-
     getSubMat() {
         return null;
     }

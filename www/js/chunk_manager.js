@@ -87,7 +87,7 @@ export class ChunkManager {
         let applyVerticesCan        = 1;
         let groups = [];
         if(transparent) {
-            groups = ['transparent'];
+            groups = ['transparent', 'doubleface_transparent'];
         } else {
             groups = ['regular', 'doubleface'];
         }

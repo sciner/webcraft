@@ -258,6 +258,10 @@ class Chunk {
                 list: [],
                 is_transparent: true
             },
+            doubleface_transparent: {
+                list: [],
+                is_transparent: true
+            },
             doubleface: {
                 list: [],
                 is_transparent: true
@@ -300,9 +304,11 @@ class Chunk {
                     }
                     let group = 'regular';
                     // make vertices array
-                    if([200, 202].indexOf(block.id) >= 0 || (block.tags && block.tags.indexOf('glass') >= 0)) {
+                    if([200, 202].indexOf(block.id) >= 0) {
                         // если это блок воды
                         group = 'transparent';
+                    } else if(block.tags && block.tags.indexOf('glass') >= 0) {
+                        group = 'doubleface_transparent';
                     } else if(block.style == 'planting') {
                         group = 'doubleface';
                     }

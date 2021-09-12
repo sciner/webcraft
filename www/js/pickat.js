@@ -37,7 +37,7 @@ export class PickAt {
         this.material_damage = render.renderBackend.createMaterial({
             cullFace: true,
             opaque: false,
-            blendMode: BLEND_MODES.MULTIPLY,
+            blendMode: BLEND_MODES.NORMAL,
             shader: render.shader
         });
         // Material (target)
@@ -258,7 +258,6 @@ export class PickAt {
     // Draw meshes
     draw() {
         let render = this.render;
-
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         // 1. Target block
