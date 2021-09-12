@@ -1,5 +1,5 @@
-
 export class Resources {
+
     constructor() {
         this.codeMain = {};
         this.codeSky = {};

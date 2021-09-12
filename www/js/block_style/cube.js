@@ -1,3 +1,5 @@
+"use strict";
+
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {impl as alea} from '../../vendors/alea.js';
 import { BLOCK } from '../blocks.js';
@@ -39,11 +41,12 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         debugger;
     }
 
-    let c, ao, neighbourBlock;
+    let c, ao;
     let width                   = block.width ? block.width : 1;
     let height                  = block.height ? block.height : 1;
     let drawAllSides            = width != 1 || height != 1;
-    let texture                 = BLOCK[block.name].texture;
+    let mat                     = BLOCK[block.name];
+    let texture                 = mat.texture;
     let blockLit                = true;
 
     // F R B L
@@ -75,7 +78,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
     }
 
     // Can change height
-    let bH         = 1.0;
+    let bH = 1.0;
     if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
         bH = Math.min(block.power, .9)
         let blockOver  = world.chunkManager.getBlock(x, y + 1, z);
@@ -89,9 +92,6 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
 
     // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
     if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
-        /*if(x == 2694 && y == 76 && z == 2609) {
-            debugger;
-        }*/
         if(neighbours.UP && (!neighbours.UP.transparent || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
             DIRECTION_BACK      = DIRECTION.DOWN;
             DIRECTION_RIGHT     = DIRECTION.DOWN;
@@ -102,9 +102,18 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
         }
     }
 
+    let canDrawFace = (neighbourBlock) => {
+        let resp = drawAllSides || !neighbourBlock || neighbourBlock.transparent;
+        if(resp && neighbourBlock) {
+            if(block.id == neighbourBlock.id && block.selflit) {
+                resp = false;
+            }
+        }
+        return resp;
+    };
+
     // Top
-    neighbourBlock = neighbours.UP;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent || block.fluid) {
+    if(canDrawFace(neighbours.UP)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
             let aa = this.getCachedBlock(x, y + 1, z - 1);
@@ -177,14 +186,8 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             ...ao, flags | upFlags);
     }
 
-    // Waters
-    if([200, 202].indexOf(block.id) >= 0) {
-        return;
-    }
-
     // Bottom
-    neighbourBlock = neighbours.DOWN;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+    if(canDrawFace(neighbours.DOWN)) {
         ao = [.5, .5, .5, .5];
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
         vertices.push(x + 0.5, z + 0.5, y,
@@ -196,8 +199,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
     }
 
     // South | Front/Forward
-    neighbourBlock = neighbours.FORWARD;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+    if(canDrawFace(neighbours.SOUTH)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
             // ao[0] - левый нижний
@@ -233,8 +235,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
     }
 
     // North | Back
-    neighbourBlock = neighbours.BACK;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+    if(canDrawFace(neighbours.NORTH)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
             // ao[0] - правый верхний
@@ -269,9 +270,8 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             ...ao, flags | sideFlags);
     }
 
-    // West | Left
-    neighbourBlock = neighbours.LEFT;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+    // West
+    if(canDrawFace(neighbours.WEST)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
             // ao[0] - правый верхний
@@ -306,9 +306,8 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             ...ao, flags | sideFlags);
     }
 
-    // East | Right
-    neighbourBlock = neighbours.RIGHT;
-    if(drawAllSides || !neighbourBlock || neighbourBlock.transparent) {
+    // East
+    if(canDrawFace(neighbours.EAST)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
             // ao[0] - левый нижний

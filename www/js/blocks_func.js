@@ -163,10 +163,12 @@ export class BLOCK_FUNC {
             }
             return destroy_time;
         };
+        //
         let max_id = -1;
         for(let mat in this) {
             let B = this[mat];
             B.power = 1;
+            B.selflit = B.hasOwnProperty('selflit') && B.selflit;
             if(typeof(B) == 'object') {
                 if(id_list.indexOf(B.id) >= 0)  {
                     console.error('Duplicate block id ', B.id, B);
