@@ -88,6 +88,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
                 bH = 1.0;
             }
         }
+        block.bH = bH;
     }
 
     // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
@@ -184,6 +185,17 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             ...c,
             lm.r, lm.g, lm.b,
             ...ao, flags | upFlags);
+        if(block.is_fluid && block.transparent) {
+            top_vectors = [
+                1, 0, 0,
+                0, -1, 0
+            ];
+            vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+                ...top_vectors,
+                ...c,
+                lm.r, lm.g, lm.b,
+                ...ao, flags | upFlags);
+        }
     }
 
     // Bottom
@@ -234,7 +246,7 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             ...ao, flags | sideFlags);
     }
 
-    // North | Back
+    // North
     if(canDrawFace(neighbours.NORTH)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {

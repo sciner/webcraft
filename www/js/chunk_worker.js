@@ -121,7 +121,7 @@ class Chunk {
         // 4. Result
         postMessage(['blocks_generated', c]);
     }
-    
+
     //
     applyModifyList() {
         if(!this.modify_list) {

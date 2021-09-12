@@ -12,7 +12,7 @@ await Vox_Loader.load('/vox/city/City_1.vox', (chunks) => {
         // 81: BLOCK.CONCRETE,
         // 97: BLOCK.OAK_PLANK,
         // 121: BLOCK.STONE_BRICK,
-        // 122: BLOCK.POLISHED_STONE,
+        // 122: BLOCK.SMOOTH_STONE,
         // 123: BLOCK.GRAVEL,
     };
     vox_templates.city1 = {chunk: chunks[0], palette: palette};

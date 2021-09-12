@@ -517,15 +517,16 @@ BLOCK.CONCRETE_YELLOW = {
 };
 
 // Полированный камень
-BLOCK.POLISHED_STONE = {
+BLOCK.SMOOTH_STONE = {
 	id: 70,
+    inventory_icon_id: 906,
 	spawnable: true,
 	selflit: false,
 	gravity: false,
 	fluid: false,
     sound: 'webcraft:block.stone',
     tags: ['stone'],
-	texture: function(world, lightmap, lit, x, y, z, dir) { return [ 6, 0 ]; }
+	texture: function(world, lightmap, lit, x, y, z, dir) { return [6, 0]; }
 };
 
 // Brick
@@ -674,7 +675,7 @@ BLOCK.STILL_WATER = {
     inventory_icon_id: 3272,
     spawnable: true,
     transparent: true,
-    passable: .25,
+    passable: .4,
     selflit: true,
     is_fluid: true,
     texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -685,7 +686,7 @@ BLOCK.STILL_WATER = {
 BLOCK.FLOWING_WATER = {
     id: 200,
     spawnable: true,
-    passable: .25,
+    passable: .4,
     transparent: true,
     selflit: true,
     is_fluid: true,

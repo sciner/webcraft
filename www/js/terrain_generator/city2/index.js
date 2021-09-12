@@ -13,7 +13,7 @@ let palette = {
     252: BLOCK.CONCRETE,
     192: BLOCK.ICE,
     235: BLOCK.IRON,
-    248: BLOCK.POLISHED_STONE,
+    248: BLOCK.SMOOTH_STONE,
     106: BLOCK.BIRCH_PLANK,
     38: BLOCK.TERRACOTTA_RED,
     246: BLOCK.IRON,
@@ -39,7 +39,7 @@ let palette = {
 
     // 97: BLOCK.OAK_PLANK,
     // 121: BLOCK.STONE_BRICK,
-    // 122: BLOCK.POLISHED_STONE,
+    // 122: BLOCK.SMOOTH_STONE,
     // 123: BLOCK.GRAVEL,
 };
 let vox_templates = {};

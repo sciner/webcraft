@@ -15,7 +15,7 @@ await Vox_Loader.load('/data/monu10.vox', (chunks) => {
         81: BLOCK.CONCRETE,
         97: BLOCK.OAK_PLANK,
         121: BLOCK.STONE_BRICK,
-        122: BLOCK.POLISHED_STONE,
+        122: BLOCK.SMOOTH_STONE,
         123: BLOCK.GRAVEL,
     };
     vox_templates.monu10 = {chunk: chunks[0], palette: palette};
@@ -406,14 +406,15 @@ export default class Terrain_Generator {
                     } else {
                         setBlock(x, y, z, biome.dirt_block);
                     }
-
                 }
                 // `Y` of waterline
                 let ywl = map.info.options.WATER_LINE - chunk.coord.y;
-                if(biome.code == 'OCEAN' && ywl >= 0 && ywl < chunk.size.y) {
-                    if(!chunk.blocks[x][z][ywl]) {
-                        for(let y = value; y <= map.info.options.WATER_LINE; y++) {
-                            setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER);
+                if(biome.code == 'OCEAN' && ywl >= 0) {
+                    for(let y = value; y <= map.info.options.WATER_LINE; y++) {
+                        if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
+                            if(!chunk.blocks[x][z][y - chunk.coord.y]) {
+                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER);
+                            }
                         }
                     }
                 }
