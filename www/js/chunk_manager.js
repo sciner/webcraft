@@ -81,11 +81,17 @@ export class ChunkManager {
     }
 
     // Draw level chunks
-    draw(render) {
+    draw(render, transparent) {
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 1;
-        for(let group of ['regular', 'doubleface', 'transparent']) {
+        let groups = [];
+        if(transparent) {
+            groups = ['transparent'];
+        } else {
+            groups = ['regular', 'doubleface'];
+        }
+        for(let group of groups) {
             const mat = render.materials[group];
             for(let pos of this.poses) {
                 let chunk = this.getChunk(pos);

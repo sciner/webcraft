@@ -281,7 +281,7 @@ export class Renderer {
         shader.update();
         // 2. Draw chunks
         this.terrainTexture.bind(4);
-        this.world.chunkManager.draw(this);
+        this.world.chunkManager.draw(this, false);
         
         /*
         if(!this.vl && Game.shift.x != 0) {
@@ -297,6 +297,7 @@ export class Renderer {
         this.world.draw(this, delta);
         // 3. Draw players and rain
         this.drawPlayers(delta);
+        this.world.chunkManager.draw(this, true);
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();
