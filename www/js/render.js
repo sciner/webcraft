@@ -71,24 +71,19 @@ export class Renderer {
     async genTerrain(image) {
         this.terrainTexSize = image.width;
         this.terrainBlockSize = image.width / 512 * 16;
-
         if (!this.useAnisotropy) {
             if (image instanceof  self.ImageBitmap) {
                 return  image;
             }
             return await self.createImageBitmap(image, {premultiplyAlpha: 'none'});
         }
-
         const canvas2d = document.createElement('canvas');
         const context = canvas2d.getContext('2d');
         const w = image.width;
         canvas2d.width = w * 2;
         canvas2d.height = w * 2;
-
         let offset = 0;
-
         context.drawImage(image, 0, 0);
-
         for (let dd = 2; dd <= 16; dd *= 2) {
             const nextOffset = offset + w * 2 / dd;
             context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
@@ -161,6 +156,7 @@ export class Renderer {
             regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
             doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
             transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
+            doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
@@ -192,7 +188,6 @@ export class Renderer {
 
     initSky() {
         const { resources } = this;
-
         return this.skyBox = this.renderBackend.createCubeMap({
             code: resources.codeSky,
             sides: [
@@ -282,7 +277,6 @@ export class Renderer {
         // 2. Draw chunks
         this.terrainTexture.bind(4);
         this.world.chunkManager.draw(this, false);
-        
         /*
         if(!this.vl && Game.shift.x != 0) {
             this.vl = new Vox_Loader('/data/monu10.vox', (chunks) => {
@@ -293,7 +287,6 @@ export class Renderer {
             this.voxel_mesh.draw(this.renderBackend);
         }
         */
-        
         this.world.draw(this, delta);
         // 3. Draw players and rain
         this.drawPlayers(delta);
@@ -331,10 +324,8 @@ export class Renderer {
             this.renderBackend.resize(
                 window.innerWidth * self.devicePixelRatio | 0,
                 window.innerHeight * self.devicePixelRatio | 0);
-
             this.viewportWidth = window.innerWidth | 0;
             this.viewportHeight = window.innerHeight | 0;
-
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.fov, this.min, this.max);
         }
@@ -356,30 +347,23 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(pos, ang) {
-
         let pitch           = ang[0]; // X
         let roll            = ang[1]; // Z
         let yaw             = ang[2]; // Y
-
         this.camPos         = pos;
-
         mat4.identity(this.viewMatrix);
-
         // bobView
         this.bobView(this.viewMatrix);
-
         //
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
         mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
-        
+        //
         mat4.translate(this.viewMatrix, this.viewMatrix, [
             -pos[0] + Game.shift.x,
             -pos[2] + Game.shift.z,
             -pos[1]
         ]);
-
-
     }
 
     // Original bobView
