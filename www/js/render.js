@@ -16,8 +16,8 @@ const {mat4} = glMatrix;
 * This class contains the code that takes care of visualising the
 * elements in the specified world.
 **/
-const BACKEND               = 'auto';
 export const ZOOM_FACTOR    = 0.25;
+const BACKEND               = 'auto';
 const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
 const FOV_WIDE              = FOV_NORMAL * 1.15;
@@ -238,29 +238,29 @@ export class Renderer {
     // Render one frame of the world to the canvas.
     draw(delta) {
         const { gl, shader, renderBackend } = this;
-        // console.log(Game.world.renderer.camPos[2]);
-        //if(Game.world.localPlayer.pos.z + 1.7 < 63.8) {
-        //    currentRenderState.fogDensity   = settings.fogDensityUnderWater;
-        //    currentRenderState.fogColor     = settings.fogUnderWaterColor;
-        //    currentRenderState.fogAddColor  = settings.fogUnderWaterAddColor;
-        //} else {
+        let player = this.world.localPlayer;
         currentRenderState.fogDensity   = settings.fogDensity;
-        // currentRenderState.fogColor     = settings.fogColor;
         currentRenderState.fogAddColor  = settings.fogAddColor;
-        //}
         this.updateViewport();
         renderBackend.beginFrame(currentRenderState.fogColor);
         //
         shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
         shader.pixelSize = 1.0 / this.terrainTexSize;
-        shader.fogColor = currentRenderState.fogColor;
-        shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        // In water
+        if(player.eyes_in_water) {
+            shader.fogColor = settings.fogUnderWaterColor;
+            shader.chunkBlockDist = 8;
+            shader.fogAddColor = settings.fogUnderWaterAddColor;
+        } else {
+            shader.fogColor = currentRenderState.fogColor;
+            shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+            shader.fogAddColor = currentRenderState.fogAddColor;
+        }
+        
         shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
-        shader.fogAddColor = currentRenderState.fogAddColor;
         shader.texture = this.terrainTexture;
         shader.mipmap = this.terrainTexture.anisotropy;
-        // shader.camPos.set([Game.shift.x, Game.shift.z, 0]);
         const {
             width, height
         } = renderBackend.size;
@@ -359,7 +359,6 @@ export class Renderer {
         let pitch           = ang[0]; // X
         let roll            = ang[1]; // Z
         let yaw             = ang[2]; // Y
-        let player          = this.world.localPlayer;
 
         this.camPos         = pos;
 
@@ -385,7 +384,8 @@ export class Renderer {
     // Original bobView
     bobView(viewMatrix) {
         let player = this.world.localPlayer;
-        if(player && player.walking && !player.flying) {
+        let underBlock = player.underBlock; // 
+        if(player && player.walking && !player.flying && !player.in_water && (underBlock && (!underBlock.passable || underBlock.passable == 1))) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
             let speed_mul = 1.2;

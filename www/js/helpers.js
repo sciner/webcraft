@@ -77,6 +77,10 @@ export class Vector {
         this.z = z || 0;
     }
 
+    equal(vec) {
+        return this.x === vec.x && this.y === vec.y && this.z === vec.z;
+    }
+
     add(vec) {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }

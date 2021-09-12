@@ -180,11 +180,14 @@ export let Game = {
     setupHitSounds: function() {
         let playHit = () => {
             let player = Game.world.localPlayer;
+            if(!player || player.in_water || !player.walking || !this.controls.enabled) {
+                return;
+            }
             let f = player.walkDist - player.walkDistO;
             if(f > 0) {
                 let pos = Game.world.localPlayer.getBlockPos();
                 let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-                if(world_block && world_block.id > 0) {
+                if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
                     let default_sound = 'webcraft:block.wood';
                     let action = 'hit';
                     let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
@@ -197,12 +200,12 @@ export let Game = {
             }
         };
         this.interval425 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && !this.world.localPlayer.running && this.controls.enabled) {
+            if(this.world && this.world.localPlayer && !this.world.localPlayer.running) {
                 playHit();
             }
         }, 425);
         this.interval300 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.walking && this.world.localPlayer.running && this.controls.enabled) {
+            if(this.world && this.world.localPlayer && this.world.localPlayer.running) {
                 playHit();
             }
         }, 300);
