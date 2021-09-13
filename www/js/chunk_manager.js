@@ -102,7 +102,7 @@ export class ChunkManager {
                         }
                     }
                     if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
-                        this.rendered_chunks.fact += 0.33333;
+                        this.rendered_chunks.fact += 0.25;
                     }
                 }
             }
@@ -247,7 +247,10 @@ export class ChunkManager {
     }
 
     getPosChunkKey(pos) {
-        return 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
+        if(pos instanceof Vector) {
+            return pos.toChunkKey();
+        }
+        return new Vector(pos.x, pos.y, pos.z).toChunkKey();
     }
 
     parseChunkPos(key) {
@@ -272,6 +275,18 @@ export class ChunkManager {
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
+        let vec = new Vector(
+            (x / CHUNK_SIZE_X) | 0,
+            (y / CHUNK_SIZE_Y) | 0,
+            (z / CHUNK_SIZE_Z) | 0
+        );
+        let chunk_key = this.getPosChunkKey(vec);
+        let chunk = this.chunks[chunk_key];
+        if(chunk) {
+            return chunk.getBlock(x, y, z);
+        }
+        return BLOCK.DUMMY;
+        /*
         let resp = BLOCK.DUMMY;
         // определяем относительные координаты чанка
         let chunkPos = this.getChunkPos(x, y, z);
@@ -283,6 +298,7 @@ export class ChunkManager {
             resp = chunk.getBlock(x, y, z);
         }
         return resp;
+        */
     }
 
     // setBlock

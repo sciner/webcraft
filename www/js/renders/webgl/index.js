@@ -36,6 +36,57 @@ export class WebGLCubeShader extends BaseCubeShader {
         this.u_shift = gl.getUniformLocation(this.program, 'u_shift');
         this.u_TestLightOn = gl.getUniformLocation(this.program, 'u_TestLightOn');
         this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
+        // Make custom uniforms
+        if(options && 'uniforms' in options) {
+            this.makeUniforms(options.uniforms);
+        }
+    }
+
+    //
+    makeUniforms(uniforms) {
+        const {
+            gl
+        } = this.context;
+        this.uniforms = {};
+        for(let name of Object.keys(uniforms)) {
+            let value = uniforms[name];
+            let type = null;
+            let func = null;
+            switch(typeof value) {
+                case 'boolean': {
+                    type = 'bool';
+                    func = 'uniform1f';
+                    break;
+                }
+                case 'Vector': {
+                    type = 'vec3';
+                    func = 'uniform3fv';
+                    break;                        
+                }
+                default: {
+                    throw 'Unsupported uniform type ' + type;
+                }
+            }
+            this.uniforms[name] = {
+                name: name,
+                type: type,
+                func: func,
+                value: value,
+                ptr: gl.getUniformLocation(this.program, name),
+                set: (v) => this.value = v,
+                get: () => this.value
+            };
+        }
+    }
+
+    applyUniforms() {
+        const { gl } = this.context;
+        gl.useProgram(this.program);
+        // Bind custom uniforms
+        for(let name of Object.keys(this.uniforms)) {
+            let unf = this.uniforms[name];
+            gl[unf.func](unf.ptr, unf.value);
+        }
     }
 
     bind() {
@@ -54,6 +105,9 @@ export class WebGLCubeShader extends BaseCubeShader {
 
         gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
         gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
+
+        this.applyUniforms();
+
     }
 
 }
@@ -256,7 +310,6 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     endFrame() {
-
     }
 
     createCubeMap(options) {

@@ -167,6 +167,26 @@ export class Vector {
 
     toChunkKey() {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
+        /*
+        // @ Метод быстрее в 3,5 раза на большом количестве вызовов, при малом количестве на 20% медленнее метода в лоб
+        if(!Vector.keys) {
+            Vector.keys = [];
+            Vector.keys_count = 0;
+        }
+        let resp = Vector.keys[this.x]?.[this.z]?.[this.y]
+        if(resp) {
+            return resp;
+        }
+        resp = 'c_' + this.x + '_' + this.y + '_' + this.z;
+        if(!Vector.keys[this.x]) {
+            Vector.keys[this.x] = [];
+        }
+        if(!Vector.keys[this.x][this.z]) {
+            Vector.keys[this.x][this.z] = [];
+        }
+        Vector.keys_count++;
+        return Vector.keys[this.x][this.z][this.y] = resp;
+        */
     }
 
 }

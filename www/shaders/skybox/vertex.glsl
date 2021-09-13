@@ -6,9 +6,9 @@ uniform mat4 u_lookAtMatrix;
 uniform mat4 u_projectionMatrix;
 uniform float u_brightness_value;
 uniform vec2 u_resolution;
+uniform bool u_textureOn;
 
 varying vec3 v_texCoord;
-
 varying vec4 crosshair;
 
 void main() {

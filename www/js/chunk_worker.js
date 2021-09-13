@@ -33,8 +33,13 @@ class ChunkManager {
         return v;
     }
 
+    /**
+     * 
+     * @param {Vector} pos 
+     * @returns 
+     */
     getPosChunkKey(pos) {
-        return 'c_' + pos.x + '_' + pos.y + '_' + pos.z;
+        return pos.toChunkKey();
     }
 
     // Get
