@@ -276,6 +276,7 @@ export class BaseCubeShader extends BaseShader {
 
         this.cull = false;
         this.depth = false;
+
     }
 
     set brightness (v) {

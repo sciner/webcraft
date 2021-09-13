@@ -34,6 +34,7 @@ export default class Chunk {
         );
 
         this.seed = chunkManager.world.seed;
+        this.blocks = null;
 
         this.id = [
             this.addr.x,
@@ -168,25 +169,22 @@ export default class Chunk {
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(ox, oy, oz) {
+    getBlock(x, y, z) {
         if(!this.inited) {
             return BLOCK.DUMMY;
         }
-        let x = ox - this.coord.x;
-        let y = oy - this.coord.y;
-        let z = oz - this.coord.z;
-        if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
+        x -= this.coord.x;
+        y -= this.coord.y;
+        z -= this.coord.z;
+        if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return BLOCK.DUMMY;
         };
-        if(z < 0 || z >= this.size.z) {
-            return BLOCK.DUMMY;
-        }
         let block = this.blocks[x][z][y];
         if(!block) {
-            block = BLOCK.AIR;
+            return BLOCK.AIR;
         }
         if(typeof block == 'number') {
-            block = BLOCK.BLOCK_BY_ID[block];
+           block = BLOCK.BLOCK_BY_ID[block];
         }
         return block;
     }
@@ -196,7 +194,7 @@ export default class Chunk {
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
-        if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
+        if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return;
         };
         // fix rotate

@@ -3,10 +3,10 @@
 import HUD from "./hud.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {Vox_Loader} from "./vox/loader.js";
-import {Vox_Mesh} from "./vox/mesh.js";
 import {Game} from "./game.js";
 import {Mth, Vector} from "./helpers.js";
+import {Vox_Loader} from "./vox/loader.js";
+import {Vox_Mesh} from "./vox/mesh.js";
 
 const {mat4} = glMatrix;
 
@@ -26,16 +26,14 @@ const RENDER_DISTANCE       = 800;
 
 let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1],
-    // fogColor:               [185 / 255, 210 / 255, 254 / 255, 1],
     fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
-    fogDensity:             2.52 / 320, // 170, //  0.015 = 168, 0.03 = 84
+    fogDensity:             2.52 / 320,
     fogDensityUnderWater:   0.1
 };
 
 let currentRenderState = {
-    // fogColor:           [185 / 255, 210 / 255, 254 / 255, 1],
     fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
     fogDensity:         0.02,
     underWater:         false
@@ -97,18 +95,16 @@ export class Renderer {
         }
         // canvas2d.width = 0;
         // canvas2d.height = 0;
-        //return await self.createImageBitmap(canvas2d);
+        // return await self.createImageBitmap(canvas2d);
         return canvas2d;
     }
 
     async genColorTexture(clr) {
         const canvas2d = document.createElement('canvas');
         canvas2d.width = canvas2d.height = 16;
-
         const context = canvas2d.getContext('2d');
         context.fillStyle = 'white';
         context.fillRect(0, 0, 16, 16);
-
         return canvas2d;
     }
 
@@ -190,6 +186,9 @@ export class Renderer {
         const { resources } = this;
         return this.skyBox = this.renderBackend.createCubeMap({
             code: resources.codeSky,
+            uniforms: {
+                u_textureOn: true
+            },
             sides: [
                 resources.sky.posx,
                 resources.sky.negx,
@@ -237,21 +236,21 @@ export class Renderer {
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
-        renderBackend.beginFrame(currentRenderState.fogColor);
+        let fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : currentRenderState.fogColor;
+        renderBackend.beginFrame(fogColor);
         //
         shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
         shader.pixelSize = 1.0 / this.terrainTexSize;
         // In water
         if(player.eyes_in_water) {
-            shader.fogColor = settings.fogUnderWaterColor;
+            shader.fogColor = fogColor;
             shader.chunkBlockDist = 8;
             shader.fogAddColor = settings.fogUnderWaterAddColor;
         } else {
-            shader.fogColor = currentRenderState.fogColor;
+            shader.fogColor = fogColor;
             shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
             shader.fogAddColor = currentRenderState.fogAddColor;
         }
-        
         shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
         shader.texture = this.terrainTexture;
@@ -270,6 +269,9 @@ export class Renderer {
         }
         // 1. Draw skybox
         if(this.skyBox) {
+            if(this.skyBox.shader.uniforms) {
+                this.skyBox.shader.uniforms.u_textureOn.value = !player.eyes_in_water;
+            }
             this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }
         shader.bind();
