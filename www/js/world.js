@@ -3,6 +3,7 @@ import {Helpers, Vector} from "./helpers.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
+import Particles_Clouds from "./particles/clouds.js";
 import PlayerModel from "./player_model.js";
 import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
@@ -16,6 +17,7 @@ export class World {
     constructor(saved_state) {
         this._savedState = saved_state;
         this.server_state = null;
+        this.clouds = null;
         // Autosave
         setInterval(() => {
             console.log('Autosave ... OK');
@@ -86,6 +88,13 @@ export class World {
     draw(render, delta) {
         // Meshes
         this.meshes.draw(render, delta);
+        // Clouds
+        if(!this.clouds) {
+            let pos = new Vector(this.spawnPoint);
+            pos.y = 128.1;
+            console.log(pos);
+            this.clouds = this.createClouds(pos);
+        }
         // Picking target
         let player = this.localPlayer;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
@@ -121,6 +130,11 @@ export class World {
     // rainDrop
     rainDrop(pos) {
         this.meshes.add(new Particles_Raindrop(this.renderer.gl, pos));
+    }
+
+    // createClouds
+    createClouds(pos) {
+        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
     }
 
     // setRain

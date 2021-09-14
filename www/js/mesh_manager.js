@@ -12,6 +12,7 @@ export class MeshManager {
             key = Helpers.generateID();
         }
         this.list[key] = mesh;
+        return mesh;
     }
 
     remove(key, render) {

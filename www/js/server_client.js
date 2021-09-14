@@ -184,16 +184,13 @@ export default class ServerClient {
 
     // Создание сундука | Create chest
     CreateEntity(id, pos, rotate) {
+        let mul = new Vector(10, 10, 10);
         this.Send({name: ServerClient.CLIENT_CREATE_ENTITY, data: {
             pos: pos,
             item: {
                 id: id,
                 power: 1.0,
-                rotate: new Vector(
-                    Math.round(rotate.x * 10) / 10,
-                    Math.round(rotate.y * 10) / 10,
-                    Math.round(rotate.z * 10) / 10
-                )
+                rotate: rotate.mul(mul).round().div(mul)
             }
         }});
     }

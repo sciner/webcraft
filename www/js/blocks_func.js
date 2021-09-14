@@ -229,9 +229,9 @@ export class BLOCK_FUNC {
      * clearBlockCache...
      */
     static clearBlockCache() {
-        this.block_cache = {};
-        this.cachedBlocksUsed = 0;
-        this.cachedBlocksMiss = 0;
+        BLOCK.block_cache = {};
+        BLOCK.cachedBlocksUsed = 0;
+        BLOCK.cachedBlocksMiss = 0;
     }
 
     /**
@@ -241,15 +241,15 @@ export class BLOCK_FUNC {
      * @param { int } z 
      * @returns 
      */
-    static getCachedBlock(x, y, z) {
+    static getCachedBlock(chunkManager, x, y, z) {
         // return world.chunkManager.getBlock(x, y, z);
         let key = new Vector(x, y, z).toString();
-        if(this.block_cache[key]) {
-            this.cachedBlocksUsed++;
-            return this.block_cache[key];
+        if(BLOCK.block_cache[key]) {
+            BLOCK.cachedBlocksUsed++;
+            return BLOCK.block_cache[key];
         }
-        this.cachedBlocksMiss++;
-        return this.block_cache[key] = world.chunkManager.getBlock(x, y, z);
+        BLOCK.cachedBlocksMiss++;
+        return BLOCK.block_cache[key] = chunkManager.getBlock(x, y, z);
     }
 
     // Функция определяет, отбрасывает ли указанный блок тень
@@ -277,9 +277,9 @@ export class BLOCK_FUNC {
         } else if (style == 'trapdoor') {
             this.push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbours, biome);
         } else if (['torch'].indexOf(style) >= 0) {
-            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
+            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
         } else {
-            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome);
+            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
         }
     }
 
