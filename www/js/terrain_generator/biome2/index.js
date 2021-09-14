@@ -439,7 +439,7 @@ export default class Terrain_Generator {
         for(let p of map.info.plants) {
             if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
                 let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
-                if(b && b.id == blocks.DIRT.id) {
+                if(b && b === blocks.DIRT.id) {
                     if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
                         setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block);
                     }
@@ -457,9 +457,9 @@ export default class Terrain_Generator {
         const type          = options.type;
         let ystart = y + height;
         // setBlock
-        let setBlock = (x, y, z, block) => {
+        let setBlock = (x, y, z, block, force_replace) => {
             if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                if(!chunk.blocks[x][z][y]) {
+                if(force_replace || !chunk.blocks[x][z][y]) {
                     let xyz = new Vector(x, y, z);
                     if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
                         chunk.blocks[x][z][y] = block.id;
@@ -467,22 +467,9 @@ export default class Terrain_Generator {
                 }
             }
         };
-        //
-        /*let getBlockID = (b) => {
-            if(!b) {
-                return null;
-            }
-            if(typeof b == 'number') {
-                return b;
-            }
-            return b.id;
-        };*/
         // ствол
         for(let p = y; p < ystart; p++) {
-            //let b = getBlockID(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z));
-            //if(b && b >= 0) {
-            setBlock(x, p, z, type.trunk);
-            //}
+            setBlock(x, p, z, type.trunk, true);
         }
         // листва над стволом
         switch(type.style) {
@@ -492,7 +479,7 @@ export default class Terrain_Generator {
             }
             case 'stump': {
                 // пенёк
-                setBlock(x, ystart, z, type.leaves);
+                setBlock(x, ystart, z, type.leaves, true);
                 break;
             }
             case 'wood': {
@@ -514,7 +501,7 @@ export default class Terrain_Generator {
                                 let b = chunk.blocks[i][j][py];
                                 let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                                 if(!b_id || b_id >= 0 && b_id != type.trunk.id) {
-                                    setBlock(i, py, j, type.leaves);
+                                    setBlock(i, py, j, type.leaves, false);
                                 }
                             }
                         }
@@ -536,7 +523,7 @@ export default class Terrain_Generator {
                                 let b = chunk.blocks[i][j][py];
                                 let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                                 if(!b_id || b_id >= 0 && b_id != type.trunk.id) {
-                                    setBlock(i, py, j, type.leaves);
+                                    setBlock(i, py, j, type.leaves, false);
                                 }
                             }
                         }
@@ -550,9 +537,9 @@ export default class Terrain_Generator {
                 let r = 1;
                 let rad = Math.round(r);
                 if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    setBlock(x, ystart, z, type.leaves);
+                    setBlock(x, ystart, z, type.leaves, false);
                     if(options.biome_code == 'SNOW') {
-                        setBlock(x, ystart + 1, z, blocks.SNOW);
+                        setBlock(x, ystart + 1, z, blocks.SNOW, false);
                     }
                 }
                 let step = 0;
@@ -569,9 +556,9 @@ export default class Terrain_Generator {
                                     let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                                     let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                                     if(b_id === blocks.AIR.id) {
-                                        setBlock(i, y, j, type.leaves);
+                                        setBlock(i, y, j, type.leaves, false);
                                         if(options.biome_code == 'SNOW') {
-                                            setBlock(i, y + 1, j, blocks.SNOW);
+                                            setBlock(i, y + 1, j, blocks.SNOW, false);
                                         }
                                     }
                                 }
