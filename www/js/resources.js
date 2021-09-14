@@ -7,6 +7,7 @@ export class Resources {
         this.pickat = {};
         this.sky = {};
     }
+
     /**
      * @param settings
      * @param settings.hd hd textures
@@ -51,12 +52,12 @@ Resources.loadTextFile = (url) => {
 }
 
 Resources.loadImage = (url,  imageBitmap) => {
+
     if (imageBitmap) {
         return fetch(url)
             .then(r => r.blob())
             .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}));
     }
-
     return new Promise((resolve, reject) => {
         const image = new Image();
         image.onload = function () {

@@ -310,9 +310,9 @@ class Chunk {
                     let group = 'regular';
                     // make vertices array
                     if([200, 202].indexOf(block.id) >= 0) {
-                        // если это блок воды
+                        // если это блок воды или облако
                         group = 'transparent';
-                    } else if(block.tags && block.tags.indexOf('glass') >= 0) {
+                    } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
                         group = 'doubleface_transparent';
                     } else if(block.style == 'planting') {
                         group = 'doubleface';

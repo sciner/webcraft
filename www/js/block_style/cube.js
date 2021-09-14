@@ -6,14 +6,14 @@ import { BLOCK } from '../blocks.js';
 
 // Pushes the vertices necessary for rendering a
 // specific block into the array.
-export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome) {
+export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome, ao_enabled) {
 
     if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
         return;
     }
 
     // Ambient occlusion
-    const ao_enabled = true;
+    // const ao_enabled = true;
     const ao_value = .23;
 
     const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
@@ -119,38 +119,38 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
     if(canDrawFace(neighbours.UP)) {
         ao = [0, 0, 0, 0];
         if(ao_enabled) {
-            let aa = this.getCachedBlock(x, y + 1, z - 1);
-            let ab = this.getCachedBlock(x - 1, y + 1, z);
-            let ac = this.getCachedBlock(x - 1, y + 1, z - 1);
-            let ad = this.getCachedBlock(x, y + 1, z + 1);
-            let ae = this.getCachedBlock(x + 1, y + 1, z);
-            let af = this.getCachedBlock(x + 1, y + 1, z + 1);
-            let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
-            let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
-            let aj = this.getCachedBlock(x, y + 1, z);
-            if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
-            if(this.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ac)) {ao[0] = ao_value; }
-            if(this.visibleForAO(ad)) {ao[2] = ao_value; ao[3] = ao_value; }
-            if(this.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value; }
-            if(this.visibleForAO(af)) {ao[2] = ao_value;}
-            if(this.visibleForAO(ag)) {ao[3] = ao_value;}
-            if(this.visibleForAO(ah)) {ao[1] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            let aa = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z - 1);
+            let ab = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z);
+            let ac = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
+            let ad = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z + 1);
+            let ae = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z);
+            let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
+            let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
+            let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
+            let aj = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z);
+            if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; }
+            if(BLOCK.visibleForAO(ad)) {ao[2] = ao_value; ao[3] = ao_value; }
+            if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value; }
+            if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ag)) {ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             // Если это тропинка
             if(block.id == BLOCK.DIRT_PATH.id) {
                 if(neighbours.SOUTH && neighbours.SOUTH.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value; ao[1] = ao_value;}
                 if(neighbours.NORTH && neighbours.NORTH.id != BLOCK.DIRT_PATH.id) {ao[2] = ao_value; ao[3] = ao_value;}
                 if(neighbours.WEST && neighbours.WEST.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value; ao[3] = ao_value;}
                 if(neighbours.EAST && neighbours.EAST.id != BLOCK.DIRT_PATH.id) {ao[1] = ao_value; ao[2] = ao_value;}
-                let ai = this.getCachedBlock(x - 1, y, z - 1);
-                let ak = this.getCachedBlock(x + 1, y, z + 1);
-                let al = this.getCachedBlock(x + 1, y, z - 1);
-                let am = this.getCachedBlock(x - 1, y, z + 1);
-                if(this.visibleForAO(ai) && ai.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value;}
-                if(this.visibleForAO(ak) && ak.id != BLOCK.DIRT_PATH.id) {ao[2] = ao_value;}
-                if(this.visibleForAO(al) && al.id != BLOCK.DIRT_PATH.id) {ao[1] = ao_value;}
-                if(this.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
+                let ai = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z - 1);
+                let ak = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z + 1);
+                let al = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z - 1);
+                let am = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z + 1);
+                if(BLOCK.visibleForAO(ai) && ai.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value;}
+                if(BLOCK.visibleForAO(ak) && ak.id != BLOCK.DIRT_PATH.id) {ao[2] = ao_value;}
+                if(BLOCK.visibleForAO(al) && al.id != BLOCK.DIRT_PATH.id) {ao[1] = ao_value;}
+                if(BLOCK.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
             }
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
@@ -220,24 +220,24 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             // ao[1] - правый нижний
             // ao[2] - правый верхний
             // ao[3] - левый верхний
-            let aa = this.getCachedBlock(x - 1, y, z - 1);
-            let ab = this.getCachedBlock(x + 1, y, z - 1);
-            let ac = this.getCachedBlock(x, y - 1, z - 1);
-            let ad = this.getCachedBlock(x + 1, y - 1, z - 1);
-            let ae = this.getCachedBlock(x, y + 1, z - 1);
-            let af = this.getCachedBlock(x + 1, y + 1, z - 1);
-            let ag = this.getCachedBlock(x - 1, y - 1, z - 1);
-            let ah = this.getCachedBlock(x - 1, y + 1, z - 1);
-            let aj = this.getCachedBlock(x, y, z - 1); // to South
-            if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-            if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-            if(this.visibleForAO(ad)) {ao[1] = ao_value;}
-            if(this.visibleForAO(ae)) {ao[2] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(af)) {ao[2] = ao_value;}
-            if(this.visibleForAO(ag)) {ao[0] = ao_value;}
-            if(this.visibleForAO(ah)) {ao[3] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            let aa = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z - 1);
+            let ab = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z - 1);
+            let ac = BLOCK.getCachedBlock(world.chunkManager, x, y - 1, z - 1);
+            let ad = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z - 1);
+            let ae = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z - 1);
+            let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
+            let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z - 1);
+            let ah = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
+            let aj = BLOCK.getCachedBlock(world.chunkManager, x, y, z - 1); // to South
+            if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
+            if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
         vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
@@ -256,24 +256,24 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             // ao[1] - левый верхний
             // ao[2] - левый нижний
             // ao[3] - правый нижний
-            let aa = this.getCachedBlock(x + 1, y - 1, z + 1);
-            let ab = this.getCachedBlock(x, y - 1, z + 1);
-            let ac = this.getCachedBlock(x + 1, y, z + 1);
-            let ad = this.getCachedBlock(x - 1, y, z + 1);
-            let ae = this.getCachedBlock(x - 1, y - 1, z + 1);
-            let af = this.getCachedBlock(x, y + 1, z + 1);
-            let ag = this.getCachedBlock(x - 1, y + 1, z + 1);
-            let ah = this.getCachedBlock(x + 1, y + 1, z + 1);
-            let aj = this.getCachedBlock(x, y, z + 1); // to North
-            if(this.visibleForAO(aa)) {ao[2] = ao_value;}
-            if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
-            if(this.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ae)) {ao[3] = ao_value;}
-            if(this.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
-            if(this.visibleForAO(ag)) {ao[0] = ao_value;}
-            if(this.visibleForAO(ah)) {ao[1] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            let aa = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z + 1);
+            let ab = BLOCK.getCachedBlock(world.chunkManager, x, y - 1, z + 1);
+            let ac = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z + 1);
+            let ad = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z + 1);
+            let ae = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z + 1);
+            let af = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z + 1);
+            let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
+            let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
+            let aj = BLOCK.getCachedBlock(world.chunkManager, x, y, z + 1); // to North
+            if(BLOCK.visibleForAO(aa)) {ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ae)) {ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
+            if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_BACK));
         vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
@@ -292,24 +292,24 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             // ao[1] - левый верхний
             // ao[2] - левый нижний
             // ao[3] - правый нижний
-            let aa = this.getCachedBlock(x - 1, y - 1, z - 1);
-            let ab = this.getCachedBlock(x - 1, y - 1, z);
-            let ac = this.getCachedBlock(x - 1, y - 1, z + 1);
-            let ad = this.getCachedBlock(x - 1, y, z - 1);
-            let ae = this.getCachedBlock(x - 1, y, z + 1);
-            let af = this.getCachedBlock(x - 1, y + 1, z - 1);
-            let ag = this.getCachedBlock(x - 1, y + 1, z);
-            let ah = this.getCachedBlock(x - 1, y + 1, z + 1);
-            let aj = this.getCachedBlock(x - 1, y, z); // to West
-            if(this.visibleForAO(aa)) {ao[3] = ao_value;}
-            if(this.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ac)) {ao[2] = ao_value;}
-            if(this.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
-            if(this.visibleForAO(af)) {ao[0] = ao_value;}
-            if(this.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
-            if(this.visibleForAO(ah)) {ao[1] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            let aa = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z - 1);
+            let ab = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z);
+            let ac = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z + 1);
+            let ad = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z - 1);
+            let ae = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z + 1);
+            let af = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
+            let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z);
+            let ah = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
+            let aj = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z); // to West
+            if(BLOCK.visibleForAO(aa)) {ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ac)) {ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
+            if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
         vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
@@ -328,24 +328,24 @@ export function push_cube(block, vertices, world, lightmap, x, y, z, neighbours,
             // ao[1] - правый нижний
             // ao[2] - правый верхний
             // ao[3] - левый верхний
-            let aa = this.getCachedBlock(x + 1, y, z - 1);
-            let ab = this.getCachedBlock(x + 1, y, z + 1);
-            let ac = this.getCachedBlock(x + 1, y - 1, z);
-            let ad = this.getCachedBlock(x + 1, y - 1, z + 1);
-            let ae = this.getCachedBlock(x + 1, y + 1, z + 1);
-            let af = this.getCachedBlock(x + 1, y - 1, z - 1);
-            let ag = this.getCachedBlock(x + 1, y + 1, z);
-            let ah = this.getCachedBlock(x + 1, y + 1, z - 1);
-            let aj = this.getCachedBlock(x + 1, y, z); // to East
-            if(this.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-            if(this.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-            if(this.visibleForAO(ad)) {ao[1] = ao_value;}
-            if(this.visibleForAO(ae)) {ao[2] = ao_value;}
-            if(this.visibleForAO(af)) {ao[0] = ao_value;}
-            if(this.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
-            if(this.visibleForAO(ah)) {ao[3] = ao_value;}
-            if(this.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+            let aa = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z - 1);
+            let ab = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z + 1);
+            let ac = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z);
+            let ad = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z + 1);
+            let ae = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
+            let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z - 1);
+            let ag = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z);
+            let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
+            let aj = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z); // to East
+            if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
+            if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value;}
+            if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
+            if(BLOCK.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
+            if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
         c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
         vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,

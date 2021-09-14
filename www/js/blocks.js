@@ -1635,6 +1635,21 @@ BLOCK.GLASS_PANE = {
 	texture: function(world, lightmap, lit, x, y, z, dir) { return [1, 3]; }
 };
 
+// Облако
+BLOCK.CLOUD = {
+    id: 508,
+    inventory_icon_id: 866,
+    spawnable: true,
+    transparent: true,
+    passable: 1,
+    selflit: true,
+    sound: 'webcraft:block.wood',
+    tags: ['alpha'],
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [22, 31];
+    }
+};
+
 // STAINED_GLASS
 BLOCK.BLUE_STAINED_GLASS = {
     id: 470,
