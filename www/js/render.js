@@ -26,9 +26,9 @@ const RENDER_DISTANCE       = 800;
 
 let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1],
-    fogUnderWaterColor:     [55 / 255, 100 / 255, 190 / 255, 1],
+    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
-    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 190 / 255, 0.75],
+    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],
     fogDensity:             2.52 / 320,
     fogDensityUnderWater:   0.1
 };
@@ -246,12 +246,13 @@ export class Renderer {
             shader.fogColor = fogColor;
             shader.chunkBlockDist = 8;
             shader.fogAddColor = settings.fogUnderWaterAddColor;
+            shader.brightness = this.brightness;
         } else {
             shader.fogColor = fogColor;
             shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
             shader.fogAddColor = currentRenderState.fogAddColor;
+            shader.brightness = this.brightness;
         }
-        shader.brightness = this.brightness;
         shader.fogDensity = currentRenderState.fogDensity;
         shader.texture = this.terrainTexture;
         shader.mipmap = this.terrainTexture.anisotropy;
