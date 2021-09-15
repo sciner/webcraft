@@ -1,7 +1,7 @@
 import {DIRECTION, MULTIPLY, NORMALS, ROTATE} from '../helpers.js';
 
 // Панель
-export function push_pane(block, vertices, world, lightmap, x, y, z, neighbours) {
+export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours) {
 
     if(typeof block == 'undefined') {
         return;
@@ -13,7 +13,7 @@ export function push_pane(block, vertices, world, lightmap, x, y, z, neighbours)
     let blockLit    = true;
     let bH          = 1.0;
     let lm          = MULTIPLY.COLOR.WHITE;
-    let c           = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    let c           = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
 
     switch(cardinal_direction) {
         case ROTATE.N:

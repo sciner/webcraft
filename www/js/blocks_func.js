@@ -203,7 +203,7 @@ export class BLOCK_FUNC {
 
     /**
      * Возвращает время, необходимое для того, чтобы разбить блок голыми руками
-     * @param { Object } block 
+     * @param { Object } block
      * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
      * @return float
      */
@@ -236,20 +236,29 @@ export class BLOCK_FUNC {
 
     /**
      * getCachedBlock...
-     * @param { int } x 
-     * @param { int } y 
-     * @param { int } z 
-     * @returns 
+     * @param { int } x
+     * @param { int } y
+     * @param { int } z
+     * @returns
      */
-    static getCachedBlock(chunkManager, x, y, z) {
+    static getCachedBlock(chunk, x, y, z) {
         // return world.chunkManager.getBlock(x, y, z);
-        let key = new Vector(x, y, z).toString();
+        const x1 = x + chunk.coord.x;
+        const y1 = y + chunk.coord.y;
+        const z1 = z + chunk.coord.z;
+        if (chunk.size && x >= 0 && x < chunk.size.x
+            && y >= 0 && y < chunk.size.y
+            && z >= 0 && z < chunk.size.z) {
+            return chunk.getBlock(x1, y1, z1);
+        }
+
+        let key = new Vector(x1, y1, z1).toString();
         if(BLOCK.block_cache[key]) {
             BLOCK.cachedBlocksUsed++;
             return BLOCK.block_cache[key];
         }
         BLOCK.cachedBlocksMiss++;
-        return BLOCK.block_cache[key] = chunkManager.getBlock(x, y, z);
+        return BLOCK.block_cache[key] = chunk.chunkManager.getBlock(x1, y1, z1);
     }
 
     // Функция определяет, отбрасывает ли указанный блок тень

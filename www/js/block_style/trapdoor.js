@@ -1,7 +1,7 @@
 import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
 
 // Люк
-export function push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbours, biome) {
+export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
 
     if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
         return;
@@ -72,9 +72,9 @@ export function push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbo
     let on_ceil = block.extra_data.point.y >= .5;
     let thickness = 3/16; // толщина блока
     if(block.extra_data.opened) {
-        let tex_up_down = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-        let tex_front  = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        let tex_side = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+        let tex_up_down = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+        let tex_front  = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_UP));
+        let tex_side = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
         let x_pos = 0;
         let z_pos = 0;
         let y_pos = 0; // нарисовать в нижней части блока
@@ -139,11 +139,11 @@ export function push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbo
                 break;
             }
         }
-        
+
     } else {
-        let tex_up_down = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_UP));
-        let tex_front  = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
-        let tex_side = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+        let tex_up_down = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_UP));
+        let tex_front  = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+        let tex_side = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
         let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
         tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
         tex_front[3] = thickness / TX_CNT;
@@ -281,7 +281,7 @@ function push_part(vertices, x, y, z, xs, zs, ys, ao, tex_up_down, tex_front, te
         lm.r, lm.g, lm.b,
         ao.TOP[0], ao.TOP[1], ao.TOP[2], ao.TOP[3], flags | upFlags);
     // BOTTOM
-    vertices.push(x, z, y, 
+    vertices.push(x, z, y,
         ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b,
@@ -331,15 +331,15 @@ function calcAOForBlock(x, y, z) {
     // TOP
     if(ao_enabled) {
         let ao = result.TOP;
-        let aa = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z - 1);
-        let ab = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z);
-        let ac = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
-        let ad = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z + 1);
-        let ae = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z);
-        let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
-        let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
-        let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z);
+        let aa = BLOCK.getCachedBlock(chunk, x, y + 1, z - 1);
+        let ab = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z);
+        let ac = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
+        let ad = BLOCK.getCachedBlock(chunk, x, y + 1, z + 1);
+        let ae = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z);
+        let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
+        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
+        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
+        let aj = BLOCK.getCachedBlock(chunk, x, y + 1, z);
         if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
         if(BLOCK.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; }
@@ -358,15 +358,15 @@ function calcAOForBlock(x, y, z) {
         // ao[1] - правый нижний
         // ao[2] - правый верхний
         // ao[3] - левый верхний
-        let aa = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z - 1);
-        let ab = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z - 1);
-        let ac = BLOCK.getCachedBlock(world.chunkManager, x, y - 1, z - 1);
-        let ad = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z - 1);
-        let ae = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z - 1);
-        let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
-        let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z - 1);
-        let ah = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(world.chunkManager, x, y, z - 1); // to South
+        let aa = BLOCK.getCachedBlock(chunk, x - 1, y, z - 1);
+        let ab = BLOCK.getCachedBlock(chunk, x + 1, y, z - 1);
+        let ac = BLOCK.getCachedBlock(chunk, x, y - 1, z - 1);
+        let ad = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z - 1);
+        let ae = BLOCK.getCachedBlock(chunk, x, y + 1, z - 1);
+        let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
+        let ag = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z - 1);
+        let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
+        let aj = BLOCK.getCachedBlock(chunk, x, y, z - 1); // to South
         if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
         if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
@@ -385,15 +385,15 @@ function calcAOForBlock(x, y, z) {
         // ao[1] - левый верхний
         // ao[2] - левый нижний
         // ao[3] - правый нижний
-        let aa = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z + 1);
-        let ab = BLOCK.getCachedBlock(world.chunkManager, x, y - 1, z + 1);
-        let ac = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z + 1);
-        let ad = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z + 1);
-        let ae = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z + 1);
-        let af = BLOCK.getCachedBlock(world.chunkManager, x, y + 1, z + 1);
-        let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
-        let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
-        let aj = BLOCK.getCachedBlock(world.chunkManager, x, y, z + 1); // to North
+        let aa = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z + 1);
+        let ab = BLOCK.getCachedBlock(chunk, x, y - 1, z + 1);
+        let ac = BLOCK.getCachedBlock(chunk, x + 1, y, z + 1);
+        let ad = BLOCK.getCachedBlock(chunk, x - 1, y, z + 1);
+        let ae = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z + 1);
+        let af = BLOCK.getCachedBlock(chunk, x, y + 1, z + 1);
+        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
+        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
+        let aj = BLOCK.getCachedBlock(chunk, x, y, z + 1); // to North
         if(BLOCK.visibleForAO(aa)) {ao[2] = ao_value;}
         if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
@@ -412,15 +412,15 @@ function calcAOForBlock(x, y, z) {
         // ao[1] - левый верхний
         // ao[2] - левый нижний
         // ao[3] - правый нижний
-        let aa = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z - 1);
-        let ab = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z);
-        let ac = BLOCK.getCachedBlock(world.chunkManager, x - 1, y - 1, z + 1);
-        let ad = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z - 1);
-        let ae = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z + 1);
-        let af = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z - 1);
-        let ag = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z);
-        let ah = BLOCK.getCachedBlock(world.chunkManager, x - 1, y + 1, z + 1);
-        let aj = BLOCK.getCachedBlock(world.chunkManager, x - 1, y, z); // to West
+        let aa = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z - 1);
+        let ab = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z);
+        let ac = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z + 1);
+        let ad = BLOCK.getCachedBlock(chunk, x - 1, y, z - 1);
+        let ae = BLOCK.getCachedBlock(chunk, x - 1, y, z + 1);
+        let af = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
+        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z);
+        let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
+        let aj = BLOCK.getCachedBlock(chunk, x - 1, y, z); // to West
         if(BLOCK.visibleForAO(aa)) {ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ac)) {ao[2] = ao_value;}
@@ -439,15 +439,15 @@ function calcAOForBlock(x, y, z) {
         // ao[1] - правый нижний
         // ao[2] - правый верхний
         // ao[3] - левый верхний
-        let aa = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z - 1);
-        let ab = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z + 1);
-        let ac = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z);
-        let ad = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z + 1);
-        let ae = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z + 1);
-        let af = BLOCK.getCachedBlock(world.chunkManager, x + 1, y - 1, z - 1);
-        let ag = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z);
-        let ah = BLOCK.getCachedBlock(world.chunkManager, x + 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(world.chunkManager, x + 1, y, z); // to East
+        let aa = BLOCK.getCachedBlock(chunk, x + 1, y, z - 1);
+        let ab = BLOCK.getCachedBlock(chunk, x + 1, y, z + 1);
+        let ac = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z);
+        let ad = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z + 1);
+        let ae = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
+        let af = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z - 1);
+        let ag = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z);
+        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
+        let aj = BLOCK.getCachedBlock(chunk, x + 1, y, z); // to East
         if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
         if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}

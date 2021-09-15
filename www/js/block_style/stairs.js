@@ -2,7 +2,7 @@ import {DIRECTION, MULTIPLY, NORMALS, ROTATE, TX_CNT} from '../helpers.js';
 import {push_plane} from './plane.js';
 
 // Ступеньки
-export function push_stairs(block, vertices, world, lightmap, x, y, z, neighbours) {
+export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbours) {
 
     const half          = 0.5 / TX_CNT;
     let poses           = [];
@@ -13,7 +13,7 @@ export function push_stairs(block, vertices, world, lightmap, x, y, z, neighbour
     block.transparent   = true;
 
     // полная текстура
-    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, null));
 
     // четверть текстуры
     let c_half = [
@@ -60,7 +60,7 @@ export function push_stairs(block, vertices, world, lightmap, x, y, z, neighbour
     n = NORMALS.LEFT;
     push_plane(vertices, x - 0.5, yb, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
-    c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
+    c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
     // дно
     n = NORMALS.DOWN;
@@ -85,7 +85,7 @@ export function push_stairs(block, vertices, world, lightmap, x, y, z, neighbour
     let checkIfStairs = (b) => {
         return b && b.tags && b.tags.indexOf('stairs') >= 0;
     };
-    // 
+    //
     let compareCD = (b) => {
         return checkIfStairs(b) && BLOCK.getCardinalDirection(b.rotate).z == cardinal_direction;
     };
@@ -217,7 +217,7 @@ export function push_stairs(block, vertices, world, lightmap, x, y, z, neighbour
             c_half[0], c_half[1], c_half[2], c_half[3],
             lm.r, lm.g, lm.b,
             lm.a, lm.a, lm.a, lm.a, 0);
-        
+
         // дно
         n = NORMALS.DOWN;
         vertices.push(x + .75 + pose.x, z + .25 + pose.z, pose.y,
