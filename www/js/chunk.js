@@ -46,7 +46,7 @@ export default class Chunk {
         ].join('_');
 
         // Run webworker method
-        chunkManager.postWorkerMessage(['createChunk', Object.assign(this, {shift: Object.assign({}, Game.shift)})]);
+        chunkManager.postWorkerMessage(['createChunk', this]);
 
         // Objects & variables
         this.chunkManager               = chunkManager;
@@ -68,31 +68,6 @@ export default class Chunk {
         this.inited = true;
     }
 
-    // doShift
-    doShift(shift) {
-        if(this.dirty) {
-            return 0;
-        }
-        if((shift.x - this.shift.x == 0) && (shift.z - this.shift.z == 0)) {
-            return 0;
-        }
-        const x = shift.x - this.shift_orig.x;
-        const z = shift.z - this.shift_orig.z;
-        this.shift_orig = {...shift};
-        let points = 0;
-        for(let key of Object.keys(this.vertices)) {
-            let v = this.vertices[key];
-            let list = v.buffer.vertices;
-            for(let i = 0; i < list.length; i += GeometryTerrain.strideFloats) {
-                list[i + 0] -= x;
-                list[i + 1] -= z;
-                points += 2;
-            }
-            v.buffer.updateInternal(list);
-        }
-        return points;
-    }
-
     // onVerticesGenerated ... Webworker callback method
     onVerticesGenerated(args) {
         this.vertices_args = args;
@@ -104,7 +79,7 @@ export default class Chunk {
     drawBufferGroup(render, group, mat) {
         if(this.vertices[group]) {
             if(this.vertices[group].buffer) {
-                render.drawMesh(this.vertices[group].buffer, mat);
+                render.drawMesh(this.vertices[group].buffer, mat, this.coord);
                 return true;
             }
         }
@@ -140,10 +115,8 @@ export default class Chunk {
             }
         }
         this.chunkManager.vertices_length_total += this.vertices_length;
-        this.shift_orig            = args.shift;
         this.dirty                 = false;
         this.timers                = args.timers;
-        this.doShift(Game.shift);
     }
 
     // destruct chunk
@@ -162,7 +135,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key, shift: Game.shift}]);
+        this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key}]);
         return true;
     }
 
@@ -178,7 +151,7 @@ export default class Chunk {
         z -= this.coord.z;
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return BLOCK.DUMMY;
-        };
+        }
         let block = this.blocks[x][z][y];
         if(!block) {
             return BLOCK.AIR;

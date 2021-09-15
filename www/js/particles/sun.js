@@ -47,7 +47,7 @@ export default class Particles_Sun {
         let t           = performance.now() / SUN_SPEED;
         // this.pos        = Game.world.localPlayer.pos.add(new Vector(dist, dist, scale / 2));
         this.pos        = Game.world.localPlayer.pos.add(new Vector(Math.cos(t) * dist, Math.sin(t) * dist, scale / 2));
-        let a_pos       = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
+        let a_pos       = this.pos;
         mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
         mat4.rotateZ(modelMatrix, modelMatrix, this.yaw);
         mat4.rotateX(modelMatrix, modelMatrix, Math.sin(t) * (Math.PI / 4));

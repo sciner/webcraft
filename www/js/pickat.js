@@ -190,15 +190,11 @@ export class PickAt {
     /**
      * update...
      */
-    update(shift) {
+    update() {
         // Get actual pick-at block
         let bPos = this.get();
         let target_block = this.target_block;
         let damage_block = this.damage_block;
-        this.shift = shift;
-        if(!shift) {
-            debugger;
-        }
         target_block.visible = !!bPos;
         if(bPos) {
             // Check if pick-at block changed
@@ -262,12 +258,12 @@ export class PickAt {
         let damage_block = this.damage_block;
         // 1. Target block
         if(target_block.mesh && target_block.visible) {
-            const a_pos = half.add(this.target_block.pos).sub(this.shift).swapYZ();
+            const a_pos = half.add(this.target_block.pos);
             render.renderBackend.drawMesh(target_block.mesh, this.material_target, a_pos, this.modelMatrix);
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
-            const a_pos = half.add(this.damage_block.pos).sub(this.shift).swapYZ();
+            const a_pos = half.add(this.damage_block.pos);
             render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, this.modelMatrix);
         }
     }

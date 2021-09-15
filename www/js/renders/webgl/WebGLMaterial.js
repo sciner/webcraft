@@ -63,6 +63,8 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
         }
 
+        gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
+
         if (modelMatrix) {
             gl.uniformMatrix4fv(this.uModelMatrix, false, modelMatrix);
         }
