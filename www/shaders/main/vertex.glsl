@@ -23,6 +23,7 @@ uniform vec3 u_shift;
 uniform bool u_TestLightOn;
 uniform vec3 u_SunDir; // = vec3(0.7, 1.0, 0.85);
 
+out vec3 world_pos;
 out vec3 v_position;
 out vec2 v_texcoord;
 out vec4 v_texClamp;
@@ -30,7 +31,6 @@ out vec4 v_color;
 out vec3 v_normal;
 out float light;
 out vec4 crosshair;
-out vec3 world_pos;
 
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
@@ -62,13 +62,13 @@ void main() {
     // flip UV for top quad
     // todo Looks dirty but working
     if (abs(v_normal.y) * (1. - flagNormalUp) > 0.5 ) {
-        v_texcoord.y = a_uvCenter.y - (a_uvSize.y * a_quad.y);        
+        v_texcoord.y = a_uvCenter.y - (a_uvSize.y * a_quad.y);
     }
 
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     vec3 n = normalize(v_normal);
-    // light = 1. - v_color.a; 
+    // light = 1. - v_color.a;
     light = max(.5, max(.7, dot(n, u_SunDir)) - v_color.a);
 
     if(u_fogOn) {
@@ -78,7 +78,6 @@ void main() {
     }
 
     world_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz + u_add_pos;
-
-    v_position = (u_worldView * (uModelMatrix * vec4(pos, 1.0) + vec4(u_add_pos, 0.0))).xyz;
+    v_position = (u_worldView * vec4(world_pos, 1.0)). xyz;
     gl_Position = uProjMatrix * vec4(v_position, 1.0);
 }

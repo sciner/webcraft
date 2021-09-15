@@ -98,8 +98,8 @@ fn main_vert(a : Attrs) -> VertexOutput {
         }
     }
     // 1. Pass the view position to the fragment shader
-    v.position = (u.worldView * (eu.ModelMatrix * vec4<f32>(pos, 1.0) + vec4<f32>(eu.add_pos, 0.0))).xyz;
-    v.VPos = u.ProjMatrix * vec4<f32>(v.position, 1.0);
+    v.position = (eu.ModelMatrix * vec4<f32>(pos, 1.0)).xyz + eu.add_pos;
+    v.VPos = u.ProjMatrix * u.worldView * vec4<f32>(v.position, 1.0);
 
     return v;
 }
@@ -167,7 +167,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         outColor = color;
 
         // Calc fog amount
-        var fogDistance : f32 = length(v.position);
+        var fogDistance : f32 = length(v.position.xy);
         var fogAmount : f32 = 0.0;
 
         if(fogDistance > fu.chunkBlockDist) {

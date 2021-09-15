@@ -18,6 +18,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
 
         this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
+        this.u_camera_pos       = gl.getUniformLocation(program, 'u_camera_pos');
         this.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
         // this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         this.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
@@ -25,7 +26,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_blockSize        = gl.getUniformLocation(program, 'u_blockSize');
         this.u_pixelSize        = gl.getUniformLocation(program, 'u_pixelSize');
         this.u_resolution       = gl.getUniformLocation(program, 'u_resolution');
-        this.u_shift            = gl.getUniformLocation(program, 'u_shift');
         this.u_TestLightOn      = gl.getUniformLocation(program, 'u_TestLightOn');
         this.u_SunDir           = gl.getUniformLocation(program, 'u_SunDir');
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
@@ -67,11 +67,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform1f(this.u_mipmap, this.mipmap);
         gl.uniform1f(this.u_brightness, this.brightness);
         gl.uniform1f(this.u_chunkBlockDist, this.chunkBlockDist);
+        gl.uniform3f(this.u_camera_pos, this.camPos.x, this.camPos.z, this.camPos.y);
 
         gl.uniform1f(this.u_blockSize, this.blockSize);
         gl.uniform1f(this.u_pixelSize, this.pixelSize);
         gl.uniform2fv(this.u_resolution, this.resolution);
-        gl.uniform3fv(this.u_shift, this.shift);
         gl.uniform1f(this.u_TestLightOn, this.testLightOn);
         gl.uniform3fv(this.u_SunDir, this.sunDir);
         gl.uniform1f(this.u_opaqueThreshold, 0.0);
@@ -84,9 +84,9 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const { gl } = this.context;
         const {camPos} = this;
         if (pos) {
-            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z);
+            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.z - camPos.z, pos.y - camPos.y);
         } else {
-            gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
+            gl.uniform3f(this.u_add_pos, -camPos.x, -camPos.z, -camPos.y);
         }
         if (modelMatrix) {
             gl.uniformMatrix4fv(this.uModelMat, false, modelMatrix);

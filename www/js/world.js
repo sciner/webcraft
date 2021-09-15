@@ -65,7 +65,7 @@ export class World {
         this.server_state_give_time = performance.now();
     }
 
-    // 
+    //
     getTime() {
         if(!this.server_state) {
             return null;
@@ -98,7 +98,7 @@ export class World {
         // Picking target
         let player = this.localPlayer;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
-            player.pickAt.update(Game.shift);
+            player.pickAt.update();
         }
         return true;
     }
@@ -198,7 +198,7 @@ export class World {
 
     // update
     update() {
-        if(Game.world.localPlayer) {
+        /* if(Game.world.localPlayer) {
             let pos = Game.world.localPlayer.pos;
             if(Math.abs(pos.x - Game.shift.x) > MAX_DIST_FOR_SHIFT || Math.abs(pos.z - Game.shift.z) > MAX_DIST_FOR_SHIFT) {
                 Game.shift.x    = pos.x;
@@ -207,7 +207,7 @@ export class World {
                 let points      = this.chunkManager.shift({...Game.shift});
                 console.info('SHIFTED', Game.shift, (Math.round((performance.now() - tm) * 10) / 10) + 'ms', points);
             }
-        }
+        } */
         this.chunkManager.update();
     }
 

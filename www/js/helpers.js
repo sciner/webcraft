@@ -77,6 +77,12 @@ export class Vector {
         this.z = z || 0;
     }
 
+    copyFrom(vec) {
+        this.x = vec.x;
+        this.y = vec.y;
+        this.z = vec.z;
+    }
+
     equal(vec) {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }

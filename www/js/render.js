@@ -128,6 +128,7 @@ export class Renderer {
         this.projMatrix = this.shader.projMatrix;
         this.viewMatrix = this.shader.viewMatrix;
         this.modelMatrix = this.shader.modelMatrix;
+        this.camPos = this.shader.camPos;
         this.brightness = 1;
 
         // Initialise WebGL
@@ -260,7 +261,6 @@ export class Renderer {
             width, height
         } = renderBackend.size;
         shader.resolution = [width, height];
-        shader.shift = [Game.shift.x, Game.shift.z, Game.shift.y];
         shader.testLightOn = this.testLightOn;
         shader.sunDir = this.sunDir;
         if (renderBackend.gl) {
@@ -353,26 +353,20 @@ export class Renderer {
         let pitch           = ang[0]; // X
         let roll            = ang[1]; // Z
         let yaw             = ang[2]; // Y
-        this.camPos         = pos;
-        mat4.identity(this.viewMatrix);
+        this.camPos.copyFrom(pos);
+            mat4.identity(this.viewMatrix);
         // bobView
         this.bobView(this.viewMatrix);
         //
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
         mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
-        //
-        mat4.translate(this.viewMatrix, this.viewMatrix, [
-            -pos[0] + Game.shift.x,
-            -pos[2] + Game.shift.z,
-            -pos[1]
-        ]);
     }
 
     // Original bobView
     bobView(viewMatrix) {
         let player = this.world.localPlayer;
-        let underBlock = player.underBlock; // 
+        let underBlock = player.underBlock; //
         if(player && player.walking && !player.flying && !player.in_water && (underBlock && (!underBlock.passable || underBlock.passable == 1))) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
