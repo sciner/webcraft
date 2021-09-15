@@ -2,7 +2,7 @@ import {DIRECTION, MULTIPLY, NORMALS, TX_CNT} from '../helpers.js';
 import {push_plane} from './plane.js';
 
 // Плита
-export function push_slab(block, vertices, world, lightmap, x, y, z) {
+export function push_slab(block, vertices, chunk, lightmap, x, y, z) {
 
     const half = 0.5 / TX_CNT;
 
@@ -18,7 +18,7 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     }
 
     // полная текстура
-    let c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, null));
+    let c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, null));
 
     // нижняя половина текстуры
     let c_half_bottom= [
@@ -49,12 +49,12 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
     push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, n, false, false, null, .5, null);
 
     // Up and down
-    c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
+    c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
     lm = MULTIPLY.COLOR.WHITE;
     n = NORMALS.DOWN;
     let ao = [0, 0, 0, 0];
     let flags = 0, sideFlags = 0, upFlags = 0;
-    
+
     // Up
     vertices.push(x + 0.5, z + 0.5, yt + .5,
         1, 0, 0,
@@ -62,9 +62,9 @@ export function push_slab(block, vertices, world, lightmap, x, y, z) {
         c[0], c[1], c[2], c[3],
         lm.r, lm.g, lm.b,
         ao[0], ao[1], ao[2], ao[3], flags | upFlags);
-    
+
     // Down
-    //c = BLOCK.calcTexture(texture(world, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+    //c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
     vertices.push(x + 0.5, z + 0.5, yt,
         1, 0, 0,
         0, -1, 0,

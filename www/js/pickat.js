@@ -57,7 +57,7 @@ export class PickAt {
         const render = this.render;
         const pos = new Vector(player.pos);
         const m = mat4.invert(mat4.create(), render.viewMatrix);
-        pos.y = m[14];
+        pos.y = render.camPos.y;
         const startBlock = new Vector(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
         let dir = new Vector(-m[8], -m[10], -m[9]);
         if(dir.length() < 0.01) {
