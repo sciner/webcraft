@@ -87,6 +87,7 @@ export default class InventoryWindow extends Window {
         let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
+            Game.world.saveToDB();
         }
         ct.add(btnClose);
     }
@@ -201,6 +202,10 @@ export default class InventoryWindow extends Window {
         let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
         this.resultSlot.setItem(block);
+    }
+
+    getSlots() {
+        return this.inventory_slots;
     }
 
 }

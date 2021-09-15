@@ -107,7 +107,7 @@ export default class ChestWindow extends Window {
     
     // Отправка на сервер новых данных слота текущего сундука
     SendChestSlotItem(slot_index, item) {
-        Game.world.server.SendChestSlotItem(this.entity_id, slot_index, item);
+        Game.world.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
     }
 
     // Очистка слотов сундука от предметов
@@ -137,6 +137,7 @@ export default class ChestWindow extends Window {
         for(let i = 0; i < 27; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
             lblSlot.index = i;
+            lblSlot.is_chest_slot = true;
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
             }
@@ -196,6 +197,10 @@ export default class ChestWindow extends Window {
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
+    }
+
+    getSlots() {
+        return this.chest.slots;
     }
 
 }

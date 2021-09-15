@@ -511,7 +511,7 @@ export default class Player {
                     if(!e.shiftKey) {
                         switch(world_block.id) {
                             case BLOCK.CRAFTING_TABLE.id: {
-                                Game.hud.wm.getWindow('ct1').toggleVisibility();
+                                Game.hud.wm.getWindow('frmCraft').toggleVisibility();
                                 break;
                             }
                             case BLOCK.CHEST.id: {

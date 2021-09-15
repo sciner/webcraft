@@ -32,7 +32,7 @@ export default class Inventory {
         }
         image.src = './media/inventory2.png';
         // CraftTable
-        this.ct = new CraftTable(10, 10, 352, 332, 'ct1', null, null, this);
+        this.ct = new CraftTable(10, 10, 352, 332, 'frmCraft', null, null, this);
         hud.wm.add(this.ct);
         // Inventory window
         this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this);

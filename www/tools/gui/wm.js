@@ -272,6 +272,7 @@ export class Window {
                 e2.x -= (this.ax + w.x);
                 e2.y -= (this.ay + w.y);
                 if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
+                    e2.target = w;
                     w._mousedown(e2);
                     return;
                 }

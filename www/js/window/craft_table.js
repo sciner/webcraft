@@ -116,7 +116,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         // Drag & drop
         this.onMouseDown = function(e) {
             let that        = this;
-            const MAX_COUNT = 64;
             //
             let targetItem  = this.getInventoryItem();
             // Set new drag
@@ -135,6 +134,43 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 targetItem.count -= split_count;
                 this.setItem(targetItem);
             } else {
+                if(e.shiftKey) {
+                    switch(this.parent.id) {
+                        case 'frmInventory': {
+                            let srcList = Game.world.localPlayer.inventory.items;
+                            let srcListFirstIndexOffset = this.slot_index < 9 ? 9 : 0;
+                            let targetList = this.slot_index < 9 ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, 9);
+                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            if(targetItem.count == 0) {
+                                that.setItem(null);
+                            }
+                            break;
+                        }
+                        case 'frmChest': {
+                            let srcList = e.target.is_chest_slot ? Game.world.localPlayer.inventory.items : this.parent.getSlots();
+                            let srcListFirstIndexOffset = 0;
+                            let targetList = srcList;
+                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            if(targetItem.count == 0) {
+                                that.setItem(null);
+                            }
+                            break;
+                        }
+                        case 'frmCraft': {
+                            let srcList = e.target.is_craft_slot ? Game.world.localPlayer.inventory.items : this.parent.getSlots();
+                            let srcListFirstIndexOffset = 0;
+                            let targetList = srcList;
+                            this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
+                            if(targetItem.count == 0) {
+                                that.setItem(null);
+                            }
+                        }
+                        default: {
+                            console.log('this.parent.id', this.parent.id);
+                        }
+                    }
+                    return;
+                }
                 dragItem = targetItem;
                 that.setItem(null);
             }
@@ -159,23 +195,23 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(!dropData) {
                 return;
             }
-            let item_max_count = dropData.item.max_in_stack;
+            let max_stack_count = dropData.item.max_in_stack;
             //
             if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
-                if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < item_max_count) {
-                    let need_count = item_max_count - dropData.item.count;
+                if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < max_stack_count) {
+                    let need_count = max_stack_count - dropData.item.count;
                     // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
-                    let craft_slots = this.parent.craft.slots;
-                    for(let i in craft_slots) {
+                    let slots = this.parent.getSlots();
+                    for(let i in slots) {
                         if(need_count == 0) {
                             break;
                         }
-                        const slot = craft_slots[i];
+                        const slot = slots[i];
                         if(slot && slot.item) {
                             if(slot.item.id == dropData.item.id) {
-                                if(slot.item.count != item_max_count) {
+                                if(slot.item.count != max_stack_count) {
                                     let minus_count = 0;
                                     if(slot.item.count < need_count) {
                                         minus_count = slot.item.count;
@@ -186,7 +222,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                     dropData.item.count += minus_count;
                                     slot.item.count -= minus_count;
                                     if(slot.item.count < 1) {
-                                        craft_slots[i].item = null;
+                                        slots[i].item = null;
                                     }
                                 }
                             }
@@ -201,7 +237,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         const item = inventory_items[i];
                         if(item) {
                             if(item.id == dropData.item.id) {
-                                if(item.count != item_max_count) {
+                                if(item.count != max_stack_count) {
                                     let minus_count = 0;
                                     if(item.count < need_count) {
                                         minus_count = item.count;
@@ -228,16 +264,16 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(targetItem) {
                 // @todo
                 if(targetItem.id == dropData.item.id) {
-                    if(targetItem.count < item_max_count) {
+                    if(targetItem.count < max_stack_count) {
                         if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                             targetItem.count++;
                             dropData.item.count--;
                         } else {
                             let new_count = targetItem.count + dropData.item.count;
                             let remains = 0;
-                            if(new_count > item_max_count) {
-                                remains = new_count - item_max_count;
-                                new_count = item_max_count;
+                            if(new_count > max_stack_count) {
+                                remains = new_count - max_stack_count;
+                                new_count = max_stack_count;
                             }
                             targetItem.count = new_count;
                             dropData.item.count = remains;
@@ -266,6 +302,58 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
         }
 
+    }
+
+    /**
+     * Помещает предмет в список (например инвентарный)
+     * @param {*} srcItem Исходный слот для перемещения
+     * @param {*} target_list Итоговый  список слотов, куда нужно переместить исходный слот
+     * @param {*} srcList Ссылка на оригинальный список, чтобы можно было в него добавить/заменить новый элемент
+     * @param {*} srcListFirstIndexOffset Смещение в оригинальном списке, откуда взяли target_list
+     */
+    appendToList(srcItem, target_list, srcList, srcListFirstIndexOffset) {
+        if(typeof srcListFirstIndexOffset != 'number') {
+            throw 'Invalid srcListFirstIndexOffset';
+        }
+        let max_stack_count = srcItem.max_in_stack;
+        // 1. проход в поисках подобного
+        for(let item of target_list) {
+            let slot = null;
+            if(item instanceof CraftTableInventorySlot) {
+                slot = item;
+                item = item.item;
+            }
+            if(item && item.id == srcItem.id) {
+                let free_count = max_stack_count - item.count;
+                if(free_count > 0) {
+                    let count = Math.min(free_count, srcItem.count);
+                    srcItem.count -= count
+                    item.count += count;
+                    slot.setItem(item);
+                }
+            }
+        }
+        // 2. проход в поисках свободных слотов
+        if(srcItem.count > 0) {
+            for(let index in target_list) {
+                let item = target_list[index];
+                if(item instanceof CraftTableInventorySlot) {
+                    if(!item.item) {
+                        let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
+                        srcList[slot_index].setItem({...srcItem});
+                        srcItem.count = 0;
+                        break;
+                    }
+                } else {
+                    if(!item) {
+                        let slot_index = (srcListFirstIndexOffset | 0) + (index | 0);
+                        srcList[slot_index] = {...srcItem};
+                        srcItem.count = 0;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     draw(ctx, ax, ay) {
@@ -469,6 +557,7 @@ export class CraftTable extends Window {
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
             let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            lblSlot.is_craft_slot = true;
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
             }
@@ -564,6 +653,10 @@ export class CraftTable extends Window {
         let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
         this.resultSlot.setItem(block);
+    }
+
+    getSlots() {
+        return this.craft.slots;
     }
 
 }
