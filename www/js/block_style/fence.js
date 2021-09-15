@@ -64,7 +64,7 @@ export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours
     }
 
     let tex = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-    let ao = calcAOForBlock(x, y, z);
+    let ao = calcAOForBlock(chunk, x, y, z);
     push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
 
     //
@@ -144,7 +144,7 @@ function push_part(vertices, c, x, y, z, xs, zs, h, ao) {
         ao.EAST[0], ao.EAST[1], ao.EAST[2], ao.EAST[3], flags | sideFlags);
 }
 
-function calcAOForBlock(x, y, z) {
+function calcAOForBlock(chunk, x, y, z) {
 
     // Ambient occlusion
     const ao_enabled = true;

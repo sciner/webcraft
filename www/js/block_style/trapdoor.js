@@ -62,7 +62,7 @@ export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbo
             break;
         }
     }
-    let ao = calcAOForBlock(x, y, z);
+    let ao = calcAOForBlock(chunk, x, y, z);
     if(!block.extra_data) {
         block.extra_data = {
             opened: true,
@@ -312,7 +312,7 @@ function push_part(vertices, x, y, z, xs, zs, ys, ao, tex_up_down, tex_front, te
         ao.EAST[0], ao.EAST[1], ao.EAST[2], ao.EAST[3], flags | sideFlags);
 }
 
-function calcAOForBlock(x, y, z) {
+function calcAOForBlock(chunk, x, y, z) {
 
     // Ambient occlusion
     const ao_enabled = true;
