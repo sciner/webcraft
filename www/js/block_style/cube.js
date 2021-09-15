@@ -81,7 +81,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
     let bH = 1.0;
     if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
         bH = Math.min(block.power, .9)
-        let blockOver  = chunk.chunkManager.getBlock(x, y + 1, z);
+        let blockOver  = BLOCK.getCachedBlock(chunk, x, y + 1, z);
         if(blockOver) {
             let blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
             if(blockOverIsFluid) {
