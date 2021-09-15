@@ -78,7 +78,8 @@ class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
 
-    init() {
+    init(chunkManager) {
+        this.chunkManager = chunkManager;
         // Variables
         this.vertices_length    = 0;
         this.vertices           = {};
@@ -447,7 +448,7 @@ class Chunk {
                         delete(neighbours.RIGHT);
                         delete(neighbours.FORWARD);
                         delete(neighbours.BACK);
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x, y, z, neighbours, biome);
+                        BLOCK.pushVertices(block.vertices, block, this, lightmap, x, y, z, neighbours, biome);
                     }
                     world.blocks_pushed++;
                     if(block.vertices.length > 0) {
@@ -563,7 +564,7 @@ onmessage = async function(e) {
         case 'createChunk': {
             if(!chunks.hasOwnProperty(args.key)) {
                 chunks[args.key] = new Chunk(args);
-                chunks[args.key].init();
+                chunks[args.key].init(world.chunkManager);
             }
             break;
         }
