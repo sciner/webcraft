@@ -34,9 +34,9 @@ class ChunkManager {
     }
 
     /**
-     * 
-     * @param {Vector} pos 
-     * @returns 
+     *
+     * @param {Vector} pos
+     * @returns
      */
     getPosChunkKey(pos) {
         return pos.toChunkKey();
@@ -142,7 +142,7 @@ class Chunk {
             this.setBlock(pos[0] | 0, pos[1] | 0, pos[2] | 0, type, false, m.power, rotate, entity_id, extra_data);
         }
     }
-    
+
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
@@ -169,7 +169,7 @@ class Chunk {
         }
         return block || BLOCK.DUMMY;
     }
-    
+
     // setBlock
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
         // fix rotate
@@ -214,7 +214,7 @@ class Chunk {
         this.blocks[x][z][y].texture    = null;
         this.blocks[x][z][y].extra_data = extra_data;
     }
-    
+
     // makeLights
     makeLights() {
         this.lights = [];
@@ -235,24 +235,24 @@ class Chunk {
             }
         }
     }
-    
+
     // buildVertices
     buildVertices() {
-    
+
         if(!this.dirty || !this.blocks || !this.coord) {
             return false;
         }
-    
+
         // Create map of lowest blocks that are still lit
         let lightmap            = {};
         let tm                  = performance.now();
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
-    
+
         this.makeLights();
 
         BLOCK.clearBlockCache();
-    
+
         // Add vertices for blocks
         this.vertices = {
             regular: {
@@ -272,7 +272,7 @@ class Chunk {
                 is_transparent: true
             },
         }
-    
+
         let neighbour_chunks = {
             nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
@@ -428,12 +428,12 @@ class Chunk {
                     if(block.gravity && y > 1 && block.falling) {
                         let block_under = this.blocks[x][z][y - 1];
                         if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
-                            this.gravity_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
+                            this.gravity_blocks.push(new Vector(x, y, z));
                         }
                     }
                     // if block is fluid
                     if(block.fluid) {
-                        this.fluid_blocks.push(new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z));
+                        this.fluid_blocks.push(new Vector(x, y, z));
                     }
                     if(!block.hasOwnProperty('vertices')) {
                         block = this.blocks[x][z][y] = Object.create(block);
@@ -447,7 +447,7 @@ class Chunk {
                         delete(neighbours.RIGHT);
                         delete(neighbours.FORWARD);
                         delete(neighbours.BACK);
-                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x + this.coord.x, y + this.coord.y, z + this.coord.z, neighbours, biome);
+                        BLOCK.pushVertices(block.vertices, block, world, lightmap, x, y, z, neighbours, biome);
                     }
                     world.blocks_pushed++;
                     if(block.vertices.length > 0) {
@@ -457,21 +457,12 @@ class Chunk {
             }
         }
 
-        // ~0ms
-        for(let key of Object.keys(this.vertices)) {
-            let v = this.vertices[key];
-            for(let i = 0; i < v.list.length; i += GeometryTerrain.strideFloats) {
-                v.list[i + 0] -= this.shift.x;
-                v.list[i + 1] -= this.shift.z;
-            }
-            v.list = new Float32Array(v.list);
-        }
         this.dirty = false;
         this.tm = performance.now() - tm;
         this.lightmap = lightmap;
         return true;
     }
-    
+
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
@@ -512,7 +503,7 @@ const GeometryTerrain = {
 }
 
 /**
- * @param {string} terrain_type 
+ * @param {string} terrain_type
  */
 async function importModules(terrain_type, seed) {
     // load module
@@ -586,7 +577,6 @@ onmessage = async function(e) {
             if(chunks.hasOwnProperty(args.key)) {
                 let chunk = chunks[args.key];
                 chunk.dirty = true;
-                chunk.shift = args.shift;
                 chunk.timers.build_vertices = performance.now();
                 chunk.buildVertices();
                 chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
@@ -596,7 +586,6 @@ onmessage = async function(e) {
                     vertices:               chunk.vertices,
                     gravity_blocks:         chunk.gravity_blocks,
                     fluid_blocks:           chunk.fluid_blocks,
-                    shift:                  chunk.shift,
                     timers:                 chunk.timers,
                     map:                    chunk.map.info,
                     tm:                     chunk.tm,
@@ -611,7 +600,6 @@ onmessage = async function(e) {
                 if(chunks.hasOwnProperty(key)) {
                     let chunk = chunks[key];
                     chunk.dirty = true;
-                    chunk.shift = args.shift;
                     chunk.timers.build_vertices = performance.now();
                     chunk.buildVertices();
                     chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
@@ -620,7 +608,6 @@ onmessage = async function(e) {
                         vertices:               chunk.vertices,
                         gravity_blocks:         chunk.gravity_blocks,
                         fluid_blocks:           chunk.fluid_blocks,
-                        shift:                  chunk.shift,
                         timers:                 chunk.timers,
                         map:                    chunk.map.info,
                         tm:                     chunk.tm,
@@ -653,7 +640,6 @@ onmessage = async function(e) {
                     vertices:               chunk.vertices,
                     gravity_blocks:         chunk.gravity_blocks,
                     fluid_blocks:           chunk.fluid_blocks,
-                    shift:                  chunk.shift,
                     timers:                 chunk.timers,
                     tm:                     chunk.tm,
                     lightmap:               chunk.lightmap
