@@ -8,6 +8,7 @@ const float desaturateFactor = 2.0;
 uniform sampler2D u_texture;
 uniform sampler2D u_texture_mask;
 
+uniform vec3 u_camera_pos;
 // Fog
 uniform vec4 u_fogColor;
 uniform vec4 u_fogAddColor;
@@ -49,7 +50,7 @@ void drawCrosshair() {
     float x = gl_FragCoord.x;
     float y = gl_FragCoord.y;
     if((x > w / 2.0 - crosshair.w && x < w / 2.0 + crosshair.w &&
-        y > h / 2.0 - crosshair.z && y < h / 2.0 + crosshair.z) || 
+        y > h / 2.0 - crosshair.z && y < h / 2.0 + crosshair.z) ||
         (x > w / 2.0 - crosshair.z && x < w / 2.0 + crosshair.z &&
         y > h / 2.0 - crosshair.w && y < h / 2.0 + crosshair.w)
         ) {
@@ -114,7 +115,7 @@ void main() {
         // Static point light
         /*
         PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
-        float lightDistance = distance(pl.WorldSpacePos - u_shift, world_pos);
+        float lightDistance = distance(pl.WorldSpacePos, world_pos + u_camera_pos);
         if(lightDistance < pl.Radius) {
             float percent = 1. - lightDistance / pl.Radius;
             if(percent < 1.) {
@@ -130,7 +131,7 @@ void main() {
         outColor = color;
 
         // Calc fog amount
-        float fogDistance = length(v_position);
+        float fogDistance = length(world_pos.xy);
         float fogAmount = 0.;
         if(fogDistance > u_chunkBlockDist) {
             fogAmount = clamp(0.05 * (fogDistance - u_chunkBlockDist), 0., 1.);

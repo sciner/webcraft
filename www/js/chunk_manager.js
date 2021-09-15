@@ -67,15 +67,6 @@ export class ChunkManager {
         this.update_chunks = !this.update_chunks;
     }
 
-    // shift
-    shift(shift) {
-        let points = 0;
-        for(let key of Object.keys(this.chunks)) {
-            points += this.chunks[key].doShift(shift);
-        }
-        return points;
-    }
-
     // refresh
     refresh() {
     }
@@ -384,7 +375,6 @@ export class ChunkManager {
             chunk.dirty = true;
             // Run webworker method
             this.postWorkerMessage(['buildVertices', {
-                shift: Game.shift,
                 key: chunk.key
             }]);
         }

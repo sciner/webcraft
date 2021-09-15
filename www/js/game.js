@@ -56,7 +56,6 @@ export let KEY           = {};
     KEY.F11         = 122;
 
 export let Game = {
-    shift:              {x: 0, y: 0, z: 0},
     start_time:         performance.now(),
     last_saved_time:    performance.now() - 20000,
     world_name:         null,
@@ -264,7 +263,7 @@ export let Game = {
         }
         that.world.update();
         // Draw world
-        that.render.setCamera(that.player.getEyePos().toArray(), that.player.angles);
+        that.render.setCamera(that.player.getEyePos(), that.player.angles);
         that.render.draw(fps.delta);
         // Send player state
         that.sendPlayerState();

@@ -58,7 +58,7 @@ class Mesh_Default {
     // Draw
     draw(render, delta, modelMatrix, uModelMat) {
         let gl = render.gl;
-        let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
+        let a_pos = new Vector(this.pos.x, this.pos.z, this.pos.y);
         //
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);

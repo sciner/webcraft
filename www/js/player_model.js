@@ -472,8 +472,7 @@ export default class PlayerModel {
             return;
         }
 
-        let a_pos = new Vector(this.pos.x - Game.shift.x, this.pos.z - Game.shift.z, this.pos.y - Game.shift.y);
-
+        const a_pos = this.pos;
         // Draw head
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * options.scale - z_minus]);
@@ -516,7 +515,7 @@ export default class PlayerModel {
 
             mat4.identity(modelMatrix);
             // Calculate angle so that the nametag always faces the local player
-            let angZ = -Math.PI/2 + Math.atan2((camPos[2] - Game.shift.z) - (this.pos.z - Game.shift.z), (camPos[0] - Game.shift.x) - (this.pos.x - Game.shift.x));
+            let angZ = -Math.PI/2 + Math.atan2(camPos[2] - this.pos.z, camPos[0] - this.pos.x);
             let angX = 0; // @todo
 
             mat4.translate(modelMatrix, modelMatrix, [0, 0, (this.height + 0.35) * options.scale - z_minus]);

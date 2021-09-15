@@ -152,13 +152,11 @@ export class BaseTerrainShader extends BaseShader{
         this.chunkBlockDist = 1;
         this.brightness = 1;
         this.resolution = [1, 1];
-        this.shift = [0, 0, 0];
         this.mipmap = 0;
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
         this.addPos = [0,0,0];
         this.texture = null;
-
         this.camPos = new Vector();
     }
 
@@ -202,7 +200,6 @@ export class CubeMesh {
         lookAt[14] = 0;
 
         this.shader.resolution = [width, height];
-        this.shader.shift = [0, 0, 0];
 
         this.shader.context.drawCube(this);
     }
@@ -265,7 +262,6 @@ export class BaseCubeShader extends BaseShader {
         // Default values
         this.resolution_value   = [1, 1];
         this.testLightOn_value  = false;
-        this.shift_value        = [0, 0, 0];
 
         this.mergedBuffer = new Float32Array(16 * 2 + 1);
 
@@ -301,14 +297,6 @@ export class BaseCubeShader extends BaseShader {
 
     get testLightOn() {
         return this.testLightOn_value;
-    }
-
-    set shift(v) {
-        this.shift_value = v;
-    }
-
-    get shift() {
-        return this.shift_value;
     }
 
     bind() {

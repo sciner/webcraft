@@ -294,12 +294,12 @@ export class WebGPUMaterial extends BaseMaterial {
 
         if (pos) {
             data[shift] = pos.x - camPos.x;
-            data[shift+1] = pos.y - camPos.y;
-            data[shift+2] = pos.z - camPos.z;
+            data[shift+1] = pos.z - camPos.z;
+            data[shift+2] = pos.y - camPos.y;
         } else {
             data[shift] = - camPos.x;
-            data[shift+1] = - camPos.y;
-            data[shift+2] = - camPos.z;
+            data[shift+1] = - camPos.z;
+            data[shift+2] = - camPos.y;
         }
     }
 
