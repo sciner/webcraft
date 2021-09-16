@@ -214,63 +214,40 @@ export default class Chunk {
             rotate:     rotate,
             extra_data: extra_data
         }]);
-        if(x == 0) {
-            // West neighbor
-            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x - 1, this.addr.y, this.addr.z));
-            this.chunkManager.postWorkerMessage(['setBlock', {
-                key:        key,
-                x:          x + this.coord.x - 1,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z,
-                type:       null,
-                is_modify:  is_modify,
-                power:      power,
-                rotate:     rotate
-            }]);
+        // Принудительная перерисовка соседних чанков
+        let update_neighbors = [];
+        if(x == 0) update_neighbors.push(new Vector(-1, 0, 0));
+        if(x == this.size.x - 1) update_neighbors.push(new Vector(1, 0, 0));
+        if(y == 0) update_neighbors.push(new Vector(0, -1, 0));
+        if(y == this.size.y - 1) update_neighbors.push(new Vector(0, 1, 0));
+        if(z == 0) update_neighbors.push(new Vector(0, 0, -1));
+        if(z == this.size.z - 1) update_neighbors.push(new Vector(0, 0, 1));
+        // Добавляем выше и ниже
+        let update_neighbors2 = [];
+        for(var update_neighbor of update_neighbors) {
+            update_neighbors2.push(update_neighbor.add(new Vector(0, -1, 0)));
+            update_neighbors2.push(update_neighbor.add(new Vector(0, 1, 0)));
         }
-        if(z == 0) {
-            // South neighbor
-            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z - 1));
-            this.chunkManager.postWorkerMessage(['setBlock', {
-                key:        key,
-                x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z - 1,
-                type:       null,
-                is_modify:  is_modify,
-                power:      power,
-                rotate:     rotate
-            }]);
+        update_neighbors.push(...update_neighbors2);
+        let updated_chunks = [];
+        for(var update_neighbor of update_neighbors) {
+            let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
+            let key = this.chunkManager.getPosChunkKey(this.chunkManager.getChunkPos(pos));
+            // чтобы не обновлять один и тот же чанк дважды
+            if(updated_chunks.indexOf(key) < 0) {
+                updated_chunks.push(key);
+                this.chunkManager.postWorkerMessage(['setBlock', {
+                    key:        key,
+                    x:          pos.x,
+                    y:          pos.y,
+                    z:          pos.z,
+                    type:       null,
+                    is_modify:  is_modify,
+                    power:      power,
+                    rotate:     rotate
+                }]);
+            }
         }
-        if(x == this.size.x - 1) {
-            // East neighbor
-            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x + 1, this.addr.y, this.addr.z));
-            this.chunkManager.postWorkerMessage(['setBlock', {
-                key:        key,
-                x:          x + this.coord.x + 1,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z,
-                type:       null,
-                is_modify:  is_modify,
-                power:      power,
-                rotate:     rotate
-            }]);
-        }
-        if(z == this.size.z - 1) {
-            // North neighbor
-            let key = this.chunkManager.getPosChunkKey(new Vector(this.addr.x, this.addr.y, this.addr.z + 1));
-            this.chunkManager.postWorkerMessage(['setBlock', {
-                key:        key,
-                x:          x + this.coord.x,
-                y:          y + this.coord.y,
-                z:          z + this.coord.z + 1,
-                type:       null,
-                is_modify:  is_modify,
-                power:      power,
-                rotate:     rotate
-            }]);
-        }
-
     }
 
 }

@@ -251,6 +251,11 @@ export class ChunkManager {
 
     // Возвращает относительные координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
+        if(x instanceof Vector) {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
         let v = new Vector(
             x / CHUNK_SIZE_X | 0,
             y / CHUNK_SIZE_Y | 0,
