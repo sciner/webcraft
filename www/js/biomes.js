@@ -225,8 +225,13 @@ BIOMES.GRASSLAND = {
     plants: {
         frequency: .5,
         list: [
-            {percent: .95, block: blocks.GRASS},
+            {percent: .825, block: blocks.GRASS},
             {percent: .025, block: blocks.TULIP},
+            {percent: .025, block: blocks.FLOWER_ALLIUM},
+            {percent: .025, block: blocks.FLOWER_BLUE_ORCHID},
+            {percent: .025, block: blocks.FLOWER_OXEYE_DAISY},
+            {percent: .025, block: blocks.FLOWER_LILY_OF_THE_VALLEY},
+            {percent: .025, block: blocks.FLOWER_CORNFLOWER},
             {percent: .025, block: blocks.DANDELION}
         ]
     },

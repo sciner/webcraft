@@ -1000,7 +1000,7 @@ BLOCK.TERRACOTTA_YELLOW = {
 	texture: function(world, lightmap, lit, x, y, z, dir) {return [7, 19];}
 };
 
-//
+// Цветы
 BLOCK.DANDELION = {
     id: 36,
     inventory_icon_id: 3413,
@@ -1013,20 +1013,6 @@ BLOCK.DANDELION = {
         return [13, 0];
     }
 };
-
-/*
-BLOCK.POPPY = {
-    id: 37,
-    spawnable: true,
-    passable: 1,
-    transparent: true,
-    style: 'planting',
-    texture: function(world, lightmap, lit, x, y, z, dir) {
-        return [12, 0];
-    }
-};
-*/
-
 BLOCK.TULIP = {
     id: 38,
     inventory_icon_id: 3435,
@@ -1037,6 +1023,114 @@ BLOCK.TULIP = {
     sound: 'webcraft:block.grass',
     texture: function(world, lightmap, lit, x, y, z, dir) {
         return [12, 0];
+    }
+};
+BLOCK.FLOWER_ALLIUM = {
+    id: 509,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [0, 22];
+    }
+};
+BLOCK.FLOWER_BLUE_ORCHID = {
+    id: 510,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [1, 22];
+    }
+};
+BLOCK.FLOWER_OXEYE_DAISY = {
+    id: 511,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [2, 22];
+    }
+};
+BLOCK.FLOWER_LILY_OF_THE_VALLEY = {
+    id: 512,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [3, 22];
+    }
+};
+BLOCK.FLOWER_CORNFLOWER = {
+    id: 513,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [4, 22];
+    }
+};
+BLOCK.FLOWER_PEONY_BOTTOM = {
+    id: 514,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [5, 22];
+    }
+};
+BLOCK.FLOWER_PEONY_TOP = {
+    id: 515,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [6, 22];
+    }
+};
+BLOCK.FLOWER_LILAC_BOTTOM = {
+    id: 516,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [7, 22];
+    }
+};
+BLOCK.FLOWER_LILAC_TOP = {
+    id: 517,
+    inventory_icon_id: 3435,
+    spawnable: true,
+    passable: 1,
+    transparent: true,
+    style: 'planting',
+    sound: 'webcraft:block.grass',
+    texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [8, 22];
     }
 };
 
