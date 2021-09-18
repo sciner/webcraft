@@ -251,7 +251,6 @@ export class BLOCK_FUNC {
             && z >= 0 && z < chunk.size.z) {
             return chunk.getBlock(x1, y1, z1);
         }
-
         let key = new Vector(x1, y1, z1).toString();
         if(BLOCK.block_cache[key]) {
             BLOCK.cachedBlocksUsed++;

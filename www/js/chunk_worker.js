@@ -18,19 +18,9 @@ let terrainGenerator    = null;
 // ChunkManager
 class ChunkManager {
 
-    // Возвращает относительные координаты чанка по глобальным абсолютным координатам
+    // Возвращает координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
-        let v = new Vector(
-            x / CHUNK_SIZE_X | 0,
-            y / CHUNK_SIZE_Y | 0,
-            z / CHUNK_SIZE_Z | 0
-        );
-        if(x < 0) {v.x--;}
-        if(z < 0) {v.z--;}
-        if(v.x == 0) {v.x = 0;}
-        if(v.y == 0) {v.y = 0;}
-        if(v.z == 0) {v.z = 0;}
-        return v;
+        return BLOCK.getChunkPos(x, y, z);
     }
 
     /**
@@ -575,78 +565,60 @@ onmessage = async function(e) {
             break;
         }
         case 'buildVertices': {
-            if(chunks.hasOwnProperty(args.key)) {
-                let chunk = chunks[args.key];
-                chunk.dirty = true;
-                chunk.timers.build_vertices = performance.now();
-                chunk.buildVertices();
-                chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
-                // result
-                postMessage(['vertices_generated', {
-                    key:                    chunk.key,
-                    vertices:               chunk.vertices,
-                    gravity_blocks:         chunk.gravity_blocks,
-                    fluid_blocks:           chunk.fluid_blocks,
-                    timers:                 chunk.timers,
-                    map:                    chunk.map.info,
-                    tm:                     chunk.tm,
-                    lightmap:               chunk.lightmap
-                }]);
-            }
-            break;
-        }
-        case 'buildVerticesMany': {
             let result = [];
             for(let key of args.keys) {
                 if(chunks.hasOwnProperty(key)) {
                     let chunk = chunks[key];
-                    chunk.dirty = true;
-                    chunk.timers.build_vertices = performance.now();
-                    chunk.buildVertices();
-                    chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
-                    result.push({
-                        key:                    chunk.key,
-                        vertices:               chunk.vertices,
-                        gravity_blocks:         chunk.gravity_blocks,
-                        fluid_blocks:           chunk.fluid_blocks,
-                        timers:                 chunk.timers,
-                        map:                    chunk.map.info,
-                        tm:                     chunk.tm,
-                        lightmap:               chunk.lightmap
-                    });
+                    // 4. Rebuild vertices list
+                    result.push(buildVertices(chunk, true));
                 }
             }
-            postMessage(['vertices_generated_many', result]);
+            postMessage(['vertices_generated', result]);
             break;
         }
         case 'setBlock': {
-            if(chunks.hasOwnProperty(args.key)) {
-                // 1. Get chunk
-                let chunk = chunks[args.key];
-                // 2. Set new block
-                if(args.type) {
-                    chunk.setBlock(args.x, args.y, args.z, args.type, args.is_modify, args.power, args.rotate, null, args.extra_data);
+            let result = [];
+            // let pn = performance.now();
+            for(let m of args) {
+                if(chunks.hasOwnProperty(m.key)) {
+                    // 1. Get chunk
+                    let chunk = chunks[m.key];
+                    // 2. Set new block
+                    if(m.type) {
+                        chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                    }
+                    let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
+                    // 3. Clear vertices for new block and around near
+                    chunk.setDirtyBlocks(pos);
+                    // 4. Rebuild vertices list
+                    result.push(buildVertices(chunk, false));
                 }
-                let pos = new Vector(args.x - chunk.coord.x, args.y - chunk.coord.y, args.z - chunk.coord.z);
-                // 3. Clear vertices for new block and around near
-                chunk.setDirtyBlocks(pos);
-                // 4. Rebuild vertices list
-                chunk.timers.build_vertices = performance.now();
-                chunk.dirty = true;
-                chunk.buildVertices();
-                chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
-                // 5. Send result to chunk manager
-                postMessage(['vertices_generated', {
-                    key:                    chunk.key,
-                    vertices:               chunk.vertices,
-                    gravity_blocks:         chunk.gravity_blocks,
-                    fluid_blocks:           chunk.fluid_blocks,
-                    timers:                 chunk.timers,
-                    tm:                     chunk.tm,
-                    lightmap:               chunk.lightmap
-                }]);
             }
+            // console.log(result.length, performance.now() - pn, JSON.stringify(result).length, result);
+            // 5. Send result to chunk manager
+            postMessage(['vertices_generated', result]);
             break;
         }
     }
+}
+
+// Rebuild vertices list
+function buildVertices(chunk, return_map) {
+    chunk.dirty = true;
+    chunk.timers.build_vertices = performance.now();
+    chunk.buildVertices();
+    chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
+    let resp = {
+        key:                    chunk.key,
+        vertices:               chunk.vertices,
+        gravity_blocks:         chunk.gravity_blocks,
+        fluid_blocks:           chunk.fluid_blocks,
+        timers:                 chunk.timers,
+        tm:                     chunk.tm,
+        lightmap:               chunk.lightmap
+    };
+    if(return_map) {
+        resp.map = chunk.map.info;
+    }
+    return resp;
 }

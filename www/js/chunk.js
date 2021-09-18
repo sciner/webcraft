@@ -5,9 +5,6 @@ import GeometryTerrain from "./geometry_terrain.js";
 // Creates a new chunk
 export default class Chunk {
 
-    // #chunkManager = null;
-    // #vertices     = null;
-
     constructor(chunkManager, pos, modify_list) {
 
         // info
@@ -135,7 +132,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.chunkManager.postWorkerMessage(['buildVertices', {key: this.key}]);
+        this.chunkManager.postWorkerMessage(['buildVertices', {keys: [this.key]}]);
         return true;
     }
 
@@ -178,7 +175,7 @@ export default class Chunk {
                 Math.round(rotate.z * 10) / 10
             );
         } else {
-            rotate = null;
+            rotate = new Vector(0, 0, 0);
         }
         // fix power
         if(typeof power === 'undefined' || power === null) {
@@ -188,65 +185,79 @@ export default class Chunk {
         if(power <= 0) {
             return;
         }
+        let update_vertices = true;
         //
         if(!is_modify) {
             type = {...BLOCK[type.name]};
             type.power      = power;
             type.rotate     = rotate;
-            type.entity_id  = entity_id;
             type.texture    = null;
-            type.extra_data = extra_data;
+            if(extra_data) {
+                type.entity_id = extra_data;
+            }
+            if(entity_id) {
+                type.entity_id = entity_id;
+            }
             if(type.gravity) {
                 type.falling = true;
             }
+            update_vertices = JSON.stringify(this.blocks[x][z][y]) != JSON.stringify(type);
             this.blocks[x][z][y] = type;
         }
-        // type.extra_data = extra_data;
         // Run webworker method
-        this.chunkManager.postWorkerMessage(['setBlock', {
-            key:        this.key,
-            x:          x + this.coord.x,
-            y:          y + this.coord.y,
-            z:          z + this.coord.z,
-            type:       type,
-            is_modify:  is_modify,
-            power:      power,
-            rotate:     rotate,
-            extra_data: extra_data
-        }]);
-        // Принудительная перерисовка соседних чанков
-        let update_neighbors = [];
-        if(x == 0) update_neighbors.push(new Vector(-1, 0, 0));
-        if(x == this.size.x - 1) update_neighbors.push(new Vector(1, 0, 0));
-        if(y == 0) update_neighbors.push(new Vector(0, -1, 0));
-        if(y == this.size.y - 1) update_neighbors.push(new Vector(0, 1, 0));
-        if(z == 0) update_neighbors.push(new Vector(0, 0, -1));
-        if(z == this.size.z - 1) update_neighbors.push(new Vector(0, 0, 1));
-        // Добавляем выше и ниже
-        let update_neighbors2 = [];
-        for(var update_neighbor of update_neighbors) {
-            update_neighbors2.push(update_neighbor.add(new Vector(0, -1, 0)));
-            update_neighbors2.push(update_neighbor.add(new Vector(0, 1, 0)));
-        }
-        update_neighbors.push(...update_neighbors2);
-        let updated_chunks = [];
-        for(var update_neighbor of update_neighbors) {
-            let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-            let key = this.chunkManager.getPosChunkKey(this.chunkManager.getChunkPos(pos));
-            // чтобы не обновлять один и тот же чанк дважды
-            if(updated_chunks.indexOf(key) < 0) {
-                updated_chunks.push(key);
-                this.chunkManager.postWorkerMessage(['setBlock', {
-                    key:        key,
-                    x:          pos.x,
-                    y:          pos.y,
-                    z:          pos.z,
-                    type:       null,
-                    is_modify:  is_modify,
-                    power:      power,
-                    rotate:     rotate
-                }]);
+        if(update_vertices) {
+            let set_block_list = [];
+            set_block_list.push({
+                key:        this.key,
+                x:          x + this.coord.x,
+                y:          y + this.coord.y,
+                z:          z + this.coord.z,
+                type:       type,
+                is_modify:  is_modify,
+                power:      power,
+                rotate:     rotate,
+                extra_data: extra_data
+            });
+            // Принудительная перерисовка соседних чанков
+            let update_neighbors = [];
+            if(x == 0) update_neighbors.push(new Vector(-1, 0, 0));
+            if(x == this.size.x - 1) update_neighbors.push(new Vector(1, 0, 0));
+            if(y == 0) update_neighbors.push(new Vector(0, -1, 0));
+            if(y == this.size.y - 1) update_neighbors.push(new Vector(0, 1, 0));
+            if(z == 0) update_neighbors.push(new Vector(0, 0, -1));
+            if(z == this.size.z - 1) update_neighbors.push(new Vector(0, 0, 1));
+            // diagonal
+            if(x == 0 && z == 0) update_neighbors.push(new Vector(-1, 0, -1));
+            if(x == this.size.x - 1 && z == 0) update_neighbors.push(new Vector(1, 0, -1));
+            if(x == 0 && z == this.size.z - 1) update_neighbors.push(new Vector(-1, 0, 1));
+            if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbors.push(new Vector(1, 0, 1));
+            // Добавляем выше и ниже
+            let update_neighbors2 = [];
+            for(var update_neighbor of update_neighbors) {
+                update_neighbors2.push(update_neighbor.add(new Vector(0, -1, 0)));
+                update_neighbors2.push(update_neighbor.add(new Vector(0, 1, 0)));
             }
+            update_neighbors.push(...update_neighbors2);
+            let updated_chunks = [this.key];
+            for(var update_neighbor of update_neighbors) {
+                let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
+                let key = this.chunkManager.getPosChunkKey(this.chunkManager.getChunkPos(pos));
+                // чтобы не обновлять один и тот же чанк дважды
+                if(updated_chunks.indexOf(key) < 0) {
+                    updated_chunks.push(key);
+                    set_block_list.push({
+                        key:        key,
+                        x:          pos.x,
+                        y:          pos.y,
+                        z:          pos.z,
+                        type:       null,
+                        is_modify:  is_modify,
+                        power:      power,
+                        rotate:     rotate
+                    });
+                }
+            }
+            this.chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }
 

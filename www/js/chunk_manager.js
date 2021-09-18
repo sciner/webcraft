@@ -35,12 +35,6 @@ export class ChunkManager {
                     break;
                 }
                 case 'vertices_generated': {
-                    if(that.chunks.hasOwnProperty(args.key)) {
-                        that.chunks[args.key].onVerticesGenerated(args);
-                    }
-                    break;
-                }
-                case 'vertices_generated_many': {
                     for(let result of args) {
                         if(that.chunks.hasOwnProperty(result.key)) {
                             that.chunks[result.key].onVerticesGenerated(result);
@@ -75,7 +69,7 @@ export class ChunkManager {
     draw(render, transparent) {
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
         this.rendered_chunks.fact   = 0;
-        let applyVerticesCan        = 1;
+        let applyVerticesCan        = 10;
         let groups = [];
         if(transparent) {
             groups = ['transparent', 'doubleface_transparent'];
@@ -251,50 +245,18 @@ export class ChunkManager {
 
     // Возвращает относительные координаты чанка по глобальным абсолютным координатам
     getChunkPos(x, y, z) {
-        if(x instanceof Vector) {
-            y = x.y;
-            z = x.z;
-            x = x.x;
-        }
-        let v = new Vector(
-            x / CHUNK_SIZE_X | 0,
-            y / CHUNK_SIZE_Y | 0,
-            z / CHUNK_SIZE_Z | 0
-        );
-        if(x < 0) {v.x--;}
-        if(z < 0) {v.z--;}
-        if(v.x == 0) {v.x = 0;}
-        if(v.y == 0) {v.y = 0;}
-        if(v.z == 0) {v.z = 0;}
-        return v;
+        return BLOCK.getChunkPos(x, y, z);
     }
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
-        let vec = new Vector(
-            (x / CHUNK_SIZE_X) | 0,
-            (y / CHUNK_SIZE_Y) | 0,
-            (z / CHUNK_SIZE_Z) | 0
-        );
+        let vec = this.getChunkPos(x, y, z);
         let chunk_key = this.getPosChunkKey(vec);
         let chunk = this.chunks[chunk_key];
         if(chunk) {
             return chunk.getBlock(x, y, z);
         }
         return BLOCK.DUMMY;
-        /*
-        let resp = BLOCK.DUMMY;
-        // определяем относительные координаты чанка
-        let chunkPos = this.getChunkPos(x, y, z);
-        // обращаемся к чанку
-        let chunk = this.getChunk(chunkPos);
-        // если чанк найден
-        if(chunk) {
-            // просим вернуть блок передав абсолютные координаты
-            resp = chunk.getBlock(x, y, z);
-        }
-        return resp;
-        */
     }
 
     // setBlock
@@ -371,18 +333,6 @@ export class ChunkManager {
         */
         this.world.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
-    }
-
-    // setDirty
-    setDirty(pos) {
-        let chunk = this.getChunk(pos);
-        if(chunk) {
-            chunk.dirty = true;
-            // Run webworker method
-            this.postWorkerMessage(['buildVertices', {
-                key: chunk.key
-            }]);
-        }
     }
 
     // setDirtySimple

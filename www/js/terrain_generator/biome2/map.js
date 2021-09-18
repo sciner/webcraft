@@ -18,48 +18,38 @@ export class MapCell {
 
 export class Map {
 
-    // Private properties
-    #chunk      = null;
-
     // Constructor
     constructor(chunk, options) {
         this.options        = options;
         this.trees          = [];
         this.plants         = [];
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
-        this.#chunk         = chunk;
+        this.chunk          = {
+            size: chunk.size,
+            addr: chunk.addr,
+            coord: chunk.coord
+        };
     }
 
+    // Сглаживание карты высот
     smooth(generator) {
-
         const SMOOTH_RAD    = 3;
-
         let neighbour_map   = null;
         let map             = null;
-        let chunk_coord     = this.#chunk.coord;
-
-        let z_min = -SMOOTH_RAD;
-        let z_max = CHUNK_SIZE_Z + SMOOTH_RAD;
-
-        if(chunk_coord.z < 0) {
-            z_min = (CHUNK_SIZE_Z + SMOOTH_RAD) * -1;
-            z_max = SMOOTH_RAD;
-        }
-
+        let chunk_coord     = this.chunk.coord;
         // Smoothing | Сглаживание
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-            for(let z = z_min; z < z_max; z++) {
+            for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
                 // absolute cell coord
-                let px      = chunk_coord.x + x;
-                let pz      = chunk_coord.z + z;
-                // calc chunk addr for this cell
-                let addr    = new Vector(parseInt(px / CHUNK_SIZE_X), 0, parseInt(pz / CHUNK_SIZE_Z));
-                // get chunk map from cache
-                let map_addr_ok = map && (map.#chunk.addr.x == addr.x) && (map.#chunk.addr.z == addr.z);
+                let px          = chunk_coord.x + x;
+                let pz          = chunk_coord.z + z;
+                let addr        = BLOCK.getChunkPos(px, 0, pz); // calc chunk addr for this cell
+                let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z); // get chunk map from cache
                 if(!map || !map_addr_ok) {
                     map = generator.maps_cache[addr.toString()];
                 }
-                let cell = map.cells[px - map.#chunk.coord.x][pz - map.#chunk.coord.z];
+                let bi = BLOCK.getBlockIndex(px, 0, pz);
+                let cell = map.cells[bi.x][bi.z];
                 if(!cell) {
                     continue;
                 }
@@ -73,17 +63,21 @@ export class Map {
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
                         // calc chunk addr for this cell
-                        let neighbour_addr  = new Vector(parseInt((px + i) / CHUNK_SIZE_X), 0, parseInt((pz + j) / CHUNK_SIZE_Z));
+                        let neighbour_addr = BLOCK.getChunkPos(px + i, 0, pz + j);
                         let addr_ok = neighbour_map &&
-                                      (neighbour_map.#chunk.addr.x == neighbour_addr.x) &&
-                                      (neighbour_map.#chunk.addr.z == neighbour_addr.z);
+                                      (neighbour_map.chunk.addr.x == neighbour_addr.x) &&
+                                      (neighbour_map.chunk.addr.z == neighbour_addr.z);
+                        // хак оптимизации скорости (т.к. toString() очень дорогой)
                         if(!neighbour_map || !addr_ok) {
                             neighbour_map = generator.maps_cache[neighbour_addr.toString()];
                         }
                         if(!neighbour_map) {
+                            console.error('Neighbor not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
                             debugger;
                         }
-                        let neighbour_cell = neighbour_map.cells[px + i - neighbour_map.#chunk.coord.x][pz + j - neighbour_map.#chunk.coord.z];
+                        //
+                        let bi = BLOCK.getBlockIndex(px + i, 0, pz + j);
+                        let neighbour_cell = neighbour_map.cells[bi.x][bi.z];
                         if(neighbour_cell) {
                             height_sum += neighbour_cell.value;
                             dirt_color.add(neighbour_cell.biome.dirt_color);
@@ -95,12 +89,11 @@ export class Map {
                 cell.biome.dirt_color = dirt_color.divide(new Color(cnt, cnt, cnt, cnt));
             }
         }
-
     }
 
     // Генерация растительности
     generateVegetation() {
-        let chunk       = this.#chunk;
+        let chunk       = this.chunk;
         let aleaRandom  = new alea(chunk.seed + '_' + chunk.id);
         this.trees      = [];
         this.plants     = [];

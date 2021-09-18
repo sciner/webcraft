@@ -92,7 +92,6 @@ export class World {
         if(!this.clouds) {
             let pos = new Vector(this.spawnPoint);
             pos.y = 128.1;
-            console.log(pos);
             this.clouds = this.createClouds(pos);
         }
         // Picking target

@@ -1,4 +1,4 @@
-import {Color, DIRECTION} from './helpers.js';
+import {Color, DIRECTION, Vector} from './helpers.js';
 import {BLOCK_FUNC} from './blocks_func.js';
 
 export const CHUNK_SIZE_X      = 16;
@@ -8,7 +8,45 @@ export const CHUNK_SIZE_Y_MAX  = 4096;
 export const MAX_CAVES_LEVEL   = 256;
 export const TRANS_TEX         = [4, 12];
 
-export class BLOCK extends BLOCK_FUNC {};
+export class BLOCK extends BLOCK_FUNC {
+    
+    // Возвращает координаты чанка по глобальным абсолютным координатам
+    static getChunkPos(x, y, z) {
+        if(x instanceof Vector) {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
+        //
+        let v = new Vector(
+            Math.floor(x / CHUNK_SIZE_X),
+            Math.floor(y / CHUNK_SIZE_Y),
+            Math.floor(z / CHUNK_SIZE_Z)
+        );
+        // Fix negative zero
+        if(v.x == 0) {v.x = 0;}
+        if(v.y == 0) {v.y = 0;}
+        if(v.z == 0) {v.z = 0;}
+        return v;
+    }
+
+    //
+    static getBlockIndex(x, y, z) {
+        let f = (v, m) => {
+            if(v < 0) v++;
+            v = v % m;
+            if(v == 0) v = 0;
+            if(v < 0) v *= -1;
+            return v;
+        };
+        return new Vector(
+            f(x, CHUNK_SIZE_X),
+            f(y, CHUNK_SIZE_Y),
+            f(z, CHUNK_SIZE_Z)
+        );
+    }
+
+};
 
 // BLOCK PROPERTIES:
 // id (int)                 - Unique ID
@@ -1027,7 +1065,7 @@ BLOCK.TULIP = {
 };
 BLOCK.FLOWER_ALLIUM = {
     id: 509,
-    inventory_icon_id: 3435,
+    inventory_icon_id: 3400,
     spawnable: true,
     passable: 1,
     transparent: true,
@@ -1039,7 +1077,7 @@ BLOCK.FLOWER_ALLIUM = {
 };
 BLOCK.FLOWER_BLUE_ORCHID = {
     id: 510,
-    inventory_icon_id: 3435,
+    inventory_icon_id: 3406,
     spawnable: true,
     passable: 1,
     transparent: true,
@@ -1051,7 +1089,7 @@ BLOCK.FLOWER_BLUE_ORCHID = {
 };
 BLOCK.FLOWER_OXEYE_DAISY = {
     id: 511,
-    inventory_icon_id: 3435,
+    inventory_icon_id: 3432,
     spawnable: true,
     passable: 1,
     transparent: true,
@@ -1063,7 +1101,7 @@ BLOCK.FLOWER_OXEYE_DAISY = {
 };
 BLOCK.FLOWER_LILY_OF_THE_VALLEY = {
     id: 512,
-    inventory_icon_id: 3435,
+    inventory_icon_id: 3401,
     spawnable: true,
     passable: 1,
     transparent: true,
@@ -1075,7 +1113,7 @@ BLOCK.FLOWER_LILY_OF_THE_VALLEY = {
 };
 BLOCK.FLOWER_CORNFLOWER = {
     id: 513,
-    inventory_icon_id: 3435,
+    inventory_icon_id: 2388,
     spawnable: true,
     passable: 1,
     transparent: true,
