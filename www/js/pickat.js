@@ -101,7 +101,7 @@ export class PickAt {
             if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
                 break;
             }
-            const ix = block.x | 0, iy = block.y | 0, iz = block.z | 0;
+            const ix = Math.floor(block.x), iy = Math.floor(block.y), iz = Math.floor(block.z);
             let b = Game.world.chunkManager.getBlock(ix, iy, iz);
             if(b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id) {
                 side.x = -side.x;
