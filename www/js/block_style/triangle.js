@@ -1,8 +1,8 @@
 import {DIRECTION, MULTIPLY, NORMALS, ROTATE, TX_CNT} from '../helpers.js';
 import {push_plane} from './plane.js';
 
-// Ступеньки
-export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbours) {
+// Треугольники
+export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbours) {
 
     const half          = 0.5 / TX_CNT;
     let poses           = [];
@@ -25,40 +25,46 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
     // нижняя половина текстуры
     let c_half_bottom = [
         c[0],
-        c[1] + half/2,
+        c[1],// + half/2,
         c[2],
-        c[3] - half,
+        c[3],// - half,
     ];
 
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
     let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
 
-    let yt = y + .5;
+    let yt = y + 1;
     let yb = y;
     if(on_ceil) {
-        yt -= .5;
-        yb += .5;
+        //yt -= .5;
+        //yb += .5;
     }
 
     let n = 0;
 
     // Нижний слэб
 
-    // стенка 1
+    // South - стенка 1
     n = NORMALS.FORWARD;
     push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
-    // стенка 2
+    // North - стенка 2
     n = NORMALS.BACK;
     push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
 
-    // стенка 3
+    // East - стенка 3
     n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, n, false, false, null, 1, null);
 
-    // стенка 4
+    // West - стенка 4
     n = NORMALS.LEFT;
-    push_plane(vertices, x - 0.5, yb, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    // push_plane(vertices, x, yb, z, c_half_bottom, lm, n, false, false, null, 1, null);
+    vertices.push(x + 1/2, y + 1/2, z + 1/2,
+        1, 1, 0,
+        0, 0, -1,
+        c[0], c[1], c[2], c[3],
+        lm.r, lm.g, lm.b,
+        lm.a, lm.a, lm.a, lm.a, null);
 
     c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
@@ -72,18 +78,11 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
         lm.a, lm.a, lm.a, lm.a, 0);
 
     // поверхность нижней ступени
-    const bH = 0.5;
-    n = NORMALS.UP;
-    vertices.push(x + .5, z + .5, yb + bH,
-        1, 0, 0,
-        0, 1, 0,
-        c[0], c[1], c[2], c[3],
-        lm.r, lm.g, lm.b,
-        lm.a, lm.a, lm.a, lm.a, 0);
+    const bH = 1;
 
     //
     let checkIfSame = (b) => {
-        return b && b.tags && b.tags.indexOf('stairs') >= 0;
+        return b && b.tags && b.tags.indexOf('triangle') >= 0;
     };
     //
     let compareCD = (b) => {
@@ -191,7 +190,7 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
     }
 
     // Верхняя ступень
-    for(let pose of poses) {
+    /*for(let pose of poses) {
 
         // левая стенка
         n = NORMALS.RIGHT;
@@ -226,6 +225,6 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
             c_half[0], c_half[1], c_half[2], c_half[3],
             lm.r, lm.g, lm.b,
             lm.a, lm.a, lm.a, lm.a, 0);
-    }
+    }*/
 
 }

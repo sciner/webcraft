@@ -193,7 +193,7 @@ export default class Chunk {
             type.rotate     = rotate;
             type.texture    = null;
             if(extra_data) {
-                type.entity_id = extra_data;
+                type.extra_data = extra_data;
             }
             if(entity_id) {
                 type.entity_id = entity_id;
@@ -201,7 +201,7 @@ export default class Chunk {
             if(type.gravity) {
                 type.falling = true;
             }
-            update_vertices = JSON.stringify(this.blocks[x][z][y]) != JSON.stringify(type);
+            update_vertices = !!extra_data || JSON.stringify(this.blocks[x][z][y]) != JSON.stringify(type);
             this.blocks[x][z][y] = type;
         }
         // Run webworker method

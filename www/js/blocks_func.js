@@ -8,6 +8,7 @@ import { push_plant } from './block_style/plant.js';
 import { push_slab } from './block_style/slab.js';
 import { push_stairs } from './block_style/stairs.js';
 import { push_trapdoor } from './block_style/trapdoor.js';
+import { push_triangle } from './block_style/triangle.js';
 
 export class BLOCK_FUNC {
 
@@ -276,6 +277,8 @@ export class BLOCK_FUNC {
             push_pane(block, vertices, world, lightmap, x, y, z, neighbours);
         } else if (style == 'stairs') {
             push_stairs(block, vertices, world, lightmap, x, y, z, neighbours);
+        } else if (style == 'triangle') {
+            push_triangle(block, vertices, world, lightmap, x, y, z, neighbours);
         } else if (style == 'slab') {
             push_slab(block, vertices, world, lightmap, x, y, z);
         } else if (style == 'ladder') {
@@ -313,3 +316,4 @@ BLOCK_FUNC.push_plant = push_plant;
 BLOCK_FUNC.push_slab = push_slab;
 BLOCK_FUNC.push_stairs = push_stairs;
 BLOCK_FUNC.push_trapdoor = push_trapdoor;
+BLOCK_FUNC.push_triangle = push_triangle;

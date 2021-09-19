@@ -279,6 +279,7 @@ export class Renderer {
         shader.update();
         // 2. Draw chunks
         this.terrainTexture.bind(4);
+        this.world.chunkManager.rendered_chunks.fact = 0;
         this.world.chunkManager.draw(this, false);
         /*
         if(!this.vl && Game.shift.x != 0) {

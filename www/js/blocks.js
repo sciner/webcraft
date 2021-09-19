@@ -2461,6 +2461,17 @@ BLOCK.ICE3 = {
 	}
 };
 
+BLOCK.BRICK_TRIANGLE = {
+    id: 518,
+    spawnable: true,
+    style: 'triangle',
+    sound: 'webcraft:block.stone',
+    tags: ['triangle'],
+	texture: function(world, lightmap, lit, x, y, z, dir) {
+        return [7, 0];
+    }
+};
+
 // Run getAll()
 BLOCK.getAll();
 

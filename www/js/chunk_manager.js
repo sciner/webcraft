@@ -68,7 +68,6 @@ export class ChunkManager {
     // Draw level chunks
     draw(render, transparent) {
         this.rendered_chunks.total  = Object.keys(this.chunks).length;
-        this.rendered_chunks.fact   = 0;
         let applyVerticesCan        = 10;
         let groups = [];
         if(transparent) {

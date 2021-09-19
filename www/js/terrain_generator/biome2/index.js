@@ -129,7 +129,7 @@ export default class Terrain_Generator {
                 let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
                 value = value * biome.max_height + 68;
                 value = parseInt(value);
-                value = Helpers.clamp(value, 4, 255);
+                value = Helpers.clamp(value, 4, 2500);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);
                 // Pow
                 let diff = value - options.WATER_LINE;
