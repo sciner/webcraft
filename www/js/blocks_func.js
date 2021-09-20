@@ -126,16 +126,13 @@ export class BLOCK_FUNC {
             return this.list;
         }
         let list = this.list = [];
-        let id_list = [];
+        this.BLOCK_BY_ID = {};
+        this.BLOCK_BY_TAGS = {};
         // Function calc and return destroy time for specific block
         let calcDestroyTime = (block)  => {
             let destroy_time = .4;
             if(block.id == BLOCK.BEDROCK.id) {
                 return -1;
-            }
-            // max_in_stack
-            if(!block.hasOwnProperty('max_in_stack')) {
-                block.max_in_stack = INVENTORY_STACK_DEFAUL_SIZE;
             }
             if(block.hasOwnProperty('style')) {
                 if(block.style == 'planting') {
@@ -168,37 +165,42 @@ export class BLOCK_FUNC {
         let max_id = -1;
         for(let mat in this) {
             let B = this[mat];
-            B.power = 1;
-            B.selflit = B.hasOwnProperty('selflit') && B.selflit;
-            if(typeof(B) == 'object') {
-                if(id_list.indexOf(B.id) >= 0)  {
+            if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
+                // Check duplicate ID
+                if(this.BLOCK_BY_ID.hasOwnProperty(B.id))  {
                     console.error('Duplicate block id ', B.id, B);
                 }
-                // calc destroy time
+                //
+                B.name = mat;
                 B.destroy_time = calcDestroyTime(B);
+                B.power = 1;
+                B.selflit = B.hasOwnProperty('selflit') && B.selflit;
+                // Fix properties
+                if(!B.hasOwnProperty('light')) B.light = null;
+                if(!B.hasOwnProperty('spawnable')) B.spawnable = true;
+                if(!B.hasOwnProperty('max_in_stack')) B.max_in_stack = INVENTORY_STACK_DEFAUL_SIZE;
+                if(!B.hasOwnProperty('inventory_icon_id')) B.inventory_icon_id = 0;
+                if(B.style && B.style == 'planting') B.planting = true;
+                if(B.style && B.style == 'stairs') B.transparent = true;
                 //
                 if(B.id > max_id) {
                     max_id = B.id;
                 }
                 //
-                id_list.push(B.id);
-                B.name = mat;
-                if(!B.light) {
-                    B.light = null;
+                this.BLOCK_BY_ID[B.id] = B;
+                if(B.hasOwnProperty('tags')) {
+                    for(let tag of B.tags) {
+                        if(!this.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
+                            this.BLOCK_BY_TAGS[tag] = [];
+                        }
+                        this.BLOCK_BY_TAGS[tag].push(B);
+                    }
                 }
-                if(B.style && B.style == 'planting') {
-                    B.planting = true;
-                }
-                if(B.style && B.style == 'stairs') {
-                    B.transparent = true;
-                }
-                if([18, 118, 152, 203, 159, 160, 74, 26, 133, 102, 168, 121, 169, 172, 193, 63, 64, 65, 71, 81, 83, 120, 146, 54, 194, 195, 196, 197, 115, 103, 116, 179, 180, 181, 182, 206].indexOf(B.id) >= 0) {
-                    continue;
-                }
+                //
                 list.push(B);
             }
         }
-        console.log('max block.id = ', max_id);
+        console.log('Max BLOCK.id = ', max_id);
         return list;
     }
 
@@ -217,7 +219,10 @@ export class BLOCK_FUNC {
     }
 
     // Возвращает координаты текстуры
-    static calcTexture(c) {
+    static calcTexture(c, dir, lit) {
+        if(c instanceof Function) {
+            c = c(dir, lit);
+        }
         return [
             (c[0] + 0.5) / TX_CNT,
             (c[1] + 0.5) / TX_CNT,

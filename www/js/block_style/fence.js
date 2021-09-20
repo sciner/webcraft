@@ -61,7 +61,7 @@ export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours
         }
     }
 
-    let tex = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+    let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD, blockLit);
     let ao = calcAOForBlock(chunk, lightmap, x, y, z);
     push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
 

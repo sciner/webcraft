@@ -14,7 +14,7 @@ export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours)
     let bH          = 1.0;
     let lm          = MULTIPLY.COLOR.WHITE;
     let ao          = [0, 0, 0, 0];
-    let c           = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+    let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD, blockLit);
 
     ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z);
 

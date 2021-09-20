@@ -1,4 +1,4 @@
-import {DIRECTION, MULTIPLY, NORMALS, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
+import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
 import {BLOCK} from '../blocks.js';
 import {push_plane} from '../block_style/plane.js';
 import GeometryTerrain from "../geometry_terrain.js";
@@ -23,7 +23,7 @@ export default class Particles_Block_Destroy {
         let flags       = 0;
         let sideFlags   = 0;
         let upFlags     = QUAD_FLAGS.NORMAL_UP;
-        if(typeof this.texture != 'function') {
+        if(typeof this.texture != 'function' && !(this.texture instanceof Array)) {
             this.life = 0;
             return;
         }
@@ -31,7 +31,7 @@ export default class Particles_Block_Destroy {
             lm          = cell.biome.dirt_color;
             sideFlags   = QUAD_FLAGS.MASK_BIOME;
         }
-        let c           = BLOCK.calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
+        let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP, 1); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
             pos.y + .5,

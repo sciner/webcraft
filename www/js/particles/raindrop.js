@@ -14,7 +14,7 @@ export default class Particles_Raindrop {
         let lm          = new Color(0, 0, 0, 0);
         let ao          = [0, 0, 0, 0];
         this.texture    = BLOCK.STILL_WATER.texture;
-        let c           = BLOCK.calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
+        let c           = BLOCK.calcTexture(this.texture, DIRECTION.FORWARD, 1); // полная текстура
         this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.vertices   = [];
         this.particles  = [];

@@ -153,7 +153,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
                 if(BLOCK.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
             }
         }
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_UP));
+        c = BLOCK.calcTexture(texture, DIRECTION_UP, blockLit);
         let top_vectors = [1, 0, 0, 0, 1, 0];
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         if(block.id == BLOCK.DIRT.id) {
@@ -206,7 +206,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
     // Bottom
     if(canDrawFace(neighbours.DOWN)) {
         ao = [.5, .5, .5, .5];
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+        c = BLOCK.calcTexture(texture, DIRECTION_DOWN, blockLit);
         if(chunk.coord) {
             ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
         }
@@ -245,7 +245,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
             if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
             if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
+        c = BLOCK.calcTexture(texture, DIRECTION_FORWARD, blockLit);
         if(chunk.coord) {
             ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
         }
@@ -284,7 +284,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
             if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
             if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_BACK));
+        c = BLOCK.calcTexture(texture, DIRECTION_BACK, blockLit);
         if(chunk.coord) {
             ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
         }
@@ -323,7 +323,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
             if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
             if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_LEFT));
+        c = BLOCK.calcTexture(texture, DIRECTION_LEFT, blockLit);
         if(chunk.coord) {
             ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
         }
@@ -362,7 +362,7 @@ export function push_cube(block, vertices, chunk, lightmap, x, y, z, neighbours,
             if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
             if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
         }
-        c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_RIGHT));
+        c = BLOCK.calcTexture(texture, DIRECTION_RIGHT, blockLit);
         if(chunk.coord) {
             ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
         }
