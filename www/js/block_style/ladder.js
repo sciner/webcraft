@@ -1,4 +1,4 @@
-import {MULTIPLY, DIRECTION} from '../helpers.js';
+import {MULTIPLY, ROTATE, DIRECTION} from '../helpers.js';
 
 // Лестница
 export function push_ladder(block, vertices, chunk, lightmap, x, y, z) {
