@@ -77,15 +77,14 @@ export class ChunkManager {
         }
         for(let group of groups) {
             const mat = render.materials[group];
-            for(let pos of this.poses) {
-                let chunk = this.getChunk(pos);
-                if(chunk) {
-                    if(chunk.hasOwnProperty('vertices_args')) {
+            for(let item of this.poses) {
+                if(item.chunk) {
+                    if(item.chunk.hasOwnProperty('vertices_args')) {
                         if(applyVerticesCan-- > 0) {
-                            chunk.applyVertices();
+                            item.chunk.applyVertices();
                         }
                     }
-                    if(chunk.drawBufferGroup(render.renderBackend, group, mat)) {
+                    if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
                         this.rendered_chunks.fact += 0.25;
                     }
                 }
@@ -104,25 +103,23 @@ export class ChunkManager {
     }
 
     // Add
-    addChunk(pos) {
-        let k = this.getPosChunkKey(pos);
-        if(!this.chunks.hasOwnProperty(k) && !this.chunks_prepare.hasOwnProperty(k)) {
-            this.chunks_prepare[k] = {
-                start_time: performance.now()
-            };
-            this.world.server.ChunkAdd(pos);
-            return true;
+    addChunk(item) {
+        if(this.chunks.hasOwnProperty(item.key) || this.chunks_prepare.hasOwnProperty(item.key)) {
+            return false;
         }
-        return false;
+        this.chunks_prepare[item.key] = {
+            start_time: performance.now()
+        };
+        this.world.server.ChunkAdd(item.addr);
+        return true;
     }
 
     // Remove
-    removeChunk(pos) {
-        let k = this.getPosChunkKey(pos);
-        this.vertices_length_total -= this.chunks[k].vertices_length;
-        this.chunks[k].destruct();
-        delete this.chunks[k];
-        this.world.server.ChunkRemove(pos);
+    removeChunk(key, addr) {
+        this.vertices_length_total -= this.chunks[key].vertices_length;
+        this.chunks[key].destruct();
+        delete this.chunks[key];
+        this.world.server.ChunkRemove(addr);
     }
 
     // postWorkerMessage
@@ -152,21 +149,25 @@ export class ChunkManager {
             return;
         }
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        let chunkPos = this.getChunkPos(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
-        if(!this.chunkPos || this.chunkPos.distance(chunkPos) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
+        let chunkAddr = BLOCK.getChunkAddr(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
+        if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
             this.poses = [];
             this.prev_margin = this.margin;
-            this.chunkPos = chunkPos;
+            this.chunkAddr = chunkAddr;
             for(let sm of spiral_moves_3d) {
-                let pos = chunkPos.add(sm.pos);
-                if(pos.y >= 0) {
-                    this.poses.push(pos);
+                let addr = chunkAddr.add(sm.pos);
+                if(addr.y >= 0) {
+                    this.poses.push({
+                        addr:   addr,
+                        key:    addr.toChunkKey(),
+                        chunk:  null
+                    });
                 }
             }
         }
         let keys = Object.keys(this.chunks);
-        if(keys.length != this.poses.length || (this.prevChunkPos && this.prevChunkPos.distance(chunkPos) > 0)) {
-            this.prevChunkPos = chunkPos;
+        if(keys.length != this.poses.length || (this.prevchunkAddr && this.prevchunkAddr.distance(chunkAddr) > 0)) {
+            this.prevchunkAddr = chunkAddr;
             let can_add = CHUNKS_ADD_PER_UPDATE;
             for(let key of keys) {
                 let chunk = this.chunks[key];
@@ -177,24 +178,26 @@ export class ChunkManager {
                 chunk.isLive = false;
             }
             // Check for add
-            for(let pos of this.poses) {
-                if(pos.y >= 0) {
+            for(let item of this.poses) {
+                if(item.addr.y >= 0) {
                     if(can_add > 0) {
-                        if(this.addChunk(pos)) {
+                        if(this.addChunk(item)) {
                             can_add--;
                         }
                     }
                 }
-                let key = pos.toChunkKey();
-                let chunk = this.chunks[key];
-                if(chunk) {
-                    chunk.isLive = true;
+                if(!item.chunk) {
+                    item.chunk = this.chunks[item.key];
+                }
+                if(item.chunk) {
+                    item.chunk.isLive = true;
                 }
             }
             // Check for remove
             for(let key of Object.keys(this.chunks)) {
-                if(!this.chunks[key].isLive) {
-                    this.removeChunk(this.parseChunkPos(key));
+                let chunk = this.chunks[key];
+                if(!chunk.isLive) {
+                    this.removeChunk(key, chunk.addr);
                 }
             }
         }
@@ -230,6 +233,11 @@ export class ChunkManager {
         return false;
     }
 
+    /**
+     * getPosChunkKey...
+     * @param {Vector} pos 
+     * @returns string
+     */
     getPosChunkKey(pos) {
         if(pos instanceof Vector) {
             return pos.toChunkKey();
@@ -237,19 +245,9 @@ export class ChunkManager {
         return new Vector(pos.x, pos.y, pos.z).toChunkKey();
     }
 
-    parseChunkPos(key) {
-        let k = key.split('_');
-        return new Vector(parseInt(k[1]), parseInt(k[2]), parseInt(k[3]));
-    }
-
-    // Возвращает относительные координаты чанка по глобальным абсолютным координатам
-    getChunkPos(x, y, z) {
-        return BLOCK.getChunkPos(x, y, z);
-    }
-
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
-        let vec = this.getChunkPos(x, y, z);
+        let vec = BLOCK.getChunkAddr(x, y, z);
         let chunk_key = this.getPosChunkKey(vec);
         let chunk = this.chunks[chunk_key];
         if(chunk) {
@@ -261,9 +259,9 @@ export class ChunkManager {
     // setBlock
     setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data) {
         // определяем относительные координаты чанка
-        let chunkPos = this.getChunkPos(x, y, z);
+        let chunkAddr = BLOCK.getChunkAddr(x, y, z);
         // обращаемся к чанку
-        let chunk = this.getChunk(chunkPos);
+        let chunk = this.getChunk(chunkAddr);
         // если чанк найден
         if(!chunk) {
             return null;

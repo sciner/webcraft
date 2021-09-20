@@ -1,5 +1,5 @@
 // push_plane
-export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, flags) {
+export function push_plane(vertices, x, y, z, c, lm, ao, x_dir, rot, xp, yp, zp, flags) {
 
     z = [y, y = z][0];
     zp = [yp, yp = zp][0];
@@ -16,26 +16,26 @@ export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, 
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
             vertices.push(x + xp/2, y + yp/2, z + zp/2,
                 -xp, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
         } else {
             vertices.push(x + xp/2, y + 0.5, z + zp/2,
                 xp, 0, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
             vertices.push(x + xp/2, y + 0.5, z + zp/2,
                 -xp, 0, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
         }
     } else {
         if(rot) {
@@ -44,26 +44,26 @@ export function push_plane(vertices, x, y, z, c, lm, n, x_dir, rot, xp, yp, zp, 
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
             vertices.push(x + xp/2, y + yp/2, z + zp/2,
                 xp, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
         } else {
             vertices.push(x + 0.5, y + yp/2, z + zp/2,
                 0, yp, 0,
                 0, 0, -zp,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
             vertices.push(x + 0.5, y + yp/2, z + zp/2,
                 0, -yp, 0,
                 0, 0, -zp,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, flags);
+                ...ao, flags);
         }
     }
 

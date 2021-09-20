@@ -1,4 +1,4 @@
-import {MULTIPLY, NORMALS, QUAD_FLAGS} from '../helpers.js';
+import {MULTIPLY, QUAD_FLAGS} from '../helpers.js';
 import {push_plane} from './plane.js';
 
 // Растения
@@ -13,9 +13,12 @@ export function push_plant(block, vertices, chunk, lightmap, x, y, z, biome) {
         lm = biome.dirt_color;
         flags |= QUAD_FLAGS.MASK_BIOME;
     }
-    let n = NORMALS.UP;
+    let ao = [0, 0, 0, 0];
     if(block.id == BLOCK.GRASS.id) {
         y -= .15;
     }
-    push_plane(vertices, x, y, z, c, lm, n, true, true, undefined, undefined, undefined, flags);
+    if(chunk.coord) {
+        ao = BLOCK.applyLight2AO(lightmap, ao, x, Math.round(y), z);
+    }
+    push_plane(vertices, x, y, z, c, lm, ao, true, true, undefined, undefined, undefined, flags);
 }

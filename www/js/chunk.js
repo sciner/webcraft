@@ -241,7 +241,7 @@ export default class Chunk {
             let updated_chunks = [this.key];
             for(var update_neighbor of update_neighbors) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-                let key = this.chunkManager.getPosChunkKey(this.chunkManager.getChunkPos(pos));
+                let key = this.chunkManager.getPosChunkKey(BLOCK.getChunkAddr(pos));
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);

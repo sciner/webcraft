@@ -12,7 +12,7 @@ export default class Particles_Raindrop {
         this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = 0.5;
         let lm          = new Color(0, 0, 0, 0);
-        let n           = NORMALS.UP; // normal for lithning
+        let ao          = [0, 0, 0, 0];
         this.texture    = BLOCK.STILL_WATER.texture;
         let c           = BLOCK.calcTexture(this.texture(this, null, 1, null, null, null, DIRECTION.FORWARD)); // полная текстура
         this.pos        = new Vector(pos.x, pos.y, pos.z);
@@ -30,7 +30,7 @@ export default class Particles_Raindrop {
             let x = (Math.random() - Math.random()) * 16;
             let y = (Math.random() - Math.random()) * 16;
             let z = (Math.random() - Math.random()) * 16;
-            push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
+            push_plane(this.vertices, x, y, z, c_half, lm, ao, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
         }
 
         this.modelMatrix = mat4.create();
@@ -54,8 +54,8 @@ export default class Particles_Raindrop {
 
     isAlive() {
         /*let pos = new Vector(parseInt(this.pos.x), parseInt(this.pos.y), parseInt(this.pos.z));
-        let chunk_pos = Game.world.chunkManager.getChunkPos(pos.x, pos.y, pos.z);
-        let chunk = Game.world.chunkManager.getChunk(chunk_pos);
+        let chunk_addr = BLOCK.getChunkAddr(pos.x, pos.y, pos.z);
+        let chunk = Game.world.chunkManager.getChunk(chunk_addr);
         if(chunk) {
             if(pos.z < chunk.lightmap[pos.x][pos.y]) {
                 this.life = 0;

@@ -9,9 +9,10 @@ let CHUNK_SIZE_Z        = null;
 let CHUNK_SIZE_Y_MAX    = null;
 let MAX_CAVES_LEVEL     = null;
 
+let MAX_TORCH_POWER     = 16;
+
 // Vars
 let all_blocks          = []; // 1. All blocks
-// let blocks              = [];
 let chunks              = {};
 let terrainGenerator    = null;
 
@@ -19,8 +20,8 @@ let terrainGenerator    = null;
 class ChunkManager {
 
     // Возвращает координаты чанка по глобальным абсолютным координатам
-    getChunkPos(x, y, z) {
-        return BLOCK.getChunkPos(x, y, z);
+    getChunkAddr(x, y, z) {
+        return BLOCK.getChunkAddr(x, y, z);
     }
 
     /**
@@ -44,9 +45,9 @@ class ChunkManager {
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        let chunkPos = this.getChunkPos(x, y, z);
+        let chunkAddr = this.getChunkAddr(x, y, z);
         // обращаемся к чанку
-        let chunk = this.getChunk(chunkPos);
+        let chunk = this.getChunk(chunkAddr);
         // если чанк найден
         if(chunk) {
             // просим вернуть блок передав абсолютные координаты
@@ -77,6 +78,7 @@ class Chunk {
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
         this.lights             = [];
+        this.lightmap           = null;
         this.timers             = {
             init:               null,
             generate_terrain:   null,
@@ -101,21 +103,34 @@ class Chunk {
             blocks: this.blocks,
             map:    this.map
         };
-        /*
-        delete(c.map.info.plants);
-        delete(c.map.info.trees);
-        delete(c.map.info.chunk);
-        console.log(JSON.stringify(c).length, c);
-        debugger;
-        */
         // console.log(JSON.stringify(c).length);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
         // 3. Apply modify_list
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
-        // 4. Result
+        //  4. Find lights
+        this.findLights();
+        // 5. Result
         postMessage(['blocks_generated', c]);
+    }
+
+    // findLights...
+    findLights() {
+        this.lights = [];
+        for(let y = 0; y < this.size.y; y++) {
+            for(let x = 0; x < this.size.x; x++) {
+                for(let z = 0; z < this.size.z; z++) {
+                    let block = this.blocks[x][z][y];
+                    if(block && block.light_power) {
+                        this.lights.push({
+                            power: block.light_power,
+                            pos: new Vector(x, y, z)
+                        });
+                    }
+                }
+            }
+        }
     }
 
     //
@@ -189,9 +204,11 @@ class Chunk {
             };
             this.modify_list[[x, y, z]] = modify_item;
         }
-        x -= this.coord.x;
-        y -= this.coord.y;
-        z -= this.coord.z;
+        let pos = new Vector(x, y, z);
+        pos = BLOCK.getBlockIndex(pos);
+        x = pos.x;
+        y = pos.y;
+        z = pos.z;
         if(x < 0 || y < 0 || z < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
             return;
         };
@@ -206,23 +223,59 @@ class Chunk {
         this.blocks[x][z][y].extra_data = extra_data;
     }
 
-    // makeLights
-    makeLights() {
-        this.lights = [];
-        // Lights
-        for(let y = 0; y < this.size.y; y++) {
-            for(let x = 0; x < this.size.x; x++) {
-                for(let z = 0; z < this.size.z; z++) {
-                    let block = this.blocks[x][z][y];
-                    if(block && block.light_power) {
-                        this.lights.push({
-                            power: block.light_power,
-                            x: x,
-                            y: y,
-                            z: z
-                        });
+    // updateLights
+    updateLights() {
+        this.lightmap = new Uint8Array(this.size.x * this.size.y * this.size.z);
+        // @todo доработать
+        return;
+        //
+        let fillLight = (lx, ly, lz, power) => {
+            if(power < 1) {
+                return;
+            }
+            let f = (x, y, z, power) => {
+                if(x >= 0 && y >= 0 && z >= 0 && x < 16 && z < 16 && y < 32) {
+                    let b = this.blocks[x][z][y];
+                    if(!b || b.id == 0 || b.transparent) {
+                        let index = BLOCK.getIndex(x, y, z);
+                        if(this.lightmap[index] < power) {    
+                            this.lightmap[index] = power;
+                            fillLight(x, y, z, power);
+                        }
                     }
                 }
+            };
+            f(lx + 1, ly, lz, power - 1);
+            f(lx - 1, ly, lz, power - 1);
+            f(lx, ly + 1, lz, power - 1);
+            f(lx, ly - 1, lz, power - 1);
+            f(lx, ly, lz + 1, power - 1);
+            f(lx, ly, lz - 1, power - 1);
+        };
+        //
+        // this.neighbour_chunks
+        // Lightmap
+        for(let light of this.lights) {
+            let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
+            let index = BLOCK.getIndex(light.pos);
+            this.lightmap[index] = power;
+            fillLight(light.pos.x, light.pos.y, light.pos.z, power);
+        }
+        //
+        let neighbors = [
+            {pos: new Vector(CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.px},
+            {pos: new Vector(-CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.nx},
+            {pos: new Vector(0, CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.py},
+            {pos: new Vector(0, -CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.ny},
+            {pos: new Vector(0, 0, CHUNK_SIZE_Z), chunk: this.neighbour_chunks.pz},
+            {pos: new Vector(0, 0, -CHUNK_SIZE_Z), chunk: this.neighbour_chunks.nz},
+        ];
+        for(let n of neighbors) {
+            if(!n.chunk) continue;
+            for(let light of n.chunk.lights) {
+                let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
+                let pos = light.pos.add(n.pos);
+                fillLight(pos.x, pos.y, pos.z, power);
             }
         }
     }
@@ -235,12 +288,10 @@ class Chunk {
         }
 
         // Create map of lowest blocks that are still lit
-        let lightmap            = {};
+        // let lightmap            = {};
         let tm                  = performance.now();
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
-
-        this.makeLights();
 
         BLOCK.clearBlockCache();
 
@@ -264,7 +315,7 @@ class Chunk {
             },
         }
 
-        let neighbour_chunks = {
+        let neighbour_chunks = this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
             ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
@@ -272,6 +323,9 @@ class Chunk {
             nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
             pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
         };
+
+        //  Update lights
+        this.updateLights();
 
         let cc = [
             {x:  0, y:  1, z:  0},
@@ -438,7 +492,7 @@ class Chunk {
                         delete(neighbours.RIGHT);
                         delete(neighbours.FORWARD);
                         delete(neighbours.BACK);
-                        BLOCK.pushVertices(block.vertices, block, this, lightmap, x, y, z, neighbours, biome);
+                        BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbours, biome);
                     }
                     world.blocks_pushed++;
                     if(block.vertices.length > 0) {
@@ -450,20 +504,30 @@ class Chunk {
 
         this.dirty = false;
         this.tm = performance.now() - tm;
-        this.lightmap = lightmap;
+        // this.lightmap = null;
         return true;
     }
 
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        for(let cx = -1; cx <= 1; cx++) {
-            for(let cz = -1; cz <= 1; cz++) {
-                for(let cy = -1; cy <= 1; cy++) {
+        let dirty_rad = MAX_TORCH_POWER;
+        // let needUpdateLightmap = false;
+        for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
+            for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
+                for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
                     let x = pos.x + cx;
                     let y = pos.y + cy;
                     let z = pos.z + cz;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
+                        //
+                        /*if(!needUpdateLightmap) {
+                            let index = BLOCK.getIndex(x, y, z);
+                            if(index >= 0) {
+                                needUpdateLightmap = true;
+                            }
+                        }*/
+                        //
                         let block = this.blocks[x][z][y];
                         if(block && typeof block === 'object') {
                             if(block.gravity) {
@@ -479,6 +543,11 @@ class Chunk {
                 }
             }
         }
+        // if(needUpdateLightmap) {
+        // @todo Переделать на вызов только в случае, если свет был поставлен или убран
+        this.findLights();
+        this.updateLights();
+        // }
     }
 
 }

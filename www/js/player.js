@@ -42,7 +42,7 @@ export default class Player {
         this.oBob                   = 0;
         this.blockPos               = new Vector(0, 0, 0);
         this.blockPosO              = new Vector(0, 0, 0);
-        this.chunkPos               = new Vector(0, 0, 0);
+        this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
     }
 
@@ -636,6 +636,7 @@ export default class Player {
     // Updates this local player (gravity, movement)
     update() {
         if(this.lastUpdate != null) {
+            let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
             let velocity  = this.velocity;
             let pos       = this.pos;
@@ -648,7 +649,7 @@ export default class Player {
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
             // Gravity
-            if(this.in_water) {
+            if(this.in_water && !isSpectator) {
                 this.walking
                 if(this.falling && !this.flying) {
                     velocity.y += -(30 * delta / 4);
@@ -722,6 +723,9 @@ export default class Player {
             if(this.underBlock2 && this.underBlock2.passable) {
                 passable = Math.min(passable, this.underBlock2.passable);
             }
+            if(isSpectator) {
+                passable = 1;
+            }
             let mul = (this.running ? this.flying ? 1.15 : 1.5 : 1) * passable / 2.8;
             this.pos = this.resolveCollision(pos, bPos, this.velocity.mul(new Vector(delta * mul, delta, delta * mul)));
             this.pos = this.pos
@@ -743,8 +747,8 @@ export default class Player {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkPos           = Game.world.chunkManager.getChunkPos(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkPos);
+                this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
                 this.underBlock         = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y - 1, this.blockPos.z);
                 this.underBlock2        = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 if(this.underBlock.id >= 0) {
@@ -755,7 +759,9 @@ export default class Player {
             this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
             if(this.in_water && !this.in_water_o) {
                 this.in_water_from_time = performance.now();
-                this.flying = false;
+                if(!isSpectator) {
+                    this.flying = false;
+                }
             }
             this.in_water_o = this.in_water;
             // Внутри какого блока находится голова (в идеале глаза)

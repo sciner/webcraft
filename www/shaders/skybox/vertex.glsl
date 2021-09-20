@@ -4,7 +4,7 @@ attribute vec3 a_vertex;
 
 uniform mat4 u_lookAtMatrix;
 uniform mat4 u_projectionMatrix;
-uniform float u_brightness_value;
+uniform float u_brightness;
 uniform vec2 u_resolution;
 uniform bool u_textureOn;
 

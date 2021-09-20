@@ -10,7 +10,7 @@ export default class Particles_Sun {
         // this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = 1;
         let lm          = new Color(0, 0, 0, 0);
-        let n           = NORMALS.UP; // normal for lithning
+        let ao          = [0, 0, 0, 0];
         this.pos        = {...pos};
         this.vertices   = [];
         this.particles  = [];
@@ -23,11 +23,9 @@ export default class Particles_Sun {
         let x = 0;
         let y = 0;
         let z = 0;
-        push_plane(this.vertices, x, y, z, c_half, lm, n, true, false, sz, sz, null);
-        // push_plane(this.vertices, x - .5, y - .5 + 1/16, z + 10, c_half_rad, lm, n, true, false, 2, 2, null);
+        push_plane(this.vertices, x, y, z, c_half, lm, ao, true, false, sz, sz, null);
         let p = {x: x, y: y, z: z, vertices_count: 12/*, scale: 100, dist: 600*/};
         this.particles.push(p);
-
         this.vertices = new Float32Array(this.vertices);
         this.buffer = new GeometryTerrain(GeometryTerrain.convertFrom12(this.vertices));
     }

@@ -146,12 +146,13 @@ func (this *World) SendWorldState(connections map[string]*UserConn) {
 }
 
 //
-func (this *World) GetChunkPos(pos Struct.Vector3) Struct.Vector3 {
+func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 	v := Struct.Vector3{
-		X: pos.X / CHUNK_SIZE_X,
-		Y: pos.Y / CHUNK_SIZE_Y,
-		Z: pos.Z / CHUNK_SIZE_Z,
+		X: int(math.Floor(float64(pos.X) / float64(CHUNK_SIZE_X))),
+		Y: int(math.Floor(float64(pos.Y) / float64(CHUNK_SIZE_Y))),
+		Z: int(math.Floor(float64(pos.Z) / float64(CHUNK_SIZE_Z))),
 	}
+	log.Printf("%v, %v", pos, v)
 	return v
 }
 
@@ -164,8 +165,8 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
-		chunkPos := this.GetChunkPos(params.Pos)
-		chunk := this.ChunkGet(chunkPos)
+		chunkAddr := this.GetChunkAddr(params.Pos)
+		chunk := this.ChunkGet(chunkAddr)
 		chunk.BlockSet(conn, params, false)
 
 	case Struct.CLIENT_CREATE_ENTITY:
@@ -173,8 +174,8 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
-		chunkPos := this.GetChunkPos(params.Pos)
-		chunk := this.ChunkGet(chunkPos)
+		chunkAddr := this.GetChunkAddr(params.Pos)
+		chunk := this.ChunkGet(chunkAddr)
 		chunk.BlockSet(conn, params, false)
 
 	// Пользователь подгрузил чанк

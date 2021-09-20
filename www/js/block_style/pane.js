@@ -13,7 +13,10 @@ export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours)
     let blockLit    = true;
     let bH          = 1.0;
     let lm          = MULTIPLY.COLOR.WHITE;
+    let ao          = [0, 0, 0, 0];
     let c           = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.FORWARD));
+
+    ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z);
 
     switch(cardinal_direction) {
         case ROTATE.N:
@@ -25,14 +28,7 @@ export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours)
                 0, 0, bH,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);
-            /*n = NORMALS.BACK;
-            vertices.push(x + .5, z + .5, y + bH/2,
-                1, 0, 0,
-                0, 0, -bH,
-                c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);*/
+                ...ao, 0);
             break;
         }
         case ROTATE.E:
@@ -44,15 +40,7 @@ export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours)
                 0, 0, -bH,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);
-            // Right
-            /*n = NORMALS.RIGHT;
-            vertices.push(x + .5, z + .5, y + bH/2,
-                0, 1, 0,
-                0, 0, bH,
-                c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b,
-                lm.a, lm.a, lm.a, lm.a, 0);*/
+                ...ao, 0);
             break;
         }
     }

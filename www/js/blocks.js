@@ -4,14 +4,49 @@ import {BLOCK_FUNC} from './blocks_func.js';
 export const CHUNK_SIZE_X      = 16;
 export const CHUNK_SIZE_Y      = 32;
 export const CHUNK_SIZE_Z      = 16;
+export const CHUNK_BLOCKS      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 export const CHUNK_SIZE_Y_MAX  = 4096;
 export const MAX_CAVES_LEVEL   = 256;
 export const TRANS_TEX         = [4, 12];
 
 export class BLOCK extends BLOCK_FUNC {
-    
-    // Возвращает координаты чанка по глобальным абсолютным координатам
-    static getChunkPos(x, y, z) {
+
+    // applyLight2AO
+    static applyLight2AO(lightmap, ao, x, y, z) {
+        let index = BLOCK.getIndex(x, y, z);
+        if(index >= 0 && index < CHUNK_BLOCKS) {
+            let light_power = lightmap[index];
+            if(light_power != 0) {
+                light_power /= 4;
+                ao = [
+                    ao[0] - light_power,
+                    ao[1] - light_power,
+                    ao[2] - light_power,
+                    ao[3] - light_power,
+                ];
+            }
+        }
+        return ao;
+    }
+
+    // Return flat index of chunk block 
+    static getIndex(x, y, z) {
+        if(x instanceof Vector) {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
+        let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        if(index < 0) {
+            index = -1;
+        } else if(index > CHUNK_BLOCKS) {
+            index = -1;
+        }
+        return index;
+    }
+
+    // Возвращает адрес чанка по глобальным абсолютным координатам
+    static getChunkAddr(x, y, z) {
         if(x instanceof Vector) {
             y = x.y;
             z = x.z;
@@ -32,6 +67,11 @@ export class BLOCK extends BLOCK_FUNC {
 
     //
     static getBlockIndex(x, y, z) {
+        if(x instanceof Vector) {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
         let f = (v, m) => {
             if(v < 0) v++;
             v = v % m;
@@ -1240,7 +1280,7 @@ BLOCK.TORCH = {
     spawnable:      true,
     passable:       1,
     transparent:    true,
-    light_power:     new Color(253, 241, 131, 180),
+    light_power:    new Color(253, 241, 131, 224),
     style: 'torch',
     sound: 'webcraft:block.wood',
 	texture: function(world, lightmap, lit, x, y, z, dir) {
@@ -1427,7 +1467,7 @@ BLOCK.REDSTONE_TORCH_ON = {
     passable: 1,
     transparent: true,
     style: 'torch',
-    light_power: new Color(253, 200, 131, 150),
+    light_power: new Color(253, 200, 131, 192),
 	texture: function(world, lightmap, lit, x, y, z, dir) {
         return [3, 6];
 	}

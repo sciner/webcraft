@@ -188,6 +188,7 @@ export class Renderer {
         return this.skyBox = this.renderBackend.createCubeMap({
             code: resources.codeSky,
             uniforms: {
+                u_brightness: 1.0,
                 u_textureOn: true
             },
             sides: [
@@ -218,7 +219,7 @@ export class Renderer {
             settings.fogColor[1] * (value * mult),
             settings.fogColor[2] * (value * mult),
             settings.fogColor[3]
-        ]
+        ];
     }
 
     // toggleNight...
@@ -271,7 +272,8 @@ export class Renderer {
         // 1. Draw skybox
         if(this.skyBox) {
             if(this.skyBox.shader.uniforms) {
-                this.skyBox.shader.uniforms.u_textureOn.value = !player.eyes_in_water;
+                this.skyBox.shader.uniforms.u_textureOn.value = this.brightness == 1 && !player.eyes_in_water;
+                this.skyBox.shader.uniforms.u_brightness.value = this.brightness;
             }
             this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }

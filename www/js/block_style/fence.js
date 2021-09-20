@@ -7,7 +7,7 @@ export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours
         return;
     }
 
-    const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
+    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
     let flags = 0;
     let sideFlags = 0;
     let upFlags = 0;
@@ -20,8 +20,6 @@ export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours
         upFlags = QUAD_FLAGS.MASK_BIOME;
     }
 
-    let DIRECTION_UP            = DIRECTION.UP;
-    let DIRECTION_DOWN          = DIRECTION.DOWN;
     let DIRECTION_BACK          = DIRECTION.BACK;
     let DIRECTION_RIGHT         = DIRECTION.RIGHT;
     let DIRECTION_FORWARD       = DIRECTION.FORWARD;
@@ -64,7 +62,7 @@ export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours
     }
 
     let tex = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_FORWARD));
-    let ao = calcAOForBlock(chunk, x, y, z);
+    let ao = calcAOForBlock(chunk, lightmap, x, y, z);
     push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
 
     //
@@ -106,45 +104,45 @@ function push_part(vertices, c, x, y, z, xs, zs, h, ao) {
         0, zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
         lm.r, lm.g, lm.b,
-        ao.TOP[0], ao.TOP[1], ao.TOP[2], ao.TOP[3], flags | upFlags);
+        ...ao.TOP, flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y,
         xs, 0, 0,
         0, -zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
         lm.r, lm.g, lm.b,
-        ao.BOTTOM[0], ao.BOTTOM[1], ao.BOTTOM[2], ao.BOTTOM[3], flags);
+        ...ao.BOTTOM, flags);
     // SOUTH
     vertices.push(x, z - zs/2, y + h/2,
         xs, 0, 0,
         0, 0, h,
         c[0], c[1], c[2]*xs, -c[3]*h,
         lm.r, lm.g, lm.b,
-        ao.SOUTH[0], ao.SOUTH[1], ao.SOUTH[2], ao.SOUTH[3], flags | sideFlags);
+        ...ao.SOUTH, flags | sideFlags);
     // NORTH
     vertices.push(x, z + zs/2, y + h/2,
         xs, 0, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*xs, c[3]*h,
         lm.r, lm.g, lm.b,
-        ao.NORTH[0], ao.NORTH[1], ao.NORTH[2], ao.NORTH[3], flags | sideFlags);
+        ...ao.NORTH, flags | sideFlags);
     // WEST
     vertices.push(x - xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*zs, c[3]*h,
         lm.r, lm.g, lm.b,
-        ao.WEST[0], ao.WEST[1], ao.WEST[2], ao.WEST[3], flags | sideFlags);
+        ...ao.WEST, flags | sideFlags);
     // EAST
     vertices.push(x + xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, h,
         c[0], c[1], c[2]*zs, -c[3]*h,
         lm.r, lm.g, lm.b,
-        ao.EAST[0], ao.EAST[1], ao.EAST[2], ao.EAST[3], flags | sideFlags);
+        ...ao.EAST, flags | sideFlags);
 }
 
-function calcAOForBlock(chunk, x, y, z) {
+function calcAOForBlock(chunk, lightmap, x, y, z) {
 
     // Ambient occlusion
     const ao_enabled = true;
@@ -181,6 +179,7 @@ function calcAOForBlock(chunk, x, y, z) {
         if(BLOCK.visibleForAO(ag)) {ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
         if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[1] = ao_value;}
+        result.TOP = BLOCK.applyLight2AO(lightmap, ao, x, y + 1, z);
     }
 
     // SOUTH
@@ -208,6 +207,7 @@ function calcAOForBlock(chunk, x, y, z) {
         if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
         if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
         if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+        result.SOUTH = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
     }
 
     // NORTH
@@ -235,6 +235,7 @@ function calcAOForBlock(chunk, x, y, z) {
         if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
         if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
         if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+        result.NORTH = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
     }
 
     // WEST
@@ -262,6 +263,7 @@ function calcAOForBlock(chunk, x, y, z) {
         if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
         if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
         if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+        result.WEST = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
     }
 
     // EAST
@@ -289,6 +291,7 @@ function calcAOForBlock(chunk, x, y, z) {
         if(BLOCK.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
         if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
         if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+        result.EAST = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
     }
 
     return result;

@@ -43,7 +43,7 @@ export class Map {
                 // absolute cell coord
                 let px          = chunk_coord.x + x;
                 let pz          = chunk_coord.z + z;
-                let addr        = BLOCK.getChunkPos(px, 0, pz); // calc chunk addr for this cell
+                let addr        = BLOCK.getChunkAddr(px, 0, pz); // calc chunk addr for this cell
                 let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z); // get chunk map from cache
                 if(!map || !map_addr_ok) {
                     map = generator.maps_cache[addr.toString()];
@@ -63,7 +63,7 @@ export class Map {
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
                         // calc chunk addr for this cell
-                        let neighbour_addr = BLOCK.getChunkPos(px + i, 0, pz + j);
+                        let neighbour_addr = BLOCK.getChunkAddr(px + i, 0, pz + j);
                         let addr_ok = neighbour_map &&
                                       (neighbour_map.chunk.addr.x == neighbour_addr.x) &&
                                       (neighbour_map.chunk.addr.z == neighbour_addr.z);

@@ -28,48 +28,55 @@ export function push_slab(block, vertices, chunk, lightmap, x, y, z) {
         c[3] - half,
     ];
 
-    // South | Front/Forward
+    let ao = [0, 0, 0, 0];
+
+    // South
     let lm = MULTIPLY.COLOR.WHITE;
-    let n = NORMALS.FORWARD;
-    push_plane(vertices, x, yt, z - .5, c_half_bottom, lm, n, true, false, null, .5, null);
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
+    push_plane(vertices, x, yt, z - .5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
-    // North | Back
+    // North
     lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.BACK;
-    push_plane(vertices, x, yt, z + .5, c_half_bottom, lm, n, true, false, null, .5, null);
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
+    push_plane(vertices, x, yt, z + .5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
-    // правая стенка
+    // East
     lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, yt, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
+    push_plane(vertices, x + 0.5, yt, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
-    // левая стенка
+    // West
     lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.LEFT;
-    push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, n, false, false, null, .5, null);
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
+    push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
     // Up and down
     c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
     lm = MULTIPLY.COLOR.WHITE;
-    n = NORMALS.DOWN;
-    let ao = [0, 0, 0, 0];
     let flags = 0, sideFlags = 0, upFlags = 0;
 
     // Up
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x, y + 1, z);
     vertices.push(x + 0.5, z + 0.5, yt + .5,
         1, 0, 0,
         0, 1, 0,
-        c[0], c[1], c[2], c[3],
+        ...c,
         lm.r, lm.g, lm.b,
-        ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+        ...ao, flags | upFlags);
 
     // Down
-    //c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION_DOWN));
+    ao = [0, 0, 0, 0];
+    ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
     vertices.push(x + 0.5, z + 0.5, yt,
         1, 0, 0,
         0, -1, 0,
-        c[0], c[1], c[2], c[3],
+        ...c,
         lm.r, lm.g, lm.b,
-        ao[0], ao[1], ao[2], ao[3], flags);
+        ...ao, flags);
 
 }

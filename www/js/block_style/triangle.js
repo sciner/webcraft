@@ -9,19 +9,13 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
     let texture         = BLOCK.fromId(block.id).texture;
     let lm              = MULTIPLY.COLOR.WHITE;
     let blockLit        = true;
+    let ao              = [0, 0, 0, 0];
 
     block.transparent   = true;
 
     // полная текстура
     let c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, null));
 
-    // четверть текстуры
-    let c_half = [
-        c[0] - half/2,
-        c[1] - half/2,
-        c[2] - half,
-        c[3] - half,
-    ];
     // нижняя половина текстуры
     let c_half_bottom = [
         c[0],
@@ -45,26 +39,21 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
     // Нижний слэб
 
     // South - стенка 1
-    n = NORMALS.FORWARD;
-    push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
+    push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
     // North - стенка 2
-    n = NORMALS.BACK;
-    push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, n, true, false, null, .5, null);
+    push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
     // East - стенка 3
-    n = NORMALS.RIGHT;
-    push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, n, false, false, null, 1, null);
+    push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, ao, false, false, null, 1, null);
 
     // West - стенка 4
-    n = NORMALS.LEFT;
-    // push_plane(vertices, x, yb, z, c_half_bottom, lm, n, false, false, null, 1, null);
     vertices.push(x + 1/2, y + 1/2, z + 1/2,
         1, 1, 0,
         0, 0, -1,
-        c[0], c[1], c[2], c[3],
+        ...c,
         lm.r, lm.g, lm.b,
-        lm.a, lm.a, lm.a, lm.a, null);
+        ...ao, null);
 
     c = BLOCK.calcTexture(texture(chunk, lightmap, blockLit, x, y, z, DIRECTION.DOWN));
 
@@ -75,7 +64,7 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
         0, -1, 0,
         c[0], c[1], c[2], -c[3],
         lm.r, lm.g, lm.b,
-        lm.a, lm.a, lm.a, lm.a, 0);
+        ...ao, 0);
 
     // поверхность нижней ступени
     const bH = 1;
@@ -188,43 +177,5 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
             break;
         }
     }
-
-    // Верхняя ступень
-    /*for(let pose of poses) {
-
-        // левая стенка
-        n = NORMALS.RIGHT;
-        push_plane(vertices, x + 0.5 + pose.x, pose.y, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
-
-        // передняя стенка
-        n = NORMALS.FORWARD;
-        push_plane(vertices, x + 0.5 + pose.x, pose.y, z - 0.5 + pose.z, c_half, lm, n, true, false, .5, .5, null);
-
-        // задняя стенка
-        n = NORMALS.BACK;
-        push_plane(vertices, x + 0.5 + pose.x, pose.y, z + pose.z, c_half, lm, n, true, false, .5, .5, null);
-
-        // правая стенка
-        n = NORMALS.LEFT;
-        push_plane(vertices, x + pose.x, pose.y, z + pose.z, c_half, lm, n, false, false, null, .5, .5);
-
-        // поверхность
-        n = NORMALS.UP;
-        vertices.push(x + .75 + pose.x, z + .25 + pose.z, pose.y + .5,
-            .5, 0, 0,
-            0, .5, 0,
-            c_half[0], c_half[1], c_half[2], c_half[3],
-            lm.r, lm.g, lm.b,
-            lm.a, lm.a, lm.a, lm.a, 0);
-
-        // дно
-        n = NORMALS.DOWN;
-        vertices.push(x + .75 + pose.x, z + .25 + pose.z, pose.y,
-            .5, 0, 0,
-            0, -.5, 0,
-            c_half[0], c_half[1], c_half[2], c_half[3],
-            lm.r, lm.g, lm.b,
-            lm.a, lm.a, lm.a, lm.a, 0);
-    }*/
 
 }

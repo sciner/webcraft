@@ -31,7 +31,7 @@ export class WebGLCubeShader extends BaseCubeShader {
         this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
         this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
         this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
-        this.u_brightness_value = gl.getUniformLocation(this.program, 'u_brightness_value');
+        // this.u_brightness = gl.getUniformLocation(this.program, 'u_brightness');
         this.u_resolution = gl.getUniformLocation(this.program, 'u_resolution');
         this.u_TestLightOn = gl.getUniformLocation(this.program, 'u_TestLightOn');
         this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
@@ -62,8 +62,13 @@ export class WebGLCubeShader extends BaseCubeShader {
                     func = 'uniform3fv';
                     break;
                 }
+                case 'number': {
+                    type = 'float';
+                    func = 'uniform1f';
+                    break;
+                }
                 default: {
-                    throw 'Unsupported uniform type ' + type;
+                    throw 'Unsupported uniform type ' + (typeof value);
                 }
             }
             this.uniforms[name] = {
@@ -95,7 +100,7 @@ export class WebGLCubeShader extends BaseCubeShader {
 
         gl.useProgram(this.program);
 
-        gl.uniform1f(this.u_brightness_value, this.brightness);
+        // gl.uniform1f(this.u_brightness, this.brightness);
         gl.uniform2fv(this.u_resolution, this.resolution);
         gl.uniform1f(this.u_TestLightOn, this.testLightOn);
 

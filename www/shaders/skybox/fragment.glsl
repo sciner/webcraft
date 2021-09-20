@@ -2,7 +2,7 @@ precision highp float;
 
 //
 uniform samplerCube u_texture;
-uniform float u_brightness_value;
+uniform float u_brightness;
 uniform vec2 u_resolution;
 uniform bool u_textureOn;
 
@@ -29,7 +29,7 @@ void drawCrosshair() {
 void main() {
     if(u_textureOn) {
         vec4 color = textureCube(u_texture, v_texCoord);
-        gl_FragColor = vec4(color.rgb * u_brightness_value, color.a);
+        gl_FragColor = vec4(color.rgb * u_brightness, color.a);
     }
     // Draw crosshair
     drawCrosshair();

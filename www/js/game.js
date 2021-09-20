@@ -153,6 +153,7 @@ export let Game = {
 
     // postInitGame...
     postInitGame() {
+        this.fps        = fps;
         this.physics    = new Physics();
         this.player     = new Player();
         this.inventory  = new Inventory(this.player, this.hud);
@@ -358,10 +359,10 @@ export let Game = {
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
             // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
-            if(Math.abs(z) > 300) {
+            /*if(Math.abs(z) > 300) {
                 x = that.prevMovementX;
                 z = that.prevMovementZ;
-            }
+            }*/
             that.prevMovementX = x;
             that.prevMovementZ = z;
             if(that.player.zoom) {
