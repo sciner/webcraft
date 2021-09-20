@@ -141,6 +141,10 @@ class Chunk {
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');
+            /*let mcp = BLOCK.getChunkAddr(new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0)).toChunkKey();
+            if(this.addr.toChunkKey() != mcp) {
+                console.log(this.addr.toChunkKey());
+            }*/
             let type        = BLOCK.fromId(m.id);
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
