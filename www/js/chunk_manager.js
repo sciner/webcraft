@@ -1,6 +1,6 @@
-import {Vector, MyArray, SpiralGenerator} from "./helpers.js";
+import {Vector, SpiralGenerator} from "./helpers.js";
 import Chunk from "./chunk.js";
-import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
+import {BLOCK} from "./blocks.js";
 import ServerClient from "./server_client.js";
 
 const CHUNKS_ADD_PER_UPDATE = 16;

@@ -1,10 +1,12 @@
 import {Vector} from '../helpers.js';
 import {BLOCK} from '../blocks.js';
-import {push_cube} from '../block_style/cube.js';
+import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
 
 const {mat4} = glMatrix;
+
+const push_cube = push_cube_style.getRegInfo().func;
 
 /*loadTexture(render) {
 let that = this;

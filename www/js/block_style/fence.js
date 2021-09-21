@@ -1,93 +1,101 @@
-import {DIRECTION, MULTIPLY, ROTATE, Vector} from '../helpers.js';
+import {DIRECTION, MULTIPLY, ROTATE} from '../helpers.js';
 
 // Забор
-export function push_fence(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
+export default class style {
 
-    if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-        return;
+    static getRegInfo() {
+        return {
+            styles: ['fence'],
+            func: this.func
+        };
     }
 
-    const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
-    let flags = 0;
-    let sideFlags = 0;
-    let upFlags = 0;
+    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
 
-    // Texture color multiplier
-    let lm = MULTIPLY.COLOR.WHITE;
-    if(block.id == BLOCK.DIRT.id) {
-        lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-        sideFlags = QUAD_FLAGS.MASK_BIOME;
-        upFlags = QUAD_FLAGS.MASK_BIOME;
-    }
-
-    let DIRECTION_BACK          = DIRECTION.BACK;
-    let DIRECTION_RIGHT         = DIRECTION.RIGHT;
-    let DIRECTION_FORWARD       = DIRECTION.FORWARD;
-    let DIRECTION_LEFT          = DIRECTION.LEFT;
-
-    if(!block.name) {
-        console.error('block', JSON.stringify(block), block.id);
-        debugger;
-    }
-
-    let texture                 = BLOCK[block.name].texture;
-
-    // F R B L
-    switch(cardinal_direction) {
-        case ROTATE.S: {
-            break;
+        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+            return;
         }
-        case ROTATE.W: {
-            DIRECTION_BACK      = DIRECTION.LEFT;
-            DIRECTION_RIGHT     = DIRECTION.BACK;
-            DIRECTION_FORWARD   = DIRECTION.RIGHT;
-            DIRECTION_LEFT      = DIRECTION.FORWARD;
-            break;
-        }
-        case ROTATE.N: {
-            DIRECTION_BACK      = DIRECTION.FORWARD;
-            DIRECTION_RIGHT     = DIRECTION.LEFT;
-            DIRECTION_FORWARD   = DIRECTION.BACK;
-            DIRECTION_LEFT      = DIRECTION.RIGHT;
-            break;
-        }
-        case ROTATE.E: {
-            DIRECTION_BACK      = DIRECTION.RIGHT;
-            DIRECTION_RIGHT     = DIRECTION.FORWARD;
-            DIRECTION_FORWARD   = DIRECTION.LEFT;
-            DIRECTION_LEFT      = DIRECTION.BACK;
-            break;
-        }
-    }
 
-    let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-    let ao = calcAOForBlock(chunk, lightmap, x, y, z);
-    push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
+        const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
-    //
-    let canConnect = (block) => {
-        return block && (!block.transparent || block.style == 'fence');
-    };
+        // Texture color multiplier
+        let lm = MULTIPLY.COLOR.WHITE;
+        if(block.id == BLOCK.DIRT.id) {
+            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            sideFlags = QUAD_FLAGS.MASK_BIOME;
+            upFlags = QUAD_FLAGS.MASK_BIOME;
+        }
 
-    // South
-    if(canConnect(neighbours.SOUTH)) {
-        push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
-        push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
-    }
-    // North
-    if(canConnect(neighbours.NORTH)) {
-        push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
-        push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
-    }
-    // West
-    if(canConnect(neighbours.WEST)) {
-        push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
-        push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
-    }
-    // East
-    if(canConnect(neighbours.EAST)) {
-        push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
-        push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
+        let DIRECTION_BACK          = DIRECTION.BACK;
+        let DIRECTION_RIGHT         = DIRECTION.RIGHT;
+        let DIRECTION_FORWARD       = DIRECTION.FORWARD;
+        let DIRECTION_LEFT          = DIRECTION.LEFT;
+
+        if(!block.name) {
+            console.error('block', JSON.stringify(block), block.id);
+            debugger;
+        }
+
+        let texture                 = BLOCK[block.name].texture;
+
+        // F R B L
+        switch(cardinal_direction) {
+            case ROTATE.S: {
+                break;
+            }
+            case ROTATE.W: {
+                DIRECTION_BACK      = DIRECTION.LEFT;
+                DIRECTION_RIGHT     = DIRECTION.BACK;
+                DIRECTION_FORWARD   = DIRECTION.RIGHT;
+                DIRECTION_LEFT      = DIRECTION.FORWARD;
+                break;
+            }
+            case ROTATE.N: {
+                DIRECTION_BACK      = DIRECTION.FORWARD;
+                DIRECTION_RIGHT     = DIRECTION.LEFT;
+                DIRECTION_FORWARD   = DIRECTION.BACK;
+                DIRECTION_LEFT      = DIRECTION.RIGHT;
+                break;
+            }
+            case ROTATE.E: {
+                DIRECTION_BACK      = DIRECTION.RIGHT;
+                DIRECTION_RIGHT     = DIRECTION.FORWARD;
+                DIRECTION_FORWARD   = DIRECTION.LEFT;
+                DIRECTION_LEFT      = DIRECTION.BACK;
+                break;
+            }
+        }
+
+        let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+        let ao = calcAOForBlock(chunk, lightmap, x, y, z);
+        push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
+
+        //
+        let canConnect = (block) => {
+            return block && (!block.transparent || block.style == 'fence');
+        };
+
+        // South
+        if(canConnect(neighbours.SOUTH)) {
+            push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
+            push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
+        }
+        // North
+        if(canConnect(neighbours.NORTH)) {
+            push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
+            push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
+        }
+        // West
+        if(canConnect(neighbours.WEST)) {
+            push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
+            push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
+        }
+        // East
+        if(canConnect(neighbours.EAST)) {
+            push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
+            push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
+        }
+
     }
 
 }
@@ -145,7 +153,7 @@ function calcAOForBlock(chunk, lightmap, x, y, z) {
 
     // Ambient occlusion
     const ao_enabled = true;
-    const ao_value = .23;
+    const ao_value = .25;
 
     // Result
     let result = {

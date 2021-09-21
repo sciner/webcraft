@@ -1,8 +1,9 @@
-import {Color, DIRECTION, NORMALS, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
+import {Color, DIRECTION, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
 import {BLOCK} from '../blocks.js';
-import {push_plane} from '../block_style/plane.js';
+import { default as push_plane_style } from '../block_style/plane.js';
 import GeometryTerrain from "../geometry_terrain.js";
 
+const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
 
 export default class Particles_Raindrop {

@@ -1,168 +1,175 @@
 import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
 
 // Люк
-export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
+export default class style {
 
-    if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-        return;
-    }
-
-    let flags = 0;
-    let sideFlags = 0;
-    let upFlags = 0;
-
-    // Texture color multiplier
-    let lm = MULTIPLY.COLOR.WHITE;
-    if(block.id == BLOCK.DIRT.id) {
-        lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-        sideFlags = QUAD_FLAGS.MASK_BIOME;
-        upFlags = QUAD_FLAGS.MASK_BIOME;
-    }
-
-    let DIRECTION_UP            = DIRECTION.UP;
-    let DIRECTION_DOWN          = DIRECTION.DOWN;
-    let DIRECTION_BACK          = DIRECTION.BACK;
-    let DIRECTION_RIGHT         = DIRECTION.RIGHT;
-    let DIRECTION_FORWARD       = DIRECTION.FORWARD;
-    let DIRECTION_LEFT          = DIRECTION.LEFT;
-
-    if(!block.name) {
-        console.error('block', JSON.stringify(block), block.id);
-        debugger;
-    }
-
-    let texture                 = BLOCK[block.name].texture;
-
-    // F R B L
-    const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
-    switch(cardinal_direction) {
-        case ROTATE.S: {
-            break;
-        }
-        case ROTATE.W: {
-            DIRECTION_BACK      = DIRECTION.LEFT;
-            DIRECTION_RIGHT     = DIRECTION.BACK;
-            DIRECTION_FORWARD   = DIRECTION.RIGHT;
-            DIRECTION_LEFT      = DIRECTION.FORWARD;
-            break;
-        }
-        case ROTATE.N: {
-            DIRECTION_BACK      = DIRECTION.FORWARD;
-            DIRECTION_RIGHT     = DIRECTION.LEFT;
-            DIRECTION_FORWARD   = DIRECTION.BACK;
-            DIRECTION_LEFT      = DIRECTION.RIGHT;
-            break;
-        }
-        case ROTATE.E: {
-            DIRECTION_BACK      = DIRECTION.RIGHT;
-            DIRECTION_RIGHT     = DIRECTION.FORWARD;
-            DIRECTION_FORWARD   = DIRECTION.LEFT;
-            DIRECTION_LEFT      = DIRECTION.BACK;
-            break;
-        }
-    }
-    let ao = calcAOForBlock(chunk, x, y, z);
-    if(!block.extra_data) {
-        block.extra_data = {
-            opened: true,
-            point: new Vector(0, 0, 0),
+    static getRegInfo() {
+        return {
+            styles: ['trapdoor'],
+            func: this.func
         };
     }
-    let on_ceil = block.extra_data.point.y >= .5;
-    let thickness = 3/16; // толщина блока
-    if(block.extra_data.opened) {
-        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
-        let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
-        let x_pos = 0;
-        let z_pos = 0;
-        let y_pos = 0; // нарисовать в нижней части блока
-        tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-        tex_side[2] -= (1 - thickness) / TX_CNT;
-        tex_side[3] = thickness / TX_CNT;
-        let size = new Vector(1, thickness, 1);
-        switch(cardinal_direction) {
-            case ROTATE.S: {
-                tex_up_down[1] = tex_side[1];
-                tex_up_down[2] = 1 / TX_CNT;
-                tex_up_down[3] = thickness / TX_CNT;
-                //
-                tex_side[2] = 1 / TX_CNT;
-                tex_side[3] = thickness / TX_CNT;
-                //
-                x_pos = .5;
-                z_pos = 1 - thickness/2;
-                push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
-                break;
-            }
-            case ROTATE.N: {
-                tex_up_down[1] = tex_side[1];
-                tex_up_down[2] = 1 / TX_CNT;
-                tex_up_down[3] = thickness / TX_CNT;
-                //
-                tex_side[2] = 1 / TX_CNT;
-                tex_side[3] = thickness / TX_CNT;
-                //
-                x_pos = .5;
-                z_pos = thickness/2;
-                size = new Vector(1, thickness, 1);
-                push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
-                break;
-            }
-            case ROTATE.E: {
-                tex_up_down[1] = tex_side[1];
-                tex_up_down[2] = 1 / TX_CNT;
-                tex_up_down[3] = thickness / TX_CNT;
-                //
-                tex_side[2] = 1 / TX_CNT;
-                tex_side[3] = thickness / TX_CNT;
-                //
-                x_pos = thickness/2;
-                z_pos = .5;
-                size = new Vector(thickness, 1, 1);
-                push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
-                break;
-            }
-            case ROTATE.W: {
-                tex_up_down[1] = tex_side[1];
-                tex_up_down[2] = 1 / TX_CNT;
-                tex_up_down[3] = thickness / TX_CNT;
-                //
-                tex_side[2] = 1 / TX_CNT;
-                tex_side[3] = thickness / TX_CNT;
-                //
-                x_pos = 1 - thickness/2;
-                z_pos = .5;
-                size = new Vector(thickness, 1, 1);
-                push_part(vertices, x + x_pos, y + y_pos, z + z_pos, thickness, 1, 1, ao, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
-                break;
-            }
+
+    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
+
+        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
+            return;
         }
 
-    } else {
-        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
-        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
-        let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
-        tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-        tex_front[3] = thickness / TX_CNT;
-        tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-        tex_side[3] = thickness / TX_CNT;
+        // Texture color multiplier
+        let lm = MULTIPLY.COLOR.WHITE;
+        if(block.id == BLOCK.DIRT.id) {
+            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            sideFlags = QUAD_FLAGS.MASK_BIOME;
+            upFlags = QUAD_FLAGS.MASK_BIOME;
+        }
+
+        let DIRECTION_UP            = DIRECTION.UP;
+        let DIRECTION_DOWN          = DIRECTION.DOWN;
+        let DIRECTION_BACK          = DIRECTION.BACK;
+        let DIRECTION_RIGHT         = DIRECTION.RIGHT;
+        let DIRECTION_FORWARD       = DIRECTION.FORWARD;
+        let DIRECTION_LEFT          = DIRECTION.LEFT;
+
+        if(!block.name) {
+            console.error('block', JSON.stringify(block), block.id);
+            debugger;
+        }
+
+        let texture                 = BLOCK[block.name].texture;
+
+        // F R B L
+        const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
         switch(cardinal_direction) {
             case ROTATE.S: {
                 break;
             }
+            case ROTATE.W: {
+                DIRECTION_BACK      = DIRECTION.LEFT;
+                DIRECTION_RIGHT     = DIRECTION.BACK;
+                DIRECTION_FORWARD   = DIRECTION.RIGHT;
+                DIRECTION_LEFT      = DIRECTION.FORWARD;
+                break;
+            }
             case ROTATE.N: {
+                DIRECTION_BACK      = DIRECTION.FORWARD;
+                DIRECTION_RIGHT     = DIRECTION.LEFT;
+                DIRECTION_FORWARD   = DIRECTION.BACK;
+                DIRECTION_LEFT      = DIRECTION.RIGHT;
                 break;
             }
             case ROTATE.E: {
-                break;
-            }
-            case ROTATE.W: {
+                DIRECTION_BACK      = DIRECTION.RIGHT;
+                DIRECTION_RIGHT     = DIRECTION.FORWARD;
+                DIRECTION_FORWARD   = DIRECTION.LEFT;
+                DIRECTION_LEFT      = DIRECTION.BACK;
                 break;
             }
         }
-        push_part(vertices, x + .5, y + y_pos, z + .5, 1, 1, thickness, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
+        let ao = calcAOForBlock(chunk, x, y, z);
+        if(!block.extra_data) {
+            block.extra_data = {
+                opened: true,
+                point: new Vector(0, 0, 0),
+            };
+        }
+        let on_ceil = block.extra_data.point.y >= .5;
+        let thickness = 3/16; // толщина блока
+        if(block.extra_data.opened) {
+            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
+            let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+            let x_pos = 0;
+            let z_pos = 0;
+            let y_pos = 0; // нарисовать в нижней части блока
+            tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
+            tex_side[2] -= (1 - thickness) / TX_CNT;
+            tex_side[3] = thickness / TX_CNT;
+            let size = new Vector(1, thickness, 1);
+            switch(cardinal_direction) {
+                case ROTATE.S: {
+                    tex_up_down[1] = tex_side[1];
+                    tex_up_down[2] = 1 / TX_CNT;
+                    tex_up_down[3] = thickness / TX_CNT;
+                    //
+                    tex_side[2] = 1 / TX_CNT;
+                    tex_side[3] = thickness / TX_CNT;
+                    //
+                    x_pos = .5;
+                    z_pos = 1 - thickness/2;
+                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
+                    break;
+                }
+                case ROTATE.N: {
+                    tex_up_down[1] = tex_side[1];
+                    tex_up_down[2] = 1 / TX_CNT;
+                    tex_up_down[3] = thickness / TX_CNT;
+                    //
+                    tex_side[2] = 1 / TX_CNT;
+                    tex_side[3] = thickness / TX_CNT;
+                    //
+                    x_pos = .5;
+                    z_pos = thickness/2;
+                    size = new Vector(1, thickness, 1);
+                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
+                    break;
+                }
+                case ROTATE.E: {
+                    tex_up_down[1] = tex_side[1];
+                    tex_up_down[2] = 1 / TX_CNT;
+                    tex_up_down[3] = thickness / TX_CNT;
+                    //
+                    tex_side[2] = 1 / TX_CNT;
+                    tex_side[3] = thickness / TX_CNT;
+                    //
+                    x_pos = thickness/2;
+                    z_pos = .5;
+                    size = new Vector(thickness, 1, 1);
+                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, ao, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
+                    break;
+                }
+                case ROTATE.W: {
+                    tex_up_down[1] = tex_side[1];
+                    tex_up_down[2] = 1 / TX_CNT;
+                    tex_up_down[3] = thickness / TX_CNT;
+                    //
+                    tex_side[2] = 1 / TX_CNT;
+                    tex_side[3] = thickness / TX_CNT;
+                    //
+                    x_pos = 1 - thickness/2;
+                    z_pos = .5;
+                    size = new Vector(thickness, 1, 1);
+                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, thickness, 1, 1, ao, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
+                    break;
+                }
+            }
+
+        } else {
+            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
+            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+            let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+            let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
+            tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
+            tex_front[3] = thickness / TX_CNT;
+            tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
+            tex_side[3] = thickness / TX_CNT;
+            switch(cardinal_direction) {
+                case ROTATE.S: {
+                    break;
+                }
+                case ROTATE.N: {
+                    break;
+                }
+                case ROTATE.E: {
+                    break;
+                }
+                case ROTATE.W: {
+                    break;
+                }
+            }
+            push_part(vertices, x + .5, y + y_pos, z + .5, 1, 1, thickness, ao, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
+        }
+
     }
 
 }
@@ -315,7 +322,7 @@ function calcAOForBlock(chunk, x, y, z) {
 
     // Ambient occlusion
     const ao_enabled = true;
-    const ao_value = .23;
+    const ao_value = .25;
 
     // Result
     let result = {

@@ -1,13 +1,4 @@
-import { Color, DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
-import { push_cube } from './block_style/cube.js';
-import { push_fence } from './block_style/fence.js';
-import { push_ladder } from './block_style/ladder.js';
-import { push_pane } from './block_style/pane.js';
-import { push_plant } from './block_style/plant.js';
-import { push_slab } from './block_style/slab.js';
-import { push_stairs } from './block_style/stairs.js';
-import { push_trapdoor } from './block_style/trapdoor.js';
-import { push_triangle } from './block_style/triangle.js';
+import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 32;
@@ -37,6 +28,8 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 // transparent (bool)           - Not cube
 
 export class BLOCK {
+
+    static styles = [];
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
@@ -360,7 +353,6 @@ export class BLOCK {
      * @returns
      */
     static getCachedBlock(chunk, x, y, z) {
-        // return world.chunkManager.getBlock(x, y, z);
         const x1 = x + chunk.coord.x;
         const y1 = y + chunk.coord.y;
         const z1 = z + chunk.coord.z;
@@ -387,28 +379,12 @@ export class BLOCK {
 
     // pushVertices
     static pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-        const style = 'style' in block ? block.style : '';
-        if (['planting', 'sign'].indexOf(style) >= 0) {
-            this.push_plant(block, vertices, world, lightmap, x, y, z, biome);
-        } else if (style == 'pane') {
-            push_pane(block, vertices, world, lightmap, x, y, z, neighbours);
-        } else if (style == 'stairs') {
-            push_stairs(block, vertices, world, lightmap, x, y, z, neighbours);
-        } else if (style == 'triangle') {
-            push_triangle(block, vertices, world, lightmap, x, y, z, neighbours);
-        } else if (style == 'slab') {
-            push_slab(block, vertices, world, lightmap, x, y, z);
-        } else if (style == 'ladder') {
-            push_ladder(block, vertices, world, lightmap, x, y, z);
-        } else if (style == 'fence') {
-            this.push_fence(block, vertices, world, lightmap, x, y, z, neighbours, biome);
-        } else if (style == 'trapdoor') {
-            this.push_trapdoor(block, vertices, world, lightmap, x, y, z, neighbours, biome);
-        } else if (['torch'].indexOf(style) >= 0) {
-            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
-        } else {
-            this.push_cube(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
+        const style = 'style' in block ? block.style : 'default';
+        let module = this.styles[style];
+        if(!module) {
+            throw 'Invalid vertices style `' + style + '`';
         }
+        return module.func(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
     }
 
     // Return inventory icon pos
@@ -423,6 +399,14 @@ export class BLOCK {
         );
     }
 
+    //
+    static registerStyle(style) {
+        let reg_info = style.getRegInfo();
+        for(let style of reg_info.styles) {
+            BLOCK.styles[style] = reg_info;
+        }
+    }
+
 };
 
 //
@@ -435,13 +419,12 @@ await fetch('../data/blocks.json').then(response => response.json()).then(json =
 // Run getAll()
 BLOCK.getAll();
 
-//
-BLOCK.push_cube = push_cube;
-BLOCK.push_fence = push_fence;
-BLOCK.push_ladder = push_ladder;
-BLOCK.push_pane = push_pane;
-BLOCK.push_plant = push_plant;
-BLOCK.push_slab = push_slab;
-BLOCK.push_stairs = push_stairs;
-BLOCK.push_trapdoor = push_trapdoor;
-BLOCK.push_triangle = push_triangle;
+// Load supported block styles
+await fetch('../data/block_style.json').then(response => response.json()).then(json => {
+    for(let code of json) {
+        // load module
+        import("./block_style/" + code + ".js").then(module => {
+            BLOCK.registerStyle(module.default);
+        });
+    }
+});
