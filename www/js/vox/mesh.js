@@ -90,12 +90,12 @@ export class Vox_Mesh {
                     console.log(block_id);
                 }
                 let tex = {
-                    LEFT:       BLOCK.calcTexture(block.texture, DIRECTION_LEFT, 1),
-                    RIGHT:      BLOCK.calcTexture(block.texture, DIRECTION_RIGHT, 1),
-                    UP:         BLOCK.calcTexture(block.texture, DIRECTION_UP, 1),
-                    DOWN:       BLOCK.calcTexture(block.texture, DIRECTION_DOWN, 1),
-                    FORWARD:    BLOCK.calcTexture(block.texture, DIRECTION_FORWARD, 1),
-                    BACK:       BLOCK.calcTexture(block.texture, DIRECTION_BACK, 1),
+                    LEFT:       BLOCK.calcTexture(block.texture, DIRECTION_LEFT),
+                    RIGHT:      BLOCK.calcTexture(block.texture, DIRECTION_RIGHT),
+                    UP:         BLOCK.calcTexture(block.texture, DIRECTION_UP),
+                    DOWN:       BLOCK.calcTexture(block.texture, DIRECTION_DOWN),
+                    FORWARD:    BLOCK.calcTexture(block.texture, DIRECTION_FORWARD),
+                    BACK:       BLOCK.calcTexture(block.texture, DIRECTION_BACK),
                     block:      block
                 };
                 this.block_textures[block_id] = tex;

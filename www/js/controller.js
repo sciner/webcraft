@@ -41,6 +41,7 @@ let gameCtrl = function($scope, $timeout) {
         .then(module => {
             $scope.Game = window.Game = module.Game;
             window.MOUSE    = module.MOUSE;
+            window.BLOCK    = module.BLOCK;
             window.KEY      = module.KEY;
             $scope.settings.load();
             $scope.boot.init();

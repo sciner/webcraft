@@ -8,13 +8,12 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
     let poses           = [];
     let texture         = BLOCK.fromId(block.id).texture;
     let lm              = MULTIPLY.COLOR.WHITE;
-    let blockLit        = true;
     let ao              = [0, 0, 0, 0];
 
     block.transparent   = true;
 
     // полная текстура
-    let c = BLOCK.calcTexture(texture, null, blockLit);
+    let c = BLOCK.calcTexture(texture, DIRECTION.UP);
 
     // нижняя половина текстуры
     let c_half_bottom = [
@@ -55,7 +54,7 @@ export function push_triangle(block, vertices, chunk, lightmap, x, y, z, neighbo
         lm.r, lm.g, lm.b,
         ...ao, null);
 
-    c = BLOCK.calcTexture(texture, DIRECTION.DOWN, blockLit);
+    c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
 
     // дно
     n = NORMALS.DOWN;

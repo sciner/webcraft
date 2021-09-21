@@ -8,12 +8,11 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
     let poses           = [];
     let texture         = BLOCK.fromId(block.id).texture;
     let lm              = MULTIPLY.COLOR.WHITE;
-    let blockLit        = true;
 
     block.transparent   = true;
 
     // полная текстура
-    let c = BLOCK.calcTexture(texture, null, blockLit);
+    let c = BLOCK.calcTexture(texture, DIRECTION.UP);
 
     // четверть текстуры
     let c_half = [
@@ -64,7 +63,7 @@ export function push_stairs(block, vertices, chunk, lightmap, x, y, z, neighbour
     ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
     push_plane(vertices, x - 0.5, yb, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
-    c = BLOCK.calcTexture(texture, DIRECTION.DOWN, blockLit);
+    c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
 
     // дно
     vertices.push(x + .5, z + .5, yb,

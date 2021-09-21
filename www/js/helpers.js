@@ -1,5 +1,4 @@
-export const TX_CNT                         = 32;
-export const INVENTORY_STACK_DEFAUL_SIZE    = 64;
+export const TX_CNT = 32;
 
 export class Mth {
 
@@ -385,8 +384,8 @@ export class Helpers {
         return radians * 180 / Math.PI;
     }
 
-    static loadJSON(url, callback) {
-        loadText(url, function(text) {
+    static async loadJSON(url, callback) {
+        await loadText(url, function(text) {
             callback(JSON.parse(text));
         });
     }

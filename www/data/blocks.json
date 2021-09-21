@@ -1,0 +1,3628 @@
+[
+    {
+        "id": -1,
+        "inventory_icon_id": 3270,
+        "spawnable": false,
+        "passable": 0,
+        "sound": "webcraft:block.wood",
+        "texture": [
+            9,
+            9
+        ],
+        "name": "DUMMY",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 0,
+        "spawnable": false,
+        "passable": 1,
+        "transparent": true,
+        "name": "AIR",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 1,
+        "inventory_icon_id": 521,
+        "spawnable": false,
+        "passable": 0,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            1,
+            1
+        ],
+        "name": "BEDROCK",
+        "destroy_time": -1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 8,
+        "inventory_icon_id": 3358,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "cobblestone"
+        ],
+        "texture": [
+            0,
+            1
+        ],
+        "name": "COBBLESTONE",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 131,
+        "inventory_icon_id": 3589,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "texture": [
+            0,
+            31
+        ],
+        "name": "WOODEN_PICKAXE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true
+    },
+    {
+        "id": 500,
+        "inventory_icon_id": 3585,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "texture": [
+            1,
+            31
+        ],
+        "name": "STONE_PICKAXE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true
+    },
+    {
+        "id": 132,
+        "inventory_icon_id": 3587,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "texture": [
+            0,
+            30
+        ],
+        "name": "WOODEN_AXE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true
+    },
+    {
+        "id": 137,
+        "inventory_icon_id": 3590,
+        "spawnable": true,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "texture": [
+            0,
+            28
+        ],
+        "name": "WOODEN_SHOVEL",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null
+    },
+    {
+        "id": 467,
+        "inventory_icon_id": 462,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.gravel",
+        "texture": [
+            4,
+            3
+        ],
+        "name": "COARSE_DIRT",
+        "destroy_time": 2,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 198,
+        "inventory_icon_id": 3441,
+        "spawnable": true,
+        "transparent": true,
+        "sound": "webcraft:block.grass",
+        "texture": [
+            20,
+            18
+        ],
+        "name": "BIRCH_LEAVES",
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 233,
+        "inventory_icon_id": 3403,
+        "transparent": true,
+        "sound": "webcraft:block.grass",
+        "texture": [
+            21,
+            18
+        ],
+        "name": "OAK_LEAVES",
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 220,
+        "inventory_icon_id": 3403,
+        "transparent": true,
+        "sound": "webcraft:block.grass",
+        "texture": [
+            22,
+            18
+        ],
+        "name": "ACACIA_LEAVES",
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 190,
+        "inventory_icon_id": 3441,
+        "spawnable": true,
+        "transparent": true,
+        "sound": "webcraft:block.grass",
+        "texture": [
+            23,
+            18
+        ],
+        "name": "SPRUCE_LEAVES",
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 456,
+        "inventory_icon_id": 858,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            20,
+            19
+        ],
+        "name": "BIRCH_PLANK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 7,
+        "inventory_icon_id": 902,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            21,
+            19
+        ],
+        "name": "OAK_PLANK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 457,
+        "inventory_icon_id": 895,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            22,
+            19
+        ],
+        "name": "ACACIA_PLANK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 460,
+        "inventory_icon_id": 928,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "name": "SPRUCE_PLANK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 89,
+        "inventory_icon_id": 3381,
+        "transparent": true,
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 255
+        },
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            9,
+            6
+        ],
+        "name": "GLOWSTONE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 9,
+        "inventory_icon_id": 232,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            1,
+            0
+        ],
+        "name": "CONCRETE",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 504,
+        "inventory_icon_id": 1483,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            3,
+            17
+        ],
+        "name": "CONCRETE_CYAN",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 505,
+        "inventory_icon_id": 1519,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            7,
+            17
+        ],
+        "name": "CONCRETE_YELLOW",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 70,
+        "inventory_icon_id": 906,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            6,
+            0
+        ],
+        "name": "SMOOTH_STONE",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 10,
+        "inventory_icon_id": 869,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            7,
+            0
+        ],
+        "name": "BRICK",
+        "destroy_time": 7,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 11,
+        "inventory_icon_id": 3375,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": true,
+        "fluid": false,
+        "sound": "webcraft:block.sand",
+        "texture": [
+            2,
+            1
+        ],
+        "name": "SAND",
+        "destroy_time": 2,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 12,
+        "inventory_icon_id": 3364,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": true,
+        "fluid": false,
+        "sound": "webcraft:block.gravel",
+        "texture": [
+            3,
+            1
+        ],
+        "name": "GRAVEL",
+        "destroy_time": 2,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 6,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            15,
+            0
+        ],
+        "name": "OAK_SAPLING",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 13,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "texture": [
+            6,
+            1
+        ],
+        "name": "IRON",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 69,
+        "inventory_icon_id": 3236,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "texture": [
+            7,
+            1
+        ],
+        "name": "GOLD",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 14,
+        "inventory_icon_id": 3393,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            0,
+            2
+        ],
+        "name": "GOLD_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 150,
+        "inventory_icon_id": 3391,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "texture": [
+            8,
+            1
+        ],
+        "name": "DIAMOND",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 90,
+        "inventory_icon_id": 3369,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "texture": [
+            5,
+            2
+        ],
+        "name": "OBSIDIAN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 17,
+        "inventory_icon_id": 3262,
+        "spawnable": true,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.glass",
+        "texture": [
+            1,
+            3
+        ],
+        "name": "GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 201,
+        "inventory_icon_id": 3612,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "texture": [
+            0,
+            3
+        ],
+        "name": "SPONGE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 171,
+        "transparent": true,
+        "passable": 0.25,
+        "selflit": true,
+        "gravity": true,
+        "is_fluid": true,
+        "light_power": {
+            "r": 253,
+            "g": 200,
+            "b": 80,
+            "a": 255
+        },
+        "texture": [
+            13,
+            14
+        ],
+        "name": "STILL_LAVA",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 202,
+        "inventory_icon_id": 3272,
+        "transparent": true,
+        "passable": 0.4,
+        "selflit": true,
+        "is_fluid": true,
+        "texture": [
+            13,
+            12
+        ],
+        "name": "STILL_WATER",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 200,
+        "passable": 0.4,
+        "transparent": true,
+        "selflit": true,
+        "is_fluid": true,
+        "fluid": {
+            "max_power": 1,
+            "still_block_id": 202
+        },
+        "texture": [
+            13,
+            12
+        ],
+        "name": "FLOWING_WATER",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 170,
+        "passable": 0.25,
+        "transparent": true,
+        "selflit": true,
+        "gravity": false,
+        "is_fluid": true,
+        "fluid": {
+            "max_power": 1,
+            "still_block_id": 171
+        },
+        "light_power": {
+            "r": 253,
+            "g": 200,
+            "b": 80,
+            "a": 255
+        },
+        "texture": [
+            13,
+            14
+        ],
+        "name": "FLOWING_LAVA",
+        "destroy_time": 0.4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 15,
+        "inventory_icon_id": 3394,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            1,
+            2
+        ],
+        "name": "IRON_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 16,
+        "inventory_icon_id": 3390,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            2,
+            2
+        ],
+        "name": "COAL_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 21,
+        "inventory_icon_id": 3395,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            0,
+            10
+        ],
+        "name": "LAPIS_LAZULI_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 22,
+        "texture": [
+            0,
+            9
+        ],
+        "name": "LAPIS_LAZULI",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 24,
+        "sound": "webcraft:block.gravel",
+        "texture": [
+            0,
+            12
+        ],
+        "name": "SANDSTONE",
+        "destroy_time": 2,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 25,
+        "inventory_icon_id": 3610,
+        "texture": [
+            10,
+            4
+        ],
+        "name": "NOTE_BLOCK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 130,
+        "inventory_icon_id": 1139,
+        "is_item": true,
+        "texture": [
+            0,
+            0
+        ],
+        "name": "STICK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 30,
+        "inventory_icon_id": 3359,
+        "passable": 0.1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.stone",
+        "texture": [
+            11,
+            0
+        ],
+        "name": "COBWEB",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 31,
+        "inventory_icon_id": 3419,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            4,
+            16
+        ],
+        "name": "GRASS",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 32,
+        "inventory_icon_id": 1038,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            7,
+            3
+        ],
+        "name": "DEAD_BUSH",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 350,
+        "inventory_icon_id": 708,
+        "texture": [
+            0,
+            18
+        ],
+        "name": "WOOL_BLACK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 351,
+        "inventory_icon_id": 714,
+        "texture": [
+            1,
+            18
+        ],
+        "name": "WOOL_BLUE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 352,
+        "inventory_icon_id": 729,
+        "texture": [
+            2,
+            18
+        ],
+        "name": "WOOL_BROWN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 353,
+        "inventory_icon_id": 726,
+        "texture": [
+            3,
+            18
+        ],
+        "name": "WOOL_CYAN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 354,
+        "inventory_icon_id": 229,
+        "texture": [
+            4,
+            18
+        ],
+        "name": "WOOL_GRAY",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 355,
+        "inventory_icon_id": 738,
+        "texture": [
+            5,
+            18
+        ],
+        "name": "WOOL_GREEN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 502,
+        "inventory_icon_id": 1535,
+        "texture": [
+            6,
+            18
+        ],
+        "name": "WOOL_RED",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 506,
+        "inventory_icon_id": 1537,
+        "texture": [
+            7,
+            18
+        ],
+        "name": "WOOL_YELLOW",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 450,
+        "inventory_icon_id": 729,
+        "texture": [
+            0,
+            19
+        ],
+        "name": "TERRACOTTA_BLACK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 451,
+        "inventory_icon_id": 711,
+        "texture": [
+            1,
+            19
+        ],
+        "name": "TERRACOTTA_BLUE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 452,
+        "inventory_icon_id": 717,
+        "texture": [
+            2,
+            19
+        ],
+        "name": "TERRACOTTA_BROWN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 453,
+        "inventory_icon_id": 723,
+        "texture": [
+            3,
+            19
+        ],
+        "name": "TERRACOTTA_CYAN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 454,
+        "inventory_icon_id": 729,
+        "texture": [
+            4,
+            19
+        ],
+        "name": "TERRACOTTA_GRAY",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 455,
+        "inventory_icon_id": 735,
+        "texture": [
+            5,
+            19
+        ],
+        "name": "TERRACOTTA_GREEN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 503,
+        "inventory_icon_id": 1513,
+        "texture": [
+            6,
+            19
+        ],
+        "name": "TERRACOTTA_RED",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 507,
+        "inventory_icon_id": 795,
+        "texture": [
+            7,
+            19
+        ],
+        "name": "TERRACOTTA_YELLOW",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 36,
+        "inventory_icon_id": 3413,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            13,
+            0
+        ],
+        "name": "DANDELION",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 38,
+        "inventory_icon_id": 3435,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            12,
+            0
+        ],
+        "name": "TULIP",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 509,
+        "inventory_icon_id": 3400,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            0,
+            22
+        ],
+        "name": "FLOWER_ALLIUM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 510,
+        "inventory_icon_id": 3406,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            1,
+            22
+        ],
+        "name": "FLOWER_BLUE_ORCHID",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 511,
+        "inventory_icon_id": 3432,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            2,
+            22
+        ],
+        "name": "FLOWER_OXEYE_DAISY",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 512,
+        "inventory_icon_id": 3401,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            3,
+            22
+        ],
+        "name": "FLOWER_LILY_OF_THE_VALLEY",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 513,
+        "inventory_icon_id": 2388,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            4,
+            22
+        ],
+        "name": "FLOWER_CORNFLOWER",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 514,
+        "inventory_icon_id": 3435,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            5,
+            22
+        ],
+        "name": "FLOWER_PEONY_BOTTOM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 515,
+        "inventory_icon_id": 3435,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            6,
+            22
+        ],
+        "name": "FLOWER_PEONY_TOP",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 516,
+        "inventory_icon_id": 3435,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            7,
+            22
+        ],
+        "name": "FLOWER_LILAC_BOTTOM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 517,
+        "inventory_icon_id": 3435,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            8,
+            22
+        ],
+        "name": "FLOWER_LILAC_TOP",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 39,
+        "inventory_icon_id": 3408,
+        "transparent": true,
+        "passable": 1,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            13,
+            1
+        ],
+        "name": "BROWN_MUSHROOM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 40,
+        "inventory_icon_id": 3438,
+        "transparent": true,
+        "passable": 1,
+        "style": "planting",
+        "sound": "webcraft:block.grass",
+        "texture": [
+            12,
+            1
+        ],
+        "name": "RED_MUSHROOM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
+    },
+    {
+        "id": 43,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            5,
+            0
+        ],
+        "name": "DOUBLE_SLAB",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 44,
+        "inventory_icon_id": 922,
+        "transparent": true,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            6,
+            0
+        ],
+        "name": "SLAB",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 48,
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stone"
+        ],
+        "texture": [
+            4,
+            2
+        ],
+        "name": "MOSS_STONE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 56,
+        "inventory_icon_id": 3391,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            2,
+            3
+        ],
+        "name": "DIAMOND_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 59,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            15,
+            5
+        ],
+        "name": "WHEAT",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 60,
+        "inventory_icon_id": 885,
+        "texture": [
+            7,
+            5
+        ],
+        "name": "FARMLAND",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 67,
+        "style": "stairs",
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            0,
+            1
+        ],
+        "name": "COBBLESTONE_STAIRS",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 72,
+        "sound": "webcraft:block.wood",
+        "texture": [
+            21,
+            19
+        ],
+        "name": "OAK_PLATE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 73,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            3,
+            3
+        ],
+        "name": "REDSTONE_ORE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 75,
+        "passable": 1,
+        "transparent": true,
+        "style": "torch",
+        "light_power": {
+            "r": 253,
+            "g": 200,
+            "b": 131,
+            "a": 192
+        },
+        "texture": [
+            3,
+            6
+        ],
+        "name": "REDSTONE_TORCH_ON",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 76,
+        "passable": 1,
+        "transparent": true,
+        "style": "torch",
+        "texture": [
+            3,
+            7
+        ],
+        "name": "REDSTONE_TORCH_OFF",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 79,
+        "texture": [
+            3,
+            4
+        ],
+        "name": "ICE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 80,
+        "inventory_icon_id": 3314,
+        "texture": [
+            2,
+            4
+        ],
+        "name": "SNOW_BLOCK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 82,
+        "texture": [
+            8,
+            4
+        ],
+        "name": "CLAY",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 189,
+        "inventory_icon_id": 3229,
+        "transparent": true,
+        "style": "fence",
+        "sound": "webcraft:block.wood",
+        "texture": [
+            20,
+            19
+        ],
+        "name": "BIRCH_FENCE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 85,
+        "inventory_icon_id": 3283,
+        "transparent": true,
+        "style": "fence",
+        "sound": "webcraft:block.wood",
+        "texture": [
+            21,
+            19
+        ],
+        "name": "OAK_FENCE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 188,
+        "inventory_icon_id": 3221,
+        "transparent": true,
+        "style": "fence",
+        "sound": "webcraft:block.wood",
+        "texture": [
+            22,
+            19
+        ],
+        "name": "ACACIA_FENCE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 191,
+        "inventory_icon_id": 3316,
+        "transparent": true,
+        "style": "fence",
+        "sound": "webcraft:block.wood",
+        "texture": [
+            23,
+            19
+        ],
+        "name": "SPRUCE_FENCE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 113,
+        "transparent": true,
+        "style": "fence",
+        "texture": [
+            8,
+            13
+        ],
+        "name": "NETHER_BRICK_FENCE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 87,
+        "texture": [
+            7,
+            6
+        ],
+        "name": "NETHERRACK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 88,
+        "gravity": true,
+        "texture": [
+            8,
+            6
+        ],
+        "name": "SOUL_SAND",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 95,
+        "transparent": true,
+        "texture": [
+            1,
+            3
+        ],
+        "name": "STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 97,
+        "texture": [
+            5,
+            6
+        ],
+        "name": "MONSTER_EGG",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 98,
+        "inventory_icon_id": 3379,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            6,
+            3
+        ],
+        "name": "STONE_BRICK",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 99,
+        "texture": [
+            14,
+            7
+        ],
+        "name": "BROWN_MUSHROOM_BLOCK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 100,
+        "texture": [
+            13,
+            7
+        ],
+        "name": "RED_MUSHROOM_BLOCK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 102,
+        "inventory_icon_id": 3261,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            1,
+            3
+        ],
+        "name": "GLASS_PANE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 508,
+        "inventory_icon_id": 866,
+        "transparent": true,
+        "passable": 1,
+        "selflit": true,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "alpha"
+        ],
+        "texture": [
+            22,
+            31
+        ],
+        "name": "CLOUD",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 470,
+        "inventory_icon_id": 713,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            1,
+            20
+        ],
+        "name": "BLUE_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 471,
+        "inventory_icon_id": 731,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            0,
+            20
+        ],
+        "name": "BLACK_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 472,
+        "inventory_icon_id": 773,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            2,
+            20
+        ],
+        "name": "PINK_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 473,
+        "inventory_icon_id": 785,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            3,
+            20
+        ],
+        "name": "RED_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 474,
+        "inventory_icon_id": 791,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            4,
+            20
+        ],
+        "name": "WHITE_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 475,
+        "inventory_icon_id": 797,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            5,
+            20
+        ],
+        "name": "YELLOW_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 476,
+        "inventory_icon_id": 737,
+        "transparent": true,
+        "style": "pane",
+        "sound": "webcraft:block.glass",
+        "tags": [
+            "glass"
+        ],
+        "texture": [
+            6,
+            20
+        ],
+        "name": "GREEN_STAINED_GLASS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 104,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            15,
+            6
+        ],
+        "name": "PUMPKIN_STEM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 105,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            15,
+            6
+        ],
+        "name": "MELON_STEM",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 106,
+        "transparent": true,
+        "texture": [
+            11,
+            14
+        ],
+        "name": "VINES",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 108,
+        "inventory_icon_id": 3241,
+        "style": "stairs",
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            7,
+            0
+        ],
+        "name": "BRICK_STAIRS",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 109,
+        "inventory_icon_id": 3324,
+        "style": "stairs",
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            1,
+            0
+        ],
+        "name": "STONE_STAIRS",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 112,
+        "texture": [
+            7,
+            6
+        ],
+        "name": "NETHER_BRICK",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 114,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            7,
+            6
+        ],
+        "name": "NETHER_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 117,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            13,
+            9
+        ],
+        "name": "BREWING_STAND",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 121,
+        "texture": [
+            15,
+            10
+        ],
+        "name": "END_STONE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 125,
+        "texture": [
+            5,
+            0
+        ],
+        "name": "DOUBLE_SLAB2",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 501,
+        "inventory_icon_id": 3240,
+        "transparent": true,
+        "style": "slab",
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            7,
+            0
+        ],
+        "name": "BRICK_SLAB",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 126,
+        "inventory_icon_id": 3284,
+        "transparent": true,
+        "style": "slab",
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            21,
+            19
+        ],
+        "name": "OAK_SLAB",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 458,
+        "inventory_icon_id": 3230,
+        "transparent": true,
+        "style": "slab",
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            20,
+            19
+        ],
+        "name": "BIRCH_SLAB",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 459,
+        "inventory_icon_id": 3268,
+        "transparent": true,
+        "style": "slab",
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            22,
+            19
+        ],
+        "name": "ACACIA_SLAB",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 461,
+        "inventory_icon_id": 3317,
+        "transparent": true,
+        "style": "slab",
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "name": "SPRUCE_SLAB",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 128,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            0,
+            12
+        ],
+        "name": "SANDSTONE_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 129,
+        "texture": [
+            9,
+            11
+        ],
+        "name": "EMERALD_ORE",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 135,
+        "inventory_icon_id": 3231,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            20,
+            19
+        ],
+        "name": "BIRCH_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 53,
+        "inventory_icon_id": 3285,
+        "style": "stairs",
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            21,
+            19
+        ],
+        "name": "OAK_STAIRS",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 163,
+        "inventory_icon_id": 3223,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            22,
+            19
+        ],
+        "name": "ACACIA_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 134,
+        "inventory_icon_id": 3318,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "name": "SPRUCE_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 136,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "name": "JUNGLE_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 139,
+        "sound": "webcraft:block.stone",
+        "texture": [
+            0,
+            1
+        ],
+        "name": "COBBLESTONE_WALL",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 141,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            11,
+            5
+        ],
+        "name": "CARROTS",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 142,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "texture": [
+            11,
+            5
+        ],
+        "name": "POTATOS",
+        "destroy_time": 0,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "planting": true
+    },
+    {
+        "id": 155,
+        "texture": [
+            3,
+            13
+        ],
+        "name": "QUARTZ",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 156,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            3,
+            13
+        ],
+        "name": "QUARTZ_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 161,
+        "transparent": true,
+        "texture": [
+            5,
+            3
+        ],
+        "name": "LEAVES2",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 164,
+        "style": "stairs",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            4,
+            7
+        ],
+        "name": "DARK_OAK_STAIRS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0,
+        "transparent": true
+    },
+    {
+        "id": 173,
+        "inventory_icon_id": 1118,
+        "texture": [
+            5,
+            2
+        ],
+        "name": "COAL",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 174,
+        "texture": [
+            3,
+            4
+        ],
+        "name": "ICE2",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 212,
+        "texture": [
+            3,
+            4
+        ],
+        "name": "ICE3",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 518,
+        "style": "triangle",
+        "sound": "webcraft:block.stone",
+        "tags": [
+            "triangle"
+        ],
+        "texture": [
+            7,
+            0
+        ],
+        "name": "BRICK_TRIANGLE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 199,
+        "inventory_icon_id": 445,
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "up": [26, 31],
+            "down": [27, 31],
+            "north": [28, 31],
+            "east": [29, 31],
+            "south": [30, 31],
+            "west": [31, 31]
+        },
+        "name": "TEST",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 58,
+        "inventory_icon_id": 3600,
+        "spawnable": true,
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "up": [
+                11,
+                2
+            ],
+            "down": [
+                21,
+                19
+            ],
+            "east": [
+                12,
+                3
+            ],
+            "west": [
+                12,
+                3
+            ],
+            "south": [
+                11,
+                3
+            ],
+            "north": [
+                11,
+                3
+            ]
+        },
+        "name": "CRAFTING_TABLE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 2,
+        "inventory_icon_id": 980,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.grass",
+        "tags": [
+            "dirt"
+        ],
+        "texture": {
+            "up": [
+                0,
+                16
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                2,
+                16
+            ]
+        },
+        "name": "DIRT",
+        "destroy_time": 1,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 466,
+        "inventory_icon_id": 3371,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.gravel",
+        "texture": {
+            "up": [
+                4,
+                0
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                4,
+                1
+            ]
+        },
+        "name": "PODZOL",
+        "destroy_time": 2,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 468,
+        "inventory_icon_id": 980,
+        "transparent": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "height": 0.9375,
+        "sound": "webcraft:block.grass",
+        "tags": [
+            "dirt"
+        ],
+        "texture": {
+            "up": [
+                4,
+                5
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                4,
+                6
+            ]
+        },
+        "name": "DIRT_PATH",
+        "destroy_time": 1,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 145,
+        "inventory_icon_id": 2244,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.grass",
+        "texture": {
+            "up": [
+                2,
+                4
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                4,
+                4
+            ]
+        },
+        "name": "SNOW_DIRT",
+        "destroy_time": 1,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 4,
+        "inventory_icon_id": 3614,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.grass",
+        "texture": {
+            "up": [
+                9,
+                0
+            ],
+            "down": [
+                10,
+                0
+            ],
+            "side": [
+                8,
+                0
+            ]
+        },
+        "name": "TNT",
+        "destroy_time": 1,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 162,
+        "inventory_icon_id": 2237,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                20,
+                17
+            ],
+            "down": [
+                20,
+                17
+            ],
+            "side": [
+                20,
+                16
+            ]
+        },
+        "name": "BIRCH_TRUNK",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 3,
+        "inventory_icon_id": 3429,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                21,
+                17
+            ],
+            "down": [
+                21,
+                17
+            ],
+            "side": [
+                21,
+                16
+            ]
+        },
+        "name": "OAK_TRUNK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 165,
+        "inventory_icon_id": 3398,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                22,
+                17
+            ],
+            "down": [
+                22,
+                17
+            ],
+            "side": [
+                22,
+                16
+            ]
+        },
+        "name": "ACACIA_TRUNK",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 138,
+        "inventory_icon_id": 3442,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                23,
+                17
+            ],
+            "down": [
+                23,
+                17
+            ],
+            "side": [
+                23,
+                16
+            ]
+        },
+        "name": "SPRUCE_TRUNK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 5,
+        "inventory_icon_id": 3239,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "up": [
+                21,
+                19
+            ],
+            "down": [
+                21,
+                19
+            ],
+            "side": [
+                3,
+                2
+            ]
+        },
+        "name": "BOOKCASE",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 23,
+        "texture": {
+            "up": [
+                14,
+                3
+            ],
+            "down": [
+                14,
+                3
+            ],
+            "south": [
+                14,
+                2
+            ],
+            "side": [
+                13,
+                2
+            ]
+        },
+        "name": "DISPENSER",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 29,
+        "texture": {
+            "up": [
+                10,
+                6
+            ],
+            "down": [
+                13,
+                6
+            ],
+            "side": [
+                12,
+                6
+            ]
+        },
+        "name": "STICKY_PISTON",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 33,
+        "texture": {
+            "up": [
+                11,
+                6
+            ],
+            "down": [
+                13,
+                6
+            ],
+            "side": [
+                12,
+                6
+            ]
+        },
+        "name": "PISTON",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 50,
+        "width": 0.125,
+        "height": 0.625,
+        "inventory_icon_id": 3389,
+        "spawnable": true,
+        "passable": 1,
+        "transparent": true,
+        "light_power": {
+            "r": 253,
+            "g": 241,
+            "b": 131,
+            "a": 224
+        },
+        "style": "torch",
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "up": [
+                0,
+                6
+            ],
+            "down": [
+                0,
+                7
+            ],
+            "side": [
+                0,
+                5
+            ]
+        },
+        "name": "TORCH",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 54,
+        "width": 0.875,
+        "height": 0.875,
+        "inventory_icon_id": 58,
+        "is_entity": true,
+        "transparent": true,
+        "sound": "webcraft:block.chest",
+        "texture": {
+            "up": [
+                17,
+                6
+            ],
+            "down": [
+                17,
+                6
+            ],
+            "south": [
+                19,
+                6
+            ],
+            "side": [
+                18,
+                6
+            ]
+        },
+        "name": "CHEST",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 61,
+        "inventory_icon_id": 3606,
+        "sound": "webcraft:block.stone",
+        "texture": {
+            "up": [
+                14,
+                3
+            ],
+            "down": [
+                14,
+                3
+            ],
+            "south": [
+                12,
+                2
+            ],
+            "side": [
+                13,
+                2
+            ]
+        },
+        "name": "FURNACE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 62,
+        "inventory_icon_id": 3606,
+        "sound": "webcraft:block.stone",
+        "texture": {
+            "up": [
+                14,
+                3
+            ],
+            "down": [
+                14,
+                3
+            ],
+            "south": [
+                13,
+                3
+            ],
+            "side": [
+                13,
+                2
+            ]
+        },
+        "name": "BURNING_FURNACE",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 65,
+        "inventory_icon_id": 3271,
+        "width": 0.0625,
+        "align": [
+            "back"
+        ],
+        "transparent": true,
+        "style": "ladder",
+        "passable": 0.25,
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "south": [
+                3,
+                5
+            ],
+            "side": [
+                4,
+                12
+            ]
+        },
+        "name": "LADDER",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 469,
+        "height": 0.0625,
+        "inventory_icon_id": 3314,
+        "transparent": true,
+        "passable": 1,
+        "texture": {
+            "up": [
+                2,
+                4
+            ],
+            "down": [
+                2,
+                4
+            ],
+            "side": [
+                4,
+                7
+            ]
+        },
+        "name": "SNOW",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 81,
+        "inventory_icon_id": 3409,
+        "width": 0.875,
+        "transparent": true,
+        "sound": "webcraft:block.cloth",
+        "texture": {
+            "up": [
+                5,
+                4
+            ],
+            "down": [
+                7,
+                4
+            ],
+            "side": [
+                6,
+                4
+            ]
+        },
+        "name": "CACTUS",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 84,
+        "inventory_icon_id": 3608,
+        "texture": {
+            "up": [
+                11,
+                4
+            ],
+            "side": [
+                10,
+                4
+            ]
+        },
+        "name": "JUKEBOX",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 462,
+        "inventory_icon_id": 1647,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "webcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                20,
+                20
+            ],
+            "down": [
+                20,
+                20
+            ],
+            "west": [
+                20,
+                21
+            ],
+            "east": [
+                20,
+                21
+            ],
+            "side": [
+                20,
+                22
+            ]
+        },
+        "name": "BIRCH_TRAPDOOR",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 463,
+        "inventory_icon_id": 957,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "webcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                21,
+                20
+            ],
+            "down": [
+                21,
+                20
+            ],
+            "west": [
+                21,
+                21
+            ],
+            "east": [
+                21,
+                21
+            ],
+            "side": [
+                21,
+                22
+            ]
+        },
+        "name": "OAK_TRAPDOOR",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 464,
+        "inventory_icon_id": 1649,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "webcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                22,
+                20
+            ],
+            "down": [
+                22,
+                20
+            ],
+            "west": [
+                22,
+                21
+            ],
+            "east": [
+                22,
+                21
+            ],
+            "side": [
+                22,
+                22
+            ]
+        },
+        "name": "ACACIA_TRAPDOOR",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 465,
+        "inventory_icon_id": 1646,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "webcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                23,
+                20
+            ],
+            "down": [
+                23,
+                20
+            ],
+            "west": [
+                23,
+                21
+            ],
+            "east": [
+                23,
+                21
+            ],
+            "side": [
+                23,
+                22
+            ]
+        },
+        "name": "SPRUCE_TRAPDOOR",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 86,
+        "inventory_icon_id": 3436,
+        "name": "PUMPKIN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 91,
+        "texture": {
+            "up": [
+                6,
+                6
+            ],
+            "down": [
+                6,
+                6
+            ],
+            "south": [
+                8,
+                7
+            ],
+            "side": [
+                6,
+                7
+            ]
+        },
+        "name": "LIT_PUMPKIN",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 110,
+        "texture": {
+            "up": [
+                14,
+                4
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                13,
+                4
+            ]
+        },
+        "name": "MYCELIUM",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 120,
+        "height": 0.8125,
+        "texture": {
+            "up": [
+                14,
+                9
+            ],
+            "down": [
+                15,
+                10
+            ],
+            "side": [
+                15,
+                9
+            ]
+        },
+        "name": "END_PORTAL_FRAME",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 158,
+        "texture": {
+            "up": [
+                14,
+                3
+            ],
+            "down": [
+                14,
+                3
+            ],
+            "south": [
+                14,
+                2
+            ],
+            "side": [
+                13,
+                2
+            ]
+        },
+        "name": "DROPPER",
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 0
+    },
+    {
+        "id": 199,
+        "inventory_icon_id": 445,
+        "sound": "webcraft:block.wood",
+        "texture": {
+            "up": [
+                26,
+                31
+            ],
+            "down": [
+                27,
+                31
+            ],
+            "north": [
+                28,
+                31
+            ],
+            "east": [
+                29,
+                31
+            ],
+            "south": [
+                30,
+                31
+            ],
+            "west": [
+                31,
+                31
+            ]
+        },
+        "name": "TEST",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    }
+]

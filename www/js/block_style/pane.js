@@ -10,11 +10,10 @@ export function push_pane(block, vertices, chunk, lightmap, x, y, z, neighbours)
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
     let texture     = BLOCK[block.name].texture;
-    let blockLit    = true;
     let bH          = 1.0;
     let lm          = MULTIPLY.COLOR.WHITE;
     let ao          = [0, 0, 0, 0];
-    let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD, blockLit);
+    let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
 
     ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z);
 

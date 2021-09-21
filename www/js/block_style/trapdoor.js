@@ -32,7 +32,6 @@ export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbo
     }
 
     let texture                 = BLOCK[block.name].texture;
-    let blockLit                = true;
 
     // F R B L
     const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
@@ -72,9 +71,9 @@ export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbo
     let on_ceil = block.extra_data.point.y >= .5;
     let thickness = 3/16; // толщина блока
     if(block.extra_data.opened) {
-        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD, blockLit);
-        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP, blockLit);
-        let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT, blockLit);
+        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
+        let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
         let x_pos = 0;
         let z_pos = 0;
         let y_pos = 0; // нарисовать в нижней части блока
@@ -141,9 +140,9 @@ export function push_trapdoor(block, vertices, chunk, lightmap, x, y, z, neighbo
         }
 
     } else {
-        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP, blockLit);
-        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT, blockLit);
-        let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD, blockLit);
+        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
+        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+        let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
         let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
         tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
         tex_front[3] = thickness / TX_CNT;

@@ -1,11 +1,10 @@
-import {MULTIPLY, QUAD_FLAGS} from '../helpers.js';
+import {MULTIPLY, DIRECTION, QUAD_FLAGS} from '../helpers.js';
 import {push_plane} from './plane.js';
 
 // Растения
 export function push_plant(block, vertices, chunk, lightmap, x, y, z, biome) {
     let texture     = BLOCK.fromId(block.id).texture;
-    let blockLit    = true;
-    let c = BLOCK.calcTexture(texture, null, blockLit);
+    let c = BLOCK.calcTexture(texture, DIRECTION.UP);
     let lm = MULTIPLY.COLOR.WHITE;
     let flags = QUAD_FLAGS.NORMAL_UP;
     // Texture color multiplier

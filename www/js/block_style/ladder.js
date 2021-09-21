@@ -10,11 +10,10 @@ export function push_ladder(block, vertices, chunk, lightmap, x, y, z) {
     const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
     let texture     = BLOCK[block.name].texture;
-    let blockLit    = true; // z >= lightmap[x][y];
     let bH          = 1.0;
     let width       = block.width ? block.width : 1;
     let lm          = MULTIPLY.COLOR.WHITE;
-    let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD, blockLit);
+    let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
 
     switch(cardinal_direction) {
         case ROTATE.S: {

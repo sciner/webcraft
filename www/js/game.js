@@ -12,6 +12,8 @@ import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
 import {GameMode} from "./game_mode.js";
 
+export {BLOCK};
+
 // Mouse event enumeration
 export let MOUSE         = {};
     MOUSE.DOWN    = 1;

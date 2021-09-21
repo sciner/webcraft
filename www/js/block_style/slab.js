@@ -7,7 +7,6 @@ export function push_slab(block, vertices, chunk, lightmap, x, y, z) {
     const half = 0.5 / TX_CNT;
 
     let texture = BLOCK.fromId(block.id).texture;
-	let blockLit = true;
     block.transparent = true;
 
     let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
@@ -18,7 +17,7 @@ export function push_slab(block, vertices, chunk, lightmap, x, y, z) {
     }
 
     // полная текстура
-    let c = BLOCK.calcTexture(texture, null, blockLit);
+    let c = BLOCK.calcTexture(texture, DIRECTION.UP);
 
     // нижняя половина текстуры
     let c_half_bottom= [
@@ -55,7 +54,7 @@ export function push_slab(block, vertices, chunk, lightmap, x, y, z) {
     push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
     // Up and down
-    c = BLOCK.calcTexture(texture, DIRECTION.DOWN, blockLit);
+    c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
     lm = MULTIPLY.COLOR.WHITE;
     let flags = 0, sideFlags = 0, upFlags = 0;
 

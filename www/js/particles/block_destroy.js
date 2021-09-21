@@ -31,7 +31,7 @@ export default class Particles_Block_Destroy {
             lm          = cell.biome.dirt_color;
             sideFlags   = QUAD_FLAGS.MASK_BIOME;
         }
-        let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP, 1); // полная текстура
+        let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
             pos.y + .5,

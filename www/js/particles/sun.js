@@ -17,7 +17,6 @@ export default class Particles_Sun {
         //
         const sz        = 1;
         // tex coord (позиция в текстуре)
-        let c_half_rad = BLOCK.calcTexture([24, 31]);
         let c_half = BLOCK.calcTexture([25, 31]);
         // позиция частицы (в границах блока)
         let x = 0;
