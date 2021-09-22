@@ -24,7 +24,6 @@ Resources
 
 // World
 const world = {
-    blocks_pushed: 0,
     clouds: {
         size: new Vector(256, 1, 256),
         blocks: Array(256).fill(null).map(el => Array(256).fill(null)),

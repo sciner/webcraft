@@ -57,11 +57,11 @@ export class BLOCK {
             x = x.x;
         }
         let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        if(index < 0) {
+        /*if(index < 0) {
             index = -1;
         } else if(index > CHUNK_BLOCKS) {
             index = -1;
-        }
+        }*/
         return index;
     }
 

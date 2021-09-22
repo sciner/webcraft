@@ -18,6 +18,38 @@ export class Mth {
 
 }
 
+// VectorCollector...
+export class VectorCollector {
+
+    constructor() {
+        this.clear();
+    }
+
+    clear() {
+        this.list = [];
+    }
+    
+    add(vec, getter) {
+        if(!this.list[vec.x]) this.list[vec.x] = [];
+        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
+        if(!this.list[vec.x][vec.y][vec.z]) this.list[vec.x][vec.y][vec.z] = getter(vec);
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    get() {
+        let resp = [];
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    resp.push(new Vector(x|0, y|0, z|0));
+                }
+            }
+        }
+        return resp;
+    }
+
+}
+
 // Color
 export class Color {
 
