@@ -6,7 +6,6 @@ precision highp float;
 const float desaturateFactor = 2.0;
 
 uniform sampler2D u_texture;
-uniform sampler2D u_texture_mask;
 
 uniform vec3 u_camera_pos;
 // Fog

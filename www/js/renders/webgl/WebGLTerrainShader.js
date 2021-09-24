@@ -45,6 +45,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
+        this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
 
         this.hasModelMatrix = false;
@@ -78,6 +79,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1i(this.u_texture, 4);
+        gl.uniform1i(this.u_lightTex, 5);
     }
 
     updatePos(pos, modelMatrix) {

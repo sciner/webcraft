@@ -1,4 +1,5 @@
 #version 300 es
+precision mediump sampler3D;
 
 in vec3 a_position;
 in vec3 a_axisX;
@@ -31,6 +32,8 @@ out vec4 v_color;
 out vec3 v_normal;
 out float light;
 out vec4 crosshair;
+
+uniform sampler3D u_lightTex;
 
 void main() {
     v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
@@ -76,6 +79,10 @@ void main() {
             v_color.r = -1.0;
         }
     }
+
+    vec3 lightCoord =  pos + v_normal.xzy * 0.5;
+    lightCoord /= vec3(16.0, 16.0, 32.0);
+    light = max(min(texture(u_lightTex, lightCoord).a * 16.0, 1.0), 0.2) * (1.0 - v_color.a);
 
     world_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz + u_add_pos;
     v_position = (u_worldView * vec4(world_pos, 1.0)). xyz;
