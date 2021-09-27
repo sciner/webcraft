@@ -70,6 +70,11 @@ export class Vector {
             this.y = x.y;
             this.z = x.z;
             return;
+        } else if(typeof x == 'object') {
+            this.x = x.x;
+            this.y = x.y;
+            this.z = x.z;
+            return;
         }
         this.x = x || 0;
         this.y = y || 0;

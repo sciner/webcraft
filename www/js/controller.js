@@ -34,8 +34,31 @@ let gameCtrl = function($scope, $timeout) {
             {id: 'kenney', name: 'Kenney', value: 'terrain_kenney'},
             {id: '1px', name: '1px', value: 'terrain_1px'},
             {id: '128', name: '128', value: 'terrain_128'}
-        ]
-    }
+        ],
+        next: function() {
+            let current = this.getCurrent();
+            let index = 0;
+            for(let i in this.list) {
+                let tp = this.list[i];
+                if(tp.value == current.value) {
+                    index = i;
+                    break;
+                }
+            }
+            this.select(++index);
+        },
+        select: function(index) {
+            index = index % this.list.length;
+            $scope.settings.form.texture_pack = this.list[index].value;
+        },
+        getCurrent: function() {
+            for(let tp of this.list) {
+                if(tp.value == $scope.settings.form.texture_pack) {
+                    return tp;
+                }
+            }
+        }
+    };
 
     import('/js/game.js')
         .then(module => {

@@ -367,7 +367,11 @@ export default class Player {
             case KEY.E: {
                 if(!down) {
                     if(Game.hud.wm.getVisibleWindows().length == 0) {
-                        Game.hud.wm.getWindow('frmInventory').toggleVisibility();
+                        if(Game.world.game_mode.isCreative()) {
+                            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+                        } else {
+                            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
+                        }
                         return true;
                     }
                 }

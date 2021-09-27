@@ -1,5 +1,5 @@
 import {BLOCK} from "./blocks.js";
-import {CraftTable, InventoryWindow, ChestWindow} from "./window/index.js";
+import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 
 // Player inventory
@@ -37,6 +37,9 @@ export default class Inventory {
         // Inventory window
         this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this);
         hud.wm.add(this.frmInventory);
+        // Creative Inventory window
+        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
+        hud.wm.add(this.frmCreativeInventory);
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         hud.wm.add(this.frmChest);
@@ -84,6 +87,9 @@ export default class Inventory {
                 const block = {...BLOCK.fromId(item.id)};
                 if(block) {
                     item = Object.assign(block, items[k]);
+                    if(!item.count) {
+                        item.count = 1;
+                    }
                     this.items[k] = item;
                 }
             }
@@ -115,11 +121,14 @@ export default class Inventory {
             max_in_stack:       block.max_in_stack,
         }, mat);
         let item_max_count = mat.max_in_stack;
-        // update cell if exists
+        // Update cell if exists
         for(let i in this.items) {
             let item = this.items[i];
             if(item) {
                 if(item.id == mat.id) {
+                    if(Game.world.game_mode.isCreative()) {
+                        return;
+                    }
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
@@ -135,7 +144,7 @@ export default class Inventory {
                 }
             }
         }
-        // start new slot
+        // Start new slot
         for(let i = 0; i < this.items.length; i++) {
             if(!this.items[i]) {
                 this.items[i] = {...mat};
@@ -158,8 +167,9 @@ export default class Inventory {
         }
     }
     
+    // Decrement
     decrement() {
-        if(!this.current) {
+        if(!this.current || Game.world.game_mode.isCreative()) {
             return;
         }
         this.current.count = Math.max(this.current.count - 1, 0);
@@ -198,12 +208,19 @@ export default class Inventory {
         this.select(--this.index);
     }
     
+    // Клонирование материала в инвентарь
     cloneMaterial(mat) {
         const MAX = 64;
         // Search same material with count < max
         for(let index in this.items) {
             if(this.items[index]) {
                 if(this.items[index].id == mat.id) {
+                    if(Game.world.game_mode.isCreative()) {
+                        if(index < this.hotbar_count) {
+                            this.select(index);
+                        }
+                        return;
+                    }
                     if(this.items[index].count < MAX) {
                         this.items[index].count = Math.min(this.items[index].count + 1, MAX);
                         if(index < this.hotbar_count) {
@@ -214,7 +231,7 @@ export default class Inventory {
                 }
             }
         }
-        // start new cell
+        // Start new cell
         for(let index = 0; index < this.items.length; index++) {
             if(!this.items[index]) {
                 this.items[index] = Object.assign({count: 1}, mat);
@@ -225,10 +242,6 @@ export default class Inventory {
                 return this.refresh();
             }
         }
-        /*
-        this.current = this.player.buildMaterial = this.items[this.index] = Object.assign({count: 1}, mat);
-        delete(this.items[this.index].texture);
-        */
     }
     
     drawHUD(hud) {
@@ -237,6 +250,7 @@ export default class Inventory {
         }
         hud.wm.center(this.ct);
         hud.wm.center(this.frmInventory);
+        hud.wm.center(this.frmCreativeInventory);
     }
     
     drawHotbar(hud, cell_size, pos) {

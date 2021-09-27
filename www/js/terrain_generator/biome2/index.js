@@ -110,11 +110,11 @@ export default class Terrain_Generator {
         let map                     = new Map(chunk, this.options);
         this.caveManager.addSpiral(chunk.addr);
         //
-        for(let x = 0; x < chunk.size.x; x++) {
-            for(let z = 0; z < chunk.size.z; z++) {
+        for(let x = 0; x < chunk.size.x; x += 2) {
+            for(let z = 0; z < chunk.size.z; z += 2) {
                 let px = SX + x;
                 let pz = SZ + z;
-                // высота горы в точке
+                // Высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
                     noisefn(px / 650, pz / 650) * .25 + // 65 | 650
@@ -144,7 +144,7 @@ export default class Terrain_Generator {
                 let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
                 let dirt_block = biome.dirt_block[index];
                 // Create map cell
-                map.cells[x][z] = new MapCell(
+                let cell = new MapCell(
                     value,
                     humidity,
                     equator,
@@ -159,9 +159,12 @@ export default class Terrain_Generator {
                     dirt_block.id
                 );
                 if(biome.code == 'OCEAN') {
-                    map.cells[x][z].block = blocks.STILL_WATER;
+                    cell.block = blocks.STILL_WATER;
                 }
-
+                map.cells[x][z] = cell;
+                map.cells[x + 1][z + 1] = cell;
+                map.cells[x + 1][z] = cell;
+                map.cells[x][z + 1] = cell;
             }
         }
         // Clear maps_cache
@@ -277,6 +280,26 @@ export default class Terrain_Generator {
                 setBlock(x, y_int, z, block.id);
             }
         }
+
+        //
+        /*if(chunk.addr.x == 194) {
+            let ab = all_blocks;
+            for(let x = 0; x < chunk.size.x; x++) {
+                for(let z = 0; z < chunk.size.z; z++) {
+                    for(let y = 0; y < chunk.size.y; y++) {
+                        let index = aleaRandom.double() * ab.length;
+                        index = index | 0;
+                        let b = ab[index];
+                        if(!b || !b.spawnable || b.is_item || !b.sound || b.is_entity || b.transparent || (b.style && b.style == 'triangle')) {
+                            y--;
+                            continue;
+                        }
+                        setBlock(x, y, z, b.id);
+                    }
+                }
+            }
+            return map;
+        }*/
 
         //
         for(let x = 0; x < chunk.size.x; x++) {
