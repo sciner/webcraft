@@ -14,6 +14,7 @@ export default class Particles_Block_Destroy {
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
         if(!chunk.map) {
             debugger;
+            return false;
         }
         let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
         this.yaw        = -Game.world.localPlayer.angles[2];

@@ -282,7 +282,7 @@ export default class Player {
                         let all_items = BLOCK.getAll();
                         for(let i = 0; i < all_items.length; i++) {
                             let block = all_items[i]
-                            if(block.fluid || block.is_item) {
+                            if(block.fluid || block.is_item || !block.spawnable) {
                                 continue;
                             }
                             if(cnt % d == 0) {
@@ -290,7 +290,7 @@ export default class Player {
                                 z += 2;
                             }
                             x += 2;
-                            Game.world.setBlock(x, y, z, block);
+                            Game.world.setBlock(x, y, z, block, null, null, null, block.extra_data);
                             cnt++;
                         }
                     } else {

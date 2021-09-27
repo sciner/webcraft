@@ -1562,7 +1562,7 @@
         "id": 75,
         "passable": 1,
         "transparent": true,
-        "style": "torch",
+        "style": "planting",
         "light_power": {
             "r": 253,
             "g": 200,
@@ -1586,7 +1586,7 @@
         "id": 76,
         "passable": 1,
         "transparent": true,
-        "style": "torch",
+        "style": "planting",
         "texture": [
             3,
             7
@@ -3342,6 +3342,10 @@
                 22
             ]
         },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
         "name": "BIRCH_TRAPDOOR",
         "destroy_time": 0.4,
         "power": 1,
@@ -3380,6 +3384,10 @@
                 21,
                 22
             ]
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
         },
         "name": "OAK_TRAPDOOR",
         "destroy_time": 0.4,
@@ -3420,6 +3428,10 @@
                 22
             ]
         },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
         "name": "ACACIA_TRAPDOOR",
         "destroy_time": 0.4,
         "power": 1,
@@ -3459,6 +3471,10 @@
                 22
             ]
         },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
         "name": "SPRUCE_TRAPDOOR",
         "destroy_time": 0.4,
         "power": 1,
@@ -3469,6 +3485,20 @@
     },
     {
         "id": 86,
+        "texture": {
+            "up": [
+                6,
+                6
+            ],
+            "down": [
+                6,
+                6
+            ],
+            "side": [
+                6,
+                7
+            ]
+        },
         "inventory_icon_id": 3436,
         "name": "PUMPKIN",
         "destroy_time": 0.4,
