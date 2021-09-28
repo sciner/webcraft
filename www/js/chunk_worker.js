@@ -367,7 +367,7 @@ class Chunk {
                         group = 'transparent';
                     } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
                         group = 'doubleface_transparent';
-                    } else if(block.style == 'planting' || block.style == 'ladder') {
+                    } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
                         group = 'doubleface';
                     }
                     // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока

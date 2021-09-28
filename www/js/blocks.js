@@ -415,6 +415,21 @@ export class BLOCK {
 
 //
 await fetch('../data/blocks.json').then(response => response.json()).then(json => {
+    json.sort((a, b) => {
+        //
+        if(a.inventory_icon_id == 0) {
+            return 1;
+        } else if(b.inventory_icon_id == 0) {
+            return -1;
+        }
+        //
+        if(!a.style) a.style = 'default';
+        if(!b.style) b.style = 'default';
+        if(a.style != b.style) {
+            return a.style > b.style ? 1 : -1;
+        }
+        return b.id - a.id;
+    });
     for(let block of json) {
         BLOCK.add(block);
     }

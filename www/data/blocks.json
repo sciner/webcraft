@@ -513,7 +513,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0,
+        "inventory_icon_id": 3430,
         "planting": true
     },
     {
@@ -531,7 +531,7 @@
         "power": 1,
         "light": null,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3237
     },
     {
         "id": 69,
@@ -659,11 +659,11 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 98
     },
     {
         "id": 202,
-        "inventory_icon_id": 3272,
+        "inventory_icon_id": 1295,
         "transparent": true,
         "passable": 0.4,
         "selflit": true,
@@ -699,7 +699,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3148
     },
     {
         "id": 170,
@@ -728,7 +728,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3146
     },
     {
         "id": 15,
@@ -791,7 +791,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3272
     },
     {
         "id": 24,
@@ -807,7 +807,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3376
     },
     {
         "id": 25,
@@ -845,7 +845,7 @@
         "inventory_icon_id": 3359,
         "passable": 0.1,
         "transparent": true,
-        "style": "planting",
+        "style": "sign",
         "sound": "webcraft:block.stone",
         "texture": [
             11,
@@ -857,8 +857,7 @@
         "selflit": false,
         "light": null,
         "spawnable": true,
-        "max_in_stack": 64,
-        "planting": true
+        "max_in_stack": 64
     },
     {
         "id": 31,
@@ -1414,7 +1413,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3379
     },
     {
         "id": 44,
@@ -1453,7 +1452,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3366
     },
     {
         "id": 56,
@@ -1523,7 +1522,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0,
+        "inventory_icon_id": 2257,
         "transparent": true
     },
     {
@@ -1540,7 +1539,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 2085
     },
     {
         "id": 73,
@@ -1556,13 +1555,13 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3396
     },
     {
         "id": 75,
         "passable": 1,
         "transparent": true,
-        "style": "planting",
+        "style": "sign",
         "light_power": {
             "r": 253,
             "g": 200,
@@ -1580,13 +1579,13 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3347
     },
     {
         "id": 76,
         "passable": 1,
         "transparent": true,
-        "style": "planting",
+        "style": "sign",
         "texture": [
             3,
             7
@@ -1598,7 +1597,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3337
     },
     {
         "id": 79,
@@ -1613,7 +1612,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 983
     },
     {
         "id": 80,
@@ -1643,7 +1642,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3357
     },
     {
         "id": 189,
@@ -1732,7 +1731,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3382
     },
     {
         "id": 87,
@@ -1747,7 +1746,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3386
     },
     {
         "id": 88,
@@ -1763,7 +1762,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3387
     },
     {
         "id": 95,
@@ -1773,21 +1772,6 @@
             3
         ],
         "name": "STAINED_GLASS",
-        "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 0
-    },
-    {
-        "id": 97,
-        "texture": [
-            5,
-            6
-        ],
-        "name": "MONSTER_EGG",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -1840,7 +1824,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3437
     },
     {
         "id": 102,
@@ -2045,7 +2029,7 @@
         "power": 1,
         "selflit": false,
         "light": null,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
         "planting": true
@@ -2064,7 +2048,7 @@
         "power": 1,
         "selflit": false,
         "light": null,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
         "planting": true
@@ -2165,7 +2149,7 @@
     {
         "id": 117,
         "transparent": true,
-        "style": "planting",
+        "style": "sign",
         "texture": [
             13,
             9
@@ -2177,8 +2161,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0,
-        "planting": true
+        "inventory_icon_id": 0
     },
     {
         "id": 121,
@@ -2193,7 +2176,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3190
     },
     {
         "id": 125,
@@ -2332,7 +2315,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0,
+        "inventory_icon_id": 2261,
         "transparent": true
     },
     {
@@ -2508,8 +2491,8 @@
     {
         "id": 155,
         "texture": [
-            3,
-            13
+            10,
+            14
         ],
         "name": "QUARTZ",
         "destroy_time": 0.4,
@@ -2518,7 +2501,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3238
     },
     {
         "id": 156,
@@ -2527,8 +2510,8 @@
             "stairs"
         ],
         "texture": [
-            3,
-            13
+            10,
+            14
         ],
         "name": "QUARTZ_STAIRS",
         "destroy_time": 0.4,
@@ -2537,7 +2520,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0,
+        "inventory_icon_id": 3306,
         "transparent": true
     },
     {
@@ -2554,27 +2537,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
-    },
-    {
-        "id": 164,
-        "style": "stairs",
-        "tags": [
-            "stairs"
-        ],
-        "texture": [
-            4,
-            7
-        ],
-        "name": "DARK_OAK_STAIRS",
-        "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 0,
-        "transparent": true
+        "inventory_icon_id": 3397
     },
     {
         "id": 173,
@@ -3022,7 +2985,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3602
     },
     {
         "id": 29,
@@ -3072,7 +3035,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3341
     },
     {
         "id": 50,
@@ -3535,7 +3498,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3265
     },
     {
         "id": 110,
@@ -3560,7 +3523,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3368
     },
     {
         "id": 120,
@@ -3585,8 +3548,9 @@
         "selflit": false,
         "light": null,
         "spawnable": true,
+        "transparent": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3188
     },
     {
         "id": 158,
@@ -3600,7 +3564,7 @@
                 3
             ],
             "south": [
-                14,
+                15,
                 2
             ],
             "side": [
@@ -3615,7 +3579,7 @@
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3603
     },
     {
         "id": 199,
