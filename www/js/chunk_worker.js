@@ -146,6 +146,10 @@ class Chunk {
                 console.log(this.addr.toChunkKey());
             }*/
             let type        = BLOCK.fromId(m.id);
+            if(type.id == -1) {
+                console.error(pos, m);
+                return;
+            }
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
             let extra_data  = m.extra_data ? m.extra_data : null;
