@@ -25,7 +25,7 @@ export default class Particles_Block_Destroy {
         let flags       = 0;
         let sideFlags   = 0;
         let upFlags     = QUAD_FLAGS.NORMAL_UP;
-        if(typeof this.texture != 'function' && !(this.texture instanceof Array)) {
+        if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
             this.life = 0;
             return;
         }
