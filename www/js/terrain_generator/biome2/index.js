@@ -436,7 +436,7 @@ export default class Terrain_Generator {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             if(!chunk.blocks[x][z][y - chunk.coord.y]) {
-                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER);
+                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER.id);
                             }
                         }
                     }
