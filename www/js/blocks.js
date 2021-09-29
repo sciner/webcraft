@@ -33,7 +33,7 @@ export class BLOCK {
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
-        let index = BLOCK.getIndex(x, y, z);
+        /*let index = BLOCK.getIndex(x, y, z);
         if(index >= 0 && index < CHUNK_BLOCKS) {
             let light_power = lightmap[index];
             if(light_power != 0) {
@@ -45,11 +45,11 @@ export class BLOCK {
                     ao[3] - light_power,
                 ];
             }
-        }
+        }*/
         return ao;
     }
 
-    // Return flat index of chunk block 
+    // Return flat index of chunk block
     static getIndex(x, y, z) {
         if(x instanceof Vector) {
             y = x.y;

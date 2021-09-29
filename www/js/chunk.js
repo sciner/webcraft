@@ -18,6 +18,10 @@ export default class Chunk {
             CHUNK_SIZE_Z
         );
 
+        this.lightTex = null;
+        this.lightData = null;
+        this.lightMats = {};
+
         // относительные координаты чанка
         this.addr = new Vector(
             pos.x,
@@ -71,12 +75,34 @@ export default class Chunk {
         if(!this.map) {
             this.map = args.map;
         }
+        this.lightData = args.lightmap || null;
+        if (this.lightTex !== null) {
+            this.lightTex.update(this.lightData)
+        }
+        //args.lightmap
     }
 
     drawBufferGroup(render, group, mat) {
         if(this.vertices[group]) {
             if(this.vertices[group].buffer) {
-                render.drawMesh(this.vertices[group].buffer, mat, this.coord);
+                if (this.lightData) {
+                    if (!this.lightTex) {
+                        this.lightTex = render.createTexture3D({
+                            width: this.size.x,
+                            height: this.size.z,
+                            depth: this.size.y,
+                            type: 'u8',
+                            filter: 'linear',
+                            data: this.lightData
+                        })
+                    }
+                    if (!this.lightMats[group]) {
+                        this.lightMats[group] = mat.getLightMat(this.lightTex)
+                    }
+                    render.drawMesh(this.vertices[group].buffer, this.lightMats[group], this.coord);
+                } else {
+                    render.drawMesh(this.vertices[group].buffer, mat, this.coord);
+                }
                 return true;
             }
         }
@@ -120,6 +146,9 @@ export default class Chunk {
     destruct() {
         if(this.buffer) {
             this.buffer.destroy();
+        }
+        if (this.lightTex) {
+            this.lightTex.destroy();
         }
         // Run webworker method
         this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
