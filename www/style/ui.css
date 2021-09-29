@@ -16,7 +16,7 @@ body {
     background-image: url('../media/gui/button_center.png');
     position: relative;
     margin: 0;
-    margin-bottom: 20px;
+    margin-bottom: .5em;
     display: inline-block;
     background-repeat: repeat;
     padding: .65em 0;

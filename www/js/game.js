@@ -357,6 +357,18 @@ export let Game = {
                 }
             }
         });
+        document.addEventListener('wheel', function(e) {
+            if(Game.hud.wm.getVisibleWindows().length > 0) {
+                Game.hud.wm.mouseEventDispatcher({
+                    original_event:     e,
+                    type:               e.type,
+                    shiftKey:           e.shiftKey,
+                    button:             e.button,
+                    offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
+                    offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                });
+            }
+        });
         document.addEventListener('mousemove', function(e) {
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;

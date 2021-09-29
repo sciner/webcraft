@@ -148,6 +148,10 @@ class Chunk {
                 console.log(this.addr.toChunkKey());
             }*/
             let type        = BLOCK.fromId(m.id);
+            if(type.id == -1) {
+                console.error(pos, m);
+                return;
+            }
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
             let extra_data  = m.extra_data ? m.extra_data : null;
@@ -388,7 +392,7 @@ class Chunk {
                         group = 'transparent';
                     } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
                         group = 'doubleface_transparent';
-                    } else if(block.style == 'planting') {
+                    } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
                         group = 'doubleface';
                     }
                     // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока

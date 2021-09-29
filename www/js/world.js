@@ -90,7 +90,7 @@ export class World {
         this.meshes.draw(render, delta);
         // Clouds
         if(!this.clouds) {
-            let pos = new Vector(this.spawnPoint);
+            let pos = new Vector(this.saved_state.pos);
             pos.y = 128.1;
             this.clouds = this.createClouds(pos);
         }

@@ -35,6 +35,7 @@ export class Resources {
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
 
         let skiybox_dir = './media/skybox/park';
+        // let skiybox_dir = './media/skybox/title_background';
         all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));
         all.push(loadImage(skiybox_dir + '/negx.jpg').then((img) => {this.sky.negx = img}));
         all.push(loadImage(skiybox_dir + '/posy.jpg').then((img) => {this.sky.posy = img}));

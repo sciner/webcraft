@@ -66,10 +66,12 @@
                 </button>
                 <!-- Texture pack -->
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                    <button class="btn" ng-click="texture_pack.next()">Texture pack: {{texture_pack.getCurrent().name}}</button>
+                    <!-- <br>
                     <label>Texture pack</label>
                     <div>
                         <div ng-repeat="tp in texture_pack.list"><label for="input-texture_pack-{{tp.id}}"><input type="radio" id="input-texture_pack-{{tp.id}}" ng-model="settings.form.texture_pack" value="{{tp.value}}" style="width: 20px; height: 20px; margin-right: 10px;"></input> {{tp.name}}</label></div>
-                    </div>
+                    </div> -->
                 </div>
                 <!-- Generate mipmap -->
                 <div style="display: flex; align-items: center; justify-content: center; margin-top: 1em;">
@@ -99,7 +101,7 @@
                     <br><strong>F10</strong> - Change game mode
                 </div>
 
-
+                <br>
                 <br>
                 <h4 class="text-center">Thank you:</h4>
                 <div style="font-size: 14px;">

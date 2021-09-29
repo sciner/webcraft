@@ -18,13 +18,16 @@ export class Window {
         this.hover          = false;
         this.catchEvents    = true;
         this.parent         = null;
+        this.scrollX        = 0;
+        this.scrollY        = 0;
         this.onHide         = function() {};
         this.onShow         = function() {};
-        this.onDrop         = function(e) {};
-        this.onMouseMove    = function(e) {};
         this.onMouseEnter   = function() {};
         this.onMouseLeave   = function() {};
         this.onMouseDown    = function() {};
+        this.onMouseMove    = function(e) {};
+        this.onDrop         = function(e) {};
+        this.onWheel        = function(e) {};
         this.style          = {
             color: '#3f3f3f',
             textAlign: {
@@ -95,8 +98,13 @@ export class Window {
         let w = this.width;
         let h = this.height;
 
+        // let region = new Path2D();
+        // region.rect(x, y, w, h);
+
         // Save the default state
         ctx.save();
+        // ctx.clip(region, 'evenodd');
+
         // this.applyStyle(ctx, ax, ay);
         // fill background color
         ctx.fillStyle = this.style.background.color;
@@ -160,7 +168,7 @@ export class Window {
         for(let id of Object.keys(this.list)) {
             let w = this.list[id];
             if(w.visible) {
-                w.draw(ctx, this.x, this.y);
+                w.draw(ctx, ax+this.x, ay+this.y);
             }
         }
     }
@@ -236,7 +244,7 @@ export class Window {
         }
         return this.show();
     }
-    mousemove(e) {
+    _mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
         for(let id of Object.keys(this.list)) {
@@ -248,10 +256,12 @@ export class Window {
             w.hover = false;
             if(w.visible) {
                 let e2 = {...e};
-                e2.x -= (this.ax + w.x);
-                e2.y -= (this.ay + w.y);
-                if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
-                    w.mousemove(e2);
+                let x = e2.x - (this.ax + w.x);
+                let y = e2.y - (this.ay + w.y);
+                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                    e2.x = x + this.x;
+                    e2.y = y + this.y - w.scrollY;
+                    w._mousemove(e2);
                     w.hover = true;
                 }
             }
@@ -269,9 +279,11 @@ export class Window {
             let w = this.list[id];
             if(w.visible) {
                 let e2 = {...e};
-                e2.x -= (this.ax + w.x);
-                e2.y -= (this.ay + w.y);
-                if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
+                let x = e2.x - (this.ax + w.x);
+                let y = e2.y - (this.ay + w.y);
+                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                    e2.x = x + this.x;
+                    e2.y = y + this.y - w.scrollY;
                     e2.target = w;
                     w._mousedown(e2);
                     return;
@@ -285,15 +297,33 @@ export class Window {
             let w = this.list[id];
             if(w.visible) {
                 let e2 = {...e};
-                e2.x -= (this.ax + w.x);
-                e2.y -= (this.ay + w.y);
-                if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
+                let x = e2.x - (this.ax + w.x);
+                let y = e2.y - (this.ay + w.y);
+                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                    e2.x = x + this.x;
+                    e2.y = y + this.y - w.scrollY;
                     w._drop(e2);
                     return;
                 }
             }
         }
         this.onDrop(e);
+    }
+    _wheel(e) {
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
+            if(w.visible) {
+                let e2 = {...e};
+                e2.x -= (this.ax + w.x);
+                e2.y -= (this.ay + w.y);
+                if(e2.x >= 0 && e2.y >= 0 && e2.x < w.width && e2.y < w.height)  {
+                    e2.target = w;
+                    w._wheel(e2);
+                    return;
+                }
+            }
+        }
+        this.onWheel(e);
     }
     print(text) {
         if(!this.ctx) {
@@ -457,7 +487,7 @@ export class WindowManager extends Window {
                 };
                 this.pointer.x = e.offsetX;
                 this.pointer.y = e.offsetY;
-                this.mousemove(evt);
+                this._mousemove(evt);
                 break;
             }
             case 'mousedown': {
@@ -473,6 +503,22 @@ export class WindowManager extends Window {
                 } else {
                     this._mousedown(evt);
                 }
+                break;
+            }
+            case 'wheel': {
+                if(!this.drag.getItem()) {
+                    let evt = {
+                        shiftKey:       e.shiftKey,
+                        button:         e.button,
+                        original_event: e.original_event,
+                        x:              e.offsetX - this.x,
+                        y:              e.offsetY - this.y
+                    };
+                    this._wheel(evt);
+                }
+                break;
+            }
+            default: {
                 break;
             }
         }

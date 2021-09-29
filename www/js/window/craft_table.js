@@ -199,7 +199,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             //
             if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
-                if(performance.now() - this.prev_mousedown_time < 200.0 && dropData.item.count < max_stack_count) {
+                let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
+                if(doubleClick && dropData.item.count < max_stack_count) {
                     let need_count = max_stack_count - dropData.item.count;
                     // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
@@ -264,6 +265,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             if(targetItem) {
                 // @todo
                 if(targetItem.id == dropData.item.id) {
+                    // console.log(targetItem.count, max_stack_count);
                     if(targetItem.count < max_stack_count) {
                         if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                             targetItem.count++;

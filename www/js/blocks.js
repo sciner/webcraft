@@ -268,6 +268,7 @@ export class BLOCK {
                 if(!B.hasOwnProperty('inventory_icon_id')) B.inventory_icon_id = 0;
                 if(B.style && B.style == 'planting') B.planting = true;
                 if(B.style && B.style == 'stairs') B.transparent = true;
+                if(B.style && B.style == 'triangle') continue;
                 //
                 if(B.id > max_id) {
                     max_id = B.id;
@@ -327,6 +328,9 @@ export class BLOCK {
             } else {
                 throw 'Invalid texture prop `' + prop + '`';
             }
+        }
+        if(!c) {
+            debugger;
         }
         return [
             (c[0] + 0.5) / TX_CNT,
@@ -411,6 +415,21 @@ export class BLOCK {
 
 //
 await fetch('../data/blocks.json').then(response => response.json()).then(json => {
+    json.sort((a, b) => {
+        //
+        if(a.inventory_icon_id == 0) {
+            return 1;
+        } else if(b.inventory_icon_id == 0) {
+            return -1;
+        }
+        //
+        if(!a.style) a.style = 'default';
+        if(!b.style) b.style = 'default';
+        if(a.style != b.style) {
+            return a.style > b.style ? 1 : -1;
+        }
+        return b.id - a.id;
+    });
     for(let block of json) {
         BLOCK.add(block);
     }
