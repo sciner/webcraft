@@ -166,6 +166,19 @@ export class BLOCK {
         return this.DUMMY;
     }
 
+    // cloneFromId
+    static cloneFromId(id) {
+        let b = {...BLOCK.fromId(id)};
+        // delete(b['spawnable']);
+        // delete(b['max_in_stack']);
+        // delete(b['inventory_icon_id']);
+        // delete(b['destroy_time']);
+        // delete(b['passable']);
+        return b;
+    }
+
+    
+
     // Returns a block structure for the given id.
     static fromName(name) {
         if(name.indexOf(':') >= 0) {
