@@ -436,7 +436,7 @@ export default class Terrain_Generator {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             if(!chunk.blocks[x][z][y - chunk.coord.y]) {
-                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER);
+                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER.id);
                             }
                         }
                     }
@@ -464,7 +464,7 @@ export default class Terrain_Generator {
                 let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
                 if(b && b === blocks.DIRT.id) {
                     if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
-                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block);
+                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block.id);
                     }
                 }
             }

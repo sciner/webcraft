@@ -549,6 +549,8 @@ class Chunk {
     setDirtyBlocks(pos, find_neighbors) {
         let dirty_rad = MAX_TORCH_POWER;
         let vc = new VectorCollector();
+        let cnt = 0;
+        // let needUpdateLightmap = false;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
                 for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
@@ -568,6 +570,7 @@ class Chunk {
                             }
                             if(block.hasOwnProperty('vertices')) {
                                 delete(block['vertices']);
+                                cnt++;
                             }
                         }
                     } else if(find_neighbors) {
