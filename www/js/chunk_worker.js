@@ -464,6 +464,7 @@ class Chunk {
                         if(!block) {
                             throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
                         }
+                        this.blocks[x][z][y] = block;
                     }
                     if(block.id == BLOCK.AIR.id) {
                         continue;
@@ -491,6 +492,7 @@ class Chunk {
                         this.fluid_blocks.push(new Vector(x, y, z));
                     }
                     if(!block.hasOwnProperty('vertices')) {
+                        block = {...block};
                         block.vertices = [];
                         let biome = this.map.info.cells[x][z].biome;
                         BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbors, biome);
