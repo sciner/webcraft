@@ -143,10 +143,12 @@ class Chunk {
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');
-            /*let mcp = BLOCK.getChunkAddr(new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0)).toChunkKey();
-            if(this.addr.toChunkKey() != mcp) {
-                console.log(this.addr.toChunkKey());
-            }*/
+            if(m.id < 1) {
+                pos = new Vector(pos[0], pos[1], pos[2]);
+                pos = BLOCK.getBlockIndex(pos);
+                this.blocks[pos.x][pos.z][pos.y] = null;
+                continue;
+            }
             let type        = BLOCK.fromId(m.id);
             if(type.id == -1) {
                 console.error(pos, m);
@@ -225,7 +227,7 @@ class Chunk {
         if(is_modify) {
             console.table(orig_type);
         }
-        this.blocks[x][z][y]            = {...BLOCK.fromId(orig_type.id)};
+        this.blocks[x][z][y]            = BLOCK.cloneFromId(orig_type.id);
         this.blocks[x][z][y].power      = power;
         this.blocks[x][z][y].rotate     = rotate;
         this.blocks[x][z][y].entity_id  = entity_id;
@@ -348,14 +350,17 @@ class Chunk {
             },
         }
 
-        let neighbour_chunks = this.neighbour_chunks = {
-            nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
-            px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
-            ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
-            py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
-            nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
-            pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
-        };
+        if(!this.neighbour_chunks) {
+            this.neighbour_chunks = {
+                nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
+                px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+                ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
+                py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
+                nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
+                pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
+            };
+        }
+        let neighbour_chunks = this.neighbour_chunks;
 
         //  Update lights
         this.updateLights();
@@ -368,6 +373,106 @@ class Chunk {
             {x: -1, y:  0, z:  0},
             {x:  1, y:  0, z:  0}
         ];
+
+        //
+        let getBlockStyleGroup = (block) => {
+            let group = 'regular';
+            // make vertices array
+            if([200, 202].indexOf(block.id) >= 0) {
+                // если это блок воды или облако
+                group = 'transparent';
+            } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
+                group = 'doubleface_transparent';
+            } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
+                group = 'doubleface';
+            }
+            return group;
+        };
+
+        // Возвращает всех 6-х соседей блока
+        let getBlockNeighbors = (x, y, z) => {
+            let neighbors = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
+            let pcnt = 0;
+            // обходим соседние блоки
+            for(let p of cc) {
+                let b = null;
+                if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                    // если сосед внутри того же чанка
+                    b = this.blocks[x + p.x][z + p.z][y + p.y];
+                } else {
+                    // если блок с краю чанка или вообще в соседнем чанке
+                    if(p.x == -1) {
+                        if(x == 0) {
+                            b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                        } else {
+                            b = this.blocks[x - 1][z][y];
+                        }
+                    } else if (p.x == 1) {
+                        if(x == this.size.x - 1) {
+                            b = neighbour_chunks.px.blocks[0][z][y];
+                        } else {
+                            b = this.blocks[x + 1][z][y];
+                        }
+                    // Y
+                    } else if (p.y == -1) {
+                        if(y == 0) {
+                            if(neighbour_chunks.ny) {
+                                b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                            }
+                        } else {
+                            b = this.blocks[x][z][y - 1];
+                        }
+                    } else if (p.y == 1) {
+                        if(y == this.size.y - 1) {
+                            if(neighbour_chunks.py) {
+                                b = neighbour_chunks.py.blocks[x][z][0];
+                            }
+                        } else {
+                            b = this.blocks[x][z][y + 1];
+                        }
+                    // Z
+                    } else if (p.z == -1) {
+                        if(z == 0) {
+                            b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                        } else {
+                            b = this.blocks[x][z - 1][y];
+                        }
+                    } else if (p.z == 1) {
+                        if(z == this.size.z - 1) {
+                            b = neighbour_chunks.pz.blocks[x][0][y];
+                        } else {
+                            b = this.blocks[x][z + 1][y];
+                        }
+                    }
+                }
+                if(typeof b == 'number') {
+                    b = BLOCK.BLOCK_BY_ID[b];
+                }
+                if(p.y == 1) {
+                    neighbors.UP = b;
+                } else if(p.y == -1) {
+                    neighbors.DOWN = b;
+                } else if(p.z == -1) {
+                    neighbors.SOUTH = b;
+                } else if(p.z == 1) {
+                    neighbors.NORTH = b;
+                } else if(p.x == -1) {
+                    neighbors.WEST = b;
+                } else if(p.x == 1) {
+                    neighbors.EAST = b;
+                }
+                if(!b || (b.transparent || b.fluid)) {
+                    // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
+                    // break;
+                    pcnt = -40;
+                }
+                pcnt++;
+            }
+            neighbors.pcnt = pcnt;
+            return neighbors;
+        };
+
+        // Обход всех блоков данного чанка
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 let y_count = Math.min(this.size.y, this.blocks[x][z].length);
@@ -377,108 +482,41 @@ class Chunk {
                         continue;
                     }
                     if(typeof block === 'number') {
-                        block = BLOCK.BLOCK_BY_ID[block];
+                        if(block == BLOCK.AIR.id) {
+                            continue;
+                        }
+                        block = BLOCK.cloneFromId(block);
                         if(!block) {
                             throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
                         }
+                        this.blocks[x][z][y] = block;
                     }
-                    if(block.id == BLOCK.AIR.id) {
+                    //
+                    if(!block.group) {
+                        block.group = getBlockStyleGroup(block);
+                    }
+                }
+            }
+        }
+
+        // Обход всех блоков данного чанка
+        for(let x = 0; x < this.size.x; x++) {
+            for(let z = 0; z < this.size.z; z++) {
+                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
+                for(let y = 0; y < y_count; y++) {
+                    let block = this.blocks[x][z][y];
+                    if(!block || block.id == BLOCK.AIR.id) {
                         continue;
                     }
-                    let group = 'regular';
-                    // make vertices array
-                    if([200, 202].indexOf(block.id) >= 0) {
-                        // если это блок воды или облако
-                        group = 'transparent';
-                    } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
-                        group = 'doubleface_transparent';
-                    } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
-                        group = 'doubleface';
-                    }
-                    // собираем соседей блока, чтобы на этой базе дальше отрисовывать или нет бока
-                    let neighbours = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
-                    let pcnt = 0;
-                    // обходим соседние блоки
-                    for(let p of cc) {
-                        let b = null;
-                        if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                            // если блок в том же чанке
-                            b = this.blocks[x + p.x][z + p.z][y + p.y];
-                        } else {
-                            // если блок с краю чанка или вообще в соседнем чанке
-                            if(p.x == -1) {
-                                if(x == 0) {
-                                    b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
-                                } else {
-                                    b = this.blocks[x - 1][z][y];
-                                }
-                            } else if (p.x == 1) {
-                                if(x == this.size.x - 1) {
-                                    b = neighbour_chunks.px.blocks[0][z][y];
-                                } else {
-                                    b = this.blocks[x + 1][z][y];
-                                }
-                            // Y
-                            } else if (p.y == -1) {
-                                if(y == 0) {
-                                    if(neighbour_chunks.ny) {
-                                        b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
-                                    }
-                                } else {
-                                    b = this.blocks[x][z][y - 1];
-                                }
-                            } else if (p.y == 1) {
-                                if(y == this.size.y - 1) {
-                                    if(neighbour_chunks.py) {
-                                        b = neighbour_chunks.py.blocks[x][z][0];
-                                    }
-                                } else {
-                                    b = this.blocks[x][z][y + 1];
-                                }
-                            // Z
-                            } else if (p.z == -1) {
-                                if(z == 0) {
-                                    b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
-                                } else {
-                                    b = this.blocks[x][z - 1][y];
-                                }
-                            } else if (p.z == 1) {
-                                if(z == this.size.z - 1) {
-                                    b = neighbour_chunks.pz.blocks[x][0][y];
-                                } else {
-                                    b = this.blocks[x][z + 1][y];
-                                }
-                            }
-                        }
-                        if(typeof b == 'number') {
-                            b = BLOCK.BLOCK_BY_ID[b];
-                        }
-                        if(p.y == 1) {
-                            neighbours.UP = b;
-                        } else if(p.y == -1) {
-                            neighbours.DOWN = b;
-                        } else if(p.z == -1) {
-                            neighbours.SOUTH = b;
-                        } else if(p.z == 1) {
-                            neighbours.NORTH = b;
-                        } else if(p.x == -1) {
-                            neighbours.WEST = b;
-                        } else if(p.x == 1) {
-                            neighbours.EAST = b;
-                        }
-                        if(!b || (b.transparent || b.fluid)) {
-                            // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                            // break;
-                            pcnt = -40;
-                        }
-                        pcnt++;
-                    }
-                    // если у блока все соседи есть, значит его не видно и не нужно отрисовывать
-                    if(pcnt == 6) {
+                    // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
+                    let neighbors = getBlockNeighbors(x, y, z);
+                    // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
+                    if(neighbors.pcnt == 6) {
                         continue;
                     }
                     // if block with gravity
-                    if(block.gravity && y > 1 && block.falling) {
+                    // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
+                    if(block.gravity && y > 0 && block.falling) {
                         let block_under = this.blocks[x][z][y - 1];
                         if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                             this.gravity_blocks.push(new Vector(x, y, z));
@@ -489,13 +527,13 @@ class Chunk {
                         this.fluid_blocks.push(new Vector(x, y, z));
                     }
                     if(!block.hasOwnProperty('vertices')) {
-                        block = this.blocks[x][z][y] = Object.create(block);
                         block.vertices = [];
-                        const biome = this.map.info.cells[x][z].biome;
-                        BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbours, biome);
+                        let biome = this.map.info.cells[x][z].biome;
+                        BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbors, biome);
                     }
+                    world.blocks_pushed++;
                     if(block.vertices.length > 0) {
-                        this.vertices[group].list.push(...block.vertices);
+                        this.vertices[block.group].list.push(...block.vertices);
                     }
                 }
             }
@@ -547,6 +585,7 @@ class Chunk {
 
 // World
 const world = {
+    blocks_pushed: 0,
     chunkManager: new ChunkManager()
 }
 
