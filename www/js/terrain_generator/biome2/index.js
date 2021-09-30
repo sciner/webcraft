@@ -1,7 +1,7 @@
 import {impl as alea} from '../../../vendors/alea.js';
 import noise from '../../../vendors/perlin.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../blocks.js";
-import {Vector, Helpers} from '../../helpers.js';
+import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {blocks, BIOMES} from '../../biomes.js';
 import {CaveGenerator} from '../../caves.js';
 import {Map, MapCell} from './map.js';
@@ -49,7 +49,7 @@ await Vox_Loader.load('/data/castle.vox', (chunks) => {
 // Terrain generator class
 export default class Terrain_Generator {
 
-    constructor(seed) {
+    constructor(seed, world_id) {
         const scale                 = .5;
         // Настройки
         this.options = {
@@ -61,35 +61,32 @@ export default class Terrain_Generator {
         };
         //
         this.noisefn                = noise.perlin2;
-        this.maps_cache             = {};
+        this.maps_cache             = new VectorCollector();
         this.seed                   = null;
+        this.world_id               = world_id;
         this.setSeed(seed);
         // Сaves manager
         this.caveManager            = new CaveGenerator(seed);
-        // Voxel buildings
-        this.voxel_buildings        = [
-            new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null),
-            // new Vox_Mesh(vox_templates.small_castle, new Vector(2938, 65, 2813), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0))
-        ];
-        // Islands
-        this.islands = [
-            {
+        this.voxel_buildings        = [];
+        this.islands                = [];
+        this.extruders              = [];
+        // Map specific
+        if(this.world_id == 'demo') {
+            this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
+            this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
+            this.islands.push({
                 pos: new Vector(2865, 118, 2787),
                 rad: 15
-            },
-            {
+            });
+            this.islands.push({
                 pos: new Vector(2920, 1024, 2787),
                 rad: 20
-            }
-        ];
-        // Extruders
-        this.extruders = [
-            {
+            });
+            this.extruders.push({
                 pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
                 rad: this.islands[0].rad
-            }
-        ];
+            });
+        }
     }
 
     async setSeed(seed) {
@@ -99,9 +96,9 @@ export default class Terrain_Generator {
 
     // generateMap
     generateMap(chunk, noisefn) {
-        let addr_string = chunk.addr.toString();
-        if(this.maps_cache.hasOwnProperty(addr_string)) {
-            return this.maps_cache[addr_string];
+        let cached = this.maps_cache.getByVec(chunk.addr);
+        if(cached) {
+            return cached;
         }
         const options               = this.options;
         const SX                    = chunk.coord.x;
@@ -168,20 +165,8 @@ export default class Terrain_Generator {
             }
         }
         // Clear maps_cache
-        let keys = Object.keys(this.maps_cache);
-        let MAX_ENTR = 20000;
-        if(keys.length > MAX_ENTR) {
-            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
-            console.info('Clear maps_cache, del_count: ' + del_count);
-            for(let key of keys) {
-                if(--del_count == 0) {
-                    break;
-                }
-                delete(this.maps_cache[key]);
-            }
-        }
-        //
-        return this.maps_cache[addr_string] = map;
+        this.maps_cache.sanitizeCache(20000);
+        return this.maps_cache.add(chunk.addr, map);
     }
 
     // generateMaps
@@ -190,8 +175,12 @@ export default class Terrain_Generator {
         let maps                    = [];
         let map                     = null;
         let size                    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        for(let x = -1; x <= 1; x++) {
-            for(let z = -1; z <= 1; z++) {
+        let rad                     = 1;
+        // let pp                      = performance.now();
+        let cnt                     = 0;
+        for(let x = -rad; x <= rad; x++) {
+            for(let z = -rad; z <= rad; z++) {
+                cnt++;
                 let addr = chunk.addr.add(new Vector(x, -chunk.addr.y, z));
                 const c = {
                     id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
@@ -208,14 +197,19 @@ export default class Terrain_Generator {
                 maps.push(item);
                 if(x == 0 && z == 0) {
                     map = item;
-                }            
+                }
             }
         }
+        // console.log(performance.now() - pp, cnt, (performance.now() - pp) / cnt);
+        // debugger;
         // Smooth (for central and part of neighbors)
-        map.info.smooth(this);
-        // Generate vegetation
-        for(let map of maps) {
-            map.info.generateVegetation();
+        if(!map.info.smoothed) {
+            map.info.smoothed = true;
+            map.info.smooth(this);
+            // Generate vegetation
+            for(let map of maps) {
+                map.info.generateVegetation();
+            }
         }
         return maps;
     }
@@ -261,23 +255,25 @@ export default class Terrain_Generator {
         let extruders = this.extruders;
 
         // Endless spiral staircase
-        if(chunk.addr.x == 180 && chunk.addr.z == 174) {
-            for(let y = min_y; y < chunk.size.y; y += .25) {
-                let y_abs = y + chunk.coord.y;
-                let y_int = parseInt(y);
-                let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
-                let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
-                let block = blocks.BEDROCK;
-                if(y >= 1) {
-                    setBlock(x, y_int - 1, z, block.id);
+        if(this.world_id == 'demo') {
+            if(chunk.addr.x == 180 && chunk.addr.z == 174) {
+                for(let y = min_y; y < chunk.size.y; y += .25) {
+                    let y_abs = y + chunk.coord.y;
+                    let y_int = parseInt(y);
+                    let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
+                    let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
+                    let block = blocks.BEDROCK;
+                    if(y >= 1) {
+                        setBlock(x, y_int - 1, z, block.id);
+                    }
+                    if(y_abs % 16 == 1) {
+                        block = blocks.GOLD;
+                    }
+                    if(y_abs % 32 == 1) {
+                        block = blocks.DIAMOND_ORE;
+                    }
+                    setBlock(x, y_int, z, block.id);
                 }
-                if(y_abs % 16 == 1) {
-                    block = blocks.GOLD;
-                }
-                if(y_abs % 32 == 1) {
-                    block = blocks.DIAMOND_ORE;
-                }
-                setBlock(x, y_int, z, block.id);
             }
         }
 

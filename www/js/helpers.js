@@ -18,6 +18,71 @@ export class Mth {
 
 }
 
+// VectorCollector...
+export class VectorCollector {
+
+    constructor() {
+        this.clear();
+    }
+
+    clear() {
+        this.list = [];
+        this.count = 0;
+    }
+    
+    add(vec, value) {
+        if(!this.list[vec.x]) this.list[vec.x] = [];
+        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
+        if(!this.list[vec.x][vec.y][vec.z]) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            this.list[vec.x][vec.y][vec.z] = value;
+            this.count++;
+        }
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    get() {
+        let resp = [];
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    resp.push(new Vector(x|0, y|0, z|0));
+                }
+            }
+        }
+        return resp;
+    }
+    
+    getByVec(vec) {
+        if(!this.list[vec.x]) return null;
+        if(!this.list[vec.x][vec.y]) return null;
+        if(!this.list[vec.x][vec.y][vec.z]) null;
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    sanitizeCache(max_count) {
+        if(this.count < max_count) {
+            return false;
+        }
+        /*
+        let keys = Object.keys(this.maps_cache);
+        if(keys.length > MAX_ENTR) {
+            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
+            console.info('Clear maps_cache, del_count: ' + del_count);
+            for(let key of keys) {
+                if(--del_count == 0) {
+                    break;
+                }
+                delete(this.maps_cache[key]);
+            }
+        }
+        */
+    }
+
+}
+
 // Color
 export class Color {
 

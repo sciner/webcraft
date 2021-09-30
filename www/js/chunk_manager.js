@@ -45,7 +45,7 @@ export class ChunkManager {
             }
         }
         // Init webworker
-        this.postWorkerMessage(['init', world.saved_state.generator, world.seed]);
+        this.postWorkerMessage(['init', world.saved_state.generator, world.seed, world.saved_state.id]);
     }
 
     //
@@ -132,7 +132,7 @@ export class ChunkManager {
         let k = this.getPosChunkKey(state.pos);
         if(this.chunks_prepare.hasOwnProperty(k)) {
             let prepare     = this.chunks_prepare[k];
-            let chunk       = new Chunk(this, state.pos, state.modify_list);
+            let chunk       = new Chunk(state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks[k]  = chunk;
             delete(this.chunks_prepare[k]);
