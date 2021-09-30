@@ -5,11 +5,17 @@ import GeometryTerrain from "./geometry_terrain.js";
 // Creates a new chunk
 export default class Chunk {
 
-    constructor(chunkManager, pos, modify_list) {
+    getChunkManager() {
+        return Game.world.chunkManager;
+    }    
+
+    constructor(pos, modify_list) {
+
+        let chunkManager = this.getChunkManager();
 
         // info
         this.key = chunkManager.getPosChunkKey(pos);
-        this.modify_list = modify_list;
+        this.modify_list = modify_list || [];
 
         // размеры чанка
         this.size = new Vector(
@@ -50,7 +56,7 @@ export default class Chunk {
         chunkManager.postWorkerMessage(['createChunk', this]);
 
         // Objects & variables
-        this.chunkManager               = chunkManager;
+        // this.chunkManager               = chunkManager;
         this.inited                     = false;
         this.dirty                      = true;
         this.buildVerticesInProgress    = false;
@@ -59,7 +65,7 @@ export default class Chunk {
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
 
-        this.chunkManager.addToDirty(this);
+        chunkManager.addToDirty(this);
 
     }
 
@@ -111,11 +117,12 @@ export default class Chunk {
 
     // Apply vertices
     applyVertices() {
+        let chunkManager = this.getChunkManager();
         const args = this.vertices_args;
         delete(this['vertices_args']);
-        this.chunkManager.deleteFromDirty(this.key);
+        chunkManager.deleteFromDirty(this.key);
         this.buildVerticesInProgress            = false;
-        this.chunkManager.vertices_length_total -= this.vertices_length;
+        chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length                    = 0;
         this.gravity_blocks                     = args.gravity_blocks;
         this.fluid_blocks                       = args.fluid_blocks;
@@ -137,7 +144,7 @@ export default class Chunk {
                 delete(v.list);
             }
         }
-        this.chunkManager.vertices_length_total += this.vertices_length;
+        chunkManager.vertices_length_total += this.vertices_length;
         this.dirty                 = false;
         this.timers                = args.timers;
     }
@@ -151,7 +158,7 @@ export default class Chunk {
             this.lightTex.destroy();
         }
         // Run webworker method
-        this.chunkManager.postWorkerMessage(['destructChunk', {key: this.key}]);
+        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key}]);
     }
 
     // buildVertices
@@ -161,7 +168,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.chunkManager.postWorkerMessage(['buildVertices', {keys: [this.key]}]);
+        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key]}]);
         return true;
     }
 
@@ -215,6 +222,7 @@ export default class Chunk {
             return;
         }
         let update_vertices = true;
+        let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
             type = {...BLOCK[type.name]};
@@ -270,7 +278,7 @@ export default class Chunk {
             let updated_chunks = [this.key];
             for(var update_neighbor of update_neighbors) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-                let key = this.chunkManager.getPosChunkKey(BLOCK.getChunkAddr(pos));
+                let key = chunkManager.getPosChunkKey(BLOCK.getChunkAddr(pos));
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
@@ -286,7 +294,7 @@ export default class Chunk {
                     });
                 }
             }
-            this.chunkManager.postWorkerMessage(['setBlock', set_block_list]);
+            chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }
 

@@ -599,7 +599,7 @@ const GeometryTerrain = {
 /**
  * @param {string} terrain_type
  */
-async function importModules(terrain_type, seed) {
+async function importModules(terrain_type, seed, world_id) {
     // load module
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
@@ -621,7 +621,7 @@ async function importModules(terrain_type, seed) {
     });
     // load module
     await import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
-        terrainGenerator = new module.default(seed);
+        terrainGenerator = new module.default(seed, world_id);
     });
     // Init vars
     // 1. Fill all_blocks
@@ -649,7 +649,8 @@ onmessage = async function(e) {
         // Init modules
         let generator_params = args;
         let seed = e.data[2];
-        importModules(generator_params.id, seed); // biome2 | city | flat
+        let world_id = e.data[3];
+        importModules(generator_params.id, seed, world_id); // biome2 | city | flat
         return;
     }
     if (!BLOCK || !terrainGenerator) {

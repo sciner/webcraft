@@ -46,7 +46,7 @@ export class Map {
                 let addr        = BLOCK.getChunkAddr(px, 0, pz); // calc chunk addr for this cell
                 let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z); // get chunk map from cache
                 if(!map || !map_addr_ok) {
-                    map = generator.maps_cache[addr.toString()];
+                    map = generator.maps_cache.getByVec(addr);
                 }
                 let bi = BLOCK.getBlockIndex(px, 0, pz);
                 let cell = map.cells[bi.x][bi.z];
@@ -69,7 +69,7 @@ export class Map {
                                       (neighbour_map.chunk.addr.z == neighbour_addr.z);
                         // хак оптимизации скорости (т.к. toString() очень дорогой)
                         if(!neighbour_map || !addr_ok) {
-                            neighbour_map = generator.maps_cache[neighbour_addr.toString()];
+                            neighbour_map = generator.maps_cache.getByVec(neighbour_addr);
                         }
                         if(!neighbour_map) {
                             console.error('Neighbor not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
@@ -93,17 +93,21 @@ export class Map {
 
     // Генерация растительности
     generateVegetation() {
-        let chunk       = this.chunk;
-        let aleaRandom  = new alea(chunk.seed + '_' + chunk.id);
-        this.trees      = [];
-        this.plants     = [];
+        let chunk           = this.chunk;
+        let aleaRandom      = new alea(chunk.seed + '_' + chunk.id);
+        this.trees          = [];
+        this.plants         = [];
+        let biome           = null;
+        let dirt_block_ids  = [];
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let cell = this.cells[x][z];
-                let biome = BIOMES[cell.biome.code];
+                if(!biome || biome.code != cell.biome.code) {
+                    biome = BIOMES[cell.biome.code];
+                    dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
+                }
                 let y = cell.value2;
                 // Если наверху блок земли
-                let dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
                 if(dirt_block_ids.indexOf(cell.block) >= 0) {
                     // Динамическая рассадка растений
                     let rnd = aleaRandom.double();
