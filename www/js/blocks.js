@@ -30,6 +30,7 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export class BLOCK {
 
     static styles = [];
+    static ao_invisible_blocks = [];
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
@@ -262,6 +263,7 @@ export class BLOCK {
         };
         //
         let max_id = -1;
+        this.ao_invisible_blocks = [];
         for(let mat in this) {
             let B = this[mat];
             if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
@@ -282,6 +284,7 @@ export class BLOCK {
                 if(B.style && B.style == 'planting') B.planting = true;
                 if(B.style && B.style == 'stairs') B.transparent = true;
                 if(B.style && B.style == 'triangle') continue;
+                if(B.planting) this.ao_invisible_blocks.push(B.id);
                 //
                 if(B.id > max_id) {
                     max_id = B.id;
@@ -389,9 +392,14 @@ export class BLOCK {
 
     // Функция определяет, отбрасывает ли указанный блок тень
     static visibleForAO(block) {
-        const ao_transparent_blocks = [BLOCK.DUMMY.id, BLOCK.AIR.id];
-        return ao_transparent_blocks.indexOf(block.id) < 0 &&
-            block.style != 'planting';
+        if(!block) return false;
+        let block_id = block;
+        if(typeof block !== 'number') {
+            block_id = block.id;
+        }
+        if(block_id < 1) return false;
+        if(this.ao_invisible_blocks.indexOf(block_id) >= 0) return false;
+        return true;
     }
 
     // pushVertices

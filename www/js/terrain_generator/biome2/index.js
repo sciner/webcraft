@@ -464,7 +464,7 @@ export default class Terrain_Generator {
                 let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
                 if(b && b === blocks.DIRT.id) {
                     if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
-                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block);
+                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block.id);
                     }
                 }
             }

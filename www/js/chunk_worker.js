@@ -141,10 +141,12 @@ class Chunk {
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');
-            /*let mcp = BLOCK.getChunkAddr(new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0)).toChunkKey();
-            if(this.addr.toChunkKey() != mcp) {
-                console.log(this.addr.toChunkKey());
-            }*/
+            if(m.id < 1) {
+                pos = new Vector(pos[0], pos[1], pos[2]);
+                pos = BLOCK.getBlockIndex(pos);
+                this.blocks[pos.x][pos.z][pos.y] = null;
+                continue;
+            }
             let type        = BLOCK.fromId(m.id);
             if(type.id == -1) {
                 console.error(pos, m);
@@ -466,12 +468,22 @@ class Chunk {
                         }
                         this.blocks[x][z][y] = block;
                     }
-                    if(block.id == BLOCK.AIR.id) {
-                        continue;
-                    }
                     //
                     if(!block.group) {
                         block.group = getBlockStyleGroup(block);
+                    }
+                }
+            }
+        }
+
+        // Обход всех блоков данного чанка
+        for(let x = 0; x < this.size.x; x++) {
+            for(let z = 0; z < this.size.z; z++) {
+                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
+                for(let y = 0; y < y_count; y++) {
+                    let block = this.blocks[x][z][y];
+                    if(!block || block.id == BLOCK.AIR.id) {
+                        continue;
                     }
                     // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
                     let neighbors = getBlockNeighbors(x, y, z);
@@ -492,7 +504,6 @@ class Chunk {
                         this.fluid_blocks.push(new Vector(x, y, z));
                     }
                     if(!block.hasOwnProperty('vertices')) {
-                        block = {...block};
                         block.vertices = [];
                         let biome = this.map.info.cells[x][z].biome;
                         BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbors, biome);
