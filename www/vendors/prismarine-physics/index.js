@@ -48,6 +48,7 @@ export class FakeWorld {
         const b = {...block};
         b.shapes = [];
         b.type = b.id;
+        b.metadata = 0;
         if (!b.passable) {
             b.shapes.push([0, 0, 0, 1, 1, 1]);
         }
@@ -547,9 +548,8 @@ export function Physics(mcData, world) {
         if (waterLike.has(block.type)) return 0
         if (block.getProperties().waterlogged) return 0
         if (block.type !== waterId) return -1
-        return block.power;
-        // const meta = block.metadata
-        // return meta >= 8 ? 0 : meta
+        const meta = block.metadata
+        return meta >= 8 ? 0 : meta
     }
 
     function getFlow(world, block) {
