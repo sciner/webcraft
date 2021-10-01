@@ -29,7 +29,7 @@ export class VectorCollector {
         this.list = [];
         this.count = 0;
     }
-    
+
     add(vec, value) {
         if(!this.list[vec.x]) this.list[vec.x] = [];
         if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
@@ -54,7 +54,7 @@ export class VectorCollector {
         }
         return resp;
     }
-    
+
     getByVec(vec) {
         if(!this.list[vec.x]) return null;
         if(!this.list[vec.x][vec.y]) return null;
@@ -154,6 +154,12 @@ export class Vector {
 
     equal(vec) {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
+    }
+
+    lerpFrom(vec1, vec2, delta) {
+        this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
+        this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
+        this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
     }
 
     add(vec) {

@@ -5,7 +5,7 @@ import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
-import {PrismarinePlayerControl} from "../vendors/prismarine-physics/index.js";
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/index.js";
 
 // ==========================================
 // Player
@@ -56,6 +56,8 @@ export default class Player {
         this.keys                   = {};
         this.eventHandlers          = {};
         this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+        this.prevPos                = new Vector(this.pos);
+        this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         if(world.saved_state) {
             this.flying = !!world.saved_state.flying;
@@ -621,7 +623,7 @@ export default class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this.pos.add(new Vector(0.0, this.height, 0.0));
+        return this.lerpPos.add(new Vector(0.0, this.height, 0.0));
     }
 
     // getBlockPos
@@ -645,6 +647,7 @@ export default class Player {
         if(this.lastUpdate != null) {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
+            delta = Math.min(delta, 1.0);
             let velocity  = this.velocity;
             let pos       = this.pos;
             let bPos      = new Vector(
@@ -664,10 +667,21 @@ export default class Player {
             this.pr.controls.jump       = !!this.keys[KEY.SPACE];
             this.pr.controls.sneak      = !!this.keys[KEY.SHIFT];
             this.pr.controls.sprint     = this.running;
-            
+
             this.pr.player_state.yaw    = this.angles[2];
-            this.pr.tick(delta);
-            this.pos                    = this.pr.player.entity.position; // .add(this.pr.player.entity.velocity);
+
+
+            let ticks = this.pr.tick(delta);
+            if (ticks > 0) {
+                this.prevPos.copyFrom(this.pos);
+            }
+            this.pos.copyFrom(this.pr.player.entity.position);
+
+            if (this.pos.distance(this.prevPos) > 10.0) {
+                this.lerpPos.copyFrom(this.pos);
+            } else {
+                this.lerpPos.lerpFrom(this.prevPos, this.pos, this.pr.timeAccumulator / PHYSICS_TIMESTEP);
+            }
             // player.entity.onGround
             /*
             // Gravity

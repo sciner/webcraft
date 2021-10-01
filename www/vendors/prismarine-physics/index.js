@@ -8,7 +8,7 @@ import { Vec3 } from "../../js/helpers.js";
 import { BLOCK } from "../../js/blocks.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
-const PHYSICS_TIMESTEP      = PHYSICS_INTERVAL_MS / 1000;
+export const PHYSICS_TIMESTEP      = PHYSICS_INTERVAL_MS / 1000;
 const BLOCK_NOT_EXISTS      = -2;
 
 export const mcData = {
@@ -806,6 +806,7 @@ export class PrismarinePlayerControl {
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js
     tick(deltaSeconds) {
         this.timeAccumulator += deltaSeconds;
+        let ticks = 0;
         while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
             if (this.physicsEnabled) {
                 this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
@@ -813,7 +814,9 @@ export class PrismarinePlayerControl {
             }
             // updatePosition(PHYSICS_TIMESTEP);
             this.timeAccumulator -= PHYSICS_TIMESTEP;
+            ticks++;
         }
+        return ticks;
         // this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
     }
 
