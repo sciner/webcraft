@@ -264,15 +264,24 @@ export class Vector {
         */
     }
 
+    // For Vec3
     norm() {return this.length();}
+    normalize() {return this.normal();}
     offset(vec) {return this.add(vec);}
     floored() {return new Vector(
         Math.floor(this.x),
         Math.floor(this.y),
         Math.floor(this.z)
     )}
+    translate(x, y, z) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+    }
 
 }
+
+export class Vec3 extends Vector {}
 
 export let MULTIPLY = {
     COLOR: {

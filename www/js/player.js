@@ -655,19 +655,20 @@ export default class Player {
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
-
             // Prismarine player control
-            this.posO = this.pos;
-            this.pr.controls.back = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
-            this.pr.controls.forward = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
-            this.pr.controls.right = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
-            this.pr.controls.left = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
-            this.pr.controls.jump = this.keys[KEY.SPACE];
-            this.pr.player_state.yaw = this.angles[2];
+            this.posO                   = this.pos;
+            this.pr.controls.back       = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
+            this.pr.controls.forward    = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
+            this.pr.controls.right      = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
+            this.pr.controls.left       = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
+            this.pr.controls.jump       = !!this.keys[KEY.SPACE];
+            this.pr.controls.sneak      = !!this.keys[KEY.SHIFT];
+            this.pr.controls.sprint     = this.running;
+            
+            this.pr.player_state.yaw    = this.angles[2];
             this.pr.tick(delta);
-            this.pos = this.pr.player.entity.position;//.add(this.pr.player.entity.velocity);
+            this.pos                    = this.pr.player.entity.position; // .add(this.pr.player.entity.velocity);
             // player.entity.onGround
-
             /*
             // Gravity
             if(this.in_water && !isSpectator) {
