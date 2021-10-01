@@ -264,6 +264,14 @@ export class Vector {
         */
     }
 
+    norm() {return this.length();}
+    offset(vec) {return this.add(vec);}
+    floored() {return new Vector(
+        Math.floor(this.x),
+        Math.floor(this.y),
+        Math.floor(this.z)
+    )}
+
 }
 
 export let MULTIPLY = {

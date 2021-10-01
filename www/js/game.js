@@ -80,7 +80,16 @@ export let Game = {
     prev_player_state:  null,
     controls:           {
         inited: false,
-        enabled: false
+        enabled: false,
+        clearStates: function() {
+            Game.world.localPlayer.keys[KEY.W] = false;
+            Game.world.localPlayer.keys[KEY.A] = false;
+            Game.world.localPlayer.keys[KEY.S] = false;
+            Game.world.localPlayer.keys[KEY.D] = false;
+            Game.world.localPlayer.keys[KEY.J] = false;
+            Game.world.localPlayer.keys[KEY.SPACE] = false;
+            Game.world.localPlayer.keys[KEY.SHIFT] = false;
+        }
     },
     // createNewWorld
     createNewWorld: function(form) {
@@ -330,6 +339,7 @@ export let Game = {
                 if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
+                that.controls.clearStates();
                 console.info('Pointer lock lost!');
             }
         }

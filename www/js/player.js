@@ -5,6 +5,7 @@ import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
+import {PrismarinePlayerControl} from "../vendors/prismarine-physics/index.js";
 
 // ==========================================
 // Player
@@ -63,6 +64,8 @@ export default class Player {
         this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
             return this.onTarget(...args);
         });
+        // Prismarine player control
+        this.pr = new PrismarinePlayerControl(world, this.pos);
     }
 
     // onTarget
@@ -652,6 +655,20 @@ export default class Player {
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
+
+            // Prismarine player control
+            this.posO = this.pos;
+            this.pr.controls.back = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
+            this.pr.controls.forward = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
+            this.pr.controls.right = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
+            this.pr.controls.left = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
+            this.pr.controls.jump = this.keys[KEY.SPACE];
+            this.pr.player_state.yaw = this.angles[2];
+            this.pr.tick(delta);
+            this.pos = this.pr.player.entity.position;//.add(this.pr.player.entity.velocity);
+            // player.entity.onGround
+
+            /*
             // Gravity
             if(this.in_water && !isSpectator) {
                 this.walking
@@ -708,7 +725,9 @@ export default class Player {
                 this.walking_frame += delta * (this.in_water ? .2 : 1);
             }
             this.prev_walking = this.walking;
+            */
             // Walking
+            /*
             // Calculate new velocity
             let add_force = this.calcForce();
             let y = delta/(1/(60/(delta/(1/60))));
@@ -782,6 +801,7 @@ export default class Player {
                     this.eyes_in_water = hby < (hby | 0) + power + .01;
                 }
             }
+            */
         }
         this.lastUpdate = performance.now();
     }
