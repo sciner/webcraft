@@ -362,9 +362,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    this.pos.x = Game.world.spawnPoint.x;
-                    this.pos.y = Game.world.spawnPoint.y;
-                    this.pos.z = Game.world.spawnPoint.z;
+                    this.setPosition(Game.world.spawnPoint);
                 }
                 return true;
                 break;
@@ -452,6 +450,12 @@ export default class Player {
             }
         }
         return false;
+    }
+
+    setPosition(vec) {
+        this.pr.player.entity.position.x = vec.x;
+        this.pr.player.entity.position.y = vec.y;
+        this.pr.player.entity.position.z = vec.z;
     }
 
     // Hook for mouse input.
@@ -686,7 +690,7 @@ export default class Player {
 
             //
             this.walkDistO = this.walkDist;
-            this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.5;
+            this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
             //
             this.oBob = this.bob;
             let f = 0;
@@ -702,11 +706,6 @@ export default class Player {
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
-                /*this.underBlock         = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y - 1, this.blockPos.z);
-                this.underBlock2        = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                if(this.underBlock.id >= 0) {
-                    this.blockPosO          = this.blockPos;
-                }*/
                 this.blockPosO          = this.blockPos;
             }
             this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);

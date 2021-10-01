@@ -155,9 +155,7 @@ export class World {
 
     // randomTeleport
     randomTeleport() {
-        this.localPlayer.pos.x = 1000 + Math.random() * 2000000;
-        this.localPlayer.pos.y = 120;
-        this.localPlayer.pos.z = 1000 + Math.random() * 2000000
+        this.localPlayer.setPosition(new Vector(1000 + Math.random() * 2000000, 120, 1000 + Math.random() * 2000000));
     }
 
     // underWaterfall
