@@ -28,9 +28,9 @@ export default class Player {
         this.walking                = false; // идёт по земле
         this.in_water               = false; // ноги в воде
         this.in_water_o             = false;
-        this.in_water_from_time     = -1; // когда в последний раз погрузились в воду
         this.eyes_in_water          = false; // глаза в воде
         this.eyes_in_water_o        = false; // глаза в воде (предыдущее значение)
+        this.onGround               = false;
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
@@ -236,6 +236,7 @@ export default class Player {
                     if(!this.flying) {
                         this.velocity.y = 0;
                         this.flying = true;
+                        console.log('flying');
                     }
                 }
             }
@@ -648,18 +649,11 @@ export default class Player {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
             delta = Math.min(delta, 1.0);
-            let velocity  = this.velocity;
-            let pos       = this.pos;
-            let bPos      = new Vector(
-                pos.x | 0,
-                pos.y | 0,
-                pos.z | 0
-            );
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
             // Prismarine player control
-            this.posO                   = this.pos;
+            this.posO                   = new Vector(this.lerpPos);
             this.pr.controls.back       = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
             this.pr.controls.forward    = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
             this.pr.controls.right      = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
@@ -667,22 +661,66 @@ export default class Player {
             this.pr.controls.jump       = !!this.keys[KEY.SPACE];
             this.pr.controls.sneak      = !!this.keys[KEY.SHIFT];
             this.pr.controls.sprint     = this.running;
-
             this.pr.player_state.yaw    = this.angles[2];
-
 
             let ticks = this.pr.tick(delta);
             if (ticks > 0) {
                 this.prevPos.copyFrom(this.pos);
             }
             this.pos.copyFrom(this.pr.player.entity.position);
-
             if (this.pos.distance(this.prevPos) > 10.0) {
                 this.lerpPos.copyFrom(this.pos);
             } else {
                 this.lerpPos.lerpFrom(this.prevPos, this.pos, this.pr.timeAccumulator / PHYSICS_TIMESTEP);
             }
-            // player.entity.onGround
+
+            // pr.player_state.onGround
+            let velocity = this.pr.player_state.vel;
+            this.onGround = this.pr.player_state.onGround;
+            this.in_water = this.pr.player_state.isInWater;
+            this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.flying && !this.in_water;
+            if(this.walking && this.onGround) {
+                this.walking_frame += delta * (this.in_water ? .2 : 1);
+            }
+            this.prev_walking = this.walking;
+
+            //
+            this.walkDistO = this.walkDist;
+            this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.5;
+            //
+            this.oBob = this.bob;
+            let f = 0;
+            //if (this.onGround && !this.isDeadOrDying()) {
+                // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO));
+            //} else {
+                //   f = 0.0F;
+            //}
+            this.bob += (f - this.bob) * 0.4;
+            //
+            this.blockPos = this.getBlockPos();
+            if(!this.blockPos.equal(this.blockPosO)) {
+                this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
+                /*this.underBlock         = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y - 1, this.blockPos.z);
+                this.underBlock2        = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                if(this.underBlock.id >= 0) {
+                    this.blockPosO          = this.blockPos;
+                }*/
+                this.blockPosO          = this.blockPos;
+            }
+            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
+            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
+            if(this.in_water && !this.in_water_o) {
+                if(!isSpectator) {
+                    this.flying = false;
+                }
+            }
+            this.in_water_o = this.in_water;
+
+            //
+            this.applyFov(delta);
+
             /*
             // Gravity
             if(this.in_water && !isSpectator) {
@@ -726,73 +764,9 @@ export default class Player {
                         velocity.y = -8;
                     }
                 }
-                if(this.keys[KEY.J] && !this.falling) {
-                    velocity.y = 20;
-                }
             }
-            // Remove small changes
-            if(Math.round(velocity.x * 100000) / 100000 == 0) velocity.x = 0;
-            if(Math.round(velocity.y * 100000) / 100000 == 0) velocity.y = 0;
-            if(Math.round(velocity.z * 100000) / 100000 == 0) velocity.z = 0;
-            // let hd = this.pos.horizontalDistance(this.posO);
-            this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.z) > 1) && !this.flying && !this.in_water;
-            if(this.walking) {
-                this.walking_frame += delta * (this.in_water ? .2 : 1);
-            }
-            this.prev_walking = this.walking;
-            */
-            // Walking
-            /*
-            // Calculate new velocity
-            let add_force = this.calcForce();
-            let y = delta/(1/(60/(delta/(1/60))));
-            let p = this.flying ? .97 : .9;
-            p = Math.pow(p, y);
-            this.velocity = velocity
-                .add(add_force.normal())
-                .mul(new Vector(p, 1, p));
-            // applyFov
-            this.applyFov(delta);
+
             //
-            this.posO = this.pos;
-            this.walkDistO = this.walkDist;
-            // Resolve collision
-            let passable = this.underBlock && this.underBlock.passable ? this.underBlock.passable : 1;
-            if(this.underBlock2 && this.underBlock2.passable) {
-                passable = Math.min(passable, this.underBlock2.passable);
-            }
-            if(isSpectator) {
-                passable = 1;
-            }
-            let mul = (this.running ? this.flying ? 1.15 : 1.5 : 1) * passable / 2.8;
-            this.pos = this.resolveCollision(pos, bPos, this.velocity.mul(new Vector(delta * mul, delta, delta * mul)));
-            this.pos = this.pos
-                .mul(new Vector(1000, 1000, 1000))
-                .round()
-                .div(new Vector(1000, 1000, 1000));
-            //
-            this.walkDist += this.pos.horizontalDistance(this.posO) * 0.6;
-            //
-            this.oBob = this.bob;
-            let f = 0;
-            //if (this.onGround && !this.isDeadOrDying()) {
-                // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
-                f = Math.min(0.1, this.pos.horizontalDistance(this.posO));
-            //} else {
-                //   f = 0.0F;
-            //}
-            this.bob += (f - this.bob) * 0.4;
-            //
-            this.blockPos = this.getBlockPos();
-            if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
-                this.underBlock         = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y - 1, this.blockPos.z);
-                this.underBlock2        = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                if(this.underBlock.id >= 0) {
-                    this.blockPosO          = this.blockPos;
-                }
-            }
             this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
             this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
             if(this.in_water && !this.in_water_o) {
@@ -822,43 +796,6 @@ export default class Player {
     }
 
     //
-    calcForce() {
-        let calcSpeed = (v) => {
-            let passed = performance.now() - v;
-            if(!this.flying) {
-                passed = 1000;
-            } else if(passed < 500) {
-                passed = 500;
-            }
-            let resp = Math.max(0, Math.min(passed / 1000, 1));
-            resp = Math.min(resp, 5);
-            return resp;
-        };
-        let add_force = new Vector(0, 0, 0);
-        if(this.keys[KEY.W] && !this.keys[KEY.S]) {
-            let speed = calcSpeed(this.keys[KEY.W]);
-            add_force.x += Math.cos(Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI / 2 - this.angles[2]) * speed;
-        }
-        if(this.keys[KEY.S] && !this.keys[KEY.W]) {
-            let speed = calcSpeed(this.keys[KEY.S]);
-            add_force.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        if(this.keys[KEY.A] && !this.keys[KEY.D]) {
-            let speed = calcSpeed(this.keys[KEY.A]);
-            add_force.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        if(this.keys[KEY.D] && !this.keys[KEY.A]) {
-            let speed = calcSpeed(this.keys[KEY.D]);
-            add_force.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        return add_force;
-    }
-
-    //
     applyFov(delta) {
         const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = Game.render.options;
         if(this.zoom) {
@@ -882,106 +819,6 @@ export default class Player {
                 }
             }
         }
-    }
-
-    // Resolves collisions between the player and blocks on XY level for the next movement step.
-    resolveCollision(pos, bPos, velocity) {
-        let world = this.world;
-        let v_margin = 0.3; // 0.125
-        let size = 0.6; // 0.25
-        let playerRect = {
-            x: pos.x + velocity.x,
-            y: pos.y + velocity.y,
-            z: pos.z + velocity.z,
-            size: size
-        };
-        let shiftPressed = !!this.keys[KEY.SHIFT] && !this.flying && !this.in_water;
-        // Collect XZ collision sides
-        let collisionCandidates = [];
-        if(!this.world.game_mode.isSpectator()) {
-            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                    for(let y = bPos.y; y <= bPos.y + 1; y++) {
-                        let block = world.chunkManager.getBlock(x, y, z);
-                        // Позволяет не падать с края блоков, если зажат [Shift]
-                        if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
-                            let underBlock = world.chunkManager.getBlock(x, y - 1, z);
-                            if(underBlock.passable) {
-                                if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x + .5,      dir: -1,    z1: z, z2: z + 1});
-                                if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1 - .5,  dir:  1,    z1: z, z2: z + 1});
-                                if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z + .5,      dir: -1,    x1: x, x2: x + 1});
-                                if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1 - .5,  dir:  1,    x1: x, x2: x + 1});
-                                continue;
-                            }
-                        }
-                        if (!block.passable) {
-                            if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
-                            if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
-                            if (world.chunkManager.getBlock(x, y, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
-                            if (world.chunkManager.getBlock(x, y, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
-                        }
-                    }
-                }
-            }
-        }
-        // Solve XZ collisions
-        for(let i in collisionCandidates)  {
-            let side = collisionCandidates[i];
-            if (Helpers.lineRectCollide(side, playerRect)) {
-                if(side.x != null && velocity.x * side.dir < 0) {
-                    pos.x = side.x + playerRect.size / 2 * (velocity.x > 0 ? -1 : 1);
-                    velocity.x = 0;
-                } else if(side.z != null && velocity.z * side.dir < 0) {
-                    pos.z = side.z + playerRect.size / 2 * (velocity.z > 0 ? -1 : 1);
-                    velocity.z = 0;
-                }
-            }
-        }
-        let falling = true;
-        let playerFace = {
-            x1: pos.x + velocity.x - v_margin,
-            z1: pos.z + velocity.z - v_margin,
-            x2: pos.x + velocity.x + v_margin,
-            z2: pos.z + velocity.z + v_margin
-        };
-        let newBYLower = Math.floor(pos.y + velocity.y);
-        let newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
-        // Collect Y collision sides
-        collisionCandidates = [];
-        if(!this.world.game_mode.isSpectator()) {
-            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                    if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
-                        collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
-                    if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
-                        collisionCandidates.push({y: newBYUpper, dir: -1, x1: x, z1: z, x2: x + 1, z2: z + 1});
-                }
-            }
-        }
-        // Solve Y collisions
-        for(let i in collisionCandidates) {
-            let face = collisionCandidates[i];
-            if (Helpers.rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
-                if(velocity.y < 0) {
-                    falling         = false;
-                    pos.y           = face.y;
-                    velocity.y      = 0;
-                    this.velocity.y = 0;
-                } else {
-                    pos.y           = face.y - this.height;
-                    velocity.y      = 0;
-                    this.velocity.y = 0;
-                }
-                break;
-            }
-        }
-        this.falling = falling;
-        if(!falling && this.flying) {
-            this.flying = false;
-        }
-        // Return solution
-        // velocity.y = 0;
-        return pos.add(velocity);
     }
 
 }

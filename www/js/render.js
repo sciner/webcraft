@@ -370,7 +370,7 @@ export class Renderer {
     bobView(viewMatrix) {
         let player = this.world.localPlayer;
         let underBlock = player.underBlock; //
-        if(player && player.walking && !player.flying && !player.in_water && (underBlock && (!underBlock.passable || underBlock.passable == 1))) {
+        if(player && player.walking && !player.flying && !player.in_water ) { // && (underBlock && (!underBlock.passable || underBlock.passable == 1))) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
             let speed_mul = 1.2;

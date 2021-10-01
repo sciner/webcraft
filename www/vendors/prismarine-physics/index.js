@@ -463,7 +463,7 @@ export function Physics(mcData, world) {
             let acceleration = physics.airborneAcceleration
             let inertia = physics.airborneInertia
             const blockUnder = world.getBlock(pos.offset(0, -1, 0))
-            if (entity.onGround && blockUnder) {
+            if ( blockUnder) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
