@@ -95,7 +95,7 @@ function makeSupportFeature(mcData) {
 
 export function Physics(mcData, world) {
 
-    const supportFeature = makeSupportFeature(mcData);
+    const supportFeature = makeSupportFeature(mcData)
     const blocksByName = mcData.blocksByName
 
     // Block Slipperiness
@@ -176,10 +176,9 @@ export function Physics(mcData, world) {
         physics.lavaGravity = physics.gravity / 4
     }
 
-    function getPlayerBB(pos) {
+    function getPlayerBB (pos) {
         const w = physics.playerHalfWidth
-        let resp = new AABB(-w, 0, -w, w, physics.playerHeight, w).offset(pos.x, pos.y, pos.z)
-        return resp;
+        return new AABB(-w, 0, -w, w, physics.playerHeight, w).offset(pos.x, pos.y, pos.z)
     }
 
     function setPositionToBB(bb, pos) {
@@ -199,7 +198,7 @@ export function Physics(mcData, world) {
                         const blockPos = block.position
                         for (const shape of block.shapes) {
                             const blockBB = new AABB(shape[0], shape[1], shape[2], shape[3], shape[4], shape[5])
-                            blockBB.offset(blockPos.x, blockPos.y, blockPos.z);
+                            blockBB.offset(blockPos.x, blockPos.y, blockPos.z)
                             surroundingBBs.push(blockBB)
                         }
                     }
@@ -239,7 +238,7 @@ export function Physics(mcData, world) {
         let oldVelZ = dz
 
         if (entity.control.sneak && entity.onGround) {
-            const step = 0.05;
+            const step = 0.05
 
             // In the 3 loops bellow, y offset should be -1, but that doesnt reproduce vanilla behavior.
             for (; dx !== 0 && getSurroundingBBs(world, getPlayerBB(pos).offset(dx, 0, 0)).length === 0; oldVelX = dx) {
@@ -444,7 +443,7 @@ export function Physics(mcData, world) {
     }
 
     function isOnLadder(world, pos) {
-        const block = world.getBlock(pos);
+        const block = world.getBlock(pos)
         return (block && (block.type === ladderId || block.type === vineId))
     }
 
@@ -464,6 +463,8 @@ export function Physics(mcData, world) {
             let acceleration = physics.airborneAcceleration
             let inertia = physics.airborneInertia
             const blockUnder = world.getBlock(pos.offset(0, -1, 0))
+            // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
+            // if (entity.onGround && blockUnder) {
             if ( blockUnder) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
@@ -628,8 +629,8 @@ export function Physics(mcData, world) {
         const waterBB = getPlayerBB(pos).contract(0.001, 0.401, 0.001)
         const lavaBB = getPlayerBB(pos).contract(0.1, 0.4, 0.1)
 
-        entity.isInWater = isInWaterApplyCurrent(world, waterBB, vel);
-        entity.isInLava = isMaterialInBB(world, lavaBB, lavaId);
+        entity.isInWater = isInWaterApplyCurrent(world, waterBB, vel)
+        entity.isInLava = isMaterialInBB(world, lavaBB, lavaId)
 
         // Reset velocity component if it falls under the threshold
         if (Math.abs(vel.x) < physics.negligeableVelocity) vel.x = 0
@@ -640,9 +641,10 @@ export function Physics(mcData, world) {
         if (entity.control.jump || entity.jumpQueued) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
             if (entity.isInWater || entity.isInLava) {
-                vel.y += 0.04
+                // @fixed Без этого фикса игрок не может выбраться из воды на берег
+                vel.y += 0.1 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0));
+                const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                 vel.y = Math.fround(0.42) * ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1)
                 if (entity.jumpBoost > 0) {
                     vel.y += 0.1 * entity.jumpBoost
@@ -730,6 +732,7 @@ function getStatusEffectNamesForVersion(supportFeature) {
 export class PlayerState {
     constructor(bot, control, mcData) {
         // const mcData = require('minecraft-data')(bot.version)
+        // const nbt = require('prismarine-nbt')
         const supportFeature        = makeSupportFeature(mcData)
         // Input / Outputs
         this.pos                    = bot.entity.position.clone()
@@ -743,15 +746,15 @@ export class PlayerState {
         this.jumpTicks              = bot.jumpTicks
         this.jumpQueued             = bot.jumpQueued
         // Input only (not modified)
-        this.yaw                    = bot.entity.yaw;
-        this.control                = control;
+        this.yaw                    = bot.entity.yaw
+        this.control                = control
         // effects
-        const effects               = bot.entity.effects;
+        const effects               = bot.entity.effects
         const statusEffectNames     = getStatusEffectNamesForVersion(supportFeature)
         this.jumpBoost              = getEffectLevel(mcData, statusEffectNames.jumpBoostEffectName, effects)
         this.speed                  = getEffectLevel(mcData, statusEffectNames.speedEffectName, effects)
         this.slowness               = getEffectLevel(mcData, statusEffectNames.slownessEffectName, effects)
-        //
+
         this.dolphinsGrace          = getEffectLevel(mcData, statusEffectNames.dolphinsGraceEffectName, effects)
         this.slowFalling            = getEffectLevel(mcData, statusEffectNames.slowFallingEffectName, effects)
         this.levitation             = getEffectLevel(mcData, statusEffectNames.levitationEffectName, effects)
