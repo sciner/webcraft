@@ -70,9 +70,10 @@ class FakeWorld {
             if(!b.passable) {
                 switch(b.style) {
                     case 'fence': {
+                        let fence_height = 1.35;
                         b.shapes.push([
                             .5-2/16, 0, .5-2/16,
-                            .5+2/16, 2, .5+2/16
+                            .5+2/16, fence_height, .5+2/16
                         ]);
                         //
                         let canConnect = (block) => {
@@ -87,19 +88,19 @@ class FakeWorld {
                         this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                         // South z--
                         if(canConnect(neighbours.SOUTH)) {
-                            b.shapes.push([.5-2/16, 0, 0, .5+2/16, 2, 5/16]);
+                            b.shapes.push([.5-2/16, 0, 0, .5+2/16, fence_height, 5/16]);
                         }
                         // North z++
                         if(canConnect(neighbours.NORTH)) {
-                            b.shapes.push([.5-2/16, 0, .5, .5+2/16, 2, 1]);
+                            b.shapes.push([.5-2/16, 0, .5, .5+2/16, fence_height, 1]);
                         }
                         // West x--
                         if(canConnect(neighbours.WEST)) {
-                            b.shapes.push([0, 0, .5-2/16, .5, 2, .5+2/16]);
+                            b.shapes.push([0, 0, .5-2/16, .5, fence_height, .5+2/16]);
                         }
                         // East x++
                         if(canConnect(neighbours.EAST)) {
-                            b.shapes.push([.5, 0, .5-2/16, 1, 2, .5+2/16]);
+                            b.shapes.push([.5, 0, .5-2/16, 1, fence_height, .5+2/16]);
                         }
                         break;
                     }
