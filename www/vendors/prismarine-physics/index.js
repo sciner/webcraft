@@ -1,93 +1,9 @@
-/**
-* https://github.com/PrismarineJS/prismarine-physics
-**/
-
+import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import { math } from "./lib/math.js";
-import { Vec3 } from "../../js/helpers.js";
-import { BLOCK } from "../../js/blocks.js";
+import { features } from "./features.js"; // import features from './lib/features.json' assert { type: "json" };
 
-const PHYSICS_INTERVAL_MS   = 50;
-export const PHYSICS_TIMESTEP      = PHYSICS_INTERVAL_MS / 1000;
-const BLOCK_NOT_EXISTS      = -2;
-
-export const mcData = {
-    effectsByName: [],
-    version: {
-        majorVersion: '1.17'
-    },
-    blocksByName: {
-        ice:            BLOCK.ICE,
-        packed_ice:     BLOCK.ICE2,
-        air:            BLOCK.AIR,
-        frosted_ice:    BLOCK.ICE3,
-        blue_ice:       BLOCK.ICE3,
-        soul_sand:      BLOCK.SOUL_SAND,
-        cobweb:         BLOCK.COBWEB,
-        water:          BLOCK.STILL_WATER,
-        lava:           BLOCK.STILL_LAVA,
-        ladder:         BLOCK.LADDER,
-        vine:           BLOCK.VINES,
-        honey_block:    null,
-        seagrass:       null,
-        kelp:           null,
-        bubble_column:  null
-    }
-};
-
-// FakeWorld
-export class FakeWorld {
-
-    constructor(world) {
-        this.world = world;
-    }
-
-    // getBlock...
-    getBlock(pos) {
-        const block = this.world.chunkManager.getBlock(Math.floor(pos.x), Math.floor(pos.y), Math.floor(pos.z));
-        const b = {...block};
-        b.shapes = [];
-        b.type = b.id;
-        b.metadata = 0;
-        if (!b.passable) {
-            b.shapes.push([0, 0, 0, 1, 1, 1]);
-        }
-        b.getProperties = () => {
-            return {
-                waterlogged: false
-            }
-        };
-        b.position = pos;
-        return b;
-    }
-
-}
-
-// FakePlayer
-export function FakePlayer(pos) {
-    return {
-        entity: {
-            position: pos,
-            velocity: new Vec3(0, 0, 0),
-            onGround: false,
-            isInWater: false,
-            isInLava: false,
-            isInWeb: false,
-            isCollidedHorizontally: false,
-            isCollidedVertically: false,
-            yaw: 0
-        },
-        jumpTicks: 0,
-        jumpQueued: false
-    }
-}
-
-
-// Load supported block styles
-let features = [];
-await fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => {
-    features = json;
-});
+const BLOCK_NOT_EXISTS = -2;
 
 function makeSupportFeature(mcData) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
@@ -212,6 +128,7 @@ export function Physics(mcData, world) {
         const playerBB = getPlayerBB(pos)
         const queryBB = playerBB.clone().extend(0, -1, 0)
         const surroundingBBs = getSurroundingBBs(world, queryBB)
+
         let dy = -1
         for (const blockBB of surroundingBBs) {
             dy = blockBB.computeOffsetY(playerBB, dy)
@@ -465,7 +382,7 @@ export function Physics(mcData, world) {
             const blockUnder = world.getBlock(pos.offset(0, -1, 0))
             // @fix Если проверять землю, то если бежать, то в прыжке сильно падает скорость
             // if (entity.onGround && blockUnder) {
-            if ( blockUnder) {
+            if (blockUnder) {
                 inertia = (blockSlipperiness[blockUnder.type] || physics.defaultSlipperiness) * 0.91
                 acceleration = 0.1 * (0.1627714 / (inertia * inertia * inertia))
             }
@@ -503,6 +420,7 @@ export function Physics(mcData, world) {
             let acceleration = physics.liquidAcceleration
             const inertia = entity.isInWater ? physics.waterInertia : physics.lavaInertia
             let horizontalInertia = inertia
+
             if (entity.isInWater) {
                 let strider = Math.min(entity.depthStrider, 3)
                 if (!entity.onGround) {
@@ -512,8 +430,10 @@ export function Physics(mcData, world) {
                     horizontalInertia += (0.546 - horizontalInertia) * strider / 3
                     acceleration += (0.7 - acceleration) * strider / 3
                 }
+
                 if (entity.dolphinsGrace > 0) horizontalInertia = 0.96
             }
+
             applyHeading(entity, strafe, forward, acceleration)
             moveEntity(entity, world, vel.x, vel.y, vel.z)
             vel.y *= inertia
@@ -613,6 +533,7 @@ export function Physics(mcData, world) {
             const flow = getFlow(world, block)
             acceleration.add(flow)
         }
+
         const len = acceleration.norm()
         if (len > 0) {
             vel.x += acceleration.x / len * 0.014
@@ -734,6 +655,7 @@ export class PlayerState {
         // const mcData = require('minecraft-data')(bot.version)
         // const nbt = require('prismarine-nbt')
         const supportFeature        = makeSupportFeature(mcData)
+
         // Input / Outputs
         this.pos                    = bot.entity.position.clone()
         this.vel                    = bot.entity.velocity.clone()
@@ -745,12 +667,15 @@ export class PlayerState {
         this.isCollidedVertically   = bot.entity.isCollidedVertically
         this.jumpTicks              = bot.jumpTicks
         this.jumpQueued             = bot.jumpQueued
+
         // Input only (not modified)
         this.yaw                    = bot.entity.yaw
         this.control                = control
+
         // effects
         const effects               = bot.entity.effects
         const statusEffectNames     = getStatusEffectNamesForVersion(supportFeature)
+
         this.jumpBoost              = getEffectLevel(mcData, statusEffectNames.jumpBoostEffectName, effects)
         this.speed                  = getEffectLevel(mcData, statusEffectNames.speedEffectName, effects)
         this.slowness               = getEffectLevel(mcData, statusEffectNames.slownessEffectName, effects)
@@ -759,7 +684,6 @@ export class PlayerState {
         this.slowFalling            = getEffectLevel(mcData, statusEffectNames.slowFallingEffectName, effects)
         this.levitation             = getEffectLevel(mcData, statusEffectNames.levitationEffectName, effects)
         /*
-        const nbt = require('prismarine-nbt')
         // armour enchantments
         const boots = bot.inventory.slots[8]
         if (boots && boots.nbt) {
@@ -784,43 +708,4 @@ export class PlayerState {
         bot.jumpTicks                       = this.jumpTicks
         bot.jumpQueued                      = this.jumpQueued
     }
-}
-
-export class PrismarinePlayerControl {
-
-    constructor(world, pos) {
-        this.world              = new FakeWorld(world);
-        this.physics            = Physics(mcData, this.world);
-        this.player             = FakePlayer(pos);
-        this.timeAccumulator    = 0;
-        this.physicsEnabled     = true;
-        this.controls = {
-            forward: false,
-            back: false,
-            left: false,
-            right: false,
-            jump: false,
-            sprint: false,
-            sneak: false
-        };
-        this.player_state = new PlayerState(this.player, this.controls, mcData);
-    }
-
-    // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js
-    tick(deltaSeconds) {
-        this.timeAccumulator += deltaSeconds;
-        let ticks = 0;
-        while(this.timeAccumulator >= PHYSICS_TIMESTEP) {
-            if (this.physicsEnabled) {
-                this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
-                // bot.emit('physicsTick')
-            }
-            // updatePosition(PHYSICS_TIMESTEP);
-            this.timeAccumulator -= PHYSICS_TIMESTEP;
-            ticks++;
-        }
-        return ticks;
-        // this.physics.simulatePlayer(this.player_state, this.world).apply(this.player);
-    }
-
 }

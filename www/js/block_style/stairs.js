@@ -40,8 +40,8 @@ export default class style {
             c[3] - half,
         ];
 
-        const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
         let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
+        const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
         let yt = y + .5;
         let yb = y;

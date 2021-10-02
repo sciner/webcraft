@@ -5,7 +5,7 @@ import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
-import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/index.js";
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 
 // ==========================================
 // Player
