@@ -1420,6 +1420,7 @@
         "inventory_icon_id": 922,
         "transparent": true,
         "sound": "webcraft:block.stone",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -2056,18 +2057,30 @@
     {
         "id": 106,
         "transparent": true,
-        "texture": [
-            11,
-            14
+        "width": 0.0625,
+        "texture": {
+            "south": [
+                15,
+                8
+            ],
+            "side": [
+                4,
+                12
+            ]
+        },
+        "align": [
+            "back"
         ],
+        "style": "ladder",
         "name": "VINES",
+        "passable": 0.25,
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 0
+        "inventory_icon_id": 3447
     },
     {
         "id": 108,
@@ -2197,8 +2210,8 @@
         "id": 501,
         "inventory_icon_id": 3240,
         "transparent": true,
-        "style": "slab",
         "sound": "webcraft:block.stone",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -2218,8 +2231,8 @@
         "id": 126,
         "inventory_icon_id": 3284,
         "transparent": true,
-        "style": "slab",
         "sound": "webcraft:block.wood",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -2239,8 +2252,8 @@
         "id": 458,
         "inventory_icon_id": 3230,
         "transparent": true,
-        "style": "slab",
         "sound": "webcraft:block.wood",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -2260,8 +2273,8 @@
         "id": 459,
         "inventory_icon_id": 3268,
         "transparent": true,
-        "style": "slab",
         "sound": "webcraft:block.wood",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -2281,8 +2294,8 @@
         "id": 461,
         "inventory_icon_id": 3317,
         "transparent": true,
-        "style": "slab",
         "sound": "webcraft:block.wood",
+        "style": "slab",
         "tags": [
             "slab"
         ],
@@ -3175,8 +3188,8 @@
         "align": [
             "back"
         ],
-        "transparent": true,
         "style": "ladder",
+        "transparent": true,
         "passable": 0.25,
         "sound": "webcraft:block.wood",
         "texture": {

@@ -104,6 +104,23 @@ class FakeWorld {
                         }
                         break;
                     }
+                    case 'pane': {
+                        b.cardinal_direction = this.getCardinalDirection(b);
+                        // F R B L
+                        switch(b.cardinal_direction) {
+                            case ROTATE.S: 
+                            case ROTATE.N: {
+                                b.shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
+                                break;
+                            }
+                            case ROTATE.W:
+                            case ROTATE.E: {
+                                b.shapes.push([.5-1/16, 0, 0, .5+1/16, 1, 1]);
+                                break;
+                            }
+                        }
+                        break;
+                    }
                     case 'stairs': {
                         b.cardinal_direction = this.getCardinalDirection(b);
                         b.on_ceil = this.isOnCeil(b);

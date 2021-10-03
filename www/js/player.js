@@ -1,5 +1,5 @@
 import Chat from "./chat.js";
-import {Helpers, Vector} from "./helpers.js";
+import {ROTATE, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
 import {Game} from "./game.js";
@@ -582,8 +582,52 @@ export default class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(pos.n.z != 0 || world_block.transparent) {
+                                if(world_block.transparent) {
                                     return;
+                                }
+                                if(pos.n.y == 0) {
+                                    if(pos.n.z != 0) {
+                                        // z
+                                    } else {
+                                        // x
+                                    }
+                                } else {
+                                    let cardinal_direction = BLOCK.getCardinalDirection(playerRotate).z;
+                                    let ok = false;
+                                    for(let i = 0; i < 4; i++) {
+                                        let pos2 = new Vector(pos.x, pos.y, pos.z);
+                                        let cd = cardinal_direction + i;
+                                        if(cd > 4) cd -= 4;
+                                        // F R B L
+                                        switch(cd) {
+                                            case ROTATE.S: {
+                                                pos2 = pos2.add(new Vector(0, 0, 1));
+                                                break;
+                                            }
+                                            case ROTATE.W: {
+                                                pos2 = pos2.add(new Vector(1, 0, 0));
+                                                break;
+                                            }
+                                            case ROTATE.N: {
+                                                pos2 = pos2.add(new Vector(0, 0, -1));
+                                                break;
+                                            }
+                                            case ROTATE.E: {
+                                                pos2 = pos2.add(new Vector(-1, 0, 0));
+                                                break;
+                                            }
+                                        }
+                                        let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
+                                        if(!cardinal_block.transparent) {
+                                            cardinal_direction = cd;
+                                            playerRotate.z = (playerRotate.z + i * 90) % 360;
+                                            ok = true;
+                                            break;
+                                        }
+                                    }
+                                    if(!ok) {
+                                        return;
+                                    }
                                 }
                             }
                             world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);

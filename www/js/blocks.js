@@ -276,6 +276,7 @@ export class BLOCK {
                 B.destroy_time = calcDestroyTime(B);
                 B.power = 1;
                 B.selflit = B.hasOwnProperty('selflit') && B.selflit;
+                B.transparent = B.hasOwnProperty('transparent') && B.transparent;
                 // Fix properties
                 if(!B.hasOwnProperty('light')) B.light = null;
                 if(!B.hasOwnProperty('spawnable')) B.spawnable = true;
