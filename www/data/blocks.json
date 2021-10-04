@@ -2071,6 +2071,9 @@
         "align": [
             "back"
         ],
+        "tags": [
+            "anycardinal"
+        ],
         "style": "ladder",
         "name": "VINES",
         "passable": 0.25,
@@ -3215,7 +3218,7 @@
         "height": 0.0625,
         "inventory_icon_id": 3314,
         "transparent": true,
-        "passable": 1,
+        "passable": 0,
         "texture": {
             "up": [
                 2,

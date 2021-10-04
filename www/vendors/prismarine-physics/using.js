@@ -196,7 +196,12 @@ class FakeWorld {
                         break;
                     }
                     default: {
-                        b.shapes.push([0, 0, 0, 1, 1, 1]);
+                        if(b.width) {
+                            let hw = b.width / 2;
+                            b.shapes.push([.5-hw, 0, .5-hw, .5+hw, b.height ? b.height : 1, .5+hw]);
+                        } else {
+                            b.shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
+                        }
                         break;
                     }
                 }

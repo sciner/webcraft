@@ -582,7 +582,7 @@ export default class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(world_block.transparent) {
+                                if(world_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
                                     return;
                                 }
                                 if(pos.n.y == 0) {
@@ -618,7 +618,7 @@ export default class Player {
                                             }
                                         }
                                         let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
-                                        if(!cardinal_block.transparent) {
+                                        if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
                                             cardinal_direction = cd;
                                             playerRotate.z = (playerRotate.z + i * 90) % 360;
                                             ok = true;
