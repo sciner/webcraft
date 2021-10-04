@@ -1,4 +1,5 @@
 import {BLOCK} from "./blocks.js";
+import { Vector } from "./helpers.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -145,9 +146,7 @@ export default class Chat {
                         let x = parseFloat(temp[0].trim());
                         let y = parseFloat(temp[1].trim());
                         let z = parseFloat(temp[2].trim());
-                        Game.world.localPlayer.pos.x = x;
-                        Game.world.localPlayer.pos.y = y;
-                        Game.world.localPlayer.pos.z = z;
+                        Game.world.localPlayer.setPosition(new Vector(x, y, z));
                     } else {
                         Game.world.localPlayer.chat.messages.addError(`Incorrect argument for command`);
                     }
