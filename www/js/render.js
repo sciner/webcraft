@@ -369,7 +369,7 @@ export class Renderer {
     // Original bobView
     bobView(viewMatrix) {
         let player = this.world.localPlayer;
-        if(player && player.walking && !player.flying && !player.in_water ) {
+        if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
             let speed_mul = 1.2;

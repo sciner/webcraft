@@ -563,7 +563,7 @@ export function Physics(mcData, world) {
             if (entity.jumpTicks > 0) entity.jumpTicks--
             if (entity.isInWater || entity.isInLava) {
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
-                vel.y += 0.1 // 0.04
+                vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
                 const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
                 vel.y = Math.fround(0.42) * ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1)
@@ -582,8 +582,8 @@ export function Physics(mcData, world) {
         }
         entity.jumpQueued = false
 
-        let strafe = (entity.control.right - entity.control.left) * 0.98
-        let forward = (entity.control.forward - entity.control.back) * 0.98
+        let strafe = (entity.control.left - entity.control.right) * 0.98
+        let forward = (entity.control.back - entity.control.forward) * 0.98
 
         if (entity.control.sneak) {
             strafe *= physics.sneakSpeed
@@ -659,6 +659,7 @@ export class PlayerState {
         // Input / Outputs
         this.pos                    = bot.entity.position.clone()
         this.vel                    = bot.entity.velocity.clone()
+        this.flying                 = false;
         this.onGround               = bot.entity.onGround
         this.isInWater              = bot.entity.isInWater
         this.isInLava               = bot.entity.isInLava

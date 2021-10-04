@@ -6,6 +6,7 @@ import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
+import {SpectatorPlayerControl} from "./spectator-physics.js";
 
 // ==========================================
 // Player
@@ -60,14 +61,15 @@ export default class Player {
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         if(world.saved_state) {
-            this.flying = !!world.saved_state.flying;
+            this.setFlying(!!world.saved_state.flying);
         }
         // pickAt
         this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
             return this.onTarget(...args);
         });
         // Prismarine player control
-        this.pr = new PrismarinePlayerControl(world, this.pos);
+        this.pr                     = new PrismarinePlayerControl(world, this.pos);
+        this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
     }
 
     // onTarget
@@ -233,9 +235,9 @@ export default class Player {
         if(keyCode == KEY.SPACE && Game.world.game_mode.canFly() && !this.in_water) {
             if(this.velocity.y > 0) {
                 if(down && first) {
-                    if(!this.flying) {
+                    if(!this.getFlying()) {
                         this.velocity.y = 0;
-                        this.flying = true;
+                        this.setFlying(true);
                         console.log('flying');
                     }
                 }
@@ -330,7 +332,21 @@ export default class Player {
             // F8 (Random teleport)
             case KEY.F8: {
                 if(!down) {
-                    Game.world.randomTeleport();
+                    if(e.shiftKey) {
+                        this.pickAt.get((pos) => {
+                            if(pos !== false) {
+                                if(pos.n.x != 0) pos.x += pos.n.x;
+                                if(pos.n.z != 0) pos.z += pos.n.z;
+                                if(pos.n.y != 0) {
+                                    pos.y += pos.n.y;
+                                    if(pos.n.y < 0) pos.y--;
+                                }
+                                Game.world.randomTeleport(pos);
+                            }
+                        }, 1000);
+                    } else {
+                        Game.world.randomTeleport();
+                    }
                 }
                 return true;
                 break;
@@ -452,10 +468,20 @@ export default class Player {
         return false;
     }
 
+    //
+    getPlayerControl() {
+        if(Game.world.game_mode.isSpectator()) {
+            return this.pr_spectator;
+        }
+        return this.pr;
+    }
+
+    //
     setPosition(vec) {
-        this.pr.player.entity.position.x = vec.x;
-        this.pr.player.entity.position.y = vec.y;
-        this.pr.player.entity.position.z = vec.z;
+        let pc = this.getPlayerControl();
+        pc.player.entity.position.x = vec.x;
+        pc.player.entity.position.y = vec.y;
+        pc.player.entity.position.z = vec.z;
     }
 
     // Hook for mouse input.
@@ -552,7 +578,6 @@ export default class Player {
                             pos.y -= pos.n.y;
                             pos.z -= pos.n.z;
                             world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, world_block.rotate, null, extra_data);
-                            // world.setBlock(pos.x, pos.y, pos.z, world_block, 15/16, world_block.rotate, null, extra_data);
                         }
                     }
                 } else {
@@ -691,6 +716,14 @@ export default class Player {
         return v;
     }
 
+    getFlying() {
+        return this.flying;
+    }
+
+    setFlying(value) {
+        this.flying = value;
+    }
+
     // Updates this local player (gravity, movement)
     update() {
         if(this.lastUpdate != null) {
@@ -700,39 +733,50 @@ export default class Player {
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
-            // Prismarine player control
-            this.posO                   = new Vector(this.lerpPos);
-            this.pr.controls.back       = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
-            this.pr.controls.forward    = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
-            this.pr.controls.right      = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
-            this.pr.controls.left       = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
-            this.pr.controls.jump       = !!this.keys[KEY.SPACE];
-            this.pr.controls.sneak      = !!this.keys[KEY.SHIFT];
-            this.pr.controls.sprint     = this.running;
-            this.pr.player_state.yaw    = this.angles[2];
 
-            let ticks = this.pr.tick(delta);
-            if (ticks > 0) {
-                this.prevPos.copyFrom(this.pos);
-            }
-            this.pos.copyFrom(this.pr.player.entity.position);
-            if (this.pos.distance(this.prevPos) > 10.0) {
-                this.lerpPos.copyFrom(this.pos);
+            let pc                 = this.getPlayerControl();
+            this.posO              = new Vector(this.lerpPos);
+            pc.controls.back       = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
+            pc.controls.forward    = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
+            pc.controls.right      = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
+            pc.controls.left       = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
+            pc.controls.jump       = !!this.keys[KEY.SPACE];
+            pc.controls.sneak      = !!this.keys[KEY.SHIFT];
+            pc.controls.sprint     = this.running;
+            pc.player_state.yaw    = this.angles[2];
+
+            // Physics tick
+            let ticks = pc.tick(delta);
+
+            if(isSpectator || this.getFlying()) {
+                this.lerpPos = pc.player.entity.position;
+                this.pos = this.lerpPos;
             } else {
-                this.lerpPos.lerpFrom(this.prevPos, this.pos, this.pr.timeAccumulator / PHYSICS_TIMESTEP);
+                // Prismarine player control
+                if (ticks > 0) {
+                    this.prevPos.copyFrom(this.pos);
+                }
+                this.pos.copyFrom(pc.player.entity.position);
+                if (this.pos.distance(this.prevPos) > 10.0) {
+                    this.lerpPos.copyFrom(this.pos);
+                } else {
+                    this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
+                }
             }
 
-            // pr.player_state.onGround
-            let velocity = this.pr.player_state.vel;
-            this.onGround = this.pr.player_state.onGround;
-            this.in_water = this.pr.player_state.isInWater;
-            this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.flying && !this.in_water;
+            // pc.player_state.onGround
+            this.in_water_o = this.in_water;
+            let velocity    = pc.player_state.vel;
+            this.onGround   = pc.player_state.onGround;
+            this.in_water   = pc.player_state.isInWater;
+
+            // Walking
+            this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             if(this.walking && this.onGround) {
                 this.walking_frame += delta * (this.in_water ? .2 : 1);
             }
             this.prev_walking = this.walking;
-
-            //
+            // Walking distance
             this.walkDistO = this.walkDist;
             this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
             //
@@ -752,73 +796,18 @@ export default class Player {
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
-            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
-            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
-            if(this.in_water && !this.in_water_o) {
-                if(!isSpectator) {
-                    this.flying = false;
-                }
-            }
-            this.in_water_o = this.in_water;
-
-            //
-            this.applyFov(delta);
 
             /*
-            // Gravity
-            if(this.in_water && !isSpectator) {
-                this.walking
-                if(this.falling && !this.flying) {
-                    velocity.y += -(30 * delta / 4);
-                }
-                if(this.in_water && velocity.y < 0) {
-                    velocity.y = -30 * delta;
-                }
-                if(this.keys[KEY.SPACE]) {
-                    if(performance.now() - this.in_water_from_time > 500) {
-                        velocity.y = 90 * delta;
-                    }
-                } else if(this.keys[KEY.SHIFT]) {
-                    velocity.y = -90 * delta;
-                }
-            } else {
-                if(this.falling && !this.flying) {
-                    velocity.y += -(30 * delta);
-                }
-                // Jumping | flying
-                if(this.keys[KEY.SPACE]) {
-                    if(this.falling) {
-                        if(this.flying) {
-                            velocity.y = 8;
-                        }
-                    } else {
-                        velocity.y = 8;
-                    }
-                } else {
-                    if(this.flying) {
-                        velocity.y += -(15 * delta);
-                        if(velocity.y < 0) {
-                            velocity.y = 0;
-                        }
-                    }
-                }
-                if(this.keys[KEY.SHIFT]) {
-                    if(this.flying) {
-                        velocity.y = -8;
-                    }
-                }
-            }
-
-            //
             this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
             this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
             if(this.in_water && !this.in_water_o) {
-                this.in_water_from_time = performance.now();
                 if(!isSpectator) {
-                    this.flying = false;
+                    this.setFlying(false);
                 }
             }
             this.in_water_o = this.in_water;
+            */
+
             // Внутри какого блока находится голова (в идеале глаза)
             let hby = this.pos.y + this.height;
             this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
@@ -833,6 +822,65 @@ export default class Player {
                     this.eyes_in_water = hby < (hby | 0) + power + .01;
                 }
             }
+
+            //
+            this.applyFov(delta);
+
+            /*
+            // Gravity
+            if(this.in_water && !isSpectator) {
+                this.walking
+                if(this.falling && !this.getFlying()) {
+                    velocity.y += -(30 * delta / 4);
+                }
+                if(this.in_water && velocity.y < 0) {
+                    velocity.y = -30 * delta;
+                }
+                if(this.keys[KEY.SPACE]) {
+                    if(performance.now() - this.in_water_from_time > 500) {
+                        velocity.y = 90 * delta;
+                    }
+                } else if(this.keys[KEY.SHIFT]) {
+                    velocity.y = -90 * delta;
+                }
+            } else {
+                if(this.falling && !this.getFlying()) {
+                    velocity.y += -(30 * delta);
+                }
+                // Jumping | flying
+                if(this.keys[KEY.SPACE]) {
+                    if(this.falling) {
+                        if(this.getFlying()) {
+                            velocity.y = 8;
+                        }
+                    } else {
+                        velocity.y = 8;
+                    }
+                } else {
+                    if(this.getFlying()) {
+                        velocity.y += -(15 * delta);
+                        if(velocity.y < 0) {
+                            velocity.y = 0;
+                        }
+                    }
+                }
+                if(this.keys[KEY.SHIFT]) {
+                    if(this.getFlying()) {
+                        velocity.y = -8;
+                    }
+                }
+            }
+
+            //
+            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
+            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
+            if(this.in_water && !this.in_water_o) {
+                this.in_water_from_time = performance.now();
+                if(!isSpectator) {
+                    this.setFlying(false);
+                }
+            }
+            this.in_water_o = this.in_water;
             */
         }
         this.lastUpdate = performance.now();

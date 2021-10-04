@@ -65,9 +65,9 @@ export class GameMode {
                 let player = this.world.localPlayer;
                 if(player) {
                     if(!mode.can_fly) {
-                        player.flying = false;
+                        player.setFlying(false);
                     } else if(id == GAME_MODE.SPECTATOR) {
-                        player.flying = true;
+                        player.setFlying(true);
                     }
                     player.chat.messages.addSystem('Game mode changed to ... ' + this.getCurrent().title);
                 }

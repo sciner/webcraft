@@ -52,7 +52,10 @@ export class PickAt {
     }
 
     //
-    get(callback) {
+    get(callback, PICKAT_DISTANCE) {
+        if(typeof PICKAT_DISTANCE === 'undefined') {
+            PICKAT_DISTANCE = PICKAT_DIST;
+        }
         const player = Game.world.localPlayer;
         const render = this.render;
         const pos = new Vector(player.pos);
@@ -73,7 +76,6 @@ export class PickAt {
         const INF = 100000.0;
         const eps = 1e-3;
         const coord = ['x', 'y', 'z'];
-        let PICKAT_DISTANCE = PICKAT_DIST;
         if(Game.world.game_mode.isCreative()) {
             PICKAT_DISTANCE = PICKAT_DISTANCE * 2 | 0;
         }

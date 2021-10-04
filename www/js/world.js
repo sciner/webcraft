@@ -154,8 +154,11 @@ export class World {
     }
 
     // randomTeleport
-    randomTeleport() {
-        this.localPlayer.setPosition(new Vector(1000 + Math.random() * 2000000, 120, 1000 + Math.random() * 2000000));
+    randomTeleport(pos) {
+        if(typeof pos === 'undefined') {
+            pos = new Vector(1000 + Math.random() * 2000000, 120, 1000 + Math.random() * 2000000);
+        }
+        this.localPlayer.setPosition(pos);
     }
 
     // underWaterfall
@@ -216,7 +219,7 @@ export class World {
             seed:               Game.seed,
             spawnPoint:         that.spawnPoint,
             pos:                that.localPlayer.pos,
-            flying:             that.localPlayer.flying,
+            flying:             that.localPlayer.getFlying(),
             generator:          this._savedState.generator,
             chunk_render_dist:  Game.world.chunkManager.CHUNK_RENDER_DIST,
             rotate:             that.rotate,
