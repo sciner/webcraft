@@ -433,6 +433,159 @@ export class BLOCK {
         }
     }
 
+    static isOnCeil(block) {
+        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
+    }
+
+    static isOpenedTrapdoor(block) {
+        return !!(block.extra_data && block.extra_data.opened);
+    }
+
+    // getShapes
+    static getShapes(pos, b, world) {
+        let shapes = [];
+        if(!b.passable) {
+            switch(b.style) {
+                case 'fence': {
+                    let fence_height = 1.35;
+                    shapes.push([
+                        .5-2/16, 0, .5-2/16,
+                        .5+2/16, fence_height, .5+2/16
+                    ]);
+                    //
+                    let canConnect = (block) => {
+                        return block && (!block.transparent || block.style == 'fence');
+                    };
+                    let neighbours = {
+                        SOUTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z - 1),
+                        NORTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z + 1),
+                        WEST: world.chunkManager.getBlock(pos.x - 1, pos.y, pos.z),
+                        EAST: world.chunkManager.getBlock(pos.x + 1, pos.y, pos.z)
+                    }
+                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // South z--
+                    if(canConnect(neighbours.SOUTH)) {
+                        shapes.push([.5-2/16, 0, 0, .5+2/16, fence_height, 5/16]);
+                    }
+                    // North z++
+                    if(canConnect(neighbours.NORTH)) {
+                        shapes.push([.5-2/16, 0, .5, .5+2/16, fence_height, 1]);
+                    }
+                    // West x--
+                    if(canConnect(neighbours.WEST)) {
+                        shapes.push([0, 0, .5-2/16, .5, fence_height, .5+2/16]);
+                    }
+                    // East x++
+                    if(canConnect(neighbours.EAST)) {
+                        shapes.push([.5, 0, .5-2/16, 1, fence_height, .5+2/16]);
+                    }
+                    break;
+                }
+                case 'pane': {
+                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    // F R B L
+                    switch(b.cardinal_direction) {
+                        case ROTATE.S: 
+                        case ROTATE.N: {
+                            shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
+                            break;
+                        }
+                        case ROTATE.W:
+                        case ROTATE.E: {
+                            shapes.push([.5-1/16, 0, 0, .5+1/16, 1, 1]);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'stairs': {
+                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    b.on_ceil = this.isOnCeil(b);
+                    if(b.on_ceil) {
+                        shapes.push([0, .5, 0, 1, 1, 1]);
+
+                    } else {
+                        shapes.push([0, 0, 0, 1, .5, 1]);
+                        // F R B L
+                        switch(b.cardinal_direction) {
+                            case ROTATE.S: {
+                                shapes.push([0, .5, .5, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.N: {
+                                shapes.push([0, .5, 0, 1, 1, .5]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([.5, .5, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, .5, 0, .5, 1, 1]);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 'trapdoor': {
+                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    b.opened = this.isOpenedTrapdoor(b);
+                    b.on_ceil = this.isOnCeil(b);
+                    if(b.opened) {
+                        // F R B L
+                        switch(b.cardinal_direction) {
+                            // z--
+                            case ROTATE.S: {
+                                shapes.push([0, 0, 1-3/16, 1, 1, 1]);
+                                break;
+                            }
+                            // z++
+                            case ROTATE.N: {
+                                shapes.push([0, 0, 0, 1, 1, 3/16]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([1-3/16, 0, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, 0, 0, 3/16, 1, 1]);
+                                break;
+                            }
+                        }
+                    } else {
+                        if(b.on_ceil) {
+                            shapes.push([0, 1-3/16, 0, 1, 1, 1]);
+                        } else {
+                            shapes.push([0, 0, 0, 1, 3/16, 1]);
+                        }
+                    }
+                    break;
+                }
+                case 'slab': {
+                    b.on_ceil = this.isOnCeil(b);
+                    if(b.on_ceil) {
+                        shapes.push([0, .5, 0, 1, 1, 1]);
+                    } else {
+                        shapes.push([0, 0, 0, 1, .5, 1]);
+                    }
+                    break;
+                }
+                default: {
+                    if(b.width) {
+                        let hw = b.width / 2;
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.height ? b.height : 1, .5+hw]);
+                    } else {
+                        shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
+                    }
+                    break;
+                }
+            }
+        }
+        return shapes;
+    }
+
 };
 
 //
