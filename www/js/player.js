@@ -363,7 +363,7 @@ export default class Player {
             // F10 (toggleUpdateChunks)
             case KEY.F10: {
                 if(!down) {
-                    this.world.game_mode.next();
+                    this.nextGameMode();
                 }
                 return true;
                 break;
@@ -466,22 +466,6 @@ export default class Player {
             }
         }
         return false;
-    }
-
-    //
-    getPlayerControl() {
-        if(Game.world.game_mode.isSpectator()) {
-            return this.pr_spectator;
-        }
-        return this.pr;
-    }
-
-    //
-    setPosition(vec) {
-        let pc = this.getPlayerControl();
-        pc.player.entity.position.x = vec.x;
-        pc.player.entity.position.y = vec.y;
-        pc.player.entity.position.z = vec.z;
     }
 
     // Hook for mouse input.
@@ -722,6 +706,40 @@ export default class Player {
 
     setFlying(value) {
         this.flying = value;
+    }
+
+    //
+    getPlayerControl() {
+        if(Game.world.game_mode.isSpectator()) {
+            return this.pr_spectator;
+        }
+        return this.pr;
+    }
+
+    //
+    setPosition(vec) {
+        let pc = this.getPlayerControl();
+        pc.player.entity.position.x = vec.x;
+        pc.player.entity.position.y = vec.y;
+        pc.player.entity.position.z = vec.z;
+    }
+
+    //
+    nextGameMode() {
+        let pc_previous = this.getPlayerControl();
+        this.world.game_mode.next();
+        let pc_current = this.getPlayerControl();
+        //
+        pc_current.player.entity.velocity   = new Vector(0, 0, 0);
+        pc_current.player_state.vel         = new Vector(0, 0, 0);
+        //
+        let pos                             = new Vector(pc_previous.player.entity.position);
+        pc_current.player.entity.position   = new Vector(pos);
+        pc_current.player_state.pos         = new Vector(pos);
+        this.lerpPos                        = new Vector(pos);
+        this.pos                            = new Vector(pos);
+        this.posO                           = new Vector(pos);
+        this.prevPos                        = new Vector(pos);
     }
 
     // Updates this local player (gravity, movement)

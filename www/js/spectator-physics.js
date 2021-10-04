@@ -32,6 +32,7 @@ export class SpectatorPlayerControl {
         this.player_state = {
             yaw: 0,
             vel: new Vector(0, 0, 0),
+            pos: new Vector(0, 0, 0),
             onGround: false,
             flying: true,
             isInWater: false
