@@ -1,6 +1,6 @@
 [
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -8,16 +8,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:birch_trunk"
+                "item": "madcraft:birch_trunk"
             }
         },
         "result": {
-            "item": "webcraft:oak_plank",
+            "item": "madcraft:oak_plank",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -25,16 +25,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:oak_trunk"
+                "item": "madcraft:oak_trunk"
             }
         },
         "result": {
-            "item": "webcraft:oak_plank",
+            "item": "madcraft:oak_plank",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -42,16 +42,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:acacia_trunk"
+                "item": "madcraft:acacia_trunk"
             }
         },
         "result": {
-            "item": "webcraft:acacia_plank",
+            "item": "madcraft:acacia_plank",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -59,16 +59,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:spruce_trunk"
+                "item": "madcraft:spruce_trunk"
             }
         },
         "result": {
-            "item": "webcraft:spruce_plank",
+            "item": "madcraft:spruce_plank",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "WW ",
@@ -76,16 +76,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:birch_plank"
+                "item": "madcraft:birch_plank"
             }
         },
         "result": {
-            "item": "webcraft:crafting_table",
+            "item": "madcraft:crafting_table",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "WW ",
@@ -93,16 +93,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:crafting_table",
+            "item": "madcraft:crafting_table",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "WW ",
@@ -110,16 +110,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:acacia_plank"
+                "item": "madcraft:acacia_plank"
             }
         },
         "result": {
-            "item": "webcraft:crafting_table",
+            "item": "madcraft:crafting_table",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "WW ",
@@ -127,16 +127,16 @@
         ],
         "key": {
             "W": {
-                "item": "webcraft:spruce_plank"
+                "item": "madcraft:spruce_plank"
             }
         },
         "result": {
-            "item": "webcraft:crafting_table",
+            "item": "madcraft:crafting_table",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "B  ",
             "BB ",
@@ -144,16 +144,16 @@
         ],
         "key": {
             "B": {
-                "item": "webcraft:brick"
+                "item": "madcraft:brick"
             }
         },
         "result": {
-            "item": "webcraft:brick_stairs",
+            "item": "madcraft:brick_stairs",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "P  ",
             "PP ",
@@ -161,16 +161,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:oak_stairs",
+            "item": "madcraft:oak_stairs",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -178,16 +178,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:oak_slab",
+            "item": "madcraft:oak_slab",
             "count": 6
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
             "   ",
@@ -195,16 +195,16 @@
         ],
         "key": {
             "B": {
-                "item": "webcraft:brick"
+                "item": "madcraft:brick"
             }
         },
         "result": {
-            "item": "webcraft:brick_slab",
+            "item": "madcraft:brick_slab",
             "count": 6
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "SSS",
             "S S",
@@ -212,99 +212,99 @@
         ],
         "key": {
             "S": {
-                "item": "webcraft:cobblestone"
+                "item": "madcraft:cobblestone"
             }
         },
         "result": {
-            "item": "webcraft:furnace",
+            "item": "madcraft:furnace",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
             "P"
         ],
         "key": {
             "P": {
-                "item": "webcraft:birch_plank"
+                "item": "madcraft:birch_plank"
             }
         },
         "result": {
-            "item": "webcraft:stick",
+            "item": "madcraft:stick",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
             "P"
         ],
         "key": {
             "P": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:stick",
+            "item": "madcraft:stick",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
             "P"
         ],
         "key": {
             "P": {
-                "item": "webcraft:acacia_plank"
+                "item": "madcraft:acacia_plank"
             }
         },
         "result": {
-            "item": "webcraft:stick",
+            "item": "madcraft:stick",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
             "P"
         ],
         "key": {
             "P": {
-                "item": "webcraft:spruce_plank"
+                "item": "madcraft:spruce_plank"
             }
         },
         "result": {
-            "item": "webcraft:stick",
+            "item": "madcraft:stick",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "X",
             "#"
         ],
         "key": {
             "#": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             },
             "X": {
-                "item": "webcraft:coal"
+                "item": "madcraft:coal"
             }
         },
         "result": {
-            "item": "webcraft:torch",
+            "item": "madcraft:torch",
             "count": 4
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "# #",
             "###",
@@ -312,16 +312,16 @@
         ],
         "key": {
             "#": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "webcraft:ladder",
+            "item": "madcraft:ladder",
             "count": 3
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
             " | ",
@@ -329,19 +329,19 @@
         ],
         "key": {
             "|": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             },
             "#": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:wooden_pickaxe",
+            "item": "madcraft:wooden_pickaxe",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
             " | ",
@@ -349,19 +349,19 @@
         ],
         "key": {
             "|": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             },
             "#": {
-                "item": "webcraft:cobblestone"
+                "item": "madcraft:cobblestone"
             }
         },
         "result": {
-            "item": "webcraft:stone_pickaxe",
+            "item": "madcraft:stone_pickaxe",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
             "#|",
@@ -369,19 +369,19 @@
         ],
         "key": {
             "|": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             },
             "#": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:wooden_axe",
+            "item": "madcraft:wooden_axe",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
             "|",
@@ -389,19 +389,19 @@
         ],
         "key": {
             "|": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             },
             "#": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:wooden_shovel",
+            "item": "madcraft:wooden_shovel",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
             "# #",
@@ -409,16 +409,16 @@
         ],
         "key": {
             "#": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:chest",
+            "item": "madcraft:chest",
             "count": 1
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PSP",
@@ -426,19 +426,19 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:birch_plank"
+                "item": "madcraft:birch_plank"
             },
             "S": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "webcraft:birch_fence",
+            "item": "madcraft:birch_fence",
             "count": 3
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PSP",
@@ -446,19 +446,19 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             },
             "S": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "webcraft:oak_fence",
+            "item": "madcraft:oak_fence",
             "count": 3
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PSP",
@@ -466,19 +466,19 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:acacia_plank"
+                "item": "madcraft:acacia_plank"
             },
             "S": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "webcraft:acacia_fence",
+            "item": "madcraft:acacia_fence",
             "count": 3
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PSP",
@@ -486,19 +486,19 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:spruce_plank"
+                "item": "madcraft:spruce_plank"
             },
             "S": {
-                "item": "webcraft:stick"
+                "item": "madcraft:stick"
             }
         },
         "result": {
-            "item": "webcraft:spruce_fence",
+            "item": "madcraft:spruce_fence",
             "count": 3
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PPP",
@@ -506,16 +506,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:birch_plank"
+                "item": "madcraft:birch_plank"
             }
         },
         "result": {
-            "item": "webcraft:birch_trapdoor",
+            "item": "madcraft:birch_trapdoor",
             "count": 2
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PPP",
@@ -523,16 +523,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:oak_plank"
+                "item": "madcraft:oak_plank"
             }
         },
         "result": {
-            "item": "webcraft:oak_trapdoor",
+            "item": "madcraft:oak_trapdoor",
             "count": 2
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PPP",
@@ -540,16 +540,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:acacia_plank"
+                "item": "madcraft:acacia_plank"
             }
         },
         "result": {
-            "item": "webcraft:acacia_trapdoor",
+            "item": "madcraft:acacia_trapdoor",
             "count": 2
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "PPP",
@@ -557,16 +557,16 @@
         ],
         "key": {
             "P": {
-                "item": "webcraft:spruce_plank"
+                "item": "madcraft:spruce_plank"
             }
         },
         "result": {
-            "item": "webcraft:spruce_trapdoor",
+            "item": "madcraft:spruce_trapdoor",
             "count": 2
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "DG",
@@ -574,19 +574,19 @@
         ],
         "key": {
             "D": {
-                "item": "webcraft:dirt"
+                "item": "madcraft:dirt"
             },
             "G": {
-                "item": "webcraft:gravel"
+                "item": "madcraft:gravel"
             }
         },
         "result": {
-            "item": "webcraft:coarse_dirt",
+            "item": "madcraft:coarse_dirt",
             "count": 2
         }
     },
     {
-        "type": "webcraft:crafting_shaped",
+        "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
             "GD",
@@ -594,14 +594,14 @@
         ],
         "key": {
             "D": {
-                "item": "webcraft:dirt"
+                "item": "madcraft:dirt"
             },
             "G": {
-                "item": "webcraft:gravel"
+                "item": "madcraft:gravel"
             }
         },
         "result": {
-            "item": "webcraft:coarse_dirt",
+            "item": "madcraft:coarse_dirt",
             "count": 2
         }
     }

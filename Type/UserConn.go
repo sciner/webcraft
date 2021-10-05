@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"whiteframe.ru/webcraft/Struct"
-	"whiteframe.ru/webcraft/utils/conf"
+	"madcraft.io/madcraft/Struct"
+	"madcraft.io/madcraft/utils/conf"
 )
 
 type (

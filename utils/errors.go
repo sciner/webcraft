@@ -1,6 +1,6 @@
 package utils
 
-import "whiteframe.ru/webcraft/Struct"
+import "madcraft.io/madcraft/Struct"
 
 func GenerateErrorPackets(code int, text string) []Struct.JSONResponse {
 	err := &Struct.CmdError{

@@ -1,4 +1,4 @@
-module whiteframe.ru/webcraft
+module madcraft.io/madcraft
 
 go 1.16
 

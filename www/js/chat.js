@@ -3,7 +3,7 @@ import { Vector } from "./helpers.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
-const SYSTEM_NAME               = '<WebCraft>';
+const SYSTEM_NAME               = '<MadCraft>';
 
 export default class Chat {
 

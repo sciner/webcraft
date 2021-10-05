@@ -1,4 +1,4 @@
-# Webcraft
+# MadCraft
 Minecraft clone on JS
 
 # Run and play

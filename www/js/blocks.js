@@ -241,19 +241,19 @@ export class BLOCK {
             }
             if(block.hasOwnProperty('sound')) {
                 switch(block.sound) {
-                    case 'webcraft:block.grass':
+                    case 'madcraft:block.grass':
                         destroy_time = 1.;
                         break;
-                    case 'webcraft:block.gravel':
-                    case 'webcraft:block.sand': {
+                    case 'madcraft:block.gravel':
+                    case 'madcraft:block.sand': {
                         destroy_time = 2.;
                         break;
                     }
-                    case 'webcraft:block.wood': {
+                    case 'madcraft:block.wood': {
                         destroy_time = 4.;
                         break;
                     }
-                    case 'webcraft:block.stone': {
+                    case 'madcraft:block.stone': {
                         destroy_time = 7.;
                         break;
                     }

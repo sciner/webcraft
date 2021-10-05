@@ -1,6 +1,6 @@
 [
     {
-        "type": "webcraft:block.chest",
+        "type": "madcraft:block.chest",
         "dig": [
             "/sounds/wood1.mp3",
             "/sounds/wood2.mp3",
@@ -29,7 +29,7 @@
         ]
     },
     {
-        "type": "webcraft:block.wood",
+        "type": "madcraft:block.wood",
         "dig": [
             "/sounds/wood1.mp3",
             "/sounds/wood2.mp3",
@@ -52,7 +52,7 @@
         ]
     },
     {
-        "type": "webcraft:block.sand",
+        "type": "madcraft:block.sand",
         "dig": [
             "/sounds/Sand_dig1.ogg",
             "/sounds/Sand_dig2.ogg",
@@ -74,7 +74,7 @@
         ]
     },
     {
-        "type": "webcraft:block.glass",
+        "type": "madcraft:block.glass",
         "dig": [
             "/sounds/Glass_dig1.ogg",
             "/sounds/Glass_dig2.ogg",
@@ -96,7 +96,7 @@
         ]
     },
     {
-        "type": "webcraft:block.cloth",
+        "type": "madcraft:block.cloth",
         "dig": [
             "/sounds/Cloth_dig1.ogg",
             "/sounds/Cloth_dig2.ogg",
@@ -111,7 +111,7 @@
         ]
     },
     {
-        "type": "webcraft:block.grass",
+        "type": "madcraft:block.grass",
         "dig": [
             "/sounds/grass1.mp3",
             "/sounds/grass2.mp3",
@@ -134,7 +134,7 @@
         ]
     },
     {
-        "type": "webcraft:block.stone",
+        "type": "madcraft:block.stone",
         "dig": [
             "/sounds/stone1.mp3",
             "/sounds/stone2.mp3",
@@ -157,7 +157,7 @@
         ]
     },
     {
-        "type": "webcraft:block.gravel",
+        "type": "madcraft:block.gravel",
         "dig": [
             "/sounds/gravel1.mp3"
         ],
@@ -172,7 +172,7 @@
         ]
     },
     {
-        "type": "webcraft:block.wooden_trapdoor",
+        "type": "madcraft:block.wooden_trapdoor",
         "open": [
             "/sounds/Wooden_trapdoor_open1.ogg",
             "/sounds/Wooden_trapdoor_open2.ogg",

@@ -199,7 +199,7 @@ export let Game = {
                 let pos = Game.world.localPlayer.getBlockPos();
                 let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
                 if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
-                    let default_sound = 'webcraft:block.wood';
+                    let default_sound = 'madcraft:block.wood';
                     let action = 'hit';
                     let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
                     let sound_list = Game.sounds.getList(sound, action);
