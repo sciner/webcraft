@@ -380,7 +380,7 @@ export class Helpers {
 
     static isDev() {
         let loc = location.host;
-        return loc.indexOf('whiteframe.ru') < 0;
+        return loc.indexOf('madcraft.io') < 0;
     }
 
     static createSkinLayer2(text, image, callback) {

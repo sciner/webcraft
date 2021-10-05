@@ -228,7 +228,7 @@ export let Game = {
             try {
                 let audioElement0 = document.createElement('audio');
                 // audioElement0.setAttribute('src', '/volume_alpha_10_equinoxe.mp3');
-                audioElement0.setAttribute('src', 'https://webcraft.whiteframe.ru/forest.mp3');
+                audioElement0.setAttribute('src', 'https://madcraft.io/forest.mp3');
                 audioElement0.setAttribute('autoplay', 'autoplay');
                 audioElement0.setAttribute('loop', 'loop');
                 audioElement0.volume = 0.1;

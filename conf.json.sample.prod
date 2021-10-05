@@ -8,7 +8,7 @@
     "ApiKey": "eeb5694b9bb20fc43ff234438ad26e34",
     "APIDomain": "https://api.webcraft.com/",
     "UseSecureProtocol": true,
-    "SSLCertFile": "/etc/letsencrypt/live/game.whiteframe.ru/fullchain.pem",
-    "SSLKeyFile": "/etc/letsencrypt/live/game.whiteframe.ru/privkey.pem",
+    "SSLCertFile": "/etc/letsencrypt/live/madcraft.io/fullchain.pem",
+    "SSLKeyFile": "/etc/letsencrypt/live/madcraft.io/privkey.pem",
     "RedisServer": "127.0.0.1:6379"
 }
