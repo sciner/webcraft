@@ -292,6 +292,21 @@ class Chunk {
         }
     }
 
+    //
+    getBlockStyleGroup(block) {
+        let group = 'regular';
+        // make vertices array
+        if([200, 202].indexOf(block.id) >= 0) {
+            // если это блок воды или облако
+            group = 'transparent';
+        } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
+            group = 'doubleface_transparent';
+        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
+            group = 'doubleface';
+        }
+        return group;
+    }
+
     // buildVertices
     buildVertices() {
 
@@ -350,21 +365,6 @@ class Chunk {
             {x: -1, y:  0, z:  0},
             {x:  1, y:  0, z:  0}
         ];
-
-        //
-        let getBlockStyleGroup = (block) => {
-            let group = 'regular';
-            // make vertices array
-            if([200, 202].indexOf(block.id) >= 0) {
-                // если это блок воды или облако
-                group = 'transparent';
-            } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
-                group = 'doubleface_transparent';
-            } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
-                group = 'doubleface';
-            }
-            return group;
-        };
 
         // Возвращает всех 6-х соседей блока
         let getBlockNeighbors = (x, y, z) => {
@@ -462,7 +462,8 @@ class Chunk {
                         if(block == BLOCK.AIR.id) {
                             continue;
                         }
-                        block = BLOCK.cloneFromId(block);
+                        // block = BLOCK.cloneFromId(block);
+                        block = {...BLOCK.BLOCK_BY_ID[block]};
                         if(!block) {
                             throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
                         }
@@ -470,7 +471,7 @@ class Chunk {
                     }
                     //
                     if(!block.group) {
-                        block.group = getBlockStyleGroup(block);
+                        block.group = this.getBlockStyleGroup(block);
                     }
                 }
             }

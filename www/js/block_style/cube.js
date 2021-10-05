@@ -22,7 +22,7 @@ export default class style {
 
         // Ambient occlusion
         // const ao_enabled = true;
-        const ao_value = .4;
+        const ao_value = .3;
 
         const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
         let flags = 0;

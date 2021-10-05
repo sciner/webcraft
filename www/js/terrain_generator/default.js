@@ -63,12 +63,12 @@ export class Default_Terrain_Generator {
 
     // setBlock
     setBlock(chunk, x, y, z, block, force_replace) {
-        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
+        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             if(force_replace || !chunk.blocks[x][z][y]) {
                 let xyz = new Vector(x, y, z);
-                //if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
+                if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
                     chunk.blocks[x][z][y] = block.id;
-               // }
+                }
             }
         }
     }
@@ -128,15 +128,15 @@ export class Default_Terrain_Generator {
     // Акация
     plantAcacia(options, chunk, orig_x, orig_y, orig_z) {
         let random = new alea(chunk.id + '_tree' + orig_x + 'x' + orig_z);
-        let setBlock = this.setBlock;
         let iterations = 0;
+        let that = this;
         let plant = function(x, y, z, height, px, pz, rads) {
             let ystart = y + height;
             // ствол
             for(let p = y; p < ystart; p++) {
                 x += px;
                 z += pz;
-                setBlock(chunk, x, p, z, options.type.trunk, true);
+                that.setBlock(chunk, x, p, z, options.type.trunk, true);
                 let r = random.double();
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
                     r *= 10;
@@ -163,7 +163,7 @@ export class Default_Terrain_Generator {
                             let b = chunk.blocks[i][j][py];
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk.id) {
-                                setBlock(chunk, i, py, j, options.type.leaves, false);
+                                that.setBlock(chunk, i, py, j, options.type.leaves, false);
                             }
                         }
                     }
