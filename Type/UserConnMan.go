@@ -11,7 +11,9 @@ var Worlds WorldMan
 func init() {
 	Worlds = WorldMan{
 		Worlds: make(map[string]*World, 0),
+		Db:     &GameDatabase{},
 	}
+	Worlds.Db.Open()
 }
 
 type (
@@ -35,6 +37,9 @@ func (this *UserConnMan) Connect(ID, username, skin string, Ws *websocket.Conn) 
 		Ws:       Ws,
 	}
 	log.Printf("Create new UserConn")
+	// Insert to DB if new user
+	this.Connections[ID].IDInt = Worlds.Db.GetUserID(this.Connections[ID])
+	//
 	go this.Connections[ID].Receiver()
 	return this.Connections[ID]
 }

@@ -15,6 +15,7 @@ type (
 	// UserConn ...
 	UserConn struct {
 		ID       string // уникальный ID соединения
+		IDInt    int64  // ID в базе данных
 		Username string
 		Skin     string
 		Angles   []float32

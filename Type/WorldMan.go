@@ -10,6 +10,7 @@ type (
 	// WorldMan ...
 	WorldMan struct {
 		Worlds map[string]*World // Registered connections.
+		Db     *GameDatabase
 	}
 )
 
@@ -20,6 +21,7 @@ func (this *WorldMan) Get(ID string, Seed string) *World {
 	this.Worlds[ID] = &World{
 		ID:          ID,
 		Seed:        Seed,
+		Db:          this.Db,
 		Mu:          &sync.Mutex{},
 		Connections: make(map[string]*UserConn, 0),
 		Chunks:      make(map[Struct.Vector3]*Chunk, 0),
