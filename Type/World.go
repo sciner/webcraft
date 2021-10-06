@@ -100,6 +100,10 @@ func (this *World) OnPlayer(conn *UserConn) {
 	}
 	log.Printf("OnPlayer add conn: %s", conn.ID)
 	this.Connections[conn.ID] = conn
+	//
+	// Insert to DB if new user
+	this.Connections[conn.ID].IDInt = this.Db.GetUserID(this.Connections[conn.ID])
+	//
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,

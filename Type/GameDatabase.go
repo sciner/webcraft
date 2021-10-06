@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"madcraft.io/madcraft/Struct"
@@ -16,14 +17,39 @@ type (
 	}
 )
 
-func (this *GameDatabase) Open() {
+func copyFile(in, out string) (int64, error) {
+	i, e := os.Open(in)
+	if e != nil {
+		return 0, e
+	}
+	defer i.Close()
+	o, e := os.Create(out)
+	if e != nil {
+		return 0, e
+	}
+	defer o.Close()
+	return o.ReadFrom(i)
+}
+
+func GetGameDatabase(filename string) *GameDatabase {
 	//
-	conn, err := sql.Open("sqlite", "db.sqlite3")
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		log.Print("DB file not found", filename)
+		// This will copy
+		bytesWritten, err := copyFile("./db.sqlite3.template", filename)
+		if err != nil || bytesWritten < 1 {
+			log.Fatal(err)
+		}
+	}
+	//
+	conn, err := sql.Open("sqlite", filename)
 	if err != nil {
 		log.Printf("%v", err)
-		return
+		return nil
 	}
-	this.Conn = conn
+	return &GameDatabase{
+		Conn: conn,
+	}
 }
 
 //
