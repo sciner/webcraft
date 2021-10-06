@@ -117,7 +117,6 @@ func (this *GameDatabase) InsertChatMessage(conn *UserConn, world *World, params
 func (this *GameDatabase) BlockSet(conn *UserConn, world *World, params *Struct.ParamBlockSet) {
 	user_session_id := 0
 	params_json, _ := json.Marshal(params)
-	log.Println("Before store modify in DB")
 	_, err := this.Conn.Query(`INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, conn.IDInt, time.Now().Unix(), world.IDInt, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
 	if err != nil {
 		log.Printf("%v", err)

@@ -181,7 +181,6 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		json.Unmarshal(out, &params)
 		chunkAddr := this.GetChunkAddr(params.Pos)
 		chunk := this.ChunkGet(chunkAddr)
-		log.Println("Before this.Db.BlockSet")
 		this.Db.BlockSet(conn, this, params)
 		chunk.BlockSet(conn, params, false)
 
