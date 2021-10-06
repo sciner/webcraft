@@ -2,6 +2,7 @@ package Type
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -104,9 +105,28 @@ func (this *GameDatabase) GetUserID(conn *UserConn) int64 {
 	return id
 }
 
-//
+// Добавление сообщения в чат
 func (this *GameDatabase) InsertChatMessage(conn *UserConn, world *World, params *Struct.ParamChatSendMessage) {
 	_, err := this.Conn.Query(`INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`, conn.IDInt, time.Now().Unix(), params.Text, world.IDInt, 0)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+}
+
+// Установка блока
+func (this *GameDatabase) BlockSet(conn *UserConn, world *World, params *Struct.ParamBlockSet) {
+	user_session_id := 0
+	params_json, _ := json.Marshal(params)
+	log.Println("Before store modify in DB")
+	_, err := this.Conn.Query(`INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, conn.IDInt, time.Now().Unix(), world.IDInt, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+}
+
+// Сырой запрос в БД
+func (this *GameDatabase) RAWQuery(sql_query string) {
+	_, err := this.Conn.Query(sql_query)
 	if err != nil {
 		log.Printf("%v", err)
 	}
