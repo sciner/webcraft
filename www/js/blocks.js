@@ -444,7 +444,7 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
-        if(!b.passable) {
+        if(!b.passable && (b.style != 'planting' && b.style != 'sign')) {
             switch(b.style) {
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
@@ -589,13 +589,15 @@ export class BLOCK {
             if(!for_physic) {
                 switch(b.style) {
                     case 'torch': {
-                        // let hw = (12/16) / 2;
-                        // let h = 12/16;
                         let torch_height = 10/16;
                         shapes.push([
                             .5-1/16, 0, .5-1/16,
                             .5+1/16, torch_height, .5+1/16
                         ]);
+                        break;
+                    }
+                    case 'sign': {
+                        shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
                         break;
                     }
                     case 'planting': {
