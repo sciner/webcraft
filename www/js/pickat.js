@@ -79,6 +79,8 @@ export class PickAt {
         if(Game.world.game_mode.isCreative()) {
             PICKAT_DISTANCE = PICKAT_DISTANCE * 2 | 0;
         }
+        let leftTop = new Vector(0, 0, 0);
+        let check = new Vector(0, 0, 0);
         while (Math.abs(block.x - startBlock.x) < PICKAT_DISTANCE
             && Math.abs(block.y - startBlock.y) < PICKAT_DISTANCE
             && Math.abs(block.z - startBlock.z) < PICKAT_DISTANCE) {
@@ -96,29 +98,77 @@ export class PickAt {
             if (tMin >= INF) {
                 break;
             }
+
+            leftTop.x = Math.floor(block.x);
+            leftTop.y = Math.floor(block.y);
+            leftTop.z = Math.floor(block.z);
+            let b = Game.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
+            let hitShape = b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
+
+            if (hitShape) {
+                const shapes = BLOCK.getShapes(leftTop, b, Game.world, false);
+                let flag = false;
+
+                for (let i=0;i<shapes.length;i++) {
+                    const shape = shapes[i];
+
+                    for(let j=0;j<3;j++) {
+                        const d = coord[j];
+                        if(dir[d] > eps && tMin + eps > (shape[j] + leftTop[d] - pos[d]) / dir[d]) {
+                            const t = (shape[j] + leftTop[d] - pos[d]) / dir[d];
+                            check.x = pos.x - leftTop.x + t * dir.x;
+                            check.y = pos.y - leftTop.y + t * dir.y;
+                            check.z = pos.z - leftTop.z + t * dir.z;
+                            if (shape[0] - eps < check.x && check.x < shape[3] + eps
+                                && shape[1] - eps < check.y && check.y < shape[4] + eps
+                                && shape[2] - eps < check.z && check.z < shape[5] + eps) {
+                                tMin = t;
+                                side.zero()[d] = 1;
+                                flag = true;
+                            }
+                        }
+                        if(dir[d] < -eps && tMin + eps > (shape[j + 3] + leftTop[d] - pos[d]) / dir[d]) {
+                            const t = (shape[j + 3] + leftTop[d] - pos[d]) / dir[d];
+                            check.x = pos.x - leftTop.x + t * dir.x;
+                            check.y = pos.y - leftTop.y + t * dir.y;
+                            check.z = pos.z - leftTop.z + t * dir.z;
+                            if (shape[0] - eps < check.x && check.x < shape[3] + eps
+                                && shape[1] - eps < check.y && check.y < shape[4] + eps
+                                && shape[2] - eps < check.z && check.z < shape[5] + eps) {
+                                tMin = t;
+                                side.zero()[d] = -1;
+                                flag = true;
+                            }
+                        }
+                    }
+                }
+
+                hitShape = flag;
+            }
+
             pos.x += dir.x * tMin;
             pos.y += dir.y * tMin;
             pos.z += dir.z * tMin;
-            block = block.add(side);
-            if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
-                break;
-            }
-            const ix = Math.floor(block.x), iy = Math.floor(block.y), iz = Math.floor(block.z);
-            let b = Game.world.chunkManager.getBlock(ix, iy, iz);
-            if(b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id) {
+
+            if (hitShape) {
                 side.x = -side.x;
                 side.y = -side.y;
                 side.z = -side.z;
                 res = {
-                    x: ix,
-                    y: iy,
-                    z: iz,
+                    x: leftTop.x,
+                    y: leftTop.y,
+                    z: leftTop.z,
                     n: side,
-                    point: new Vector(pos.x, pos.y, pos.z).sub(new Vector(ix, iy, iz))
+                    point: new Vector(pos.x, pos.y, pos.z).sub(leftTop)
                 };
                 if(res.point.y == 1) {
                     res.point.y = 0;
                 }
+                break;
+            }
+
+            block = block.add(side);
+            if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
                 break;
             }
         }
@@ -159,7 +209,7 @@ export class PickAt {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
                 damage_block.mesh.destroy();
-                damage_block.mesh = this.createTargetBuffer(BLOCK.calcTexture([new_frame, 15]));
+                damage_block.mesh = this.createDamageBuffer(BLOCK.calcTexture([new_frame, 15]));
             }
         }
     }
@@ -177,7 +227,7 @@ export class PickAt {
             damage_block.frame      = 0;
             damage_block.times      = 0;
             damage_block.prev_time  = null;
-            damage_block.mesh       = this.createTargetBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
+            damage_block.mesh       = this.createDamageBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
         }
     }
 
@@ -208,7 +258,7 @@ export class PickAt {
                     target_block.mesh = null;
                 }
                 target_block.pos = bPos;
-                target_block.mesh = this.createTargetBuffer(TARGET_TEXTURES);
+                target_block.mesh = this.createTargetBuffer(bPos, TARGET_TEXTURES);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
@@ -270,11 +320,79 @@ export class PickAt {
         }
     }
 
-    // createTargetBuffer...
-    createTargetBuffer(c) {
+    //
+    createTargetBuffer(pos, c) {
+        // return this.createDamageBuffer(c);
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
-        // let c           = BLOCK.calcTexture(textures);
+        let lm          = new Color(0, 0, 0);
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        let block       = Game.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let shapes      = BLOCK.getShapes(pos, block, Game.world, false);
+        for(let shape of shapes) {
+            let x1 = shape[0];
+            let x2 = shape[3];
+            let y1 = shape[1];
+            let y2 = shape[4];
+            let z1 = shape[2];
+            let z2 = shape[5];
+            let xw = x2 - x1; // ширина по оси X
+            let yw = y2 - y1; // ширина по оси Y
+            let zw = z2 - z1; // ширина по оси Z
+            let x = -.5 + x1 + xw/2;
+            let y_top = -.5 + y2;
+            let y_bottom = -.5 + y1;
+            let z = -.5 + z1 + zw/2;
+            // Up; X,Z,Y
+            vertices.push(x, z, y_top,
+                xw, 0, 0,
+                0, zw, 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+            // Bottom
+            vertices.push(x, z, y_bottom,
+                xw, 0, 0,
+                0, -zw, 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags);
+            // South | Forward | z++ (XZY)
+            vertices.push(x, z - zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, yw,
+                c[0], c[1], c[2], -c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // North | Back | z--
+            vertices.push(x, z + zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, -yw,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // West | Left | x--
+            vertices.push(x - xw/2, z, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, -yw,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // East | Right | x++
+            vertices.push(x + xw/2, z, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, yw,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+        }
+        return new GeometryTerrain(vertices);
+    }
+
+    // createDamageBuffer...
+    createDamageBuffer(c) {
+        let vertices    = [];
+        let ao          = [0, 0, 0, 0];
         let lm          = new Color(0, 0, 0);
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let bH          = 1;
@@ -294,7 +412,7 @@ export class PickAt {
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags);
-        // Forward
+        // South | Forward
         vertices.push(0, -width / 2, bH / 2 - 0.5,
             1, 0, 0,
             0, 0, bH,
