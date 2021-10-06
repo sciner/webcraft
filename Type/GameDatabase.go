@@ -36,7 +36,7 @@ func GetGameDatabase(filename string) *GameDatabase {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		log.Print("DB file not found", filename)
 		// This will copy
-		bytesWritten, err := copyFile("./db.sqlite3.template", filename)
+		bytesWritten, err := copyFile("./world.sqlite3.template", filename)
 		if err != nil || bytesWritten < 1 {
 			log.Fatal(err)
 		}

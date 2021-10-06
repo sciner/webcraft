@@ -18,7 +18,7 @@ func (this *WorldMan) Get(ID string, Seed string) *World {
 		return val
 	}
 	//
-	db_filename := "./world/" + ID + "/db.sqlite"
+	db_filename := "./world/" + ID + "/world.sqlite"
 	//
 	this.Worlds[ID] = &World{
 		ID:          ID,
