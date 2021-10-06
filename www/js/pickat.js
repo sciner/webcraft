@@ -202,14 +202,14 @@ export class PickAt {
     }
 
     // setDamagePercent...
-    setDamagePercent(percent) {
+    setDamagePercent(pos, percent) {
         let damage_block = this.damage_block;
         let new_frame = Math.round(percent * 9);
         if(damage_block.frame != new_frame) {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
                 damage_block.mesh.destroy();
-                damage_block.mesh = this.createDamageBuffer(BLOCK.calcTexture([new_frame, 15]));
+                damage_block.mesh = this.createDamageBuffer(pos, BLOCK.calcTexture([new_frame, 15]));
             }
         }
     }
@@ -227,7 +227,7 @@ export class PickAt {
             damage_block.frame      = 0;
             damage_block.times      = 0;
             damage_block.prev_time  = null;
-            damage_block.mesh       = this.createDamageBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
+            damage_block.mesh       = this.createDamageBuffer(damage_block.pos, BLOCK.calcTexture([damage_block.frame, 15]));
         }
     }
 
@@ -239,9 +239,7 @@ export class PickAt {
         }
     }
 
-    /**
-     * update...
-     */
+    // update...
     update() {
         // Get actual pick-at block
         let bPos = this.get();
@@ -292,7 +290,6 @@ export class PickAt {
         damage_block.prev_time = pn;
         if(this.onTarget instanceof Function) {
             if(this.onTarget({...damage_block.pos}, {...damage_block.event}, damage_block.times / 1000, damage_block.number)) {
-                // damage_block.event = false;
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
                     damage_block.mesh.destroy();
@@ -320,9 +317,8 @@ export class PickAt {
         }
     }
 
-    //
+    // createTargetBuffer...
     createTargetBuffer(pos, c) {
-        // return this.createDamageBuffer(c);
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
         let lm          = new Color(0, 0, 0);
@@ -390,57 +386,8 @@ export class PickAt {
     }
 
     // createDamageBuffer...
-    createDamageBuffer(c) {
-        let vertices    = [];
-        let ao          = [0, 0, 0, 0];
-        let lm          = new Color(0, 0, 0);
-        let flags       = 0, sideFlags = 0, upFlags = 0;
-        let bH          = 1;
-        let width       = 1;
-        let height      = 1;
-        // Up;
-        vertices.push(0, 0, bH - 1.5 + height,
-            1, 0, 0,
-            0, 1, 0,
-            c[0], c[1], c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | upFlags);
-        // Bottom
-        vertices.push(0, 0, -0.5,
-            1, 0, 0,
-            0, -1, 0,
-            c[0], c[1], c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags);
-        // South | Forward
-        vertices.push(0, -width / 2, bH / 2 - 0.5,
-            1, 0, 0,
-            0, 0, bH,
-            c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-        // Back
-        vertices.push(0, +width / 2, bH / 2 - 0.5,
-            1, 0, 0,
-            0, 0, -bH,
-            c[0], c[1], -c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-        // Left
-        vertices.push(- width / 2, 0, bH / 2 - 0.5,
-            0, 1, 0,
-            0, 0, -bH,
-            c[0], c[1], -c[2], c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-        // Right
-        vertices.push(+ width / 2, 0, bH / 2 - 0.5,
-            0, 1, 0,
-            0, 0, bH,
-            c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-        return new GeometryTerrain(vertices);
+    createDamageBuffer(pos, c) {
+        return this.createTargetBuffer(pos, c);
     }
 
 }

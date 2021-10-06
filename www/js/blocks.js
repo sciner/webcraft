@@ -444,6 +444,7 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
+        let f = .001;
         if(!b.passable && (b.style != 'planting' && b.style != 'sign')) {
             switch(b.style) {
                 case 'fence': {
@@ -504,27 +505,46 @@ export class BLOCK {
                 case 'stairs': {
                     b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
                     b.on_ceil = this.isOnCeil(b);
+                    let sz = 0.5;
                     if(b.on_ceil) {
-                        shapes.push([0, .5, 0, 1, 1, 1]);
-
-                    } else {
-                        shapes.push([0, 0, 0, 1, .5, 1]);
+                        shapes.push([0, sz - f, 0, 1, 1, 1]);
                         // F R B L
                         switch(b.cardinal_direction) {
                             case ROTATE.S: {
-                                shapes.push([0, .5, .5, 1, 1, 1]);
+                                shapes.push([0, 0, sz - f, 1, sz, 1]);
                                 break;
                             }
                             case ROTATE.N: {
-                                shapes.push([0, .5, 0, 1, 1, .5]);
+                                shapes.push([0, 0, 0, 1, sz, sz + f]);
                                 break;
                             }
                             case ROTATE.W: {
-                                shapes.push([.5, .5, 0, 1, 1, 1]);
+                                shapes.push([sz - f, 0, 0, 1, sz, 1]);
                                 break;
                             }
                             case ROTATE.E: {
-                                shapes.push([0, .5, 0, .5, 1, 1]);
+                                shapes.push([0, 0, 0, sz + f, sz, 1]);
+                                break;
+                            }
+                        }
+                    } else {
+                        shapes.push([0, 0, 0, 1, sz + f, 1]);
+                        // F R B L
+                        switch(b.cardinal_direction) {
+                            case ROTATE.S: {
+                                shapes.push([0, sz, sz - f, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.N: {
+                                shapes.push([0, sz, 0, 1, 1, sz + f]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([sz - f, sz, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, sz, 0, sz + f, 1, 1]);
                                 break;
                             }
                         }
@@ -535,33 +555,34 @@ export class BLOCK {
                     b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
                     b.opened = this.isOpenedTrapdoor(b);
                     b.on_ceil = this.isOnCeil(b);
+                    let sz = 3 / 15.9;
                     if(b.opened) {
                         // F R B L
                         switch(b.cardinal_direction) {
                             // z--
                             case ROTATE.S: {
-                                shapes.push([0, 0, 1-3/16, 1, 1, 1]);
+                                shapes.push([0, 0, 1-sz, 1, 1, 1]);
                                 break;
                             }
                             // z++
                             case ROTATE.N: {
-                                shapes.push([0, 0, 0, 1, 1, 3/16]);
+                                shapes.push([0, 0, 0, 1, 1, sz]);
                                 break;
                             }
                             case ROTATE.W: {
-                                shapes.push([1-3/16, 0, 0, 1, 1, 1]);
+                                shapes.push([1-sz, 0, 0, 1, 1, 1]);
                                 break;
                             }
                             case ROTATE.E: {
-                                shapes.push([0, 0, 0, 3/16, 1, 1]);
+                                shapes.push([0, 0, 0, sz, 1, 1]);
                                 break;
                             }
                         }
                     } else {
                         if(b.on_ceil) {
-                            shapes.push([0, 1-3/16, 0, 1, 1, 1]);
+                            shapes.push([0, 1-sz, 0, 1, 1, 1]);
                         } else {
-                            shapes.push([0, 0, 0, 1, 3/16, 1]);
+                            shapes.push([0, 0, 0, 1, sz, 1]);
                         }
                     }
                     break;

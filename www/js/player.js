@@ -96,11 +96,11 @@ export default class Player {
                 return false;
             }
             if(times < destroy_time) {
-                this.pickAt.setDamagePercent(times / destroy_time);
+                this.pickAt.setDamagePercent(bPos, times / destroy_time);
                 return false;
             }
             if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
-                this.pickAt.setDamagePercent(times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
+                this.pickAt.setDamagePercent(bPos, times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
                 return false;
             }
         }
