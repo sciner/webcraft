@@ -32,6 +32,7 @@ export default class Player {
         this.eyes_in_water          = false; // глаза в воде
         this.eyes_in_water_o        = false; // глаза в воде (предыдущее значение)
         this.onGround               = false;
+        this.onGroundO              = false;
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
@@ -785,8 +786,11 @@ export default class Player {
             // pc.player_state.onGround
             this.in_water_o = this.in_water;
             let velocity    = pc.player_state.vel;
+            this.onGroundO = this.onGround;
             this.onGround   = pc.player_state.onGround;
             this.in_water   = pc.player_state.isInWater;
+
+            this.checkFalling();
 
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
@@ -902,6 +906,33 @@ export default class Player {
             */
         }
         this.lastUpdate = performance.now();
+    }
+
+    // Проверка падения (урон)
+    checkFalling() {
+        if(!Game.world.game_mode.isSurvival()) {
+            return;
+        }
+        if(!this.onGround) {
+            // do nothing
+        } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
+            let bp = this.getBlockPos();
+            let height = bp.y - this.lastBlockPos.y;
+            if(height < 0) {
+                // console.log(bp);
+                // let block = this.world.chunkManager.getBlock(bp.x, bp.y - 1, bp.z);
+                // console.log(block);
+                let damage = -height - 3;
+                // let falling_time = performance.now() - this.lastOnGroundTime;
+                if(damage > 0) {
+                    Game.hotbar.damage(damage / 20, 'falling');
+                }
+            }
+            this.lastOnGroundTime = null;
+        } else {
+            this.lastOnGroundTime = performance.now();
+            this.lastBlockPos = this.getBlockPos();
+        }
     }
 
     //

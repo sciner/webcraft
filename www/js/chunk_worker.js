@@ -322,8 +322,7 @@ class Chunk {
 
         BLOCK.clearBlockCache();
 
-        // Add vertices for blocks
-        this.vertices = {
+        let group_templates = {
             regular: {
                 list: [],
                 is_transparent: false
@@ -340,7 +339,10 @@ class Chunk {
                 list: [],
                 is_transparent: true
             },
-        }
+        };
+
+        // Add vertices for blocks
+        this.vertices = {};
 
         if(!this.neighbour_chunks) {
             this.neighbour_chunks = {
@@ -511,6 +513,9 @@ class Chunk {
                     }
                     world.blocks_pushed++;
                     if(block.vertices.length > 0) {
+                        if(!this.vertices[block.group]) {
+                            this.vertices[block.group] = {...group_templates[block.group]};
+                        }
                         this.vertices[block.group].list.push(...block.vertices);
                     }
                 }

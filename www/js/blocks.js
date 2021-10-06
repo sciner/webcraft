@@ -599,9 +599,9 @@ export class BLOCK {
                 default: {
                     if(b.width) {
                         let hw = b.width / 2;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.height ? b.height : 1, .5+hw]);
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.height ? b.height: 1, .5+hw]);
                     } else {
-                        shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
+                        shapes.push([0, 0, 0, 1, b.height ? b.height + .001: 1, 1]);
                     }
                     break;
                 }

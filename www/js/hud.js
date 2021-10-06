@@ -54,13 +54,12 @@ export default class HUD {
             },
             draw: function() {
                 let cl = 0;
-                for(let key of Object.keys(Game.world.chunkManager.chunks)) {
-                    let chunk = Game.world.chunkManager.chunks[key];
+                let nc = 35; // #3dchunk (для 2D чанков было 45)
+                for(let [_, chunk] of Game.world.chunkManager.chunks) {
                     if(chunk.inited) {
                         cl++;
                     }
                 }
-                let nc = 35; // #3dchunk (для 2D чанков было 45)
                 this.loading = cl < nc;
                 if(!this.loading) {
                     return false;

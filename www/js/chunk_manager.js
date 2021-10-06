@@ -1,4 +1,4 @@
-import {Vector, SpiralGenerator} from "./helpers.js";
+import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import Chunk from "./chunk.js";
 import {BLOCK} from "./blocks.js";
 import ServerClient from "./server_client.js";
@@ -13,8 +13,8 @@ export class ChunkManager {
     constructor(world) {
         let that                    = this;
         this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-        this.chunks                 = {};
-        this.chunks_prepare         = {};
+        this.chunks                 = new Map();
+        this.chunks_prepare         = new Map();
         this.modify_list            = {};
         this.world                  = world;
         this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
@@ -29,15 +29,15 @@ export class ChunkManager {
             const args = e.data[1];
             switch(cmd) {
                 case 'blocks_generated': {
-                    if(that.chunks.hasOwnProperty(args.key)) {
-                        that.chunks[args.key].onBlocksGenerated(args);
+                    if(that.chunks.has(args.key)) {
+                        that.chunks.get(args.key).onBlocksGenerated(args);
                     }
                     break;
                 }
                 case 'vertices_generated': {
                     for(let result of args) {
-                        if(that.chunks.hasOwnProperty(result.key)) {
-                            that.chunks[result.key].onVerticesGenerated(result);
+                        if(that.chunks.has(result.key)) {
+                            that.chunks.get(result.key).onVerticesGenerated(result);
                         }
                     }
                     break;
@@ -67,7 +67,6 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render, transparent) {
-        this.rendered_chunks.total  = Object.keys(this.chunks).length;
         let applyVerticesCan        = 10;
         let groups = [];
         if(transparent) {
@@ -75,50 +74,55 @@ export class ChunkManager {
         } else {
             groups = ['regular', 'doubleface'];
         }
+        let vc = new VectorCollector();
         for(let group of groups) {
             const mat = render.materials[group];
             for(let item of this.poses) {
                 if(item.chunk) {
-                    if(item.chunk.hasOwnProperty('vertices_args')) {
+                    if(item.chunk.need_apply_vertices) {
                         if(applyVerticesCan-- > 0) {
                             item.chunk.applyVertices();
                         }
                     }
-                    if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
-                        this.rendered_chunks.fact += 0.25;
+                    if(item.chunk.vertices_length > 0) {
+                        if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
+                            vc.add(item.addr, null);
+                        }
                     }
                 }
             }
         }
+        this.rendered_chunks.fact = vc.count;
         return true;
     }
 
     // Get
     getChunk(pos) {
         let k = this.getPosChunkKey(pos);
-        if(this.chunks.hasOwnProperty(k)) {
-            return this.chunks[k];
+        if(this.chunks.has(k)) {
+            return this.chunks.get(k);
         }
         return null;
     }
 
     // Add
     addChunk(item) {
-        if(this.chunks.hasOwnProperty(item.key) || this.chunks_prepare.hasOwnProperty(item.key)) {
+        if(this.chunks.has(item.key) || this.chunks_prepare.has(item.key)) {
             return false;
         }
-        this.chunks_prepare[item.key] = {
+        this.chunks_prepare.set(item.key, {
             start_time: performance.now()
-        };
+        });
         this.world.server.ChunkAdd(item.addr);
         return true;
     }
 
     // Remove
     removeChunk(key, addr) {
-        this.vertices_length_total -= this.chunks[key].vertices_length;
-        this.chunks[key].destruct();
-        delete this.chunks[key];
+        this.vertices_length_total -= this.chunks.get(key).vertices_length;
+        this.chunks.get(key).destruct();
+        this.chunks.delete(key)
+        this.rendered_chunks.total--;
         this.world.server.ChunkRemove(addr);
     }
 
@@ -130,12 +134,13 @@ export class ChunkManager {
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
         let k = this.getPosChunkKey(state.pos);
-        if(this.chunks_prepare.hasOwnProperty(k)) {
-            let prepare     = this.chunks_prepare[k];
+        if(this.chunks_prepare.has(k)) {
+            let prepare     = this.chunks_prepare.get(k);
             let chunk       = new Chunk(state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
-            this.chunks[k]  = chunk;
-            delete(this.chunks_prepare[k]);
+            this.chunks.set(k, chunk);
+            this.rendered_chunks.total++;
+            this.chunks_prepare.delete(k);
         }
     }
 
@@ -165,12 +170,10 @@ export class ChunkManager {
                 }
             }
         }
-        let keys = Object.keys(this.chunks);
-        if(keys.length != this.poses.length || (this.prevchunkAddr && this.prevchunkAddr.distance(chunkAddr) > 0)) {
+        if(this.chunks.size != this.poses.length || (this.prevchunkAddr && this.prevchunkAddr.distance(chunkAddr) > 0)) {
             this.prevchunkAddr = chunkAddr;
             let can_add = CHUNKS_ADD_PER_UPDATE;
-            for(let key of keys) {
-                let chunk = this.chunks[key];
+            for(let [_, chunk] of this.chunks) {
                 if(!chunk.inited) {
                     can_add = 0;
                     break;
@@ -187,15 +190,14 @@ export class ChunkManager {
                     }
                 }
                 if(!item.chunk) {
-                    item.chunk = this.chunks[item.key];
+                    item.chunk = this.chunks.get(item.key);
                 }
                 if(item.chunk) {
                     item.chunk.isLive = true;
                 }
             }
             // Check for remove
-            for(let key of Object.keys(this.chunks)) {
-                let chunk = this.chunks[key];
+            for(let [key, chunk] of this.chunks) {
                 if(!chunk.isLive) {
                     this.removeChunk(key, chunk.addr);
                 }
@@ -249,7 +251,7 @@ export class ChunkManager {
     getBlock(x, y, z) {
         let vec = BLOCK.getChunkAddr(x, y, z);
         let chunk_key = this.getPosChunkKey(vec);
-        let chunk = this.chunks[chunk_key];
+        let chunk = this.chunks.get(chunk_key);
         if(chunk) {
             return chunk.getBlock(x, y, z);
         }
