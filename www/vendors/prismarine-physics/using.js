@@ -49,7 +49,7 @@ class FakeWorld {
             b.type      = b.id;
             b.metadata  = 0;
             b.position  = pos;
-            b.shapes = BLOCK.getShapes(pos, b, this.world);
+            b.shapes = BLOCK.getShapes(pos, b, this.world, true);
             b.getProperties = () => {
                 return {
                     waterlogged: false // погружен в воду

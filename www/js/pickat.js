@@ -106,7 +106,7 @@ export class PickAt {
             let hitShape = b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
             if (hitShape) {
-                const shapes = BLOCK.getShapes(leftTop, b, Game.world);
+                const shapes = BLOCK.getShapes(leftTop, b, Game.world, false);
                 let flag = false;
 
                 for (let i=0;i<shapes.length;i++) {
@@ -209,7 +209,7 @@ export class PickAt {
             damage_block.frame = new_frame;
             if(damage_block.mesh) {
                 damage_block.mesh.destroy();
-                damage_block.mesh = this.createTargetBuffer(BLOCK.calcTexture([new_frame, 15]));
+                damage_block.mesh = this.createDamageBuffer(BLOCK.calcTexture([new_frame, 15]));
             }
         }
     }
@@ -227,7 +227,7 @@ export class PickAt {
             damage_block.frame      = 0;
             damage_block.times      = 0;
             damage_block.prev_time  = null;
-            damage_block.mesh       = this.createTargetBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
+            damage_block.mesh       = this.createDamageBuffer(BLOCK.calcTexture([damage_block.frame, 15]));
         }
     }
 
@@ -258,7 +258,7 @@ export class PickAt {
                     target_block.mesh = null;
                 }
                 target_block.pos = bPos;
-                target_block.mesh = this.createTargetBuffer(TARGET_TEXTURES);
+                target_block.mesh = this.createTargetBuffer(bPos, TARGET_TEXTURES);
                 // 2. Damage block
                 if(damage_block.event) {
                     damage_block.pos = bPos;
@@ -320,11 +320,68 @@ export class PickAt {
         }
     }
 
-    // createTargetBuffer...
-    createTargetBuffer(c) {
+    //
+    createTargetBuffer(pos, c) {
+        return this.createDamageBuffer(c);
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
-        // let c           = BLOCK.calcTexture(textures);
+        let lm          = new Color(0, 0, 0);
+        let flags       = 0, sideFlags = 0, upFlags = 0;
+        let block       = Game.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let shapes      = BLOCK.getShapes(pos, block, Game.world, false);
+        for(let shape of shapes) {
+            // Up;
+            vertices.push(0, 0, -.5 + shape[4],
+                shape[3] - shape[0], 0, 0,
+                0, shape[5] - shape[2], 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+            /*
+            // Bottom
+            vertices.push(0, 0, -0.5,
+                1, 0, 0,
+                0, -1, 0,
+                c[0], c[1], c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags);
+            // Forward
+            vertices.push(0, -width / 2, bH / 2 - 0.5,
+                1, 0, 0,
+                0, 0, bH,
+                c[0], c[1], c[2], -c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // Back
+            vertices.push(0, +width / 2, bH / 2 - 0.5,
+                1, 0, 0,
+                0, 0, -bH,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // Left
+            vertices.push(- width / 2, 0, bH / 2 - 0.5,
+                0, 1, 0,
+                0, 0, -bH,
+                c[0], c[1], -c[2], c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // Right
+            vertices.push(+ width / 2, 0, bH / 2 - 0.5,
+                0, 1, 0,
+                0, 0, bH,
+                c[0], c[1], c[2], -c[3],
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            */
+        }
+        return new GeometryTerrain(vertices);
+    }
+
+    // createDamageBuffer...
+    createDamageBuffer(c) {
+        let vertices    = [];
+        let ao          = [0, 0, 0, 0];
         let lm          = new Color(0, 0, 0);
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let bH          = 1;

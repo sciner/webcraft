@@ -442,12 +442,12 @@ export class BLOCK {
     }
 
     // getShapes
-    static getShapes(pos, b, world) {
+    static getShapes(pos, b, world, for_physic) {
         let shapes = [];
         if(!b.passable) {
             switch(b.style) {
                 case 'fence': {
-                    let fence_height = 1.35;
+                    let fence_height = for_physic ? 1.35 : 1;
                     shapes.push([
                         .5-2/16, 0, .5-2/16,
                         .5+2/16, fence_height, .5+2/16
@@ -580,6 +580,43 @@ export class BLOCK {
                         shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
                     }
                     break;
+                }
+            }
+        } else {
+            if(!for_physic) {
+                switch(b.style) {
+                    case 'planting': {
+                        let hw = (12/16) / 2;
+                        let h = 12/16;
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
+                        break;
+                    }
+                    case 'ladder': {
+                        b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                        let width = 1/16;
+                        // F R B L
+                        switch(b.cardinal_direction) {
+                            // z--
+                            case ROTATE.S: {
+                                shapes.push([0, 0, 1-width, 1, 1, 1]);
+                                break;
+                            }
+                            // z++
+                            case ROTATE.N: {
+                                shapes.push([0, 0, 0, 1, 1, width]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([1-width, 0, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, 0, 0, width, 1, 1]);
+                                break;
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         }
