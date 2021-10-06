@@ -322,7 +322,7 @@ export class PickAt {
 
     //
     createTargetBuffer(pos, c) {
-        return this.createDamageBuffer(c);
+        // return this.createDamageBuffer(c);
         let vertices    = [];
         let ao          = [0, 0, 0, 0];
         let lm          = new Color(0, 0, 0);
@@ -330,50 +330,61 @@ export class PickAt {
         let block       = Game.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         let shapes      = BLOCK.getShapes(pos, block, Game.world, false);
         for(let shape of shapes) {
-            // Up;
-            vertices.push(0, 0, -.5 + shape[4],
-                shape[3] - shape[0], 0, 0,
-                0, shape[5] - shape[2], 0,
+            let x1 = shape[0];
+            let x2 = shape[3];
+            let y1 = shape[1];
+            let y2 = shape[4];
+            let z1 = shape[2];
+            let z2 = shape[5];
+            let xw = x2 - x1; // ширина по оси X
+            let yw = y2 - y1; // ширина по оси Y
+            let zw = z2 - z1; // ширина по оси Z
+            let x = -.5 + x1 + xw/2;
+            let y_top = -.5 + y2;
+            let y_bottom = -.5 + y1;
+            let z = -.5 + z1 + zw/2;
+            // Up; X,Z,Y
+            vertices.push(x, z, y_top,
+                xw, 0, 0,
+                0, zw, 0,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags | upFlags);
-            /*
             // Bottom
-            vertices.push(0, 0, -0.5,
-                1, 0, 0,
-                0, -1, 0,
+            vertices.push(x, z, y_bottom,
+                xw, 0, 0,
+                0, -zw, 0,
                 c[0], c[1], c[2], c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags);
-            // Forward
-            vertices.push(0, -width / 2, bH / 2 - 0.5,
-                1, 0, 0,
-                0, 0, bH,
+            // South | Forward | z++ (XZY)
+            vertices.push(x, z - zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, yw,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-            // Back
-            vertices.push(0, +width / 2, bH / 2 - 0.5,
-                1, 0, 0,
-                0, 0, -bH,
+            // North | Back | z--
+            vertices.push(x, z + zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, -yw,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-            // Left
-            vertices.push(- width / 2, 0, bH / 2 - 0.5,
-                0, 1, 0,
-                0, 0, -bH,
+            // West | Left | x--
+            vertices.push(x - xw/2, z, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, -yw,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-            // Right
-            vertices.push(+ width / 2, 0, bH / 2 - 0.5,
-                0, 1, 0,
-                0, 0, bH,
-                c[0], c[1], c[2], -c[3],
+            // East | Right | x++
+            vertices.push(x + xw/2, z, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, yw,
+                c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b,
                 ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
-            */
         }
         return new GeometryTerrain(vertices);
     }
@@ -401,7 +412,7 @@ export class PickAt {
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b,
             ao[0], ao[1], ao[2], ao[3], flags);
-        // Forward
+        // South | Forward
         vertices.push(0, -width / 2, bH / 2 - 0.5,
             1, 0, 0,
             0, 0, bH,

@@ -443,15 +443,11 @@ export class BLOCK {
 
     // getShapes
     static getShapes(pos, b, world, for_physic) {
-        let shapes = [];
+        let shapes = []; // x1 y1 z1 x2 y2 z2
         if(!b.passable) {
             switch(b.style) {
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
-                    shapes.push([
-                        .5-2/16, 0, .5-2/16,
-                        .5+2/16, fence_height, .5+2/16
-                    ]);
                     //
                     let canConnect = (block) => {
                         return block && (!block.transparent || block.style == 'fence');
@@ -465,20 +461,27 @@ export class BLOCK {
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(canConnect(neighbours.SOUTH)) {
-                        shapes.push([.5-2/16, 0, 0, .5+2/16, fence_height, 5/16]);
+                        shapes.push([
+                            .5-2/16, 5/16, 0,
+                            .5+2/16, fence_height, .5+2/16]);
                     }
                     // North z++
                     if(canConnect(neighbours.NORTH)) {
-                        shapes.push([.5-2/16, 0, .5, .5+2/16, fence_height, 1]);
+                        shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, fence_height, 1]);
                     }
                     // West x--
                     if(canConnect(neighbours.WEST)) {
-                        shapes.push([0, 0, .5-2/16, .5, fence_height, .5+2/16]);
+                        shapes.push([0, 5/16, .5-2/16, .5+2/16, fence_height, .5+2/16]);
                     }
                     // East x++
                     if(canConnect(neighbours.EAST)) {
-                        shapes.push([.5, 0, .5-2/16, 1, fence_height, .5+2/16]);
+                        shapes.push([.5-2/16, 5/16, .5-2/16, 1, fence_height, .5+2/16]);
                     }
+                    // Central
+                    shapes.push([
+                        .5-2/16, 0, .5-2/16,
+                        .5+2/16, fence_height, .5+2/16
+                    ]);
                     break;
                 }
                 case 'pane': {
@@ -585,6 +588,16 @@ export class BLOCK {
         } else {
             if(!for_physic) {
                 switch(b.style) {
+                    case 'torch': {
+                        // let hw = (12/16) / 2;
+                        // let h = 12/16;
+                        let torch_height = 10/16;
+                        shapes.push([
+                            .5-1/16, 0, .5-1/16,
+                            .5+1/16, torch_height, .5+1/16
+                        ]);
+                        break;
+                    }
                     case 'planting': {
                         let hw = (12/16) / 2;
                         let h = 12/16;
