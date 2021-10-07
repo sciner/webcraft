@@ -123,6 +123,7 @@ export class ChunkManager {
         this.chunks.get(key).destruct();
         this.chunks.delete(key)
         this.rendered_chunks.total--;
+        // this.postWorkerMessage(['chunkRemove', addr]);
         this.world.server.ChunkRemove(addr);
     }
 

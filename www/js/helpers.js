@@ -43,6 +43,14 @@ export class VectorCollector {
         return this.list[vec.x][vec.y][vec.z];
     }
 
+    delete(vec) {
+        if(!this.list[vec.x]) return false;
+        if(!this.list[vec.x][vec.y]) return false;
+        if(!this.list[vec.x][vec.y][vec.z]) false;
+        delete(this.list[vec.x][vec.y][vec.z]);
+        return true;
+    }
+
     has(vec) {
         if(!this.list[vec.x]) return false;
         if(!this.list[vec.x][vec.y]) return false;

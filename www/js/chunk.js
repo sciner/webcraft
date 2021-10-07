@@ -134,7 +134,7 @@ export default class Chunk {
             this.buffer.destroy();
         }
         // Run webworker method
-        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key}]);
+        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
     }
 
     // buildVertices

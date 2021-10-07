@@ -654,6 +654,7 @@ onmessage = async function(e) {
         case 'destructChunk': {
             if(chunks.hasOwnProperty(args.key)) {
                 delete(chunks[args.key]);
+                terrainGenerator.deleteMap(args.addr);
             }
             break;
         }

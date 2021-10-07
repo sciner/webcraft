@@ -84,6 +84,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
     }
 
+    // Delete map for unused chunk
+    deleteMap(addr) {
+        return this.maps_cache.delete(addr);
+    }
+
     // generateMap
     generateMap(chunk, noisefn) {
         let cached = this.maps_cache.get(chunk.addr);

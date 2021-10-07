@@ -48,6 +48,9 @@ export class Default_Terrain_Generator {
 
     }
 
+    deleteMap(addr) {
+    }
+
     //
     getVoxelBuilding(xyz) {
         for(var vb of this.voxel_buildings) {
