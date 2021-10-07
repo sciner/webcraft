@@ -27,7 +27,7 @@ export class VectorCollector {
 
     clear() {
         this.list = [];
-        this.count = 0;
+        this.size = 0;
     }
 
     add(vec, value) {
@@ -38,12 +38,26 @@ export class VectorCollector {
                 value = value(vec);
             }
             this.list[vec.x][vec.y][vec.z] = value;
-            this.count++;
+            this.size++;
         }
         return this.list[vec.x][vec.y][vec.z];
     }
 
-    get() {
+    has(vec) {
+        if(!this.list[vec.x]) return false;
+        if(!this.list[vec.x][vec.y]) return false;
+        if(!this.list[vec.x][vec.y][vec.z]) false;
+        return true;
+    }
+
+    get(vec) {
+        if(!this.list[vec.x]) return null;
+        if(!this.list[vec.x][vec.y]) return null;
+        if(!this.list[vec.x][vec.y][vec.z]) null;
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    keys() {
         let resp = [];
         for(let x in this.list) {
             for(let y in this.list[x]) {
@@ -55,15 +69,20 @@ export class VectorCollector {
         return resp;
     }
 
-    getByVec(vec) {
-        if(!this.list[vec.x]) return null;
-        if(!this.list[vec.x][vec.y]) return null;
-        if(!this.list[vec.x][vec.y][vec.z]) null;
-        return this.list[vec.x][vec.y][vec.z];
+    values() {
+        let resp = [];
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    resp.push(this.list[x][y][z]);
+                }
+            }
+        }
+        return resp;
     }
 
-    sanitizeCache(max_count) {
-        if(this.count < max_count) {
+    reduce(max_size) {
+        if(this.size < max_size) {
             return false;
         }
         /*

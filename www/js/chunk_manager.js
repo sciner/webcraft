@@ -25,8 +25,8 @@ export class ChunkManager {
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         // Message received from worker
         this.worker.onmessage = function(e) {
-            const cmd = e.data[0];
-            const args = e.data[1];
+            let cmd = e.data[0];
+            let args = e.data[1];
             switch(cmd) {
                 case 'blocks_generated': {
                     if(that.chunks.has(args.key)) {
@@ -92,7 +92,7 @@ export class ChunkManager {
                 }
             }
         }
-        this.rendered_chunks.fact = vc.count;
+        this.rendered_chunks.fact = vc.size;
         return true;
     }
 

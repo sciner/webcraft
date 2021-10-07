@@ -1,4 +1,4 @@
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
+import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector } from './helpers.js';
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 32;
@@ -361,7 +361,7 @@ export class BLOCK {
      * clearBlockCache...
      */
     static clearBlockCache() {
-        BLOCK.block_cache = {};
+        BLOCK.block_cache = new VectorCollector();
         BLOCK.cachedBlocksUsed = 0;
         BLOCK.cachedBlocksMiss = 0;
     }
@@ -382,13 +382,16 @@ export class BLOCK {
             && z >= 0 && z < chunk.size.z) {
             return chunk.getBlock(x1, y1, z1);
         }
-        let key = new Vector(x1, y1, z1).toString();
-        if(BLOCK.block_cache[key]) {
+        let vec = new Vector(x1, y1, z1);
+        let block = BLOCK.block_cache.get(vec);
+        if(block) {
             BLOCK.cachedBlocksUsed++;
-            return BLOCK.block_cache[key];
+            return block;
         }
         BLOCK.cachedBlocksMiss++;
-        return BLOCK.block_cache[key] = chunk.chunkManager.getBlock(x1, y1, z1);
+        block = chunk.chunkManager.getBlock(x1, y1, z1);
+        BLOCK.block_cache.add(vec, block);
+        return block;
     }
 
     // Функция определяет, отбрасывает ли указанный блок тень

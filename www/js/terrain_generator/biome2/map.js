@@ -1,6 +1,6 @@
 import {impl as alea} from '../../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../../blocks.js";
-import {Vector, Helpers, Color} from '../../helpers.js';
+import {Vector, Helpers, Color, VectorCollector} from '../../helpers.js';
 import {BIOMES} from '../../biomes.js';
 
 export class MapCell {
@@ -46,7 +46,7 @@ export class Map {
                 let addr        = BLOCK.getChunkAddr(px, 0, pz); // calc chunk addr for this cell
                 let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z); // get chunk map from cache
                 if(!map || !map_addr_ok) {
-                    map = generator.maps_cache.getByVec(addr);
+                    map = generator.maps_cache.get(addr);
                 }
                 let bi = BLOCK.getBlockIndex(px, 0, pz);
                 let cell = map.cells[bi.x][bi.z];
@@ -69,7 +69,7 @@ export class Map {
                                       (neighbour_map.chunk.addr.z == neighbour_addr.z);
                         // хак оптимизации скорости (т.к. toString() очень дорогой)
                         if(!neighbour_map || !addr_ok) {
-                            neighbour_map = generator.maps_cache.getByVec(neighbour_addr);
+                            neighbour_map = generator.maps_cache.get(neighbour_addr);
                         }
                         if(!neighbour_map) {
                             console.error('Neighbor not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
@@ -96,7 +96,7 @@ export class Map {
         let chunk           = this.chunk;
         let aleaRandom      = new alea(chunk.seed + '_' + chunk.id);
         this.trees          = [];
-        this.plants         = [];
+        this.plants         = new VectorCollector();
         let biome           = null;
         let dirt_block_ids  = [];
         for(let x = 0; x < chunk.size.x; x++) {
@@ -117,10 +117,7 @@ export class Map {
                         for(let p of biome.plants.list) {
                             s += p.percent;
                             if(r < s) {
-                                this.plants.push({
-                                    pos: new Vector(x, y, z),
-                                    block: p.block
-                                });
+                                this.plants.add(new Vector(x, y, z), p.block.id);
                                 break;
                             }
                         }

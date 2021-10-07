@@ -1,5 +1,5 @@
 import {impl as alea} from '../../vendors/alea.js';
-import {Vector, SpiralGenerator} from "./helpers.js";
+import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 
 // Cave...
 export class Cave {
@@ -78,7 +78,7 @@ export class CaveGenerator {
 
     constructor(seed) {
         this.seed           = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
-        this.caves          = {};
+        this.caves          = new VectorCollector();
         this.margin         = 8;
         this.spiral_moves   = SpiralGenerator.generate(this.margin);
     }
@@ -86,18 +86,18 @@ export class CaveGenerator {
     // add
     add(chunk_addr) {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        let key = chunk_addr.toString();
-        if(typeof this.caves[key] == 'undefined') {
-            this.caves[key] = new Cave(this.seed, chunk_addr);
+        let cave = this.caves.get(chunk_addr);
+        if(cave) {
+            return cave;
         }
-        return this.caves[key];
+        cave = new Cave(this.seed, chunk_addr);
+        return this.caves.add(chunk_addr, cave);
     }
 
     // get
     get(chunk_addr) {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        let key = chunk_addr.toString();
-        return this.caves[key];
+        return this.caves.get(chunk_addr);
     }
 
     /**

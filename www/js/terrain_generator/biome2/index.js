@@ -86,7 +86,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // generateMap
     generateMap(chunk, noisefn) {
-        let cached = this.maps_cache.getByVec(chunk.addr);
+        let cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
@@ -155,7 +155,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
         // Clear maps_cache
-        this.maps_cache.sanitizeCache(20000);
+        this.maps_cache.reduce(20000);
         return this.maps_cache.add(chunk.addr, map);
     }
 
@@ -385,13 +385,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         } else if(r < 0.01) {
                             setBlock(x, y, z, blocks.COAL_ORE.id);
                         } else {
-                            let norm = true;
+                            let norm = !map.info.plants.has(new Vector(x, y + 1, z))
+                            /*
                             for(let plant of map.info.plants) {
                                 if(plant.pos.x == x && y == plant.pos.y - 1 && plant.pos.z == z) {
                                     norm = false;
                                     break;
                                 }
-                            }
+                            }*/
                             setBlock(x, y, z, norm ? blocks.CONCRETE.id : biome.dirt_block);
                         }
                     } else {
@@ -427,12 +428,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         // Plant herbs
-        for(let p of map.info.plants) {
-            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
+        for(let pos of map.info.plants.keys()) {
+            let block_id = map.info.plants.get(pos);
+            if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                let b = chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y - 1];
                 if(b && b === blocks.DIRT.id) {
-                    if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
-                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block.id);
+                    if(!chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y]) {
+                        setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
                     }
                 }
             }
