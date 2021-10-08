@@ -44,6 +44,9 @@ func (this *World) Load() {
 	this.Attr = this.LoadAttr()
 	//
 	this.State = &Struct.WorldState{}
+	//
+	this.Db = GetGameDatabase(this.Directory + "/world.sqlite")
+	//
 	this.Chat = &Chat{
 		World: this,
 		Db:    this.Db,
