@@ -25,6 +25,16 @@ export class VectorCollector {
         this.clear();
     }
 
+    *[Symbol.iterator]() {
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    yield this.list[x][y][z];
+                }
+            }
+        }
+    }
+
     clear() {
         this.list = [];
         this.size = 0;
@@ -44,24 +54,26 @@ export class VectorCollector {
     }
 
     delete(vec) {
-        if(!this.list[vec.x]) return false;
-        if(!this.list[vec.x][vec.y]) return false;
-        if(!this.list[vec.x][vec.y][vec.z]) false;
+        if(!this.has(vec)) {
+            return false;
+        }
+        this.size--;
         delete(this.list[vec.x][vec.y][vec.z]);
         return true;
     }
 
     has(vec) {
+        // return !!this.list[vec.x]?.[vec.y]?.[vec.z];
         if(!this.list[vec.x]) return false;
         if(!this.list[vec.x][vec.y]) return false;
-        if(!this.list[vec.x][vec.y][vec.z]) false;
+        if(!this.list[vec.x][vec.y][vec.z]) return false;
         return true;
     }
 
     get(vec) {
         if(!this.list[vec.x]) return null;
         if(!this.list[vec.x][vec.y]) return null;
-        if(!this.list[vec.x][vec.y][vec.z]) null;
+        if(!this.list[vec.x][vec.y][vec.z]) return null;
         return this.list[vec.x][vec.y][vec.z];
     }
 
@@ -79,12 +91,8 @@ export class VectorCollector {
 
     values() {
         let resp = [];
-        for(let x in this.list) {
-            for(let y in this.list[x]) {
-                for(let z in this.list[x][y]) {
-                    resp.push(this.list[x][y][z]);
-                }
-            }
+        for(let item of this) {
+            resp.push(item);
         }
         return resp;
     }

@@ -144,7 +144,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key]}]);
+        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key], addrs: [this.addr]}]);
         return true;
     }
 
@@ -222,6 +222,7 @@ export default class Chunk {
             let set_block_list = [];
             set_block_list.push({
                 key:        this.key,
+                addr:       this.addr,
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
                 z:          z + this.coord.z,
@@ -254,12 +255,14 @@ export default class Chunk {
             let updated_chunks = [this.key];
             for(var update_neighbor of update_neighbors) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-                let key = chunkManager.getPosChunkKey(BLOCK.getChunkAddr(pos));
+                let chunk_addr = BLOCK.getChunkAddr(pos);
+                let key = chunkManager.getPosChunkKey(chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
                     set_block_list.push({
                         key:        key,
+                        addr:       chunk_addr,
                         x:          pos.x,
                         y:          pos.y,
                         z:          pos.z,

@@ -13,8 +13,8 @@ export class ChunkManager {
     constructor(world) {
         let that                    = this;
         this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-        this.chunks                 = new Map();
-        this.chunks_prepare         = new Map();
+        this.chunks                 = new VectorCollector(), // Map();
+        this.chunks_prepare         = new VectorCollector();
         this.modify_list            = {};
         this.world                  = world;
         this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
@@ -29,15 +29,17 @@ export class ChunkManager {
             let args = e.data[1];
             switch(cmd) {
                 case 'blocks_generated': {
-                    if(that.chunks.has(args.key)) {
-                        that.chunks.get(args.key).onBlocksGenerated(args);
+                    let chunk = that.chunks.get(args.addr);
+                    if(chunk) {
+                        chunk.onBlocksGenerated(args);
                     }
                     break;
                 }
                 case 'vertices_generated': {
                     for(let result of args) {
-                        if(that.chunks.has(result.key)) {
-                            that.chunks.get(result.key).onVerticesGenerated(result);
+                        let chunk = that.chunks.get(result.addr);
+                        if(chunk) {
+                            chunk.onVerticesGenerated(result);
                         }
                     }
                     break;
@@ -97,20 +99,16 @@ export class ChunkManager {
     }
 
     // Get
-    getChunk(pos) {
-        let k = this.getPosChunkKey(pos);
-        if(this.chunks.has(k)) {
-            return this.chunks.get(k);
-        }
-        return null;
+    getChunk(addr) {
+        return this.chunks.get(addr);
     }
 
     // Add
     addChunk(item) {
-        if(this.chunks.has(item.key) || this.chunks_prepare.has(item.key)) {
+        if(this.chunks.has(item.addr) || this.chunks_prepare.has(item.addr)) {
             return false;
         }
-        this.chunks_prepare.set(item.key, {
+        this.chunks_prepare.add(item.addr, {
             start_time: performance.now()
         });
         this.world.server.ChunkAdd(item.addr);
@@ -118,12 +116,12 @@ export class ChunkManager {
     }
 
     // Remove
-    removeChunk(key, addr) {
-        this.vertices_length_total -= this.chunks.get(key).vertices_length;
-        this.chunks.get(key).destruct();
-        this.chunks.delete(key)
+    removeChunk(addr) {
+        let chunk = this.chunks.get(addr);
+        this.vertices_length_total -= chunk.vertices_length;
+        chunk.destruct();
+        this.chunks.delete(addr)
         this.rendered_chunks.total--;
-        // this.postWorkerMessage(['chunkRemove', addr]);
         this.world.server.ChunkRemove(addr);
     }
 
@@ -134,14 +132,13 @@ export class ChunkManager {
 
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
-        let k = this.getPosChunkKey(state.pos);
-        if(this.chunks_prepare.has(k)) {
-            let prepare     = this.chunks_prepare.get(k);
+        let prepare = this.chunks_prepare.get(state.pos);
+        if(prepare) {
             let chunk       = new Chunk(state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
-            this.chunks.set(k, chunk);
+            this.chunks.add(state.pos, chunk);
             this.rendered_chunks.total++;
-            this.chunks_prepare.delete(k);
+            this.chunks_prepare.delete(state.pos);
         }
     }
 
@@ -165,7 +162,6 @@ export class ChunkManager {
                 if(addr.y >= 0) {
                     this.poses.push({
                         addr:   addr,
-                        key:    addr.toChunkKey(),
                         chunk:  null
                     });
                 }
@@ -174,7 +170,8 @@ export class ChunkManager {
         if(this.chunks.size != this.poses.length || (this.prevchunkAddr && this.prevchunkAddr.distance(chunkAddr) > 0)) {
             this.prevchunkAddr = chunkAddr;
             let can_add = CHUNKS_ADD_PER_UPDATE;
-            for(let [_, chunk] of this.chunks) {
+            // Помечаем часть чанков неживымии и запрещаем в этом Update добавление чанков
+            for(let chunk of this.chunks) {
                 if(!chunk.inited) {
                     can_add = 0;
                     break;
@@ -191,16 +188,16 @@ export class ChunkManager {
                     }
                 }
                 if(!item.chunk) {
-                    item.chunk = this.chunks.get(item.key);
+                    item.chunk = this.chunks.get(item.addr);
                 }
                 if(item.chunk) {
                     item.chunk.isLive = true;
                 }
             }
-            // Check for remove
-            for(let [key, chunk] of this.chunks) {
+            // Check for remove chunks
+            for(let chunk of this.chunks) {
                 if(!chunk.isLive) {
-                    this.removeChunk(key, chunk.addr);
+                    this.removeChunk(chunk.addr);
                 }
             }
         }
@@ -251,8 +248,7 @@ export class ChunkManager {
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
         let vec = BLOCK.getChunkAddr(x, y, z);
-        let chunk_key = this.getPosChunkKey(vec);
-        let chunk = this.chunks.get(chunk_key);
+        let chunk = this.chunks.get(vec);
         if(chunk) {
             return chunk.getBlock(x, y, z);
         }
@@ -322,25 +318,8 @@ export class ChunkManager {
         } else if(block.id == BLOCK.CACTUS.id) {
             this.world.setRain(true);
         }
-        /*
-        // @server
-        this.world.server.Send({
-            name: ServerClient.EVENT_BLOCK_DESTROY,
-            data: {
-                pos: new Vector(x, y, z)
-            }
-        });
-        */
         this.world.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
-    }
-
-    // setDirtySimple
-    setDirtySimple(pos) {
-        let chunk = this.getChunk(pos);
-        if(chunk) {
-            chunk.dirty = true;
-        }
     }
 
 }

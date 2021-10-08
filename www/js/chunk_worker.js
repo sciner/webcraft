@@ -2,6 +2,7 @@ let queue               = [];
 
 // Modules
 let Vector              = null;
+let VectorCollector     = null;
 let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
@@ -13,7 +14,7 @@ let MAX_TORCH_POWER     = 16;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
-let chunks              = {};
+let chunks              = null;
 let terrainGenerator    = null;
 
 // ChunkManager
@@ -34,12 +35,8 @@ class ChunkManager {
     }
 
     // Get
-    getChunk(pos) {
-        let k = this.getPosChunkKey(pos);
-        if(chunks.hasOwnProperty(k)) {
-            return chunks[k];
-        }
-        return null;
+    getChunk(addr) {
+        return chunks.get(addr);
     }
 
     // Возвращает блок по абслютным координатам
@@ -62,9 +59,6 @@ class ChunkManager {
 class Chunk {
 
     constructor(args) {
-        this.instanced_blocks = {
-            CONCRETE: blocks.CONCRETE
-        };
         Object.assign(this, args);
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
@@ -100,6 +94,7 @@ class Chunk {
         this.map = terrainGenerator.generate(this);
         let c = {
             key:    this.key,
+            addr:   this.addr,
             blocks: this.blocks,
             map:    this.map
         };
@@ -344,17 +339,14 @@ class Chunk {
         // Add vertices for blocks
         this.vertices = {};
 
-        if(!this.neighbour_chunks) {
-            this.neighbour_chunks = {
-                nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
-                px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
-                ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
-                py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
-                nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
-                pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
-            };
-        }
-        let neighbour_chunks = this.neighbour_chunks;
+        this.neighbour_chunks = {
+            nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
+            px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
+            nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
+            pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
+        };
 
         //  Update lights
         this.updateLights();
@@ -382,29 +374,29 @@ class Chunk {
                     // если блок с краю чанка или вообще в соседнем чанке
                     if(p.x == -1) {
                         if(x == 0) {
-                            b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                            b = this.neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
                         } else {
                             b = this.blocks[x - 1][z][y];
                         }
                     } else if (p.x == 1) {
                         if(x == this.size.x - 1) {
-                            b = neighbour_chunks.px.blocks[0][z][y];
+                            b = this.neighbour_chunks.px.blocks[0][z][y];
                         } else {
                             b = this.blocks[x + 1][z][y];
                         }
                     // Y
                     } else if (p.y == -1) {
                         if(y == 0) {
-                            if(neighbour_chunks.ny) {
-                                b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                            if(this.neighbour_chunks.ny) {
+                                b = this.neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
                             }
                         } else {
                             b = this.blocks[x][z][y - 1];
                         }
                     } else if (p.y == 1) {
                         if(y == this.size.y - 1) {
-                            if(neighbour_chunks.py) {
-                                b = neighbour_chunks.py.blocks[x][z][0];
+                            if(this.neighbour_chunks.py) {
+                                b = this.neighbour_chunks.py.blocks[x][z][0];
                             }
                         } else {
                             b = this.blocks[x][z][y + 1];
@@ -412,13 +404,13 @@ class Chunk {
                     // Z
                     } else if (p.z == -1) {
                         if(z == 0) {
-                            b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                            b = this.neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
                         } else {
                             b = this.blocks[x][z - 1][y];
                         }
                     } else if (p.z == 1) {
                         if(z == this.size.z - 1) {
-                            b = neighbour_chunks.pz.blocks[x][0][y];
+                            b = this.neighbour_chunks.pz.blocks[x][0][y];
                         } else {
                             b = this.blocks[x][z + 1][y];
                         }
@@ -525,6 +517,7 @@ class Chunk {
         this.dirty = false;
         this.tm = performance.now() - tm;
         // this.lightmap = null;
+        this.neighbour_chunks = null;
         return true;
     }
 
@@ -592,6 +585,8 @@ async function importModules(terrain_type, seed, world_id) {
     // load module
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
+        VectorCollector = module.VectorCollector;
+        chunks = new VectorCollector();
     });
     // load module
     await import("./blocks.js").then(module => {
@@ -645,24 +640,25 @@ onmessage = async function(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            if(!chunks.hasOwnProperty(args.key)) {
-                chunks[args.key] = new Chunk(args);
-                chunks[args.key].init(world.chunkManager);
+            if(!chunks.has(args.addr)) {
+                let chunk = new Chunk(args);
+                chunk.init(world.chunkManager);
+                chunks.add(args.addr, chunk);
             }
             break;
         }
         case 'destructChunk': {
-            if(chunks.hasOwnProperty(args.key)) {
-                delete(chunks[args.key]);
+            if(chunks.has(args.addr)) {
+                chunks.delete(args.addr);
                 terrainGenerator.deleteMap(args.addr);
             }
             break;
         }
         case 'buildVertices': {
             let result = [];
-            for(let key of args.keys) {
-                if(chunks.hasOwnProperty(key)) {
-                    let chunk = chunks[key];
+            for(let addr of args.addrs) {
+                let chunk = chunks.get(addr);
+                if(chunk) {
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, true));
                 }
@@ -674,9 +670,9 @@ onmessage = async function(e) {
             let result = [];
             // let pn = performance.now();
             for(let m of args) {
-                if(chunks.hasOwnProperty(m.key)) {
-                    // 1. Get chunk
-                    let chunk = chunks[m.key];
+                // 1. Get chunk
+                let chunk = chunks.get(m.addr);
+                if(chunk) {
                     // 2. Set new block
                     if(m.type) {
                         chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
@@ -693,6 +689,18 @@ onmessage = async function(e) {
             postMessage(['vertices_generated', result]);
             break;
         }
+        case 'stat': {
+            try {
+                console.table({
+                    maps_cache_count: terrainGenerator.maps_cache.size,
+                    maps_cache_size: JSON.stringify(terrainGenerator.maps_cache).length/1024/1024,
+                    chunks_count: chunks.size,
+                });
+            } catch(e) {
+                console.error(e);
+            }
+            break;
+        }
     }
 }
 
@@ -704,6 +712,7 @@ function buildVertices(chunk, return_map) {
     chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
     let resp = {
         key:                    chunk.key,
+        addr:                   chunk.addr,
         vertices:               chunk.vertices,
         gravity_blocks:         chunk.gravity_blocks,
         fluid_blocks:           chunk.fluid_blocks,

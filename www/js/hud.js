@@ -55,7 +55,7 @@ export default class HUD {
             draw: function() {
                 let cl = 0;
                 let nc = 35; // #3dchunk (для 2D чанков было 45)
-                for(let [_, chunk] of Game.world.chunkManager.chunks) {
+                for(let chunk of Game.world.chunkManager.chunks) {
                     if(chunk.inited) {
                         cl++;
                     }
