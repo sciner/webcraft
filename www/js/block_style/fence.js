@@ -31,12 +31,12 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD;
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
-        if(!block.name) {
+        if(!block.properties.name) {
             console.error('block', JSON.stringify(block), block.id);
             debugger;
         }
 
-        let texture                 = BLOCK[block.name].texture;
+        let texture                 = BLOCK[block.properties.name].texture;
 
         // F R B L
         switch(cardinal_direction) {
@@ -72,7 +72,7 @@ export default class style {
 
         //
         let canConnect = (block) => {
-            return block && (!block.transparent || block.style == 'fence');
+            return block && (!block.properties.transparent || block.properties.style == 'fence');
         };
 
         // South

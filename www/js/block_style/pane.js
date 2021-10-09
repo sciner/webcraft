@@ -18,7 +18,7 @@ export default class style {
 
         const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
 
-        let texture     = BLOCK[block.name].texture;
+        let texture     = BLOCK[block.properties.name].texture;
         let bH          = 1.0;
         let lm          = MULTIPLY.COLOR.WHITE;
         let ao          = [0, 0, 0, 0];

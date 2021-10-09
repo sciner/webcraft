@@ -58,11 +58,13 @@ export class BLOCK {
             x = x.x;
         }
         let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        /*
         if(index < 0) {
             index = -1;
         } else if(index > CHUNK_BLOCKS) {
             index = -1;
         }
+        */
         return index;
     }
 
@@ -220,6 +222,21 @@ export class BLOCK {
         return blocks;
     }
 
+    //
+    static getBlockStyleGroup(block) {
+        let group = 'regular';
+        // make vertices array
+        if([200, 202].indexOf(block.id) >= 0) {
+            // если это блок воды или облако
+            group = 'transparent';
+        } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
+            group = 'doubleface_transparent';
+        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
+            group = 'doubleface';
+        }
+        return group;
+    }
+
     // getAll
     static getAll() {
         if(this.list) {
@@ -275,8 +292,10 @@ export class BLOCK {
                 B.name = mat;
                 B.destroy_time = calcDestroyTime(B);
                 B.power = 1;
+                B.group = this.getBlockStyleGroup(B);
                 B.selflit = B.hasOwnProperty('selflit') && B.selflit;
                 B.transparent = B.hasOwnProperty('transparent') && B.transparent;
+                B.style = B.hasOwnProperty('style') ? B.style : 'default';
                 // Fix properties
                 if(!B.hasOwnProperty('light')) B.light = null;
                 if(!B.hasOwnProperty('spawnable')) B.spawnable = true;
@@ -408,7 +427,8 @@ export class BLOCK {
 
     // pushVertices
     static pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-        const style = 'style' in block ? block.style : 'default';
+        // const style = 'style' in block ? block.style : 'default';
+        const style = block.properties.style;
         let module = this.styles[style];
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';

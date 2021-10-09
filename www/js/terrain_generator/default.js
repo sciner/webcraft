@@ -27,7 +27,8 @@ export class Default_Terrain_Generator {
                 for(let z = 0; z < chunk.size.z; z++) {
                     // BEDROCK
                     for(let y = 0; y < 1; y++) {
-                        chunk.blocks[x][z][y] = b;
+                        let block = chunk.tblocks.get(new Vector(x, y, z));
+                        block.id = b.id;
                     }
                 }
             }
@@ -67,12 +68,16 @@ export class Default_Terrain_Generator {
     // setBlock
     setBlock(chunk, x, y, z, block, force_replace) {
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
-            if(force_replace || !chunk.blocks[x][z][y]) {
-                let xyz = new Vector(x, y, z);
+            let xyz = new Vector(x, y, z);
+            // if(force_replace || !chunk.blocks[x][z][y]) {
+            //if(force_replace || !chunk.tblocks.has(xyz)) {
                 if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
-                    chunk.blocks[x][z][y] = block.id;
+                    // chunk.blocks[x][z][y] = block.id;
+                    chunk.tblocks.delete(xyz);
+                    let block = chunk.tblocks.get(xyz);
+                    block.id = block.id;
                 }
-            }
+            //}
         }
     }
 
@@ -163,7 +168,7 @@ export class Default_Terrain_Generator {
                             if(Helpers.distance(new Vector(x, 0, z), new Vector(i, 0, j)) > rad) {
                                 continue;
                             }
-                            let b = chunk.blocks[i][j][py];
+                            let b = chunk.tblocks.get(new Vector(i, py, j));
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk.id) {
                                 that.setBlock(chunk, i, py, j, options.type.leaves, false);
@@ -242,8 +247,9 @@ export class Default_Terrain_Generator {
                         if(m && m2) {
                             continue;
                         }
-                        let b = chunk.blocks[i][j][py];
-                        let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
+                        // let b = chunk.blocks[i][j][py];
+                        let b = chunk.tblocks.get(new Vector(i, py, j));
+                        let b_id = b.id; // !b ? 0 : (typeof b == 'number' ? b : b.id);
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk.id) {
                             this.setBlock(chunk, i, py, j, options.type.leaves, false);
                         }

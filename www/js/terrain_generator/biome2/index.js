@@ -223,8 +223,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         //
-        let setBlock = (x, y, z, block) => {
-            chunk.blocks[x][z][y] = block;
+        let setBlock = (x, y, z, block_id) => {
+            let vec = new Vector(x, y, z);
+            chunk.tblocks.delete(vec);
+            let block = chunk.tblocks.get(vec);
+            block.id = block_id;
         };
 
         // Static objects
@@ -409,7 +412,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(biome.code == 'OCEAN' && ywl >= 0) {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
-                            if(!chunk.blocks[x][z][y - chunk.coord.y]) {
+                            // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
+                            if(!chunk.tblocks.has(new Vector(x, y - chunk.coord.y, z))) {
                                 setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER.id);
                             }
                         }
@@ -436,9 +440,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         for(let pos of map.info.plants.keys()) {
             let block_id = map.info.plants.get(pos);
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                let b = chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y - 1];
-                if(b && b === blocks.DIRT.id) {
-                    if(!chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y]) {
+                // let b = chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y - 1];
+                let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
+                if(b.id === blocks.DIRT.id) {
+                    // if(!chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y]) {
+                    if(!chunk.tblocks.has(new Vector(pos.x, pos.y - chunk.coord.y, pos.z))) {
                         setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
                     }
                 }

@@ -40,6 +40,18 @@ export class VectorCollector {
         this.size = 0;
     }
 
+    set(vec, value) {
+        if(!this.list[vec.x]) this.list[vec.x] = [];
+        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
+        if(!this.list[vec.x][vec.y][vec.z]) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list[vec.x][vec.y][vec.z] = value;
+    }
+
     add(vec, value) {
         if(!this.list[vec.x]) this.list[vec.x] = [];
         if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
@@ -470,40 +482,6 @@ export class Helpers {
         }
     }
 
-    // IntersectRayBrick
-    static IntersectRayBrick(ray, brick) {
-        // check whether initial point is inside the parallelepiped
-        if ((ray.start[0] >= brick.min_point[0]) &&
-            (ray.start[0] <= brick.max_point[0]) &&
-            (ray.start[1] >= brick.min_point[1]) &&
-            (ray.start[1] <= brick.max_point[1]) &&
-            (ray.start[2] >= brick.min_point[2]) &&
-            (ray.start[2] <= brick.max_point[2])) {
-            return true;
-        }
-        // ray parameter
-        let t_near = Number.MIN_SAFE_INTEGER;
-        let t_far = Number.MAX_SAFE_INTEGER;
-        let t1, t2;
-        // directions loop
-        for (let i = 0; i < 3; i++) {
-            if (Math.abs(ray.direction[i]) >= Number.EPSILON) {
-                t1 = (brick.min_point[i] - ray.start[i]) / ray.direction[i];
-                t2 = (brick.max_point[i] - ray.start[i]) / ray.direction[i];
-                if (t1 > t2) t1 = [t2, t2 = t1][0];
-                if (t1 > t_near) t_near = t1;
-                if (t2 < t_far) t_far = t2;
-                if (t_near > t_far) return false;
-                if (t_far < 0.0) return false;
-            } else {
-                if (ray.start[i] < brick.min_point[i] || ray.start[i] > brick.max_point[i]) {
-                    return false;
-                }
-            }
-        }
-        return (t_near <= t_far && t_far >=0);
-    }
-
     static deg2rad(degrees) {
         return degrees * (Math.PI / 180);
     }
@@ -566,35 +544,6 @@ export class Helpers {
         callback({
             program
         });
-    }
-
-    // lineRectCollide( line, rect )
-    //
-    // Checks if an axis-aligned line and a bounding box overlap.
-    // line = { y, x1, x2 } or line = { x, y1, y2 }
-    // rect = { x, y, size }
-    static lineRectCollide(line, rect) {
-        if(line.z != null) {
-            return  rect.z > line.z - rect.size / 2 &&
-                    rect.z < line.z + rect.size / 2 &&
-                    rect.x > line.x1 - rect.size / 2 &&
-                    rect.x < line.x2 + rect.size / 2;
-        }
-        return  rect.x > line.x - rect.size / 2 &&
-                rect.x < line.x + rect.size / 2 &&
-                rect.z > line.z1 - rect.size / 2 &&
-                rect.z < line.z2 + rect.size / 2;
-    }
-
-    // rectRectCollide( r1, r2 )
-    //
-    // Checks if two rectangles (x1, y1, x2, y2) overlap.
-    static rectRectCollide(r1, r2) {
-        if(r2.x1 > r1.x1 && r2.x1 < r1.x2 && r2.z1 > r1.z1 && r2.z1 < r1.z2 ) return true;
-        if(r2.x2 > r1.x1 && r2.x2 < r1.x2 && r2.z1 > r1.z1 && r2.z1 < r1.z2 ) return true;
-        if(r2.x2 > r1.x1 && r2.x2 < r1.x2 && r2.z2 > r1.z1 && r2.z2 < r1.z2 ) return true;
-        if(r2.x1 > r1.x1 && r2.x1 < r1.x2 && r2.z2 > r1.z1 && r2.z2 < r1.z2 ) return true;
-        return false;
     }
 
     // Return from green to red color depend on percentage

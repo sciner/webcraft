@@ -44,16 +44,16 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD;
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
-        if(!block.name) {
+        if(!block.properties.name) {
             console.error('block', JSON.stringify(block), block.id);
             debugger;
         }
 
         let c, ao;
-        let width                   = block.width ? block.width : 1;
-        let height                  = block.height ? block.height : 1;
+        let width                   = block.properties.width ? block.properties.width : 1;
+        let height                  = block.properties.height ? block.properties.height : 1;
         let drawAllSides            = width != 1 || height != 1;
-        let mat                     = BLOCK[block.name];
+        let mat                     = block.properties;
         let texture                 = mat.texture;
 
         // F R B L
@@ -86,11 +86,11 @@ export default class style {
 
         // Can change height
         let bH = 1.0;
-        if(block.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
+        if(block.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
             bH = Math.min(block.power, .9)
             let blockOver  = BLOCK.getCachedBlock(chunk, x, y + 1, z);
             if(blockOver) {
-                let blockOverIsFluid = (blockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+                let blockOverIsFluid = (blockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
                 if(blockOverIsFluid) {
                     bH = 1.0;
                 }
@@ -100,7 +100,7 @@ export default class style {
 
         // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
         if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
-            if(neighbours.UP && (!neighbours.UP.transparent || neighbours.UP.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
+            if(neighbours.UP && (!neighbours.UP.properties.transparent || neighbours.UP.properties.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
                 DIRECTION_UP        = DIRECTION.DOWN;
                 DIRECTION_BACK      = DIRECTION.DOWN;
                 DIRECTION_RIGHT     = DIRECTION.DOWN;
@@ -113,9 +113,9 @@ export default class style {
         }
 
         let canDrawFace = (neighbourBlock) => {
-            let resp = drawAllSides || !neighbourBlock || neighbourBlock.transparent;
+            let resp = drawAllSides || !neighbourBlock || neighbourBlock.properties.transparent;
             if(resp && neighbourBlock) {
-                if(block.id == neighbourBlock.id && block.selflit) {
+                if(block.id == neighbourBlock.id && block.properties.selflit) {
                     resp = false;
                 }
             }
@@ -197,7 +197,7 @@ export default class style {
                 ...c,
                 lm.r, lm.g, lm.b,
                 ...ao, flags | upFlags);
-            if(block.is_fluid && block.transparent) {
+            if(block.properties.is_fluid && block.properties.transparent) {
                 top_vectors = [
                     1, 0, 0,
                     0, -1, 0

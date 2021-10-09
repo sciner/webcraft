@@ -3,6 +3,7 @@ let queue               = [];
 // Modules
 let Vector              = null;
 let VectorCollector     = null;
+let TypedBlocks         = null;
 let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
@@ -81,22 +82,17 @@ class Chunk {
         };
         // 1. Initialise world array
         this.timers.init = performance.now();
-        this.blocks = new Array(this.size.x);
-        for(let x = 0; x < this.size.x; x++) {
-            this.blocks[x] = new Array(this.size.z);
-            for(let z = 0; z < this.size.z; z++) {
-                this.blocks[x][z] = [];
-            }
-        }
+        this.tblocks = new TypedBlocks();
+        //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = terrainGenerator.generate(this);
         let c = {
-            key:    this.key,
-            addr:   this.addr,
-            blocks: this.blocks,
-            map:    this.map
+            key:        this.key,
+            addr:       this.addr,
+            tblocks:    this.tblocks,
+            map:        this.map
         };
         // console.log(JSON.stringify(c).length);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
@@ -113,7 +109,7 @@ class Chunk {
     // findLights...
     findLights() {
         this.lights = [];
-        for(let y = 0; y < this.size.y; y++) {
+        /*for(let y = 0; y < this.size.y; y++) {
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
                     let block = this.blocks[x][z][y];
@@ -125,7 +121,7 @@ class Chunk {
                     }
                 }
             }
-        }
+        }*/
     }
 
     //
@@ -139,10 +135,10 @@ class Chunk {
             if(m.id < 1) {
                 pos = new Vector(pos[0], pos[1], pos[2]);
                 pos = BLOCK.getBlockIndex(pos);
-                this.blocks[pos.x][pos.z][pos.y] = null;
+                this.tblocks.delete(pos);
                 continue;
             }
-            let type        = BLOCK.fromId(m.id);
+            let type = BLOCK.fromId(m.id);
             if(type.id == -1) {
                 console.error(pos, m);
                 return;
@@ -169,7 +165,8 @@ class Chunk {
         }
         let block = null;
         try {
-            block = this.blocks[x][z][y];
+            // block = this.blocks[x][z][y];
+            block = this.tblocks.get(new Vector(x, y, z));
         } catch(e) {
             console.error(e);
             console.log(x, y, z);
@@ -220,12 +217,13 @@ class Chunk {
         if(is_modify) {
             console.table(orig_type);
         }
-        this.blocks[x][z][y]            = BLOCK.cloneFromId(orig_type.id);
-        this.blocks[x][z][y].power      = power;
-        this.blocks[x][z][y].rotate     = rotate;
-        this.blocks[x][z][y].entity_id  = entity_id;
-        this.blocks[x][z][y].texture    = null;
-        this.blocks[x][z][y].extra_data = extra_data;
+        let block        = this.tblocks.get(new Vector(x, y, z));
+        block.id         = orig_type.id;
+        block.power      = power;
+        block.rotate     = rotate;
+        block.entity_id  = entity_id;
+        block.texture    = null;
+        block.extra_data = extra_data;
     }
 
     // updateLights
@@ -287,25 +285,10 @@ class Chunk {
         }
     }
 
-    //
-    getBlockStyleGroup(block) {
-        let group = 'regular';
-        // make vertices array
-        if([200, 202].indexOf(block.id) >= 0) {
-            // если это блок воды или облако
-            group = 'transparent';
-        } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
-            group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
-            group = 'doubleface';
-        }
-        return group;
-    }
-
     // buildVertices
     buildVertices() {
 
-        if(!this.dirty || !this.blocks || !this.coord) {
+        if(!this.dirty || !this.tblocks || !this.coord) {
             return false;
         }
 
@@ -316,6 +299,13 @@ class Chunk {
         this.gravity_blocks     = [];
 
         BLOCK.clearBlockCache();
+
+        //if(this.addr.x == 181 && this.addr.y == 2 && this.addr.z == 174) {
+        //    for(let b of this.tblocks) {
+        //        console.log(b.id);
+        //    }
+        //    debugger;
+        //}
 
         let group_templates = {
             regular: {
@@ -369,55 +359,65 @@ class Chunk {
                 let b = null;
                 if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
                     // если сосед внутри того же чанка
-                    b = this.blocks[x + p.x][z + p.z][y + p.y];
+                    // b = this.blocks[x + p.x][z + p.z][y + p.y];
+                    b = this.tblocks.get(new Vector(x + p.x, y + p.y, z + p.z));
                 } else {
                     // если блок с краю чанка или вообще в соседнем чанке
                     if(p.x == -1) {
                         if(x == 0) {
-                            b = this.neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                            // b = this.neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
+                            b = this.neighbour_chunks.nx.tblocks.get(new Vector(this.size.x - 1, y, z));
                         } else {
-                            b = this.blocks[x - 1][z][y];
+                            // b = this.blocks[x - 1][z][y];
+                            b = this.tblocks.get(new Vector(x - 1, y, z));
                         }
                     } else if (p.x == 1) {
                         if(x == this.size.x - 1) {
-                            b = this.neighbour_chunks.px.blocks[0][z][y];
+                            // b = this.neighbour_chunks.px.blocks[0][z][y];
+                            b = this.neighbour_chunks.px.tblocks.get(new Vector(0, y, z));
                         } else {
-                            b = this.blocks[x + 1][z][y];
+                            // b = this.blocks[x + 1][z][y];
+                            b = this.tblocks.get(new Vector(x + 1, y, z));
                         }
                     // Y
                     } else if (p.y == -1) {
                         if(y == 0) {
                             if(this.neighbour_chunks.ny) {
-                                b = this.neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                                // b = this.neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
+                                b = this.neighbour_chunks.ny.tblocks.get(new Vector(x, this.size.y - 1, z));
                             }
                         } else {
-                            b = this.blocks[x][z][y - 1];
+                            // b = this.blocks[x][z][y - 1];
+                            b = this.tblocks.get(new Vector(x, y - 1, z));
                         }
                     } else if (p.y == 1) {
                         if(y == this.size.y - 1) {
                             if(this.neighbour_chunks.py) {
-                                b = this.neighbour_chunks.py.blocks[x][z][0];
+                                // b = this.neighbour_chunks.py.blocks[x][z][0];
+                                b = this.neighbour_chunks.py.tblocks.get(new Vector(x, 0, z));
                             }
                         } else {
-                            b = this.blocks[x][z][y + 1];
+                            // b = this.blocks[x][z][y + 1];
+                            b = this.tblocks.get(new Vector(x, y + 1, z));
                         }
                     // Z
                     } else if (p.z == -1) {
                         if(z == 0) {
-                            b = this.neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                            // b = this.neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
+                            b = this.neighbour_chunks.nz.tblocks.get(new Vector(x, y, this.size.z - 1));
                         } else {
-                            b = this.blocks[x][z - 1][y];
+                            // b = this.blocks[x][z - 1][y];
+                            b = this.tblocks.get(new Vector(x, y, z - 1));
                         }
                     } else if (p.z == 1) {
                         if(z == this.size.z - 1) {
-                            b = this.neighbour_chunks.pz.blocks[x][0][y];
+                            // b = this.neighbour_chunks.pz.blocks[x][0][y];
+                            b = this.neighbour_chunks.pz.tblocks.get(new Vector(x, y, 0));
                         } else {
-                            b = this.blocks[x][z + 1][y];
+                            // b = this.blocks[x][z + 1][y];
+                            b = this.tblocks.get(new Vector(x, y, z + 1));
                         }
                     }
-                }
-                if(typeof b == 'number') {
-                    b = BLOCK.BLOCK_BY_ID[b];
                 }
                 if(p.y == 1) {
                     neighbors.UP = b;
@@ -432,7 +432,8 @@ class Chunk {
                 } else if(p.x == 1) {
                     neighbors.EAST = b;
                 }
-                if(!b || (b.transparent || b.fluid)) {
+                let properties = b?.properties;
+                if(!properties || b.properties.transparent || b.properties.fluid) {
                     // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                     // break;
                     pcnt = -40;
@@ -444,73 +445,40 @@ class Chunk {
         };
 
         // Обход всех блоков данного чанка
-        for(let x = 0; x < this.size.x; x++) {
-            for(let z = 0; z < this.size.z; z++) {
-                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
-                for(let y = 0; y < y_count; y++) {
-                    let block = this.blocks[x][z][y];
-                    if(!block) {
-                        continue;
-                    }
-                    if(typeof block === 'number') {
-                        if(block == BLOCK.AIR.id) {
-                            continue;
-                        }
-                        // block = BLOCK.cloneFromId(block);
-                        block = {...BLOCK.BLOCK_BY_ID[block]};
-                        if(!block) {
-                            throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
-                        }
-                        this.blocks[x][z][y] = block;
-                    }
-                    //
-                    if(!block.group) {
-                        block.group = this.getBlockStyleGroup(block);
-                    }
+        for(let block of this.tblocks) {
+            if(block.id == BLOCK.AIR.id) {
+                continue;
+            }
+            // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
+            let neighbors = getBlockNeighbors(block.pos.x, block.pos.y, block.pos.z);
+            // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
+            if(neighbors.pcnt == 6) {
+                continue;
+            }
+            // if block with gravity
+            // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
+            if(block.properties.gravity && block.pos.y > 0 && block.falling) {
+                // let block_under = this.blocks[x][z][y - 1];
+                let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
+                if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
+                    this.gravity_blocks.push(block.pos);
                 }
             }
-        }
-
-        // Обход всех блоков данного чанка
-        for(let x = 0; x < this.size.x; x++) {
-            for(let z = 0; z < this.size.z; z++) {
-                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
-                for(let y = 0; y < y_count; y++) {
-                    let block = this.blocks[x][z][y];
-                    if(!block || block.id == BLOCK.AIR.id) {
-                        continue;
-                    }
-                    // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-                    let neighbors = getBlockNeighbors(x, y, z);
-                    // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
-                    if(neighbors.pcnt == 6) {
-                        continue;
-                    }
-                    // if block with gravity
-                    // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-                    if(block.gravity && y > 0 && block.falling) {
-                        let block_under = this.blocks[x][z][y - 1];
-                        if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
-                            this.gravity_blocks.push(new Vector(x, y, z));
-                        }
-                    }
-                    // if block is fluid
-                    if(block.fluid) {
-                        this.fluid_blocks.push(new Vector(x, y, z));
-                    }
-                    if(!block.hasOwnProperty('vertices')) {
-                        block.vertices = [];
-                        let biome = this.map.info.cells[x][z].biome;
-                        BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbors, biome);
-                    }
-                    world.blocks_pushed++;
-                    if(block.vertices.length > 0) {
-                        if(!this.vertices[block.group]) {
-                            this.vertices[block.group] = {...group_templates[block.group]};
-                        }
-                        this.vertices[block.group].list.push(...block.vertices);
-                    }
+            // if block is fluid
+            if(block.properties.fluid) {
+                this.fluid_blocks.push(block.pos);
+            }
+            if(block.vertices === null) {
+                block.vertices = [];
+                let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
+                BLOCK.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbors, biome);
+            }
+            world.blocks_pushed++;
+            if(block.vertices !== null && block.vertices.length > 0) {
+                if(!this.vertices[block.properties.group]) {
+                    this.vertices[block.properties.group] = {...group_templates[block.properties.group]};
                 }
+                this.vertices[block.properties.group].list.push(...block.vertices);
             }
         }
 
@@ -587,6 +555,10 @@ async function importModules(terrain_type, seed, world_id) {
         Vector = module.Vector;
         VectorCollector = module.VectorCollector;
         chunks = new VectorCollector();
+    });
+    // load module
+    await import("./typed_blocks.js").then(module => {
+        TypedBlocks = module.TypedBlocks;
     });
     // load module
     await import("./blocks.js").then(module => {

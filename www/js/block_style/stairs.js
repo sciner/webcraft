@@ -17,7 +17,7 @@ export default class style {
 
         const half          = 0.5 / TX_CNT;
         let poses           = [];
-        let texture         = BLOCK.fromId(block.id).texture;
+        let texture         = block.properties.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
 
         block.transparent   = true;

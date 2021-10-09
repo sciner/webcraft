@@ -67,7 +67,7 @@ export default class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.blocks = args.blocks;
+        this.blocks = args.tblocks;
         this.inited = true;
     }
 
@@ -155,6 +155,7 @@ export default class Chunk {
         if(!this.inited) {
             return BLOCK.DUMMY;
         }
+        return BLOCK.DIRT;
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;

@@ -14,6 +14,20 @@ import {GameMode} from "./game_mode.js";
 
 export {BLOCK};
 
+/*
+import {TypedBlocks} from "./typed_blocks.js";
+let tbs = new TypedBlocks();
+let vec = new Vector(0, 5, 14);
+let block           = tbs.get(vec);
+block.power         = .8;
+block.rotate        = new Vector(1, 2, 3);
+block.entity_id     = 'entity_id';
+block.texture       = 'texture';
+block.extra_data    = 'extra_data';
+block               = tbs.get(vec);
+console.log(block.id, block.power, block.rotate, block.properties, block.entity_id, block.texture, block.extra_data);
+*/
+
 // Mouse event enumeration
 export let MOUSE         = {};
     MOUSE.DOWN    = 1;

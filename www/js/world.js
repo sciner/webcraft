@@ -133,7 +133,8 @@ export class World {
 
     // createClouds
     createClouds(pos) {
-        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
+        // @todo Переделать в связи с появлением TBlock
+        // return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
     }
 
     // setRain
