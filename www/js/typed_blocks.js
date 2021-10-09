@@ -24,7 +24,9 @@ export class TBlock {
 
     //
     get power() {
-        return this.tb.power.get(this.vec);
+        let resp = this.tb.power.get(this.vec);
+        if(resp === null) resp = 1;
+        return resp;
     }
     set power(value) {
         if(value) return this.tb.power.set(this.vec, value);
@@ -85,9 +87,33 @@ export class TBlock {
         this.tb.vertices.delete(this.vec);
     }
 
+    // shapes
+    get shapes() {
+        return this.tb.shapes.get(this.vec);
+    }
+    set shapes(value) {
+        if(value) return this.tb.shapes.set(this.vec, value);
+        this.tb.shapes.delete(this.vec);
+    }
+
     // properties
     get properties() {
         return BLOCK.BLOCK_BY_ID[this.id] || null;
+    }
+
+    // Дальнейшие свойства нужны только для prismarine-physics (физика перса)
+    //
+    get type() {
+        return this.id;
+    }
+    getProperties() {
+        return this.properties;
+    }
+    get position() {
+        return this.pos;
+    }
+    get metadata() {
+        return this.tb.metadata.get(this.vec);
     }
 
 }
@@ -106,6 +132,8 @@ export class TypedBlocks {
         this.extra_data = new VectorCollector();
         this.vertices   = new VectorCollector();
         this.falling    = new VectorCollector();
+        this.shapes     = new VectorCollector();
+        this.metadata   = new VectorCollector();
     }
 
     *[Symbol.iterator]() {
@@ -129,6 +157,7 @@ export class TypedBlocks {
         block.extra_data    = null;
         block.vertices      = null;
         block.falling       = null;
+        block.shapes        = null;
     }
 
     get(vec) {

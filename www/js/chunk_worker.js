@@ -510,15 +510,16 @@ class Chunk {
                             }
                         }*/
                         //
-                        let block = this.blocks[x][z][y];
-                        if(block && typeof block === 'object') {
-                            if(block.gravity) {
+                        let pos = new Vector(x, y, z);
+                        if(this.tblocks.has(pos)) {
+                            let block = this.tblocks.get(pos);
+                            if(block.properties.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }
                             }
-                            if(block.hasOwnProperty('vertices')) {
-                                delete(block['vertices']);
+                            if(block.vertices) {
+                                block.vertices = null;
                                 cnt++;
                             }
                         }

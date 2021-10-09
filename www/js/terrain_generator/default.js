@@ -66,18 +66,18 @@ export class Default_Terrain_Generator {
     }
 
     // setBlock
-    setBlock(chunk, x, y, z, block, force_replace) {
+    setBlock(chunk, x, y, z, block_type, force_replace) {
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             let xyz = new Vector(x, y, z);
             // if(force_replace || !chunk.blocks[x][z][y]) {
-            //if(force_replace || !chunk.tblocks.has(xyz)) {
+            if(force_replace || !chunk.tblocks.has(xyz)) {
                 if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
                     // chunk.blocks[x][z][y] = block.id;
                     chunk.tblocks.delete(xyz);
                     let block = chunk.tblocks.get(xyz);
-                    block.id = block.id;
+                    block.id = block_type.id;
                 }
-            //}
+            }
         }
     }
 

@@ -23,6 +23,19 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+        //
+        this.DUMMY = {
+            id: BLOCK.DUMMY.id,
+            shapes: [],
+            properties: BLOCK.DUMMY,
+            getProperties: function() {
+                return this.properties;
+            }
+        };
+        this.AIR = {
+            id: BLOCK.AIR.id,
+            properties: BLOCK.AIR
+        };
         // Message received from worker
         this.worker.onmessage = function(e) {
             let cmd = e.data[0];
@@ -247,12 +260,12 @@ export class ChunkManager {
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
-        let vec = BLOCK.getChunkAddr(x, y, z);
-        let chunk = this.chunks.get(vec);
+        let addr = BLOCK.getChunkAddr(x, y, z);
+        let chunk = this.chunks.get(addr);
         if(chunk) {
             return chunk.getBlock(x, y, z);
         }
-        return BLOCK.DUMMY;
+        return this.DUMMY;
     }
 
     // setBlock

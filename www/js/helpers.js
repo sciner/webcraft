@@ -21,8 +21,11 @@ export class Mth {
 // VectorCollector...
 export class VectorCollector {
 
-    constructor() {
+    constructor(list) {
         this.clear();
+        if(list) {
+            this.list = list;
+        }
     }
 
     *[Symbol.iterator]() {
@@ -320,7 +323,7 @@ export class Vector {
     // For Vec3
     norm() {return this.length();}
     normalize() {return this.normal();}
-    offset(vec) {return this.add(vec);}
+    offset(x, y, z) {return this.add(new Vector(x, y, z));}
     floored() {return new Vector(
         Math.floor(this.x),
         Math.floor(this.y),

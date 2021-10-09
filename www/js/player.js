@@ -514,13 +514,13 @@ export default class Player {
             }
             let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             let playerPos       = this.getBlockPos();
-            let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
-            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
+            let replaceBlock    = world_block && (world_block.properties.fluid || world_block.id == BLOCK.GRASS.id);
+            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.properties.tags && world_block.properties.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
                 world_block.extra_data.opened = !world_block.extra_data.opened;
-                if(world_block.sound) {
-                    Game.sounds.play(world_block.sound, 'open');
+                if(world_block.properties.sound) {
+                    Game.sounds.play(world_block.properties.sound, 'open');
                 }
                 world.setBlock(pos.x, pos.y, pos.z, world_block, null, world_block.rotate, null, world_block.extra_data);
             } else if(createBlock) {
@@ -838,7 +838,7 @@ export default class Player {
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
-                let blockOverIsFluid = (headBlockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
+                let blockOverIsFluid = (headBlockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
                     this.eyes_in_water = hby < (hby | 0) + power + .01;

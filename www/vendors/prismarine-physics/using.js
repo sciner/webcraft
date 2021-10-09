@@ -44,17 +44,8 @@ class FakeWorld {
     getBlock(pos) {
         pos = pos.floored();
         let b = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        b = {...b};
-        if (typeof b.shapes == 'undefined') {
-            b.type      = b.id;
-            b.metadata  = 0;
-            b.position  = pos;
-            b.shapes = BLOCK.getShapes(pos, b, this.world, true);
-            b.getProperties = () => {
-                return {
-                    waterlogged: false // погружен в воду
-                }
-            };
+        if (b.shapes === null) {
+            b.shapes = (b.id > 0) ? BLOCK.getShapes(pos, b, this.world, true) : [];
         }
         return b;
     }

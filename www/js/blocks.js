@@ -468,8 +468,8 @@ export class BLOCK {
     static getShapes(pos, b, world, for_physic) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
         let f = .001;
-        if(!b.passable && (b.style != 'planting' && b.style != 'sign')) {
-            switch(b.style) {
+        if(!b.properties.passable && (b.properties.style != 'planting' && b.properties.style != 'sign')) {
+            switch(b.properties.style) {
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
                     //
@@ -509,9 +509,9 @@ export class BLOCK {
                     break;
                 }
                 case 'pane': {
-                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    let cardinal_direction = this.getCardinalDirection(b.rotate).z;
                     // F R B L
-                    switch(b.cardinal_direction) {
+                    switch(cardinal_direction) {
                         case ROTATE.S: 
                         case ROTATE.N: {
                             shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
@@ -526,13 +526,13 @@ export class BLOCK {
                     break;
                 }
                 case 'stairs': {
-                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
-                    b.on_ceil = this.isOnCeil(b);
+                    let cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    let on_ceil = this.isOnCeil(b);
                     let sz = 0.5;
-                    if(b.on_ceil) {
+                    if(on_ceil) {
                         shapes.push([0, sz - f, 0, 1, 1, 1]);
                         // F R B L
-                        switch(b.cardinal_direction) {
+                        switch(cardinal_direction) {
                             case ROTATE.S: {
                                 shapes.push([0, 0, sz - f, 1, sz, 1]);
                                 break;
@@ -553,7 +553,7 @@ export class BLOCK {
                     } else {
                         shapes.push([0, 0, 0, 1, sz + f, 1]);
                         // F R B L
-                        switch(b.cardinal_direction) {
+                        switch(cardinal_direction) {
                             case ROTATE.S: {
                                 shapes.push([0, sz, sz - f, 1, 1, 1]);
                                 break;
@@ -575,13 +575,13 @@ export class BLOCK {
                     break;
                 }
                 case 'trapdoor': {
-                    b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
-                    b.opened = this.isOpenedTrapdoor(b);
-                    b.on_ceil = this.isOnCeil(b);
+                    let cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                    let opened = this.isOpenedTrapdoor(b);
+                    let on_ceil = this.isOnCeil(b);
                     let sz = 3 / 15.9;
-                    if(b.opened) {
+                    if(opened) {
                         // F R B L
-                        switch(b.cardinal_direction) {
+                        switch(cardinal_direction) {
                             // z--
                             case ROTATE.S: {
                                 shapes.push([0, 0, 1-sz, 1, 1, 1]);
@@ -602,7 +602,7 @@ export class BLOCK {
                             }
                         }
                     } else {
-                        if(b.on_ceil) {
+                        if(on_ceil) {
                             shapes.push([0, 1-sz, 0, 1, 1, 1]);
                         } else {
                             shapes.push([0, 0, 0, 1, sz, 1]);
@@ -611,8 +611,8 @@ export class BLOCK {
                     break;
                 }
                 case 'slab': {
-                    b.on_ceil = this.isOnCeil(b);
-                    if(b.on_ceil) {
+                    let on_ceil = this.isOnCeil(b);
+                    if(on_ceil) {
                         shapes.push([0, .5, 0, 1, 1, 1]);
                     } else {
                         shapes.push([0, 0, 0, 1, .5, 1]);
@@ -620,18 +620,18 @@ export class BLOCK {
                     break;
                 }
                 default: {
-                    if(b.width) {
-                        let hw = b.width / 2;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.height ? b.height: 1, .5+hw]);
+                    if(b.properties.width) {
+                        let hw = b.properties.width / 2;
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.properties.height ? b.properties.height: 1, .5+hw]);
                     } else {
-                        shapes.push([0, 0, 0, 1, b.height ? b.height + .001: 1, 1]);
+                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height + .001: 1, 1]);
                     }
                     break;
                 }
             }
         } else {
             if(!for_physic) {
-                switch(b.style) {
+                switch(b.properties.style) {
                     case 'torch': {
                         let torch_height = 10/16;
                         shapes.push([
@@ -641,7 +641,7 @@ export class BLOCK {
                         break;
                     }
                     case 'sign': {
-                        shapes.push([0, 0, 0, 1, b.height ? b.height : 1, 1]);
+                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
                         break;
                     }
                     case 'planting': {
@@ -651,10 +651,10 @@ export class BLOCK {
                         break;
                     }
                     case 'ladder': {
-                        b.cardinal_direction = this.getCardinalDirection(b.rotate).z;
+                        let cardinal_direction = this.getCardinalDirection(b.rotate).z;
                         let width = 1/16;
                         // F R B L
-                        switch(b.cardinal_direction) {
+                        switch(cardinal_direction) {
                             // z--
                             case ROTATE.S: {
                                 shapes.push([0, 0, 1-width, 1, 1, 1]);

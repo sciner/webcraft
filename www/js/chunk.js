@@ -1,6 +1,7 @@
-import {Vector} from "./helpers.js";
+import {Vector, VectorCollector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
+import {TypedBlocks} from "./typed_blocks.js";
 
 // Creates a new chunk
 export default class Chunk {
@@ -37,7 +38,7 @@ export default class Chunk {
         );
 
         this.seed = chunkManager.world.seed;
-        this.blocks = null;
+        this.tblocks = null;
 
         this.id = [
             this.addr.x,
@@ -67,7 +68,18 @@ export default class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.blocks = args.tblocks;
+        this.tblocks            = new TypedBlocks();
+        this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+        this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.power      = new VectorCollector(args.tblocks.power);
+        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate);
+        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id);
+        this.tblocks.texture    = new VectorCollector(args.tblocks.texture);
+        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data);
+        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices);
+        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes);
+        this.tblocks.falling    = new VectorCollector(args.tblocks.falling);
         this.inited = true;
     }
 
@@ -153,22 +165,18 @@ export default class Chunk {
     // directly is easier and faster.
     getBlock(x, y, z) {
         if(!this.inited) {
-            return BLOCK.DUMMY;
+            return this.getChunkManager().DUMMY;
         }
-        return BLOCK.DIRT;
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
-            return BLOCK.DUMMY;
+            return this.getChunkManager().DUMMY;
         }
-        let block = this.blocks[x][z][y];
-        if(!block) {
-            return BLOCK.AIR;
-        }
-        if(typeof block == 'number') {
-           block = BLOCK.BLOCK_BY_ID[block];
-        }
+        let block = this.tblocks.get(new Vector(x, y, z));
+        /*if(!block) {
+            return this.getChunkManager().AIR;
+        }*/
         return block;
     }
 
@@ -215,8 +223,16 @@ export default class Chunk {
             if(type.gravity) {
                 type.falling = true;
             }
-            update_vertices = !!extra_data || JSON.stringify(this.blocks[x][z][y]) != JSON.stringify(type);
-            this.blocks[x][z][y] = type;
+            let pos = new Vector(x, y, z);
+            update_vertices = !!extra_data || JSON.stringify(this.tblocks.get(pos)) != JSON.stringify(type);
+            this.tblocks.delete(pos);
+            let new_block = this.tblocks.get(pos);
+            new_block.id            = type.id;
+            new_block.extra_data    = type.extra_data;
+            new_block.entity_id     = type.entity_id;
+            new_block.power         = type.power;
+            new_block.rotate        = type.rotate;
+            // this.blocks[x][z][y] = type;
         }
         // Run webworker method
         if(update_vertices) {

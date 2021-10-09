@@ -12,7 +12,7 @@ export class GameMode {
         this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false});
         this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true});
         this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: true, block_clone: true});
         if(game_mode_id) {
             this.setMode(game_mode_id);
         }
