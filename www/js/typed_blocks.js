@@ -109,8 +109,13 @@ export class TBlock {
     getProperties() {
         return this.properties;
     }
+    // position
     get position() {
-        return this.pos;
+        return this.tb.position.get(this.vec);
+    }
+    set position(value) {
+        if(value) return this.tb.position.set(this.vec, value);
+        this.tb.position.delete(this.vec);
     }
     get metadata() {
         return this.tb.metadata.get(this.vec);
@@ -134,6 +139,7 @@ export class TypedBlocks {
         this.falling    = new VectorCollector();
         this.shapes     = new VectorCollector();
         this.metadata   = new VectorCollector();
+        this.position   = new VectorCollector();
     }
 
     *[Symbol.iterator]() {
@@ -158,6 +164,7 @@ export class TypedBlocks {
         block.vertices      = null;
         block.falling       = null;
         block.shapes        = null;
+        block.position      = null;
     }
 
     get(vec) {

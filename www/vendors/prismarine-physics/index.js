@@ -110,7 +110,7 @@ export function Physics(mcData, world) {
             for (cursor.z = Math.floor(queryBB.minZ); cursor.z <= Math.floor(queryBB.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(queryBB.minX); cursor.x <= Math.floor(queryBB.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block) {
+                    if (block && block.id > 0) {
                         const blockPos = block.position
                         for (const shape of block.shapes) {
                             const blockBB = new AABB(shape[0], shape[1], shape[2], shape[3], shape[4], shape[5])
@@ -301,7 +301,7 @@ export function Physics(mcData, world) {
             for (cursor.z = Math.floor(playerBB.minZ); cursor.z <= Math.floor(playerBB.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(playerBB.minX); cursor.x <= Math.floor(playerBB.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block) {
+                    if (block && block.id > 0) {
                         if (supportFeature('velocityBlocksOnCollision')) {
                             if (block.type === soulsandId) {
                                 vel.x *= physics.soulsandSpeed
@@ -329,7 +329,7 @@ export function Physics(mcData, world) {
         }
         if (supportFeature('velocityBlocksOnTop')) {
             const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-            if (blockBelow) {
+            if (blockBelow && blockBelow.id > 0) {
                 if (blockBelow.type === soulsandId) {
                     vel.x *= physics.soulsandSpeed
                     vel.z *= physics.soulsandSpeed

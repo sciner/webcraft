@@ -26,7 +26,7 @@ export class Instrument_Hand {
             block = BLOCK.fromId(BLOCK.DIRT.id);
         }
         if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(block.id) < 0) {
-            this.inventory.increment(Object.assign({count: 1}, block));
+            this.inventory.increment({count: 1, id: block.id, power: block.power});
         }
         return true;
     }
