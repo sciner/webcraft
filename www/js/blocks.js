@@ -464,6 +464,10 @@ export class BLOCK {
         return !!(block.extra_data && block.extra_data.opened);
     }
 
+    static canFenceConnect(block) {
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence');
+    }
+
     // getShapes
     static getShapes(pos, b, world, for_physic) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
@@ -473,9 +477,6 @@ export class BLOCK {
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
                     //
-                    let canConnect = (block) => {
-                        return block && (!block.transparent || block.style == 'fence');
-                    };
                     let neighbours = {
                         SOUTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z - 1),
                         NORTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z + 1),
@@ -484,21 +485,21 @@ export class BLOCK {
                     }
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
-                    if(canConnect(neighbours.SOUTH)) {
+                    if(this.canFenceConnect(neighbours.SOUTH)) {
                         shapes.push([
                             .5-2/16, 5/16, 0,
                             .5+2/16, fence_height, .5+2/16]);
                     }
                     // North z++
-                    if(canConnect(neighbours.NORTH)) {
+                    if(this.canFenceConnect(neighbours.NORTH)) {
                         shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, fence_height, 1]);
                     }
                     // West x--
-                    if(canConnect(neighbours.WEST)) {
+                    if(this.canFenceConnect(neighbours.WEST)) {
                         shapes.push([0, 5/16, .5-2/16, .5+2/16, fence_height, .5+2/16]);
                     }
                     // East x++
-                    if(canConnect(neighbours.EAST)) {
+                    if(this.canFenceConnect(neighbours.EAST)) {
                         shapes.push([.5-2/16, 5/16, .5-2/16, 1, fence_height, .5+2/16]);
                     }
                     // Central

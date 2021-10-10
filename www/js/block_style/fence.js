@@ -70,28 +70,23 @@ export default class style {
         let ao = calcAOForBlock(chunk, lightmap, x, y, z);
         push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
 
-        //
-        let canConnect = (block) => {
-            return block && (!block.properties.transparent || block.properties.style == 'fence');
-        };
-
         // South
-        if(canConnect(neighbours.SOUTH)) {
+        if(BLOCK.canFenceConnect(neighbours.SOUTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
         }
         // North
-        if(canConnect(neighbours.NORTH)) {
+        if(BLOCK.canFenceConnect(neighbours.NORTH)) {
             push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
             push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
         }
         // West
-        if(canConnect(neighbours.WEST)) {
+        if(BLOCK.canFenceConnect(neighbours.WEST)) {
             push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
             push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
         }
         // East
-        if(canConnect(neighbours.EAST)) {
+        if(BLOCK.canFenceConnect(neighbours.EAST)) {
             push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
             push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
         }

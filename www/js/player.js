@@ -745,7 +745,7 @@ export default class Player {
 
     // Updates this local player (gravity, movement)
     update() {
-        if(this.lastUpdate != null) {
+        if(this.lastUpdate != null && !Game.hud.splash.loading) {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
             delta = Math.min(delta, 1.0);
@@ -819,17 +819,6 @@ export default class Player {
                 this.blockPosO          = this.blockPos;
             }
 
-            /*
-            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
-            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
-            if(this.in_water && !this.in_water_o) {
-                if(!isSpectator) {
-                    this.setFlying(false);
-                }
-            }
-            this.in_water_o = this.in_water;
-            */
-
             // Внутри какого блока находится голова (в идеале глаза)
             let hby = this.pos.y + this.height;
             this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
@@ -848,62 +837,6 @@ export default class Player {
             //
             this.applyFov(delta);
 
-            /*
-            // Gravity
-            if(this.in_water && !isSpectator) {
-                this.walking
-                if(this.falling && !this.getFlying()) {
-                    velocity.y += -(30 * delta / 4);
-                }
-                if(this.in_water && velocity.y < 0) {
-                    velocity.y = -30 * delta;
-                }
-                if(this.keys[KEY.SPACE]) {
-                    if(performance.now() - this.in_water_from_time > 500) {
-                        velocity.y = 90 * delta;
-                    }
-                } else if(this.keys[KEY.SHIFT]) {
-                    velocity.y = -90 * delta;
-                }
-            } else {
-                if(this.falling && !this.getFlying()) {
-                    velocity.y += -(30 * delta);
-                }
-                // Jumping | flying
-                if(this.keys[KEY.SPACE]) {
-                    if(this.falling) {
-                        if(this.getFlying()) {
-                            velocity.y = 8;
-                        }
-                    } else {
-                        velocity.y = 8;
-                    }
-                } else {
-                    if(this.getFlying()) {
-                        velocity.y += -(15 * delta);
-                        if(velocity.y < 0) {
-                            velocity.y = 0;
-                        }
-                    }
-                }
-                if(this.keys[KEY.SHIFT]) {
-                    if(this.getFlying()) {
-                        velocity.y = -8;
-                    }
-                }
-            }
-
-            //
-            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
-            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
-            if(this.in_water && !this.in_water_o) {
-                this.in_water_from_time = performance.now();
-                if(!isSpectator) {
-                    this.setFlying(false);
-                }
-            }
-            this.in_water_o = this.in_water;
-            */
         }
         this.lastUpdate = performance.now();
     }

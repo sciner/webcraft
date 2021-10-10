@@ -285,6 +285,98 @@ class Chunk {
         }
     }
 
+    // Возвращает всех 6-х соседей блока
+    getBlockNeighbors(pos) {
+        let x = pos.x;
+        let y = pos.y;
+        let z = pos.z;
+        let cc = [
+            {x:  0, y:  1, z:  0},
+            {x:  0, y: -1, z:  0},
+            {x:  0, y:  0, z: -1},
+            {x:  0, y:  0, z:  1},
+            {x: -1, y:  0, z:  0},
+            {x:  1, y:  0, z:  0}
+        ];
+        let neighbors = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
+        let pcnt = 0;
+        // обходим соседние блоки
+        for(let p of cc) {
+            let b = null;
+            if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                // если сосед внутри того же чанка
+                b = this.tblocks.get(new Vector(x + p.x, y + p.y, z + p.z));
+            } else {
+                // если блок с краю чанка или вообще в соседнем чанке
+                if(p.x == -1) {
+                    if(x == 0) {
+                        b = this.neighbour_chunks.nx.tblocks.get(new Vector(this.size.x - 1, y, z));
+                    } else {
+                        b = this.tblocks.get(new Vector(x - 1, y, z));
+                    }
+                } else if (p.x == 1) {
+                    if(x == this.size.x - 1) {
+                        b = this.neighbour_chunks.px.tblocks.get(new Vector(0, y, z));
+                    } else {
+                        b = this.tblocks.get(new Vector(x + 1, y, z));
+                    }
+                // Y
+                } else if (p.y == -1) {
+                    if(y == 0) {
+                        if(this.neighbour_chunks.ny) {
+                            b = this.neighbour_chunks.ny.tblocks.get(new Vector(x, this.size.y - 1, z));
+                        }
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y - 1, z));
+                    }
+                } else if (p.y == 1) {
+                    if(y == this.size.y - 1) {
+                        if(this.neighbour_chunks.py) {
+                            b = this.neighbour_chunks.py.tblocks.get(new Vector(x, 0, z));
+                        }
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y + 1, z));
+                    }
+                // Z
+                } else if (p.z == -1) {
+                    if(z == 0) {
+                        b = this.neighbour_chunks.nz.tblocks.get(new Vector(x, y, this.size.z - 1));
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y, z - 1));
+                    }
+                } else if (p.z == 1) {
+                    if(z == this.size.z - 1) {
+                        b = this.neighbour_chunks.pz.tblocks.get(new Vector(x, y, 0));
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y, z + 1));
+                    }
+                }
+            }
+            if(p.y == 1) {
+                neighbors.UP = b;
+            } else if(p.y == -1) {
+                neighbors.DOWN = b;
+            } else if(p.z == -1) {
+                neighbors.SOUTH = b;
+            } else if(p.z == 1) {
+                neighbors.NORTH = b;
+            } else if(p.x == -1) {
+                neighbors.WEST = b;
+            } else if(p.x == 1) {
+                neighbors.EAST = b;
+            }
+            let properties = b?.properties;
+            if(!properties || b.properties.transparent || b.properties.fluid) {
+                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
+                // break;
+                pcnt = -40;
+            }
+            pcnt++;
+        }
+        neighbors.pcnt = pcnt;
+        return neighbors;
+    }
+
     // buildVertices
     buildVertices() {
 
@@ -299,13 +391,6 @@ class Chunk {
         this.gravity_blocks     = [];
 
         BLOCK.clearBlockCache();
-
-        //if(this.addr.x == 181 && this.addr.y == 2 && this.addr.z == 174) {
-        //    for(let b of this.tblocks) {
-        //        console.log(b.id);
-        //    }
-        //    debugger;
-        //}
 
         let group_templates = {
             regular: {
@@ -341,116 +426,13 @@ class Chunk {
         //  Update lights
         this.updateLights();
 
-        let cc = [
-            {x:  0, y:  1, z:  0},
-            {x:  0, y: -1, z:  0},
-            {x:  0, y:  0, z: -1},
-            {x:  0, y:  0, z:  1},
-            {x: -1, y:  0, z:  0},
-            {x:  1, y:  0, z:  0}
-        ];
-
-        // Возвращает всех 6-х соседей блока
-        let getBlockNeighbors = (x, y, z) => {
-            let neighbors = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
-            let pcnt = 0;
-            // обходим соседние блоки
-            for(let p of cc) {
-                let b = null;
-                if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                    // если сосед внутри того же чанка
-                    // b = this.blocks[x + p.x][z + p.z][y + p.y];
-                    b = this.tblocks.get(new Vector(x + p.x, y + p.y, z + p.z));
-                } else {
-                    // если блок с краю чанка или вообще в соседнем чанке
-                    if(p.x == -1) {
-                        if(x == 0) {
-                            // b = this.neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
-                            b = this.neighbour_chunks.nx.tblocks.get(new Vector(this.size.x - 1, y, z));
-                        } else {
-                            // b = this.blocks[x - 1][z][y];
-                            b = this.tblocks.get(new Vector(x - 1, y, z));
-                        }
-                    } else if (p.x == 1) {
-                        if(x == this.size.x - 1) {
-                            // b = this.neighbour_chunks.px.blocks[0][z][y];
-                            b = this.neighbour_chunks.px.tblocks.get(new Vector(0, y, z));
-                        } else {
-                            // b = this.blocks[x + 1][z][y];
-                            b = this.tblocks.get(new Vector(x + 1, y, z));
-                        }
-                    // Y
-                    } else if (p.y == -1) {
-                        if(y == 0) {
-                            if(this.neighbour_chunks.ny) {
-                                // b = this.neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
-                                b = this.neighbour_chunks.ny.tblocks.get(new Vector(x, this.size.y - 1, z));
-                            }
-                        } else {
-                            // b = this.blocks[x][z][y - 1];
-                            b = this.tblocks.get(new Vector(x, y - 1, z));
-                        }
-                    } else if (p.y == 1) {
-                        if(y == this.size.y - 1) {
-                            if(this.neighbour_chunks.py) {
-                                // b = this.neighbour_chunks.py.blocks[x][z][0];
-                                b = this.neighbour_chunks.py.tblocks.get(new Vector(x, 0, z));
-                            }
-                        } else {
-                            // b = this.blocks[x][z][y + 1];
-                            b = this.tblocks.get(new Vector(x, y + 1, z));
-                        }
-                    // Z
-                    } else if (p.z == -1) {
-                        if(z == 0) {
-                            // b = this.neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
-                            b = this.neighbour_chunks.nz.tblocks.get(new Vector(x, y, this.size.z - 1));
-                        } else {
-                            // b = this.blocks[x][z - 1][y];
-                            b = this.tblocks.get(new Vector(x, y, z - 1));
-                        }
-                    } else if (p.z == 1) {
-                        if(z == this.size.z - 1) {
-                            // b = this.neighbour_chunks.pz.blocks[x][0][y];
-                            b = this.neighbour_chunks.pz.tblocks.get(new Vector(x, y, 0));
-                        } else {
-                            // b = this.blocks[x][z + 1][y];
-                            b = this.tblocks.get(new Vector(x, y, z + 1));
-                        }
-                    }
-                }
-                if(p.y == 1) {
-                    neighbors.UP = b;
-                } else if(p.y == -1) {
-                    neighbors.DOWN = b;
-                } else if(p.z == -1) {
-                    neighbors.SOUTH = b;
-                } else if(p.z == 1) {
-                    neighbors.NORTH = b;
-                } else if(p.x == -1) {
-                    neighbors.WEST = b;
-                } else if(p.x == 1) {
-                    neighbors.EAST = b;
-                }
-                let properties = b?.properties;
-                if(!properties || b.properties.transparent || b.properties.fluid) {
-                    // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                    // break;
-                    pcnt = -40;
-                }
-                pcnt++;
-            }
-            neighbors.pcnt = pcnt;
-            return neighbors;
-        };
-
         // Обход всех блоков данного чанка
         for(let block of this.tblocks) {
             if(block.id == BLOCK.AIR.id) {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-            let neighbors = getBlockNeighbors(block.pos.x, block.pos.y, block.pos.z);
+            let neighbors = this.getBlockNeighbors(block.pos);
             // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
             if(neighbors.pcnt == 6) {
                 continue;
@@ -458,7 +440,6 @@ class Chunk {
             // if block with gravity
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
             if(block.properties.gravity && block.pos.y > 0 && block.falling) {
-                // let block_under = this.blocks[x][z][y - 1];
                 let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
                 if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                     this.gravity_blocks.push(block.pos);
