@@ -132,21 +132,17 @@ class Chunk {
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');
+            pos = new Vector(pos[0], pos[1], pos[2]);
             if(m.id < 1) {
-                pos = new Vector(pos[0], pos[1], pos[2]);
                 pos = BLOCK.getBlockIndex(pos);
                 this.tblocks.delete(pos);
                 continue;
             }
-            let type = BLOCK.fromId(m.id);
-            if(type.id == -1) {
-                console.error(pos, m);
-                return;
-            }
+            let type        = BLOCK.fromId(m.id);
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
             let extra_data  = m.extra_data ? m.extra_data : null;
-            this.setBlock(pos[0] | 0, pos[1] | 0, pos[2] | 0, type, false, m.power, rotate, entity_id, extra_data);
+            this.setBlock(pos.x | 0, pos.y | 0, pos.z | 0, type, false, m.power, rotate, entity_id, extra_data);
         }
     }
 

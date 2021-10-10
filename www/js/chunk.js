@@ -72,14 +72,14 @@ export default class Chunk {
         this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
         this.tblocks.buffer     = args.tblocks.buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.power      = new VectorCollector(args.tblocks.power);
-        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate);
-        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id);
-        this.tblocks.texture    = new VectorCollector(args.tblocks.texture);
-        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data);
-        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices);
-        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes);
-        this.tblocks.falling    = new VectorCollector(args.tblocks.falling);
+        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
+        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
+        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
+        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
+        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
+        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
+        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
+        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
     }
 
@@ -210,29 +210,18 @@ export default class Chunk {
         let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
-            type = {...BLOCK[type.name]};
-            type.power      = power;
-            type.rotate     = rotate;
-            type.texture    = null;
-            if(extra_data) {
-                type.extra_data = extra_data;
-            }
-            if(entity_id) {
-                type.entity_id = entity_id;
-            }
-            if(type.gravity) {
-                type.falling = true;
-            }
+            type = BLOCK.BLOCK_BY_ID[type.id];
             let pos = new Vector(x, y, z);
-            update_vertices = !!extra_data || JSON.stringify(this.tblocks.get(pos)) != JSON.stringify(type);
             this.tblocks.delete(pos);
-            let new_block = this.tblocks.get(pos);
+            let new_block           = this.tblocks.get(pos);
             new_block.id            = type.id;
-            new_block.extra_data    = type.extra_data;
-            new_block.entity_id     = type.entity_id;
-            new_block.power         = type.power;
-            new_block.rotate        = type.rotate;
-            // this.blocks[x][z][y] = type;
+            new_block.extra_data    = extra_data;
+            new_block.entity_id     = entity_id;
+            new_block.power         = power;
+            new_block.rotate        = rotate;
+            new_block.falling       = !!type.gravity;
+            //
+            update_vertices         = true; // !!extra_data || JSON.stringify(this.tblocks.get(pos)) != JSON.stringify(type);
         }
         // Run webworker method
         if(update_vertices) {
