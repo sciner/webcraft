@@ -513,14 +513,17 @@ export default class Player {
                 return;
             }
             let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            if(world_block && world_block.id > 0) {
+                world_block = world_block.properties;
+            }
             let playerPos       = this.getBlockPos();
-            let replaceBlock    = world_block && (world_block.properties.fluid || world_block.id == BLOCK.GRASS.id);
-            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.properties.tags && world_block.properties.tags.indexOf('trapdoor') >= 0;
+            let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
+            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
                 world_block.extra_data.opened = !world_block.extra_data.opened;
-                if(world_block.properties.sound) {
-                    Game.sounds.play(world_block.properties.sound, 'open');
+                if(world_block.sound) {
+                    Game.sounds.play(world_block.sound, 'open');
                 }
                 world.setBlock(pos.x, pos.y, pos.z, world_block, null, world_block.rotate, null, world_block.extra_data);
             } else if(createBlock) {
