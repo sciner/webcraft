@@ -16,7 +16,6 @@ export default class Chunk {
 
         // info
         this.key = chunkManager.getPosChunkKey(pos);
-        this.modify_list = modify_list || [];
 
         // размеры чанка
         this.size = new Vector(
@@ -50,7 +49,9 @@ export default class Chunk {
         ].join('_');
 
         // Run webworker method
+        this.modify_list = modify_list || [];
         chunkManager.postWorkerMessage(['createChunk', this]);
+        this.modify_list = [];
 
         // Objects & variables
         // this.chunkManager               = chunkManager;
