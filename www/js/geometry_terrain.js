@@ -90,8 +90,7 @@ export default class GeometryTerrain {
             this.buffer = this.context.createBuffer({
                 data: this.data
             });
-            // убрал, для уменьшения объема оперативной памяти
-            this.data = null;
+            // this.data = null;
             this.quad = GeometryTerrain.bindQuad(this.context, true);
             this.buffers = [
                 this.buffer,

@@ -106,7 +106,7 @@ export class PickAt {
             let hitShape = b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
             if (hitShape) {
-                const shapes = BLOCK.getShapes(leftTop, b, Game.world, false);
+                const shapes = BLOCK.getShapes(leftTop, b, Game.world, false, true);
                 let flag = false;
 
                 for (let i=0;i<shapes.length;i++) {
@@ -324,7 +324,7 @@ export class PickAt {
         let lm          = new Color(0, 0, 0);
         let flags       = 0, sideFlags = 0, upFlags = 0;
         let block       = Game.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, Game.world, false);
+        let shapes      = BLOCK.getShapes(pos, block, Game.world, false, true);
         for(let shape of shapes) {
             let x1 = shape[0];
             let x2 = shape[3];

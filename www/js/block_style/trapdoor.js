@@ -39,7 +39,7 @@ export default class style {
         let texture                 = BLOCK[block.properties.name].texture;
 
         // F R B L
-        const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
+        const cardinal_direction    = block.getCardinalDirection().z;
         switch(cardinal_direction) {
             case ROTATE.S: {
                 break;

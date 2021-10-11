@@ -24,7 +24,7 @@ export default class style {
         // const ao_enabled = true;
         const ao_value = .3;
 
-        const cardinal_direction    = BLOCK.getCardinalDirection(block.rotate).z;
+        const cardinal_direction    = block.getCardinalDirection().z;
         let flags = 0;
         let sideFlags = 0;
         let upFlags = 0;

@@ -506,35 +506,45 @@ export default class Player {
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         let world           = this.world;
-        const playerRotate  = Game.world.rotateDegree;
         // Picking
         this.pickAt.get((pos) => {
             if(pos === false) {
                 return;
             }
-            let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            let extra_data  = world_block.extra_data;
+            let rotate      = world_block.rotate;
             if(world_block && world_block.id > 0) {
-                world_block = world_block.properties;
+                world_block = world_block.material;
             }
             let playerPos       = this.getBlockPos();
-            let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
             let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
-                world_block.extra_data.opened = !world_block.extra_data.opened;
+                extra_data.opened = !extra_data.opened;
                 if(world_block.sound) {
                     Game.sounds.play(world_block.sound, 'open');
                 }
-                world.setBlock(pos.x, pos.y, pos.z, world_block, null, world_block.rotate, null, world_block.extra_data);
+                world.setBlock(pos.x, pos.y, pos.z, world_block, null, rotate, null, extra_data);
             } else if(createBlock) {
+                let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
                 if(!replaceBlock) {
                     pos.x += pos.n.x;
                     pos.y += pos.n.y;
                     pos.z += pos.n.z;
                 }
+                // Запрет установки блока на блоки, которые занимает игрок
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
                 }
+                // Запрет установки блока, если на позиции уже есть другой блок
+                if(!replaceBlock) {
+                    let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    if(existingBlock.id > 0) {
+                        return;
+                    }
+                }
+                // Если ткнули на предмет с собственным окном
                 if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
                     if(!e.shiftKey) {
                         switch(world_block.id) {
@@ -565,10 +575,11 @@ export default class Player {
                             pos.x -= pos.n.x;
                             pos.y -= pos.n.y;
                             pos.z -= pos.n.z;
-                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, world_block.rotate, null, extra_data);
+                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, rotate, null, extra_data);
                         }
                     }
                 } else {
+                    let playerRotate = Game.world.rotateDegree;
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
@@ -581,6 +592,7 @@ export default class Player {
                         }
                     } else {
                         // Create block
+                        // Посадить растения можно только на блок земли
                         let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
                         if(BLOCK.isPlants(this.buildMaterial.id) && underBlock.id != BLOCK.DIRT.id) {
                             return;
@@ -723,9 +735,7 @@ export default class Player {
     //
     setPosition(vec) {
         let pc = this.getPlayerControl();
-        pc.player.entity.position.x = vec.x;
-        pc.player.entity.position.y = vec.y;
-        pc.player.entity.position.z = vec.z;
+        pc.player.entity.position.copyFrom(vec);
     }
 
     //
@@ -855,9 +865,6 @@ export default class Player {
             let bp = this.getBlockPos();
             let height = bp.y - this.lastBlockPos.y;
             if(height < 0) {
-                // console.log(bp);
-                // let block = this.world.chunkManager.getBlock(bp.x, bp.y - 1, bp.z);
-                // console.log(block);
                 let damage = -height - 3;
                 // let falling_time = performance.now() - this.lastOnGroundTime;
                 if(damage > 0) {

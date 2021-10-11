@@ -101,6 +101,16 @@ export class TBlock {
         return BLOCK.BLOCK_BY_ID[this.id] || null;
     }
 
+    // material
+    get material() {
+        return BLOCK.BLOCK_BY_ID[this.id] || null;
+    }
+
+    //
+    getCardinalDirection() {
+        return BLOCK.getCardinalDirection(this.rotate);
+    }
+
     // Дальнейшие свойства нужны только для prismarine-physics (физика перса)
     //
     get type() {

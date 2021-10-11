@@ -46,7 +46,7 @@ class FakeWorld {
         let b = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         if (b.shapes === null) {
             b.position = pos;
-            b.shapes = (b.id > 0) ? BLOCK.getShapes(pos, b, this.world, true) : [];
+            b.shapes = (b.id > 0) ? BLOCK.getShapes(pos, b, this.world, true, false) : [];
         }
         return b;
     }
