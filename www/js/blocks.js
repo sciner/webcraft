@@ -287,7 +287,7 @@ export class BLOCK {
                 if(B.style && B.style == 'planting') B.planting = true;
                 if(B.style && B.style == 'stairs') B.transparent = true;
                 if(B.style && B.style == 'triangle') continue;
-                if(B.planting || B.style == 'fence') this.ao_invisible_blocks.push(B.id);
+                if(B.planting || B.style == 'fence' || B.style == 'ladder') this.ao_invisible_blocks.push(B.id);
                 //
                 if(B.id > max_id) {
                     max_id = B.id;
