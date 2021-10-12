@@ -12,7 +12,7 @@ export default class style {
 
     static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
 
-        let texture         = block.properties.texture;
+        let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
         let ao              = [0, 0, 0, 0];
         let pos             = new Vector(x, y, z);

@@ -240,27 +240,27 @@ export default class Chunk {
                 extra_data: extra_data
             });
             // Принудительная перерисовка соседних чанков
-            let update_neighbors = [];
-            if(x == 0) update_neighbors.push(new Vector(-1, 0, 0));
-            if(x == this.size.x - 1) update_neighbors.push(new Vector(1, 0, 0));
-            if(y == 0) update_neighbors.push(new Vector(0, -1, 0));
-            if(y == this.size.y - 1) update_neighbors.push(new Vector(0, 1, 0));
-            if(z == 0) update_neighbors.push(new Vector(0, 0, -1));
-            if(z == this.size.z - 1) update_neighbors.push(new Vector(0, 0, 1));
+            let update_neighbours = [];
+            if(x == 0) update_neighbours.push(new Vector(-1, 0, 0));
+            if(x == this.size.x - 1) update_neighbours.push(new Vector(1, 0, 0));
+            if(y == 0) update_neighbours.push(new Vector(0, -1, 0));
+            if(y == this.size.y - 1) update_neighbours.push(new Vector(0, 1, 0));
+            if(z == 0) update_neighbours.push(new Vector(0, 0, -1));
+            if(z == this.size.z - 1) update_neighbours.push(new Vector(0, 0, 1));
             // diagonal
-            if(x == 0 && z == 0) update_neighbors.push(new Vector(-1, 0, -1));
-            if(x == this.size.x - 1 && z == 0) update_neighbors.push(new Vector(1, 0, -1));
-            if(x == 0 && z == this.size.z - 1) update_neighbors.push(new Vector(-1, 0, 1));
-            if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbors.push(new Vector(1, 0, 1));
+            if(x == 0 && z == 0) update_neighbours.push(new Vector(-1, 0, -1));
+            if(x == this.size.x - 1 && z == 0) update_neighbours.push(new Vector(1, 0, -1));
+            if(x == 0 && z == this.size.z - 1) update_neighbours.push(new Vector(-1, 0, 1));
+            if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbours.push(new Vector(1, 0, 1));
             // Добавляем выше и ниже
-            let update_neighbors2 = [];
-            for(var update_neighbor of update_neighbors) {
-                update_neighbors2.push(update_neighbor.add(new Vector(0, -1, 0)));
-                update_neighbors2.push(update_neighbor.add(new Vector(0, 1, 0)));
+            let update_neighbours2 = [];
+            for(var update_neighbor of update_neighbours) {
+                update_neighbours2.push(update_neighbor.add(new Vector(0, -1, 0)));
+                update_neighbours2.push(update_neighbor.add(new Vector(0, 1, 0)));
             }
-            update_neighbors.push(...update_neighbors2);
+            update_neighbours.push(...update_neighbours2);
             let updated_chunks = [this.key];
-            for(var update_neighbor of update_neighbors) {
+            for(var update_neighbor of update_neighbours) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
                 let chunk_addr = BLOCK.getChunkAddr(pos);
                 let key = chunkManager.getPosChunkKey(chunk_addr);

@@ -306,6 +306,13 @@ export class BLOCK {
                 list.push(B);
             }
         }
+        // visible_for_ao
+        for(let mat in this) {
+            let B = this[mat];
+            if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
+                B.visible_for_ao = BLOCK.visibleForAO(B);
+            }
+        }
         console.log('Max BLOCK.id = ', max_id);
         return list;
     }
@@ -326,10 +333,10 @@ export class BLOCK {
 
     // Возвращает координаты текстуры
     static calcTexture(c, dir) {
-        if(c instanceof Function) {
-            c = c(dir);
-        } else if (c instanceof Array) {
+        if (c instanceof Array) {
             // do nothing
+        } else if(c instanceof Function) {
+            c = c(dir);
         } else if (typeof c === 'object' && c !== null) {
             let prop = null;
             switch(dir) {
@@ -399,6 +406,7 @@ export class BLOCK {
     // Функция определяет, отбрасывает ли указанный блок тень
     static visibleForAO(block) {
         if(!block) return false;
+        if(typeof block == 'undefined') return false;
         let block_id = block;
         if(typeof block !== 'number') {
             block_id = block.id;

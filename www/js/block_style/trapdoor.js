@@ -31,12 +31,12 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD;
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
-        if(!block.properties.name) {
+        if(!block.material.name) {
             console.error('block', JSON.stringify(block), block.id);
             debugger;
         }
 
-        let texture                 = BLOCK[block.properties.name].texture;
+        let texture                 = block.material.texture;
 
         // F R B L
         const cardinal_direction    = block.getCardinalDirection().z;

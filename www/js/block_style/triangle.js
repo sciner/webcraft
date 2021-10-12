@@ -17,7 +17,7 @@ export default class style {
 
         const half          = 0.5 / TX_CNT;
         let poses           = [];
-        let texture         = BLOCK.fromId(block.id).texture;
+        let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
         let ao              = [0, 0, 0, 0];
 
@@ -40,8 +40,8 @@ export default class style {
         let yt = y + 1;
         let yb = y;
         if(on_ceil) {
-            //yt -= .5;
-            //yb += .5;
+            // yt -= .5;
+            // yb += .5;
         }
 
         let n = 0;
@@ -81,7 +81,7 @@ export default class style {
 
         //
         let checkIfSame = (b) => {
-            return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('triangle') >= 0;
+            return b.id > 0 && b.material.tags && b.material.tags.indexOf('triangle') >= 0;
         };
         //
         let compareCD = (b) => {

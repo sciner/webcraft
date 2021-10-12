@@ -14,8 +14,7 @@ export default class style {
     }
 
     static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
-        let texture     = BLOCK.fromId(block.id).texture;
-        let c = BLOCK.calcTexture(texture, DIRECTION.UP);
+        let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
         let lm = MULTIPLY.COLOR.WHITE;
         let flags = QUAD_FLAGS.NORMAL_UP;
         // Texture color multiplier

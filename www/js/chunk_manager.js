@@ -28,6 +28,7 @@ export class ChunkManager {
             id: BLOCK.DUMMY.id,
             shapes: [],
             properties: BLOCK.DUMMY,
+            material: BLOCK.DUMMY,
             getProperties: function() {
                 return this.properties;
             }

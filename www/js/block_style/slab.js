@@ -17,7 +17,7 @@ export default class style {
 
         const half = 0.5 / TX_CNT;
 
-        let texture = BLOCK.fromId(block.id).texture;
+        let texture = block.material.texture;
         block.transparent = true;
 
         let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)

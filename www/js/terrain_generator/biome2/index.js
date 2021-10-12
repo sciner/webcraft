@@ -192,7 +192,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
         }
-        // Smooth (for central and part of neighbors)
+        // Smooth (for central and part of neighbours)
         if(!map.info.smoothed) {
             map.info.smoothed = true;
             map.info.smooth(this);
@@ -214,7 +214,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const aleaRandom            = new alea(seed);
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let neighbors_caves        = this.caveManager.getNeighbors(chunk.addr);
+        let neighbours_caves        = this.caveManager.getNeighbours(chunk.addr);
 
         // Bedrock
         let min_y   = 0;
@@ -352,7 +352,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     if(!in_ocean) {
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
-                        for(let map_cave of neighbors_caves) {
+                        for(let map_cave of neighbours_caves) {
                             for(let cave_point of map_cave.points) {
                                 if(xyz.distance(cave_point.pos) < cave_point.rad) {
                                     is_cave_block = true;

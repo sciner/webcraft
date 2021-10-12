@@ -15,19 +15,17 @@ export default class style {
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome, ao_enabled) {
-
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
         }
 
         // Ambient occlusion
-        // const ao_enabled = true;
-        const ao_value = .3;
+        const ao_value              = .3;
 
         const cardinal_direction    = block.getCardinalDirection().z;
-        let flags = 0;
-        let sideFlags = 0;
-        let upFlags = 0;
+        let flags                   = 0;
+        let sideFlags               = 0;
+        let upFlags                 = 0;
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
@@ -44,17 +42,15 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD;
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
-        if(!block.properties.name) {
+        if(!block.material) {
             console.error('block', JSON.stringify(block), block.id);
             debugger;
         }
 
         let c, ao;
-        let width                   = block.properties.width ? block.properties.width : 1;
-        let height                  = block.properties.height ? block.properties.height : 1;
+        let width                   = block.material.width ? block.material.width : 1;
+        let height                  = block.material.height ? block.material.height : 1;
         let drawAllSides            = width != 1 || height != 1;
-        let mat                     = block.properties;
-        let texture                 = mat.texture;
 
         // F R B L
         switch(cardinal_direction) {
@@ -86,11 +82,11 @@ export default class style {
 
         // Can change height
         let bH = 1.0;
-        if(block.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
+        if(block.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
             bH = Math.min(block.power, .9)
             let blockOver  = BLOCK.getCachedBlock(chunk, x, y + 1, z);
             if(blockOver) {
-                let blockOverIsFluid = (blockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+                let blockOverIsFluid = (blockOver.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
                 if(blockOverIsFluid) {
                     bH = 1.0;
                 }
@@ -100,7 +96,7 @@ export default class style {
 
         // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
         if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
-            if(neighbours.UP && (!neighbours.UP.properties.transparent || neighbours.UP.properties.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
+            if(neighbours.UP && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
                 DIRECTION_UP        = DIRECTION.DOWN;
                 DIRECTION_BACK      = DIRECTION.DOWN;
                 DIRECTION_RIGHT     = DIRECTION.DOWN;
@@ -113,9 +109,9 @@ export default class style {
         }
 
         let canDrawFace = (neighbourBlock) => {
-            let resp = drawAllSides || !neighbourBlock || neighbourBlock.properties.transparent;
+            let resp = drawAllSides || !neighbourBlock || neighbourBlock.material.transparent;
             if(resp && neighbourBlock) {
-                if(block.id == neighbourBlock.id && block.properties.selflit) {
+                if(block.id == neighbourBlock.id && block.material.selflit) {
                     resp = false;
                 }
             }
@@ -134,16 +130,16 @@ export default class style {
                 let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
                 let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
                 let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
-                let aj = BLOCK.getCachedBlock(chunk, x, y + 1, z);
-                if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; }
-                if(BLOCK.visibleForAO(ad)) {ao[2] = ao_value; ao[3] = ao_value; }
-                if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value; }
-                if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ag)) {ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+                let aj = neighbours.UP;
+                if(aa && aa.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(ab && ab.material.visible_for_ao) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(ac && ac.material.visible_for_ao) {ao[0] = ao_value; }
+                if(ad && ad.material.visible_for_ao) {ao[2] = ao_value; ao[3] = ao_value; }
+                if(ae && ae.material.visible_for_ao) {ao[1] = ao_value; ao[2] = ao_value; }
+                if(af && af.material.visible_for_ao) {ao[2] = ao_value;}
+                if(ag && ag.material.visible_for_ao) {ao[3] = ao_value;}
+                if(ah && ah.material.visible_for_ao) {ao[1] = ao_value;}
+                if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
                 // Если это тропинка
                 if(block.id == BLOCK.DIRT_PATH.id) {
                     if(neighbours.SOUTH && neighbours.SOUTH.id != BLOCK.DIRT_PATH.id) {ao[0] = ao_value; ao[1] = ao_value;}
@@ -160,7 +156,7 @@ export default class style {
                     if(BLOCK.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
                 }
             }
-            c = BLOCK.calcTexture(texture, DIRECTION_UP);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_UP);
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
@@ -197,7 +193,7 @@ export default class style {
                 ...c,
                 lm.r, lm.g, lm.b,
                 ...ao, flags | upFlags);
-            if(block.properties.is_fluid && block.properties.transparent) {
+            if(block.material.is_fluid && block.material.transparent) {
                 top_vectors = [
                     1, 0, 0,
                     0, -1, 0
@@ -213,7 +209,7 @@ export default class style {
         // Bottom
         if(canDrawFace(neighbours.DOWN)) {
             ao = [.5, .5, .5, .5];
-            c = BLOCK.calcTexture(texture, DIRECTION_DOWN);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_DOWN);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
             }
@@ -241,18 +237,18 @@ export default class style {
                 let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
                 let ag = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z - 1);
                 let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
-                let aj = BLOCK.getCachedBlock(chunk, x, y, z - 1); // to South
-                if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
-                if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+                let aj = neighbours.SOUTH;
+                if(aa && aa.material.visible_for_ao) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(ab && ab.material.visible_for_ao) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(ac && ac.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(ad && ad.material.visible_for_ao) {ao[1] = ao_value;}
+                if(ae && ae.material.visible_for_ao) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(af && af.material.visible_for_ao) {ao[2] = ao_value;}
+                if(ag && ag.material.visible_for_ao) {ao[0] = ao_value;}
+                if(ah && ah.material.visible_for_ao) {ao[3] = ao_value;}
+                if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_FORWARD);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
             }
@@ -280,18 +276,18 @@ export default class style {
                 let af = BLOCK.getCachedBlock(chunk, x, y + 1, z + 1);
                 let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
                 let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
-                let aj = BLOCK.getCachedBlock(chunk, x, y, z + 1); // to North
-                if(BLOCK.visibleForAO(aa)) {ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ae)) {ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
-                if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+                let aj = neighbours.NORTH;
+                if(aa && aa.material.visible_for_ao) {ao[2] = ao_value;}
+                if(ab && ab.material.visible_for_ao) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(ac && ac.material.visible_for_ao) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(ad && ad.material.visible_for_ao) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(ae && ae.material.visible_for_ao) {ao[3] = ao_value;}
+                if(af && af.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(ag && ag.material.visible_for_ao) {ao[0] = ao_value;}
+                if(ah && ah.material.visible_for_ao) {ao[1] = ao_value;}
+                if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(texture, DIRECTION_BACK);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_BACK);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
             }
@@ -319,18 +315,18 @@ export default class style {
                 let af = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
                 let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z);
                 let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
-                let aj = BLOCK.getCachedBlock(chunk, x - 1, y, z); // to West
-                if(BLOCK.visibleForAO(aa)) {ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ac)) {ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
-                if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+                let aj = neighbours.WEST;
+                if(aa && aa.material.visible_for_ao) {ao[3] = ao_value;}
+                if(ab && ab.material.visible_for_ao) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(ac && ac.material.visible_for_ao) {ao[2] = ao_value;}
+                if(ad && ad.material.visible_for_ao) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(ae && ae.material.visible_for_ao) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(af && af.material.visible_for_ao) {ao[0] = ao_value;}
+                if(ag && ag.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(ah && ah.material.visible_for_ao) {ao[1] = ao_value;}
+                if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_LEFT);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
             }
@@ -358,18 +354,18 @@ export default class style {
                 let af = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z - 1);
                 let ag = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z);
                 let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
-                let aj = BLOCK.getCachedBlock(chunk, x + 1, y, z); // to East
-                if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
-                if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value;}
-                if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
-                if(BLOCK.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
-                if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
+                let aj = neighbours.EAST; //BLOCK.getCachedBlock(chunk, x + 1, y, z); // to East
+                if(aa && aa.material.visible_for_ao) {ao[0] = ao_value; ao[3] = ao_value;}
+                if(ab && ab.material.visible_for_ao) {ao[1] = ao_value; ao[2] = ao_value;}
+                if(ac && ac.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value;}
+                if(ad && ad.material.visible_for_ao) {ao[1] = ao_value;}
+                if(ae && ae.material.visible_for_ao) {ao[2] = ao_value;}
+                if(af && af.material.visible_for_ao) {ao[0] = ao_value;}
+                if(ag && ag.material.visible_for_ao) {ao[2] = ao_value; ao[3] = ao_value;}
+                if(ah && ah.material.visible_for_ao) {ao[3] = ao_value;}
+                if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(texture, DIRECTION_RIGHT);
+            c = BLOCK.calcTexture(block.material.texture, DIRECTION_RIGHT);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
             }
