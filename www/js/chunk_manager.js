@@ -24,6 +24,7 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+        this.sort_chunk_by_frustum  = false;
         //
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
@@ -234,7 +235,7 @@ export class ChunkManager {
                 }
             }
             // Frustum sorting for add | Сортировка чанков(кандидатов на загрузку) по тому, видимый он в камере или нет
-            if(frustum) {
+            if(frustum && this.sort_chunk_by_frustum) {
                 possible_add_chunks.sort(frustum_sort_func);
             }
             // Add chunks
