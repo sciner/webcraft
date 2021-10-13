@@ -321,7 +321,8 @@ export default class BaseRenderer {
             height: 0
         };
         this.stat = {
-            drawcalls: 0
+            drawcalls: 0,
+            drawquads: 0
         };
         this._textures = {};
         this._buffers = {};

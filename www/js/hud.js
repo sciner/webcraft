@@ -308,7 +308,7 @@ export default class HUD {
         this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
         //
         let quads_length_total = Game.world.chunkManager.vertices_length_total;
-        this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+        this.text += '\nQuads: ' + Game.render.renderBackend.stat.drawquads + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
             ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
         //
         this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;

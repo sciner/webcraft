@@ -19,7 +19,7 @@ export class ChunkManager {
         this.modify_list            = {};
         this.world                  = world;
         this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
-        this.rendered_chunks        = {fact: 0, total: 0};
+        this.rendered_chunks        = {fact: 0, total: 0, vc: new VectorCollector()};
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];

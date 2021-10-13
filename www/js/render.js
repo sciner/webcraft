@@ -237,6 +237,7 @@ export class Renderer {
     draw(delta) {
         const { gl, shader, renderBackend } = this;
         renderBackend.stat.drawcalls = 0;
+        renderBackend.stat.drawquads = 0;
         let player = this.world.localPlayer;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
