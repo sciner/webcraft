@@ -1,8 +1,8 @@
 import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import Chunk from "./chunk.js";
-import {BLOCK} from "./blocks.js";
+import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import ServerClient from "./server_client.js";
-import { Sphere } from "./frustum.js";
+import { Game } from "./game.js";
 
 const CHUNKS_ADD_PER_UPDATE = 16;
 
@@ -84,7 +84,7 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render, transparent) {
-        let applyVerticesCan        = 10;
+        let applyVerticesCan = 10;
         let groups = [];
         if(transparent) {
             groups = ['transparent', 'doubleface_transparent'];
@@ -178,6 +178,9 @@ export class ChunkManager {
         if(!world.localPlayer) {
             return;
         }
+        let frustum = Game.render.frustum;
+        let chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        let div2 = new Vector(2, 2, 2);
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
         let chunkAddr = BLOCK.getChunkAddr(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
@@ -187,9 +190,14 @@ export class ChunkManager {
             for(let sm of spiral_moves_3d) {
                 let addr = chunkAddr.add(sm.pos);
                 if(addr.y >= 0) {
+                    let coord = addr.mul(chunk_size);
+                    let coord_center = addr.mul(chunk_size).add(chunk_size.div(div2));
                     this.poses.push({
-                        addr:   addr,
-                        chunk:  null
+                        addr:               addr,
+                        coord:              coord,
+                        coord_center:       coord_center,
+                        frustum_geometry:   Chunk.createFrustumGeometry(coord, chunk_size),
+                        chunk:              null
                     });
                 }
             }
@@ -206,19 +214,36 @@ export class ChunkManager {
                 chunk.isLive = false;
             }
             // Check for add
+            let possible_add_chunks = []; // Кандидаты на загрузку
             for(let item of this.poses) {
                 if(item.addr.y >= 0) {
-                    if(can_add > 0) {
-                        if(this.addChunk(item)) {
-                            can_add--;
-                        }
-                    }
+                    item.in_frustrum = frustum ? frustum.intersectsGeometryArray(item.frustum_geometry) : false;
+                    possible_add_chunks.push(item);
                 }
                 if(!item.chunk) {
                     item.chunk = this.chunks.get(item.addr);
                 }
                 if(item.chunk) {
                     item.chunk.isLive = true;
+                }
+            }
+            // Frustum sorting for add | Сортировка чанков(кандидатов на загрузку) по тому, видимый он в камере или нет
+            if(frustum) {
+                possible_add_chunks.sort(function(a, b) {
+                    if(a.in_frustrum && b.in_frustrum) {
+                        return a.coord_center.horizontalDistance(frustum.camPos) - b.coord_center.horizontalDistance(frustum.camPos);
+                    }
+                    if(b.in_frustrum) return 1;
+                    return -1;
+                });
+            }
+            // Add chunks
+            for(let item of possible_add_chunks) {
+                if(can_add < 1) {
+                    break;
+                }
+                if(this.addChunk(item)) {
+                    can_add--;
                 }
             }
             // Check for remove chunks
@@ -228,7 +253,6 @@ export class ChunkManager {
                 }
             }
         }
-
         // Build dirty chunks
         for(let chunk of this.dirty_chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
@@ -242,7 +266,6 @@ export class ChunkManager {
                 }
             }
         }
-
     }
 
     addToDirty(chunk) {

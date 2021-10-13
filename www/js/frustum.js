@@ -261,4 +261,25 @@ export class FrustumProxy extends Frustum {
 		return super.intersectsSphere(sphere);
 	}
 
+	//
+	intersectsGeometryArray(geometry_array) {
+		let in_frustum = false;
+		for(let geom of geometry_array) {
+			if(geom instanceof Sphere) {
+				if(this.intersectsSphere(geom)) {
+					in_frustum = true;
+					break;
+				}
+			} else if(geom instanceof Vector) {
+				if(this.containsPoint(geom)) {
+					in_frustum = true;
+					break;
+				}
+			} else {
+				throw 'Not supported geometry type';
+			}
+		}
+		return in_frustum;
+	}
+
 }

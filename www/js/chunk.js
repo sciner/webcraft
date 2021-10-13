@@ -288,21 +288,20 @@ export default class Chunk {
 
     //
     updateInFrustum(render) {
-        let in_frustum = false;
-        if(!this.frustum_spheres) {
-            this.frustum_spheres    = [];
-            let box_radius          = this.size.x;
-            let sphere_radius       = Math.sqrt(3) * box_radius / 2;
-            this.frustum_spheres.push(new Sphere(this.coord.add(new Vector(this.size.x / 2, this.size.y / 4, this.size.z / 2)), sphere_radius));
-            this.frustum_spheres.push(new Sphere(this.coord.add(new Vector(this.size.x / 2, this.size.y - this.size.y / 4, this.size.z / 2)), sphere_radius));
+        if(!this.frustum_geometry) {
+            this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
         }
-        for(let sphere of this.frustum_spheres) {
-            if(render.frustum.intersectsSphere(sphere)) {
-                in_frustum = true;
-                break;
-            }
-        }
-        this.in_frustum = in_frustum;
+        this.in_frustum = render.frustum.intersectsGeometryArray(this.frustum_geometry);
+    }
+
+    //
+    static createFrustumGeometry(coord, size) {
+        let frustum_geometry    = [];
+        let box_radius          = size.x;
+        let sphere_radius       = Math.sqrt(3) * box_radius / 2;
+        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
+        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
+        return frustum_geometry;
     }
 
 }
