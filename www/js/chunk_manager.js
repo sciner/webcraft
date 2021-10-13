@@ -2,6 +2,7 @@ import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import Chunk from "./chunk.js";
 import {BLOCK} from "./blocks.js";
 import ServerClient from "./server_client.js";
+import { Sphere } from "./frustum.js";
 
 const CHUNKS_ADD_PER_UPDATE = 16;
 
@@ -90,6 +91,8 @@ export class ChunkManager {
         } else {
             groups = ['regular', 'doubleface'];
         }
+        // let show = new VectorCollector();
+        // let hide = new VectorCollector();
         let vc = new VectorCollector();
         for(let group of groups) {
             const mat = render.materials[group];
@@ -101,13 +104,36 @@ export class ChunkManager {
                         }
                     }
                     if(item.chunk.vertices_length > 0) {
-                        if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
-                            vc.add(item.addr, null);
+                        // Check frustum
+                        let in_frustum = false;
+                        if(!item.chunk.frustum_spheres) {
+                            item.chunk.frustum_spheres = [];
+                            let box_radius = 16;
+                            let sphere_radius = Math.sqrt(3) * box_radius / 2;
+                            item.chunk.frustum_spheres.push(new Sphere(item.chunk.coord.add(new Vector(8, 8, 8)), sphere_radius));
+                            item.chunk.frustum_spheres.push(new Sphere(item.chunk.coord.add(new Vector(8, 24, 8)), sphere_radius));
+                        }
+                        for(let sphere of item.chunk.frustum_spheres) {
+                            if(render.frustum.intersectsSphere(sphere)) {
+                                in_frustum = true;
+                                break;
+                            }
+                        }
+                        if(in_frustum) {
+                            if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
+                                // show.add(item.addr);
+                                vc.add(item.addr, null);
+                            }
+                        } else {
+                            //if(item.chunk.vertices.has(group)) {
+                            //    hide.add(item.addr);
+                            //}
                         }
                     }
                 }
             }
         }
+        // console.log(hide.size, show.size);
         this.rendered_chunks.fact = vc.size;
         return true;
     }

@@ -374,7 +374,8 @@ export class Renderer {
         this.frustum.setFromProjectionMatrix(matrix, this.camPos);
         
         // Test frustum
-        // let sphere = new Sphere(new Vector(2896.5, 67.5, 2790.5), Math.sqrt(3) * 1 / 2);
+        // let radius = 1;
+        // let sphere = new Sphere(new Vector(2896.5, 67.5, 2790.5), Math.sqrt(3) * radius / 2);
         // console.log(this.frustum.intersectsSphere(sphere));
         // console.log(this.frustum.containsPoint(sphere.center));
 
