@@ -191,7 +191,7 @@ export class ChunkManager {
                 let addr = chunkAddr.add(sm.pos);
                 if(addr.y >= 0) {
                     let coord = addr.mul(chunk_size);
-                    let coord_center = addr.mul(chunk_size).add(chunk_size.div(div2));
+                    let coord_center = coord.add(chunk_size.div(div2));
                     this.poses.push({
                         addr:               addr,
                         coord:              coord,
@@ -216,7 +216,7 @@ export class ChunkManager {
             // Check for add
             let possible_add_chunks = []; // Кандидаты на загрузку
             for(let item of this.poses) {
-                if(item.addr.y >= 0) {
+                if(item.addr.y >= 0 && !item.chunk) {
                     item.in_frustrum = frustum ? frustum.intersectsGeometryArray(item.frustum_geometry) : false;
                     possible_add_chunks.push(item);
                 }
@@ -229,6 +229,7 @@ export class ChunkManager {
             }
             // Frustum sorting for add | Сортировка чанков(кандидатов на загрузку) по тому, видимый он в камере или нет
             if(frustum) {
+                let sort_pn = performance.now();
                 possible_add_chunks.sort(function(a, b) {
                     if(a.in_frustrum && b.in_frustrum) {
                         return a.coord_center.horizontalDistance(frustum.camPos) - b.coord_center.horizontalDistance(frustum.camPos);
@@ -236,6 +237,7 @@ export class ChunkManager {
                     if(b.in_frustrum) return 1;
                     return -1;
                 });
+                console.log(performance.now() - sort_pn);
             }
             // Add chunks
             for(let item of possible_add_chunks) {
