@@ -236,6 +236,7 @@ export class Renderer {
     // Render one frame of the world to the canvas.
     draw(delta) {
         const { gl, shader, renderBackend } = this;
+        renderBackend.stat.drawcalls = 0;
         let player = this.world.localPlayer;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;

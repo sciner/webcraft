@@ -105,21 +105,8 @@ export class ChunkManager {
                     }
                     if(item.chunk.vertices_length > 0) {
                         // Check frustum
-                        let in_frustum = false;
-                        if(!item.chunk.frustum_spheres) {
-                            item.chunk.frustum_spheres = [];
-                            let box_radius = 16;
-                            let sphere_radius = Math.sqrt(3) * box_radius / 2;
-                            item.chunk.frustum_spheres.push(new Sphere(item.chunk.coord.add(new Vector(8, 8, 8)), sphere_radius));
-                            item.chunk.frustum_spheres.push(new Sphere(item.chunk.coord.add(new Vector(8, 24, 8)), sphere_radius));
-                        }
-                        for(let sphere of item.chunk.frustum_spheres) {
-                            if(render.frustum.intersectsSphere(sphere)) {
-                                in_frustum = true;
-                                break;
-                            }
-                        }
-                        if(in_frustum) {
+                        item.chunk.updateInFrustum(render);
+                        if(item.chunk.in_frustum) {
                             if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
                                 // show.add(item.addr);
                                 vc.add(item.addr, null);

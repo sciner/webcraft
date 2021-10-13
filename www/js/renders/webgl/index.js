@@ -303,6 +303,8 @@ export default class WebGLRenderer extends BaseRenderer {
         geom.bind(material.shader);
         material.shader.updatePos(a_pos, modelMatrix);
         gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
+        // stat
+        this.stat.drawcalls++;
     }
 
     beginFrame(fogColor) {
@@ -336,6 +338,8 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
+        // stat
+        this.stat.drawcalls++;
     }
 
 }

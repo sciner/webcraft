@@ -305,11 +305,13 @@ export default class HUD {
         }
         // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
         // Chunks inited
-        this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
+        this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
         //
         let quads_length_total = Game.world.chunkManager.vertices_length_total;
         this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
             ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+        //
+        this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         //
         // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)

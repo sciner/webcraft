@@ -2,6 +2,7 @@ import {Vector, VectorCollector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
+import { Sphere } from "./frustum.js";
 
 // Creates a new chunk
 export default class Chunk {
@@ -54,7 +55,6 @@ export default class Chunk {
         this.modify_list = [];
 
         // Objects & variables
-        // this.chunkManager               = chunkManager;
         this.inited                     = false;
         this.dirty                      = true;
         this.buildVerticesInProgress    = false;
@@ -62,6 +62,8 @@ export default class Chunk {
         this.vertices                   = new Map();
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
+        // Frustum
+        this.in_frustum                 = false; // в данный момент отрисован на экране
 
         chunkManager.addToDirty(this);
 
@@ -282,6 +284,25 @@ export default class Chunk {
             }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
+    }
+
+    //
+    updateInFrustum(render) {
+        let in_frustum = false;
+        if(!this.frustum_spheres) {
+            this.frustum_spheres    = [];
+            let box_radius          = this.size.x;
+            let sphere_radius       = Math.sqrt(3) * box_radius / 2;
+            this.frustum_spheres.push(new Sphere(this.coord.add(new Vector(this.size.x / 2, this.size.y / 4, this.size.z / 2)), sphere_radius));
+            this.frustum_spheres.push(new Sphere(this.coord.add(new Vector(this.size.x / 2, this.size.y - this.size.y / 4, this.size.z / 2)), sphere_radius));
+        }
+        for(let sphere of this.frustum_spheres) {
+            if(render.frustum.intersectsSphere(sphere)) {
+                in_frustum = true;
+                break;
+            }
+        }
+        this.in_frustum = in_frustum;
     }
 
 }
