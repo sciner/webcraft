@@ -298,41 +298,43 @@ export class Vector {
 
     toChunkKey() {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
-        /*
-        // @ Метод быстрее в 3,5 раза на большом количестве вызовов, при малом количестве на 20% медленнее метода в лоб
-        if(!Vector.keys) {
-            Vector.keys = [];
-            Vector.keys_count = 0;
-        }
-        let resp = Vector.keys[this.x]?.[this.z]?.[this.y]
-        if(resp) {
-            return resp;
-        }
-        resp = 'c_' + this.x + '_' + this.y + '_' + this.z;
-        if(!Vector.keys[this.x]) {
-            Vector.keys[this.x] = [];
-        }
-        if(!Vector.keys[this.x][this.z]) {
-            Vector.keys[this.x][this.z] = [];
-        }
-        Vector.keys_count++;
-        return Vector.keys[this.x][this.z][this.y] = resp;
-        */
     }
 
-    // For Vec3
-    norm() {return this.length();}
-    normalize() {return this.normal();}
-    offset(x, y, z) {return this.add(new Vector(x, y, z));}
+    norm() {
+        return this.length();
+    }
+
+    normalize() {
+        return this.normal();
+    }
+
+    offset(x, y, z) {
+        return this.add(new Vector(x, y, z));
+    }
+
     floored() {return new Vector(
         Math.floor(this.x),
         Math.floor(this.y),
         Math.floor(this.z)
     )}
+
     translate(x, y, z) {
         this.x += x;
         this.y += y;
         this.z += z;
+    }
+
+    set(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        return this;
     }
 
 }
