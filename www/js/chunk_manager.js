@@ -93,7 +93,6 @@ export class ChunkManager {
         }
         // let show = new VectorCollector();
         // let hide = new VectorCollector();
-        let vc = new VectorCollector();
         for(let group of groups) {
             const mat = render.materials[group];
             for(let item of this.poses) {
@@ -109,7 +108,7 @@ export class ChunkManager {
                         if(item.chunk.in_frustum) {
                             if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
                                 // show.add(item.addr);
-                                vc.add(item.addr, null);
+                                this.rendered_chunks.vc.add(item.chunk.addr, null);
                             }
                         } else {
                             //if(item.chunk.vertices.has(group)) {
@@ -121,7 +120,6 @@ export class ChunkManager {
             }
         }
         // console.log(hide.size, show.size);
-        this.rendered_chunks.fact = vc.size;
         return true;
     }
 
@@ -161,7 +159,7 @@ export class ChunkManager {
     setChunkState(state) {
         let prepare = this.chunks_prepare.get(state.pos);
         if(prepare) {
-            let chunk       = new Chunk(state.pos, state.modify_list);
+            let chunk = new Chunk(state.pos, state.modify_list);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.pos, chunk);
             this.rendered_chunks.total++;
@@ -213,6 +211,14 @@ export class ChunkManager {
                 }
                 chunk.isLive = false;
             }
+            //
+            let frustum_sort_func = function(a, b) {
+                if(a.in_frustrum && b.in_frustrum) {
+                    return a.coord_center.horizontalDistance(frustum.camPos) - b.coord_center.horizontalDistance(frustum.camPos);
+                }
+                if(b.in_frustrum) return 1;
+                return -1;
+            };
             // Check for add
             let possible_add_chunks = []; // Кандидаты на загрузку
             for(let item of this.poses) {
@@ -229,15 +235,7 @@ export class ChunkManager {
             }
             // Frustum sorting for add | Сортировка чанков(кандидатов на загрузку) по тому, видимый он в камере или нет
             if(frustum) {
-                let sort_pn = performance.now();
-                possible_add_chunks.sort(function(a, b) {
-                    if(a.in_frustrum && b.in_frustrum) {
-                        return a.coord_center.horizontalDistance(frustum.camPos) - b.coord_center.horizontalDistance(frustum.camPos);
-                    }
-                    if(b.in_frustrum) return 1;
-                    return -1;
-                });
-                console.log(performance.now() - sort_pn);
+                possible_add_chunks.sort(frustum_sort_func);
             }
             // Add chunks
             for(let item of possible_add_chunks) {

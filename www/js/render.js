@@ -4,10 +4,10 @@ import HUD from "./hud.js";
 import {CHUNK_SIZE_X} from "./blocks.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Game} from "./game.js";
-import {Mth, Vector} from "./helpers.js";
+import {Mth, VectorCollector} from "./helpers.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
-import {FrustumProxy, Sphere} from "./frustum.js";
+import {FrustumProxy} from "./frustum.js";
 
 const {mat4} = glMatrix;
 
@@ -284,7 +284,7 @@ export class Renderer {
         shader.update();
         // 2. Draw chunks
         this.terrainTexture.bind(4);
-        this.world.chunkManager.rendered_chunks.fact = 0;
+        this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
         this.world.chunkManager.draw(this, false);
         /*
         if(!this.vl && Game.shift.x != 0) {
@@ -300,6 +300,7 @@ export class Renderer {
         // 3. Draw players and rain
         this.drawPlayers(delta);
         this.world.chunkManager.draw(this, true);
+        this.world.chunkManager.rendered_chunks.fact = this.world.chunkManager.rendered_chunks.vc.size;
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();
