@@ -18,52 +18,102 @@ export class Mth {
 
 }
 
-// VectorCollector...
-export class VectorCollector {
 
-    constructor() {
+// VectorCollector...
+export class VectorCollectorNew {
+
+    constructor(list) {
         this.clear();
+        if(list) {
+            this.list = list;
+        }
+    }
+
+    *[Symbol.iterator]() {
+        for (let x of this.list.values()) {
+            for (let y of x.values()) {
+                for (let value of y.values()) {
+                    yield value;
+                }
+            }
+        }
     }
 
     clear() {
-        this.list = [];
-        this.count = 0;
+        this.list = new Map();
+        this.size = 0;
     }
-    
+
+    set(vec, value) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list.get(vec.x).get(vec.y).set(vec.z, value);
+    }
+
     add(vec, value) {
-        if(!this.list[vec.x]) this.list[vec.x] = [];
-        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
-        if(!this.list[vec.x][vec.y][vec.z]) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
             if (typeof value === 'function') {
                 value = value(vec);
             }
-            this.list[vec.x][vec.y][vec.z] = value;
-            this.count++;
+            this.list.get(vec.x).get(vec.y).set(vec.z, value);
+            this.size++;
         }
-        return this.list[vec.x][vec.y][vec.z];
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
     }
 
-    get() {
+    delete(vec) {
+        if(!this.has(vec)) {
+            return false;
+        }
+        this.size--;
+        this.list.get(vec.x).get(vec.y).delete(vec.z)
+        return true;
+    }
+
+    has(vec) {
+        if(!this.list.has(vec.x)) return false;
+        if(!this.list.get(vec.x).has(vec.y)) return false;
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
+        return true;
+    }
+
+    get(vec) {
+        if(!this.list.has(vec.x)) return null;
+        if(!this.list.get(vec.x).has(vec.y)) return null;
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    keys() {
         let resp = [];
-        for(let x in this.list) {
-            for(let y in this.list[x]) {
-                for(let z in this.list[x][y]) {
-                    resp.push(new Vector(x|0, y|0, z|0));
+        for (let [xk, x] of this.list) {
+            for (let [yk, y] of x) {
+                for (let [zk, z] of y) {
+                    resp.push(new Vector(xk|0, yk|0, zk|0));
                 }
             }
         }
         return resp;
     }
 
-    getByVec(vec) {
-        if(!this.list[vec.x]) return null;
-        if(!this.list[vec.x][vec.y]) return null;
-        if(!this.list[vec.x][vec.y][vec.z]) null;
-        return this.list[vec.x][vec.y][vec.z];
+    values() {
+        let resp = [];
+        for(let item of this) {
+            resp.push(item);
+        }
+        return resp;
     }
 
-    sanitizeCache(max_count) {
-        if(this.count < max_count) {
+    reduce(max_size) {
+        if(this.size < max_size) {
             return false;
         }
         /*
@@ -82,6 +132,123 @@ export class VectorCollector {
     }
 
 }
+
+// VectorCollector...
+export class VectorCollectorOld {
+
+    constructor(list) {
+        this.clear();
+        if(list) {
+            this.list = list;
+        }
+    }
+
+    *[Symbol.iterator]() {
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    yield this.list[x][y][z];
+                }
+            }
+        }
+    }
+
+    clear() {
+        this.list = [];
+        this.size = 0;
+    }
+
+    set(vec, value) {
+        if(!this.list[vec.x]) this.list[vec.x] = [];
+        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
+        if(!this.list[vec.x][vec.y][vec.z]) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list[vec.x][vec.y][vec.z] = value;
+    }
+
+    add(vec, value) {
+        if(!this.list[vec.x]) this.list[vec.x] = [];
+        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
+        if(!this.list[vec.x][vec.y][vec.z]) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            this.list[vec.x][vec.y][vec.z] = value;
+            this.size++;
+        }
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    delete(vec) {
+        if(!this.has(vec)) {
+            return false;
+        }
+        this.size--;
+        delete(this.list[vec.x][vec.y][vec.z]);
+        return true;
+    }
+
+    has(vec) {
+        // return !!this.list[vec.x]?.[vec.y]?.[vec.z];
+        if(!this.list[vec.x]) return false;
+        if(!this.list[vec.x][vec.y]) return false;
+        if(!this.list[vec.x][vec.y][vec.z]) return false;
+        return true;
+    }
+
+    get(vec) {
+        if(!this.list[vec.x]) return null;
+        if(!this.list[vec.x][vec.y]) return null;
+        if(!this.list[vec.x][vec.y][vec.z]) return null;
+        return this.list[vec.x][vec.y][vec.z];
+    }
+
+    keys() {
+        let resp = [];
+        for(let x in this.list) {
+            for(let y in this.list[x]) {
+                for(let z in this.list[x][y]) {
+                    resp.push(new Vector(x|0, y|0, z|0));
+                }
+            }
+        }
+        return resp;
+    }
+
+    values() {
+        let resp = [];
+        for(let item of this) {
+            resp.push(item);
+        }
+        return resp;
+    }
+
+    reduce(max_size) {
+        if(this.size < max_size) {
+            return false;
+        }
+        /*
+        let keys = Object.keys(this.maps_cache);
+        if(keys.length > MAX_ENTR) {
+            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
+            console.info('Clear maps_cache, del_count: ' + del_count);
+            for(let key of keys) {
+                if(--del_count == 0) {
+                    break;
+                }
+                delete(this.maps_cache[key]);
+            }
+        }
+        */
+    }
+
+}
+
+export class VectorCollector extends VectorCollectorNew {} ;
 
 // Color
 export class Color {
@@ -154,6 +321,12 @@ export class Vector {
 
     equal(vec) {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
+    }
+
+    lerpFrom(vec1, vec2, delta) {
+        this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
+        this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
+        this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
     }
 
     add(vec) {
@@ -242,29 +415,48 @@ export class Vector {
 
     toChunkKey() {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
-        /*
-        // @ Метод быстрее в 3,5 раза на большом количестве вызовов, при малом количестве на 20% медленнее метода в лоб
-        if(!Vector.keys) {
-            Vector.keys = [];
-            Vector.keys_count = 0;
-        }
-        let resp = Vector.keys[this.x]?.[this.z]?.[this.y]
-        if(resp) {
-            return resp;
-        }
-        resp = 'c_' + this.x + '_' + this.y + '_' + this.z;
-        if(!Vector.keys[this.x]) {
-            Vector.keys[this.x] = [];
-        }
-        if(!Vector.keys[this.x][this.z]) {
-            Vector.keys[this.x][this.z] = [];
-        }
-        Vector.keys_count++;
-        return Vector.keys[this.x][this.z][this.y] = resp;
-        */
+    }
+
+    norm() {
+        return this.length();
+    }
+
+    normalize() {
+        return this.normal();
+    }
+
+    offset(x, y, z) {
+        return this.add(new Vector(x, y, z));
+    }
+
+    floored() {return new Vector(
+        Math.floor(this.x),
+        Math.floor(this.y),
+        Math.floor(this.z)
+    )}
+
+    translate(x, y, z) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+    }
+
+    set(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    multiplyScalar(scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+        this.z *= scalar;
+        return this;
     }
 
 }
+
+export class Vec3 extends Vector {}
 
 export let MULTIPLY = {
     COLOR: {
@@ -357,7 +549,7 @@ export class Helpers {
 
     static isDev() {
         let loc = location.host;
-        return loc.indexOf('whiteframe.ru') < 0;
+        return loc.indexOf('madcraft.io') < 0;
     }
 
     static createSkinLayer2(text, image, callback) {
@@ -410,40 +602,6 @@ export class Helpers {
         } else if (lnk.fireEvent) {
             lnk.fireEvent('onclick');
         }
-    }
-
-    // IntersectRayBrick
-    static IntersectRayBrick(ray, brick) {
-        // check whether initial point is inside the parallelepiped
-        if ((ray.start[0] >= brick.min_point[0]) &&
-            (ray.start[0] <= brick.max_point[0]) &&
-            (ray.start[1] >= brick.min_point[1]) &&
-            (ray.start[1] <= brick.max_point[1]) &&
-            (ray.start[2] >= brick.min_point[2]) &&
-            (ray.start[2] <= brick.max_point[2])) {
-            return true;
-        }
-        // ray parameter
-        let t_near = Number.MIN_SAFE_INTEGER;
-        let t_far = Number.MAX_SAFE_INTEGER;
-        let t1, t2;
-        // directions loop
-        for (let i = 0; i < 3; i++) {
-            if (Math.abs(ray.direction[i]) >= Number.EPSILON) {
-                t1 = (brick.min_point[i] - ray.start[i]) / ray.direction[i];
-                t2 = (brick.max_point[i] - ray.start[i]) / ray.direction[i];
-                if (t1 > t2) t1 = [t2, t2 = t1][0];
-                if (t1 > t_near) t_near = t1;
-                if (t2 < t_far) t_far = t2;
-                if (t_near > t_far) return false;
-                if (t_far < 0.0) return false;
-            } else {
-                if (ray.start[i] < brick.min_point[i] || ray.start[i] > brick.max_point[i]) {
-                    return false;
-                }
-            }
-        }
-        return (t_near <= t_far && t_far >=0);
     }
 
     static deg2rad(degrees) {
@@ -508,35 +666,6 @@ export class Helpers {
         callback({
             program
         });
-    }
-
-    // lineRectCollide( line, rect )
-    //
-    // Checks if an axis-aligned line and a bounding box overlap.
-    // line = { y, x1, x2 } or line = { x, y1, y2 }
-    // rect = { x, y, size }
-    static lineRectCollide(line, rect) {
-        if(line.z != null) {
-            return  rect.z > line.z - rect.size / 2 &&
-                    rect.z < line.z + rect.size / 2 &&
-                    rect.x > line.x1 - rect.size / 2 &&
-                    rect.x < line.x2 + rect.size / 2;
-        }
-        return  rect.x > line.x - rect.size / 2 &&
-                rect.x < line.x + rect.size / 2 &&
-                rect.z > line.z1 - rect.size / 2 &&
-                rect.z < line.z2 + rect.size / 2;
-    }
-
-    // rectRectCollide( r1, r2 )
-    //
-    // Checks if two rectangles (x1, y1, x2, y2) overlap.
-    static rectRectCollide(r1, r2) {
-        if(r2.x1 > r1.x1 && r2.x1 < r1.x2 && r2.z1 > r1.z1 && r2.z1 < r1.z2 ) return true;
-        if(r2.x2 > r1.x1 && r2.x2 < r1.x2 && r2.z1 > r1.z1 && r2.z1 < r1.z2 ) return true;
-        if(r2.x2 > r1.x1 && r2.x2 < r1.x2 && r2.z2 > r1.z1 && r2.z2 < r1.z2 ) return true;
-        if(r2.x1 > r1.x1 && r2.x1 < r1.x2 && r2.z2 > r1.z1 && r2.z2 < r1.z2 ) return true;
-        return false;
     }
 
     // Return from green to red color depend on percentage

@@ -12,7 +12,7 @@ export class GameMode {
         this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false});
         this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true});
         this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: true, block_clone: true});
         if(game_mode_id) {
             this.setMode(game_mode_id);
         }
@@ -65,9 +65,9 @@ export class GameMode {
                 let player = this.world.localPlayer;
                 if(player) {
                     if(!mode.can_fly) {
-                        player.flying = false;
+                        player.setFlying(false);
                     } else if(id == GAME_MODE.SPECTATOR) {
-                        player.flying = true;
+                        player.setFlying(true);
                     }
                     player.chat.messages.addSystem('Game mode changed to ... ' + this.getCurrent().title);
                 }

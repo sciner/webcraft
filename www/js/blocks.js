@@ -1,4 +1,4 @@
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
+import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector } from './helpers.js';
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 32;
@@ -58,11 +58,13 @@ export class BLOCK {
             x = x.x;
         }
         let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        /*if(index < 0) {
+        /*
+        if(index < 0) {
             index = -1;
         } else if(index > CHUNK_BLOCKS) {
             index = -1;
-        }*/
+        }
+        */
         return index;
     }
 
@@ -113,23 +115,6 @@ export class BLOCK {
 
     static add(block) {
         this[block.name] = block;
-    }
-
-    // getCardinalDirection...
-    static getCardinalDirection(vec3) {
-        let result = new Vector(0, 0, ROTATE.E);
-        if(vec3) {
-            if(vec3.z >= 45 && vec3.z < 135) {
-                // do nothing
-            } else if(vec3.z >= 135 && vec3.z < 225) {
-                result.z = ROTATE.S;
-            } else if(vec3.z >= 225 && vec3.z < 315) {
-                result.z = ROTATE.W;
-            } else {
-                result.z = ROTATE.N;
-            }
-        }
-        return result;
     }
 
     // Call before setBlock
@@ -220,6 +205,21 @@ export class BLOCK {
         return blocks;
     }
 
+    //
+    static getBlockStyleGroup(block) {
+        let group = 'regular';
+        // make vertices array
+        if([200, 202].indexOf(block.id) >= 0) {
+            // если это блок воды или облако
+            group = 'transparent';
+        } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
+            group = 'doubleface_transparent';
+        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
+            group = 'doubleface';
+        }
+        return group;
+    }
+
     // getAll
     static getAll() {
         if(this.list) {
@@ -241,19 +241,19 @@ export class BLOCK {
             }
             if(block.hasOwnProperty('sound')) {
                 switch(block.sound) {
-                    case 'webcraft:block.grass':
+                    case 'madcraft:block.grass':
                         destroy_time = 1.;
                         break;
-                    case 'webcraft:block.gravel':
-                    case 'webcraft:block.sand': {
+                    case 'madcraft:block.gravel':
+                    case 'madcraft:block.sand': {
                         destroy_time = 2.;
                         break;
                     }
-                    case 'webcraft:block.wood': {
+                    case 'madcraft:block.wood': {
                         destroy_time = 4.;
                         break;
                     }
-                    case 'webcraft:block.stone': {
+                    case 'madcraft:block.stone': {
                         destroy_time = 7.;
                         break;
                     }
@@ -275,7 +275,10 @@ export class BLOCK {
                 B.name = mat;
                 B.destroy_time = calcDestroyTime(B);
                 B.power = 1;
+                B.group = this.getBlockStyleGroup(B);
                 B.selflit = B.hasOwnProperty('selflit') && B.selflit;
+                B.transparent = B.hasOwnProperty('transparent') && B.transparent;
+                B.style = B.hasOwnProperty('style') ? B.style : 'default';
                 // Fix properties
                 if(!B.hasOwnProperty('light')) B.light = null;
                 if(!B.hasOwnProperty('spawnable')) B.spawnable = true;
@@ -284,7 +287,7 @@ export class BLOCK {
                 if(B.style && B.style == 'planting') B.planting = true;
                 if(B.style && B.style == 'stairs') B.transparent = true;
                 if(B.style && B.style == 'triangle') continue;
-                if(B.planting) this.ao_invisible_blocks.push(B.id);
+                if(B.planting || B.style == 'fence' || B.style == 'ladder') this.ao_invisible_blocks.push(B.id);
                 //
                 if(B.id > max_id) {
                     max_id = B.id;
@@ -301,6 +304,13 @@ export class BLOCK {
                 }
                 //
                 list.push(B);
+            }
+        }
+        // visible_for_ao
+        for(let mat in this) {
+            let B = this[mat];
+            if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
+                B.visible_for_ao = BLOCK.visibleForAO(B);
             }
         }
         console.log('Max BLOCK.id = ', max_id);
@@ -323,10 +333,10 @@ export class BLOCK {
 
     // Возвращает координаты текстуры
     static calcTexture(c, dir) {
-        if(c instanceof Function) {
-            c = c(dir);
-        } else if (c instanceof Array) {
+        if (c instanceof Array) {
             // do nothing
+        } else if(c instanceof Function) {
+            c = c(dir);
         } else if (typeof c === 'object' && c !== null) {
             let prop = null;
             switch(dir) {
@@ -360,7 +370,7 @@ export class BLOCK {
      * clearBlockCache...
      */
     static clearBlockCache() {
-        BLOCK.block_cache = {};
+        BLOCK.block_cache = new VectorCollector();
         BLOCK.cachedBlocksUsed = 0;
         BLOCK.cachedBlocksMiss = 0;
     }
@@ -381,18 +391,22 @@ export class BLOCK {
             && z >= 0 && z < chunk.size.z) {
             return chunk.getBlock(x1, y1, z1);
         }
-        let key = new Vector(x1, y1, z1).toString();
-        if(BLOCK.block_cache[key]) {
+        let vec = new Vector(x1, y1, z1);
+        let block = BLOCK.block_cache.get(vec);
+        if(block) {
             BLOCK.cachedBlocksUsed++;
-            return BLOCK.block_cache[key];
+            return block;
         }
         BLOCK.cachedBlocksMiss++;
-        return BLOCK.block_cache[key] = chunk.chunkManager.getBlock(x1, y1, z1);
+        block = chunk.chunkManager.getBlock(x1, y1, z1);
+        BLOCK.block_cache.add(vec, block);
+        return block;
     }
 
     // Функция определяет, отбрасывает ли указанный блок тень
     static visibleForAO(block) {
         if(!block) return false;
+        if(typeof block == 'undefined') return false;
         let block_id = block;
         if(typeof block !== 'number') {
             block_id = block.id;
@@ -404,7 +418,8 @@ export class BLOCK {
 
     // pushVertices
     static pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-        const style = 'style' in block ? block.style : 'default';
+        // const style = 'style' in block ? block.style : 'default';
+        const style = block.properties.style;
         let module = this.styles[style];
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
@@ -430,6 +445,336 @@ export class BLOCK {
         for(let style of reg_info.styles) {
             BLOCK.styles[style] = reg_info;
         }
+    }
+
+    //
+    static getCardinalDirection(vec3) {
+        let result = new Vector(0, 0, ROTATE.E);
+        if(vec3) {
+            if(vec3.z >= 45 && vec3.z < 135) {
+                // do nothing
+            } else if(vec3.z >= 135 && vec3.z < 225) {
+                result.z = ROTATE.S;
+            } else if(vec3.z >= 225 && vec3.z < 315) {
+                result.z = ROTATE.W;
+            } else {
+                result.z = ROTATE.N;
+            }
+        }
+        return result;
+    }
+
+    static isOnCeil(block) {
+        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
+    }
+
+    static isOpenedTrapdoor(block) {
+        return !!(block.extra_data && block.extra_data.opened);
+    }
+
+    static canFenceConnect(block) {
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence');
+    }
+
+    // getShapes
+    static getShapes(pos, b, world, for_physic, expanded, neighbours) {
+        let shapes = []; // x1 y1 z1 x2 y2 z2
+        let f = !!expanded ? .001 : 0;
+        if(!b.properties.passable && (b.properties.style != 'planting' && b.properties.style != 'sign')) {
+            switch(b.properties.style) {
+                case 'fence': {
+                    let fence_height = for_physic ? 1.35 : 1;
+                    //
+                    if(!neighbours) {
+                        neighbours = {
+                            SOUTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z - 1),
+                            NORTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z + 1),
+                            WEST: world.chunkManager.getBlock(pos.x - 1, pos.y, pos.z),
+                            EAST: world.chunkManager.getBlock(pos.x + 1, pos.y, pos.z)
+                        }
+                    }
+                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // South z--
+                    if(this.canFenceConnect(neighbours.SOUTH)) {
+                        shapes.push([
+                            .5-2/16, 5/16, 0,
+                            .5+2/16, fence_height, .5+2/16]);
+                    }
+                    // North z++
+                    if(this.canFenceConnect(neighbours.NORTH)) {
+                        shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, fence_height, 1]);
+                    }
+                    // West x--
+                    if(this.canFenceConnect(neighbours.WEST)) {
+                        shapes.push([0, 5/16, .5-2/16, .5+2/16, fence_height, .5+2/16]);
+                    }
+                    // East x++
+                    if(this.canFenceConnect(neighbours.EAST)) {
+                        shapes.push([.5-2/16, 5/16, .5-2/16, 1, fence_height, .5+2/16]);
+                    }
+                    // Central
+                    shapes.push([
+                        .5-2/16, 0, .5-2/16,
+                        .5+2/16, fence_height, .5+2/16
+                    ]);
+                    break;
+                }
+                case 'pane': {
+                    // F R B L
+                    switch(b.getCardinalDirection().z) {
+                        case ROTATE.S: 
+                        case ROTATE.N: {
+                            shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
+                            break;
+                        }
+                        case ROTATE.W:
+                        case ROTATE.E: {
+                            shapes.push([.5-1/16, 0, 0, .5+1/16, 1, 1]);
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'stairs': {
+                    if(!neighbours) {
+                        neighbours = {
+                            SOUTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z - 1),
+                            NORTH: world.chunkManager.getBlock(pos.x, pos.y, pos.z + 1),
+                            WEST: world.chunkManager.getBlock(pos.x - 1, pos.y, pos.z),
+                            EAST: world.chunkManager.getBlock(pos.x + 1, pos.y, pos.z)
+                        }
+                    }
+                    let cardinal_direction = b.getCardinalDirection().z;
+                    //
+                    let checkIfSame = (b) => {
+                        return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('stairs') >= 0;
+                    };
+                    //
+                    let compareCD = (b) => {
+                        return checkIfSame(b) && b.getCardinalDirection().z == cardinal_direction;
+                    };
+                    let on_ceil = this.isOnCeil(b);
+                    let sz = 0.5;
+                    let yt = 0;
+                    // Основная часть
+                    if(on_ceil) {
+                        shapes.push([0, sz - f, 0, 1, 1, 1]);
+                    } else {
+                        shapes.push([0, 0, 0, 1, sz + f, 1]);
+                        yt = .5;
+                    }
+                    // Верхняя ступенька (либо нижняя, если блок перевернуть вертикально)
+                    let poses = [];
+                    switch(cardinal_direction) {
+                        case ROTATE.S: {
+                            poses = [
+                                new Vector(.5, yt, .5),
+                                new Vector(0, yt, .5),
+                            ];
+                            // удаление лишних
+                            if(!(checkIfSame(neighbours.WEST) && checkIfSame(neighbours.EAST)) && checkIfSame(neighbours.NORTH)) {
+                                if(compareCD(neighbours.WEST)) {
+                                    poses.shift();
+                                } else if(compareCD(neighbours.EAST)) {
+                                    poses.pop();
+                                }
+                            }
+                            // добавление недостающих
+                            if(checkIfSame(neighbours.SOUTH)) {
+                                let cd = neighbours.SOUTH.getCardinalDirection().z;
+                                if(cd == ROTATE.E) {
+                                    poses.push(new Vector(0, yt, 0));
+                                } else if(cd == ROTATE.W) {
+                                    poses.push(new Vector(.5, yt, 0));
+                                }
+                            }
+                            break;
+                        }
+                        case ROTATE.N: {
+                            poses = [
+                                new Vector(.5, yt, 0),
+                                new Vector(0, yt, 0),
+                            ];
+                            // удаление лишних
+                            if(!(checkIfSame(neighbours.WEST) && checkIfSame(neighbours.EAST)) && checkIfSame(neighbours.SOUTH)) {
+                                if(compareCD(neighbours.WEST)) {
+                                    poses.shift();
+                                } else if(compareCD(neighbours.EAST)) {
+                                    poses.pop();
+                                }
+                            }
+                            // добавление недостающих
+                            if(checkIfSame(neighbours.NORTH)) {
+                                let cd = neighbours.NORTH.getCardinalDirection().z;
+                                if(cd == ROTATE.W) {
+                                    poses.push(new Vector(.5, yt, .5));
+                                } else if(cd == ROTATE.E || cd == ROTATE.N) {
+                                    poses.push(new Vector(0, yt, .5));
+                                }
+                            }
+                            break;
+                        }
+                        case ROTATE.W: {
+                            poses = [
+                                new Vector(.5, yt, 0),
+                                new Vector(.5, yt, .5),
+                            ];
+                            // удаление лишних
+                            if(!(checkIfSame(neighbours.NORTH) && checkIfSame(neighbours.SOUTH)) && checkIfSame(neighbours.EAST)) {
+                                if(compareCD(neighbours.NORTH)) {
+                                    poses.shift();
+                                } else if(compareCD(neighbours.SOUTH)) {
+                                    poses.pop();
+                                }
+                            }
+                            // добавление недостающих
+                            if(checkIfSame(neighbours.WEST)) {
+                                let cd = neighbours.WEST.getCardinalDirection().z;
+                                if(cd == ROTATE.S) {
+                                    poses.push(new Vector(0, yt, .5));
+                                } else if(cd == ROTATE.N) {
+                                    poses.push(new Vector(0, yt, 0));
+                                }
+                            }
+                            break;
+                        }
+                        case ROTATE.E: {
+                            poses = [
+                                new Vector(0, yt, 0),
+                                new Vector(0, yt, .5),
+                            ];
+                            // удаление лишних
+                            if(!(checkIfSame(neighbours.NORTH) && checkIfSame(neighbours.SOUTH)) && checkIfSame(neighbours.WEST)) {
+                                if(compareCD(neighbours.NORTH)) {
+                                    poses.shift();
+                                } else if(compareCD(neighbours.SOUTH)) {
+                                    poses.pop();
+                                }
+                            }
+                            // добавление недостающих
+                            if(checkIfSame(neighbours.EAST)) {
+                                let cd = neighbours.EAST.getCardinalDirection().z;
+                                // console.log(cd, ROTATE.S, ROTATE.N)
+                                if(cd == ROTATE.N) {
+                                    poses.push(new Vector(.5, yt, 0));
+                                } else if(cd == ROTATE.S) {
+                                    poses.push(new Vector(.5, yt, .5));
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    for(let pose of poses) {
+                        shapes.push([pose.x - f, pose.y, pose.z - f, pose.x + .5 + f, pose.y + .5, pose.z + .5 + f])
+                    }
+                    break;
+                }
+                case 'trapdoor': {
+                    let cardinal_direction = b.getCardinalDirection().z;
+                    let opened = this.isOpenedTrapdoor(b);
+                    let on_ceil = this.isOnCeil(b);
+                    let sz = 3 / 15.9;
+                    if(opened) {
+                        // F R B L
+                        switch(cardinal_direction) {
+                            // z--
+                            case ROTATE.S: {
+                                shapes.push([0, 0, 1-sz, 1, 1, 1]);
+                                break;
+                            }
+                            // z++
+                            case ROTATE.N: {
+                                shapes.push([0, 0, 0, 1, 1, sz]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([1-sz, 0, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, 0, 0, sz, 1, 1]);
+                                break;
+                            }
+                        }
+                    } else {
+                        if(on_ceil) {
+                            shapes.push([0, 1-sz, 0, 1, 1, 1]);
+                        } else {
+                            shapes.push([0, 0, 0, 1, sz, 1]);
+                        }
+                    }
+                    break;
+                }
+                case 'slab': {
+                    let on_ceil = this.isOnCeil(b);
+                    if(on_ceil) {
+                        shapes.push([0, .5 - f, 0, 1, 1, 1]);
+                    } else {
+                        shapes.push([0, 0, 0, 1, .5 + f, 1]);
+                    }
+                    break;
+                }
+                default: {
+                    if(b.properties.width) {
+                        let hw = b.properties.width / 2;
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.properties.height ? b.properties.height: 1, .5+hw]);
+                    } else {
+                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height + .001: 1, 1]);
+                    }
+                    break;
+                }
+            }
+        } else {
+            if(!for_physic) {
+                switch(b.properties.style) {
+                    case 'torch': {
+                        let torch_height = 10/16;
+                        shapes.push([
+                            .5-1/16, 0, .5-1/16,
+                            .5+1/16, torch_height, .5+1/16
+                        ]);
+                        break;
+                    }
+                    case 'sign': {
+                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
+                        break;
+                    }
+                    case 'planting': {
+                        let hw = (12/16) / 2;
+                        let h = 12/16;
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
+                        break;
+                    }
+                    case 'ladder': {
+                        let cardinal_direction = b.getCardinalDirection().z;
+                        let width = 1/16;
+                        // F R B L
+                        switch(cardinal_direction) {
+                            // z--
+                            case ROTATE.S: {
+                                shapes.push([0, 0, 1-width, 1, 1, 1]);
+                                break;
+                            }
+                            // z++
+                            case ROTATE.N: {
+                                shapes.push([0, 0, 0, 1, 1, width]);
+                                break;
+                            }
+                            case ROTATE.W: {
+                                shapes.push([1-width, 0, 0, 1, 1, 1]);
+                                break;
+                            }
+                            case ROTATE.E: {
+                                shapes.push([0, 0, 0, width, 1, 1]);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return shapes;
     }
 
 };

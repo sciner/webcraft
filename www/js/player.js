@@ -1,10 +1,12 @@
 import Chat from "./chat.js";
-import {Helpers, Vector} from "./helpers.js";
+import {ROTATE, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
+import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
+import {SpectatorPlayerControl} from "./spectator-physics.js";
 
 // ==========================================
 // Player
@@ -27,9 +29,10 @@ export default class Player {
         this.walking                = false; // идёт по земле
         this.in_water               = false; // ноги в воде
         this.in_water_o             = false;
-        this.in_water_from_time     = -1; // когда в последний раз погрузились в воду
         this.eyes_in_water          = false; // глаза в воде
         this.eyes_in_water_o        = false; // глаза в воде (предыдущее значение)
+        this.onGround               = false;
+        this.onGroundO              = false;
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
@@ -55,14 +58,19 @@ export default class Player {
         this.keys                   = {};
         this.eventHandlers          = {};
         this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+        this.prevPos                = new Vector(this.pos);
+        this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         if(world.saved_state) {
-            this.flying = !!world.saved_state.flying;
+            this.setFlying(!!world.saved_state.flying);
         }
         // pickAt
         this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
             return this.onTarget(...args);
         });
+        // Prismarine player control
+        this.pr                     = new PrismarinePlayerControl(world, this.pos);
+        this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
     }
 
     // onTarget
@@ -89,11 +97,11 @@ export default class Player {
                 return false;
             }
             if(times < destroy_time) {
-                this.pickAt.setDamagePercent(times / destroy_time);
+                this.pickAt.setDamagePercent(bPos, times / destroy_time);
                 return false;
             }
             if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
-                this.pickAt.setDamagePercent(times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
+                this.pickAt.setDamagePercent(bPos, times / CONTINOUS_BLOCK_DESTROY_MIN_TIME);
                 return false;
             }
         }
@@ -228,9 +236,10 @@ export default class Player {
         if(keyCode == KEY.SPACE && Game.world.game_mode.canFly() && !this.in_water) {
             if(this.velocity.y > 0) {
                 if(down && first) {
-                    if(!this.flying) {
+                    if(!this.getFlying()) {
                         this.velocity.y = 0;
-                        this.flying = true;
+                        this.setFlying(true);
+                        console.log('flying');
                     }
                 }
             }
@@ -324,7 +333,21 @@ export default class Player {
             // F8 (Random teleport)
             case KEY.F8: {
                 if(!down) {
-                    Game.world.randomTeleport();
+                    if(e.shiftKey) {
+                        this.pickAt.get((pos) => {
+                            if(pos !== false) {
+                                if(pos.n.x != 0) pos.x += pos.n.x;
+                                if(pos.n.z != 0) pos.z += pos.n.z;
+                                if(pos.n.y != 0) {
+                                    pos.y += pos.n.y;
+                                    if(pos.n.y < 0) pos.y--;
+                                }
+                                Game.world.randomTeleport(pos);
+                            }
+                        }, 1000);
+                    } else {
+                        Game.world.randomTeleport();
+                    }
                 }
                 return true;
                 break;
@@ -341,7 +364,7 @@ export default class Player {
             // F10 (toggleUpdateChunks)
             case KEY.F10: {
                 if(!down) {
-                    this.world.game_mode.next();
+                    this.nextGameMode();
                 }
                 return true;
                 break;
@@ -356,9 +379,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    this.pos.x = Game.world.spawnPoint.x;
-                    this.pos.y = Game.world.spawnPoint.y;
-                    this.pos.z = Game.world.spawnPoint.z;
+                    this.setPosition(Game.world.spawnPoint);
                 }
                 return true;
                 break;
@@ -485,32 +506,46 @@ export default class Player {
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         let world           = this.world;
-        const playerRotate  = Game.world.rotateDegree;
+        let pickat_dist     = this.world.getPickatDistance();
         // Picking
         this.pickAt.get((pos) => {
             if(pos === false) {
                 return;
             }
-            let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            let extra_data  = world_block.extra_data;
+            let rotate      = world_block.rotate;
+            if(world_block && world_block.id > 0) {
+                world_block = world_block.material;
+            }
             let playerPos       = this.getBlockPos();
-            let replaceBlock    = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
             let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
-                world_block.extra_data.opened = !world_block.extra_data.opened;
+                extra_data.opened = !extra_data.opened;
                 if(world_block.sound) {
                     Game.sounds.play(world_block.sound, 'open');
                 }
-                world.setBlock(pos.x, pos.y, pos.z, world_block, null, world_block.rotate, null, world_block.extra_data);
+                world.setBlock(pos.x, pos.y, pos.z, world_block, null, rotate, null, extra_data);
             } else if(createBlock) {
+                let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
                 if(!replaceBlock) {
                     pos.x += pos.n.x;
                     pos.y += pos.n.y;
                     pos.z += pos.n.z;
                 }
+                // Запрет установки блока на блоки, которые занимает игрок
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
                 }
+                // Запрет установки блока, если на позиции уже есть другой блок
+                if(!replaceBlock) {
+                    let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    if(existingBlock.id > 0) {
+                        return;
+                    }
+                }
+                // Если ткнули на предмет с собственным окном
                 if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
                     if(!e.shiftKey) {
                         switch(world_block.id) {
@@ -541,11 +576,11 @@ export default class Player {
                             pos.x -= pos.n.x;
                             pos.y -= pos.n.y;
                             pos.z -= pos.n.z;
-                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, world_block.rotate, null, extra_data);
-                            // world.setBlock(pos.x, pos.y, pos.z, world_block, 15/16, world_block.rotate, null, extra_data);
+                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, rotate, null, extra_data);
                         }
                     }
                 } else {
+                    let playerRotate = Game.world.rotateDegree;
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
@@ -558,6 +593,7 @@ export default class Player {
                         }
                     } else {
                         // Create block
+                        // Посадить растения можно только на блок земли
                         let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
                         if(BLOCK.isPlants(this.buildMaterial.id) && underBlock.id != BLOCK.DIRT.id) {
                             return;
@@ -572,8 +608,52 @@ export default class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(pos.n.z != 0 || world_block.transparent) {
+                                if(world_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
                                     return;
+                                }
+                                if(pos.n.y == 0) {
+                                    if(pos.n.z != 0) {
+                                        // z
+                                    } else {
+                                        // x
+                                    }
+                                } else {
+                                    let cardinal_direction = BLOCK.getCardinalDirection(playerRotate).z;
+                                    let ok = false;
+                                    for(let i = 0; i < 4; i++) {
+                                        let pos2 = new Vector(pos.x, pos.y, pos.z);
+                                        let cd = cardinal_direction + i;
+                                        if(cd > 4) cd -= 4;
+                                        // F R B L
+                                        switch(cd) {
+                                            case ROTATE.S: {
+                                                pos2 = pos2.add(new Vector(0, 0, 1));
+                                                break;
+                                            }
+                                            case ROTATE.W: {
+                                                pos2 = pos2.add(new Vector(1, 0, 0));
+                                                break;
+                                            }
+                                            case ROTATE.N: {
+                                                pos2 = pos2.add(new Vector(0, 0, -1));
+                                                break;
+                                            }
+                                            case ROTATE.E: {
+                                                pos2 = pos2.add(new Vector(-1, 0, 0));
+                                                break;
+                                            }
+                                        }
+                                        let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
+                                        if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
+                                            cardinal_direction = cd;
+                                            playerRotate.z = (playerRotate.z + i * 90) % 360;
+                                            ok = true;
+                                            break;
+                                        }
+                                    }
+                                    if(!ok) {
+                                        return;
+                                    }
                                 }
                             }
                             world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);
@@ -597,7 +677,7 @@ export default class Player {
                     this.inventory.cloneMaterial(world_block);
                 }
             }
-        });
+        }, pickat_dist);
     }
 
     //
@@ -618,7 +698,7 @@ export default class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this.pos.add(new Vector(0.0, this.height, 0.0));
+        return this.lerpPos.add(new Vector(0.0, this.height, 0.0));
     }
 
     // getBlockPos
@@ -637,113 +717,110 @@ export default class Player {
         return v;
     }
 
+    getFlying() {
+        return this.flying;
+    }
+
+    setFlying(value) {
+        this.flying = value;
+    }
+
+    //
+    getPlayerControl() {
+        if(Game.world.game_mode.isSpectator()) {
+            return this.pr_spectator;
+        }
+        return this.pr;
+    }
+
+    //
+    setPosition(vec) {
+        let pc = this.getPlayerControl();
+        pc.player.entity.position.copyFrom(vec);
+    }
+
+    //
+    nextGameMode() {
+        let pc_previous = this.getPlayerControl();
+        this.world.game_mode.next();
+        let pc_current = this.getPlayerControl();
+        //
+        pc_current.player.entity.velocity   = new Vector(0, 0, 0);
+        pc_current.player_state.vel         = new Vector(0, 0, 0);
+        //
+        let pos                             = new Vector(pc_previous.player.entity.position);
+        pc_current.player.entity.position   = new Vector(pos);
+        pc_current.player_state.pos         = new Vector(pos);
+        this.lerpPos                        = new Vector(pos);
+        this.pos                            = new Vector(pos);
+        this.posO                           = new Vector(pos);
+        this.prevPos                        = new Vector(pos);
+    }
+
     // Updates this local player (gravity, movement)
     update() {
-        if(this.lastUpdate != null) {
+        if(this.lastUpdate != null && !Game.hud.splash.loading) {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
-            let velocity  = this.velocity;
-            let pos       = this.pos;
-            let bPos      = new Vector(
-                pos.x | 0,
-                pos.y | 0,
-                pos.z | 0
-            );
+            delta = Math.min(delta, 1.0);
             // View
             this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
             this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
-            // Gravity
-            if(this.in_water && !isSpectator) {
-                this.walking
-                if(this.falling && !this.flying) {
-                    velocity.y += -(30 * delta / 4);
-                }
-                if(this.in_water && velocity.y < 0) {
-                    velocity.y = -30 * delta;
-                }
-                if(this.keys[KEY.SPACE]) {
-                    if(performance.now() - this.in_water_from_time > 500) {
-                        velocity.y = 90 * delta;
-                    }
-                } else if(this.keys[KEY.SHIFT]) {
-                    velocity.y = -90 * delta;
-                }
+
+            let pc                 = this.getPlayerControl();
+            this.posO              = new Vector(this.lerpPos);
+            pc.controls.back       = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
+            pc.controls.forward    = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
+            pc.controls.right      = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
+            pc.controls.left       = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
+            pc.controls.jump       = !!this.keys[KEY.SPACE];
+            pc.controls.sneak      = !!this.keys[KEY.SHIFT];
+            pc.controls.sprint     = this.running;
+            pc.player_state.yaw    = this.angles[2];
+
+            // Physics tick
+            let ticks = pc.tick(delta);
+
+            if(isSpectator || this.getFlying()) {
+                this.lerpPos = pc.player.entity.position;
+                this.pos = this.lerpPos;
             } else {
-                if(this.falling && !this.flying) {
-                    velocity.y += -(30 * delta);
+                // Prismarine player control
+                if (ticks > 0) {
+                    this.prevPos.copyFrom(this.pos);
                 }
-                // Jumping | flying
-                if(this.keys[KEY.SPACE]) {
-                    if(this.falling) {
-                        if(this.flying) {
-                            velocity.y = 8;
-                        }
-                    } else {
-                        velocity.y = 8;
-                    }
+                this.pos.copyFrom(pc.player.entity.position);
+                if (this.pos.distance(this.prevPos) > 10.0) {
+                    this.lerpPos.copyFrom(this.pos);
                 } else {
-                    if(this.flying) {
-                        velocity.y += -(15 * delta);
-                        if(velocity.y < 0) {
-                            velocity.y = 0;
-                        }
-                    }
-                }
-                if(this.keys[KEY.SHIFT]) {
-                    if(this.flying) {
-                        velocity.y = -8;
-                    }
-                }
-                if(this.keys[KEY.J] && !this.falling) {
-                    velocity.y = 20;
+                    this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
-            // Remove small changes
-            if(Math.round(velocity.x * 100000) / 100000 == 0) velocity.x = 0;
-            if(Math.round(velocity.y * 100000) / 100000 == 0) velocity.y = 0;
-            if(Math.round(velocity.z * 100000) / 100000 == 0) velocity.z = 0;
-            // let hd = this.pos.horizontalDistance(this.posO);
-            this.walking = (Math.abs(velocity.x) > 1 || Math.abs(velocity.z) > 1) && !this.flying && !this.in_water;
-            if(this.walking) {
+
+            // pc.player_state.onGround
+            this.in_water_o = this.in_water;
+            let velocity    = pc.player_state.vel;
+            this.onGroundO = this.onGround;
+            this.onGround   = pc.player_state.onGround;
+            this.in_water   = pc.player_state.isInWater;
+
+            this.checkFalling();
+
+            // Walking
+            this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
+            if(this.walking && this.onGround) {
                 this.walking_frame += delta * (this.in_water ? .2 : 1);
             }
             this.prev_walking = this.walking;
-            // Walking
-            // Calculate new velocity
-            let add_force = this.calcForce();
-            let y = delta/(1/(60/(delta/(1/60))));
-            let p = this.flying ? .97 : .9;
-            p = Math.pow(p, y);
-            this.velocity = velocity
-                .add(add_force.normal())
-                .mul(new Vector(p, 1, p));
-            // applyFov
-            this.applyFov(delta);
-            //
-            this.posO = this.pos;
+            // Walking distance
             this.walkDistO = this.walkDist;
-            // Resolve collision
-            let passable = this.underBlock && this.underBlock.passable ? this.underBlock.passable : 1;
-            if(this.underBlock2 && this.underBlock2.passable) {
-                passable = Math.min(passable, this.underBlock2.passable);
-            }
-            if(isSpectator) {
-                passable = 1;
-            }
-            let mul = (this.running ? this.flying ? 1.15 : 1.5 : 1) * passable / 2.8;
-            this.pos = this.resolveCollision(pos, bPos, this.velocity.mul(new Vector(delta * mul, delta, delta * mul)));
-            this.pos = this.pos
-                .mul(new Vector(1000, 1000, 1000))
-                .round()
-                .div(new Vector(1000, 1000, 1000));
-            //
-            this.walkDist += this.pos.horizontalDistance(this.posO) * 0.6;
+            this.walkDist += this.lerpPos.horizontalDistance(this.posO) * 0.6;
             //
             this.oBob = this.bob;
             let f = 0;
             //if (this.onGround && !this.isDeadOrDying()) {
                 // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
-                f = Math.min(0.1, this.pos.horizontalDistance(this.posO));
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO));
             //} else {
                 //   f = 0.0F;
             //}
@@ -753,21 +830,9 @@ export default class Player {
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
-                this.underBlock         = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y - 1, this.blockPos.z);
-                this.underBlock2        = Game.world.chunkManager.getBlock(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                if(this.underBlock.id >= 0) {
-                    this.blockPosO          = this.blockPos;
-                }
+                this.blockPosO          = this.blockPos;
             }
-            this.legsBlock = Game.world.chunkManager.getBlock(this.blockPos.x, this.pos.y | 0, this.blockPos.z);
-            this.in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.legsBlock.id) >= 0;
-            if(this.in_water && !this.in_water_o) {
-                this.in_water_from_time = performance.now();
-                if(!isSpectator) {
-                    this.flying = false;
-                }
-            }
-            this.in_water_o = this.in_water;
+
             // Внутри какого блока находится голова (в идеале глаза)
             let hby = this.pos.y + this.height;
             this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
@@ -776,51 +841,42 @@ export default class Player {
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
-                let blockOverIsFluid = (headBlockOver.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
+                let blockOverIsFluid = (headBlockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
                     this.eyes_in_water = hby < (hby | 0) + power + .01;
                 }
             }
+
+            //
+            this.applyFov(delta);
+
         }
         this.lastUpdate = performance.now();
     }
 
-    //
-    calcForce() {
-        let calcSpeed = (v) => {
-            let passed = performance.now() - v;
-            if(!this.flying) {
-                passed = 1000;
-            } else if(passed < 500) {
-                passed = 500;
+    // Проверка падения (урон)
+    checkFalling() {
+        if(!Game.world.game_mode.isSurvival()) {
+            return;
+        }
+        if(!this.onGround) {
+            // do nothing
+        } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
+            let bp = this.getBlockPos();
+            let height = bp.y - this.lastBlockPos.y;
+            if(height < 0) {
+                let damage = -height - 3;
+                // let falling_time = performance.now() - this.lastOnGroundTime;
+                if(damage > 0) {
+                    Game.hotbar.damage(damage / 20, 'falling');
+                }
             }
-            let resp = Math.max(0, Math.min(passed / 1000, 1));
-            resp = Math.min(resp, 5);
-            return resp;
-        };
-        let add_force = new Vector(0, 0, 0);
-        if(this.keys[KEY.W] && !this.keys[KEY.S]) {
-            let speed = calcSpeed(this.keys[KEY.W]);
-            add_force.x += Math.cos(Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI / 2 - this.angles[2]) * speed;
+            this.lastOnGroundTime = null;
+        } else {
+            this.lastOnGroundTime = performance.now();
+            this.lastBlockPos = this.getBlockPos();
         }
-        if(this.keys[KEY.S] && !this.keys[KEY.W]) {
-            let speed = calcSpeed(this.keys[KEY.S]);
-            add_force.x += Math.cos(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        if(this.keys[KEY.A] && !this.keys[KEY.D]) {
-            let speed = calcSpeed(this.keys[KEY.A]);
-            add_force.x += Math.cos(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        if(this.keys[KEY.D] && !this.keys[KEY.A]) {
-            let speed = calcSpeed(this.keys[KEY.D]);
-            add_force.x += Math.cos(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-            add_force.z += Math.sin(-Math.PI / 2 + Math.PI / 2 - this.angles[2]) * speed;
-        }
-        return add_force;
     }
 
     //
@@ -847,106 +903,6 @@ export default class Player {
                 }
             }
         }
-    }
-
-    // Resolves collisions between the player and blocks on XY level for the next movement step.
-    resolveCollision(pos, bPos, velocity) {
-        let world = this.world;
-        let v_margin = 0.3; // 0.125
-        let size = 0.6; // 0.25
-        let playerRect = {
-            x: pos.x + velocity.x,
-            y: pos.y + velocity.y,
-            z: pos.z + velocity.z,
-            size: size
-        };
-        let shiftPressed = !!this.keys[KEY.SHIFT] && !this.flying && !this.in_water;
-        // Collect XZ collision sides
-        let collisionCandidates = [];
-        if(!this.world.game_mode.isSpectator()) {
-            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                    for(let y = bPos.y; y <= bPos.y + 1; y++) {
-                        let block = world.chunkManager.getBlock(x, y, z);
-                        // Позволяет не падать с края блоков, если зажат [Shift]
-                        if(block.passable && shiftPressed && !this.flying && y == bPos.y) {
-                            let underBlock = world.chunkManager.getBlock(x, y - 1, z);
-                            if(underBlock.passable) {
-                                if (!world.chunkManager.getBlock(x - 1, y - 1, z).passable) collisionCandidates.push({x: x + .5,      dir: -1,    z1: z, z2: z + 1});
-                                if (!world.chunkManager.getBlock(x + 1, y - 1, z).passable) collisionCandidates.push({x: x + 1 - .5,  dir:  1,    z1: z, z2: z + 1});
-                                if (!world.chunkManager.getBlock(x, y - 1, z - 1).passable) collisionCandidates.push({z: z + .5,      dir: -1,    x1: x, x2: x + 1});
-                                if (!world.chunkManager.getBlock(x, y - 1, z + 1).passable) collisionCandidates.push({z: z + 1 - .5,  dir:  1,    x1: x, x2: x + 1});
-                                continue;
-                            }
-                        }
-                        if (!block.passable) {
-                            if (world.chunkManager.getBlock(x - 1, y, z).passable) collisionCandidates.push({x: x,      dir: -1,    z1: z, z2: z + 1});
-                            if (world.chunkManager.getBlock(x + 1, y, z).passable) collisionCandidates.push({x: x + 1,  dir:  1,    z1: z, z2: z + 1});
-                            if (world.chunkManager.getBlock(x, y, z - 1).passable) collisionCandidates.push({z: z,      dir: -1,    x1: x, x2: x + 1});
-                            if (world.chunkManager.getBlock(x, y, z + 1).passable) collisionCandidates.push({z: z + 1,  dir:  1,    x1: x, x2: x + 1});
-                        }
-                    }
-                }
-            }
-        }
-        // Solve XZ collisions
-        for(let i in collisionCandidates)  {
-            let side = collisionCandidates[i];
-            if (Helpers.lineRectCollide(side, playerRect)) {
-                if(side.x != null && velocity.x * side.dir < 0) {
-                    pos.x = side.x + playerRect.size / 2 * (velocity.x > 0 ? -1 : 1);
-                    velocity.x = 0;
-                } else if(side.z != null && velocity.z * side.dir < 0) {
-                    pos.z = side.z + playerRect.size / 2 * (velocity.z > 0 ? -1 : 1);
-                    velocity.z = 0;
-                }
-            }
-        }
-        let falling = true;
-        let playerFace = {
-            x1: pos.x + velocity.x - v_margin,
-            z1: pos.z + velocity.z - v_margin,
-            x2: pos.x + velocity.x + v_margin,
-            z2: pos.z + velocity.z + v_margin
-        };
-        let newBYLower = Math.floor(pos.y + velocity.y);
-        let newBYUpper = Math.floor(pos.y + this.height + velocity.y * 1.1);
-        // Collect Y collision sides
-        collisionCandidates = [];
-        if(!this.world.game_mode.isSpectator()) {
-            for(let x = bPos.x - 1; x <= bPos.x + 1; x++) {
-                for(let z = bPos.z - 1; z <= bPos.z + 1; z++) {
-                    if (!world.chunkManager.getBlock(x, newBYLower, z).passable)
-                        collisionCandidates.push({y: newBYLower + 1, dir: 1, x1: x, z1: z, x2: x + 1, z2: z + 1});
-                    if (!world.chunkManager.getBlock( x, newBYUpper, z).passable)
-                        collisionCandidates.push({y: newBYUpper, dir: -1, x1: x, z1: z, x2: x + 1, z2: z + 1});
-                }
-            }
-        }
-        // Solve Y collisions
-        for(let i in collisionCandidates) {
-            let face = collisionCandidates[i];
-            if (Helpers.rectRectCollide(face, playerFace) && velocity.y * face.dir < 0) {
-                if(velocity.y < 0) {
-                    falling         = false;
-                    pos.y           = face.y;
-                    velocity.y      = 0;
-                    this.velocity.y = 0;
-                } else {
-                    pos.y           = face.y - this.height;
-                    velocity.y      = 0;
-                    this.velocity.y = 0;
-                }
-                break;
-            }
-        }
-        this.falling = falling;
-        if(!falling && this.flying) {
-            this.flying = false;
-        }
-        // Return solution
-        // velocity.y = 0;
-        return pos.add(velocity);
     }
 
 }

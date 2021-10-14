@@ -7,14 +7,15 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"whiteframe.ru/webcraft/Struct"
-	"whiteframe.ru/webcraft/utils/conf"
+	"madcraft.io/madcraft/Struct"
+	"madcraft.io/madcraft/utils/conf"
 )
 
 type (
 	// UserConn ...
 	UserConn struct {
 		ID       string // уникальный ID соединения
+		IDInt    int64  // ID в базе данных
 		Username string
 		Skin     string
 		Angles   []float32

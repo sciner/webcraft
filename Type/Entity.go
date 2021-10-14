@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"whiteframe.ru/webcraft/Struct"
+	"madcraft.io/madcraft/Struct"
 )
 
 type (

@@ -35,6 +35,7 @@ func (this *UserConnMan) Connect(ID, username, skin string, Ws *websocket.Conn) 
 		Ws:       Ws,
 	}
 	log.Printf("Create new UserConn")
+	//
 	go this.Connections[ID].Receiver()
 	return this.Connections[ID]
 }

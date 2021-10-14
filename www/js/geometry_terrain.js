@@ -1,21 +1,18 @@
 export default class GeometryTerrain {
 
     constructor(vertices) {
-        this.vertices = vertices;
+        // убрал, для уменьшения объема оперативной памяти
+        // this.vertices = vertices;
         this.updateID = 0;
         this.uploadID = -1;
-
         this.strideFloats = GeometryTerrain.strideFloats;
         this.stride = this.strideFloats * 4;
-
         if (vertices instanceof Array) {
             this.data = new Float32Array(vertices);
         } else {
             this.data = vertices;
         }
-
         this.size = this.data.length / this.strideFloats;
-
         /**
          *
          * @type {BaseBuffer}
@@ -85,7 +82,6 @@ export default class GeometryTerrain {
         if (shader) {
             this.attribs = shader;
             this.context = shader.context;
-
             // when WebGL
             this.gl = shader.context.gl;
         }
@@ -94,9 +90,8 @@ export default class GeometryTerrain {
             this.buffer = this.context.createBuffer({
                 data: this.data
             });
-
+            // this.data = null;
             this.quad = GeometryTerrain.bindQuad(this.context, true);
-
             this.buffers = [
                 this.buffer,
                 this.quad

@@ -34,7 +34,7 @@ export default class PlayerModel {
         this.textContext.textAlign      = 'left';
         this.textContext.textBaseline   = 'top';
         this.textContext.font           = '24px Minecraftia';
-        this.modelMatrix = mat4.create();
+        this.modelMatrix                = mat4.create();
     }
 
     // draw

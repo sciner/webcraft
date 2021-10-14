@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"whiteframe.ru/webcraft/Struct"
+	"madcraft.io/madcraft/Struct"
 )
 
 type (

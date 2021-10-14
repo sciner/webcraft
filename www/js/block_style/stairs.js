@@ -1,7 +1,4 @@
-import {DIRECTION, MULTIPLY, ROTATE, TX_CNT} from '../helpers.js';
-import { default as push_plane_style } from './plane.js';
-
-const push_plane = push_plane_style.getRegInfo().func;
+import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
 
 // Ступеньки
 export default class style {
@@ -15,223 +12,73 @@ export default class style {
 
     static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
 
-        const half          = 0.5 / TX_CNT;
-        let poses           = [];
-        let texture         = BLOCK.fromId(block.id).texture;
+        let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
-
-        block.transparent   = true;
+        let ao              = [0, 0, 0, 0];
+        let pos             = new Vector(x, y, z);
+        let flags           = 0, sideFlags = 0, upFlags = 0;
+        let shapes          = BLOCK.getShapes(pos, block, chunk, true, false, neighbours);
 
         // полная текстура
-        let c = BLOCK.calcTexture(texture, DIRECTION.UP);
+        let c_full = BLOCK.calcTexture(texture, DIRECTION.UP);
 
-        // четверть текстуры
-        let c_half = [
-            c[0] - half/2,
-            c[1] - half/2,
-            c[2] - half,
-            c[3] - half,
-        ];
-        // нижняя половина текстуры
-        let c_half_bottom = [
-            c[0],
-            c[1] + half/2,
-            c[2],
-            c[3] - half,
-        ];
-
-        const cardinal_direction = BLOCK.getCardinalDirection(block.rotate).z;
-        let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
-
-        let yt = y + .5;
-        let yb = y;
-        if(on_ceil) {
-            yt -= .5;
-            yb += .5;
-        }
-
-        let ao = [0, 0, 0, 0];
-
-        // Нижний слэб
-
-        // South - стенка 1
-        ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
-        push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
-
-        // North - стенка 2
-        ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
-        push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
-
-        // East - стенка 3
-        ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
-        push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, ao, false, false, null, .5, null);
-
-        // West - стенка 4
-        ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
-        push_plane(vertices, x - 0.5, yb, z, c_half_bottom, lm, ao, false, false, null, .5, null);
-
-        c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
-
-        // дно
-        vertices.push(x + .5, z + .5, yb,
-            1, 0, 0,
-            0, -1, 0,
-            c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ...ao, 0);
-
-        // поверхность нижней ступени
-        const bH = 0.5;
-        vertices.push(x + .5, z + .5, yb + bH,
-            1, 0, 0,
-            0, 1, 0,
-            ...c,
-            lm.r, lm.g, lm.b,
-            ...ao, 0);
-
-        //
-        let checkIfSame = (b) => {
-            return b && b.tags && b.tags.indexOf('stairs') >= 0;
-        };
-        //
-        let compareCD = (b) => {
-            return checkIfSame(b) && BLOCK.getCardinalDirection(b.rotate).z == cardinal_direction;
-        };
-
-        // F R B L
-        switch(cardinal_direction) {
-            case ROTATE.S: {
-                poses = [
-                    new Vector(0, yt, .5),
-                    new Vector(-.5, yt, .5),
-                ];
-                // удаление лишних
-                if(!(checkIfSame(neighbours.WEST) && checkIfSame(neighbours.EAST)) && checkIfSame(neighbours.NORTH)) {
-                    if(compareCD(neighbours.WEST)) {
-                        poses.shift();
-                    } else if(compareCD(neighbours.EAST)) {
-                        poses.pop();
-                    }
-                }
-                // добавление недостающих
-                if(checkIfSame(neighbours.SOUTH)) {
-                    let cd = BLOCK.getCardinalDirection(neighbours.SOUTH.rotate).z;
-                    if(cd == ROTATE.W) {
-                        poses.push(new Vector(0, yt, 0));
-                    } else if(cd == ROTATE.E) {
-                        poses.push(new Vector(-.5, yt, 0));
-                    }
-                }
-                break;
-            }
-            case ROTATE.W: {
-                poses = [
-                    new Vector(0, yt, 0),
-                    new Vector(0, yt, .5),
-                ];
-                // удаление лишних
-                if(!(checkIfSame(neighbours.NORTH) && checkIfSame(neighbours.SOUTH)) && checkIfSame(neighbours.EAST)) {
-                    if(compareCD(neighbours.NORTH)) {
-                        poses.shift();
-                    } else if(compareCD(neighbours.SOUTH)) {
-                        poses.pop();
-                    }
-                }
-                // добавление недостающих
-                if(checkIfSame(neighbours.WEST)) {
-                    let cd = BLOCK.getCardinalDirection(neighbours.WEST.rotate).z;
-                    if(cd == ROTATE.S) {
-                        poses.push(new Vector(-.5, yt, .5));
-                    } else if(cd == ROTATE.N) {
-                        poses.push(new Vector(-.5, yt, 0));
-                    }
-                }
-                break;
-            }
-            case ROTATE.N: {
-                poses = [
-                    new Vector(0, yt, 0),
-                    new Vector(-.5, yt, 0),
-                ];
-                // удаление лишних
-                if(!(checkIfSame(neighbours.WEST) && checkIfSame(neighbours.EAST)) && checkIfSame(neighbours.SOUTH)) {
-                    if(compareCD(neighbours.WEST)) {
-                        poses.shift();
-                    } else if(compareCD(neighbours.EAST)) {
-                        poses.pop();
-                    }
-                }
-                // добавление недостающих
-                if(checkIfSame(neighbours.NORTH)) {
-                    let cd = BLOCK.getCardinalDirection(neighbours.NORTH.rotate).z;
-                    if(cd == ROTATE.E) {
-                        poses.push(new Vector(-.5, yt, .5));
-                    } else if(cd == ROTATE.W || cd == ROTATE.N) {
-                        poses.push(new Vector(0, yt, .5));
-                    }
-                }
-                break;
-            }
-            case ROTATE.E: {
-                poses = [
-                    new Vector(-.5, yt, 0),
-                    new Vector(-.5, yt, .5),
-                ];
-                // удаление лишних
-                if(!(checkIfSame(neighbours.NORTH) && checkIfSame(neighbours.SOUTH)) && checkIfSame(neighbours.WEST)) {
-                    if(compareCD(neighbours.NORTH)) {
-                        poses.shift();
-                    } else if(compareCD(neighbours.SOUTH)) {
-                        poses.pop();
-                    }
-                }
-                // добавление недостающих
-                if(checkIfSame(neighbours.EAST)) {
-                    let cd = BLOCK.getCardinalDirection(neighbours.EAST.rotate).z;
-                    if(cd == ROTATE.S) {
-                        poses.push(new Vector(0, yt, .5));
-                    } else if(cd == ROTATE.N) {
-                        poses.push(new Vector(0, yt, 0));
-                    }
-                }
-                break;
-            }
-        }
-
-        // Верхняя ступень
-        for(let pose of poses) {
-
-            // левая стенка
-            push_plane(vertices, x + 0.5 + pose.x, pose.y, z + pose.z, c_half, lm, ao, false, false, null, .5, .5);
-
-            // передняя стенка
-            push_plane(vertices, x + 0.5 + pose.x, pose.y, z - 0.5 + pose.z, c_half, lm, ao, true, false, .5, .5, null);
-
-            // задняя стенка
-            push_plane(vertices, x + 0.5 + pose.x, pose.y, z + pose.z, c_half, lm, ao, true, false, .5, .5, null);
-
-            // правая стенка
-            push_plane(vertices, x + pose.x, pose.y, z + pose.z, c_half, lm, ao, false, false, null, .5, .5);
-
-            // поверхность
-            vertices.push(x + .75 + pose.x, z + .25 + pose.z, pose.y + .5,
-                .5, 0, 0,
-                0, .5, 0,
-                c_half[0], c_half[1], c_half[2], c_half[3],
+        for(let shape of shapes) {
+            let x1          = shape[0] + pos.x + .5;
+            let x2          = shape[3] + pos.x + .5;
+            let y1          = shape[1] + pos.y + .5;
+            let y2          = shape[4] + pos.y + .5;
+            let z1          = shape[2] + pos.z + .5;
+            let z2          = shape[5] + pos.z + .5;
+            let xw          = x2 - x1; // ширина по оси X
+            let yw          = y2 - y1; // ширина по оси Y
+            let zw          = z2 - z1; // ширина по оси Z
+            let xpos        = -.5 + x1 + xw/2;
+            let y_top       = -.5 + y2;
+            let y_bottom    = -.5 + y1;
+            let zpos        = -.5 + z1 + zw/2;
+            let c           = c_full;
+            // Up; X,Z,Y
+            vertices.push(xpos, zpos, y_top,
+                xw, 0, 0,
+                0, zw, 0,
+                c[0], c[1], c[2] * xw, c[3] * zw,
                 lm.r, lm.g, lm.b,
-                ...ao, 0);
-
-            // дно
-            vertices.push(x + .75 + pose.x, z + .25 + pose.z, pose.y,
-                .5, 0, 0,
-                0, -.5, 0,
-                c_half[0], c_half[1], c_half[2], c_half[3],
+                ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+            // Bottom
+            vertices.push(xpos, zpos, y_bottom,
+                xw, 0, 0,
+                0, -zw, 0,
+                c[0], c[1], c[2] * xw, c[3] * zw,
                 lm.r, lm.g, lm.b,
-                ...ao, 0);
+                ao[0], ao[1], ao[2], ao[3], flags);
+            // South | Forward | z++ (XZY)
+            vertices.push(xpos, zpos - zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, yw,
+                c[0], c[1], c[2] * xw, -c[3] * yw,
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // North | Back | z--
+            vertices.push(xpos, zpos + zw/2, y_bottom + yw/2,
+                xw, 0, 0,
+                0, 0, -yw,
+                c[0], c[1], -c[2] * xw, c[3] * yw,
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // West | Left | x--
+            vertices.push(xpos - xw/2, zpos, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, -yw,
+                c[0], c[1], -c[2] * zw, c[3] * yw,
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+            // East | Right | x++
+            vertices.push(xpos + xw/2, zpos, y_bottom + yw/2,
+                0, zw, 0,
+                0, 0, yw,
+                c[0], c[1], -c[2] * zw, c[3] * yw,
+                lm.r, lm.g, lm.b,
+                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
         }
 
     }

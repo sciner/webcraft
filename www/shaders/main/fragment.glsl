@@ -60,6 +60,10 @@ void drawCrosshair() {
     }
 }
 
+vec3 gamma(vec3 color){
+    return pow(color, vec3(1.0/2.0));
+}
+
 void main() {
 
     vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
@@ -141,6 +145,8 @@ void main() {
         outColor.r = (outColor.r * (1. - u_fogAddColor.a) + u_fogAddColor.r * u_fogAddColor.a);
         outColor.g = (outColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
         outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
+
+        // outColor = vec4(gamma(outColor.rgb), outColor.a);
 
         // Draw crosshair
         drawCrosshair();

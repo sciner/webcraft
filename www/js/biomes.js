@@ -95,7 +95,7 @@ BIOMES.SUBTROPICAL_DESERT = {
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
-            {percent: 1, trunk: blocks.ACACIA_TRUNK, leaves: blocks.ACACIA_LEAVES, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 1, trunk: blocks.ACACIA_TRUNK, leaves: blocks.ACACIA_LEAVES, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.25}}
         ]
     },
     plants: {

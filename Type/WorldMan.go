@@ -3,13 +3,13 @@ package Type
 import (
 	"sync"
 
-	"whiteframe.ru/webcraft/Struct"
+	"madcraft.io/madcraft/Struct"
 )
 
 type (
 	// WorldMan ...
 	WorldMan struct {
-		Worlds map[string]*World // Registered connections.
+		Worlds map[string]*World // Registered connections
 	}
 )
 
@@ -17,6 +17,7 @@ func (this *WorldMan) Get(ID string, Seed string) *World {
 	if val, ok := this.Worlds[ID]; ok {
 		return val
 	}
+	//
 	this.Worlds[ID] = &World{
 		ID:          ID,
 		Seed:        Seed,

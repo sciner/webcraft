@@ -364,7 +364,10 @@ export default class BaseRenderer {
             width: 0,
             height: 0
         };
-
+        this.stat = {
+            drawcalls: 0,
+            drawquads: 0
+        };
         this._textures = {};
         this._buffers = {};
         this._emptyTex3D = this.createTexture3D({

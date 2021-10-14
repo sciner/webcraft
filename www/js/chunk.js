@@ -1,6 +1,8 @@
-import {Vector} from "./helpers.js";
+import {Vector, VectorCollector} from "./helpers.js";
 import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
+import {TypedBlocks} from "./typed_blocks.js";
+import { Sphere } from "./frustum.js";
 
 // Creates a new chunk
 export default class Chunk {
@@ -15,7 +17,6 @@ export default class Chunk {
 
         // info
         this.key = chunkManager.getPosChunkKey(pos);
-        this.modify_list = modify_list || [];
 
         // размеры чанка
         this.size = new Vector(
@@ -41,7 +42,7 @@ export default class Chunk {
         );
 
         this.seed = chunkManager.world.seed;
-        this.blocks = null;
+        this.tblocks = null;
 
         this.id = [
             this.addr.x,
@@ -53,17 +54,20 @@ export default class Chunk {
         ].join('_');
 
         // Run webworker method
+        this.modify_list = modify_list || [];
         chunkManager.postWorkerMessage(['createChunk', this]);
+        this.modify_list = [];
 
         // Objects & variables
-        // this.chunkManager               = chunkManager;
         this.inited                     = false;
         this.dirty                      = true;
         this.buildVerticesInProgress    = false;
         this.vertices_length            = 0;
-        this.vertices                   = {};
+        this.vertices                   = new Map();
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
+        // Frustum
+        this.in_frustum                 = false; // в данный момент отрисован на экране
 
         chunkManager.addToDirty(this);
 
@@ -71,13 +75,25 @@ export default class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.blocks = args.blocks;
+        this.tblocks            = new TypedBlocks();
+        this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+        this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
+        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
+        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
+        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
+        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
+        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
+        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
+        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
     }
 
     // onVerticesGenerated ... Webworker callback method
     onVerticesGenerated(args) {
         this.vertices_args = args;
+        this.need_apply_vertices = true;
         if(!this.map) {
             this.map = args.map;
         }
@@ -120,6 +136,7 @@ export default class Chunk {
         let chunkManager = this.getChunkManager();
         const args = this.vertices_args;
         delete(this['vertices_args']);
+        this.need_apply_vertices = false;
         chunkManager.deleteFromDirty(this.key);
         this.buildVerticesInProgress            = false;
         chunkManager.vertices_length_total -= this.vertices_length;
@@ -127,12 +144,11 @@ export default class Chunk {
         this.gravity_blocks                     = args.gravity_blocks;
         this.fluid_blocks                       = args.fluid_blocks;
         // Delete old WebGL buffers
-        for(let key of Object.keys(this.vertices)) {
-            let v = this.vertices[key];
+        for(let [key, v] of this.vertices) {
             if(v.buffer) {
                 v.buffer.destroy();
             }
-            delete(this.vertices[key]);
+            this.vertices.delete(key);
         }
         // Добавление чанка в отрисовщик
         for(let key of Object.keys(args.vertices)) {
@@ -140,9 +156,12 @@ export default class Chunk {
             if(v.list.length > 0) {
                 this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
                 v.buffer              = new GeometryTerrain(v.list);
-                this.vertices[key]   = v;
+                this.vertices.set(key, v);
                 delete(v.list);
             }
+        }
+        if(this.vertices_length == 0) {
+            // @todo
         }
         chunkManager.vertices_length_total += this.vertices_length;
         this.dirty                 = false;
@@ -158,7 +177,7 @@ export default class Chunk {
             this.lightTex.destroy();
         }
         // Run webworker method
-        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key}]);
+        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
     }
 
     // buildVertices
@@ -168,7 +187,7 @@ export default class Chunk {
         }
         this.buildVerticesInProgress = true;
         // Run webworker method
-        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key]}]);
+        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key], addrs: [this.addr]}]);
         return true;
     }
 
@@ -177,21 +196,18 @@ export default class Chunk {
     // directly is easier and faster.
     getBlock(x, y, z) {
         if(!this.inited) {
-            return BLOCK.DUMMY;
+            return this.getChunkManager().DUMMY;
         }
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
-            return BLOCK.DUMMY;
+            return this.getChunkManager().DUMMY;
         }
-        let block = this.blocks[x][z][y];
-        if(!block) {
-            return BLOCK.AIR;
-        }
-        if(typeof block == 'number') {
-           block = BLOCK.BLOCK_BY_ID[block];
-        }
+        let block = this.tblocks.get(new Vector(x, y, z));
+        /*if(!block) {
+            return this.getChunkManager().AIR;
+        }*/
         return block;
     }
 
@@ -225,27 +241,25 @@ export default class Chunk {
         let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
-            type = {...BLOCK[type.name]};
-            type.power      = power;
-            type.rotate     = rotate;
-            type.texture    = null;
-            if(extra_data) {
-                type.extra_data = extra_data;
-            }
-            if(entity_id) {
-                type.entity_id = entity_id;
-            }
-            if(type.gravity) {
-                type.falling = true;
-            }
-            update_vertices = !!extra_data || JSON.stringify(this.blocks[x][z][y]) != JSON.stringify(type);
-            this.blocks[x][z][y] = type;
+            type = BLOCK.BLOCK_BY_ID[type.id];
+            let pos = new Vector(x, y, z);
+            this.tblocks.delete(pos);
+            let new_block           = this.tblocks.get(pos);
+            new_block.id            = type.id;
+            new_block.extra_data    = extra_data;
+            new_block.entity_id     = entity_id;
+            new_block.power         = power;
+            new_block.rotate        = rotate;
+            new_block.falling       = !!type.gravity;
+            //
+            update_vertices         = true; // !!extra_data || JSON.stringify(this.tblocks.get(pos)) != JSON.stringify(type);
         }
         // Run webworker method
         if(update_vertices) {
             let set_block_list = [];
             set_block_list.push({
                 key:        this.key,
+                addr:       this.addr,
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
                 z:          z + this.coord.z,
@@ -256,34 +270,36 @@ export default class Chunk {
                 extra_data: extra_data
             });
             // Принудительная перерисовка соседних чанков
-            let update_neighbors = [];
-            if(x == 0) update_neighbors.push(new Vector(-1, 0, 0));
-            if(x == this.size.x - 1) update_neighbors.push(new Vector(1, 0, 0));
-            if(y == 0) update_neighbors.push(new Vector(0, -1, 0));
-            if(y == this.size.y - 1) update_neighbors.push(new Vector(0, 1, 0));
-            if(z == 0) update_neighbors.push(new Vector(0, 0, -1));
-            if(z == this.size.z - 1) update_neighbors.push(new Vector(0, 0, 1));
+            let update_neighbours = [];
+            if(x == 0) update_neighbours.push(new Vector(-1, 0, 0));
+            if(x == this.size.x - 1) update_neighbours.push(new Vector(1, 0, 0));
+            if(y == 0) update_neighbours.push(new Vector(0, -1, 0));
+            if(y == this.size.y - 1) update_neighbours.push(new Vector(0, 1, 0));
+            if(z == 0) update_neighbours.push(new Vector(0, 0, -1));
+            if(z == this.size.z - 1) update_neighbours.push(new Vector(0, 0, 1));
             // diagonal
-            if(x == 0 && z == 0) update_neighbors.push(new Vector(-1, 0, -1));
-            if(x == this.size.x - 1 && z == 0) update_neighbors.push(new Vector(1, 0, -1));
-            if(x == 0 && z == this.size.z - 1) update_neighbors.push(new Vector(-1, 0, 1));
-            if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbors.push(new Vector(1, 0, 1));
+            if(x == 0 && z == 0) update_neighbours.push(new Vector(-1, 0, -1));
+            if(x == this.size.x - 1 && z == 0) update_neighbours.push(new Vector(1, 0, -1));
+            if(x == 0 && z == this.size.z - 1) update_neighbours.push(new Vector(-1, 0, 1));
+            if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbours.push(new Vector(1, 0, 1));
             // Добавляем выше и ниже
-            let update_neighbors2 = [];
-            for(var update_neighbor of update_neighbors) {
-                update_neighbors2.push(update_neighbor.add(new Vector(0, -1, 0)));
-                update_neighbors2.push(update_neighbor.add(new Vector(0, 1, 0)));
+            let update_neighbours2 = [];
+            for(var update_neighbor of update_neighbours) {
+                update_neighbours2.push(update_neighbor.add(new Vector(0, -1, 0)));
+                update_neighbours2.push(update_neighbor.add(new Vector(0, 1, 0)));
             }
-            update_neighbors.push(...update_neighbors2);
+            update_neighbours.push(...update_neighbours2);
             let updated_chunks = [this.key];
-            for(var update_neighbor of update_neighbors) {
+            for(var update_neighbor of update_neighbours) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-                let key = chunkManager.getPosChunkKey(BLOCK.getChunkAddr(pos));
+                let chunk_addr = BLOCK.getChunkAddr(pos);
+                let key = chunkManager.getPosChunkKey(chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
                     set_block_list.push({
                         key:        key,
+                        addr:       chunk_addr,
                         x:          pos.x,
                         y:          pos.y,
                         z:          pos.z,
@@ -296,6 +312,24 @@ export default class Chunk {
             }
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
+    }
+
+    //
+    updateInFrustum(render) {
+        if(!this.frustum_geometry) {
+            this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
+        }
+        this.in_frustum = render.frustum.intersectsGeometryArray(this.frustum_geometry);
+    }
+
+    //
+    static createFrustumGeometry(coord, size) {
+        let frustum_geometry    = [];
+        let box_radius          = size.x;
+        let sphere_radius       = Math.sqrt(3) * box_radius / 2;
+        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
+        frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
+        return frustum_geometry;
     }
 
 }

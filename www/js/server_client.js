@@ -168,14 +168,14 @@ export default class ServerClient {
         }, 0);
     }
 
-    ChunkAdd(pos) {
+    ChunkAdd(addr) {
         // #3dchunk
         // Game.world.chunkManager.setChunkState({"pos":pos,"modify_list":{}});
-        this.Send({name: ServerClient.EVENT_CHUNK_ADD, data: {pos: pos}});
+        this.Send({name: ServerClient.EVENT_CHUNK_ADD, data: {pos: addr}});
     }
 
-    ChunkRemove(pos) {
-        this.Send({name: ServerClient.EVENT_CHUNK_REMOVE, data: {pos: pos}});
+    ChunkRemove(addr) {
+        this.Send({name: ServerClient.EVENT_CHUNK_REMOVE, data: {pos: addr}});
     }
 
     SendMessage(text) {

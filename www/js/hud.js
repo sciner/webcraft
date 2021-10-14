@@ -54,13 +54,12 @@ export default class HUD {
             },
             draw: function() {
                 let cl = 0;
-                for(let key of Object.keys(Game.world.chunkManager.chunks)) {
-                    let chunk = Game.world.chunkManager.chunks[key];
+                let nc = 35; // #3dchunk (для 2D чанков было 45)
+                for(let chunk of Game.world.chunkManager.chunks) {
                     if(chunk.inited) {
                         cl++;
                     }
                 }
-                let nc = 35; // #3dchunk (для 2D чанков было 45)
                 this.loading = cl < nc;
                 if(!this.loading) {
                     return false;
@@ -306,11 +305,13 @@ export default class HUD {
         }
         // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
         // Chunks inited
-        this.text += '\nChunks inited: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
+        this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
         //
         let quads_length_total = Game.world.chunkManager.vertices_length_total;
-        this.text += '\nQuads: ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+        this.text += '\nQuads: ' + Game.render.renderBackend.stat.drawquads + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
             ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+        //
+        this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         //
         // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)

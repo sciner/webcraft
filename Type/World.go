@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"whiteframe.ru/webcraft/Struct"
+	"madcraft.io/madcraft/Struct"
 )
 
 const (
@@ -22,6 +22,7 @@ const (
 type (
 	World struct {
 		ID          string
+		IDInt       int64
 		Seed        string
 		Mu          *sync.Mutex          // чтобы избежать коллизий
 		Connections map[string]*UserConn // Registered connections.
@@ -31,6 +32,8 @@ type (
 		Directory   string
 		State       *Struct.WorldState
 		Attr        *Struct.WorldAttrs
+		Db          *GameDatabase
+		Chat        *Chat
 	}
 )
 
@@ -41,6 +44,16 @@ func (this *World) Load() {
 	this.Attr = this.LoadAttr()
 	//
 	this.State = &Struct.WorldState{}
+	//
+	this.Db = GetGameDatabase(this.Directory + "/world.sqlite")
+	//
+	this.Chat = &Chat{
+		World: this,
+		Db:    this.Db,
+	}
+	//
+	this.IDInt = this.Db.GetWorldID(this)
+	//
 	this.Entities.Load(this)
 }
 
@@ -90,6 +103,10 @@ func (this *World) OnPlayer(conn *UserConn) {
 	}
 	log.Printf("OnPlayer add conn: %s", conn.ID)
 	this.Connections[conn.ID] = conn
+	//
+	// Insert to DB if new user
+	this.Connections[conn.ID].IDInt = this.Db.GetUserID(this.Connections[conn.ID])
+	//
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
@@ -167,6 +184,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		json.Unmarshal(out, &params)
 		chunkAddr := this.GetChunkAddr(params.Pos)
 		chunk := this.ChunkGet(chunkAddr)
+		this.Db.BlockSet(conn, this, params)
 		chunk.BlockSet(conn, params, false)
 
 	case Struct.CLIENT_CREATE_ENTITY:
@@ -195,7 +213,6 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 
 	// Пользователь выгрузил чанк
 	case Struct.EVENT_CHUNK_REMOVE:
-
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChunkRemove
 		json.Unmarshal(out, &params)
@@ -211,15 +228,13 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		if len(chunk.Connections) < 1 {
 			delete(this.Chunks, params.Pos)
 		}
+
 	case Struct.EVENT_CHAT_SEND_MESSAGE:
 		// Send to users
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChatSendMessage
 		json.Unmarshal(out, &params)
-		params.Nickname = conn.Username
-		packet := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: params, ID: nil}
-		packets := []Struct.JSONResponse{packet}
-		this.SendAll(packets, []string{conn.ID})
+		this.Chat.SendMessage(conn, this, params)
 
 	case Struct.EVENT_PLAYER_STATE:
 		out, _ := json.Marshal(cmdIn.Data)

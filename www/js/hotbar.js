@@ -9,10 +9,27 @@ export class Hotbar {
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
         this.lives              = 1; // 0.95;
         this.foods              = 1.;
+        //
+        this.sounds = {
+            hit3: new Howl({src: ['/sounds/hit3.ogg'], volume: .5})
+        };
+        //
         this.image.onload = function() {
             that.hud.add(that, 0);
         }
         this.image.src = './media/hotbar.png';
+    }
+
+    //
+    damage(damage_value, reason_text) {
+        if(damage_value > 0) {
+            let min_damage = .5/20;
+            this.lives = Math.max(this.lives - damage_value, 0);
+            this.lives = Math.round(this.lives / min_damage) * min_damage;
+            this.hud.refresh();
+            console.log('Damage ' + damage_value + ', reason: ' + reason_text);
+            this.sounds.hit3.play();
+        }
     }
 
     setState(new_state) {

@@ -2,6 +2,8 @@ let queue               = [];
 
 // Modules
 let Vector              = null;
+let VectorCollector     = null;
+let TypedBlocks         = null;
 let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
@@ -9,17 +11,28 @@ let CHUNK_SIZE_Z        = null;
 let CHUNK_BLOCKS        = null;
 let CHUNK_SIZE_Y_MAX    = null;
 let MAX_CAVES_LEVEL     = null;
-let VectorCollector     = null;
 
 let MAX_TORCH_POWER     = 16;
 
 // Vars
 let all_blocks          = []; // 1. All blocks
-let chunks              = {};
+let chunks              = null;
 let terrainGenerator    = null;
 
 // ChunkManager
 class ChunkManager {
+
+    constructor() {
+        this.DUMMY = {
+            id: BLOCK.DUMMY.id,
+            shapes: [],
+            properties: BLOCK.DUMMY,
+            material: BLOCK.DUMMY,
+            getProperties: function() {
+                return this.properties;
+            }
+        };
+    }
 
     // Возвращает координаты чанка по глобальным абсолютным координатам
     getChunkAddr(x, y, z) {
@@ -36,12 +49,8 @@ class ChunkManager {
     }
 
     // Get
-    getChunk(pos) {
-        let k = this.getPosChunkKey(pos);
-        if(chunks.hasOwnProperty(k)) {
-            return chunks[k];
-        }
-        return null;
+    getChunk(addr) {
+        return chunks.get(addr);
     }
 
     // Возвращает блок по абслютным координатам
@@ -55,7 +64,7 @@ class ChunkManager {
             // просим вернуть блок передав абсолютные координаты
             return chunk.getBlock(x, y, z);
         }
-        return BLOCK.DUMMY;
+        return this.DUMMY;
     }
 
 }
@@ -64,15 +73,15 @@ class ChunkManager {
 class Chunk {
 
     constructor(args) {
-        this.instanced_blocks = {
-            CONCRETE: blocks.CONCRETE
-        };
         Object.assign(this, args);
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
 
-    init(chunkManager) {
-        this.chunkManager = chunkManager;
+    get chunkManager() {
+        return world.chunkManager;
+    }
+
+    init() {
         // Variables
         this.vertices_length    = 0;
         this.vertices           = {};
@@ -89,21 +98,17 @@ class Chunk {
         };
         // 1. Initialise world array
         this.timers.init = performance.now();
-        this.blocks = new Array(this.size.x);
-        for(let x = 0; x < this.size.x; x++) {
-            this.blocks[x] = new Array(this.size.z);
-            for(let z = 0; z < this.size.z; z++) {
-                this.blocks[x][z] = [];
-            }
-        }
+        this.tblocks = new TypedBlocks();
+        //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
         // 2. Generate terrain
         this.timers.generate_terrain = performance.now();
         this.map = terrainGenerator.generate(this);
         let c = {
-            key:    this.key,
-            blocks: this.blocks,
-            map:    this.map
+            key:        this.key,
+            addr:       this.addr,
+            tblocks:    this.tblocks,
+            map:        this.map
         };
         // console.log(JSON.stringify(c).length);
         this.timers.generate_terrain = Math.round((performance.now() - this.timers.generate_terrain) * 1000) / 1000;
@@ -120,7 +125,7 @@ class Chunk {
     // Процедура поиска всех источников света в чанке
     findLights() {
         this.lights = [];
-        for(let y = 0; y < this.size.y; y++) {
+        /*for(let y = 0; y < this.size.y; y++) {
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
                     let block = this.blocks[x][z][y];
@@ -132,7 +137,7 @@ class Chunk {
                     }
                 }
             }
-        }
+        }*/
     }
 
     //
@@ -143,22 +148,19 @@ class Chunk {
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
             let pos         = key.split(',');
+            pos = new Vector(pos[0], pos[1], pos[2]);
             if(m.id < 1) {
-                pos = new Vector(pos[0], pos[1], pos[2]);
                 pos = BLOCK.getBlockIndex(pos);
-                this.blocks[pos.x][pos.z][pos.y] = null;
+                this.tblocks.delete(pos);
                 continue;
             }
             let type        = BLOCK.fromId(m.id);
-            if(type.id == -1) {
-                console.error(pos, m);
-                return;
-            }
             let rotate      = m.rotate ? m.rotate : null;
             let entity_id   = m.entity_id ? m.entity_id : null;
             let extra_data  = m.extra_data ? m.extra_data : null;
-            this.setBlock(pos[0] | 0, pos[1] | 0, pos[2] | 0, type, false, m.power, rotate, entity_id, extra_data);
+            this.setBlock(pos.x | 0, pos.y | 0, pos.z | 0, type, false, m.power, rotate, entity_id, extra_data);
         }
+        this.modify_list = [];
     }
 
     // Get the type of the block at the specified position.
@@ -169,14 +171,15 @@ class Chunk {
         let y = oy - this.coord.y;
         let z = oz - this.coord.z;
         if(x < 0 || y < 0 || x > this.size.x - 1 || y > this.size.y - 1 || z > this.size.z - 1) {
-            return BLOCK.DUMMY;
+            return world.chunkManager.DUMMY;
         };
         if(z < 0 || z >= this.size.y) {
-            return BLOCK.DUMMY;
+            return world.chunkManager.DUMMY;
         }
         let block = null;
         try {
-            block = this.blocks[x][z][y];
+            // block = this.blocks[x][z][y];
+            block = this.tblocks.get(new Vector(x, y, z));
         } catch(e) {
             console.error(e);
             console.log(x, y, z);
@@ -185,7 +188,7 @@ class Chunk {
         if(block == null) {
             return blocks.AIR;
         }
-        return block || BLOCK.DUMMY;
+        return block || world.chunkManager.DUMMY;
     }
 
     // setBlock
@@ -199,7 +202,7 @@ class Chunk {
             );
         } else {
             rotate = null;
-        };
+        }
         // fix power
         if(typeof power === 'undefined' || power === null) {
             power = 1.0;
@@ -208,6 +211,14 @@ class Chunk {
         if(power <= 0) {
             return;
         }
+        //
+        if(orig_type.id < 3) {
+            power       = null;
+            rotate      = null;
+            extra_data  = null;
+        }
+        if(power == 1) power = null;
+        //
         if(is_modify) {
             let modify_item = {
                 id: orig_type.id,
@@ -227,12 +238,13 @@ class Chunk {
         if(is_modify) {
             console.table(orig_type);
         }
-        this.blocks[x][z][y]            = BLOCK.cloneFromId(orig_type.id);
-        this.blocks[x][z][y].power      = power;
-        this.blocks[x][z][y].rotate     = rotate;
-        this.blocks[x][z][y].entity_id  = entity_id;
-        this.blocks[x][z][y].texture    = null;
-        this.blocks[x][z][y].extra_data = extra_data;
+        let block        = this.tblocks.get(new Vector(x, y, z));
+        block.id         = orig_type.id;
+        block.power      = power;
+        block.rotate     = rotate;
+        block.entity_id  = entity_id;
+        block.texture    = null;
+        block.extra_data = extra_data;
     }
 
     // Обновление карты свет для чанка
@@ -315,10 +327,102 @@ class Chunk {
         delete(this.lightmap_temp);
     }
 
+    // Возвращает всех 6-х соседей блока
+    getBlockNeighbours(pos) {
+        let x = pos.x;
+        let y = pos.y;
+        let z = pos.z;
+        let cc = [
+            {x:  0, y:  1, z:  0},
+            {x:  0, y: -1, z:  0},
+            {x:  0, y:  0, z: -1},
+            {x:  0, y:  0, z:  1},
+            {x: -1, y:  0, z:  0},
+            {x:  1, y:  0, z:  0}
+        ];
+        let neighbours = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
+        let pcnt = 0;
+        // обходим соседние блоки
+        for(let p of cc) {
+            let b = null;
+            if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
+                // если сосед внутри того же чанка
+                b = this.tblocks.get(new Vector(x + p.x, y + p.y, z + p.z));
+            } else {
+                // если блок с краю чанка или вообще в соседнем чанке
+                if(p.x == -1) {
+                    if(x == 0) {
+                        b = this.neighbour_chunks.nx.tblocks.get(new Vector(this.size.x - 1, y, z));
+                    } else {
+                        b = this.tblocks.get(new Vector(x - 1, y, z));
+                    }
+                } else if (p.x == 1) {
+                    if(x == this.size.x - 1) {
+                        b = this.neighbour_chunks.px.tblocks.get(new Vector(0, y, z));
+                    } else {
+                        b = this.tblocks.get(new Vector(x + 1, y, z));
+                    }
+                // Y
+                } else if (p.y == -1) {
+                    if(y == 0) {
+                        if(this.neighbour_chunks.ny) {
+                            b = this.neighbour_chunks.ny.tblocks.get(new Vector(x, this.size.y - 1, z));
+                        }
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y - 1, z));
+                    }
+                } else if (p.y == 1) {
+                    if(y == this.size.y - 1) {
+                        if(this.neighbour_chunks.py) {
+                            b = this.neighbour_chunks.py.tblocks.get(new Vector(x, 0, z));
+                        }
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y + 1, z));
+                    }
+                // Z
+                } else if (p.z == -1) {
+                    if(z == 0) {
+                        b = this.neighbour_chunks.nz.tblocks.get(new Vector(x, y, this.size.z - 1));
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y, z - 1));
+                    }
+                } else if (p.z == 1) {
+                    if(z == this.size.z - 1) {
+                        b = this.neighbour_chunks.pz.tblocks.get(new Vector(x, y, 0));
+                    } else {
+                        b = this.tblocks.get(new Vector(x, y, z + 1));
+                    }
+                }
+            }
+            if(p.y == 1) {
+                neighbours.UP = b;
+            } else if(p.y == -1) {
+                neighbours.DOWN = b;
+            } else if(p.z == -1) {
+                neighbours.SOUTH = b;
+            } else if(p.z == 1) {
+                neighbours.NORTH = b;
+            } else if(p.x == -1) {
+                neighbours.WEST = b;
+            } else if(p.x == 1) {
+                neighbours.EAST = b;
+            }
+            let properties = b?.properties;
+            if(!properties || b.properties.transparent || b.properties.fluid) {
+                // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
+                // break;
+                pcnt = -40;
+            }
+            pcnt++;
+        }
+        neighbours.pcnt = pcnt;
+        return neighbours;
+    }
+
     // buildVertices
     buildVertices() {
 
-        if(!this.dirty || !this.blocks || !this.coord) {
+        if(!this.dirty || !this.tblocks || !this.coord) {
             return false;
         }
 
@@ -330,8 +434,7 @@ class Chunk {
 
         BLOCK.clearBlockCache();
 
-        // Add vertices for blocks
-        this.vertices = {
+        let group_templates = {
             regular: {
                 list: [],
                 is_transparent: false
@@ -348,200 +451,64 @@ class Chunk {
                 list: [],
                 is_transparent: true
             },
-        }
+        };
 
-        if(!this.neighbour_chunks) {
-            this.neighbour_chunks = {
-                nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
-                px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
-                ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
-                py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
-                nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
-                pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
-            };
-        }
-        let neighbour_chunks = this.neighbour_chunks;
+        // Add vertices for blocks
+        this.vertices = {};
+
+        this.neighbour_chunks = {
+            nx: world.chunkManager.getChunk(new Vector(this.addr.x - 1, this.addr.y, this.addr.z)),
+            px: world.chunkManager.getChunk(new Vector(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y + 1, this.addr.z)),
+            nz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z - 1)),
+            pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
+        };
 
         //  Update lights
         this.updateLights();
 
-        let cc = [
-            {x:  0, y:  1, z:  0},
-            {x:  0, y: -1, z:  0},
-            {x:  0, y:  0, z: -1},
-            {x:  0, y:  0, z:  1},
-            {x: -1, y:  0, z:  0},
-            {x:  1, y:  0, z:  0}
-        ];
-
-        //
-        let getBlockStyleGroup = (block) => {
-            let group = 'regular';
-            // make vertices array
-            if([200, 202].indexOf(block.id) >= 0) {
-                // если это блок воды или облако
-                group = 'transparent';
-            } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
-                group = 'doubleface_transparent';
-            } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
-                group = 'doubleface';
-            }
-            return group;
-        };
-
-        // Возвращает всех 6-х соседей блока
-        let getBlockNeighbors = (x, y, z) => {
-            let neighbors = {UP: null, DOWN: null, SOUTH: null, NORTH: null, WEST: null, EAST: null};
-            let pcnt = 0;
-            // обходим соседние блоки
-            for(let p of cc) {
-                let b = null;
-                if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                    // если сосед внутри того же чанка
-                    b = this.blocks[x + p.x][z + p.z][y + p.y];
-                } else {
-                    // если блок с краю чанка или вообще в соседнем чанке
-                    if(p.x == -1) {
-                        if(x == 0) {
-                            b = neighbour_chunks.nx.blocks[this.size.x - 1][z][y];
-                        } else {
-                            b = this.blocks[x - 1][z][y];
-                        }
-                    } else if (p.x == 1) {
-                        if(x == this.size.x - 1) {
-                            b = neighbour_chunks.px.blocks[0][z][y];
-                        } else {
-                            b = this.blocks[x + 1][z][y];
-                        }
-                    // Y
-                    } else if (p.y == -1) {
-                        if(y == 0) {
-                            if(neighbour_chunks.ny) {
-                                b = neighbour_chunks.ny.blocks[x][z][this.size.y - 1];
-                            }
-                        } else {
-                            b = this.blocks[x][z][y - 1];
-                        }
-                    } else if (p.y == 1) {
-                        if(y == this.size.y - 1) {
-                            if(neighbour_chunks.py) {
-                                b = neighbour_chunks.py.blocks[x][z][0];
-                            }
-                        } else {
-                            b = this.blocks[x][z][y + 1];
-                        }
-                    // Z
-                    } else if (p.z == -1) {
-                        if(z == 0) {
-                            b = neighbour_chunks.nz.blocks[x][this.size.z - 1][y];
-                        } else {
-                            b = this.blocks[x][z - 1][y];
-                        }
-                    } else if (p.z == 1) {
-                        if(z == this.size.z - 1) {
-                            b = neighbour_chunks.pz.blocks[x][0][y];
-                        } else {
-                            b = this.blocks[x][z + 1][y];
-                        }
-                    }
-                }
-                if(typeof b == 'number') {
-                    b = BLOCK.BLOCK_BY_ID[b];
-                }
-                if(p.y == 1) {
-                    neighbors.UP = b;
-                } else if(p.y == -1) {
-                    neighbors.DOWN = b;
-                } else if(p.z == -1) {
-                    neighbors.SOUTH = b;
-                } else if(p.z == 1) {
-                    neighbors.NORTH = b;
-                } else if(p.x == -1) {
-                    neighbors.WEST = b;
-                } else if(p.x == 1) {
-                    neighbors.EAST = b;
-                }
-                if(!b || (b.transparent || b.fluid)) {
-                    // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
-                    // break;
-                    pcnt = -40;
-                }
-                pcnt++;
-            }
-            neighbors.pcnt = pcnt;
-            return neighbors;
-        };
-
         // Обход всех блоков данного чанка
-        for(let x = 0; x < this.size.x; x++) {
-            for(let z = 0; z < this.size.z; z++) {
-                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
-                for(let y = 0; y < y_count; y++) {
-                    let block = this.blocks[x][z][y];
-                    if(!block) {
-                        continue;
-                    }
-                    if(typeof block === 'number') {
-                        if(block == BLOCK.AIR.id) {
-                            continue;
-                        }
-                        block = BLOCK.cloneFromId(block);
-                        if(!block) {
-                            throw 'Not found id in blocks `' + this.blocks[x][z][y] + '`';
-                        }
-                        this.blocks[x][z][y] = block;
-                    }
-                    //
-                    if(!block.group) {
-                        block.group = getBlockStyleGroup(block);
-                    }
+        for(let block of this.tblocks) {
+            if(block.id == BLOCK.AIR.id) {
+                continue;
+            }
+            // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
+            let neighbours = this.getBlockNeighbours(block.pos);
+            // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
+            if(neighbours.pcnt == 6) {
+                continue;
+            }
+            // if block with gravity
+            // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
+            if(block.properties.gravity && block.pos.y > 0 && block.falling) {
+                let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
+                if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
+                    this.gravity_blocks.push(block.pos);
                 }
             }
-        }
-
-        // Обход всех блоков данного чанка
-        for(let x = 0; x < this.size.x; x++) {
-            for(let z = 0; z < this.size.z; z++) {
-                let y_count = Math.min(this.size.y, this.blocks[x][z].length);
-                for(let y = 0; y < y_count; y++) {
-                    let block = this.blocks[x][z][y];
-                    if(!block || block.id == BLOCK.AIR.id) {
-                        continue;
-                    }
-                    // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
-                    let neighbors = getBlockNeighbors(x, y, z);
-                    // если у блока все соседи есть и они непрозрачные, значит блок невидно и ненужно отрисовывать
-                    if(neighbors.pcnt == 6) {
-                        continue;
-                    }
-                    // if block with gravity
-                    // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-                    if(block.gravity && y > 0 && block.falling) {
-                        let block_under = this.blocks[x][z][y - 1];
-                        if(!block_under || [blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
-                            this.gravity_blocks.push(new Vector(x, y, z));
-                        }
-                    }
-                    // if block is fluid
-                    if(block.fluid) {
-                        this.fluid_blocks.push(new Vector(x, y, z));
-                    }
-                    if(!block.hasOwnProperty('vertices')) {
-                        block.vertices = [];
-                        let biome = this.map.info.cells[x][z].biome;
-                        BLOCK.pushVertices(block.vertices, block, this, this.lightmap, x, y, z, neighbors, biome);
-                    }
-                    world.blocks_pushed++;
-                    if(block.vertices.length > 0) {
-                        this.vertices[block.group].list.push(...block.vertices);
-                    }
+            // if block is fluid
+            if(block.properties.fluid) {
+                this.fluid_blocks.push(block.pos);
+            }
+            if(block.vertices === null) {
+                block.vertices = [];
+                let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
+                BLOCK.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
+            }
+            world.blocks_pushed++;
+            if(block.vertices !== null && block.vertices.length > 0) {
+                if(!this.vertices[block.properties.group]) {
+                    this.vertices[block.properties.group] = {...group_templates[block.properties.group]};
                 }
+                this.vertices[block.properties.group].list.push(...block.vertices);
             }
         }
 
         this.dirty = false;
         this.tm = performance.now() - tm;
         // this.lightmap = null;
+        this.neighbour_chunks = null;
         return true;
     }
 
@@ -561,15 +528,16 @@ class Chunk {
                     let dist = pos.distance(new Vector(x, y, z));
                     if(dist > MAX_TORCH_POWER) continue;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        let block = this.blocks[x][z][y];
-                        if(block && typeof block === 'object') {
-                            if(block.gravity) {
+                        let pos = new Vector(x, y, z);
+                        if(this.tblocks.has(pos)) {
+                            let block = this.tblocks.get(pos);
+                            if(block.properties.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }
                             }
-                            if(block.hasOwnProperty('vertices')) {
-                                delete(block['vertices']);
+                            if(block.vertices) {
+                                block.vertices = null;
                                 cnt++;
                             }
                         }
@@ -589,7 +557,7 @@ class Chunk {
 // World
 const world = {
     blocks_pushed: 0,
-    chunkManager: new ChunkManager()
+    chunkManager: null
 }
 
 const GeometryTerrain = {
@@ -604,6 +572,11 @@ async function importModules(terrain_type, seed, world_id) {
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
         VectorCollector = module.VectorCollector;
+        chunks = new VectorCollector();
+    });
+    // load module
+    await import("./typed_blocks.js").then(module => {
+        TypedBlocks = module.TypedBlocks;
     });
     // load module
     await import("./blocks.js").then(module => {
@@ -634,6 +607,8 @@ async function importModules(terrain_type, seed, world_id) {
         all_blocks[k] = {...all_blocks[k]};
         delete(all_blocks[k].texture);
     }
+    //
+    world.chunkManager = new ChunkManager();
     // Run queue items
     for(let item of queue) {
         await onmessage(item);
@@ -658,25 +633,28 @@ onmessage = async function(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            if(!chunks.hasOwnProperty(args.key)) {
-                chunks[args.key] = new Chunk(args);
-                chunks[args.key].init(world.chunkManager);
+            if(!chunks.has(args.addr)) {
+                let chunk = new Chunk(args);
+                chunk.init();
+                chunks.add(args.addr, chunk);
             }
             break;
         }
         case 'destructChunk': {
-            if(chunks.hasOwnProperty(args.key)) {
-                delete(chunks[args.key]);
+            if(chunks.has(args.addr)) {
+                chunks.delete(args.addr);
+                terrainGenerator.deleteMap(args.addr);
             }
             break;
         }
         case 'buildVertices': {
             let result = [];
-            for(let key of args.keys) {
-                if(chunks.hasOwnProperty(key)) {
-                    let chunk = chunks[key];
+            for(let addr of args.addrs) {
+                let chunk = chunks.get(addr);
+                if(chunk) {
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, true));
+                    chunk.vertices = null;
                 }
             }
             postMessage(['vertices_generated', result]);
@@ -686,9 +664,9 @@ onmessage = async function(e) {
             let result = [];
             let pn = performance.now();
             for(let m of args) {
-                if(chunks.hasOwnProperty(m.key)) {
-                    // 1. Get chunk
-                    let chunk = chunks[m.key];
+                // 1. Get chunk
+                let chunk = chunks.get(m.addr);
+                if(chunk) {
                     // 2. Set new block
                     if(m.type) {
                         chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
@@ -698,23 +676,27 @@ onmessage = async function(e) {
                     let neighbot_chunk_keys = chunk.setDirtyBlocks(pos, true);
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, false));
-                    for(let pos of neighbot_chunk_keys.get()) {
-                        let nc = chunks[pos.toChunkKey()];
-                        if(nc) {
-                            pos = new Vector(
-                                m.x - nc.coord.x,
-                                m.y - nc.coord.y,
-                                m.z - nc.coord.z
-                            );
-                            nc.setDirtyBlocks(pos, false);
-                            result.push(buildVertices(nc, false));
-                        }
-                    }
+                    chunk.vertices = null;
                 }
             }
             // console.log(result.length, performance.now() - pn);
             // 5. Send result to chunk manager
             postMessage(['vertices_generated', result]);
+            break;
+        }
+        case 'stat': {
+            try {
+                console.table({
+                    maps_cache_count: terrainGenerator.maps_cache.size,
+                    maps_cache_size: JSON.stringify(terrainGenerator.maps_cache).length/1024/1024,
+                    chunks_count: chunks.size,
+                });
+                for(let chunk of chunks) {
+                    debugger;
+                }
+            } catch(e) {
+                console.error(e);
+            }
             break;
         }
     }
@@ -728,6 +710,7 @@ function buildVertices(chunk, return_map) {
     chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
     let resp = {
         key:                    chunk.key,
+        addr:                   chunk.addr,
         vertices:               chunk.vertices,
         gravity_blocks:         chunk.gravity_blocks,
         fluid_blocks:           chunk.fluid_blocks,

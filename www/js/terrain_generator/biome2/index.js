@@ -1,12 +1,10 @@
-import {impl as alea} from '../../../vendors/alea.js';
-import noise from '../../../vendors/perlin.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../blocks.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
-import {blocks, BIOMES} from '../../biomes.js';
 import {CaveGenerator} from '../../caves.js';
 import {Map, MapCell} from './map.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
+import {Default_Terrain_Generator, BIOMES, noise, alea} from "../default.js";
 
 //
 let vox_templates = {};
@@ -47,9 +45,10 @@ await Vox_Loader.load('/data/castle.vox', (chunks) => {
 });
 
 // Terrain generator class
-export default class Terrain_Generator {
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
+        super(seed, world_id);
         const scale                 = .5;
         // Настройки
         this.options = {
@@ -62,12 +61,8 @@ export default class Terrain_Generator {
         //
         this.noisefn                = noise.perlin2;
         this.maps_cache             = new VectorCollector();
-        this.seed                   = null;
-        this.world_id               = world_id;
-        this.setSeed(seed);
         // Сaves manager
         this.caveManager            = new CaveGenerator(seed);
-        this.voxel_buildings        = [];
         this.islands                = [];
         this.extruders              = [];
         // Map specific
@@ -89,14 +84,14 @@ export default class Terrain_Generator {
         }
     }
 
-    async setSeed(seed) {
-        this.seed = seed;
-        noise.seed(this.seed);
+    // Delete map for unused chunk
+    deleteMap(addr) {
+        return this.maps_cache.delete(addr);
     }
 
     // generateMap
     generateMap(chunk, noisefn) {
-        let cached = this.maps_cache.getByVec(chunk.addr);
+        let cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
@@ -165,7 +160,7 @@ export default class Terrain_Generator {
             }
         }
         // Clear maps_cache
-        this.maps_cache.sanitizeCache(20000);
+        this.maps_cache.reduce(20000);
         return this.maps_cache.add(chunk.addr, map);
     }
 
@@ -176,11 +171,8 @@ export default class Terrain_Generator {
         let map                     = null;
         let size                    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         let rad                     = 1;
-        // let pp                      = performance.now();
-        let cnt                     = 0;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
-                cnt++;
                 let addr = chunk.addr.add(new Vector(x, -chunk.addr.y, z));
                 const c = {
                     id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
@@ -200,9 +192,7 @@ export default class Terrain_Generator {
                 }
             }
         }
-        // console.log(performance.now() - pp, cnt, (performance.now() - pp) / cnt);
-        // debugger;
-        // Smooth (for central and part of neighbors)
+        // Smooth (for central and part of neighbours)
         if(!map.info.smoothed) {
             map.info.smoothed = true;
             map.info.smooth(this);
@@ -212,19 +202,6 @@ export default class Terrain_Generator {
             }
         }
         return maps;
-    }
-
-    //
-    getVoxelBuilding(xyz) {
-        for(var vb of this.voxel_buildings) {
-            if(xyz.x >= vb.coord.x && xyz.y >= vb.coord.y && xyz.z >= vb.coord.z &&
-                xyz.x < vb.coord.x + vb.size.x &&
-                xyz.y < vb.coord.y + vb.size.z && 
-                xyz.z < vb.coord.z + vb.size.y) {
-                    return vb;
-                }
-        }
-        return null;
     }
 
     // Generate
@@ -237,7 +214,7 @@ export default class Terrain_Generator {
         const aleaRandom            = new alea(seed);
 
         // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let neighbors_caves        = this.caveManager.getNeighbors(chunk.addr);
+        let neighbours_caves        = this.caveManager.getNeighbours(chunk.addr);
 
         // Bedrock
         let min_y   = 0;
@@ -246,8 +223,11 @@ export default class Terrain_Generator {
         }
 
         //
-        let setBlock = (x, y, z, block) => {
-            chunk.blocks[x][z][y] = block;
+        let setBlock = (x, y, z, block_id) => {
+            let vec = new Vector(x, y, z);
+            chunk.tblocks.delete(vec);
+            let block = chunk.tblocks.get(vec);
+            block.id = block_id;
         };
 
         // Static objects
@@ -372,7 +352,7 @@ export default class Terrain_Generator {
                     if(!in_ocean) {
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
-                        for(let map_cave of neighbors_caves) {
+                        for(let map_cave of neighbours_caves) {
                             for(let cave_point of map_cave.points) {
                                 if(xyz.distance(cave_point.pos) < cave_point.rad) {
                                     is_cave_block = true;
@@ -413,13 +393,14 @@ export default class Terrain_Generator {
                         } else if(r < 0.01) {
                             setBlock(x, y, z, blocks.COAL_ORE.id);
                         } else {
-                            let norm = true;
+                            let norm = !map.info.plants.has(new Vector(x, y + 1, z))
+                            /*
                             for(let plant of map.info.plants) {
                                 if(plant.pos.x == x && y == plant.pos.y - 1 && plant.pos.z == z) {
                                     norm = false;
                                     break;
                                 }
-                            }
+                            }*/
                             setBlock(x, y, z, norm ? blocks.CONCRETE.id : biome.dirt_block);
                         }
                     } else {
@@ -431,7 +412,8 @@ export default class Terrain_Generator {
                 if(biome.code == 'OCEAN' && ywl >= 0) {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
-                            if(!chunk.blocks[x][z][y - chunk.coord.y]) {
+                            // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
+                            if(!chunk.tblocks.has(new Vector(x, y - chunk.coord.y, z))) {
                                 setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER.id);
                             }
                         }
@@ -455,12 +437,15 @@ export default class Terrain_Generator {
         }
 
         // Plant herbs
-        for(let p of map.info.plants) {
-            if(p.pos.y >= chunk.coord.y && p.pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                let b = chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y - 1];
-                if(b && b === blocks.DIRT.id) {
-                    if(!chunk.blocks[p.pos.x][p.pos.z][p.pos.y - chunk.coord.y]) {
-                        setBlock(p.pos.x, p.pos.y - chunk.coord.y, p.pos.z, p.block.id);
+        for(let pos of map.info.plants.keys()) {
+            let block_id = map.info.plants.get(pos);
+            if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                // let b = chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y - 1];
+                let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
+                if(b.id === blocks.DIRT.id) {
+                    // if(!chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y]) {
+                    if(!chunk.tblocks.has(new Vector(pos.x, pos.y - chunk.coord.y, pos.z))) {
+                        setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
                     }
                 }
             }
@@ -468,127 +453,6 @@ export default class Terrain_Generator {
 
         return map;
 
-    }
-
-    // plantTree...
-    plantTree(options, chunk, x, y, z) {
-        const height        = options.height;
-        const type          = options.type;
-        let ystart = y + height;
-        // setBlock
-        let setBlock = (x, y, z, block, force_replace) => {
-            if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                if(force_replace || !chunk.blocks[x][z][y]) {
-                    let xyz = new Vector(x, y, z);
-                    if(!this.getVoxelBuilding(xyz.add(chunk.coord))) {
-                        chunk.blocks[x][z][y] = block.id;
-                    }
-                }
-            }
-        };
-        // ствол
-        for(let p = y; p < ystart; p++) {
-            setBlock(x, p, z, type.trunk, true);
-        }
-        // листва над стволом
-        switch(type.style) {
-            case 'cactus': {
-                // кактус
-                break;
-            }
-            case 'stump': {
-                // пенёк
-                setBlock(x, ystart, z, type.leaves, true);
-                break;
-            }
-            case 'wood': {
-                // дуб, берёза
-                let py = y + height;
-                for(let rad of [1, 1, 2, 2]) {
-                    for(let i = x - rad; i <= x + rad; i++) {
-                        for(let j = z - rad; j <= z + rad; j++) {
-                            if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                                let m = (i == x - rad && j == z - rad) ||
-                                    (i == x + rad && j == z + rad) || 
-                                    (i == x - rad && j == z + rad) ||
-                                    (i == x + rad && j == z - rad);
-                                    let m2 = (py == y + height) ||
-                                    (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                                if(m && m2) {
-                                    continue;
-                                }
-                                let b = chunk.blocks[i][j][py];
-                                let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                                if(!b_id || b_id >= 0 && b_id != type.trunk.id) {
-                                    setBlock(i, py, j, type.leaves, false);
-                                }
-                            }
-                        }
-                    }
-                    py--;
-                }
-                break;
-            }
-            case 'acacia': {
-                // акация
-                let py = y + height;
-                for(let rad of [2, 3]) {
-                    for(let i = x - rad; i <= x + rad; i++) {
-                        for(let j = z - rad; j <= z + rad; j++) {
-                            if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                                if(Helpers.distance(new Vector(x, 0, z), new Vector(i, 0, j)) > rad) {
-                                    continue;
-                                }
-                                let b = chunk.blocks[i][j][py];
-                                let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                                if(!b_id || b_id >= 0 && b_id != type.trunk.id) {
-                                    setBlock(i, py, j, type.leaves, false);
-                                }
-                            }
-                        }
-                    }
-                    py--;
-                }
-                break;
-            }
-            case 'spruce': {
-                // ель
-                let r = 1;
-                let rad = Math.round(r);
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    setBlock(x, ystart, z, type.leaves, false);
-                    if(options.biome_code == 'SNOW') {
-                        setBlock(x, ystart + 1, z, blocks.SNOW, false);
-                    }
-                }
-                let step = 0;
-                for(let y = ystart - 1; y > ystart - (height - 1); y--) {
-                    if(step++ % 2 == 0) {
-                        rad = Math.min(Math.round(r), 3);
-                    } else {
-                        rad = 1;
-                    }
-                    for(let i = x - rad; i <= x + rad; i++) {
-                        for(let j = z - rad; j <= z + rad; j++) {
-                            if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                                if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
-                                    let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
-                                    let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                                    if(b_id === blocks.AIR.id) {
-                                        setBlock(i, y, j, type.leaves, false);
-                                        if(options.biome_code == 'SNOW') {
-                                            setBlock(i, y + 1, j, blocks.SNOW, false);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    r += .9;
-                }
-                break;
-            }
-        }
     }
 
 }

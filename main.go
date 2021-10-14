@@ -3,10 +3,10 @@ package main
 import (
 	"mime"
 
-	"whiteframe.ru/webcraft/Struct"
-	"whiteframe.ru/webcraft/Type"
-	"whiteframe.ru/webcraft/utils"
-	"whiteframe.ru/webcraft/utils/conf"
+	"madcraft.io/madcraft/Struct"
+	"madcraft.io/madcraft/Type"
+	"madcraft.io/madcraft/utils"
+	"madcraft.io/madcraft/utils/conf"
 
 	"log"
 	"net/http"
@@ -25,7 +25,7 @@ func main() {
 	conf.Read()
 
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
-	log.Println("                                       WEBCRAFT SERVER RUN                                       ")
+	log.Println("                                       MADCRAFT SERVER RUN                                       ")
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
 	log.Println("    Application .........", conf.Config.AppCode, "ver. "+conf.Config.AppVersion)
 	log.Println("    Server IP address ...", conf.Config.ServerIP)

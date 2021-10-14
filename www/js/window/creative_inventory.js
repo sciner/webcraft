@@ -29,7 +29,7 @@ class CreativeInventoryCollection extends Window {
     init() {
         //
         let all_blocks = BLOCK.getAll().filter((i) => {
-            return (i.id > 0) && !i.is_item && i.spawnable;
+            return (i.id > 0) && i.spawnable;
         });
         // Create slots
         this.initCollection(all_blocks);

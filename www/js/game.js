@@ -14,6 +14,20 @@ import {GameMode} from "./game_mode.js";
 
 export {BLOCK};
 
+/*
+import {TypedBlocks} from "./typed_blocks.js";
+let tbs = new TypedBlocks();
+let vec = new Vector(0, 5, 14);
+let block           = tbs.get(vec);
+block.power         = .8;
+block.rotate        = new Vector(1, 2, 3);
+block.entity_id     = 'entity_id';
+block.texture       = 'texture';
+block.extra_data    = 'extra_data';
+block               = tbs.get(vec);
+console.log(block.id, block.power, block.rotate, block.properties, block.entity_id, block.texture, block.extra_data);
+*/
+
 // Mouse event enumeration
 export let MOUSE         = {};
     MOUSE.DOWN    = 1;
@@ -80,7 +94,16 @@ export let Game = {
     prev_player_state:  null,
     controls:           {
         inited: false,
-        enabled: false
+        enabled: false,
+        clearStates: function() {
+            Game.world.localPlayer.keys[KEY.W] = false;
+            Game.world.localPlayer.keys[KEY.A] = false;
+            Game.world.localPlayer.keys[KEY.S] = false;
+            Game.world.localPlayer.keys[KEY.D] = false;
+            Game.world.localPlayer.keys[KEY.J] = false;
+            Game.world.localPlayer.keys[KEY.SPACE] = false;
+            Game.world.localPlayer.keys[KEY.SHIFT] = false;
+        }
     },
     // createNewWorld
     createNewWorld: function(form) {
@@ -190,7 +213,7 @@ export let Game = {
                 let pos = Game.world.localPlayer.getBlockPos();
                 let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
                 if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
-                    let default_sound = 'webcraft:block.wood';
+                    let default_sound = 'madcraft:block.wood';
                     let action = 'hit';
                     let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
                     let sound_list = Game.sounds.getList(sound, action);
@@ -219,7 +242,7 @@ export let Game = {
             try {
                 let audioElement0 = document.createElement('audio');
                 // audioElement0.setAttribute('src', '/volume_alpha_10_equinoxe.mp3');
-                audioElement0.setAttribute('src', 'https://webcraft.whiteframe.ru/forest.mp3');
+                audioElement0.setAttribute('src', 'https://madcraft.io/forest.mp3');
                 audioElement0.setAttribute('autoplay', 'autoplay');
                 audioElement0.setAttribute('loop', 'loop');
                 audioElement0.volume = 0.1;
@@ -330,6 +353,7 @@ export let Game = {
                 if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
+                that.controls.clearStates();
                 console.info('Pointer lock lost!');
             }
         }

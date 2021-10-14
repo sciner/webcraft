@@ -3,3 +3,4 @@
 *.mtl
 *.exe
 .idea/
+*.sqlite3

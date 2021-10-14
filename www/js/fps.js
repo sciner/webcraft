@@ -20,7 +20,7 @@ export const fps = {
                 this.speed = Math.round((Game.world.localPlayer.walkDist - this.walkDistO) * 3600 / 1000 * 100) / 100;
             }
             this.walkDistO = Game.world.localPlayer.walkDist;
-            // console.log('FPS: ' + Math.round(this.fps) + ' /' + Math.round(Game.loopTime.avg * 1000) / 1000);
+            // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.loopTime.avg * 1000) / 1000);
         };
     },
     drawHUD: function(hud) {
