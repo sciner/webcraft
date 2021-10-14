@@ -105,8 +105,9 @@ export default class Chunk {
     }
 
     drawBufferGroup(render, group, mat) {
-        if(this.vertices[group]) {
-            if(this.vertices[group].buffer) {
+        if(this.vertices.has(group)) {
+            let vgroup = this.vertices.get(group);
+            if(vgroup.buffer) {
                 if (this.lightData) {
                     if (!this.lightTex) {
                         this.lightTex = render.createTexture3D({
@@ -121,9 +122,9 @@ export default class Chunk {
                     if (!this.lightMats[group]) {
                         this.lightMats[group] = mat.getLightMat(this.lightTex)
                     }
-                    render.drawMesh(this.vertices[group].buffer, this.lightMats[group], this.coord);
+                    render.drawMesh(vgroup.buffer, this.lightMats[group], this.coord);
                 } else {
-                    render.drawMesh(this.vertices[group].buffer, mat, this.coord);
+                    render.drawMesh(vgroup.buffer, mat, this.coord);
                 }
                 return true;
             }
