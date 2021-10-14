@@ -6,7 +6,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4} = glMatrix;
 
-const PICKAT_DIST = 5;
+export const DEFAULT_PICKAT_DIST = 5;
 const TARGET_TEXTURES = [.5, .5, 1, 1];
 
 const half = new Vector(0.5, 0.5, 0.5);
@@ -49,17 +49,16 @@ export class PickAt {
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
+        //
+        this.empty_matrix = mat4.create();
     }
 
     //
-    get(callback, PICKAT_DISTANCE) {
-        if(typeof PICKAT_DISTANCE === 'undefined') {
-            PICKAT_DISTANCE = PICKAT_DIST;
-        }
+    get(callback, pickat_distance) {
         const player = Game.world.localPlayer;
         const render = this.render;
         const pos = new Vector(player.pos);
-        const m = mat4.invert(mat4.create(), render.viewMatrix);
+        const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         pos.y = render.camPos.y;
         const startBlock = new Vector(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
         let dir = new Vector(-m[8], -m[10], -m[9]);
@@ -76,14 +75,11 @@ export class PickAt {
         const INF = 100000.0;
         const eps = 1e-3;
         const coord = ['x', 'y', 'z'];
-        if(Game.world.game_mode.isCreative()) {
-            PICKAT_DISTANCE = PICKAT_DISTANCE * 2 | 0;
-        }
         let leftTop = new Vector(0, 0, 0);
         let check = new Vector(0, 0, 0);
-        while (Math.abs(block.x - startBlock.x) < PICKAT_DISTANCE
-            && Math.abs(block.y - startBlock.y) < PICKAT_DISTANCE
-            && Math.abs(block.z - startBlock.z) < PICKAT_DISTANCE) {
+        while (Math.abs(block.x - startBlock.x) < pickat_distance
+            && Math.abs(block.y - startBlock.y) < pickat_distance
+            && Math.abs(block.z - startBlock.z) < pickat_distance) {
             let tMin = INF;
             for(let d of coord) {
                 if(dir[d] > eps && tMin > (block[d] + 0.5 - pos[d]) / dir[d]) {
@@ -103,7 +99,8 @@ export class PickAt {
             leftTop.y = Math.floor(block.y);
             leftTop.z = Math.floor(block.z);
             let b = Game.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
-            let hitShape = b.id !== BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
+
+            let hitShape = b.id > BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
             if (hitShape) {
                 const shapes = BLOCK.getShapes(leftTop, b, Game.world, false, true);
@@ -240,9 +237,9 @@ export class PickAt {
     }
 
     // update...
-    update() {
+    update(pickat_distance) {
         // Get actual pick-at block
-        let bPos = this.get();
+        let bPos = this.get(null, pickat_distance);
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         target_block.visible = !!bPos;

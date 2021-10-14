@@ -8,6 +8,7 @@ import PlayerModel from "./player_model.js";
 import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
 import {MeshManager} from "./mesh_manager.js";
+import {DEFAULT_PICKAT_DIST} from "./pickat.js";
 
 const MAX_DIST_FOR_SHIFT = 800;
 
@@ -84,6 +85,10 @@ export class World {
         };
     }
 
+    getPickatDistance() {
+        return (DEFAULT_PICKAT_DIST * (this.game_mode.isCreative() ? 2 : 1)) | 0;
+    }
+
     // Draw
     draw(render, delta) {
         // Meshes
@@ -97,7 +102,7 @@ export class World {
         // Picking target
         let player = this.localPlayer;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
-            player.pickAt.update();
+            player.pickAt.update(this.getPickatDistance());
         }
         return true;
     }
@@ -134,7 +139,7 @@ export class World {
     // createClouds
     createClouds(pos) {
         // @todo Переделать в связи с появлением TBlock
-        // return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
+        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
     }
 
     // setRain

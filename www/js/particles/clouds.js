@@ -3,6 +3,7 @@ import {BLOCK} from '../blocks.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
+import { TBlock } from '../typed_blocks.js';
 
 const {mat4} = glMatrix;
 
@@ -23,7 +24,7 @@ Resources
 }*/
 
 // World
-const world = {
+const FakeCloudWorld = {
     blocks_pushed: 0,
     clouds: {
         size: new Vector(256, 1, 256),
@@ -34,7 +35,11 @@ const world = {
                 for(let z = 0; z < this.size.z; z++) {
                     let is_cloud = data[index + 3] > 10;
                     if(is_cloud) {
-                        this.blocks[x][z] = BLOCK.CLOUD;
+                        this.blocks[x][z] = {
+                            id:         BLOCK.CLOUD.id,
+                            material:   BLOCK.CLOUD,
+                            getCardinalDirection: () => new Vector(0, 0, 0)
+                        };
                     }
                     index += 4;
                 }
@@ -44,7 +49,7 @@ const world = {
     chunkManager: {
         getBlock: function(x, y, z) {
             if(y == 0) {
-                let clouds = world.clouds;
+                let clouds = FakeCloudWorld.clouds;
                 if(x >= 0 && x < clouds.size.x) {
                     if(z >= 0 && z < clouds.size.z) {
                         let resp = clouds.blocks[x][z]
@@ -54,7 +59,11 @@ const world = {
                     }
                 }
             }
-            return BLOCK.AIR;
+            return {
+                id:         BLOCK.AIR.id,
+                material:   BLOCK.AIR,
+                getCardinalDirection: () => new Vector(0, 0, 0)
+            };
         }
     }
 }
@@ -69,7 +78,7 @@ await Resources
         let ctx             = canvas.getContext('2d');
         ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
         var imgData = ctx.getImageData(0, 0, 256, 256);
-        world.clouds.init(imgData.data);
+        FakeCloudWorld.clouds.init(imgData.data);
     });
 
 export default class Particles_Clouds {
@@ -98,7 +107,7 @@ export default class Particles_Clouds {
             EAST: null
         };
         //
-        let clouds = world.clouds;
+        let clouds = FakeCloudWorld.clouds;
         let y = 0;
         for(let x = 0; x < clouds.size.x; x++) {
             for(let z = 0; z < clouds.size.z; z++) {
@@ -106,13 +115,13 @@ export default class Particles_Clouds {
                 if(x < 64 || z < 64 || x > 196 || z > 196) {
                     continue;
                 }
-                let block  = world.chunkManager.getBlock(x, 0, z);
+                let block  = FakeCloudWorld.chunkManager.getBlock(x, 0, z);
                 if(block.id > 0) {
-                    neighbours.NORTH = world.chunkManager.getBlock(x, 0, z + 1);
-                    neighbours.SOUTH = world.chunkManager.getBlock(x, 0, z - 1);
-                    neighbours.WEST = world.chunkManager.getBlock(x - 1, 0, z);
-                    neighbours.EAST = world.chunkManager.getBlock(x + 1, 0, z);
-                    push_cube(block, this.vertices, world, null, x, y, z, neighbours, null, false);
+                    neighbours.NORTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z + 1);
+                    neighbours.SOUTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z - 1);
+                    neighbours.WEST = FakeCloudWorld.chunkManager.getBlock(x - 1, 0, z);
+                    neighbours.EAST = FakeCloudWorld.chunkManager.getBlock(x + 1, 0, z);
+                    push_cube(block, this.vertices, FakeCloudWorld, null, x, y, z, neighbours, null, false);
                 }
             }
         }

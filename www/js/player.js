@@ -506,6 +506,7 @@ export default class Player {
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         let world           = this.world;
+        let pickat_dist     = this.world.getPickatDistance();
         // Picking
         this.pickAt.get((pos) => {
             if(pos === false) {
@@ -676,7 +677,7 @@ export default class Player {
                     this.inventory.cloneMaterial(world_block);
                 }
             }
-        });
+        }, pickat_dist);
     }
 
     //

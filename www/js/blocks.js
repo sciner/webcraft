@@ -708,9 +708,9 @@ export class BLOCK {
                 case 'slab': {
                     let on_ceil = this.isOnCeil(b);
                     if(on_ceil) {
-                        shapes.push([0, .5, 0, 1, 1, 1]);
+                        shapes.push([0, .5 - f, 0, 1, 1, 1]);
                     } else {
-                        shapes.push([0, 0, 0, 1, .5, 1]);
+                        shapes.push([0, 0, 0, 1, .5 + f, 1]);
                     }
                     break;
                 }
