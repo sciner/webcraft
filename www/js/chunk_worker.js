@@ -76,8 +76,11 @@ class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
     }
 
-    init(chunkManager) {
-        this.chunkManager = chunkManager;
+    get chunkManager() {
+        return world.chunkManager;
+    }
+
+    init() {
         // Variables
         this.vertices_length    = 0;
         this.vertices           = {};
@@ -156,6 +159,7 @@ class Chunk {
             let extra_data  = m.extra_data ? m.extra_data : null;
             this.setBlock(pos.x | 0, pos.y | 0, pos.z | 0, type, false, m.power, rotate, entity_id, extra_data);
         }
+        this.modify_list = [];
     }
 
     // Get the type of the block at the specified position.
@@ -197,7 +201,7 @@ class Chunk {
             );
         } else {
             rotate = null;
-        };
+        }
         // fix power
         if(typeof power === 'undefined' || power === null) {
             power = 1.0;
@@ -206,6 +210,14 @@ class Chunk {
         if(power <= 0) {
             return;
         }
+        //
+        if(orig_type.id < 3) {
+            power       = null;
+            rotate      = null;
+            extra_data  = null;
+        }
+        if(power == 1) power = null;
+        //
         if(is_modify) {
             let modify_item = {
                 id: orig_type.id,
@@ -606,7 +618,7 @@ onmessage = async function(e) {
         case 'createChunk': {
             if(!chunks.has(args.addr)) {
                 let chunk = new Chunk(args);
-                chunk.init(world.chunkManager);
+                chunk.init();
                 chunks.add(args.addr, chunk);
             }
             break;
@@ -625,6 +637,7 @@ onmessage = async function(e) {
                 if(chunk) {
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, true));
+                    chunk.vertices = null;
                 }
             }
             postMessage(['vertices_generated', result]);
@@ -646,6 +659,7 @@ onmessage = async function(e) {
                     chunk.setDirtyBlocks(pos);
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, false));
+                    chunk.vertices = null;
                 }
             }
             // console.log(result.length, performance.now() - pn, JSON.stringify(result).length, result);
@@ -660,6 +674,9 @@ onmessage = async function(e) {
                     maps_cache_size: JSON.stringify(terrainGenerator.maps_cache).length/1024/1024,
                     chunks_count: chunks.size,
                 });
+                for(let chunk of chunks) {
+                    debugger;
+                }
             } catch(e) {
                 console.error(e);
             }

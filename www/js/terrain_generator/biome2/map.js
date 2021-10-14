@@ -123,7 +123,7 @@ export class Map {
                         }
                     }
                     // Посадка деревьев
-                    if(rnd > 0 && rnd <= biome.trees.frequency) {   
+                    if(rnd > 0 && rnd <= biome.trees.frequency) {
                         let s = 0;
                         let r = rnd / biome.trees.frequency;
                         for(let type of biome.trees.list) {

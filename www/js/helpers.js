@@ -18,8 +18,123 @@ export class Mth {
 
 }
 
+
 // VectorCollector...
-export class VectorCollector {
+export class VectorCollectorNew {
+
+    constructor(list) {
+        this.clear();
+        if(list) {
+            this.list = list;
+        }
+    }
+
+    *[Symbol.iterator]() {
+        for (let x of this.list.values()) {
+            for (let y of x.values()) {
+                for (let value of y.values()) {
+                    yield value;
+                }
+            }
+        }
+    }
+
+    clear() {
+        this.list = new Map();
+        this.size = 0;
+    }
+
+    set(vec, value) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list.get(vec.x).get(vec.y).set(vec.z, value);
+    }
+
+    add(vec, value) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            this.list.get(vec.x).get(vec.y).set(vec.z, value);
+            this.size++;
+        }
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    delete(vec) {
+        if(!this.has(vec)) {
+            return false;
+        }
+        this.size--;
+        this.list.get(vec.x).get(vec.y).delete(vec.z)
+        return true;
+    }
+
+    has(vec) {
+        if(!this.list.has(vec.x)) return false;
+        if(!this.list.get(vec.x).has(vec.y)) return false;
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
+        return true;
+    }
+
+    get(vec) {
+        if(!this.list.has(vec.x)) return null;
+        if(!this.list.get(vec.x).has(vec.y)) return null;
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    keys() {
+        let resp = [];
+        for (let [xk, x] of this.list) {
+            for (let [yk, y] of x) {
+                for (let [zk, z] of y) {
+                    resp.push(new Vector(xk|0, yk|0, zk|0));
+                }
+            }
+        }
+        return resp;
+    }
+
+    values() {
+        let resp = [];
+        for(let item of this) {
+            resp.push(item);
+        }
+        return resp;
+    }
+
+    reduce(max_size) {
+        if(this.size < max_size) {
+            return false;
+        }
+        /*
+        let keys = Object.keys(this.maps_cache);
+        if(keys.length > MAX_ENTR) {
+            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
+            console.info('Clear maps_cache, del_count: ' + del_count);
+            for(let key of keys) {
+                if(--del_count == 0) {
+                    break;
+                }
+                delete(this.maps_cache[key]);
+            }
+        }
+        */
+    }
+
+}
+
+// VectorCollector...
+export class VectorCollectorOld {
 
     constructor(list) {
         this.clear();
@@ -132,6 +247,8 @@ export class VectorCollector {
     }
 
 }
+
+export class VectorCollector extends VectorCollectorNew {} ;
 
 // Color
 export class Color {
