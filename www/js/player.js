@@ -47,6 +47,7 @@ export default class Player {
         this.blockPosO              = new Vector(0, 0, 0);
         this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
+        this.step_count             = 0;
     }
 
     // Assign the local player to a world.
@@ -71,6 +72,31 @@ export default class Player {
         // Prismarine player control
         this.pr                     = new PrismarinePlayerControl(world, this.pos);
         this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
+    }
+
+    // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
+    onStep(step_side) {
+        this.step_count++;
+        let world = this.world;
+        let player = world.localPlayer;
+        if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
+            return;
+        }
+        let f = player.walkDist - player.walkDistO;
+        if(f > 0) {
+            let pos = world.localPlayer.getBlockPos();
+            let world_block = world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+            if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
+                let default_sound   = 'madcraft:block.stone';
+                let action          = 'hit';
+                let sound           = world_block.getSound();
+                let sound_list      = Game.sounds.getList(sound, action);
+                if(!sound_list) {
+                    sound = default_sound;
+                }
+                Game.sounds.play(sound, action);
+            }
+        }
     }
 
     // onTarget
@@ -834,10 +860,10 @@ export default class Player {
             }
 
             // Внутри какого блока находится голова (в идеале глаза)
-            let hby = this.pos.y + this.height;
-            this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
-            this.eyes_in_water_o = this.eyes_in_water;
-            this.eyes_in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
+            let hby                 = this.pos.y + this.height;
+            this.headBlock          = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
+            this.eyes_in_water_o    = this.eyes_in_water;
+            this.eyes_in_water      = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);

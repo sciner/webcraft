@@ -131,6 +131,15 @@ export class TBlock {
         return this.tb.metadata.get(this.vec);
     }
 
+    getSound() {
+        let sound = null;
+        if(this.id) {
+            let mat = this.material;
+            sound = mat.hasOwnProperty('sound') ? mat.sound : null;
+        }
+        return sound;
+    }
+
 }
 
 // TypedBlocks

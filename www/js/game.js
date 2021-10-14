@@ -198,42 +198,6 @@ export let Game = {
         // Run render loop
         window.requestAnimationFrame(this.loop);
         // setInterval(that.loop, 1);
-        this.setupHitSounds();
-    },
-
-    // Звуки шагов
-    setupHitSounds: function() {
-        let playHit = () => {
-            let player = Game.world.localPlayer;
-            if(!player || player.in_water || !player.walking || !this.controls.enabled) {
-                return;
-            }
-            let f = player.walkDist - player.walkDistO;
-            if(f > 0) {
-                let pos = Game.world.localPlayer.getBlockPos();
-                let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-                if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
-                    let default_sound = 'madcraft:block.wood';
-                    let action = 'hit';
-                    let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
-                    let sound_list = Game.sounds.getList(sound, action);
-                    if(!sound_list) {
-                        sound = default_sound;
-                    }
-                    Game.sounds.play(sound, action);
-                }
-            }
-        };
-        this.interval425 = setInterval(() => {
-            if(this.world && this.world.localPlayer && !this.world.localPlayer.running) {
-                playHit();
-            }
-        }, 425);
-        this.interval300 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.running) {
-                playHit();
-            }
-        }, 300);
     },
 
     startBackgroundMusic: function() {
@@ -374,25 +338,28 @@ export let Game = {
         let that = this;
         that.prevMovementX = 0;
         that.prevMovementZ = 0;
+        // Mouse wheel
         document.addEventListener('wheel', function(e) {
+            if(e.ctrlKey) return;
             if(that.player) {
+                //
                 if(Game.controls.enabled) {
                     that.player.onScroll(e.deltaY > 0);
                 }
+                //
+                if(Game.hud.wm.getVisibleWindows().length > 0) {
+                    Game.hud.wm.mouseEventDispatcher({
+                        original_event:     e,
+                        type:               e.type,
+                        shiftKey:           e.shiftKey,
+                        button:             e.button,
+                        offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
+                        offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                    });
+                }
             }
         });
-        document.addEventListener('wheel', function(e) {
-            if(Game.hud.wm.getVisibleWindows().length > 0) {
-                Game.hud.wm.mouseEventDispatcher({
-                    original_event:     e,
-                    type:               e.type,
-                    shiftKey:           e.shiftKey,
-                    button:             e.button,
-                    offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                    offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
-                });
-            }
-        });
+        // Mouse move
         document.addEventListener('mousemove', function(e) {
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;

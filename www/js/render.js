@@ -49,6 +49,7 @@ export class Renderer {
         this.testLightOn        = false;
         this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
         this.frustum            = new FrustumProxy();
+        this.step_side          = 0;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -390,7 +391,7 @@ export class Renderer {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
-            let speed_mul = 1.2;
+            let speed_mul = 1.0;
             let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
             let f1 = -(player.walkDist * speed_mul + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
@@ -406,6 +407,10 @@ export class Renderer {
                 0.0,
                 -Math.abs(Mth.cos(f1 * Math.PI) * f2),
             ]);
+            if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
+                this.step_side = viewMatrix[1];
+                player.onStep(this.step_side);
+            }
         }
     }
 
