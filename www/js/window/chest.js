@@ -77,13 +77,13 @@ export default class ChestWindow extends Window {
     }
 
     // Запрос содержимого сундука
-    load(block) {
+    load(entity_id) {
         let that = this;
         this.lbl1.setText('LOADING...');
-        this.entity_id  = block.entity_id;
+        this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.world.server.LoadChest(block.entity_id);
+        Game.world.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);

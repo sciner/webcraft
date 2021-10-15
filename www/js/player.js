@@ -541,6 +541,7 @@ export default class Player {
             let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             let extra_data  = world_block.extra_data;
             let rotate      = world_block.rotate;
+            let entity_id   = world_block.entity_id;
             if(world_block && world_block.id > 0) {
                 world_block = world_block.material;
             }
@@ -580,7 +581,7 @@ export default class Player {
                                 break;
                             }
                             case BLOCK.CHEST.id: {
-                                Game.hud.wm.getWindow('frmChest').load(world_block);
+                                Game.hud.wm.getWindow('frmChest').load(entity_id);
                                 break;
                             }
                         }

@@ -200,11 +200,6 @@ export default class ServerClient {
         this.Send({name: ServerClient.CLIENT_LOAD_CHEST, data: {entity_id: entity_id}});
     }
 
-    // Запрос содержимого сундука
-    LoadChest(entity_id) {
-        this.Send({name: ServerClient.CLIENT_LOAD_CHEST, data: {entity_id: entity_id}});
-    }
-
     // Отправка на сервер новых данных слота текущего сундука
     SendChestSlotItem(entity_id, slot_index, item) {
         this.Send({name: ServerClient.CLIENT_SET_CHEST_SLOT_ITEM, data: {
