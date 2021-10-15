@@ -93,6 +93,7 @@ export let Game = {
     inventory:          null,
     prev_player_state:  null,
     controls:           {
+        mouse_sensitivity: 1.6,
         inited: false,
         enabled: false,
         clearStates: function() {
@@ -336,8 +337,6 @@ export let Game = {
     },
     readMouseMove: function() {
         let that = this;
-        that.prevMovementX = 0;
-        that.prevMovementZ = 0;
         // Mouse wheel
         document.addEventListener('wheel', function(e) {
             if(e.ctrlKey) return;
@@ -363,17 +362,6 @@ export let Game = {
         document.addEventListener('mousemove', function(e) {
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-            // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
-            /*if(Math.abs(z) > 300) {
-                x = that.prevMovementX;
-                z = that.prevMovementZ;
-            }*/
-            that.prevMovementX = x;
-            that.prevMovementZ = z;
-            if(that.player.zoom) {
-                x *= ZOOM_FACTOR * 0.5;
-                z *= ZOOM_FACTOR * 0.5;
-            }
             if(Game.hud.wm.getVisibleWindows().length > 0) {
             	if(that.controls.enabled) {
                     Game.mouseY += x;
@@ -394,6 +382,12 @@ export let Game = {
                     offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
                 });
             } else {
+                x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                if(that.player.zoom) {
+                    x *= ZOOM_FACTOR * 0.5;
+                    z *= ZOOM_FACTOR * 0.5;
+                }
                 //
                 that.world.addRotate(new Vector(x, 0, z));
             }
