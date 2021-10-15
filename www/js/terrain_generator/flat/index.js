@@ -1,14 +1,12 @@
-import {blocks} from '../../biomes.js';
+import {blocks} from '../biomes.js';
 import {Color} from '../../helpers.js';
+import { Default_Terrain_Generator } from '../default.js';
 
-export default class Terrain_Generator {
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor() {
-        this.seed = 0;
-    }
-
-
-    setSeed(seed) {
+        super();
+        this.setSeed(0);
     }
 
     generate(chunk) {
@@ -20,7 +18,7 @@ export default class Terrain_Generator {
                 for(let z = 0; z < chunk.size.z; z++) {
                     // BEDROCK
                     for(let y = 0; y < 1; y++) {
-                        chunk.blocks[x][z][y] = b;
+                        this.setBlock(chunk, x, y, z, b, false);
                     }
                 }
             }

@@ -1,7 +1,7 @@
 import {Color, Helpers} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
-export {blocks, BIOMES} from '../biomes.js';
+export {blocks, BIOMES} from './biomes.js';
 
 export {alea, noise};
 
@@ -81,9 +81,16 @@ export class Default_Terrain_Generator {
         }
     }
 
+    getBlock(chunk, x, y, z) {
+        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
+            let xyz = new Vector(x, y, z);
+            return chunk.tblocks.get(xyz);
+        }
+    }
+
     // plantTree...
     plantTree(options, chunk, x, y, z) {
-        const type          = options.type;
+        const type = options.type;
         // листва над стволом
         switch(type.style) {
             case 'cactus': {

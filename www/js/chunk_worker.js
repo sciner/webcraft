@@ -572,7 +572,7 @@ async function importModules(terrain_type, seed, world_id) {
         MAX_CAVES_LEVEL     = module.MAX_CAVES_LEVEL;
     });
     // load module
-    await import("./biomes.js").then(module => {
+    await import("./terrain_generator/biomes.js").then(module => {
         blocks = module.blocks;
     });
     // load module
