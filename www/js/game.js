@@ -93,7 +93,7 @@ export let Game = {
     inventory:          null,
     prev_player_state:  null,
     controls:           {
-        mouse_sensitivity: 1.6,
+        mouse_sensitivity: 1.0,
         inited: false,
         enabled: false,
         clearStates: function() {
@@ -382,6 +382,8 @@ export let Game = {
                     offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
                 });
             } else {
+                // x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                // z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 if(that.player.zoom) {
