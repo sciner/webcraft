@@ -92,8 +92,8 @@ func (this *WorldDatabase) GetUserID(conn *UserConn) int64 {
 	}
 	// Insert new world to Db
 	result, err := this.Conn.Exec("INSERT INTO user(id, guid, username, dt, skin) VALUES($1, $2, $3, $4, $5)", conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), conn.Skin)
-	if err != nil {
-		log.Printf("SQL_ERROR2: %v", err, conn.Session)
+	if err != nil || result == nil {
+		log.Printf("SQL_ERROR2: %v", err)
 		log.Println(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), conn.Skin)
 	}
 	id, _ := result.LastInsertId() // id последнего добавленного объекта
