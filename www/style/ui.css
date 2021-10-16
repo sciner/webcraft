@@ -10,6 +10,11 @@ body {
     flex-direction: column;
 }
 
+h3 {
+    text-transform: capitalize;
+    text-align: center;
+}
+
 .btn {
     width: 100%;
     outline: 2px solid black;

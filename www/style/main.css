@@ -48,19 +48,25 @@ body {
 
 .form-doubles {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
+}
+
+/* On screens that are 600px or less, set the background color to olive */
+@media screen and (max-width: 600px) {
+    .form-doubles {
+        flex-wrap: wrap;
+    }
 }
 
 h4 {
     margin-top: 0;
 }
 
-form {
+form, .form-styled {
     border-radius: 3px;
     margin: 1em;
-    width: 285px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 340px;
     /*
     background-color: #aaa;
     border: 2px solid white;
@@ -74,7 +80,7 @@ form {
     text-align: center;
 }
 
-input[type="text"] {
+input[type="text"], input[type="password"] {
     border: 2px solid white;
     font-family: 'minecraftia';
     background: #000;
@@ -84,6 +90,7 @@ input[type="text"] {
     margin-bottom: 1em;
     color: white;
     text-shadow: 2px 2px 1px #555;
+    width: 100%;
 }
 
 .disabled {
@@ -96,6 +103,13 @@ body.started #main-menu {
 }
 
 body:not(.started) #renderSurface {
+    display: none;
+}
+
+.visible_in_game_menu {
+    z-index: 2;
+}
+body.started.controls_enabled .visible_in_game_menu {
     display: none;
 }
 
@@ -230,4 +244,26 @@ button {
 	color: white;
 	font-family: minecraftia;
 	font-size: 16px;
+}
+
+.btn-discord {
+    transition: background-color .3s;
+    display: flex;
+    color: white;
+    background: #7289da !important;
+    text-decoration: none;
+    padding: .75em 1em;
+    align-items: center;
+    border-radius: .5em;
+    border-top-color: #91a3e5 !important;
+    border-bottom-color: #526cc9 !important;
+    border-top: 3px solid;
+    border-bottom: 3px solid;
+    position: fixed;
+    left: 1em;
+    bottom: 1em;
+}
+.btn-discord:hover {
+    transition: background-color .3s;
+    background: #8097e6 !important;
 }

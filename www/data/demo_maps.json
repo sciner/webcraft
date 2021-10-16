@@ -2,7 +2,7 @@
     {
         "id": "demo",
         "url": "/data/map_demo.json",
-        "title": "♾️ Demo public server",
+        "title": "🟩 Demo public server",
         "state": {
             "id":"demo",
             "seed":"demo",

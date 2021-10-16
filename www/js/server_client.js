@@ -31,7 +31,7 @@ export default class ServerClient {
     static WORLD_CREATE                 = 61;
 
     // Constructor
-    constructor(url, onOpenCallback) {
+    constructor(url, session_id, onOpenCallback) {
         let that = this;
         that.ping_time                    = null;
         that.ping_value                   = null;
@@ -40,7 +40,7 @@ export default class ServerClient {
             in_packets: {}
         };
         this._loadID();
-        this.ws = new WebSocket(url + '?token=' + this.id + '&username=' + Game.username + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
+        this.ws = new WebSocket(url + '?session_id=' + session_id + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
         this.ws.onmessage = function(e) {
             that._onMessage(e);
         };

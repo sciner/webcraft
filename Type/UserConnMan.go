@@ -22,20 +22,29 @@ type (
 )
 
 // Run in goroutine
-func (this *UserConnMan) Connect(ID, username, skin string, Ws *websocket.Conn) *UserConn {
-	if val, ok := this.Connections[ID]; ok {
+func (this *UserConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *websocket.Conn) *UserConn {
+	//
+	if val, ok := this.Connections[session_id]; ok {
 		log.Printf("Used existing UserConn")
 		val.Close()
-		delete(this.Connections, ID)
+		delete(this.Connections, session_id)
 	}
-	this.Connections[ID] = &UserConn{
-		ID:       ID,
-		Username: username,
-		Skin:     skin,
-		Ws:       Ws,
+	//
+	session, err := DB.GetUserSession(session_id)
+	if err != nil || session == nil {
+		return nil
+	}
+	log.Println("Before new UserConn", session)
+	//
+	this.Connections[session_id] = &UserConn{
+		Session: session,
+		ID:      session.UserGUID,
+		// Username: 	session.Username,
+		Skin: skin,
+		Ws:   Ws,
 	}
 	log.Printf("Create new UserConn")
 	//
-	go this.Connections[ID].Receiver()
-	return this.Connections[ID]
+	go this.Connections[session_id].Receiver()
+	return this.Connections[session_id]
 }

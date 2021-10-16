@@ -27,22 +27,22 @@ export class World {
 
     }
 
-    async connect() {
+    async connect(session_id) {
         let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
             '//' + location.hostname +
             (location.port ? ':' + location.port : '') +
             '/ws';
         return new Promise(res => {
-            const server = new ServerClient(serverURL, () => {
+            const server = new ServerClient(serverURL, session_id, () => {
                 res(server);
             });
         });
     }
 
-    async init() {
+    async init(session_id, username) {
         const saved_state = this._savedState;
         // Create server client
-        this.server = await this.connect();
+        this.server = await this.connect(session_id);
         this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state.id, seed: saved_state.seed + ''}});
         this.players        = [];
         this.rainTim        = null;

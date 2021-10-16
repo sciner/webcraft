@@ -3,6 +3,7 @@ package main
 import (
 	"mime"
 
+	"madcraft.io/madcraft/Api"
 	"madcraft.io/madcraft/Struct"
 	"madcraft.io/madcraft/Type"
 	"madcraft.io/madcraft/utils"
@@ -11,6 +12,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -20,9 +23,23 @@ import (
 // User connections manager
 var Users Type.UserConnMan
 
+var DB = Type.GetGameDatabase(getDir() + "/game.sqlite3")
+
+func getDir() string {
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	exPath := filepath.Dir(ex)
+	return exPath
+}
+
 func main() {
 
 	conf.Read()
+
+	// DB := Type.GetGameDatabase(getDir() + "/game.sqlite3")
+	Api.Init(DB)
 
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
 	log.Println("                                       MADCRAFT SERVER RUN                                       ")
@@ -88,6 +105,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "OPTIONS" {
 			// handle preflight in here
 			w.WriteHeader(http.StatusOK)
+		} else {
+			// log.Printf("JsonRPC2.0 request %s", r.URL.Path)
+			Api.Server.Handler(w, r)
 		}
 
 	} else if strings.Index(r.URL.Path, "/ws") == 0 {
@@ -109,25 +129,25 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Read session token
-		token := ""
-		username := ""
+		session_id := ""
+		// username := ""
 		skin := ""
 		params, _ := url.ParseQuery(r.URL.RawQuery)
-		if len(params["token"]) > 0 {
-			token = params["token"][0]
+		if len(params["session_id"]) > 0 {
+			session_id = params["session_id"][0]
 		}
-		if len(params["username"]) > 0 {
+		/*if len(params["username"]) > 0 {
 			username = params["username"][0]
-		}
+		}*/
 		if len(params["skin"]) > 0 {
 			skin = params["skin"][0]
 		}
-		if len(token) == 0 || len(username) == 0 || len(skin) == 0 {
+		if len(session_id) == 0 || len(skin) == 0 {
 			packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, "Invalid session")
 			ws.WriteJSON(packets)
 			ws.Close()
 		} else {
-			Users.Connect(token, username, skin, ws)
+			Users.Connect(DB, session_id, skin, ws)
 		}
 
 	}

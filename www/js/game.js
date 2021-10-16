@@ -75,6 +75,8 @@ export let Game = {
     start_time:         performance.now(),
     last_saved_time:    performance.now() - 20000,
     world_name:         null,
+    username:           null,
+    session_id:         null,
     hud:                null,
     canvas:             document.getElementById('renderSurface'),
     /**
@@ -166,7 +168,7 @@ export let Game = {
         this.sounds         = new Sounds();
         // Create a new world
         this.world = new World(saved_world);
-        this.world.init()
+        this.world.init(this.session_id)
             .then(() => {
                 this.render = new Renderer('renderSurface');
                 return this.load(settings);
@@ -194,11 +196,30 @@ export let Game = {
         //
         this.readMouseMove();
         this.startBackgroundMusic();
-        document.querySelector('body').classList.add('started');
+        this.setGameStarted(true);
         this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);
         // setInterval(that.loop, 1);
+    },
+
+    setGameStarted(value) {
+        let bodyClassList = document.querySelector('body').classList;
+        if(value) {
+            bodyClassList.add('started');
+        } else {
+            bodyClassList.remove('started');
+        }
+    },
+
+    setControlsEnabled(value) {
+        this.controls.enabled = value;
+        let bodyClassList = document.querySelector('body').classList;
+        if(value) {
+            bodyClassList.add('controls_enabled');
+        } else {
+            bodyClassList.remove('controls_enabled');
+        }
     },
 
     startBackgroundMusic: function() {
@@ -311,10 +332,10 @@ export let Game = {
         }
         let pointerlockchange = function(event) {
             if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
-                that.controls.enabled = true;
+                that.setControlsEnabled(true);
                 console.log('Pointer lock enabled!');
             }  else {
-                that.controls.enabled = false;
+                that.setControlsEnabled(false);
                 if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }

@@ -32,7 +32,7 @@ type (
 		Directory   string
 		State       *Struct.WorldState
 		Attr        *Struct.WorldAttrs
-		Db          *GameDatabase
+		Db          *WorldDatabase
 		Chat        *Chat
 	}
 )
@@ -45,7 +45,7 @@ func (this *World) Load() {
 	//
 	this.State = &Struct.WorldState{}
 	//
-	this.Db = GetGameDatabase(this.Directory + "/world.sqlite")
+	this.Db = GetWorldDatabase(this.Directory + "/world.sqlite")
 	//
 	this.Chat = &Chat{
 		World: this,
@@ -105,12 +105,12 @@ func (this *World) OnPlayer(conn *UserConn) {
 	this.Connections[conn.ID] = conn
 	//
 	// Insert to DB if new user
-	this.Connections[conn.ID].IDInt = this.Db.GetUserID(this.Connections[conn.ID])
+	this.Db.GetUserID(this.Connections[conn.ID])
 	//
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
-		Nickname: conn.Username,
+		Nickname: conn.Session.Username,
 		Pos:      conn.Pos,
 		Angles:   conn.Angles,
 	}
@@ -125,7 +125,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 			params := &Struct.ParamPlayerJoin{
 				ID:       c.ID,
 				Skin:     c.Skin,
-				Nickname: c.Username,
+				Nickname: c.Session.Username,
 				Pos:      c.Pos,
 				Angles:   c.Angles,
 			}
@@ -138,7 +138,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 	// Write to chat about new player
 	chatMessage := &Struct.ParamChatSendMessage{
 		Nickname: "<SERVER>",
-		Text:     conn.Username + " подключился",
+		Text:     conn.Session.Username + " подключился",
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}
@@ -241,7 +241,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		var params *Struct.ParamPlayerState
 		json.Unmarshal(out, &params)
 		params.ID = conn.ID
-		params.Nickname = conn.Username
+		params.Nickname = conn.Session.Username
 		packet := Struct.JSONResponse{Name: Struct.EVENT_PLAYER_STATE, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
 		// Update local position
@@ -267,7 +267,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 
 // PlayerLeave... Игрок разорвал соединение с сервером
 func (this *World) PlayerLeave(conn *UserConn) {
-	log.Printf("Player leave %s (%s)", conn.Username, conn.ID)
+	log.Printf("Player leave %s (%s)", conn.Session.Username, conn.ID)
 	// Unsubscribe from chunks
 	for _, chunk := range this.Chunks {
 		chunk.RemoveUserConn(conn)
@@ -278,7 +278,7 @@ func (this *World) PlayerLeave(conn *UserConn) {
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
-		Nickname: conn.Username,
+		Nickname: conn.Session.Username,
 	}
 	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_LEAVE, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
@@ -287,7 +287,7 @@ func (this *World) PlayerLeave(conn *UserConn) {
 	// Write to chat about new player
 	chatMessage := &Struct.ParamChatSendMessage{
 		Nickname: "<SERVER>",
-		Text:     conn.Username + " вышел из игры",
+		Text:     conn.Session.Username + " вышел из игры",
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}

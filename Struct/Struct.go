@@ -176,4 +176,11 @@ type (
 		Code int    `json:"code"`
 		Text string `json:"text"`
 	}
+	// UserSession ...
+	UserSession struct {
+		UserID int64    	`json:"user_id"`
+		UserGUID string    	`json:"user_guid"`
+		Username string    	`json:"username"`
+		SessionID string 	`json:"session_id"`
+	}
 )

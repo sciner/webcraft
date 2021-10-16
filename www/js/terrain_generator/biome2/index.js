@@ -1,11 +1,11 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../blocks.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
-import {CaveGenerator} from '../../caves.js';
 import {Map} from './../map.js';
 import {MapCell} from './../map_cell.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, BIOMES, noise, alea} from "../default.js";
+import {CaveGenerator} from '../caves.js';
 
 //
 let vox_templates = {};

@@ -14,9 +14,8 @@ import (
 type (
 	// UserConn ...
 	UserConn struct {
-		ID       string // уникальный ID соединения
-		IDInt    int64  // ID в базе данных
-		Username string
+		Session  *Struct.UserSession
+		ID       string // уникальный GUID пользователя
 		Skin     string
 		Angles   []float32
 		Pos      Struct.Vector3f
