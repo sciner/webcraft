@@ -317,6 +317,7 @@ export class Vector {
         this.x = vec.x;
         this.y = vec.y;
         this.z = vec.z;
+        return this;
     }
 
     equal(vec) {
