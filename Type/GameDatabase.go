@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 	"madcraft.io/madcraft/Struct"
 
-	// "encoding/json"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -57,7 +56,13 @@ func (this *GameDatabase) InsertNewUser(username, password string) (int64, error
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	// result, err := this.Conn.Query(`INSERT INTO user(dt, guid, username, password) VALUES ($1, $2, $3, $4)`, time.Now().Unix(), uuid.New().String(), username, password)
-	result, err := this.Conn.Exec(`INSERT INTO user(dt, guid, username, password) VALUES ($1, $2, $3, $4)`, time.Now().Unix(), uuid.New().String(), username, password)
+	// result, err := this.Conn.Exec(`INSERT INTO user(dt, guid, username, password) VALUES ($1, $2, $3, $4)`, time.Now().Unix(), uuid.New().String(), username, password)
+	query := `INSERT INTO user(dt, guid, username, password) VALUES ($1, $2, $3, $4)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	result, err := statement.Exec(time.Now().Unix(), uuid.New().String(), username, password)
 	if err != nil {
 		fmt.Println(err)
 		log.Printf("Error: %s | %v", err.Error(), result)
@@ -118,7 +123,13 @@ func (this *GameDatabase) LoginUser(username, password string) (*Struct.UserSess
 // Регистрация новой сессии пользователя
 func (this *GameDatabase) CreateUserSession(user_id int64) (string, error) {
 	token := uuid.New().String()
-	result, err := this.Conn.Exec(`INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`, time.Now().Unix(), user_id, token)
+	// result, err := this.Conn.Exec(`INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`, time.Now().Unix(), user_id, token)
+	query := `INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	result, err := statement.Exec(time.Now().Unix(), user_id, token)
 	if err != nil {
 		fmt.Println(err)
 		log.Printf("Error: %s | %v", err.Error(), result)
@@ -160,10 +171,16 @@ func (this *GameDatabase) InsertNewWorld(user_id int64, generator, seed, title s
 	guid := uuid.New().String()
 	pos_spawn_bytes, _ := json.Marshal(&Struct.Vector3f{
 		X: 2895.7,
-		Y: 67,
+		Y: 120,
 		Z: 2783.06,
 	})
-	result, err := this.Conn.Exec(`INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES ($1, $2, $3, $4, $5, $6, $7)`, time.Now().Unix(), guid, user_id, title, seed, generator, string(pos_spawn_bytes))
+	// result, err := this.Conn.Exec(`INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES ($1, $2, $3, $4, $5, $6, $7)`, time.Now().Unix(), guid, user_id, title, seed, generator, string(pos_spawn_bytes))
+	query := `INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	result, err := statement.Exec(time.Now().Unix(), guid, user_id, title, seed, generator, string(pos_spawn_bytes))
 	if err != nil || result == nil {
 		fmt.Println(err)
 		log.Printf("Error InsertNewWorld: %s; Result: %v", err.Error(), result)
@@ -300,7 +317,13 @@ func (this *GameDatabase) InsertWorldPlayer(world_id, user_id int64, lock bool) 
 		this.Mu.Lock()
 		defer this.Mu.Unlock()
 	}
-	result, err := this.Conn.Exec(`INSERT INTO world_player(dt, world_id, user_id) VALUES ($1, $2, $3)`, time.Now().Unix(), world_id, user_id)
+	// result, err := this.Conn.Exec(`INSERT INTO world_player(dt, world_id, user_id) VALUES ($1, $2, $3)`, time.Now().Unix(), world_id, user_id)
+	query := `INSERT INTO world_player(dt, world_id, user_id) VALUES ($1, $2, $3)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	result, err := statement.Exec(time.Now().Unix(), world_id, user_id)
 	if err != nil || result == nil {
 		fmt.Println(err)
 		log.Printf("Error InsertNewWorld: %s; Result: %v", err.Error(), result)

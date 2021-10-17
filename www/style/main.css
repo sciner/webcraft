@@ -261,7 +261,7 @@ button {
 
 #btns-pad {
     position: fixed;
-    left: .5em;
+    right: .5em;
     bottom: .5em;
     z-index: 2;
 }

@@ -106,7 +106,13 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 		Current: &Struct.PlayerInventoryCurrent{},
 	}
 	inventory_bytes, _ := json.Marshal(inventory)
-	result, err := this.Conn.Exec("INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)", conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
+	// result, err := this.Conn.Exec("INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)", conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
+	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
 	if err != nil || result == nil {
 		log.Printf("SQL_ERROR2: %v", err)
 		log.Println(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), conn.Skin)
@@ -119,7 +125,13 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 func (this *WorldDatabase) InsertChatMessage(conn *UserConn, world *World, params *Struct.ParamChatSendMessage) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
-	_, err := this.Conn.Query(`INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`, conn.Session.UserID, time.Now().Unix(), params.Text, world.Properties.ID, 0)
+	// _, err := this.Conn.Query(`INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`, conn.Session.UserID, time.Now().Unix(), params.Text, world.Properties.ID, 0)
+	query := `INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), params.Text, world.Properties.ID, 0)
 	if err != nil {
 		log.Printf("SQL_ERROR3: %v", err)
 	}
@@ -131,7 +143,13 @@ func (this *WorldDatabase) BlockSet(conn *UserConn, world *World, params *Struct
 	defer this.Mu.Unlock()
 	user_session_id := 0
 	params_json, _ := json.Marshal(params)
-	_, err := this.Conn.Query(`INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
+	// _, err := this.Conn.Query(`INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
+	query := `INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
 	if err != nil {
 		log.Printf("SQL_ERROR4: %v", err)
 	}
@@ -166,7 +184,13 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 		// Insert new world to Db
 		generator_out, _ := json.Marshal(world.Generator)
 		pos_spawn_out, _ := json.Marshal(world.PosSpawn)
-		result, err := this.Conn.Exec("INSERT INTO world(guid, title, seed, user_id, dt, generator, pos_spawn) VALUES($1, $2, $3, $4, $5, $6, $7)", world.GUID, world.Title, world.Seed, world.UserID, time.Now().Unix(), string(generator_out), string(pos_spawn_out))
+		// result, err := this.Conn.Exec("INSERT INTO world(guid, title, seed, user_id, dt, generator, pos_spawn) VALUES($1, $2, $3, $4, $5, $6, $7)", world.GUID, world.Title, world.Seed, world.UserID, time.Now().Unix(), string(generator_out), string(pos_spawn_out))
+		query := `INSERT INTO world(guid, title, seed, user_id, dt, generator, pos_spawn) VALUES($1, $2, $3, $4, $5, $6, $7)`
+		statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+		result, err := statement.Exec(world.GUID, world.Title, world.Seed, world.UserID, time.Now().Unix(), string(generator_out), string(pos_spawn_out))
 		if err != nil || result == nil {
 			log.Printf("SQL_ERROR6: %v", err)
 		}
@@ -197,11 +221,23 @@ func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
 	defer this.Mu.Unlock()
 	pos_json_bytes, _ := json.Marshal(conn.Pos)
 	rotate_json_bytes, _ := json.Marshal(conn.Rotate)
-	_, err := this.Conn.Query(`UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`, string(pos_json_bytes), string(rotate_json_bytes), time.Now().Unix(), conn.Session.UserID)
+	query := `UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	_, err = statement.Exec(string(pos_json_bytes), string(rotate_json_bytes), time.Now().Unix(), conn.Session.UserID)
 	if err != nil {
 		log.Printf("SQL_ERROR12: %v", err)
 	}
 	return err
+	/*
+		_, err := this.Conn.Query(`UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`, )
+		if err != nil {
+			log.Printf("SQL_ERROR12: %v", err)
+		}
+		return err
+	*/
 }
 
 // Сырой запрос в БД
