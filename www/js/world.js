@@ -245,7 +245,9 @@ export class World {
 
     // saveToDB
     saveToDB(callback) {
-        Game.saves.save(this, callback);
+        if(callback) {
+            callback();
+        }
         return;
     }
 

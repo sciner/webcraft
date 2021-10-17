@@ -13,7 +13,8 @@ import (
 	"github.com/google/uuid"
 	"madcraft.io/madcraft/Struct"
 
-	_ "github.com/mattn/go-sqlite3"
+	// _ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 type (
@@ -35,7 +36,7 @@ func GetGameDatabase(filename string) *GameDatabase {
 		}
 	}
 	//
-	conn, err := sql.Open("sqlite3", filename)
+	conn, err := sql.Open("sqlite", filename)
 	if err != nil {
 		log.Printf("ERROR17: %v", err)
 		return nil

@@ -11,8 +11,9 @@ import (
 	"sync"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	// _ "github.com/mattn/go-sqlite3"
 	"madcraft.io/madcraft/Struct"
+	_ "modernc.org/sqlite"
 )
 
 type (
@@ -34,7 +35,7 @@ func GetWorldDatabase(filename string) *WorldDatabase {
 		}
 	}
 	//
-	conn, err := sql.Open("sqlite3", filename)
+	conn, err := sql.Open("sqlite", filename)
 	if err != nil {
 		log.Printf("SQL_ERROR8: %v", err)
 		return nil
