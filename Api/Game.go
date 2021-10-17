@@ -54,5 +54,5 @@ func (this *Game) JoinWorld(req *http.Request, params map[string]interface{}) (*
 	if err != nil {
 		return nil, err
 	}
-	return this.Db.JoinWorld(session.UserID, world_guid)
+	return this.Db.JoinWorld(session.UserID, world_guid, true)
 }

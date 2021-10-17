@@ -62,7 +62,11 @@ func (this *GameDatabase) InsertNewUser(username, password string) (int64, error
 		return 0, err
 	} else {
 		log.Printf("INSERTED %s", username)
-		return result.LastInsertId()
+		user_id, err := result.LastInsertId()
+		//
+		this.JoinWorld(user_id, "demo", false)
+		//
+		return user_id, err
 	}
 }
 
@@ -171,10 +175,12 @@ func (this *GameDatabase) InsertNewWorld(user_id int64, generator, seed, title s
 }
 
 // Присоединение к миру
-func (this *GameDatabase) JoinWorld(user_id int64, world_guid string) (*Struct.WorldProperties, error) {
+func (this *GameDatabase) JoinWorld(user_id int64, world_guid string, lock bool) (*Struct.WorldProperties, error) {
 	//
-	this.Mu.Lock()
-	defer this.Mu.Unlock()
+	if lock {
+		this.Mu.Lock()
+		defer this.Mu.Unlock()
+	}
 	// 1. find world
 	world_id, err := this.GetWorldID(world_guid)
 	if err != nil {
