@@ -138,11 +138,11 @@ type (
 		Text     string `json:"text"`
 	}
 	ParamPlayerJoin struct {
-		ID       string    `json:"id"`
-		Nickname string    `json:"nickname"`
-		Skin     string    `json:"skin"`
-		Angles   []float32 `json:"angles"`
-		Pos      Vector3f  `json:"pos"`
+		ID       string   `json:"id"`
+		Nickname string   `json:"nickname"`
+		Skin     string   `json:"skin"`
+		Pos      Vector3f `json:"pos"`
+		Rotate   Vector3f `json:"rotate"`
 	}
 	ParamPlayerLeave struct {
 		ID string `json:"id"`

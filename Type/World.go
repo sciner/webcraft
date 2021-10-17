@@ -96,7 +96,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 				Skin:     c.Skin,
 				Nickname: c.Session.Username,
 				Pos:      c.Pos,
-				Angles:   []float32{c.Rotate.X, c.Rotate.Y, c.Rotate.Z},
+				Rotate:   c.Rotate,
 			}
 			packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
 			packets := []Struct.JSONResponse{packet}
@@ -109,7 +109,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 		Skin:     conn.Skin,
 		Nickname: conn.Session.Username,
 		Pos:      *player_state.Pos,
-		Angles:   []float32{player_state.Rotate.X, player_state.Rotate.Y, player_state.Rotate.Z},
+		Rotate:   *player_state.Rotate,
 	}
 	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}

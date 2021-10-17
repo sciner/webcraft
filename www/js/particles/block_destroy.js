@@ -17,7 +17,7 @@ export default class Particles_Block_Destroy {
             return false;
         }
         let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
-        this.yaw        = -Game.world.localPlayer.angles[2];
+        this.yaw        = -Game.world.localPlayer.rotate.z;
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
         let ao          = [0, 0, 0, 0];

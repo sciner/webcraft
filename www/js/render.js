@@ -358,10 +358,11 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(pos, ang) {
-        let pitch           = ang[0]; // X
-        let roll            = ang[1]; // Z
-        let yaw             = ang[2]; // Y
+    setCamera(pos, rotate) {
+        // @todo Возможно тут надо поменять Z и Y местами
+        let pitch           = rotate.x; // X
+        let roll            = rotate.y; // Z
+        let yaw             = rotate.z; // Y
         this.camPos.copyFrom(pos);
         mat4.identity(this.viewMatrix);
         // bobView

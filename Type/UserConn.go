@@ -17,16 +17,15 @@ type (
 		Session *Struct.UserSession
 		ID      string // уникальный GUID пользователя
 		Skin    string
-		// Angles  []float32
-		Rotate Struct.Vector3f
-		Pos    Struct.Vector3f
-		Ws     *websocket.Conn
-		Mu     *sync.Mutex          // чтобы избежать коллизий записи в сокет
-		Join   chan *websocket.Conn // Register requests from the connections.
-		Time   time.Time            // Время соединения, time.Now()
-		Leave  chan *websocket.Conn // Unregister requests from connections.
-		Closed bool
-		World  *World
+		Rotate  Struct.Vector3f
+		Pos     Struct.Vector3f
+		Ws      *websocket.Conn
+		Mu      *sync.Mutex          // чтобы избежать коллизий записи в сокет
+		Join    chan *websocket.Conn // Register requests from the connections.
+		Time    time.Time            // Время соединения, time.Now()
+		Leave   chan *websocket.Conn // Unregister requests from connections.
+		Closed  bool
+		World   *World
 	}
 )
 

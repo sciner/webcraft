@@ -8,7 +8,6 @@ export default class Particles_Sun {
 
     // Constructor
     constructor(gl, pos) {
-        // this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = 1;
         let lm          = new Color(0, 0, 0, 0);
         let ao          = [0, 0, 0, 0];

@@ -35,7 +35,7 @@ export default class Player {
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
-        this.angles                 = [0, 0, Math.PI];
+        this.rotate                 = new Vector(0, 0, Math.PI);
         this.velocity               = new Vector(0, 0, 0);
         this.walkDist               = 0;
         this.walkDistO              = 0;
@@ -58,7 +58,6 @@ export default class Player {
         this.eventHandlers          = {};
         this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.pos_spawn;
         this.rotate                 = new Vector(world.saved_state.rotate);
-        this.angles                 = world.saved_state ? [this.rotate.x, this.rotate.y, this.rotate.z] : this.angles;
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
@@ -791,8 +790,8 @@ export default class Player {
             let delta = (performance.now() - this.lastUpdate) / 1000;
             delta = Math.min(delta, 1.0);
             // View
-            this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
-            this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
+            this.rotate.x = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
+            this.rotate.z = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
 
             let pc                 = this.getPlayerControl();
             this.posO              = new Vector(this.lerpPos);
@@ -803,7 +802,7 @@ export default class Player {
             pc.controls.jump       = !!this.keys[KEY.SPACE];
             pc.controls.sneak      = !!this.keys[KEY.SHIFT];
             pc.controls.sprint     = this.running;
-            pc.player_state.yaw    = this.angles[2];
+            pc.player_state.yaw    = this.rotate.z;
 
             // Physics tick
             let ticks = pc.tick(delta);

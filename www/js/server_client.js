@@ -120,8 +120,8 @@ export default class ServerClient {
                         id:             data.id,
                         itsme:          data.id == Game.world.session.user_id,
                         pos:            data.pos,
-                        pitch:          data.angles ? data.angles[0] : 0,
-                        yaw:            data.angles ? data.angles[2] : 0,
+                        pitch:          data.rotate.x,
+                        yaw:            data.rotate.z,
                         skin:           Game.skins.getById(data.skin),
                         nick:           data.nickname
                     });

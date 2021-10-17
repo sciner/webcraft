@@ -247,7 +247,7 @@ export let Game = {
         }
         that.world.update();
         // Draw world
-        that.render.setCamera(that.player.getEyePos(), that.player.angles);
+        that.render.setCamera(that.player.getEyePos(), that.player.rotate);
         that.render.draw(fps.delta);
         // Send player state
         that.sendPlayerState();
@@ -258,12 +258,8 @@ export let Game = {
     },
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
-        let angles = this.world.localPlayer.angles;
         this.current_player_state = {
-            // @todo Разобраться с разночтением
-            // angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
-            rotate: new Vector(angles[0], angles[1], angles[2]),
-            // rotate: this.world.localPlayer.rotate,
+            rotate: this.world.localPlayer.rotate,
             pos:    this.world.localPlayer.lerpPos,
             ping:   Math.round(this.world.server.ping_value)
         };

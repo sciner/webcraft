@@ -10,7 +10,7 @@ export default class Particles_Raindrop {
 
     // Constructor
     constructor(gl, pos) {
-        this.yaw        = -Game.world.localPlayer.angles[2];
+        this.yaw        = -Game.world.localPlayer.rotate.z;
         this.life       = 0.5;
         let lm          = new Color(0, 0, 0, 0);
         let ao          = [0, 0, 0, 0];

@@ -115,13 +115,14 @@ export class World {
 
     //
     createClone() {
+        let player = this.localPlayer;
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
             itsme:          true,
-            angles:         this.localPlayer.angles,
-            pos:            new Vector(this.localPlayer.pos.x, this.localPlayer.pos.y, this.localPlayer.pos.z),
-            yaw:            this.localPlayer.angles[2],
-            pitch:          this.localPlayer.angles[0],
+            rotate:         player.rotate.clone(),
+            pos:            player.pos.clone(),
+            pitch:          player.rotate.x,
+            yaw:            player.rotate.z,
             skin:           Game.skins.getById(Game.skin.id),
             nick:           Game.username
         });
