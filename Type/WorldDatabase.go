@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"madcraft.io/madcraft/Struct"
 )
 
@@ -33,7 +34,7 @@ func GetWorldDatabase(filename string) *WorldDatabase {
 		}
 	}
 	//
-	conn, err := sql.Open("sqlite", filename)
+	conn, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		log.Printf("SQL_ERROR8: %v", err)
 		return nil
@@ -140,7 +141,7 @@ func (this *WorldDatabase) BlockSet(conn *UserConn, world *World, params *Struct
 func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*Struct.WorldProperties, error) {
 	rows, err := this.Conn.Query("SELECT id, guid, dt, title, seed, generator, pos_spawn FROM world WHERE guid = $1", world_guid)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR24: %v", err)
 		return nil, err
 	}
 	defer rows.Close()

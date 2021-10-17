@@ -2,7 +2,6 @@ package Type
 
 import (
 	"madcraft.io/madcraft/Struct"
-	_ "modernc.org/sqlite"
 )
 
 type (

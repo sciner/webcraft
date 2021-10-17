@@ -12,7 +12,9 @@ import (
 
 	"github.com/google/uuid"
 	"madcraft.io/madcraft/Struct"
+
 	// "encoding/json"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type (
@@ -34,9 +36,9 @@ func GetGameDatabase(filename string) *GameDatabase {
 		}
 	}
 	//
-	conn, err := sql.Open("sqlite", filename)
+	conn, err := sql.Open("sqlite3", filename)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR17: %v", err)
 		return nil
 	}
 	return &GameDatabase{
@@ -76,7 +78,7 @@ func (this *GameDatabase) UserExists(username string) bool {
 	defer this.Mu.Unlock()
 	rows, err := this.Conn.Query("SELECT id FROM user WHERE username = $1 LIMIT 1", username)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR28: %v", err)
 		return false
 	}
 	defer rows.Close()
@@ -92,7 +94,7 @@ func (this *GameDatabase) LoginUser(username, password string) (*Struct.UserSess
 	defer this.Mu.Unlock()
 	rows, err := this.Conn.Query("SELECT id, username, password FROM user WHERE username = $1 LIMIT 1", username)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR19: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -184,7 +186,7 @@ func (this *GameDatabase) JoinWorld(user_id int64, world_guid string, lock bool)
 	// 1. find world
 	world_id, err := this.GetWorldID(world_guid)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR20: %v", err)
 		return nil, err
 	}
 	// 2. check already joined
@@ -215,7 +217,7 @@ func (this *GameDatabase) JoinWorld(user_id int64, world_guid string, lock bool)
 func (this *GameDatabase) GetWorld(world_guid string) (*Struct.WorldProperties, error) {
 	rows, err := this.Conn.Query("SELECT id, guid, dt, title, seed, generator, user_id, pos_spawn FROM world WHERE guid = $1", world_guid)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR21: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -255,7 +257,7 @@ func (this *GameDatabase) GetWorld(world_guid string) (*Struct.WorldProperties, 
 func (this *GameDatabase) GetWorldID(world_guid string) (int64, error) {
 	rows, err := this.Conn.Query("SELECT w.id FROM world AS w WHERE w.guid = $1", world_guid)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR22: %v", err)
 		return 0, err
 	}
 	defer rows.Close()
@@ -275,7 +277,7 @@ func (this *GameDatabase) GetWorldID(world_guid string) (int64, error) {
 func (this *GameDatabase) PlayerExistsInWorld(world_id, user_id int64) (int64, error) {
 	rows, err := this.Conn.Query("SELECT wp.id FROM world_player AS wp WHERE wp.world_id = $1 AND wp.user_id = $2", world_id, user_id)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR23: %v", err)
 		return 0, err
 	}
 	defer rows.Close()
@@ -318,7 +320,7 @@ func (this *GameDatabase) MyWorlds(user_id int64, lock bool) ([]*Struct.WorldPro
 	}
 	rows, err := this.Conn.Query("SELECT w.id, w.dt, w.guid, w.title, w.seed, w.generator FROM world_player AS wp LEFT JOIN world w ON w.id = wp.world_id WHERE wp.user_id = $1", user_id)
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("ERROR16: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
