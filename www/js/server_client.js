@@ -9,6 +9,7 @@ export default class ServerClient {
     static EVENT_PING                   = 3;
     static EVENT_PONG                   = 4;
     static EVENT_CONNECT                = 34;
+    static EVENT_CONNECTED              = 62;
     // Cnunks and blocks
     static EVENT_BLOCK_DESTROY          = 35;
     static EVENT_BLOCK_SET              = 36;
@@ -85,6 +86,10 @@ export default class ServerClient {
             in_packets.size += event.data.length;
             // parse command
             switch(cmd.event) {
+                case ServerClient.EVENT_CONNECTED: {
+                    Game.world.onServerConnect(cmd.data);
+                    break;
+                }
                 case ServerClient.EVENT_BLOCK_SET: {
                     let pos = cmd.data.pos;
                     let item = cmd.data.item;
@@ -113,7 +118,7 @@ export default class ServerClient {
                     let data = cmd.data;
                     Game.world.players[data.id] = new PlayerModel({
                         id:             data.id,
-                        itsme:          data.id == Game.world.server.id,
+                        itsme:          data.id == Game.world.session.user_id,
                         pos:            data.pos,
                         pitch:          data.angles ? data.angles[0] : 0,
                         yaw:            data.angles ? data.angles[2] : 0,
@@ -135,8 +140,8 @@ export default class ServerClient {
                             pl.moving = true;
                         }
                         pl.pos      = data.pos;
-                        pl.pitch    = data.angles[0];
-                        pl.yaw      = data.angles[2];
+                        pl.pitch    = data.rotate.x;
+                        pl.yaw      = data.rotate.z;
                         if(pl.moving_timeout) {
                             clearTimeout(pl.moving_timeout);
                         }

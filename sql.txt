@@ -5,7 +5,8 @@ CREATE TABLE "user" (
   "guid" text NOT NULL,
   "username" TEXT,
   "dt" integer,
-  "skin" TEXT
+  "skin" TEXT,
+  "inventory" TEXT
 );
 
 CREATE TABLE "user_session" (
@@ -63,3 +64,12 @@ SELECT rowid, guid,title,user_id,dt,seed FROM "world_copy1";
 
 INSERT INTO "world_modify" (id, world_id,dt,user_id,params,user_session_id,x,y,z)
 SELECT rowid, world_id,dt,user_id,params,user_session_id,x,y,z FROM "world_modify_copy1";
+
+-- Game database
+
+CREATE TABLE "world_player" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "world_id" INTEGER,
+  "user_id" INTEGER,
+  "dt" integer
+);

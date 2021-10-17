@@ -1,4 +1,3 @@
-import Chat from "./chat.js";
 import {ROTATE, Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Kb} from "./kb.js";
@@ -37,7 +36,6 @@ export default class Player {
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
         this.angles                 = [0, 0, Math.PI];
-        this.chat                   = new Chat();
         this.velocity               = new Vector(0, 0, 0);
         this.walkDist               = 0;
         this.walkDistO              = 0;
@@ -58,7 +56,9 @@ export default class Player {
         this.world.localPlayer      = this;
         this.keys                   = {};
         this.eventHandlers          = {};
-        this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+        this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.pos_spawn;
+        this.rotate                 = new Vector(world.saved_state.rotate);
+        this.angles                 = world.saved_state ? [this.rotate.x, this.rotate.y, this.rotate.z] : this.angles;
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
@@ -330,7 +330,7 @@ export default class Player {
                         }
                     } else {
                         let np = this.pos;
-                        Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
+                        Game.world.pos_spawn = new Vector(np.x, np.y, np.z);
                         console.log('Spawnpoint changed');
                         this.chat.messages.addSystem('Spawnpoint changed');
                     }
@@ -405,7 +405,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    this.setPosition(Game.world.spawnPoint);
+                    this.setPosition(Game.world.pos_spawn);
                 }
                 return true;
                 break;

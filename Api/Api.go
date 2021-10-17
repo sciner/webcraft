@@ -8,9 +8,14 @@ import (
 // Server ...
 var Server server.APIServer
 
-func Init(db *Type.GameDatabase) {
+func Init(db *Type.GameDatabase, worlds Type.WorldMan) {
 	Server = server.APIServer{}
+	// User
 	Server.Add("User", &User{
+		Db: db,
+	})
+	// Game
+	Server.Add("Game", &Game{
 		Db: db,
 	})
 }

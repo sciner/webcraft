@@ -14,18 +14,19 @@ import (
 type (
 	// UserConn ...
 	UserConn struct {
-		Session  *Struct.UserSession
-		ID       string // уникальный GUID пользователя
-		Skin     string
-		Angles   []float32
-		Pos      Struct.Vector3f
-		Ws       *websocket.Conn
-		Mu       *sync.Mutex          // чтобы избежать коллизий записи в сокет
-		Join     chan *websocket.Conn // Register requests from the connections.
-		Time     time.Time            // Время соединения, time.Now()
-		Leave    chan *websocket.Conn // Unregister requests from connections.
-		Closed   bool
-		World    *World
+		Session *Struct.UserSession
+		ID      string // уникальный GUID пользователя
+		Skin    string
+		// Angles  []float32
+		Rotate Struct.Vector3f
+		Pos    Struct.Vector3f
+		Ws     *websocket.Conn
+		Mu     *sync.Mutex          // чтобы избежать коллизий записи в сокет
+		Join   chan *websocket.Conn // Register requests from the connections.
+		Time   time.Time            // Время соединения, time.Now()
+		Leave  chan *websocket.Conn // Unregister requests from connections.
+		Closed bool
+		World  *World
 	}
 )
 
@@ -71,8 +72,9 @@ func (this *UserConn) Receiver() {
 					out, _ := json.Marshal(cmdIn.Data)
 					var param *Struct.CmdConnect
 					json.Unmarshal(out, &param)
-					log.Printf("Connect to world ID: %s; Seed: %s", param.ID, param.Seed)
-					this.World = Worlds.Get(param.ID, param.Seed)
+					log.Printf("Connect to world ID: %s", param.WorldGUID)
+					//
+					this.World = Worlds.Get(param.WorldGUID)
 					this.World.OnPlayer(this)
 				}
 			case Struct.COMMAND_PING:

@@ -7,7 +7,7 @@ export default class Saves {
     }
 
     // Load
-    load(world_id, callback, callback_error) {
+    /*load(world_id, callback, callback_error) {
         let key = this.table_name + '_' + world_id;
         let world = localStorage.getItem(key);
         if(world) {
@@ -23,7 +23,7 @@ export default class Saves {
         let err = {message: 'Not found'};
         callback_error(err);
         return false;
-    }
+    }*/
 
     // Add new
     addNew(world, callback) {
@@ -38,7 +38,7 @@ export default class Saves {
     save(world, callback) {
         let table_name = this.table_name;
         world.exportJSON(function(row) {
-            let key = table_name + '_' + row.id;
+            let key = table_name + '_' + row.guid;
             localStorage.setItem(key, JSON.stringify(row));
             if(callback) {
                 callback();

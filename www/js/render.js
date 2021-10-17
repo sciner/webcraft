@@ -359,7 +359,6 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(pos, ang) {
-
         let pitch           = ang[0]; // X
         let roll            = ang[1]; // Z
         let yaw             = ang[2]; // Y

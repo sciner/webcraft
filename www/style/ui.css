@@ -45,3 +45,58 @@ h3 {
     background-image: url('../media/gui/button_active_center.png');
     color: #FFFFA0;
 }
+
+.btn2 {
+    font-family: minecraftia;
+    font-size: 16px;
+    line-height: 1.3em;
+    text-shadow: #3f3f3f 2px 2px 0px;
+}
+
+.form-normal {
+    background-color: rgba(100, 100, 100, 1);
+    padding: 1em;
+    border-radius: .5em;
+}
+
+.btn2 {
+    transition: background-color .3s;
+    display: inline-flex;
+    color: white;
+    text-decoration: none;
+    padding: .75em 1em;
+    align-items: center;
+    border-radius: .5em;
+    border-top: 3px solid;
+    border-bottom: 3px solid;
+    background: #7289da !important;
+    border-top-color: #91a3e5 !important;
+    border-bottom-color: #526cc9 !important;
+}
+.btn-default:hover {
+    transition: background-color .3s;
+    background: #8097e6 !important;
+}
+.btn-success {
+    background: #3bb464 !important;
+    border-top-color: #4bc774 !important;
+    border-bottom-color: #319953 !important;
+}
+.btn-success:hover {
+    transition: background-color .3s;
+    background: #46c571 !important;
+}
+
+
+.btn-action {
+    background: rgb(235, 232, 232) !important;
+    border-top-color: rgb(255, 255, 255) !important;
+    border-bottom-color: rgb(230, 230, 230) !important;
+    color: #333;
+    text-shadow: #c0c0c0 2px 2px 0px;
+    line-height: 1;
+}
+.btn-action:hover {
+    transition: background-color .3s;
+    background: #fff !important;
+}

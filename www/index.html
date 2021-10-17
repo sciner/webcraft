@@ -27,10 +27,27 @@
 
     <div>
 
-        <a href="https://discord.gg/QQw2zadu3T" target="_blank" class="btn-discord visible_in_game_menu">
-            <span style="margin-right: 1em;">Discord<br>community</span>
-            <img src="/media/discord.png" style="height: 2em;">
-        </a>
+        <!-- shareGame -->
+        <div id="form-shareGame" class="form-normal visible_only_in_game_menu visible_in_game_menu" ng-if="shareGame.visible">
+            <div>
+                <span>{{lang.share_game_with_friends}}</span>
+                <button class="btn2 btn-action" ng-click="shareGame.toggle()">×</button>
+            </div>
+            <input type="text" ng-value="shareGame.url">
+            <button class="btn2 btn-action" ng-click="shareGame.copy()">{{lang.copy}}</button>
+        </div>
+
+        <!-- Corner buttons -->
+        <div id="btns-pad">
+            <a href="https://discord.gg/QQw2zadu3T" target="_blank" class="btn2 btn-default visible_in_game_menu">
+                <span style="margin-right: 1em;">Discord<br>community</span>
+                <img src="/media/discord.png" style="height: 2em;">
+            </a>
+            <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
+                <span style="margin-right: 1em;">Invite<br>friend</span>
+                <img src="/media/icons-share.svg" style="height: 2em;">
+            </button>
+        </div>
 
         <h3>{{current_window.getTitle()}}</h3>
 
@@ -97,11 +114,11 @@
             <div ng-show="current_window.id == 'main'" class="form-doubles">
 
                 <form>
-                    <div ng-init="mygames.load()">
+                    <div>
                         <div ng-if="mygames.list.length > 0">
                             <h4 class="text-center">My Games:</h4>
                             <div ng-repeat="item in mygames.list track by item.id">
-                                <button class="btn" ng-click="StartWorld(item.id)"><span>{{item.title}}</span></button>
+                                <button class="btn" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
                             </div>
                         </div>
                         <button class="btn" ng-click="newgame.open()">
@@ -142,7 +159,7 @@
                             <label for="input-mipmap">Generate mipmap</label>
                         </div>
 
-                        <br><br>
+                        <br>
                         <button class="btn" ng-click="App.logout()">
                             <span>Logout</span>
                         </button>
@@ -227,8 +244,8 @@
                     <br><input type="text" ng-model="newgame.form.seed" autofocus>
                 </div>
                 <div>
-                    <button class="btn" ng-click="generators.next()">
-                        <span>Тип мира: {{generators.getCurrent().title}}</span>
+                    <button class="btn" ng-click="newgame.generators.next()">
+                        <span>Тип мира: {{newgame.generators.getCurrent().title}}</span>
                     </button>
                 </div>
                 <button class="btn" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">
@@ -251,6 +268,8 @@
         -->
 
     </div>
+
+    <script src="/vendors/vanilla-toast.min.js"></script>
 
 </body>
 </html>

@@ -2,9 +2,9 @@ package Api
 
 import (
 	"net/http"
-	"madcraft.io/madcraft/Type"
+
 	"madcraft.io/madcraft/Struct"
-	// "encoding/json"
+	"madcraft.io/madcraft/Type"
 )
 
 // User ...
@@ -31,10 +31,5 @@ func (this *User) Login(req *http.Request, params map[string]interface{}) (*Stru
 	username := params["username"].(string)
 	password := params["password"].(string)
 	session, err := this.Db.LoginUser(username, password)
-	/*
-		out, _ := json.Marshal(params["Info"])
-		var ChannelInfo Struct.ChatInfo
-		json.Unmarshal(out, &ChannelInfo)
-	*/
 	return session, err
 }

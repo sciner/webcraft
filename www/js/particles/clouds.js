@@ -88,7 +88,7 @@ export default class Particles_Clouds {
         BLOCK.clearBlockCache();
         this.scale      = new Vector(8, 4, 8);
         this.pn         = performance.now();
-        this.yaw        = -Math.PI; // -Game.world.localPlayer.angles[2];
+        this.yaw        = -Math.PI;
         this.life       = 0.5;
         this.loading    = false;
         this.pos        = new Vector(pos.x, pos.y, pos.z);

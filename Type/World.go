@@ -2,7 +2,6 @@ package Type
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -21,9 +20,7 @@ const (
 
 type (
 	World struct {
-		ID          string
-		IDInt       int64
-		Seed        string
+		Properties  *Struct.WorldProperties
 		Mu          *sync.Mutex          // чтобы избежать коллизий
 		Connections map[string]*UserConn // Registered connections.
 		Chunks      map[Struct.Vector3]*Chunk
@@ -31,20 +28,19 @@ type (
 		CreateTime  time.Time // Время создания, time.Now()
 		Directory   string
 		State       *Struct.WorldState
-		Attr        *Struct.WorldAttrs
 		Db          *WorldDatabase
+		DBGame      *GameDatabase
 		Chat        *Chat
 	}
 )
 
-func (this *World) Load() {
+func (this *World) Load(guid string) {
+	this.Properties = &Struct.WorldProperties{
+		GUID: guid,
+	}
 	this.Directory = this.GetDir()
 	this.CreateTime = this.getDirectoryCTime(this.Directory)
-	//
-	this.Attr = this.LoadAttr()
-	//
 	this.State = &Struct.WorldState{}
-	//
 	this.Db = GetWorldDatabase(this.Directory + "/world.sqlite")
 	//
 	this.Chat = &Chat{
@@ -52,33 +48,14 @@ func (this *World) Load() {
 		Db:    this.Db,
 	}
 	//
-	this.IDInt = this.Db.GetWorldID(this)
+	world_properties, err := this.Db.GetWorld(guid, this.DBGame) // DBGame
+	if err != nil {
+		log.Printf("ERROR10 LOAD WORLD: %v", err)
+		return
+	}
+	this.Properties = world_properties
 	//
 	this.Entities.Load(this)
-}
-
-func (this *World) LoadAttr() *Struct.WorldAttrs {
-	fileName := this.GetFileName()
-	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		// path does not exist
-		attr := &Struct.WorldAttrs{
-			ID:       this.ID,
-			Seed:     this.Seed,
-			CTime:    time.Now(),
-			Title:    "",
-			AuthodID: "",
-		}
-		this.SaveAttr(attr)
-		return attr
-	}
-	s, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		// Chunk file not found
-		return nil
-	}
-	attr := &Struct.WorldAttrs{}
-	err = json.Unmarshal([]byte(s), attr)
-	return attr
 }
 
 func (this *World) updateWorldState() {
@@ -95,7 +72,9 @@ func (this *World) updateWorldState() {
 	this.State.DayTime = int64((age - float64(this.State.Age)) * float64(Struct.GAME_DAY_SECONDS))
 }
 
+// OnPlayer...
 func (this *World) OnPlayer(conn *UserConn) {
+	// 1. Add new connection
 	if val, ok := this.Connections[conn.ID]; ok {
 		log.Printf("OnPlayer delete existing conn: %s", conn.ID)
 		val.Close()
@@ -103,23 +82,13 @@ func (this *World) OnPlayer(conn *UserConn) {
 	}
 	log.Printf("OnPlayer add conn: %s", conn.ID)
 	this.Connections[conn.ID] = conn
-	//
-	// Insert to DB if new user
-	this.Db.GetUserID(this.Connections[conn.ID])
-	//
-	params := &Struct.ParamPlayerJoin{
-		ID:       conn.ID,
-		Skin:     conn.Skin,
-		Nickname: conn.Session.Username,
-		Pos:      conn.Pos,
-		Angles:   conn.Angles,
+	// 2. Insert to DB if new player
+	user_id, player_state, err := this.Db.RegisterUser(this.Connections[conn.ID], this.Properties.PosSpawn, true)
+	if err != nil || user_id == 0 {
+		log.Println("ERROR14: User not registered")
+		return
 	}
-	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
-	packets := []Struct.JSONResponse{packet}
-	// this.SendAll(packets, []string{conn.ID})
-	this.SendAll(packets, []string{})
-
-	// Send about all other players
+	// 3. Send about all other players
 	for _, c := range this.Connections {
 		if c.ID != conn.ID {
 			params := &Struct.ParamPlayerJoin{
@@ -127,27 +96,39 @@ func (this *World) OnPlayer(conn *UserConn) {
 				Skin:     c.Skin,
 				Nickname: c.Session.Username,
 				Pos:      c.Pos,
-				Angles:   c.Angles,
+				Angles:   []float32{c.Rotate.X, c.Rotate.Y, c.Rotate.Z},
 			}
 			packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
 			packets := []Struct.JSONResponse{packet}
 			conn.WriteJSON(packets)
 		}
 	}
-
-	// Write to chat about new player
-	chatMessage := &Struct.ParamChatSendMessage{
-		Nickname: "<SERVER>",
-		Text:     conn.Session.Username + " подключился",
+	// 4.
+	params := &Struct.ParamPlayerJoin{
+		ID:       conn.ID,
+		Skin:     conn.Skin,
+		Nickname: conn.Session.Username,
+		Pos:      *player_state.Pos,
+		Angles:   []float32{player_state.Rotate.X, player_state.Rotate.Y, player_state.Rotate.Z},
 	}
-	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
-	packets2 := []Struct.JSONResponse{packet2}
-	this.SendAll(packets2, []string{conn.ID})
-
-	// Send World State to new player
+	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
+	packets := []Struct.JSONResponse{packet}
+	this.SendAll(packets, []string{conn.ID})
+	// 5. Write to chat about new player
+	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
+	// 6. Send World State for new player
 	cons := make(map[string]*UserConn, 0)
 	cons[conn.ID] = conn
 	this.SendWorldState(cons)
+	player_state.World = this.Properties
+	this.SendPlayerState(conn, player_state)
+}
+
+// SendPlayerState
+func (this *World) SendPlayerState(conn *UserConn, player_state *Struct.PlayerState) {
+	packet := Struct.JSONResponse{Name: Struct.COMMAND_CONNECTED, Data: player_state, ID: nil}
+	packets := []Struct.JSONResponse{packet}
+	conn.WriteJSON(packets)
 }
 
 // Send World State
@@ -160,6 +141,17 @@ func (this *World) SendWorldState(connections map[string]*UserConn) {
 	} else {
 		this.SendAll(packets3, []string{})
 	}
+}
+
+// SendSystemChatMessage...
+func (this *World) SendSystemChatMessage(message string, except_conn_id_list []string) {
+	chatMessage := &Struct.ParamChatSendMessage{
+		Nickname: "<SERVER>",
+		Text:     message,
+	}
+	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
+	packets2 := []Struct.JSONResponse{packet2}
+	this.SendAll(packets2, except_conn_id_list)
 }
 
 //
@@ -246,7 +238,8 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		packets := []Struct.JSONResponse{packet}
 		// Update local position
 		conn.Pos = params.Pos
-		conn.Angles = params.Angles
+		conn.Rotate = params.Rotate
+		this.SavePlayerState(conn)
 		this.SendAll(packets, []string{conn.ID})
 		// this.SendAll(packets, []string{})
 
@@ -263,6 +256,11 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		this.Entities.SetChestSlotItem(params, conn)
 
 	}
+}
+
+// SavePlayerState...
+func (this *World) SavePlayerState(conn *UserConn) {
+	this.Db.SavePlayerState(conn)
 }
 
 // PlayerLeave... Игрок разорвал соединение с сервером
@@ -317,7 +315,7 @@ func (this *World) ChunkGet(pos Struct.Vector3) *Chunk {
 //
 func (this *World) GetDir() string {
 	ps := string(os.PathSeparator)
-	dir, err := filepath.Abs("world" + ps + this.ID)
+	dir, err := filepath.Abs("world" + ps + this.Properties.GUID)
 	if err != nil {
 		log.Println(1, err)
 		return ""
@@ -333,13 +331,6 @@ func (this *World) GetDir() string {
 // GetFileName...
 func (this *World) GetFileName() string {
 	return this.GetDir() + "/attr.json"
-}
-
-// SaveAttr...
-func (this *World) SaveAttr(info *Struct.WorldAttrs) {
-	file, _ := json.Marshal(info)
-	fileName := this.GetFileName()
-	_ = ioutil.WriteFile(fileName, file, 0644)
 }
 
 func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {

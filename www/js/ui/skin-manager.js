@@ -11,11 +11,11 @@ export class SkinManager {
     }
 
     open() {
-        $scope.current_window.show('skin');
+        this.$scope.current_window.show('skin');
     }
     
     close() {
-        $scope.current_window.show('main');
+        this.$scope.current_window.show('main');
     }
 
     next() {
@@ -34,7 +34,7 @@ export class SkinManager {
 
     save() {
         localStorage.setItem('skin', this.list[this.index].id);
-        $scope.Game.skin = this.list[this.index];
+        this.$scope.Game.skin = this.list[this.index];
         this.close();
     }
 

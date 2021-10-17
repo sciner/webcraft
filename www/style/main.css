@@ -46,6 +46,12 @@ body {
     /* animation: scrollBg 90s linear infinite; */
 }
 
+:root {
+    --animate-duration: .3s;
+    --animate-delay: .3s;
+    --animate-repeat: .3;
+}
+
 .form-doubles {
     display: flex;
     justify-content: center;
@@ -55,6 +61,9 @@ body {
 @media screen and (max-width: 600px) {
     .form-doubles {
         flex-wrap: wrap;
+    }
+    #form-shareGame {
+        width: 90%;
     }
 }
 
@@ -110,6 +119,10 @@ body:not(.started) #renderSurface {
     z-index: 2;
 }
 body.started.controls_enabled .visible_in_game_menu {
+    display: none;
+}
+
+body:not(.started) .visible_only_in_game_menu {
     display: none;
 }
 
@@ -246,24 +259,40 @@ button {
 	font-size: 16px;
 }
 
-.btn-discord {
-    transition: background-color .3s;
-    display: flex;
-    color: white;
-    background: #7289da !important;
-    text-decoration: none;
-    padding: .75em 1em;
-    align-items: center;
-    border-radius: .5em;
-    border-top-color: #91a3e5 !important;
-    border-bottom-color: #526cc9 !important;
+#btns-pad {
+    position: fixed;
+    left: .5em;
+    bottom: .5em;
+    z-index: 2;
+}
+#btns-pad > * {
+    margin: .5em;
+}
+
+#form-shareGame {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 3;
+    background: #3bb464 !important;
+    border-top-color: #4bc774 !important;
+    border-bottom-color: #319953 !important;
     border-top: 3px solid;
     border-bottom: 3px solid;
-    position: fixed;
-    left: 1em;
-    bottom: 1em;
+    box-shadow: 0 0 50px #000;
 }
-.btn-discord:hover {
-    transition: background-color .3s;
-    background: #8097e6 !important;
+
+#form-shareGame > div {
+    margin-bottom: 1em;
+    margin-bottom: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vt-card p {
+    margin: 0;
+    font-size: 14px;
+    text-shadow: none;
 }

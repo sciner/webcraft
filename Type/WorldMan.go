@@ -9,23 +9,24 @@ import (
 type (
 	// WorldMan ...
 	WorldMan struct {
+		GameDB *GameDatabase
 		Worlds map[string]*World // Registered connections
 	}
 )
 
-func (this *WorldMan) Get(ID string, Seed string) *World {
-	if val, ok := this.Worlds[ID]; ok {
+//
+func (this *WorldMan) Get(world_guid string) *World {
+	if val, ok := this.Worlds[world_guid]; ok {
 		return val
 	}
 	//
-	this.Worlds[ID] = &World{
-		ID:          ID,
-		Seed:        Seed,
+	this.Worlds[world_guid] = &World{
+		DBGame:      this.GameDB,
 		Mu:          &sync.Mutex{},
 		Connections: make(map[string]*UserConn, 0),
 		Chunks:      make(map[Struct.Vector3]*Chunk, 0),
 		Entities:    &EntityManager{},
 	}
-	this.Worlds[ID].Load()
-	return this.Worlds[ID]
+	this.Worlds[world_guid].Load(world_guid)
+	return this.Worlds[world_guid]
 }

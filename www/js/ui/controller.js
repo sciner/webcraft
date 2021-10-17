@@ -21,11 +21,30 @@ let gameCtrl = function($scope, $timeout, helperService) {
         enter_your_password: 'Enter password',
         error_user_already_registered: 'User already registered',
         error_invalid_login_or_password: 'Invalid login or password',
+        error_player_exists_in_selected_world: 'You already exists in this world',
+        share_game_with_friends: 'Share world with friends',
+        error_not_logged: 'Login before open invite link',
+        copied: 'Copied',
+        copy: 'Copy',
         registration: 'Registration',
         submit: 'Submit',
         back: 'Back',
         login: 'Login',
         enter: 'Enter'
+    };
+
+    //
+    $scope.shareGame = {
+        visible: false,
+        url: '',
+        toggle: function() {
+            this.url = location.protocol + '//' + location.host + '#world_' + Game.world.saved_state.world.guid;
+            this.visible = !this.visible;
+        },
+        copy: function() {
+            Clipboard.copy(this.url);
+            vt.success($scope.lang.copied);
+        }
     };
 
     // sun dir
@@ -121,6 +140,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         onSuccess(username, session_id) {
             $scope.Game.username = username;
             $scope.Game.session_id = session_id;
+            $scope.mygames.load();
         }
     };
 
@@ -187,69 +207,116 @@ let gameCtrl = function($scope, $timeout, helperService) {
         }
     };
 
+    // Start world
+    $scope.StartWorld = function(world_guid) {
+        // Check session
+        let session = $scope.App.getSession();
+        if(!session) {
+            return;
+        }
+        // Show Loading...
+        $scope.current_window.show('loading');
+        $scope.settings.save();
+        $scope.Game.Start(session, world_guid, $scope.settings.form);
+    };
+
     // My games
     $scope.mygames = {
         list: [],
         load: function() {
-            let list = localStorage.getItem('mygames');
-            if(list) {
-                list = JSON.parse(list);
-                if(list) {
-                    for(let item of list) {
-                        if(!item.hasOwnProperty('id')) {
-                            item.id = item._id;
-                        }
-                    }
-                    this.list = list;
-                }
+            let session = $scope.App.getSession();
+            if(!session) {
+                return;
             }
+            var that = this;
+            that.loading = true;
+            helperService.api.call($scope.App, '/api/Game/MyWorlds', {}, function(resp) {
+                that.list = resp;
+            }, null, null, function() {
+                that.loading = false;
+            });
         },
-        save: function() {
-            localStorage.setItem('mygames', JSON.stringify(this.list));
-        },
+        // @deprecated
+        save: function() {},
         add: function(form) {
             this.list.push(form);
-            this.save();
-        }
-    };
-
-    // Генараторы мира
-    $scope.generators = {
-        index: 0,
-        list: [
-            {id: 'biome2', title: 'Стандартный'},
-            {id: 'city', title: 'Город'},
-            {id: 'city2', title: 'Город 2'},
-            {id: 'flat', title: 'Плоский мир'}
-        ],
-        next: function() {
-            this.index = (this.index + 1) % this.list.length;
-            $scope.newgame.form.generator.id = this.getCurrent().id;
         },
-        getCurrent: function() {
-            return this.list[this.index];
+        worldExists: function(guid) {
+            for(let world of this.list) {
+                if(world.guid == guid) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        checkInvite: function() {
+            var that = this;
+            let hash = window.location.hash;
+            if(hash && hash.startsWith('#world_')) {
+                if(!$scope.App.isLogged()) {
+                    vt.success($scope.lang.error_not_logged);
+                    return;
+                }
+                let world_guid = hash.substr(7);
+                if(that.worldExists(world_guid)) {
+                    return false;
+                }
+                helperService.api.call($scope.App, '/api/Game/JoinWorld', {world_guid: world_guid}, function(resp) {
+                    that.list.push(resp);
+                    vt.success('You invited to world ' + hash);
+                    location.href = location.protocol + '//' + location.host;
+                }, null, null, function() {
+                    that.loading = false;
+                });
+                return true;
+            }
         }
     };
 
     // New world
     $scope.newgame = {
+        loading: false,
         form: {
-            id: '',
-            title: '',
+            title:  '',
+            seed:   '',
             generator: {
-                id: $scope.generators.list[0].id
+                id: null
+            }
+        },
+        reset: function() {
+            this.form.title = '';
+            this.form.seed  = '';
+        },
+        generators: {
+            index: 0,
+            list: [
+                {id: 'biome2', title: 'Стандартный'},
+                {id: 'city', title: 'Город'},
+                {id: 'city2', title: 'Город 2'},
+                {id: 'flat', title: 'Плоский мир'}
+            ],
+            next: function() {
+                this.index = (this.index + 1) % this.list.length;
+                $scope.newgame.form.generator.id = this.getCurrent().id;
             },
-            seed: ''
+            getCurrent: function() {
+                return this.list[this.index];
+            }
         },
         submit: function() {
-            $scope.mygames.add(this.form);
-            $scope.settings.save();
-            $scope.current_window.show('loading');
-            this.form = $scope.Game.createNewWorld(this.form);
-            $scope.boot.saves.addNew(this.form);
-            $scope.Game.initGame(this.form, $scope.settings.form);
+            var that = this;
+            that.loading = true;
+            let form = {...that.form};
+            helperService.api.call($scope.App, '/api/Game/CreateWorld', form, function(world) {
+                that.reset();
+                $scope.mygames.add(world);
+                $scope.StartWorld(world.guid);
+            }, null, null, function() {
+                that.loading = false;
+            });
         },
         open: function() {
+            this.form.generator.id = this.generators.list[0].id;
             $scope.current_window.show('newgame');
             this.form.seed = Helpers.getRandomInt(1000000, 4000000000) + '';
             this.form.id = Helpers.generateID();
@@ -257,16 +324,6 @@ let gameCtrl = function($scope, $timeout, helperService) {
         close: function() {
             $scope.current_window.show('main');
         }
-    }
-
-    // Start world
-    $scope.StartWorld = function(world_name) {
-        $scope.settings.save();
-        $scope.boot.saves.load(world_name, function(saved_world) {
-            $scope.Game.initGame(saved_world, $scope.settings.form);
-        }, function(err) {
-            alert('World not found');
-        });
     };
 
     import('/js/game.js')
@@ -279,6 +336,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             $scope.boot.init();
             $scope.login.init();
             $scope.skin.init();
+            $scope.mygames.checkInvite();
         });
 
 }
@@ -314,8 +372,9 @@ var helperServiceService = function($http, $q, $timeout) {
         api: {
             // Организует вызов API, обработку ответа и вызов callback-функции
             call: function(App, url, data, callback, callback_error, callback_progress, callback_final) {
+                let session         = App.getSession()
                 let domains_api     = '';
-                let sessionID       = null;
+                let sessionID       = session ? session.session_id : null;
                 url                 = domains_api + url;
                 callback_error      = callback_error || null;
                 callback_progress   = callback_progress || null;

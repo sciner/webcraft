@@ -63,7 +63,8 @@ export class ChunkManager {
             }
         }
         // Init webworker
-        this.postWorkerMessage(['init', world.saved_state.generator, world.seed, world.saved_state.id]);
+        let world_state = world.saved_state.world;
+        this.postWorkerMessage(['init', world_state.generator, world_state.seed, world_state.guid]);
     }
 
     //

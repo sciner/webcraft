@@ -174,7 +174,7 @@ export default class Chat {
                         Math.round(Game.world.localPlayer.pos.y),
                         Math.round(Game.world.localPlayer.pos.z)
                     );
-                    Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
+                    Game.world.pos_spawn = new Vector(np.x, np.y, np.z);
                     Game.world.saveToDB();
                     Game.world.localPlayer.chat.messages.addSystem('Установлена точка возрождения ' + pos.x + ', ' + pos.y + ', ' + pos.z);
                     break;

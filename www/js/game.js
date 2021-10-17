@@ -1,3 +1,4 @@
+import Chat from "./chat.js";
 import Sounds from "./sounds.js";
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
@@ -108,35 +109,6 @@ export let Game = {
             Game.world.localPlayer.keys[KEY.SHIFT] = false;
         }
     },
-    // createNewWorld
-    createNewWorld: function(form) {
-        /*
-        this.world.server.Send({
-            name: ServerClient.WORLD_CREATE,
-            data: form
-        });
-        */
-        let spawnPoint = new Vector(
-            2914.5,
-            150.0,
-            2884.5
-        );
-        return Object.assign(form, {
-            spawnPoint: spawnPoint,
-            pos: spawnPoint,
-            brightness: 1.0,
-            modifiers: {},
-            rotate: new Vector(0, 0, 0),
-            inventory: {
-                items: BLOCK.getStartInventory(),
-                current: {
-                    index: 0,
-                    id: null
-                }
-            }
-        })
-    },
-
     // Ajust world state
     ajustSavedState: function(saved_state) {
         if(!saved_state.hasOwnProperty('game_mode')) {
@@ -160,36 +132,37 @@ export let Game = {
         });
     },
 
-    // initGame...
-    initGame(saved_world, settings) {
-        this.world_name     = saved_world.id;
-        this.seed           = saved_world.seed;
-        saved_world         = this.ajustSavedState(saved_world);
-        this.sounds         = new Sounds();
+    Start(session, world_guid, settings) {
+        this.sounds = new Sounds();
         // Create a new world
-        this.world = new World(saved_world);
-        this.world.init(this.session_id)
+        this.world = new World(session, world_guid, settings);
+        this.render = new Renderer('renderSurface');
+        this.load(settings)
             .then(() => {
-                this.render = new Renderer('renderSurface');
+                this.render.init(this.world, settings, this.resources)
+            })
+            .then(() => {
+                return this.world.connect();
+            })
+            .then(() => {
                 return this.load(settings);
             })
-            .then(()=>{
-                return this.render.init(this.world, settings, this.resources);
-            })
-            .then(this.postInitGame.bind(this))
     },
 
-    // postInitGame...
-    postInitGame() {
-        this.fps        = fps;
-        this.physics    = new Physics();
-        this.player     = new Player();
-        this.inventory  = new Inventory(this.player, this.hud);
+    // postServerConnect...
+    postServerConnect() {
+        //
+        this.fps            = fps;
+        this.physics        = new Physics(this.world);
+        this.player         = new Player();
         this.player.setInputCanvas('renderSurface');
+        //
         this.hud.add(fps, 0);
-        this.hotbar = new Hotbar(this.hud, this.inventory);
-        this.physics.setWorld(this.world);
+        this.inventory      = new Inventory(this.player, this.hud);
+        this.hotbar         = new Hotbar(this.hud, this.inventory);
+        //
         this.player.setWorld(this.world);
+        this.player.chat    = new Chat();
         this.setupMousePointer();
         this.world.renderer.updateViewport();
         this.world.fixRotate();
@@ -200,7 +173,6 @@ export let Game = {
         this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);
-        // setInterval(that.loop, 1);
     },
 
     setGameStarted(value) {
@@ -286,11 +258,16 @@ export let Game = {
     },
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
+        let angles = this.world.localPlayer.angles;
         this.current_player_state = {
-            angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
-            pos:    this.world.localPlayer.pos,
+            // @todo Разобраться с разночтением
+            // angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
+            rotate: new Vector(angles[0], angles[1], angles[2]),
+            // rotate: this.world.localPlayer.rotate,
+            pos:    this.world.localPlayer.lerpPos,
             ping:   Math.round(this.world.server.ping_value)
         };
+        // console.log(this.current_player_state.rotate);
         this.current_player_state_json = JSON.stringify(this.current_player_state);
         if(this.current_player_state_json != this.prev_player_state) {
             this.prev_player_state = this.current_player_state_json;

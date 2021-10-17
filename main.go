@@ -39,7 +39,8 @@ func main() {
 	conf.Read()
 
 	// DB := Type.GetGameDatabase(getDir() + "/game.sqlite3")
-	Api.Init(DB)
+	Type.Worlds.GameDB = DB
+	Api.Init(DB, Type.Worlds)
 
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
 	log.Println("                                       MADCRAFT SERVER RUN                                       ")
@@ -130,15 +131,11 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Read session token
 		session_id := ""
-		// username := ""
 		skin := ""
 		params, _ := url.ParseQuery(r.URL.RawQuery)
 		if len(params["session_id"]) > 0 {
 			session_id = params["session_id"][0]
 		}
-		/*if len(params["username"]) > 0 {
-			username = params["username"][0]
-		}*/
 		if len(params["skin"]) > 0 {
 			skin = params["skin"][0]
 		}

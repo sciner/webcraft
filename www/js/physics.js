@@ -3,8 +3,9 @@ import {BLOCK} from "./blocks.js";
 // Physics simulator.
 export default class Physics {
 	
-    constructor() {
+    constructor(world) {
         this.lastStep = -1;
+        this.setWorld(world);
     }
 
     // Assigns a world to simulate to this physics simulator.

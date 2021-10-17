@@ -1,6 +1,8 @@
 package Struct
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	BLOCK_CHEST      int   = 54
@@ -15,6 +17,7 @@ const (
 	COMMAND_DATA               int = 200 // custom string data
 	COMMAND_IS_TYPING          int = 201 //
 	COMMAND_CONNECT            int = 34  // в мир вошел новый игрок
+	COMMAND_CONNECTED          int = 62
 	CLIENT_BLOCK_DESTROY       int = 35
 	CLIENT_BLOCK_SET           int = 36
 	EVENT_CHUNK_ADD            int = 37
@@ -79,21 +82,12 @@ type (
 	}
 	// CmdConnect
 	CmdConnect struct {
-		ID   string `json:"id"`
-		Seed string `json:"seed"`
+		WorldGUID string `json:"world_guid"`
 	}
 	// CmdChunkState
 	CmdChunkState struct {
 		Pos        Vector3              `json:"pos"`
 		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
-	}
-	//
-	WorldAttrs struct {
-		ID       string    `json:"id"`
-		Seed     string    `json:"seed"`
-		CTime    time.Time `json:"time"` // Время создания, time.Now()
-		Title    string    `json:"title"`
-		AuthodID string    `json:"author_id"`
 	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {
@@ -102,11 +96,27 @@ type (
 		Item      BlockItem `json:"item"`
 	}
 	ParamPlayerState struct {
-		Nickname string    `json:"nickname"`
-		ID       string    `json:"id"`
-		Angles   []float32 `json:"angles"`
-		Pos      Vector3f  `json:"pos"`
-		Ping     int       `json:"ping"`
+		Nickname string   `json:"nickname"`
+		ID       string   `json:"id"`
+		Pos      Vector3f `json:"pos"`
+		Rotate   Vector3f `json:"rotate"`
+		Ping     int      `json:"ping"`
+	}
+	PlayerInventoryCurrent struct {
+		Index int64 `json:"index"`
+	}
+	PlayerInventory struct {
+		Items   []BlockItem             `json:"items"`
+		Current *PlayerInventoryCurrent `json:"current"`
+	}
+	PlayerState struct {
+		Brightness float32          `json:"brightness"`
+		PosSpawn   *Vector3f        `json:"pos_spawn"`
+		Pos        *Vector3f        `json:"pos"`
+		Rotate     *Vector3f        `json:"rotate"`
+		Flying     bool             `json:"flying"`
+		Inventory  *PlayerInventory `json:"inventory"`
+		World      *WorldProperties `json:"world"`
 	}
 	/*
 		ParamCreateEntity struct {
@@ -147,6 +157,16 @@ type (
 		AgeShift int64 `json:"age_shift"` // Смещение времени в игровых секундах
 		DayTime  int64 `json:"day_time"`  // Текущее время в игровых секундах (0 ... 23999)
 	}
+	WorldProperties struct {
+		ID        int64                  `json:"id"`
+		UserID    int64                  `json:"user_id"`
+		Dt        time.Time              `json:"dt"`
+		GUID      string                 `json:"guid"`
+		Title     string                 `json:"title"`
+		Seed      string                 `json:"seed"`
+		Generator map[string]interface{} `json:"generator"`
+		PosSpawn  *Vector3f              `json:"pos_spawn"`
+	}
 	// JSONResponse ...
 	JSONResponse struct {
 		Name int         `json:"event"`
@@ -178,9 +198,9 @@ type (
 	}
 	// UserSession ...
 	UserSession struct {
-		UserID int64    	`json:"user_id"`
-		UserGUID string    	`json:"user_guid"`
-		Username string    	`json:"username"`
-		SessionID string 	`json:"session_id"`
+		UserID    int64  `json:"user_id"`
+		UserGUID  string `json:"user_guid"`
+		Username  string `json:"username"`
+		SessionID string `json:"session_id"`
 	}
 )
