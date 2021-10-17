@@ -567,7 +567,7 @@ export default class Player {
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!replaceBlock) {
                     let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    if(existingBlock.id > 0) {
+                    if(existingBlock.id > 0 && [202].indexOf(existingBlock.id) < 0) {
                         return;
                     }
                 }
