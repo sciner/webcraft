@@ -268,7 +268,7 @@ export let Game = {
         if(this.current_player_state_json != this.prev_player_state) {
             this.prev_player_state = this.current_player_state_json;
             this.world.server.Send({
-                name: ServerClient.EVENT_PLAYER_STATE,
+                name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state
             });
         }

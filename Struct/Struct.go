@@ -10,28 +10,31 @@ const (
 	GAME_DAY_SECONDS int64 = 24000
 
 	// команды
-	COMMAND_MSG_HELLO          int = 1
-	COMMAND_PING               int = 3
-	COMMAND_PONG               int = 4
-	COMMAND_ERROR              int = 7   // какая-то ошибка (ИСХ)
-	COMMAND_DATA               int = 200 // custom string data
-	COMMAND_IS_TYPING          int = 201 //
-	COMMAND_CONNECT            int = 34  // в мир вошел новый игрок
-	COMMAND_CONNECTED          int = 62
-	CLIENT_BLOCK_DESTROY       int = 35
-	CLIENT_BLOCK_SET           int = 36
-	EVENT_CHUNK_ADD            int = 37
-	EVENT_CHUNK_REMOVE         int = 38
-	EVENT_CHUNK_LOADED         int = 39
-	EVENT_CHAT_SEND_MESSAGE    int = 40 // Клиент прислал сообщение
-	CLIENT_PLAYER_JOIN         int = 41 // Информирование клиента о том, что другой игрок вошел в игру
-	CLIENT_PLAYER_LEAVE        int = 42 // Информирование клиента о том, что другой игрок покинул игру
-	EVENT_PLAYER_STATE         int = 43
-	CLIENT_CREATE_ENTITY       int = 44 // Клиент хочет создать сущность
-	CLIENT_LOAD_CHEST          int = 45 // Клиент запросил содержимое сундука
-	COMMAND_CHEST              int = 46 // Отправка клиенту содержимого сундука
-	CLIENT_SET_CHEST_SLOT_ITEM int = 47 // Получены новые данные о содержимом слоте сундука
-	WORLD_STATE                int = 60 // состояние мира
+	CMD_MSG_HELLO           int = 1
+	CMD_PING                int = 3
+	CMD_PONG                int = 4
+	CMD_ERROR               int = 7   // какая-то ошибка (ИСХ)
+	CMD_DATA                int = 200 // custom string data
+	CMD_IS_TYPING           int = 201 //
+	CMD_CONNECT             int = 34  // в мир вошел новый игрок
+	CMD_BLOCK_DESTROY       int = 35
+	CMD_BLOCK_SET           int = 36
+	CMD_CHUNK_ADD           int = 37
+	CMD_CHUNK_REMOVE        int = 38
+	CMD_CHUNK_LOADED        int = 39
+	CMD_CHAT_SEND_MESSAGE   int = 40 // Клиент прислал сообщение
+	CMD_PLAYER_JOIN         int = 41 // Информирование клиента о том, что другой игрок вошел в игру
+	CMD_PLAYER_LEAVE        int = 42 // Информирование клиента о том, что другой игрок покинул игру
+	CMD_PLAYER_STATE        int = 43
+	CMD_CREATE_ENTITY       int = 44 // Клиент хочет создать сущность
+	CMD_LOAD_CHEST          int = 45 // Клиент запросил содержимое сундука
+	CMD_CHEST_CONTENT       int = 46 // Отправка клиенту содержимого сундука
+	CMD_SET_CHEST_SLOT_ITEM int = 47 // Получены новые данные о содержимом слоте сундука
+	CMD_WORLD_STATE         int = 60 // состояние мира
+	CMD_CONNECTED           int = 62
+	CMD_CHANGE_POS_SPAWN    int = 63
+	CMD_TELEPORT_REQUEST    int = 64
+	CMD_TELEPORT            int = 65
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -202,5 +205,18 @@ type (
 		UserGUID  string `json:"user_guid"`
 		Username  string `json:"username"`
 		SessionID string `json:"session_id"`
+	}
+	ParamPosSpawn struct {
+		Pos Vector3f `json:"pos"`
+	}
+	// Запрос от клиента на перемещение к указанному месту или координате
+	ParamTeleportRequest struct {
+		PlaceID string    `json:"place_id"`
+		Pos     *Vector3f `json:"pos"`
+	}
+	// Исходящая от сервера команда для клиента, о перемещении
+	ParamTeleport struct {
+		PlaceID string    `json:"place_id"`
+		Pos     *Vector3f `json:"pos"`
 	}
 )

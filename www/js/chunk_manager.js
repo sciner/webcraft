@@ -328,7 +328,7 @@ export class ChunkManager {
         if(is_modify) {
             // @server Отправляем на сервер инфу об установке блока
             this.world.server.Send({
-                name: ServerClient.EVENT_BLOCK_SET,
+                name: ServerClient.CMD_BLOCK_SET,
                 data: {
                     pos: pos,
                     item: item

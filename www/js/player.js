@@ -56,7 +56,7 @@ export default class Player {
         this.world.localPlayer      = this;
         this.keys                   = {};
         this.eventHandlers          = {};
-        this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.pos_spawn;
+        this.pos                    = new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z);
         this.rotate                 = new Vector(world.saved_state.rotate);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
@@ -328,10 +328,7 @@ export default class Player {
                             cnt++;
                         }
                     } else {
-                        let np = this.pos;
-                        Game.world.pos_spawn = new Vector(np.x, np.y, np.z);
-                        console.log('Spawnpoint changed');
-                        this.chat.messages.addSystem('Spawnpoint changed');
+                        this.ChangeSpawnpoint();
                     }
                 }
                 return true;
@@ -404,7 +401,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    this.setPosition(Game.world.pos_spawn);
+                    Game.world.server.TeleportToPlace('spawn');
                 }
                 return true;
                 break;
@@ -704,6 +701,12 @@ export default class Player {
                 }
             }
         }, pickat_dist);
+    }
+
+    ChangeSpawnpoint() {
+        let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
+        Game.world.server.SetPosSpawn(pos);
+        this.chat.messages.addSystem('Установлена точка возрождения ' + pos.toString());
     }
 
     //

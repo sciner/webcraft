@@ -10,7 +10,7 @@ func GenerateErrorPackets(code int, text string) []Struct.JSONResponse {
 
 	errs := []*Struct.CmdError{}
 	errs = append(errs, err)
-	packet := Struct.JSONResponse{Struct.COMMAND_ERROR, errs, nil}
+	packet := Struct.JSONResponse{Struct.CMD_ERROR, errs, nil}
 	packets := []Struct.JSONResponse{packet}
 
 	return packets

@@ -14,7 +14,7 @@ type (
 
 func (this *Chat) SendMessage(conn *UserConn, world *World, params *Struct.ParamChatSendMessage) {
 	params.Nickname = conn.Session.Username
-	packet := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: params, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.Db.InsertChatMessage(conn, world, params)
 	//

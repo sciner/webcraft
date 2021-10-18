@@ -61,7 +61,7 @@ func (this *GameDatabase) InsertNewUser(username, password string) (int64, error
 	query := `INSERT INTO user(dt, guid, username, password) VALUES ($1, $2, $3, $4)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR20: %v", err)
 	}
 	result, err := statement.Exec(time.Now().Unix(), uuid.New().String(), username, password)
 	if err != nil {
@@ -128,7 +128,7 @@ func (this *GameDatabase) CreateUserSession(user_id int64) (string, error) {
 	query := `INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR21: %v", err)
 	}
 	result, err := statement.Exec(time.Now().Unix(), user_id, token)
 	if err != nil {
@@ -179,7 +179,7 @@ func (this *GameDatabase) InsertNewWorld(user_id int64, generator, seed, title s
 	query := `INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR22: %v", err)
 	}
 	result, err := statement.Exec(time.Now().Unix(), guid, user_id, title, seed, generator, string(pos_spawn_bytes))
 	if err != nil || result == nil {
@@ -322,7 +322,7 @@ func (this *GameDatabase) InsertWorldPlayer(world_id, user_id int64, lock bool) 
 	query := `INSERT INTO world_player(dt, world_id, user_id) VALUES ($1, $2, $3)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR23: %v", err)
 	}
 	result, err := statement.Exec(time.Now().Unix(), world_id, user_id)
 	if err != nil || result == nil {

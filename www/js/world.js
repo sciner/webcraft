@@ -32,7 +32,7 @@ export class World {
         return new Promise(res => {
             const server = new ServerClient(serverURL, this.session.session_id, () => {
                 this.server = server;
-                this.server.Send({name: ServerClient.EVENT_CONNECT, data: {world_guid: this.world_guid}});
+                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: this.world_guid}});
                 res(this.server);
             });
         });
@@ -47,7 +47,6 @@ export class World {
         this.seed           = state.seed;
         this.clouds         = null;
         this.rainTim        = null;
-        this.pos_spawn      = new Vector(state.pos_spawn.x, state.pos_spawn.y, state.pos_spawn.z);
         this.rotate         = new Vector(state.rotate.x / Math.PI * 1800, state.rotate.y / Math.PI * 1800, state.rotate.z / Math.PI * 1800);
         this.rotateRadians  = new Vector(0, 0, 0);
         this.rotateDegree   = new Vector(0, 0, 0);
@@ -221,7 +220,6 @@ export class World {
         let row = {
             id:                 Game.world_name,
             seed:               Game.seed,
-            pos_spawn:          that.pos_spawn,
             pos:                that.localPlayer.pos,
             flying:             that.localPlayer.getFlying(),
             generator:          this._savedState.generator,

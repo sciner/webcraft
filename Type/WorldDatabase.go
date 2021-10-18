@@ -111,7 +111,7 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR24: %v", err)
 	}
 	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
 	if err != nil || result == nil {
@@ -130,7 +130,7 @@ func (this *WorldDatabase) InsertChatMessage(conn *UserConn, world *World, param
 	query := `INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR25: %v", err)
 	}
 	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), params.Text, world.Properties.ID, 0)
 	if err != nil {
@@ -148,7 +148,7 @@ func (this *WorldDatabase) BlockSet(conn *UserConn, world *World, params *Struct
 	query := `INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("ERROR26: %v", err)
 	}
 	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
 	if err != nil {
@@ -189,7 +189,7 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 		query := `INSERT INTO world(guid, title, seed, user_id, dt, generator, pos_spawn) VALUES($1, $2, $3, $4, $5, $6, $7)`
 		statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 		if err != nil {
-			log.Fatalln(err.Error())
+			log.Printf("ERROR27: %v", err)
 		}
 		result, err := statement.Exec(world.GUID, world.Title, world.Seed, world.UserID, time.Now().Unix(), string(generator_out), string(pos_spawn_out))
 		if err != nil || result == nil {
@@ -225,7 +225,7 @@ func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
 	query := `UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Printf("SQL_ERROR12_2: %v", err)
 	}
 	_, err = statement.Exec(string(pos_json_bytes), string(rotate_json_bytes), time.Now().Unix(), conn.Session.UserID)
 	if err != nil {
@@ -239,6 +239,26 @@ func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
 		}
 		return err
 	*/
+}
+
+// ChangePosSpawn...
+func (this *WorldDatabase) ChangePosSpawn(conn *UserConn, params *Struct.ParamPosSpawn) error {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	//
+	pos_json_bytes, _ := json.Marshal(params.Pos)
+	//
+	query := `UPDATE user SET pos_spawn = $1 WHERE id = $2`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Printf("SQL_ERROR30_2: %v", err)
+	}
+	_, err = statement.Exec(string(pos_json_bytes), conn.Session.UserID)
+	if err != nil {
+		log.Printf("SQL_ERROR31: %v", err)
+	}
+	conn.PosSpawn = params.Pos
+	return err
 }
 
 // Сырой запрос в БД

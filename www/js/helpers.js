@@ -454,6 +454,13 @@ export class Vector {
         return this;
     }
 
+    divScalar(scalar) {
+        this.x /= scalar;
+        this.y /= scalar;
+        this.z /= scalar;
+        return this;
+    }
+
 }
 
 export class Vec3 extends Vector {}

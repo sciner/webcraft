@@ -39,9 +39,8 @@ func (this *UserConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *
 	this.Connections[session_id] = &UserConn{
 		Session: session,
 		ID:      session.UserGUID,
-		// Username: 	session.Username,
-		Skin: skin,
-		Ws:   Ws,
+		Skin:    skin,
+		Ws:      Ws,
 	}
 	log.Printf("Create new UserConn")
 	//

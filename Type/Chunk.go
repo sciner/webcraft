@@ -47,7 +47,7 @@ func (this *Chunk) Loaded(conn *UserConn) bool {
 		Pos:        this.Pos,
 		ModifyList: this.ModifyList,
 	}
-	packet := Struct.JSONResponse{Name: Struct.EVENT_CHUNK_LOADED, Data: data, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CHUNK_LOADED, Data: data, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
 	return true
@@ -111,7 +111,7 @@ func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notify
 			// этот случай ошибочный, такого не должно произойти
 			params.Item = this.ModifyList[blockKey]
 		}
-		packet := Struct.JSONResponse{Name: Struct.CLIENT_BLOCK_SET, Data: params, ID: nil}
+		packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
 		cons := make(map[string]*UserConn, 0)
 		cons[conn.ID] = conn
@@ -135,7 +135,7 @@ func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notify
 	// Save to file
 	this.Save()
 	// Send to users
-	packet := Struct.JSONResponse{Name: Struct.CLIENT_BLOCK_SET, Data: params, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	//if notifyAuthor {
 	this.World.SendSelected(packets, this.Connections, []string{})

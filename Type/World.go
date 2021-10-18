@@ -88,7 +88,9 @@ func (this *World) OnPlayer(conn *UserConn) {
 		log.Println("ERROR14: User not registered")
 		return
 	}
-	// 3. Send about all other players
+	// 3.
+	conn.PosSpawn = *player_state.PosSpawn
+	// 4. Send about all other players
 	for _, c := range this.Connections {
 		if c.ID != conn.ID {
 			params := &Struct.ParamPlayerJoin{
@@ -98,12 +100,12 @@ func (this *World) OnPlayer(conn *UserConn) {
 				Pos:      c.Pos,
 				Rotate:   c.Rotate,
 			}
-			packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
+			packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_JOIN, Data: params, ID: nil}
 			packets := []Struct.JSONResponse{packet}
 			conn.WriteJSON(packets)
 		}
 	}
-	// 4.
+	// 5.
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
@@ -111,12 +113,12 @@ func (this *World) OnPlayer(conn *UserConn) {
 		Pos:      *player_state.Pos,
 		Rotate:   *player_state.Rotate,
 	}
-	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_JOIN, Data: params, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_JOIN, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.SendAll(packets, []string{conn.ID})
-	// 5. Write to chat about new player
+	// 6. Write to chat about new player
 	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
-	// 6. Send World State for new player
+	// 7. Send World State for new player
 	cons := make(map[string]*UserConn, 0)
 	cons[conn.ID] = conn
 	this.SendWorldState(cons)
@@ -126,7 +128,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 
 // SendPlayerState
 func (this *World) SendPlayerState(conn *UserConn, player_state *Struct.PlayerState) {
-	packet := Struct.JSONResponse{Name: Struct.COMMAND_CONNECTED, Data: player_state, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: player_state, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
 }
@@ -134,7 +136,7 @@ func (this *World) SendPlayerState(conn *UserConn, player_state *Struct.PlayerSt
 // Send World State
 func (this *World) SendWorldState(connections map[string]*UserConn) {
 	this.updateWorldState()
-	packet3 := Struct.JSONResponse{Name: Struct.WORLD_STATE, Data: this.State, ID: nil}
+	packet3 := Struct.JSONResponse{Name: Struct.CMD_WORLD_STATE, Data: this.State, ID: nil}
 	packets3 := []Struct.JSONResponse{packet3}
 	if len(connections) > 0 {
 		this.SendSelected(packets3, connections, []string{})
@@ -149,7 +151,7 @@ func (this *World) SendSystemChatMessage(message string, except_conn_id_list []s
 		Nickname: "<SERVER>",
 		Text:     message,
 	}
-	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
+	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}
 	this.SendAll(packets2, except_conn_id_list)
 }
@@ -169,7 +171,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 	// log.Printf("OnCommand: %d", cmdIn.Name)
 	switch cmdIn.Name {
 
-	case Struct.CLIENT_BLOCK_SET:
+	case Struct.CMD_BLOCK_SET:
 
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
@@ -179,7 +181,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		this.Db.BlockSet(conn, this, params)
 		chunk.BlockSet(conn, params, false)
 
-	case Struct.CLIENT_CREATE_ENTITY:
+	case Struct.CMD_CREATE_ENTITY:
 
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
@@ -189,7 +191,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		chunk.BlockSet(conn, params, false)
 
 	// Пользователь подгрузил чанк
-	case Struct.EVENT_CHUNK_ADD:
+	case Struct.CMD_CHUNK_ADD:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChunkAdd
 		json.Unmarshal(out, &params)
@@ -204,7 +206,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		chunk.Loaded(conn)
 
 	// Пользователь выгрузил чанк
-	case Struct.EVENT_CHUNK_REMOVE:
+	case Struct.CMD_CHUNK_REMOVE:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChunkRemove
 		json.Unmarshal(out, &params)
@@ -221,20 +223,20 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 			delete(this.Chunks, params.Pos)
 		}
 
-	case Struct.EVENT_CHAT_SEND_MESSAGE:
+	case Struct.CMD_CHAT_SEND_MESSAGE:
 		// Send to users
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChatSendMessage
 		json.Unmarshal(out, &params)
 		this.Chat.SendMessage(conn, this, params)
 
-	case Struct.EVENT_PLAYER_STATE:
+	case Struct.CMD_PLAYER_STATE:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamPlayerState
 		json.Unmarshal(out, &params)
 		params.ID = conn.ID
 		params.Nickname = conn.Session.Username
-		packet := Struct.JSONResponse{Name: Struct.EVENT_PLAYER_STATE, Data: params, ID: nil}
+		packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_STATE, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
 		// Update local position
 		conn.Pos = params.Pos
@@ -243,18 +245,51 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		this.SendAll(packets, []string{conn.ID})
 		// this.SendAll(packets, []string{})
 
-	case Struct.CLIENT_LOAD_CHEST:
+	case Struct.CMD_LOAD_CHEST:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamLoadChest
 		json.Unmarshal(out, &params)
 		this.Entities.LoadChest(params, conn)
 
-	case Struct.CLIENT_SET_CHEST_SLOT_ITEM:
+	case Struct.CMD_SET_CHEST_SLOT_ITEM:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChestSetSlotItem
 		json.Unmarshal(out, &params)
 		this.Entities.SetChestSlotItem(params, conn)
 
+	case Struct.CMD_CHANGE_POS_SPAWN:
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.ParamPosSpawn
+		json.Unmarshal(out, &params)
+		this.Db.ChangePosSpawn(conn, params)
+
+	case Struct.CMD_TELEPORT_REQUEST:
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.ParamTeleportRequest
+		json.Unmarshal(out, &params)
+		var new_pos *Struct.Vector3f
+		if params.Pos != nil {
+			new_pos = params.Pos
+		} else if len(params.PlaceID) > 0 {
+			switch params.PlaceID {
+			case "spawn":
+				{
+					new_pos = &conn.PosSpawn
+				}
+			}
+		}
+		if new_pos != nil {
+			params := &Struct.ParamTeleport{
+				Pos:     new_pos,
+				PlaceID: params.PlaceID,
+			}
+			packet := Struct.JSONResponse{Name: Struct.CMD_TELEPORT, Data: params, ID: nil}
+			packets := []Struct.JSONResponse{packet}
+			connections := map[string]*UserConn{
+				conn.ID: conn,
+			}
+			this.SendSelected(packets, connections, []string{})
+		}
 	}
 }
 
@@ -278,7 +313,7 @@ func (this *World) PlayerLeave(conn *UserConn) {
 		Skin:     conn.Skin,
 		Nickname: conn.Session.Username,
 	}
-	packet := Struct.JSONResponse{Name: Struct.CLIENT_PLAYER_LEAVE, Data: params, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_LEAVE, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.SendAll(packets, []string{conn.ID})
 
@@ -287,7 +322,7 @@ func (this *World) PlayerLeave(conn *UserConn) {
 		Nickname: "<SERVER>",
 		Text:     conn.Session.Username + " вышел из игры",
 	}
-	packet2 := Struct.JSONResponse{Name: Struct.EVENT_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
+	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}
 	this.SendAll(packets2, []string{conn.ID})
 
@@ -333,6 +368,7 @@ func (this *World) GetFileName() string {
 	return this.GetDir() + "/attr.json"
 }
 
+// Отправить всем, кроме указанных
 func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {
 	for _, conn := range this.Connections {
 		found := false
@@ -348,6 +384,7 @@ func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {
 	}
 }
 
+// Отправить только указанным
 func (this *World) SendSelected(packets []Struct.JSONResponse, connections map[string]*UserConn, exceptIDs []string) {
 	for _, conn := range connections {
 		found := false
