@@ -19,11 +19,9 @@ export default class Inventory {
             this.items.push(null);
         }
         //
-        this.restoreItems(Game.world.saved_state.inventory.items);
+        this.restoreItems(Game.world.saved_state.inventory);
         // set inventory to user
         this.player.setInventory(this);
-        //
-        this.select(Game.world.saved_state.inventory.current.index);
         //
         let image = new Image(); // new Image(40, 40); // Размер изображения
         image.onload = function() {
@@ -47,7 +45,12 @@ export default class Inventory {
 
     //
     exportItems() {
-        let resp = [];
+        let resp = {
+            current: {
+                index: this.index
+            },
+            items: []
+        }
         for(var item of this.items) {
             let t = null;
             if(item) {
@@ -64,19 +67,19 @@ export default class Inventory {
                     }
                 }
             }
-            resp.push(t);
+            resp.items.push(t);
         }
         return resp;
     }
 
     //
-    restoreItems(items) {
-        this.items          = []; // new Array(this.max_count);
+    restoreItems(saved_inventory) {
+        let items = saved_inventory.items;
+        this.items = []; // new Array(this.max_count);
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-
-        this.index = 0;
+        this.index = saved_inventory.current.index;
         for(let k in items) {
             if(k >= this.items.length) {
                 console.error('Limit reach of inventory');
@@ -101,7 +104,12 @@ export default class Inventory {
     }
 
     // Refresh
-    refresh() {
+    refresh(changed) {
+        if(changed) {
+            console.log(changed);
+        }
+        // debugger;
+        Game.world.server.SaveInventory(this.exportItems());
         this.hud.refresh();
     }
     
@@ -132,13 +140,13 @@ export default class Inventory {
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
-                            this.refresh();
+                            this.refresh(true);
                             return;
                         } else {
                             let remains = (item.count + mat.count) - item_max_count;
                             item.count = item_max_count;
                             mat.count = remains;
-                            this.refresh();
+                            this.refresh(true);
                         }
                     }
                 }
@@ -161,7 +169,7 @@ export default class Inventory {
                 if(mat.count > 0) {
                     this.increment(mat);
                 }
-                this.refresh();
+                this.refresh(true);
                 return;
             }
         }
@@ -176,7 +184,7 @@ export default class Inventory {
         if(this.current.count < 1) {
             this.current = this.player.buildMaterial = this.items[this.index] = null;
         }
-        this.refresh();
+        this.refresh(true);
     }
     
     //
@@ -196,7 +204,7 @@ export default class Inventory {
         }
         this.index = index;
         this.current = this.player.buildMaterial = this.items[index];
-        this.refresh();
+        this.refresh(false);
         this.player.onInventorySelect(this.current);
     }
     
@@ -223,7 +231,7 @@ export default class Inventory {
                 let item = this.items[k];
                 if(item.id == mat.id) {
                     this.select(parseInt(k));
-                    return this.refresh();
+                    return this.refresh(false);
                 }
             }
         }
@@ -234,7 +242,7 @@ export default class Inventory {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
-                return this.refresh();
+                return this.refresh(true);
             }
         }
         // Start new cell
@@ -246,7 +254,7 @@ export default class Inventory {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
-                return this.refresh();
+                return this.refresh(true);
             }
         }
         // Replace current cell
@@ -255,7 +263,7 @@ export default class Inventory {
             this.items[k] = Object.assign({count: 1}, mat);
             delete(this.items[k].texture);
             this.select(parseInt(k));
-            return this.refresh();
+            return this.refresh(true);
         }
     }
     

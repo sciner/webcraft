@@ -46,6 +46,16 @@ func GetWorldDatabase(filename string) *WorldDatabase {
 	}
 }
 
+// Сырой запрос в БД
+func (this *WorldDatabase) RAWQuery(sql_query string) {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	_, err := this.Conn.Query(sql_query)
+	if err != nil {
+		log.Printf("SQL_ERROR5: %v", err)
+	}
+}
+
 // RegisterUser... Возвращает игрока либо создает и возвращает его
 func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struct.Vector3f, lock bool) (int64, *Struct.PlayerState, error) {
 	if lock {
@@ -103,7 +113,7 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 	})
 	// Inventory
 	inventory := &Struct.PlayerInventory{
-		Items:   make([]Struct.BlockItem, 0),
+		Items:   make([]*Struct.BlockItem, 0),
 		Current: &Struct.PlayerInventoryCurrent{},
 	}
 	inventory_bytes, _ := json.Marshal(inventory)
@@ -261,12 +271,18 @@ func (this *WorldDatabase) ChangePosSpawn(conn *UserConn, params *Struct.ParamPo
 	return err
 }
 
-// Сырой запрос в БД
-func (this *WorldDatabase) RAWQuery(sql_query string) {
-	this.Mu.Lock()
-	defer this.Mu.Unlock()
-	_, err := this.Conn.Query(sql_query)
+// SavePlayerInventory...
+func (this *WorldDatabase) SavePlayerInventory(conn *UserConn, inventory *Struct.PlayerInventory) error {
+	inventory_bytes, _ := json.Marshal(inventory)
+	//
+	query := `UPDATE user SET inventory = $1 WHERE id = $2`
+	statement, err := this.Conn.Prepare(query)
 	if err != nil {
-		log.Printf("SQL_ERROR5: %v", err)
+		log.Printf("SQL_ERROR32: %v", err)
 	}
+	_, err = statement.Exec(string(inventory_bytes), conn.Session.UserID)
+	if err != nil {
+		log.Printf("SQL_ERROR33: %v", err)
+	}
+	return err
 }

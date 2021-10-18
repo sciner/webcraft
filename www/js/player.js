@@ -328,7 +328,7 @@ export default class Player {
                             cnt++;
                         }
                     } else {
-                        this.ChangeSpawnpoint();
+                        this.changeSpawnpoint();
                     }
                 }
                 return true;
@@ -364,11 +364,11 @@ export default class Player {
                                     pos.y += pos.n.y;
                                     if(pos.n.y < 0) pos.y--;
                                 }
-                                Game.world.randomTeleport(pos);
+                                this.teleport(null, pos);
                             }
                         }, 1000);
                     } else {
-                        Game.world.randomTeleport();
+                        this.teleport('random', null);
                     }
                 }
                 return true;
@@ -401,7 +401,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    Game.world.server.TeleportToPlace('spawn');
+                    Game.world.server.Teleport('spawn');
                 }
                 return true;
                 break;
@@ -703,10 +703,19 @@ export default class Player {
         }, pickat_dist);
     }
 
-    ChangeSpawnpoint() {
+    changeSpawnpoint() {
         let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
         Game.world.server.SetPosSpawn(pos);
         this.chat.messages.addSystem('Установлена точка возрождения ' + pos.toString());
+    }
+
+    // randomTeleport
+    teleport(place_id, pos) {
+        if(place_id != null) {
+            return Game.world.server.Teleport(place_id);
+        } else if(typeof pos != 'undefined' && pos) {
+            Game.world.server.Teleport(null, pos);
+        }
     }
 
     //

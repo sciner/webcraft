@@ -13,7 +13,7 @@ open http://localhost:5700/
 Game.world.exportJSON();
 
 // Teleport current user to random location 
-Game.world.randomTeleport();
+Game.world.localPlayer.teleport('random', null);
 
 // Draw current user model at current location
 Game.world.createClone();

@@ -31,7 +31,8 @@ export default class ServerClient {
     static CMD_WORLD_STATE           = 60;
     static CMD_CHANGE_POS_SPAWN      = 63;
     static CMD_TELEPORT_REQUEST      = 64;
-    static CMD_TELEPORT              = 65
+    static CMD_TELEPORT              = 65;
+    static CMD_SAVE_INVENTORY        = 66;
 
     // Constructor
     constructor(url, session_id, onOpenCallback) {
@@ -228,10 +229,16 @@ export default class ServerClient {
     }
 
     //
-    TeleportToPlace(place_id) {
+    Teleport(place_id, pos) {
         this.Send({name: ServerClient.CMD_TELEPORT_REQUEST, data: {
-            place_id: place_id
+            place_id: place_id,
+            pos: pos
         }});
+    }
+
+    // Save inventory
+    SaveInventory(inventory_state) {
+        this.Send({name: ServerClient.CMD_SAVE_INVENTORY, data: inventory_state});
     }
 
 }

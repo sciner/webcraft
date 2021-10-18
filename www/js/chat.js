@@ -146,7 +146,7 @@ export default class Chat {
                         let x = parseFloat(temp[0].trim());
                         let y = parseFloat(temp[1].trim());
                         let z = parseFloat(temp[2].trim());
-                        Game.world.localPlayer.setPosition(new Vector(x, y, z));
+                        Game.world.localPlayer.teleport(null, new Vector(x, y, z));
                     } else {
                         Game.world.localPlayer.chat.messages.addError(`Incorrect argument for command`);
                     }
@@ -168,7 +168,7 @@ export default class Chat {
                     break;
                 }
                 case '/spawnpoint': {
-                    Game.world.localPlayer.ChangeSpawnpoint();
+                    Game.world.localPlayer.changeSpawnpoint();
                     break;
                 }
                 case '/weather': {

@@ -165,14 +165,6 @@ export class World {
         }
     }
 
-    // randomTeleport
-    randomTeleport(pos) {
-        if(typeof pos === 'undefined') {
-            pos = new Vector(1000 + Math.random() * 2000000, 120, 1000 + Math.random() * 2000000);
-        }
-        this.localPlayer.setPosition(pos);
-    }
-
     // underWaterfall
     underWaterfall() {
         this.setBlock(parseInt(this.localPlayer.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.localPlayer.pos.z), BLOCK.FLOWING_WATER, 1);

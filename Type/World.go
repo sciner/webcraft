@@ -2,8 +2,10 @@ package Type
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"sync"
@@ -276,6 +278,17 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 				{
 					new_pos = &conn.PosSpawn
 				}
+			case "random":
+				{
+					s1 := rand.NewSource(time.Now().UnixNano())
+					r1 := rand.New(s1)
+					fmt.Print(r1.Intn(100))
+					new_pos = &Struct.Vector3f{
+						X: float32(1000 + r1.Intn(2000000)),
+						Y: 120,
+						Z: float32(1000 + r1.Intn(2000000)),
+					}
+				}
 			}
 		}
 		if new_pos != nil {
@@ -290,6 +303,11 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 			}
 			this.SendSelected(packets, connections, []string{})
 		}
+	case Struct.CMD_SAVE_INVENTORY:
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.PlayerInventory
+		json.Unmarshal(out, &params)
+		this.Db.SavePlayerInventory(conn, params)
 	}
 }
 

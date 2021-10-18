@@ -35,6 +35,7 @@ const (
 	CMD_CHANGE_POS_SPAWN    int = 63
 	CMD_TELEPORT_REQUEST    int = 64
 	CMD_TELEPORT            int = 65
+	CMD_SAVE_INVENTORY      int = 66
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -109,7 +110,7 @@ type (
 		Index int64 `json:"index"`
 	}
 	PlayerInventory struct {
-		Items   []BlockItem             `json:"items"`
+		Items   []*BlockItem            `json:"items"`
 		Current *PlayerInventoryCurrent `json:"current"`
 	}
 	PlayerState struct {
