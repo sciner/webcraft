@@ -20,6 +20,7 @@ export default class Inventory {
         }
         //
         this.restoreItems(Game.world.saved_state.inventory);
+        this.select(Game.world.saved_state.inventory.current.index);
         // set inventory to user
         this.player.setInventory(this);
         //
@@ -79,7 +80,7 @@ export default class Inventory {
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-        this.index = saved_inventory.current.index;
+        this.index = 0;
         for(let k in items) {
             if(k >= this.items.length) {
                 console.error('Limit reach of inventory');

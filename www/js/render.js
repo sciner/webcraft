@@ -316,6 +316,7 @@ export class Renderer {
         shader.bind();
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
+            if(player.itsme && id != 'itsme') continue;
             if(player.id != this.world.server.id) {
                 player.draw(this, this.camPos, delta);
             }

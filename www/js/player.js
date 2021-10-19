@@ -286,15 +286,6 @@ export default class Player {
                 return true;
                 break;
             }
-            // Save [F2]
-            case KEY.F2: {
-                if(!down) {
-                    Game.world.saveToDB();
-                    this.chat.messages.addSystem('Saved ... OK');
-                }
-                return true;
-                break;
-            }
             // Set spawnpoint [F3]
             case KEY.F3: {
                 if(!down) {
@@ -345,9 +336,7 @@ export default class Player {
             // Export world [F7]
             case KEY.F7: {
                 if(!down) {
-                    //if(e.shiftKey) {
                     Game.world.createClone();
-                    //}
                 }
                 return true;
                 break;

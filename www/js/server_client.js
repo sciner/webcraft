@@ -121,7 +121,7 @@ export default class ServerClient {
                     let data = cmd.data;
                     Game.world.players[data.id] = new PlayerModel({
                         id:             data.id,
-                        itsme:          data.id == Game.world.session.user_id,
+                        itsme:          data.nickname == Game.world.session.username,
                         pos:            data.pos,
                         pitch:          data.rotate.x,
                         yaw:            data.rotate.z,

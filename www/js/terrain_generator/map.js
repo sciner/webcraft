@@ -104,7 +104,16 @@ export class Map {
                         for(let p of biome.plants.list) {
                             s += p.percent;
                             if(r < s) {
-                                this.plants.add(new Vector(x, y, z), p.block.id);
+                                if(p.block) {
+                                    this.plants.add(new Vector(x, y, z), p.block.id);
+                                } else if(p.trunk) {
+                                    this.plants.add(new Vector(x, y, z), p.trunk.id);
+                                    this.plants.add(new Vector(x, y + 1, z), p.leaves.id);
+                                    /*
+                                    if(p.leaves) {
+                                        this.plants.add(new Vector(x, y + 1, z), p.leaves.id);
+                                    }*/
+                                }
                                 break;
                             }
                         }

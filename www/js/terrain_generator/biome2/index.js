@@ -441,10 +441,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         for(let pos of map.info.plants.keys()) {
             let block_id = map.info.plants.get(pos);
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                // let b = chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y - 1];
                 let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
-                if(b.id === blocks.DIRT.id) {
-                    // if(!chunk.blocks[pos.x][pos.z][pos.y - chunk.coord.y]) {
+                if(b.id === blocks.DIRT.id || b.id == 516) {
                     if(!chunk.tblocks.has(new Vector(pos.x, pos.y - chunk.coord.y, pos.z))) {
                         setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
                     }

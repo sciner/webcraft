@@ -117,7 +117,8 @@ func (this *World) OnPlayer(conn *UserConn) {
 	}
 	packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_JOIN, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
-	this.SendAll(packets, []string{conn.ID})
+	// this.SendAll(packets, []string{conn.ID})
+	this.SendAll(packets, []string{})
 	// 6. Write to chat about new player
 	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
 	// 7. Send World State for new player
@@ -178,10 +179,12 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
-		chunkAddr := this.GetChunkAddr(params.Pos)
-		chunk := this.ChunkGet(chunkAddr)
-		this.Db.BlockSet(conn, this, params)
-		chunk.BlockSet(conn, params, false)
+		if params.Item.ID != 1 {
+			chunkAddr := this.GetChunkAddr(params.Pos)
+			chunk := this.ChunkGet(chunkAddr)
+			this.Db.BlockSet(conn, this, params)
+			chunk.BlockSet(conn, params, false)
+		}
 
 	case Struct.CMD_CREATE_ENTITY:
 
