@@ -161,7 +161,7 @@ func (this *GameDatabase) GetUserSession(session_id string) (*Struct.UserSession
 		session.SessionID = session_id
 		return session, nil
 	}
-	return nil, err
+	return nil, &Struct.SessionError{}
 }
 
 // Создание нового мира (сервера)

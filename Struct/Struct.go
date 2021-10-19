@@ -220,4 +220,9 @@ type (
 		PlaceID string    `json:"place_id"`
 		Pos     *Vector3f `json:"pos"`
 	}
+	SessionError struct{}
 )
+
+func (m *SessionError) Error() string {
+	return "error_invalid_session"
+}

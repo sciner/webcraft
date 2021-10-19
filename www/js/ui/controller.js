@@ -411,11 +411,7 @@ var helperServiceService = function($http, $q, $timeout) {
                             callback_error(result);
                         } else {
                             if (result.code == 401) {
-                                if (result, app.back.index_scope.pages.url == 'index.login') {
-                                    App.showError(result.message, 4000);
-                                } else {
-                                    App.logout();
-                                }
+                                App.logout();
                             } else {
                                 App.showError(result.message, 4000);
                             }

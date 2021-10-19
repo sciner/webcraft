@@ -1,25 +1,27 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"net/http"
-	"reflect"
-	"strings"
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"io"
+	"log"
+	"net/http"
+	"reflect"
 	"strconv"
+	"strings"
+
+	"madcraft.io/madcraft/Struct"
 )
 
 type (
 	// APIServer ...
 	APIServer struct {
-		List map[string]interface{}
+		List    map[string]interface{}
 		Methods map[string]*APIServerMethod
 	}
 	// JsonRpcErr ...
@@ -68,41 +70,14 @@ type (
 )
 
 // ReturnError ...
-func ReturnError(err interface{}, reqID string, w http.ResponseWriter) {
-	if err != nil { //catch
-		resp := &JsonRpcErr{"2.0", reqID, &JsonRpcErrBody{-32700, fmt.Sprintf("%v", err)}}
-		jData, err := json.Marshal(resp)
-		if err == nil {
-			log.Print(string(jData))
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(jData)
-		}
-	}
-}
-
-// Add new service
-func (a *APIServer) Add(name string, obj interface{}) {
-	if a.List == nil {
-		a.List = make(map[string]interface{})
-	}
-	a.List[strings.ToLower(name)] = obj
-	// перебор всех методов
-	t := reflect.TypeOf(obj)
-	methods := []string{}
-	for i := 0; i < t.NumMethod(); i++ {
-		// methodName := t.Method(i).Name
-		methods = append(methods, t.Method(i).Name)
-		// log.Println("Exist method:", t.Method(i).Name)
-	}
-	log.Printf("Registered new API server `%s` with methods (%s)", name, strings.Join(methods[:], ", "))
-}
-
-// ReturnError ...
-func (a *APIServer) ReturnError(err interface{}, reqID string, w http.ResponseWriter) {
+func (this *APIServer) ReturnError(err interface{}, reqID string, w http.ResponseWriter, error_code int) {
 	if err != nil { // catch
+		if error_code == 0 {
+			error_code = 950
+		}
 		resp := JSONAPIError{
 			"error",
-			950,
+			error_code,
 			fmt.Sprintf("%v", err),
 		}
 		jData, err := json.Marshal(resp)
@@ -114,11 +89,28 @@ func (a *APIServer) ReturnError(err interface{}, reqID string, w http.ResponseWr
 	}
 }
 
+// Add new service
+func (this *APIServer) Add(name string, obj interface{}) {
+	if this.List == nil {
+		this.List = make(map[string]interface{})
+	}
+	this.List[strings.ToLower(name)] = obj
+	// перебор всех методов
+	t := reflect.TypeOf(obj)
+	methods := []string{}
+	for i := 0; i < t.NumMethod(); i++ {
+		// methodName := t.Method(i).Name
+		methods = append(methods, t.Method(i).Name)
+		// log.Println("Exist method:", t.Method(i).Name)
+	}
+	log.Printf("Registered new API server `%s` with methods (%s)", name, strings.Join(methods[:], ", "))
+}
+
 // Handler ...
-func (a *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
+func (this *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
 	reqID := ""
 	defer func() { // catch or finally
-		a.ReturnError(recover(), reqID, w)
+		this.ReturnError(recover(), reqID, w, 0)
 	}()
 	defer req.Body.Close()
 
@@ -131,18 +123,18 @@ func (a *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
 			s := `{}`
 			_ = json.Unmarshal([]byte(s), &tParams)
 		} else {
-			a.ReturnError(err, reqID, w)
+			this.ReturnError(err, reqID, w, 0)
 			return false
 		}
 	}
 
-	if a.Methods == nil {
-		a.Methods = make(map[string]*APIServerMethod)
+	if this.Methods == nil {
+		this.Methods = make(map[string]*APIServerMethod)
 	}
 
 	// Search pre-reflected method in cache
-	if m, ok := a.Methods[req.URL.Path]; ok {
-		return a.CallMethod(m, reqID, tParams, w, req)
+	if m, ok := this.Methods[req.URL.Path]; ok {
+		return this.CallMethod(m, reqID, tParams, w, req)
 	}
 
 	// Reflect new method
@@ -158,8 +150,8 @@ func (a *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
 
 	// Find class and method is registered
 	var m reflect.Value
-	if a.List[class] != nil {
-		b := a.List[class]
+	if this.List[class] != nil {
+		b := this.List[class]
 		t := reflect.TypeOf(b)
 		// поиск метода по имени без учета регистра
 		for i := 0; i < t.NumMethod(); i++ {
@@ -175,19 +167,19 @@ func (a *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
 
 	if m.IsValid() {
 		// Add method to cache
-		a.Methods[req.URL.Path] = &APIServerMethod{
+		this.Methods[req.URL.Path] = &APIServerMethod{
 			m: m,
 		}
-		return a.CallMethod(a.Methods[req.URL.Path], reqID, tParams, w, req)
+		return this.CallMethod(this.Methods[req.URL.Path], reqID, tParams, w, req)
 	} else {
 		// log.Print("Method not exists(Golang): ", method)
-		a.ReturnError(errors.New("Method not exists"), reqID, w)
+		this.ReturnError(errors.New("Method not exists"), reqID, w, 0)
 		return false
 	}
 }
 
 // CallMethod ...
-func (a *APIServer) CallMethod(method *APIServerMethod, reqID string, tParams interface{}, w http.ResponseWriter, req *http.Request) bool {
+func (this *APIServer) CallMethod(method *APIServerMethod, reqID string, tParams interface{}, w http.ResponseWriter, req *http.Request) bool {
 	// log.Printf("Call API %s, class: %s, method: %s", req.URL.Path, class, method)
 	args := make([]reflect.Value, 1)
 	args[0] = reflect.ValueOf(req)
@@ -203,7 +195,14 @@ func (a *APIServer) CallMethod(method *APIServerMethod, reqID string, tParams in
 		if funcResult[1].Elem().IsValid() {
 			err := funcResult[1].Interface().(error)
 			if err != nil {
-				a.ReturnError(err, reqID, w)
+				var error_code int
+				switch err.(type) {
+				//default:
+				//	error_code = 0
+				case *Struct.SessionError:
+					error_code = 401
+				}
+				this.ReturnError(err, reqID, w, error_code)
 				return false
 			}
 		} else {
@@ -212,8 +211,8 @@ func (a *APIServer) CallMethod(method *APIServerMethod, reqID string, tParams in
 	}
 	if reflect.TypeOf(result).String() == "*image.RGBA" {
 		img := result.(*image.RGBA)
-		// a.writeJPEG(w, img)
-		a.writePNG(w, img)
+		// this.writeJPEG(w, img)
+		this.writePNG(w, img)
 	} else {
 		// operation complete successfully
 		jData, err := json.Marshal(result)
@@ -221,13 +220,13 @@ func (a *APIServer) CallMethod(method *APIServerMethod, reqID string, tParams in
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jData)
 		} else {
-			a.ReturnError(err, reqID, w)
+			this.ReturnError(err, reqID, w, 0)
 		}
 	}
 	return true
 }
 
-func (a *APIServer) writePNG(w http.ResponseWriter, img *image.RGBA) {
+func (this *APIServer) writePNG(w http.ResponseWriter, img *image.RGBA) {
 	buffer := new(bytes.Buffer)
 	if err := png.Encode(buffer, img); err != nil {
 		log.Println("unable to encode image.")
@@ -239,7 +238,7 @@ func (a *APIServer) writePNG(w http.ResponseWriter, img *image.RGBA) {
 	}
 }
 
-func (a *APIServer) writeJPEG(w http.ResponseWriter, img *image.RGBA) {
+func (this *APIServer) writeJPEG(w http.ResponseWriter, img *image.RGBA) {
 	buffer := new(bytes.Buffer)
 	if err := jpeg.Encode(buffer, img, nil); err != nil {
 		log.Println("unable to encode image.")
@@ -250,112 +249,3 @@ func (a *APIServer) writeJPEG(w http.ResponseWriter, img *image.RGBA) {
 		log.Println("unable to write image.")
 	}
 }
-
-/*
-// Add new service
-func (a *APIServer) Add(name string, obj interface{}) {
-	if a.List == nil {
-		a.List = make(map[string]interface{})
-	}
-	a.List[name] = obj
-	log.Println("Registered new API server,", name)
-}
-
-// ReturnError ...
-func (a *APIServer) ReturnError(err interface{}, reqID string, w http.ResponseWriter) {
-	if err != nil { // catch
-		resp := &JsonRpcErr{
-			Jsonrpc: "2.0",
-			ID:      reqID,
-			Error: &JsonRpcErrBody{
-				Code:    -32700,
-				Message: fmt.Sprintf("%v", err),
-			},
-		}
-		jData, err := json.Marshal(resp)
-		if err == nil {
-			log.Print(string(jData))
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(jData)
-		}
-	}
-}
-
-// Handler ...
-func (a *APIServer) Handler(w http.ResponseWriter, req *http.Request) bool {
-	reqID := ""
-	defer func() { // catch or finally
-		a.ReturnError(recover(), reqID, w)
-	}()
-	decoder := json.NewDecoder(req.Body)
-	var t JsonRpcReq
-	err := decoder.Decode(&t)
-	if err != nil {
-		log.Print(err)
-		a.ReturnError(err, reqID, w)
-		return false
-	}
-	reqID = t.ID
-	defer req.Body.Close()
-	parsedURL := strings.Split(t.Method, "/")
-	log.Println("t.Method", t.Method)
-	class := parsedURL[0]
-	method := parsedURL[1]
-	var result interface{}
-	var m reflect.Value
-	if a.List[class] != nil {
-		log.Println("   Service ... ok")
-		b := a.List[class]
-		m = reflect.ValueOf(b).MethodByName(method)
-		log.Println("   Method ("+method+") ... ", m)
-	} else {
-		log.Println("   Service ... ERR")
-	}
-	if m.IsValid() {
-		log.Println("-> API:", class+"."+method+"()")
-		args := make([]reflect.Value, 0)
-		if reflect.ValueOf(t.Params).Kind() == reflect.Map {
-			params := t.Params.(map[string]interface{})
-			log.Println("   args ... ", params, ", count: ", len(params))
-			if len(params) > 0 {
-				args = make([]reflect.Value, 1)
-				args[0] = reflect.ValueOf(params)
-			}
-		}
-		// Run method
-		funcResult := m.Call(args)
-		// var methodResult *client.APIResult
-		if len(funcResult) > 0 {
-			if funcResult[1].Elem().IsValid() {
-				err = funcResult[1].Interface().(error)
-			} else {
-				result = funcResult[0].Interface()
-			}
-		}
-		if err != nil {
-			ReturnError(err, reqID, w)
-			return false
-		}
-		resp := &JsonRpcResult{
-			ID:      reqID,
-			Jsonrpc: "2.0",
-			Result:  result, // methodResult,
-		}
-		// Operation complete successfully
-		jData, err := json.Marshal(resp)
-		if err == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(jData)
-		} else {
-			a.ReturnError(err, reqID, w)
-		}
-	} else {
-		log.Print("Method not exists(Golang): ", t.Method)
-		panic("Method not exists")
-	}
-	if result != nil {
-		return true
-	}
-	return false
-}
-*/
