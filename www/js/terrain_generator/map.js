@@ -104,10 +104,10 @@ export class Map {
                             s += p.percent;
                             if(r < s) {
                                 if(p.block) {
-                                    this.plants.add(new Vector(x, y, z), p.block.id);
+                                    this.plants.add(new Vector(x, y, z), p.block);
                                 } else if(p.trunk) {
-                                    this.plants.add(new Vector(x, y, z), p.trunk.id);
-                                    this.plants.add(new Vector(x, y + 1, z), p.leaves.id);
+                                    this.plants.add(new Vector(x, y, z), p.trunk);
+                                    this.plants.add(new Vector(x, y + 1, z), p.leaves);
                                     /*
                                     if(p.leaves) {
                                         this.plants.add(new Vector(x, y + 1, z), p.leaves.id);
