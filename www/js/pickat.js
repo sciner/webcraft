@@ -1,5 +1,5 @@
 import {Color, Vector} from "./helpers.js";
-import {BLOCK, CHUNK_SIZE_Y_MAX} from "./blocks.js";
+import {CHUNK_SIZE_Y_MAX} from "./chunk.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
 import {Resources} from "./resources.js";
 import GeometryTerrain from "./geometry_terrain.js";

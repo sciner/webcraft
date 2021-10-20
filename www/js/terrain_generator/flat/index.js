@@ -1,4 +1,3 @@
-import {blocks} from '../biomes.js';
 import {Color} from '../../helpers.js';
 import { Default_Terrain_Generator } from '../default.js';
 
@@ -11,7 +10,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     generate(chunk) {
 
-        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? blocks.BEDROCK : blocks.SAND;
+        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
 
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {

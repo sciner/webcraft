@@ -6,6 +6,7 @@ export class Resources {
         this.terrain = {};
         this.pickat = {};
         this.sky = {};
+        this.resource_packs = new Set();
     }
 
     /**
@@ -43,7 +44,11 @@ export class Resources {
         all.push(loadImage(skiybox_dir + '/posz.jpg').then((img) => {this.sky.posz = img}));
         all.push(loadImage(skiybox_dir + '/negz.jpg').then((img) => {this.sky.negz = img}));
 
-        //TODO: add retry
+        // Resource packs
+        for(let init_file of BLOCK.resource_packs) {
+            all.push(import(init_file).then((module) => {this.resource_packs.add(module.default);}));
+        }
+        // TODO: add retry
         await Promise.all(all).then(() => { return this; });
     }
 }

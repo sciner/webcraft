@@ -1,6 +1,4 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
-import RECIPES from "../recipes.js";
-import {BLOCK} from "../blocks.js";
 import {Helpers} from "../helpers.js";
 
 class CraftTableSlot extends Label {

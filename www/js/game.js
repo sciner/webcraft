@@ -3,7 +3,6 @@ import Sounds from "./sounds.js";
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
 import Physics from "./physics.js";
-import Player from "./player.js";
 import Inventory from "./inventory.js";
 import {fps} from "./fps.js";
 import {Hotbar} from "./hotbar.js";
@@ -12,22 +11,9 @@ import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
 import {GameMode} from "./game_mode.js";
+import Player from "./player.js";
 
 export {BLOCK};
-
-/*
-import {TypedBlocks} from "./typed_blocks.js";
-let tbs = new TypedBlocks();
-let vec = new Vector(0, 5, 14);
-let block           = tbs.get(vec);
-block.power         = .8;
-block.rotate        = new Vector(1, 2, 3);
-block.entity_id     = 'entity_id';
-block.texture       = 'texture';
-block.extra_data    = 'extra_data';
-block               = tbs.get(vec);
-console.log(block.id, block.power, block.rotate, block.properties, block.entity_id, block.texture, block.extra_data);
-*/
 
 // Mouse event enumeration
 export let MOUSE         = {};
@@ -132,21 +118,24 @@ export let Game = {
         });
     },
 
-    Start(session, world_guid, settings) {
+    async Start(session, world_guid, settings) {
         this.sounds = new Sounds();
         // Create a new world
-        this.world = new World(session, world_guid, settings);
+        this.world = new World(BLOCK, session, world_guid, settings);
         this.render = new Renderer('renderSurface');
         this.load(settings)
+            .then(() => {
+                return BLOCK.load(this.resources.resource_packs);
+            })
             .then(() => {
                 this.render.init(this.world, settings, this.resources)
             })
             .then(() => {
                 return this.world.connect();
             })
-            .then(() => {
+            /*.then(() => {
                 return this.load(settings);
-            })
+            })*/
     },
 
     // postServerConnect...
@@ -158,11 +147,11 @@ export let Game = {
         this.player.setInputCanvas('renderSurface');
         //
         this.hud.add(fps, 0);
-        this.inventory      = new Inventory(this.player, this.hud);
+        this.inventory      = new Inventory(BLOCK, this.player, this.hud);
         this.hotbar         = new Hotbar(this.hud, this.inventory);
         //
         this.player.setWorld(this.world);
-        this.player.chat    = new Chat();
+        this.player.chat    = new Chat(BLOCK);
         this.setupMousePointer();
         this.world.renderer.updateViewport();
         this.world.fixRotate();
@@ -306,14 +295,14 @@ export let Game = {
         let pointerlockchange = function(event) {
             if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
                 that.setControlsEnabled(true);
-                console.log('Pointer lock enabled!');
+                // console.log('Pointer lock enabled!');
             }  else {
                 that.setControlsEnabled(false);
                 if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
                 that.controls.clearStates();
-                console.info('Pointer lock lost!');
+                // console.info('Pointer lock lost!');
             }
         }
         let pointerlockerror = function(event) {

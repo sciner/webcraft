@@ -1,4 +1,3 @@
-import {BLOCK} from "./blocks.js";
 import { Vector } from "./helpers.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
@@ -7,7 +6,8 @@ const SYSTEM_NAME               = '<MadCraft>';
 
 export default class Chat {
 
-    constructor() {
+    constructor(block_manager) {
+        this.block_manager          = block_manager;
         this.active                 = false;
         this.buffer                 = [];
         this.history_max_messages   = 64;
@@ -218,7 +218,7 @@ export default class Chat {
                             cnt = temp[2].trim();
                         }
                         cnt = Math.max(cnt | 0, 1);
-                        let block = BLOCK[name.toUpperCase()];
+                        let block = this.block_manager[name.toUpperCase()];
                         if(block) {
                             block = {...block};
                             delete(block.texture);

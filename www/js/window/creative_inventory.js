@@ -1,13 +1,12 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import {CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableResultSlot} from "./craft_table.js";
-import RECIPES from "../recipes.js";
-import {BLOCK} from "../blocks.js";
 
 class CreativeInventoryCollection extends Window {
 
     //
-    constructor(x, y, w, h, id, title, text) {
+    constructor(block_manager, x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
+        this.block_manager = block_manager;
         // Ширина / высота слота
         this.cell_size = 36;
         this.max_height = 0;
@@ -28,8 +27,24 @@ class CreativeInventoryCollection extends Window {
     // Init
     init() {
         //
-        let all_blocks = BLOCK.getAll().filter((i) => {
+        let all_blocks = this.block_manager.getAll().filter((i) => {
             return (i.id > 0) && i.spawnable;
+        });
+        //
+        all_blocks.sort((a, b) => {
+            //
+            if(a.inventory_icon_id == 0) {
+                return 1;
+            } else if(b.inventory_icon_id == 0) {
+                return -1;
+            }
+            //
+            if(!a.style) a.style = 'default';
+            if(!b.style) b.style = 'default';
+            if(a.style != b.style) {
+                return a.style > b.style ? 1 : -1;
+            }
+            return b.id - a.id;
         });
         // Create slots
         this.initCollection(all_blocks);
@@ -136,11 +151,12 @@ class CreativeInventoryCollection extends Window {
 
 export class CreativeInventoryWindow extends Window {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+    constructor(block_manager, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
         this.inventory = inventory;
+        this.block_manager = block_manager;
 
         // Get window by ID
         const ct = this;
@@ -225,7 +241,7 @@ export class CreativeInventoryWindow extends Window {
             console.error('createCollectionSlots() already created');
             return;
         }
-        this.collection = new CreativeInventoryCollection(16, 35, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
+        this.collection = new CreativeInventoryCollection(this.block_manager, 16, 35, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
         this.add(this.collection);
         this.collection.init();
     }

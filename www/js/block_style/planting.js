@@ -1,6 +1,6 @@
 import {MULTIPLY, DIRECTION, QUAD_FLAGS} from '../helpers.js';
 import { default as push_plane_style } from './plane.js';
-import {CHUNK_SIZE_Z} from "../blocks.js";
+import {CHUNK_SIZE_Z} from "../chunk.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 let randoms = [];

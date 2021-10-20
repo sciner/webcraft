@@ -2,39 +2,44 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import { Vec3, ROTATE } from "../../js/helpers.js";
-import { BLOCK } from "../../js/blocks.js";
-import { Physics, PlayerState } from "./index.js";
+import {Vec3, ROTATE} from "../../js/helpers.js";
+import {Physics, PlayerState} from "./index.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 
-const mcData = {
-    effectsByName: [],
-    version: {
-        majorVersion: '1.17'
-    },
-    blocksByName: {
-        ice:            BLOCK.ICE,
-        packed_ice:     BLOCK.ICE2,
-        air:            BLOCK.AIR,
-        frosted_ice:    BLOCK.ICE3,
-        blue_ice:       BLOCK.ICE3,
-        soul_sand:      BLOCK.SOUL_SAND,
-        cobweb:         BLOCK.COBWEB,
-        water:          BLOCK.STILL_WATER,
-        lava:           BLOCK.STILL_LAVA,
-        ladder:         BLOCK.LADDER,
-        vine:           BLOCK.VINES,
-        honey_block:    null,
-        seagrass:       null,
-        kelp:           null,
-        bubble_column:  null
-    }
-};
-
 // FakeWorld
 class FakeWorld {
+
+    static getMCData() {
+        if(this.mcData) {
+            return this.mcData;
+        }
+        this.mcData = {
+            effectsByName: [],
+            version: {
+                majorVersion: '1.17'
+            },
+            blocksByName: {
+                ice:            BLOCK.ICE,
+                packed_ice:     BLOCK.ICE2,
+                air:            BLOCK.AIR,
+                frosted_ice:    BLOCK.ICE3,
+                blue_ice:       BLOCK.ICE3,
+                soul_sand:      BLOCK.SOUL_SAND,
+                cobweb:         BLOCK.COBWEB,
+                water:          BLOCK.STILL_WATER,
+                lava:           BLOCK.STILL_LAVA,
+                ladder:         BLOCK.LADDER,
+                vine:           BLOCK.VINES,
+                honey_block:    null,
+                seagrass:       null,
+                kelp:           null,
+                bubble_column:  null
+            }
+        };
+        return this.mcData;
+    }
 
     constructor(world) {
         this.world = world;
@@ -75,6 +80,7 @@ function FakePlayer(pos) {
 export class PrismarinePlayerControl {
 
     constructor(world, pos) {
+        const mcData            = FakeWorld.getMCData();
         this.world              = new FakeWorld(world);
         this.physics            = Physics(mcData, this.world);
         this.player             = FakePlayer(pos);

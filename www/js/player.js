@@ -1,5 +1,5 @@
 import {ROTATE, Vector} from "./helpers.js";
-import {BLOCK} from "./blocks.js";
+import {getChunkAddr} from "./chunk.js";
 import {Kb} from "./kb.js";
 import {Game} from "./game.js";
 import {PickAt} from "./pickat.js";
@@ -855,7 +855,7 @@ export default class Player {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }

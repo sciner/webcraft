@@ -1,6 +1,4 @@
-import {blocks} from '../biomes.js';
 import {Color, Vector} from '../../helpers.js';
-import {BLOCK} from '../../blocks.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from '../default.js';
@@ -52,27 +50,15 @@ await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor() {
+    constructor(block_manager) {
         super();
         this.setSeed(0);
         //
-        const blocks = this.blocks1 = [];
-        for(let key in BLOCK) {
-            if (key.substring(0, 4) === 'TERR' || key.substring(0, 4) === 'WOOL') {
-                blocks.push(BLOCK[key]);
-            }
-        }
-        //
-        for(let key of Object.keys(blocks)) {
-            let b = blocks[key];
-            b = {...b};
-            delete(b.texture);
-            blocks[key] = b;
-        }
+        this.block_manager = block_manager;
         // Voxel buildings
         this.voxel_buildings = [
-            new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
+            new Vox_Mesh(this.block_manager, vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
+            new Vox_Mesh(this.block_manager, vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
         ];
     }
 
@@ -96,7 +82,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(chunk.addr.y == 0) {
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
-                        this.setBlock(chunk, x, 0, z, blocks.BEDROCK, false);
+                        this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                     }
                 }
             }

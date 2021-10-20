@@ -1,10 +1,10 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {Map} from './../map.js';
 import {MapCell} from './../map_cell.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
-import {Default_Terrain_Generator, BIOMES, noise, alea} from "../default.js";
+import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
 
 //
@@ -48,9 +48,10 @@ await Vox_Loader.load('/data/castle.vox', (chunks) => {
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
+    constructor(block_manager, seed, world_id) {
         super(seed, world_id);
         const scale                 = .5;
+        this.block_manager          = block_manager;
         // Настройки
         this.options = {
             WATER_LINE:             63, // Ватер-линия
@@ -68,8 +69,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.extruders              = [];
         // Map specific
         if(this.world_id == 'demo') {
-            this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
-            this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
+            this.voxel_buildings.push(new Vox_Mesh(this.block_manager, vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
+            this.voxel_buildings.push(new Vox_Mesh(this.block_manager, vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
             this.islands.push({
                 pos: new Vector(2865, 118, 2787),
                 rad: 15
@@ -147,12 +148,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         dirt_color:     biome.dirt_color,
                         title:          biome.title,
                         dirt_block:     dirt_block.id,
-                        block:          biome.block.id
+                        block:          biome.block
                     },
                     dirt_block.id
                 );
                 if(biome.code == 'OCEAN') {
-                    cell.block = blocks.STILL_WATER;
+                    cell.block = BLOCK.STILL_WATER.id;
                 }
                 map.cells[x][z] = cell;
                 map.cells[x + 1][z + 1] = cell;
@@ -243,15 +244,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     let y_int = parseInt(y);
                     let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
                     let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
-                    let block = blocks.BEDROCK;
+                    let block = BLOCK.BEDROCK;
                     if(y >= 1) {
                         setBlock(x, y_int - 1, z, block.id);
                     }
                     if(y_abs % 16 == 1) {
-                        block = blocks.GOLD;
+                        block = BLOCK.GOLD;
                     }
                     if(y_abs % 32 == 1) {
-                        block = blocks.DIAMOND_ORE;
+                        block = BLOCK.DIAMOND_ORE;
                     }
                     setBlock(x, y_int, z, block.id);
                 }
@@ -292,7 +293,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 // Bedrock
                 if(chunk.coord.y == 0) {
-                    setBlock(x, 0, z, blocks.BEDROCK.id);
+                    setBlock(x, 0, z, BLOCK.BEDROCK.id);
                 }
 
                 for(let y = min_y; y < chunk.size.y; y++) {
@@ -315,12 +316,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(dist < island.rad) {
                             if(xyz.y < island.pos.y) {
                                 if(xyz.y < island.pos.y - 3) {
-                                    setBlock(x, y, z, blocks.CONCRETE.id);
+                                    setBlock(x, y, z, BLOCK.CONCRETE.id);
                                 } else {
                                     if(dist < island.rad * 0.9) {
-                                        setBlock(x, y, z, blocks.CONCRETE.id);
+                                        setBlock(x, y, z, BLOCK.CONCRETE.id);
                                     } else {
-                                        setBlock(x, y, z, blocks.DIRT.id);
+                                        setBlock(x, y, z, BLOCK.DIRT.id);
                                     }
                                 }
                             }
@@ -390,9 +391,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     if(xyz.y < local_dirt_level) {
                         let r = aleaRandom.double() * 1.33;
                         if(r < 0.0025 && xyz.y < value - 5) {
-                            setBlock(x, y, z, blocks.DIAMOND_ORE.id);
+                            setBlock(x, y, z, BLOCK.DIAMOND_ORE.id);
                         } else if(r < 0.01) {
-                            setBlock(x, y, z, blocks.COAL_ORE.id);
+                            setBlock(x, y, z, BLOCK.COAL_ORE.id);
                         } else {
                             let norm = !map.info.plants.has(new Vector(x, y + 1, z))
                             /*
@@ -402,7 +403,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     break;
                                 }
                             }*/
-                            setBlock(x, y, z, norm ? blocks.CONCRETE.id : biome.dirt_block);
+                            setBlock(x, y, z, norm ? BLOCK.CONCRETE.id : biome.dirt_block);
                         }
                     } else {
                         setBlock(x, y, z, biome.dirt_block);
@@ -415,7 +416,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
                             if(!chunk.tblocks.has(new Vector(x, y - chunk.coord.y, z))) {
-                                setBlock(x, y - chunk.coord.y, z, blocks.STILL_WATER.id);
+                                setBlock(x, y - chunk.coord.y, z, BLOCK.STILL_WATER.id);
                             }
                         }
                     }
@@ -442,7 +443,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             let block_id = map.info.plants.get(pos);
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
                 let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
-                if(b.id === blocks.DIRT.id || b.id == 516) {
+                if(b.id === BLOCK.DIRT.id || b.id == 516) {
                     if(!chunk.tblocks.has(new Vector(pos.x, pos.y - chunk.coord.y, pos.z))) {
                         setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
                     }

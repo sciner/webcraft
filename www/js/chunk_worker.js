@@ -1,5 +1,3 @@
-let queue               = [];
-
 // Modules
 let Vector              = null;
 let VectorCollector     = null;
@@ -8,15 +6,19 @@ let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
+let getChunkAddr        = null;
 let CHUNK_SIZE_Y_MAX    = null;
 let MAX_CAVES_LEVEL     = null;
-
-let MAX_TORCH_POWER     = 16;
+let BIOMES              = null;
 
 // Vars
+let blocks              = null;
 let all_blocks          = []; // 1. All blocks
 let chunks              = null;
 let terrainGenerator    = null;
+
+// Consts
+let MAX_TORCH_POWER     = 16;
 
 // ChunkManager
 class ChunkManager {
@@ -35,7 +37,7 @@ class ChunkManager {
 
     // Возвращает координаты чанка по глобальным абсолютным координатам
     getChunkAddr(x, y, z) {
-        return BLOCK.getChunkAddr(x, y, z);
+        return getChunkAddr(x, y, z);
     }
 
     /**
@@ -118,7 +120,12 @@ class Chunk {
         //  4. Find lights
         this.findLights();
         // 5. Result
-        postMessage(['blocks_generated', c]);
+        try {
+            postMessage(['blocks_generated', c]);
+        } catch(e) {
+            console.log(JSON.stringify(c));
+            debugger;
+        }
     }
 
     // findLights...
@@ -459,27 +466,27 @@ class Chunk {
             }
             // if block with gravity
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-            if(block.properties.gravity && block.pos.y > 0 && block.falling) {
+            if(block.material.gravity && block.pos.y > 0 && block.falling) {
                 let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
                 if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                     this.gravity_blocks.push(block.pos);
                 }
             }
             // if block is fluid
-            if(block.properties.fluid) {
+            if(block.material.fluid) {
                 this.fluid_blocks.push(block.pos);
             }
             if(block.vertices === null) {
                 block.vertices = [];
                 let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
-                BLOCK.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
+                block.material.resource_pack.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices[block.properties.group]) {
-                    this.vertices[block.properties.group] = {...group_templates[block.properties.group]};
+                if(!this.vertices[block.material.group]) {
+                    this.vertices[block.material.group] = {...group_templates[block.material.group]};
                 }
-                this.vertices[block.properties.group].list.push(...block.vertices);
+                this.vertices[block.material.group].list.push(...block.vertices);
             }
         }
 
@@ -514,7 +521,7 @@ class Chunk {
                         let pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
                             let block = this.tblocks.get(pos);
-                            if(block.properties.gravity) {
+                            if(block.material.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }
@@ -563,40 +570,55 @@ async function importModules(terrain_type, seed, world_id) {
         TypedBlocks = module.TypedBlocks;
     });
     // load module
-    await import("./blocks.js").then(module => {
-        BLOCK = module.BLOCK;
+    await import("./chunk.js").then(module => {
         CHUNK_SIZE_X        = module.CHUNK_SIZE_X;
         CHUNK_SIZE_Y        = module.CHUNK_SIZE_Y;
         CHUNK_SIZE_Z        = module.CHUNK_SIZE_Z;
         CHUNK_SIZE_Y_MAX    = module.CHUNK_SIZE_Y_MAX;
         MAX_CAVES_LEVEL     = module.MAX_CAVES_LEVEL;
+        getChunkAddr        = module.getChunkAddr;
     });
     // load module
-    await import("./terrain_generator/biomes.js").then(module => {
-        blocks = module.blocks;
+    await import("./blocks.js").then(module => {
+        BLOCK = module.BLOCK;
+        (async function(){
+            let all = [];
+            let resource_packs = new Set();
+            // Resource packs
+            for(let init_file of BLOCK.resource_packs) {
+                all.push(import(init_file).then((module) => {resource_packs.add(module.default);}));
+            }
+            await Promise.all(all).then(() => { return this; });
+            all = [BLOCK.load(resource_packs)]
+            await Promise.all(all).then(() => {
+                import("./terrain_generator/biomes.js").then(module => {
+                    BIOMES = module.BIOMES;
+                }).then(() => {
+                    // Load module
+                    import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
+                        terrainGenerator = new module.default(BLOCK, seed, world_id);
+                    }).then(() => {
+                        // Init vars
+                        // 1. Fill all_blocks
+                        for(let b of BLOCK.getAll()) {
+                            b = {...b};
+                            delete(b.texture);
+                            all_blocks.push(b);
+                        }
+                        /*
+                        for(let k in all_blocks) {
+                            all_blocks[k] = {...all_blocks[k]};
+                            delete(all_blocks[k].texture);
+                        }*/
+                        //
+                        world.chunkManager = new ChunkManager();
+                        // Worker inited
+                        postMessage(['worker_inited', null]);
+                    });
+                });
+            });
+        })();
     });
-    // load module
-    await import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
-        terrainGenerator = new module.default(seed, world_id);
-    });
-    // Init vars
-    // 1. Fill all_blocks
-    for(let b of BLOCK.getAll()) {
-        b = {...b};
-        delete(b.texture);
-        all_blocks.push(b);
-    }
-    for(let k in all_blocks) {
-        all_blocks[k] = {...all_blocks[k]};
-        delete(all_blocks[k].texture);
-    }
-    //
-    world.chunkManager = new ChunkManager();
-    // Run queue items
-    for(let item of queue) {
-        await onmessage(item);
-    }
-    queue = [];
 }
 
 // On message callback function
@@ -608,11 +630,7 @@ onmessage = async function(e) {
         let generator_params = args;
         let seed = e.data[2];
         let world_id = e.data[3];
-        importModules(generator_params.id, seed, world_id); // biome2 | city | flat
-        return;
-    }
-    if (!BLOCK || !terrainGenerator) {
-        return queue.push(e);
+        return importModules(generator_params.id, seed, world_id); // biome2 | city | flat
     }
     switch(cmd) {
         case 'createChunk': {

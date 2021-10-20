@@ -1,4 +1,3 @@
-import {BLOCK} from "./blocks.js";
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 
@@ -6,8 +5,9 @@ import {Vector, Helpers} from "./helpers.js";
 
 export default class Inventory {
     
-    constructor(player, hud) {
+    constructor(block_manager, player, hud) {
         let that            = this;
+        this.block_manager  = block_manager;
         this.player         = player;
         this.hud            = hud;
         this.current        = null;
@@ -34,10 +34,10 @@ export default class Inventory {
         this.ct = new CraftTable(10, 10, 352, 332, 'frmCraft', null, null, this);
         hud.wm.add(this.ct);
         // Inventory window
-        this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this);
+        this.frmInventory = new InventoryWindow(this.block_manager, 10, 10, 352, 332, 'frmInventory', null, null, this);
         hud.wm.add(this.frmInventory);
         // Creative Inventory window
-        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
+        this.frmCreativeInventory = new CreativeInventoryWindow(this.block_manager, 10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
         hud.wm.add(this.frmCreativeInventory);
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
@@ -88,7 +88,7 @@ export default class Inventory {
             }
             let item = items[k];
             if(item) {
-                const block = {...BLOCK.fromId(item.id)};
+                const block = {...this.block_manager.fromId(item.id)};
                 if(block) {
                     item = Object.assign(block, items[k]);
                     if(!item.count) {
@@ -106,10 +106,6 @@ export default class Inventory {
 
     // Refresh
     refresh(changed) {
-        if(changed) {
-            console.log(changed);
-        }
-        // debugger;
         Game.world.server.SaveInventory(this.exportItems());
         this.hud.refresh();
     }
@@ -118,7 +114,7 @@ export default class Inventory {
         if(!mat.id) {
             throw 'Empty mat ID';
         }
-        let block = BLOCK.BLOCK_BY_ID[mat.id];
+        let block = this.block_manager.BLOCK_BY_ID[mat.id];
         if(!block) {
             throw 'Invalid mat ID';
         }
@@ -300,7 +296,7 @@ export default class Inventory {
                     console.error(item);
                 }
                 if('inventory_icon_id' in item) {
-                    let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+                    let icon = this.block_manager.getInventoryIconPos(item.inventory_icon_id);
                     hud.ctx.drawImage(
                         this.inventory_image,
                         icon.x,

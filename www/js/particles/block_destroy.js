@@ -1,5 +1,5 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
-import {BLOCK} from '../blocks.js';
+import {getChunkAddr} from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 
@@ -10,7 +10,7 @@ export default class Particles_Block_Destroy {
 
     // Constructor
     constructor(render, block, pos, small) {
-        let chunk_addr  = BLOCK.getChunkAddr(pos.x, pos.y, pos.z);
+        let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
         if(!chunk.map) {
             debugger;

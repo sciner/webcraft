@@ -1,7 +1,7 @@
 "use strict";
 
 import HUD from "./hud.js";
-import {CHUNK_SIZE_X} from "./blocks.js";
+import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Game} from "./game.js";
 import {Mth, VectorCollector} from "./helpers.js";
@@ -117,7 +117,7 @@ export class Renderer {
         this.resources          = resources;
         this.skyBox             = null;
         this.videoCardInfoCache = null;
-        this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
+        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
         this.setWorld(world);
 
@@ -288,16 +288,6 @@ export class Renderer {
         this.terrainTexture.bind(4);
         this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
         this.world.chunkManager.draw(this, false);
-        /*
-        if(!this.vl && Game.shift.x != 0) {
-            this.vl = new Vox_Loader('/data/monu10.vox', (chunks) => {
-                this.voxel_mesh = new Vox_Mesh(chunks[0], new Vector(3120, 65, 2863), Game.shift, this.materials['regular']);
-            });
-        }
-        if(this.voxel_mesh) {
-            this.voxel_mesh.draw(this.renderBackend);
-        }
-        */
         this.world.draw(this, delta);
         // 3. Draw players and rain
         this.drawPlayers(delta);

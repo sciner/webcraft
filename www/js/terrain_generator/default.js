@@ -1,7 +1,6 @@
 import {Color, Helpers} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
-export {blocks, BIOMES} from './biomes.js';
 
 export {alea, noise};
 
@@ -20,7 +19,7 @@ export class Default_Terrain_Generator {
 
     generate(chunk) {
 
-        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? blocks.BEDROCK : blocks.SAND;
+        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
 
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
@@ -126,7 +125,7 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, options.type.trunk, true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
         }
     }
 
@@ -135,9 +134,9 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, options.type.trunk, true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
         }
-        this.setBlock(chunk, x, ystart, z, options.type.leaves, true);
+        this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID[options.type.leaves], true);
     }
 
     // Акация
@@ -151,7 +150,7 @@ export class Default_Terrain_Generator {
             for(let p = y; p < ystart; p++) {
                 x += px;
                 z += pz;
-                that.setBlock(chunk, x, p, z, options.type.trunk, true);
+                that.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
                 let r = random.double();
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
                     r *= 10;
@@ -177,8 +176,8 @@ export class Default_Terrain_Generator {
                             }
                             let b = chunk.tblocks.get(new Vector(i, py, j));
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                            if(!b_id || b_id >= 0 && b_id != options.type.trunk.id) {
-                                that.setBlock(chunk, i, py, j, options.type.leaves, false);
+                            if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                                that.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
                             }
                         }
                     }
@@ -194,15 +193,15 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, options.type.trunk, true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
         }
         // листва
         let r = 1;
         let rad = Math.round(r);
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-            this.setBlock(chunk, x, ystart, z, options.type.leaves, false);
+            this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
             if(options.biome_code == 'SNOW') {
-                this.setBlock(chunk, x, ystart + 1, z, blocks.SNOW, false);
+                this.setBlock(chunk, x, ystart + 1, z, BLOCK.SNOW, false);
             }
         }
         let step = 0;
@@ -218,10 +217,10 @@ export class Default_Terrain_Generator {
                         if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
                             let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
-                            if(b_id === blocks.AIR.id) {
-                                this.setBlock(chunk, i, y, j, options.type.leaves, false);
+                            if(b_id === BLOCK.AIR.id) {
+                                this.setBlock(chunk, i, y, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
                                 if(options.biome_code == 'SNOW') {
-                                    this.setBlock(chunk, i, y + 1, j, blocks.SNOW, false);
+                                    this.setBlock(chunk, i, y + 1, j, BLOCK.SNOW, false);
                                 }
                             }
                         }
@@ -237,7 +236,7 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, options.type.trunk, true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
         }
         // листва
         let py = y + options.height;
@@ -257,8 +256,8 @@ export class Default_Terrain_Generator {
                         // let b = chunk.blocks[i][j][py];
                         let b = chunk.tblocks.get(new Vector(i, py, j));
                         let b_id = b.id; // !b ? 0 : (typeof b == 'number' ? b : b.id);
-                        if(!b_id || b_id >= 0 && b_id != options.type.trunk.id) {
-                            this.setBlock(chunk, i, py, j, options.type.leaves, false);
+                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                            this.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
                         }
                     }
                 }

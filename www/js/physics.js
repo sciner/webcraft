@@ -1,5 +1,3 @@
-import {BLOCK} from "./blocks.js";
-
 // Physics simulator.
 export default class Physics {
 	

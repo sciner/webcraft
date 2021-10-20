@@ -16,7 +16,8 @@ const MAX_DIST_FOR_SHIFT = 800;
 // World container
 export class World {
 
-    constructor(session, world_guid, settings) {
+    constructor(block_manager, session, world_guid, settings) {
+        this.block_manager  = block_manager;
         this.session        = session;
         this.world_guid     = world_guid;
         this.settings       = settings;
@@ -54,7 +55,7 @@ export class World {
         //
         Game.postServerConnect()
         //
-        this.chunkManager   = new ChunkManager(this);
+        this.chunkManager   = new ChunkManager(this, this.block_manager);
         this.meshes         = new MeshManager();
         //
         if(state.hasOwnProperty('chunk_render_dist')) {
@@ -145,7 +146,7 @@ export class World {
     // createClouds
     createClouds(pos) {
         // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
+        return this.meshes.add(new Particles_Clouds(this.block_manager, this.renderer.gl, pos));
     }
 
     // setRain

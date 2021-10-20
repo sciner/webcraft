@@ -1,18 +1,17 @@
 import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
-import Chunk from "./chunk.js";
-import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
+import {Chunk, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk.js";
 import ServerClient from "./server_client.js";
-import { Game } from "./game.js";
+import {Game} from "./game.js";
 
 const CHUNKS_ADD_PER_UPDATE = 16;
-
 export const MAX_Y_MARGIN = 3;
 
 //
 export class ChunkManager {
 
-    constructor(world) {
+    constructor(world, block_manager) {
         let that                    = this;
+        this.block_manager          = block_manager;
         this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
         this.chunks                 = new VectorCollector(), // Map();
         this.chunks_prepare         = new VectorCollector();
@@ -23,27 +22,32 @@ export class ChunkManager {
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];
+        this.worker_inited          = false;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         //
         this.DUMMY = {
-            id: BLOCK.DUMMY.id,
+            id: this.block_manager.DUMMY.id,
             shapes: [],
-            properties: BLOCK.DUMMY,
-            material: BLOCK.DUMMY,
+            properties: this.block_manager.DUMMY,
+            material: this.block_manager.DUMMY,
             getProperties: function() {
                 return this.properties;
             }
         };
         this.AIR = {
-            id: BLOCK.AIR.id,
-            properties: BLOCK.AIR
+            id: this.block_manager.AIR.id,
+            properties: this.block_manager.AIR
         };
         // Message received from worker
         this.worker.onmessage = function(e) {
             let cmd = e.data[0];
             let args = e.data[1];
             switch(cmd) {
+                case 'worker_inited': {
+                    that.worker_inited = true;
+                    break;
+                }
                 case 'blocks_generated': {
                     let chunk = that.chunks.get(args.addr);
                     if(chunk) {
@@ -86,6 +90,9 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render, transparent) {
+        if(!this.worker_inited) {
+            return;
+        }
         let applyVerticesCan = 10;
         let groups = [];
         if(transparent) {
@@ -171,7 +178,7 @@ export class ChunkManager {
 
     // Update
     update() {
-        if(!this.update_chunks) {
+        if(!this.update_chunks || !this.worker_inited) {
             return false;
         }
         let world = this.world;
@@ -182,7 +189,7 @@ export class ChunkManager {
         let chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         let div2 = new Vector(2, 2, 2);
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        let chunkAddr = BLOCK.getChunkAddr(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
+        let chunkAddr = getChunkAddr(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
         if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
             this.poses = [];
             this.prev_margin = this.margin;
@@ -299,7 +306,7 @@ export class ChunkManager {
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
-        let addr = BLOCK.getChunkAddr(x, y, z);
+        let addr = getChunkAddr(x, y, z);
         let chunk = this.chunks.get(addr);
         if(chunk) {
             return chunk.getBlock(x, y, z);
@@ -310,7 +317,7 @@ export class ChunkManager {
     // setBlock
     setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data) {
         // определяем относительные координаты чанка
-        let chunkAddr = BLOCK.getChunkAddr(x, y, z);
+        let chunkAddr = getChunkAddr(x, y, z);
         // обращаемся к чанку
         let chunk = this.getChunk(chunkAddr);
         // если чанк найден
@@ -338,7 +345,7 @@ export class ChunkManager {
             let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
             let b = null;
             let action = null;
-            if(block.id == BLOCK.AIR.id) {
+            if(block.id == this.block_manager.AIR.id) {
                 // dig
                 action = 'dig';
                 b = world_block;
@@ -350,28 +357,28 @@ export class ChunkManager {
                 b = block;
             }
             if(action) {
-                b = BLOCK.BLOCK_BY_ID[b.id];
+                b = this.block_manager.BLOCK_BY_ID[b.id];
                 if(b.hasOwnProperty('sound')) {
                     Game.sounds.play(b.sound, action);
                 }
             }
         }
         // устанавливаем блок
-        return chunk.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
+        return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
     }
 
     // destroyBlock
     destroyBlock(pos, is_modify) {
         let block = this.getBlock(pos.x, pos.y, pos.z);
-        if(block.id == BLOCK.TULIP.id) {
+        if(block.id == this.block_manager.TULIP.id) {
             this.world.renderer.setBrightness(.15);
-        } else if(block.id == BLOCK.DANDELION.id) {
+        } else if(block.id == this.block_manager.DANDELION.id) {
             this.world.renderer.setBrightness(1);
-        } else if(block.id == BLOCK.CACTUS.id) {
+        } else if(block.id == this.block_manager.CACTUS.id) {
             this.world.setRain(true);
         }
         this.world.destroyBlock(block, pos);
-        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
+        this.setBlock(pos.x, pos.y, pos.z, this.block_manager.AIR, true);
     }
 
 }
