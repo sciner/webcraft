@@ -517,7 +517,7 @@ func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int)
 				}
 			}
 		}
-		cnt := len(modified_chunks)
+		// cnt := len(modified_chunks)
 		// this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", conn.ChunkPos)+" ... "+strconv.Itoa(cnt), []string{})
 		packet := Struct.JSONResponse{Name: Struct.CMD_NEARBY_MODIFIED_CHUNKS, Data: modified_chunks, ID: nil}
 		packets := []Struct.JSONResponse{packet}
