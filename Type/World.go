@@ -486,7 +486,7 @@ func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlay
 	conn.Pos = params.Pos
 	conn.Rotate = params.Rotate
 	this.SavePlayerState(conn)
-	go this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist)
+	this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist)
 }
 
 // CheckPlayerVisibleChunks
