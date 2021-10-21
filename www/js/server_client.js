@@ -4,38 +4,40 @@ import PlayerModel from "./player_model.js";
 export default class ServerClient {
 
     // System
-    static CMD_HELO                   = 1;
-    static CMD_PING                   = 3;
-    static CMD_PONG                   = 4;
-    static CMD_CONNECT                = 34;
-    static CMD_CONNECTED              = 62;
+    static CMD_HELO                     = 1;
+    static CMD_PING                     = 3;
+    static CMD_PONG                     = 4;
+    static CMD_CONNECT                  = 34;
+    static CMD_CONNECTED                = 62;
     // Cnunks and blocks
-    static CMD_BLOCK_DESTROY          = 35;
-    static CMD_BLOCK_SET              = 36;
-    static CMD_CHUNK_ADD              = 37;
-    static CMD_CHUNK_REMOVE           = 38;
-    static CMD_CHUNK_LOADED           = 39;
+    static CMD_BLOCK_DESTROY            = 35;
+    static CMD_BLOCK_SET                = 36;
+    static CMD_CHUNK_ADD                = 37;
+    static CMD_CHUNK_REMOVE             = 38;
+    static CMD_CHUNK_LOADED             = 39;
     // Chat
-    static CMD_CHAT_SEND_MESSAGE      = 40;
+    static CMD_CHAT_SEND_MESSAGE        = 40;
     // Players
-    static CMD_PLAYER_JOIN            = 41;
-    static CMD_PLAYER_LEAVE           = 42;
-    static CMD_PLAYER_STATE           = 43;
+    static CMD_PLAYER_JOIN              = 41;
+    static CMD_PLAYER_LEAVE             = 42;
+    static CMD_PLAYER_STATE             = 43;
     // Entities
-    static CMD_CREATE_ENTITY         = 44;
-    static CMD_LOAD_CHEST            = 45;
-    static CMD_CHEST_CONTENT         = 46;
-    static CMD_SET_CHEST_SLOT_ITEM   = 47; // Отправка на сервер новых данных слота текущего сундука
+    static CMD_CREATE_ENTITY            = 44;
+    static CMD_LOAD_CHEST               = 45;
+    static CMD_CHEST_CONTENT            = 46;
+    static CMD_SET_CHEST_SLOT_ITEM      = 47; // Отправка на сервер новых данных слота текущего сундука
     //
-    static CMD_WORLD_STATE           = 60;
-    static CMD_CHANGE_POS_SPAWN      = 63;
-    static CMD_TELEPORT_REQUEST      = 64;
-    static CMD_TELEPORT              = 65;
-    static CMD_SAVE_INVENTORY        = 66;
+    static CMD_WORLD_STATE              = 60;
+    static CMD_CHANGE_POS_SPAWN         = 63;
+    static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
+    static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
+    static CMD_SAVE_INVENTORY           = 66;
+    static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
 
     // Constructor
     constructor(url, session_id, onOpenCallback) {
-        let that = this;
+        let that                          = this;
+        this.chunks_added                 = 0;
         that.ping_time                    = null;
         that.ping_value                   = null;
         this.stat                         = {
@@ -162,6 +164,10 @@ export default class ServerClient {
                     Game.world.localPlayer.setPosition(cmd.data.pos);
                     break;
                 }
+                case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
+                    Game.world.chunkManager.setNearbyModified(cmd.data);
+                    break;
+                }
             }
         }
     }
@@ -180,8 +186,7 @@ export default class ServerClient {
     }
 
     ChunkAdd(addr) {
-        // #3dchunk
-        // Game.world.chunkManager.setChunkState({"pos":pos,"modify_list":{}});
+        this.chunks_added++;
         this.Send({name: ServerClient.CMD_CHUNK_ADD, data: {pos: addr}});
     }
 

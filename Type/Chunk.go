@@ -20,6 +20,7 @@ type (
 	}
 )
 
+// AddUserConn...
 func (this *Chunk) AddUserConn(conn *UserConn) bool {
 	if _, ok := this.Connections[conn.ID]; ok {
 		log.Println("AddUserConn ... exists", this.Pos)
@@ -30,6 +31,7 @@ func (this *Chunk) AddUserConn(conn *UserConn) bool {
 	return true
 }
 
+// RemoveUserConn...
 func (this *Chunk) RemoveUserConn(conn *UserConn) bool {
 	if _, ok := this.Connections[conn.ID]; ok {
 		delete(this.Connections, conn.ID)

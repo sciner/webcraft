@@ -8,6 +8,8 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,17 +24,18 @@ const (
 
 type (
 	World struct {
-		Properties  *Struct.WorldProperties
-		Mu          *sync.Mutex          // чтобы избежать коллизий
-		Connections map[string]*UserConn // Registered connections.
-		Chunks      map[Struct.Vector3]*Chunk
-		Entities    *EntityManager
-		CreateTime  time.Time // Время создания, time.Now()
-		Directory   string
-		State       *Struct.WorldState
-		Db          *WorldDatabase
-		DBGame      *GameDatabase
-		Chat        *Chat
+		Properties     *Struct.WorldProperties
+		Mu             *sync.Mutex          // чтобы избежать коллизий
+		Connections    map[string]*UserConn // Registered connections.
+		Chunks         map[Struct.Vector3]*Chunk
+		Entities       *EntityManager
+		CreateTime     time.Time // Время создания, time.Now()
+		Directory      string
+		State          *Struct.WorldState
+		Db             *WorldDatabase
+		DBGame         *GameDatabase
+		Chat           *Chat
+		ChunkModifieds map[string]bool
 	}
 )
 
@@ -44,6 +47,8 @@ func (this *World) Load(guid string) {
 	this.CreateTime = this.getDirectoryCTime(this.Directory)
 	this.State = &Struct.WorldState{}
 	this.Db = GetWorldDatabase(this.Directory + "/world.sqlite")
+	//
+	err := this.RestoreModifiedChunks()
 	//
 	this.Chat = &Chat{
 		World: this,
@@ -166,7 +171,6 @@ func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 		Y: int(math.Floor(float64(pos.Y) / float64(CHUNK_SIZE_Y))),
 		Z: int(math.Floor(float64(pos.Z) / float64(CHUNK_SIZE_Z))),
 	}
-	log.Printf("%v, %v", pos, v)
 	return v
 }
 
@@ -184,6 +188,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 			chunk := this.ChunkGet(chunkAddr)
 			this.Db.BlockSet(conn, this, params)
 			chunk.BlockSet(conn, params, false)
+			this.ChunkBecameModified(&chunkAddr)
 		}
 
 	case Struct.CMD_CREATE_ENTITY:
@@ -200,13 +205,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChunkAdd
 		json.Unmarshal(out, &params)
-		// получим чанк
-		chunk := this.ChunkGet(params.Pos)
-		//
-		this.Mu.Lock()
-		defer this.Mu.Unlock()
-		// запомним, что юзер в этом чанке
-		chunk.AddUserConn(conn)
+		chunk := this.LoadChunkForPlayer(conn, params.Pos)
 		// отправим ему modify_list
 		chunk.Loaded(conn)
 
@@ -244,9 +243,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_STATE, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
 		// Update local position
-		conn.Pos = params.Pos
-		conn.Rotate = params.Rotate
-		this.SavePlayerState(conn)
+		this.ChangePlayerPosition(conn, params)
 		this.SendAll(packets, []string{conn.ID})
 		// this.SendAll(packets, []string{})
 
@@ -418,5 +415,116 @@ func (this *World) SendSelected(packets []Struct.JSONResponse, connections map[s
 		if !found {
 			conn.WriteJSON(packets)
 		}
+	}
+}
+
+// RestoreModifiedChunks...
+func (this *World) RestoreModifiedChunks() error {
+	this.ChunkModifieds = make(map[string]bool)
+	fileList, err := this.ScanChunkFiles()
+	if err != nil {
+		return err
+	}
+	for _, file := range fileList {
+		file = strings.Replace(file, "c_", "", -1)
+		file = strings.Replace(file, ".json", "", -1)
+		v := strings.Split(file, "_")
+		X, _ := strconv.Atoi(v[0])
+		Y, _ := strconv.Atoi(v[1])
+		Z, _ := strconv.Atoi(v[2])
+		vec := &Struct.Vector3{
+			X: X,
+			Y: Y,
+			Z: Z,
+		}
+		this.ChunkBecameModified(vec)
+	}
+	return nil
+}
+
+// ChunkBecameModified...
+func (this *World) ChunkBecameModified(vec *Struct.Vector3) {
+	key := fmt.Sprintf("%v", vec)
+	this.ChunkModifieds[key] = true
+}
+
+// ChunkHasModifiers...
+func (this *World) ChunkHasModifiers(vec *Struct.Vector3) bool {
+	key := fmt.Sprintf("%v", vec)
+	return this.ChunkModifieds[key]
+}
+
+// ScanChunkFiles..
+func (this *World) ScanChunkFiles() ([]string, error) {
+	root := this.GetDir()
+	var files []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			if strings.HasPrefix(info.Name(), "c_") {
+				files = append(files, info.Name())
+			}
+		}
+		return nil
+	})
+	return files, err
+}
+
+// LoadChunkForPlayer...
+func (this *World) LoadChunkForPlayer(conn *UserConn, pos Struct.Vector3) *Chunk {
+	// получим чанк
+	chunk := this.ChunkGet(pos)
+	//
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	// запомним, что юзер в этом чанке
+	chunk.AddUserConn(conn)
+	return chunk
+}
+
+//
+func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlayerState) {
+	conn.Pos = params.Pos
+	conn.Rotate = params.Rotate
+	this.SavePlayerState(conn)
+	go this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist)
+}
+
+// CheckPlayerVisibleChunks
+func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int) {
+	conn.ChunkPos = this.GetChunkAddr(*&Struct.Vector3{
+		X: int(conn.Pos.X),
+		Y: int(conn.Pos.Y),
+		Z: int(conn.Pos.Z),
+	})
+	if !conn.ChunkPosO.Equal(conn.ChunkPos) {
+		// чанки, находящиеся рядом с игроком, у которых есть модификаторы
+		modified_chunks := []*Struct.Vector3{}
+		x_rad := ChunkRenderDist + 5
+		y_rad := 5
+		z_rad := ChunkRenderDist + 5
+		for x := -x_rad; x < x_rad; x++ {
+			for y := -y_rad; y < y_rad; y++ {
+				for z := -z_rad; z < z_rad; z++ {
+					vec := &Struct.Vector3{
+						X: conn.ChunkPos.X + x,
+						Y: conn.ChunkPos.Y + y,
+						Z: conn.ChunkPos.Z + z,
+					}
+					if this.ChunkHasModifiers(vec) {
+						modified_chunks = append(modified_chunks, vec)
+						// this.LoadChunkForPlayer(conn, *vec)
+					}
+				}
+			}
+		}
+		cnt := len(modified_chunks)
+		// this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", conn.ChunkPos)+" ... "+strconv.Itoa(cnt), []string{})
+		packet := Struct.JSONResponse{Name: Struct.CMD_NEARBY_MODIFIED_CHUNKS, Data: modified_chunks, ID: nil}
+		packets := []Struct.JSONResponse{packet}
+		connections := map[string]*UserConn{
+			conn.ID: conn,
+		}
+		this.SendSelected(packets, connections, []string{})
+		conn.ChunkPosO = conn.ChunkPos
 	}
 }

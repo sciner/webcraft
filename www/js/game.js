@@ -245,9 +245,10 @@ export let Game = {
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState: function() {
         this.current_player_state = {
-            rotate: this.world.localPlayer.rotate,
-            pos:    this.world.localPlayer.lerpPos,
-            ping:   Math.round(this.world.server.ping_value)
+            rotate:             this.world.localPlayer.rotate,
+            pos:                this.world.localPlayer.lerpPos,
+            ping:               Math.round(this.world.server.ping_value),
+            chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
         // console.log(this.current_player_state.rotate);
         this.current_player_state_json = JSON.stringify(this.current_player_state);

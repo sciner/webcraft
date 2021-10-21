@@ -762,6 +762,7 @@ export default class Player {
 
     //
     setPosition(vec) {
+        Game.world.chunkManager.clearNerby();
         let pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
     }

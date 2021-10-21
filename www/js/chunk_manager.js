@@ -25,6 +25,7 @@ export class ChunkManager {
         this.worker_inited          = false;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+        this.clearNerby();
         //
         this.DUMMY = {
             id: this.block_manager.DUMMY.id,
@@ -145,7 +146,13 @@ export class ChunkManager {
         this.chunks_prepare.add(item.addr, {
             start_time: performance.now()
         });
-        this.world.server.ChunkAdd(item.addr);
+        if(this.nearby_modified_list.has(item.addr)) {
+            this.world.server.ChunkAdd(item.addr);
+        } else {
+            setTimeout(() => {
+                this.setChunkState({"pos": item.addr, "modify_list": null});
+            }, 1);
+        }
         return true;
     }
 
@@ -178,7 +185,7 @@ export class ChunkManager {
 
     // Update
     update() {
-        if(!this.update_chunks || !this.worker_inited) {
+        if(!this.update_chunks || !this.worker_inited || !this.nearby_modified_list) {
             return false;
         }
         let world = this.world;
@@ -379,6 +386,26 @@ export class ChunkManager {
         }
         this.world.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, this.block_manager.AIR, true);
+    }
+
+    //
+    clearNerby() {
+        if(!this.nearby_modified_list) {
+            return;
+        }
+        this.nearby_modified_list.clear();
+        this.nearby_modified_list = null;
+    }
+
+    // setNearbyModified...
+    setNearbyModified(vec_list) {
+        if(!this.nearby_modified_list) {
+            this.nearby_modified_list = new VectorCollector();
+        }
+        this.nearby_modified_list.clear();
+        for(let vec of vec_list) {
+            this.nearby_modified_list.add(vec, true);
+        }
     }
 
 }
