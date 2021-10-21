@@ -59,12 +59,6 @@ export class Renderer {
             });
     }
 
-    async init(world, settings, resources) {
-        return new Promise(res => {
-            this._init(world, settings, resources, res);
-        })
-    }
-
     get gl() {
         return this.renderBackend.gl;
     }
@@ -111,8 +105,16 @@ export class Renderer {
         return canvas2d;
     }
 
+    async init(world, settings, resources) {
+        return new Promise(resolve => {
+            (async () => {
+                await this._init(world, settings, resources, resolve);
+            })();
+        })
+    }
+
     // todo
-    //  GO TO PROMISE
+    // GO TO PROMISE
     async _init(world, settings, resources, callback) {
         this.resources          = resources;
         this.skyBox             = null;
@@ -160,8 +162,8 @@ export class Renderer {
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
-        this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
-        this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
+        // this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
+        // this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 

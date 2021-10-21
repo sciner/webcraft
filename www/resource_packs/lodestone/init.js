@@ -5,13 +5,14 @@ const getRunningScript = () => {
 export default class ResourcePack {
 
     constructor(block_manager) {
+        this.id = 'lodestone';
         this.block_manager = block_manager;
     }
 
-    init() {
+    async init() {
         let that = this;
         let block_manager = this.block_manager;
-        fetch(getRunningScript() + '/../blocks.json', {mode: 'no-cors'}).then(response => response.json()).then(blocks => {
+        return fetch(getRunningScript() + '/../blocks.json', {mode: 'no-cors'}).then(response => response.json()).then(blocks => {
             for(let block of blocks) {
                 block.resource_pack = that;
                 block_manager.add(block);
@@ -21,6 +22,7 @@ export default class ResourcePack {
 
     // pushVertices
     pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
+        console.log(345);
         const style = block.material.style;
         /*if(block.material.resource_pack) {
             block.material.resource_pack.pushVertices();

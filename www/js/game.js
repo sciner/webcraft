@@ -125,17 +125,14 @@ export let Game = {
         this.render = new Renderer('renderSurface');
         this.load(settings)
             .then(() => {
-                return BLOCK.load(this.resources.resource_packs);
+                this.render.init(this.world, settings, this.resources).then(() => {
+                    (async () => {
+                        await BLOCK.load(this.resources.resource_packs).then(() => {
+                            return this.world.connect();
+                        });
+                    })();
+                })
             })
-            .then(() => {
-                this.render.init(this.world, settings, this.resources)
-            })
-            .then(() => {
-                return this.world.connect();
-            })
-            /*.then(() => {
-                return this.load(settings);
-            })*/
     },
 
     // postServerConnect...
