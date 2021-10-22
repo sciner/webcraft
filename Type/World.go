@@ -95,6 +95,10 @@ func (this *World) OnPlayer(conn *UserConn) {
 		log.Println("ERROR14: User not registered")
 		return
 	}
+	// Fix player position
+	if player_state.Pos.Y < 1 {
+		player_state.Pos = player_state.PosSpawn
+	}
 	// 3.
 	conn.PosSpawn = *player_state.PosSpawn
 	// 4. Send about all other players
