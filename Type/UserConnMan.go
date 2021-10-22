@@ -36,6 +36,13 @@ func (this *UserConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *
 	}
 	log.Println("Before new UserConn", session)
 	//
+	for _, conn := range this.Connections {
+		if conn.Session.UserGUID == session.UserGUID {
+			conn.Ws.Close()
+			break
+		}
+	}
+	//
 	this.Connections[session_id] = &UserConn{
 		Session: session,
 		ID:      session.UserGUID,
