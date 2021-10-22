@@ -91,7 +91,7 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render, transparent) {
-        if(!this.worker_inited) {
+        if(!this.worker_inited || !this.nearby_modified_list) {
             return;
         }
         let applyVerticesCan = 10;
