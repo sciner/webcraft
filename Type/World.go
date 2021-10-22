@@ -299,9 +299,9 @@ func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRe
 				r1 := rand.New(s1)
 				fmt.Print(r1.Intn(100))
 				new_pos = &Struct.Vector3f{
-					X: float32(1000 + r1.Intn(2000000)),
+					X: float64(1000 + r1.Intn(2000000)),
 					Y: 120,
-					Z: float32(1000 + r1.Intn(2000000)),
+					Z: float64(1000 + r1.Intn(2000000)),
 				}
 			}
 		}

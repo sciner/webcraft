@@ -66,9 +66,9 @@ type (
 		Z int `json:"z"`
 	}
 	Vector3f struct {
-		X float32 `json:"x"`
-		Y float32 `json:"y"`
-		Z float32 `json:"z"`
+		X float64 `json:"x"`
+		Y float64 `json:"y"`
+		Z float64 `json:"z"`
 	}
 	BlockItem struct {
 		ID        int                    `json:"id"`

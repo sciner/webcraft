@@ -140,6 +140,14 @@ export class TBlock {
         return sound;
     }
 
+    isPlant() {
+        return this.material.planting;
+    }
+
+    canReplace() {
+        return BLOCK.canReplace(this.id);
+    }
+
 }
 
 // TypedBlocks

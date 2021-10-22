@@ -540,7 +540,7 @@ export default class Player {
                 }
                 world.setBlock(pos.x, pos.y, pos.z, world_block, null, rotate, null, extra_data);
             } else if(createBlock) {
-                let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
+                let replaceBlock = world_block && BLOCK.canReplace(world_block.id); // (world_block.fluid || world_block.id == BLOCK.GRASS.id);
                 if(!replaceBlock) {
                     pos.x += pos.n.x;
                     pos.y += pos.n.y;
@@ -553,7 +553,7 @@ export default class Player {
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!replaceBlock) {
                     let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    if(existingBlock.id > 0 && [202].indexOf(existingBlock.id) < 0) {
+                    if(!existingBlock.canReplace()) {
                         return;
                     }
                 }

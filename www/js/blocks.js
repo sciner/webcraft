@@ -156,6 +156,18 @@ export class BLOCK {
         return b && !!b.planting;
     }
 
+    // Can replace
+    static canReplace(block_id) {
+        if(block_id == 0) {
+            return true;
+        }
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id].indexOf(block_id) >= 0) {
+            return true;
+        }
+        let block = BLOCK.BLOCK_BY_ID[block_id];
+        return !!block.fluid;
+    }
+
     // Блок может быть уничтожен водой
     static destroyableByWater(block) {
         return block.planting || block.id == this.AIR.id;
