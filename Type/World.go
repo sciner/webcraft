@@ -269,45 +269,50 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamTeleportRequest
 		json.Unmarshal(out, &params)
-		var new_pos *Struct.Vector3f
-		if params.Pos != nil {
-			new_pos = params.Pos
-		} else if len(params.PlaceID) > 0 {
-			switch params.PlaceID {
-			case "spawn":
-				{
-					new_pos = &conn.PosSpawn
-				}
-			case "random":
-				{
-					s1 := rand.NewSource(time.Now().UnixNano())
-					r1 := rand.New(s1)
-					fmt.Print(r1.Intn(100))
-					new_pos = &Struct.Vector3f{
-						X: float32(1000 + r1.Intn(2000000)),
-						Y: 120,
-						Z: float32(1000 + r1.Intn(2000000)),
-					}
-				}
-			}
-		}
-		if new_pos != nil {
-			params := &Struct.ParamTeleport{
-				Pos:     new_pos,
-				PlaceID: params.PlaceID,
-			}
-			packet := Struct.JSONResponse{Name: Struct.CMD_TELEPORT, Data: params, ID: nil}
-			packets := []Struct.JSONResponse{packet}
-			connections := map[string]*UserConn{
-				conn.ID: conn,
-			}
-			this.SendSelected(packets, connections, []string{})
-		}
+		this.TeleportPlayer(conn, params)
 	case Struct.CMD_SAVE_INVENTORY:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.PlayerInventory
 		json.Unmarshal(out, &params)
 		this.Db.SavePlayerInventory(conn, params)
+	}
+}
+
+// TeleportPlayer
+func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRequest) {
+	var new_pos *Struct.Vector3f
+	if params.Pos != nil {
+		new_pos = params.Pos
+	} else if len(params.PlaceID) > 0 {
+		switch params.PlaceID {
+		case "spawn":
+			{
+				new_pos = &conn.PosSpawn
+			}
+		case "random":
+			{
+				s1 := rand.NewSource(time.Now().UnixNano())
+				r1 := rand.New(s1)
+				fmt.Print(r1.Intn(100))
+				new_pos = &Struct.Vector3f{
+					X: float32(1000 + r1.Intn(2000000)),
+					Y: 120,
+					Z: float32(1000 + r1.Intn(2000000)),
+				}
+			}
+		}
+	}
+	if new_pos != nil {
+		params := &Struct.ParamTeleport{
+			Pos:     new_pos,
+			PlaceID: params.PlaceID,
+		}
+		packet := Struct.JSONResponse{Name: Struct.CMD_TELEPORT, Data: params, ID: nil}
+		packets := []Struct.JSONResponse{packet}
+		connections := map[string]*UserConn{
+			conn.ID: conn,
+		}
+		this.SendSelected(packets, connections, []string{})
 	}
 }
 
@@ -483,6 +488,12 @@ func (this *World) LoadChunkForPlayer(conn *UserConn, pos Struct.Vector3) *Chunk
 
 //
 func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlayerState) {
+	if params.Pos.Y < 1 {
+		this.TeleportPlayer(conn, &Struct.ParamTeleportRequest{
+			PlaceID: "spawn",
+		})
+		return
+	}
 	conn.Pos = params.Pos
 	conn.Rotate = params.Rotate
 	this.SavePlayerState(conn)
