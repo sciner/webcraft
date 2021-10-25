@@ -82,10 +82,13 @@ class LightQueue {
                     }
                 }
                 const old = chunk.lightData[coord];
-                if (old === val) {
+                const prev = chunk.lightPrev[coord];
+                if (old === val && prev === val) {
                     continue;
                 }
-                chunk.lightData[coord] = old;
+                chunk.lightData[coord] = val;
+
+                //TODO: copy to neib chunks
 
                 const waveNum = Math.max(old, val);
                 for (let d = 0; d < 6; d++) {
@@ -122,6 +125,18 @@ class LightQueue {
             }
         } while (endTime < startTime + msLimit);
     }
+
+    /**
+     * @param chunk
+     * @param ind
+     * @param coord
+     */
+    add(chunk, coord, waveNum)
+    {
+        const { wavesChunk, wavesCoord } = this;
+        wavesChunk[waveNum].push(chunk);
+        wavesCoord[waveNum].push(coord);
+    }
 }
 
 class ChunkManager {
@@ -156,6 +171,7 @@ class Chunk {
         this.outerLen = (this.size.x + 1) * (this.size.y + 1) * (this.size.z + 1);
         this.lightSource = new Uint8Array(this.len);
         this.lightMap = new Uint8Array(this.len);
+        this.lightPrev = new Uint8Array(this.len);
     }
 
     fillOuter() {
