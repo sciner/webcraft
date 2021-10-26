@@ -1,13 +1,13 @@
 import {Window, Label, Button} from "../../tools/gui/wm.js";
 import {CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableResultSlot} from "./craft_table.js";
-import {RECIPES} from "../recipes.js";
 
 export default class InventoryWindow extends Window {
 
-    constructor(block_manager, x, y, w, h, id, title, text, inventory) {
+    constructor(block_manager, recipes, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
+        this.recipes = recipes;
         this.inventory = inventory;
         this.block_manager = block_manager;
 
@@ -44,10 +44,9 @@ export default class InventoryWindow extends Window {
         
         // Обработчик открытия формы
         this.onShow = function() {
-            this.getRoot().center(this);
             Game.releaseMousePointer();
         }
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
             // Drag
@@ -195,7 +194,7 @@ export default class InventoryWindow extends Window {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        let craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array);
+        let craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array);
         if(!craft_result) {
             return this.resultSlot.setItem(null);
         }

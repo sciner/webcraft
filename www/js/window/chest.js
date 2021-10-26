@@ -17,9 +17,6 @@ export default class ChestWindow extends Window {
         ct.setBackground('./media/gui/form-chest.png');
         ct.hide();
 
-        // Add buttons
-        this.addCloseButton();
-
         this.dragItem = null;
 
         // Add buttons

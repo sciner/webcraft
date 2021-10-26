@@ -1,10 +1,10 @@
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
+import {RecipeManager} from "./recipes.js";
 
 // Player inventory
-
 export default class Inventory {
-    
+
     constructor(block_manager, player, hud) {
         let that            = this;
         this.block_manager  = block_manager;
@@ -25,23 +25,30 @@ export default class Inventory {
         this.player.setInventory(this);
         //
         let image = new Image(); // new Image(40, 40); // Размер изображения
-        image.onload = function() {
+        image.onload = () => {
             that.inventory_image = image;
             that.hud.add(that, 0);
+
+            // Recipe manager
+            this.recipes = new RecipeManager(this.block_manager, image);
+
+            // CraftTable
+            this.ct = new CraftTable(this.recipes, 0, 0, 352, 332, 'frmCraft', null, null, this);
+            this.ct.visible = false;
+            hud.wm.add(this.ct);
+
+            // Inventory window
+            this.frmInventory = new InventoryWindow(this.block_manager, this.recipes, 10, 10, 352, 332, 'frmInventory', null, null, this);
+            hud.wm.add(this.frmInventory);
+            // Creative Inventory window
+            this.frmCreativeInventory = new CreativeInventoryWindow(this.block_manager, 10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
+            hud.wm.add(this.frmCreativeInventory);
+            // Chest window
+            this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
+            hud.wm.add(this.frmChest);
+
         }
         image.src = './media/inventory2.png';
-        // CraftTable
-        this.ct = new CraftTable(10, 10, 352, 332, 'frmCraft', null, null, this);
-        hud.wm.add(this.ct);
-        // Inventory window
-        this.frmInventory = new InventoryWindow(this.block_manager, 10, 10, 352, 332, 'frmInventory', null, null, this);
-        hud.wm.add(this.frmInventory);
-        // Creative Inventory window
-        this.frmCreativeInventory = new CreativeInventoryWindow(this.block_manager, 10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
-        hud.wm.add(this.frmCreativeInventory);
-        // Chest window
-        this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
-        hud.wm.add(this.frmChest);
     }
 
     //
@@ -268,9 +275,10 @@ export default class Inventory {
         if(!this.index) {
             this.index = 0;
         }
-        hud.wm.center(this.ct);
-        hud.wm.center(this.frmInventory);
-        hud.wm.center(this.frmCreativeInventory);
+        hud.wm.centerChild();
+        // hud.wm.center(this.ct);
+        // hud.wm.center(this.frmInventory);
+        // hud.wm.center(this.frmCreativeInventory);
     }
     
     drawHotbar(hud, cell_size, pos) {

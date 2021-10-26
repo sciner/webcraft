@@ -456,10 +456,11 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
 export class CraftTable extends Window {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+    constructor(recipes, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
+        this.recipes = recipes;
         this.inventory = inventory;
         this.dragItem = null;
 
@@ -468,16 +469,16 @@ export class CraftTable extends Window {
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
         ct.setBackground('./media/gui/form-crafting-table.png');
-        ct.hide();
+        // ct.hide();
+
+        // Add buttons
+        this.addCloseButton();
+        this.addRecipesButton();
 
         // onShow
         this.onShow = function() {
             Game.releaseMousePointer();
         }
-
-        // Add buttons
-        this.addCloseButton();
-        this.addRecipesButton();
 
         // Ширина / высота слота
         this.cell_size = 36;
@@ -493,6 +494,8 @@ export class CraftTable extends Window {
         
         // Обработчик закрытия формы
         this.onHide = function() {
+            // Close recipe window
+            Game.hud.wm.getWindow('frmRecipe').hide();
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
@@ -518,10 +521,11 @@ export class CraftTable extends Window {
 
     }
 
+    //
     addCloseButton() {
         const ct = this;
         // Close button
-        let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
+        let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
         }
@@ -534,11 +538,11 @@ export class CraftTable extends Window {
         let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
         btnRecipes.setBackground('./media/gui/recipes.png');
         btnRecipes.onMouseDown = function(e) {
-            // ct.hide();
+            Game.hud.wm.getWindow('frmRecipe').toggleVisibility();
         }
         ct.add(btnRecipes);
     }
-    
+
     /**
     * Создание слотов для крафта
     * @param int sz Ширина / высота слота
@@ -628,7 +632,7 @@ export class CraftTable extends Window {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        let craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array);
+        let craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array);
         if(!craft_result) {
             let pattern_array2 = [];
             // 2. Mirrored
@@ -645,7 +649,7 @@ export class CraftTable extends Window {
                 }
             }
             pattern_array2 = pattern_array2.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-            craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array2);
+            craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array2);
         }
         if(!craft_result) {
             return this.resultSlot.setItem(null);

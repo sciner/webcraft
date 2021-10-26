@@ -4,9 +4,11 @@
 
 // Base window
 export class Window {
+
     constructor(x, y, w, h, id, title, text) {
         this.list           = {};
         this.visible        = true;
+        this.index          = 0;
         this.x              = x;
         this.y              = y;
         this.z              = 0; // z-index
@@ -63,6 +65,11 @@ export class Window {
         w.parent = this;
         this.list[w.id] = w;
     }
+    delete(id) {
+        if(this.list[id]) {
+            delete(this.list[id]);
+        }
+    }
     getWindow(id) {
         if(!this.list.hasOwnProperty(id)) {
             throw 'Window not found by ID ' + id;
@@ -80,6 +87,40 @@ export class Window {
     center(w) {
         w.move(this.width / 2 - w.width / 2, this.height / 2 - w.height / 2);
         // this.redraw();
+    }
+    // Place all childs to center of this window
+    centerChild() {
+        let width_sum = 0;
+        let height_sum = 0;
+        let visible_windows = [];
+        for(let id of Object.keys(this.list)) {
+            let w = this.list[id];
+            if(w.visible) {
+                width_sum += w.width;
+                height_sum += w.height;
+                visible_windows.push(w);
+            }
+        }
+        //
+        visible_windows.sort((a, b) => a.index - b.index);
+        //
+        if(width_sum < this.width) {
+            // hor
+            let x = Math.round(this.width / 2 - width_sum / 2);
+            for(let w of visible_windows) {
+                w.x = x;
+                w.y = this.height / 2 - w.height / 2;
+                x += w.width;
+            }
+        } else {
+            // vert
+            let y = Math.round(this.height / 2 - height_sum / 2);;
+            for(let w of visible_windows) {
+                w.y = y;
+                w.x = this.width / 2 - w.width / 2;
+                y += w.height;
+            }
+        }
     }
     clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -151,7 +192,7 @@ export class Window {
         // draw border
         if(!this.style.border.hidden) {
             ctx.beginPath(); // Start a new path
-            ctx.fillStyle = this.style.border.color;
+            ctx.fillStyle = 'this.style.border.color';
             ctx.moveTo(x + 2, y);
             ctx.lineTo(x + w - 2, y);
             ctx.lineTo(x + w, y + 2);

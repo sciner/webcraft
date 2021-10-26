@@ -1,21 +1,33 @@
+import {RecipeWindow} from "./window/index.js";
 import {Helpers} from "./helpers.js";
 
-export const RECIPES = {
-    all: [],
-    crafting_shaped: {
-        list: [],
-        searchRecipeResult: function(pattern_array) {
-            for(let recipe of this.list) {
-                if(recipe.pattern_array.length == pattern_array.length) {
-                    if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
-                        return recipe.result;
+export class RecipeManager {
+
+    constructor(block_manager, inventory_image) {
+        this.inventory_image = inventory_image;
+        this.block_manager = block_manager;
+        this.all = [];
+        this.crafting_shaped = {
+            list: [],
+            searchRecipeResult: function(pattern_array) {
+                for(let recipe of this.list) {
+                    if(recipe.pattern_array.length == pattern_array.length) {
+                        if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
+                            return recipe.result;
+                        }
                     }
                 }
+                return null;
             }
-            return null;
-        }
-    },
-    add: function(recipe) {
+        };
+        this.load(() => {
+            // Recipe window
+            this.frmRecipe = new RecipeWindow(this.block_manager, this, 10, 10, 294, 332, 'frmRecipe', null, null);
+            Game.hud.wm.add(this.frmRecipe);
+        });
+    }
+
+    add(recipe) {
         if(!recipe) {
             throw 'Empty recipe';
         }
@@ -64,8 +76,9 @@ export const RECIPES = {
                 break;
             }
         }
-    },
-    makeRecipePattern: function(pattern, keys) {
+    }
+
+    makeRecipePattern(pattern, keys) {
         // Make pattern
         for(let pk in pattern) {
             if(pattern[pk].length < 3) {
@@ -85,13 +98,16 @@ export const RECIPES = {
                 }
                 return keys[key];
             });
-    },
-    load: function(block_manager) {
-        this.block_manager = block_manager;
+    }
+
+    load(callback) {
+        let that = this;
         Helpers.loadJSON('../data/recipes.json', function(json) {
             for(let recipe of json) {
-                RECIPES.add(recipe);
+                that.add(recipe);
             }
+            callback();
         });
     }
+
 }
