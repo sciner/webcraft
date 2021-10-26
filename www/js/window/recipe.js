@@ -103,7 +103,7 @@ export class RecipeWindow extends Window {
                     this.page = 0;
                 }
                 that.lblPages.title = (this.page + 1) + ' / ' + this.pages;
-                that.createRecipes(this.cell_size);
+                that.createRecipes(that.cell_size);
             }
         };
 
@@ -146,25 +146,22 @@ export class RecipeWindow extends Window {
     * @param int sz Ширина / высота слота
     */
     createRecipes(sz) {
-
         const ct = this;
-        
         if(ct.recipes) {
             for(let w of ct.recipes) {
                 this.delete(w.id);
             }
         }
-
+        //
         let i           = 0;
         let sx          = 22;
         let sy          = 62;
         let xcnt        = 5;
+        let list        = this.recipe_manager.crafting_shaped.list;
+        let min_index   = this.paginator.page * this.items_per_page;
+        let max_index   = min_index + this.items_per_page;
+        //
         this.recipes    = [];
-
-        let list = this.recipe_manager.crafting_shaped.list;
-        let min_index = this.paginator.page * this.items_per_page;
-        let max_index = min_index + this.items_per_page;
-
         for(let index in list) {
             if(index < min_index) {
                 continue;
@@ -178,6 +175,7 @@ export class RecipeWindow extends Window {
             let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + i, null, null, recipe, block);
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
+            console.log(index);
             i++;
         }
     }

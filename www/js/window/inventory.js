@@ -28,7 +28,7 @@ export default class InventoryWindow extends Window {
 
         // Add buttons
         this.addCloseButton();
-        // this.addRecipesButton();
+        this.addRecipesButton();
 
         // Ширина / высота слота
         this.cell_size = 36;
@@ -49,6 +49,8 @@ export default class InventoryWindow extends Window {
 
         // Обработчик закрытия формы
         this.onHide = function() {
+            // Close recipe window
+            Game.hud.wm.getWindow('frmRecipe').hide();
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
@@ -94,10 +96,10 @@ export default class InventoryWindow extends Window {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
+        let btnRecipes = new Button(208, 122, 40, 36, 'btnRecipes', null);
         btnRecipes.setBackground('./media/gui/recipes.png');
         btnRecipes.onMouseDown = function(e) {
-            // ct.hide();
+            Game.hud.wm.getWindow('frmRecipe').toggleVisibility();
         }
         ct.add(btnRecipes);
     }

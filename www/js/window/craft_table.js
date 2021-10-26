@@ -491,7 +491,7 @@ export class CraftTable extends Window {
 
         // Итоговый слот (то, что мы получим)
         this.createResultSlot();
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
             // Close recipe window
