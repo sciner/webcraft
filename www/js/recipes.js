@@ -68,6 +68,54 @@ export class RecipeManager {
                 }
                 let r = Object.assign({}, recipe);
                 r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
+                // Calculate pattern minimal area size
+                let min_x = 100;
+                let min_y = 100;
+                let max_x = -100;
+                let max_y = -100;
+                for(let row in recipe.pattern) {
+                    let s = recipe.pattern[row].trim().split('');
+                    if(s.length > 0) {
+                        if(row < min_y) min_y = row;
+                        if(row > max_y) max_y = row;
+                        for(let col in s) {
+                            if(col < min_x) min_x = col;
+                            if(col > max_x) max_x = col;
+                        }
+                    }
+                }
+                //
+                r.size = {
+                    width: max_x - min_x + 1,
+                    height: max_y - min_y + 1
+                };
+                //
+                r.getCroppedPatternArray = function(size) {
+                    let resp = [];
+                    for(let i in this.pattern_array) {
+                        if(i % 3 == size.width) {
+                            continue;
+                        }
+                        resp.push(this.pattern_array[i]);
+                    }
+                    return resp;
+                };
+                // Need resources
+                r.need_resources = new Map();
+                for(let item_id of r.pattern_array) {
+                    if(!item_id) {
+                        continue;
+                    }
+                    if(!r.need_resources.has(item_id)) {
+                        r.need_resources.set(item_id, {
+                            item_id: item_id,   
+                            count: 0
+                        });
+                    }
+                    r.need_resources.get(item_id).count++;
+                }
+                r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
+                //
                 this.crafting_shaped.list.push(r);
                 break;
             }
@@ -98,6 +146,19 @@ export class RecipeManager {
                 }
                 return keys[key];
             });
+    }
+
+    // Compare two patterns for equals
+    patternsIsEqual(p1, p2) {
+        if(p1.length != p2.length) {
+            return false;
+        }
+        for(let i of p1) {
+            if(p1[i] != p2[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     load(callback) {

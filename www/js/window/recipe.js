@@ -1,4 +1,4 @@
-import {Window, Button, Label} from "../../tools/gui/wm.js";
+import {Button, Label, Window} from "../../tools/gui/wm.js";
 
 export class RecipeSlot extends Window {
 
@@ -12,14 +12,29 @@ export class RecipeSlot extends Window {
         this.style.background.color = '#ffffff55';
         // Custom drawing
         this.onMouseEnter = function(e) {
-            this.style.background.color = '#ffffffcc';
+            this.style.background.color = this.can_make ? '#ffffffcc' : '#ff000077';
         }
         this.onMouseLeave = function(e) {
-            this.style.background.color = '#ffffff55';
+            this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
         }
         this.onMouseDown = function(e) {
-            console.log(this.recipe);
+            if(!this.can_make) {
+                return;
+            }
+            this.parent.craft_window.autoRecipe(this.recipe);
+            this.parent.paginator.update();
         };
+    }
+
+    update() {
+        let inventory = Game.world.localPlayer.inventory;
+        this.can_make = inventory.hasResources(this.recipe.need_resources).length == 0;
+        if(this.can_make) {
+            let craft_area_size = this.parent.craft_window.area.size;
+            this.can_make = this.recipe.size.width <= craft_area_size.width &&
+                            this.recipe.size.height <= craft_area_size.height;
+        }
+        this.style.background.color = this.can_make ? '#ffffff55' : '#ff000055';
     }
 
     draw(ctx, ax, ay) {
@@ -58,6 +73,7 @@ export class RecipeSlot extends Window {
 
 }
 
+// RecipeWindow...
 export class RecipeWindow extends Window {
 
     constructor(block_manager, recipe_manager, x, y, w, h, id, title, text) {
@@ -107,11 +123,18 @@ export class RecipeWindow extends Window {
             }
         };
 
-        // Создание слотов
-        this.createRecipes(this.cell_size);
+        this.onShow = () => {
+            // Создание слотов
+            this.createRecipes(this.cell_size);    
+        };
 
         this.addPaginatorButtons();
 
+    }
+
+    // Запоминаем какое окно вызвало окно рецептов
+    assignCraftWindow(w) {
+        this.craft_window = w;
     }
 
     // Paginator buttons
@@ -175,7 +198,7 @@ export class RecipeWindow extends Window {
             let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + i, null, null, recipe, block);
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
-            console.log(index);
+            lblRecipe.update();
             i++;
         }
     }

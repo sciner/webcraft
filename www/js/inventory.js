@@ -80,6 +80,37 @@ export default class Inventory {
         return resp;
     }
 
+    // Возвращает список того, чего и в каком количестве не хватает в текущем инвентаре по указанному списку
+    hasResources(resources) {
+        let resp = [];
+        for(let resource of resources) {
+            let r = {
+                item_id: resource.item_id,
+                count: resource.count
+            };
+            // Each all items in inventoryy
+            for(var item of this.items) {
+                if(!item) {
+                    continue;
+                }
+                if(item.id == r.item_id) {
+                    if(item.count > r.count) {
+                        r.count = 0;
+                    } else {
+                        r.count -= item.count;
+                    }
+                    if(r.count == 0) {
+                        break;
+                    }
+                }
+            }
+            if(r.count > 0) {
+                resp.push(r);
+            }
+        }
+        return resp;
+    }
+
     //
     restoreItems(saved_inventory) {
         let items = saved_inventory.items;
@@ -115,6 +146,35 @@ export default class Inventory {
     refresh(changed) {
         Game.world.server.SaveInventory(this.exportItems());
         this.hud.refresh();
+        try {
+            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+            frmRecipe.paginator.update();
+        } catch(e) {
+            // do nothing
+        }
+    }
+
+    // decrementByItemID
+    decrementByItemID(item_id, count) {
+        for(let i in this.items) {
+            let item = this.items[i];
+            if(!item || item.count < 1) {
+                continue;
+            }
+            if(item.id == item_id) {
+                if(item.count >= count) {
+                    item.count -= count;
+                    if(item.count < 1) {
+                        this.items[i] = null;
+                    }
+                    break;
+                } else {
+                    count -= item.count;
+                    item.count = 0;
+                    this.items[i] = null;
+                }
+            }
+        }
     }
     
     increment(mat) {

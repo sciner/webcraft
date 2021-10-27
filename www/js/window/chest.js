@@ -1,5 +1,5 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
-import {CraftTableInventorySlot} from "./craft_table.js";
+import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {CraftTableInventorySlot} from "./base_craft_window.js";
 
 export default class ChestWindow extends Window {
 
