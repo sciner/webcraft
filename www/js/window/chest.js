@@ -1,3 +1,4 @@
+import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
 

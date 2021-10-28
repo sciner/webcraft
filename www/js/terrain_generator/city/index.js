@@ -1,36 +1,12 @@
 import {Color, Vector} from '../../helpers.js';
-import {Vox_Loader} from "../../vox/loader.js";
-import {Vox_Mesh} from "../../vox/mesh.js";
+import {BLOCK} from '../../blocks.js';
 import {alea, Default_Terrain_Generator} from "../default.js";
-
-//
-let vox_templates = {};
-await Vox_Loader.load('/vox/city/City_1.vox', (chunks) => {
-    let palette = {
-        // 81: BLOCK.CONCRETE,
-        // 97: BLOCK.OAK_PLANK,
-        // 121: BLOCK.STONE_BRICK,
-        // 122: BLOCK.SMOOTH_STONE,
-        // 123: BLOCK.GRAVEL,
-    };
-    vox_templates.city1 = {chunk: chunks[0], palette: palette};
-});
-await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
-    vox_templates.city2 = {chunk: chunks[0], palette: {}};
-});
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(block_manager) {
+    constructor(seed, world_id) {
         super();
         this.setSeed(0);
-        //
-        this.block_manager = block_manager;
-        // Voxel buildings
-        this.voxel_buildings = [
-            new Vox_Mesh(this.block_manager, vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(this.block_manager, vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
-        ];
         // Init palette blocks
         this.blocks1 = [];
         for(let b of BLOCK.list) {

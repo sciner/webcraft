@@ -741,25 +741,25 @@ export class BLOCK {
 
 };
 
-// Load supported block styles
-await fetch('../data/block_style.json').then(response => response.json()).then(json => {
-    for(let code of json) {
-        // load module
-        import("./block_style/" + code + ".js").then(module => {
-            BLOCK.registerStyle(module.default);
-        });
-    }
-});
-
 // Load
 BLOCK.load = async function(resource_packs) {
+
+    // Load supported block styles
+    await fetch('../data/block_style.json').then(response => response.json()).then(json => {
+        for(let code of json) {
+            // load module
+            import("./block_style/" + code + ".js").then(module => {
+                BLOCK.registerStyle(module.default);
+            });
+        }
+    });
 
     //
     if(BLOCK.list.length == 0) {
         // Reset slots
         BLOCK.reset();
         // Load Resourse packs (blocks)
-        BLOCK.resource_pack_manager = new ResourcePackManager(BLOCK);
+        BLOCK.resource_pack_manager = new ResourcePackManager();
         for(let rp of resource_packs.values()) {
             await BLOCK.resource_pack_manager.registerResourcePack(rp);
         }

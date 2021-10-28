@@ -3,7 +3,6 @@ import {MainMenu} from "./window/index.js";
 import {fps} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
-import { Game } from "./game.js";
 
 export default class HUD {
 

@@ -1,11 +1,11 @@
 import {RecipeWindow} from "./window/index.js";
 import {Helpers} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
 
 export class RecipeManager {
 
-    constructor(block_manager, inventory_image) {
+    constructor(inventory_image) {
         this.inventory_image = inventory_image;
-        this.block_manager = block_manager;
         this.all = [];
         this.crafting_shaped = {
             list: [],
@@ -22,7 +22,7 @@ export class RecipeManager {
         };
         this.load(() => {
             // Recipe window
-            this.frmRecipe = new RecipeWindow(this.block_manager, this, 10, 10, 294, 332, 'frmRecipe', null, null);
+            this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
             Game.hud.wm.add(this.frmRecipe);
         });
     }
@@ -38,8 +38,8 @@ export class RecipeManager {
                 if(!recipe.hasOwnProperty('result')) {
                     throw 'Recipe result not defined';
                 }
-                let result_block = this.block_manager.fromName(recipe.result.item);
-                if(result_block.id == this.block_manager.DUMMY.id) {
+                let result_block = BLOCK.fromName(recipe.result.item);
+                if(result_block.id == BLOCK.DUMMY.id) {
                     throw 'Invalid recipe result block type ' + recipe.result.item;
                 }
                 recipe.result.item_id = result_block.id;
@@ -48,15 +48,15 @@ export class RecipeManager {
                 for(let key of Object.keys(recipe.key)) {
                     let value = recipe.key[key];
                     if(value.hasOwnProperty('item')) {
-                        let block = this.block_manager.fromName(value.item);
-                        if(block.id == this.block_manager.DUMMY.id) {
+                        let block = BLOCK.fromName(value.item);
+                        if(block.id == BLOCK.DUMMY.id) {
                             throw 'Invalid recipe key name ' + value.item;
                         }
                         keys[key] = block.id;
                     } else if(value.hasOwnProperty('tag')) {
                         let tag = value.tag;
-                        if(this.block_manager.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
-                            for(let block of this.block_manager.BLOCK_BY_TAGS[tag]) {
+                        if(BLOCK.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
+                            for(let block of BLOCK.BLOCK_BY_TAGS[tag]) {
                             }
                         } else {
                             throw 'items with tag `' + tag + '` not found';

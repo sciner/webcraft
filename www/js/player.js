@@ -1,7 +1,7 @@
 import {ROTATE, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {Kb} from "./kb.js";
-import {Game} from "./game.js";
+import {BLOCK} from "./blocks.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
@@ -16,7 +16,7 @@ const PLAYER_HEIGHT                     = 1.7;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 
 // Creates a new local player manager.
-export default class Player {
+export class Player {
 
     constructor() {
         this.inventory              = null;
@@ -65,7 +65,7 @@ export default class Player {
             this.setFlying(!!world.saved_state.flying);
         }
         // pickAt
-        this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
+        this.pickAt                 = new PickAt(this.world, this.world.renderer, (...args) => {
             return this.onTarget(...args);
         });
         // Prismarine player control

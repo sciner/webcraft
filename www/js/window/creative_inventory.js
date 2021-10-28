@@ -1,12 +1,12 @@
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
+import { BLOCK } from "../blocks.js";
 
 class CreativeInventoryCollection extends Window {
 
     //
-    constructor(block_manager, x, y, w, h, id, title, text) {
+    constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
-        this.block_manager = block_manager;
         // Ширина / высота слота
         this.cell_size = 36;
         this.max_height = 0;
@@ -27,7 +27,7 @@ class CreativeInventoryCollection extends Window {
     // Init
     init() {
         //
-        let all_blocks = this.block_manager.getAll().filter((i) => {
+        let all_blocks = BLOCK.getAll().filter((i) => {
             return (i.id > 0) && i.spawnable;
         });
         //
@@ -151,12 +151,11 @@ class CreativeInventoryCollection extends Window {
 
 export class CreativeInventoryWindow extends Window {
 
-    constructor(block_manager, x, y, w, h, id, title, text, inventory) {
+    constructor(x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
         this.inventory = inventory;
-        this.block_manager = block_manager;
 
         // Get window by ID
         const ct = this;
@@ -241,7 +240,7 @@ export class CreativeInventoryWindow extends Window {
             console.error('createCollectionSlots() already created');
             return;
         }
-        this.collection = new CreativeInventoryCollection(this.block_manager, 16, 35, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
+        this.collection = new CreativeInventoryCollection(16, 35, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
         this.add(this.collection);
         this.collection.init();
     }

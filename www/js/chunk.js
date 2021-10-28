@@ -2,6 +2,7 @@ import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import { Sphere } from "./frustum.js";
+import {BLOCK} from "./blocks.js";
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 32;

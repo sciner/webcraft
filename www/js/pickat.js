@@ -1,8 +1,8 @@
 import {Color, Vector} from "./helpers.js";
-import {CHUNK_SIZE_Y_MAX} from "./chunk.js";
 import {BLEND_MODES} from "./renders/BaseRenderer.js";
-import {Resources} from "./resources.js";
 import GeometryTerrain from "./geometry_terrain.js";
+import {Resources} from "./resources.js";
+import {BLOCK} from "./blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -13,7 +13,8 @@ const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
 
-    constructor(render, onTarget) {
+    constructor(world, render, onTarget) {
+        this.world              = world;
         this.render             = render;
         //
         this.target_block       = {
@@ -42,7 +43,7 @@ export class PickAt {
         });
         // Material (target)
         this.material_target = this.material_damage.getSubMat(render.renderBackend.createTexture({
-            source: render.resources.pickat.target,
+            source: Resources.pickat.target,
             minFilter: 'nearest',
             magFilter: 'nearest'
         }));
@@ -55,7 +56,7 @@ export class PickAt {
 
     //
     get(callback, pickat_distance) {
-        const player = Game.world.localPlayer;
+        const player = this.world.localPlayer;
         const render = this.render;
         const pos = new Vector(player.pos);
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
@@ -98,12 +99,12 @@ export class PickAt {
             leftTop.x = Math.floor(block.x);
             leftTop.y = Math.floor(block.y);
             leftTop.z = Math.floor(block.z);
-            let b = Game.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
+            let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
 
             let hitShape = b.id > BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
             if (hitShape) {
-                const shapes = BLOCK.getShapes(leftTop, b, Game.world, false, true);
+                const shapes = BLOCK.getShapes(leftTop, b, this.world, false, true);
                 let flag = false;
 
                 for (let i=0;i<shapes.length;i++) {
@@ -320,8 +321,8 @@ export class PickAt {
         let ao          = [0, 0, 0, 0];
         let lm          = new Color(0, 0, 0);
         let flags       = 0, sideFlags = 0, upFlags = 0;
-        let block       = Game.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-        let shapes      = BLOCK.getShapes(pos, block, Game.world, false, true);
+        let block       = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let shapes      = BLOCK.getShapes(pos, block, this.world, false, true);
         for(let shape of shapes) {
             let x1 = shape[0];
             let x2 = shape[3];

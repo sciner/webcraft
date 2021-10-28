@@ -2,25 +2,11 @@ import {Vector} from '../helpers.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
+import {BLOCK} from "../blocks.js";
 
 const {mat4} = glMatrix;
 
-let BLOCK = null;
 const push_cube = push_cube_style.getRegInfo().func;
-
-/*loadTexture(render) {
-let that = this;
-Resources
-    .loadImage('/media/clouds.png', false)
-    .then(image1 => {
-        const texture1 = render.renderBackend.createTexture({
-            source: image1,
-            minFilter: 'nearest',
-            magFilter: 'nearest'
-        });
-        this.that.clouds_ = render.materials.transparent.getSubMat(texture1);
-    });
-}*/
 
 class TBlock {
     
@@ -74,23 +60,11 @@ const FakeCloudWorld = {
     }
 }
 
-// Загрузка карты облаков
-await Resources
-    .loadImage('/media/clouds.png', false)
-    .then(image1 => {
-        let canvas          = document.createElement('canvas');
-        canvas.width        = 256;
-        canvas.height       = 256;
-        let ctx             = canvas.getContext('2d');
-        ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
-        FakeCloudWorld.clouds.imgData = ctx.getImageData(0, 0, 256, 256);
-    });
-
 export default class Particles_Clouds {
 
     // Constructor
-    constructor(block_manager, gl, pos) {
-        BLOCK = block_manager;
+    constructor(gl, pos) {
+        FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
         BLOCK.clearBlockCache();
         this.scale      = new Vector(8, 4, 8);
         this.pn         = performance.now();

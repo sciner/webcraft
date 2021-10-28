@@ -1,3 +1,4 @@
+import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 
 export class RecipeSlot extends Window {
@@ -76,13 +77,12 @@ export class RecipeSlot extends Window {
 // RecipeWindow...
 export class RecipeWindow extends Window {
 
-    constructor(block_manager, recipe_manager, x, y, w, h, id, title, text) {
+    constructor(recipe_manager, x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
 
         this.items_per_page     = 20;
         this.index              = -1;
-        this.block_manager      = block_manager;
         this.recipe_manager     = recipe_manager;
 
         // Ширина / высота слота
@@ -194,7 +194,7 @@ export class RecipeWindow extends Window {
             }
             let recipe = list[index];
             let item_id = recipe.result.item_id;
-            let block = this.block_manager.fromId(item_id);
+            let block = BLOCK.fromId(item_id);
             let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + i, null, null, recipe, block);
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);

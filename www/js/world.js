@@ -9,15 +9,12 @@ import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
 import {MeshManager} from "./mesh_manager.js";
 import {DEFAULT_PICKAT_DIST} from "./pickat.js";
-import { Game } from "./game.js";
-
-const MAX_DIST_FOR_SHIFT = 800;
+import {Resources} from "./resources.js";
 
 // World container
 export class World {
 
-    constructor(block_manager, session, world_guid, settings) {
-        this.block_manager  = block_manager;
+    constructor(session, world_guid, settings) {
         this.session        = session;
         this.world_guid     = world_guid;
         this.settings       = settings;
@@ -53,9 +50,9 @@ export class World {
         this.rotateDegree   = new Vector(0, 0, 0);
         this.fixRotate();
         //
-        Game.postServerConnect()
+        Game.postServerConnect();
         //
-        this.chunkManager   = new ChunkManager(this, this.block_manager);
+        this.chunkManager   = new ChunkManager(this);
         this.meshes         = new MeshManager();
         //
         if(state.hasOwnProperty('chunk_render_dist')) {
@@ -146,7 +143,7 @@ export class World {
     // createClouds
     createClouds(pos) {
         // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this.block_manager, this.renderer.gl, pos));
+        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
     }
 
     // setRain

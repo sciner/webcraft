@@ -1,5 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
+import {BLOCK} from '../../blocks.js';
 import {Map} from './../map.js';
 import {MapCell} from './../map_cell.js';
 import {Vox_Loader} from "../../vox/loader.js";
@@ -48,10 +49,9 @@ await Vox_Loader.load('/data/castle.vox', (chunks) => {
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(block_manager, seed, world_id) {
+    constructor(seed, world_id) {
         super(seed, world_id);
         const scale                 = .5;
-        this.block_manager          = block_manager;
         // Настройки
         this.options = {
             WATER_LINE:             63, // Ватер-линия
@@ -69,8 +69,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.extruders              = [];
         // Map specific
         if(this.world_id == 'demo') {
-            this.voxel_buildings.push(new Vox_Mesh(this.block_manager, vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
-            this.voxel_buildings.push(new Vox_Mesh(this.block_manager, vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
+            this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
+            this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
             this.islands.push({
                 pos: new Vector(2865, 118, 2787),
                 rad: 15

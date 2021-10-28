@@ -2,6 +2,7 @@ import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
 import {getChunkAddr} from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
+import {BLOCK} from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;

@@ -1,16 +1,16 @@
 import GeometryTerrain from "../geometry_terrain.js";
-import { Vector, MULTIPLY, DIRECTION } from "../helpers.js";
+import { MULTIPLY, DIRECTION } from "../helpers.js";
+import { BLOCK } from "../blocks.js";
 
 export class Vox_Mesh {
 
-    constructor(block_manager, model, coord, shift, material, rotate) {
+    constructor(model, coord, shift, material, rotate) {
 
         const chunk = model.chunk;
         const palette = model.palette ? model.palette : {};
         const data = chunk.data;
         const size = this.size = chunk.size;
 
-        this.block_manager = block_manager;
         this.coord = coord;
         this.material = material;
 
@@ -83,19 +83,19 @@ export class Vox_Mesh {
             }
             if(this.block_types.indexOf(block_id) < 0) {
                 this.block_types.push(block_id);
-                let block = this.block_manager.CONCRETE;
+                let block = BLOCK.CONCRETE;
                 if(palette.hasOwnProperty(block_id)) {
                     block = palette[block_id];
                 } else {
                     console.log(block_id);
                 }
                 let tex = {
-                    LEFT:       this.block_manager.calcTexture(block.texture, DIRECTION_LEFT),
-                    RIGHT:      this.block_manager.calcTexture(block.texture, DIRECTION_RIGHT),
-                    UP:         this.block_manager.calcTexture(block.texture, DIRECTION_UP),
-                    DOWN:       this.block_manager.calcTexture(block.texture, DIRECTION_DOWN),
-                    FORWARD:    this.block_manager.calcTexture(block.texture, DIRECTION_FORWARD),
-                    BACK:       this.block_manager.calcTexture(block.texture, DIRECTION_BACK),
+                    LEFT:       BLOCK.calcTexture(block.texture, DIRECTION_LEFT),
+                    RIGHT:      BLOCK.calcTexture(block.texture, DIRECTION_RIGHT),
+                    UP:         BLOCK.calcTexture(block.texture, DIRECTION_UP),
+                    DOWN:       BLOCK.calcTexture(block.texture, DIRECTION_DOWN),
+                    FORWARD:    BLOCK.calcTexture(block.texture, DIRECTION_FORWARD),
+                    BACK:       BLOCK.calcTexture(block.texture, DIRECTION_BACK),
                     block:      block
                 };
                 this.block_textures[block_id] = tex;

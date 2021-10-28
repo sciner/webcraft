@@ -2,8 +2,10 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3, ROTATE} from "../../js/helpers.js";
+import {Vec3} from "../../js/helpers.js";
+import {BLOCK} from "../../js/blocks.js";
 import {Physics, PlayerState} from "./index.js";
+import {Resources} from "../../js/resources.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
@@ -11,7 +13,7 @@ export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
 // FakeWorld
 class FakeWorld {
 
-    static getMCData() {
+    static getMCData(world) {
         if(this.mcData) {
             return this.mcData;
         }
@@ -80,7 +82,7 @@ function FakePlayer(pos) {
 export class PrismarinePlayerControl {
 
     constructor(world, pos) {
-        const mcData            = FakeWorld.getMCData();
+        const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
         this.physics            = Physics(mcData, this.world);
         this.player             = FakePlayer(pos);
@@ -95,7 +97,7 @@ export class PrismarinePlayerControl {
             sprint: false,
             sneak: false
         };
-        this.player_state = new PlayerState(this.player, this.controls, mcData);
+        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features);
     }
 
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js

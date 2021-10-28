@@ -4,6 +4,52 @@ import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
 import {DemoMapManager} from './demo_map-manager.js';
+import {GameClass} from '../game.js';
+
+window.Game = new GameClass();
+
+// Mouse event enumeration
+window.MOUSE      = {};
+    MOUSE.DOWN    = 1;
+    MOUSE.UP      = 2;
+    MOUSE.MOVE    = 3;
+    MOUSE.CLICK   = 4;
+    MOUSE.BUTTON_LEFT   = 0;
+    MOUSE.BUTTON_WHEEL  = 1;
+    MOUSE.BUTTON_RIGHT  = 2;
+
+window.KEY          = {};
+    KEY.BACKSPACE   = 8;
+    KEY.ENTER       = 13;
+    KEY.SHIFT       = 16;
+    KEY.ESC         = 27;
+    KEY.SPACE       = 32;
+    KEY.PAGE_UP     = 33;
+    KEY.PAGE_DOWN   = 34;
+    KEY.ARROW_UP    = 38;
+    KEY.ARROW_DOWN  = 40;
+    KEY.A           = 65;
+    KEY.C           = 67;
+    KEY.D           = 68;
+    KEY.E           = 69;
+    KEY.J           = 74;
+    KEY.R           = 82;
+    KEY.S           = 83;
+    KEY.T           = 84;
+    KEY.W           = 87;
+    KEY.F1          = 112;
+    KEY.F2          = 113;
+    KEY.F3          = 114;
+    KEY.F4          = 115;
+    KEY.F5          = 116;
+    KEY.F6          = 117;
+    KEY.F7          = 118;
+    KEY.F8          = 119;
+    KEY.F9          = 120;
+    KEY.F10         = 121;
+    KEY.F11         = 122;
+    KEY.SLASH       = 191;
+    KEY.F11         = 122;
 
 let app = angular.module('gameApp', []);
 
@@ -215,7 +261,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             return;
         }
         // Show Loading...
-        $scope.current_window.show('loading');
+        // $scope.current_window.show('loading');
         $scope.settings.save();
         $scope.Game.Start(session, world_guid, $scope.settings.form);
     };
@@ -326,18 +372,13 @@ let gameCtrl = function($scope, $timeout, helperService) {
         }
     };
 
-    import('/js/game.js')
-        .then(module => {
-            $scope.Game = window.Game = module.Game;
-            window.MOUSE    = module.MOUSE;
-            window.BLOCK    = module.BLOCK;
-            window.KEY      = module.KEY;
-            $scope.settings.load();
-            $scope.boot.init();
-            $scope.login.init();
-            $scope.skin.init();
-            $scope.mygames.checkInvite();
-        });
+    $scope.Game = window.Game;
+
+    $scope.settings.load();
+    $scope.boot.init();
+    $scope.login.init();
+    $scope.skin.init();
+    $scope.mygames.checkInvite();
 
 }
 

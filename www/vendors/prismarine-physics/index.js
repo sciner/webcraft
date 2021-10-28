@@ -1,17 +1,19 @@
 import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import { math } from "./lib/math.js";
-import { features } from "./features.js"; // import features from './lib/features.json' assert { type: "json" };
+import {Resources} from "../../js/resources.js";
+// import { features } from "./features.js"; // import features from './lib/features.json' assert { type: "json" };
 
 const BLOCK_NOT_EXISTS = -2;
 
-function makeSupportFeature(mcData) {
+function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
 
-export function Physics(mcData, world) {
+export function Physics(mcData, fake_world) {
 
-    const supportFeature = makeSupportFeature(mcData)
+    const supportFeature = makeSupportFeature(mcData, Resources.physics.features);
+
     const blocksByName = mcData.blocksByName
 
     // Block Slipperiness
@@ -651,10 +653,11 @@ function getStatusEffectNamesForVersion(supportFeature) {
 }
 
 export class PlayerState {
-    constructor(bot, control, mcData) {
+
+    constructor(bot, control, mcData, features) {
         // const mcData = require('minecraft-data')(bot.version)
         // const nbt = require('prismarine-nbt')
-        const supportFeature        = makeSupportFeature(mcData)
+        const supportFeature        = makeSupportFeature(mcData, features);
 
         // Input / Outputs
         this.pos                    = bot.entity.position.clone()

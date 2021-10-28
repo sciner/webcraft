@@ -22,11 +22,7 @@ export default class ResourcePack {
 
     // pushVertices
     pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-        console.log(345);
         const style = block.material.style;
-        /*if(block.material.resource_pack) {
-            block.material.resource_pack.pushVertices();
-        }*/
         let module = this.block_manager.styles[style];
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';

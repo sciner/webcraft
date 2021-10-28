@@ -1,17 +1,16 @@
 import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import {Chunk, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk.js";
 import ServerClient from "./server_client.js";
-import {Game} from "./game.js";
+import {BLOCK} from "./blocks.js";
 
-const CHUNKS_ADD_PER_UPDATE = 16;
-export const MAX_Y_MARGIN = 3;
+const CHUNKS_ADD_PER_UPDATE     = 16;
+export const MAX_Y_MARGIN       = 3;
 
 //
 export class ChunkManager {
 
-    constructor(world, block_manager) {
+    constructor(world) {
         let that                    = this;
-        this.block_manager          = block_manager;
         this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
         this.chunks                 = new VectorCollector(), // Map();
         this.chunks_prepare         = new VectorCollector();
@@ -28,17 +27,17 @@ export class ChunkManager {
         this.clearNerby();
         //
         this.DUMMY = {
-            id: this.block_manager.DUMMY.id,
+            id: BLOCK.DUMMY.id,
             shapes: [],
-            properties: this.block_manager.DUMMY,
-            material: this.block_manager.DUMMY,
+            properties: BLOCK.DUMMY,
+            material: BLOCK.DUMMY,
             getProperties: function() {
                 return this.properties;
             }
         };
         this.AIR = {
-            id: this.block_manager.AIR.id,
-            properties: this.block_manager.AIR
+            id: BLOCK.AIR.id,
+            properties: BLOCK.AIR
         };
         // Message received from worker
         this.worker.onmessage = function(e) {
@@ -352,7 +351,7 @@ export class ChunkManager {
             let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
             let b = null;
             let action = null;
-            if(block.id == this.block_manager.AIR.id) {
+            if(block.id == BLOCK.AIR.id) {
                 // dig
                 action = 'dig';
                 b = world_block;
@@ -364,7 +363,7 @@ export class ChunkManager {
                 b = block;
             }
             if(action) {
-                b = this.block_manager.BLOCK_BY_ID[b.id];
+                b = BLOCK.BLOCK_BY_ID[b.id];
                 if(b.hasOwnProperty('sound')) {
                     Game.sounds.play(b.sound, action);
                 }
@@ -377,15 +376,15 @@ export class ChunkManager {
     // destroyBlock
     destroyBlock(pos, is_modify) {
         let block = this.getBlock(pos.x, pos.y, pos.z);
-        if(block.id == this.block_manager.TULIP.id) {
+        if(block.id == BLOCK.TULIP.id) {
             this.world.renderer.setBrightness(.15);
-        } else if(block.id == this.block_manager.DANDELION.id) {
+        } else if(block.id == BLOCK.DANDELION.id) {
             this.world.renderer.setBrightness(1);
-        } else if(block.id == this.block_manager.CACTUS.id) {
+        } else if(block.id == BLOCK.CACTUS.id) {
             this.world.setRain(true);
         }
         this.world.destroyBlock(block, pos);
-        this.setBlock(pos.x, pos.y, pos.z, this.block_manager.AIR, true);
+        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
     }
 
     //

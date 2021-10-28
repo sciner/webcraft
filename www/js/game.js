@@ -1,139 +1,114 @@
-import Chat from "./chat.js";
-import Sounds from "./sounds.js";
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import Physics from "./physics.js";
-import Inventory from "./inventory.js";
 import {fps} from "./fps.js";
-import {Hotbar} from "./hotbar.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
 import {GameMode} from "./game_mode.js";
-import Player from "./player.js";
+import HUD from "./hud.js";
 
-export {BLOCK};
+import {Chat} from "./chat.js";
+import Sounds from "./sounds.js";
+import Physics from "./physics.js";
+import Inventory from "./inventory.js";
+import {Hotbar} from "./hotbar.js";
+import {Player} from "./player.js";
 
-// Mouse event enumeration
-export let MOUSE         = {};
-    MOUSE.DOWN    = 1;
-    MOUSE.UP      = 2;
-    MOUSE.MOVE    = 3;
-    MOUSE.CLICK   = 4;
-    MOUSE.BUTTON_LEFT   = 0;
-    MOUSE.BUTTON_WHEEL  = 1;
-    MOUSE.BUTTON_RIGHT  = 2;
+export class GameClass {
 
-export let KEY           = {};
-    KEY.BACKSPACE   = 8;
-    KEY.ENTER       = 13;
-    KEY.SHIFT       = 16;
-    KEY.ESC         = 27;
-    KEY.SPACE       = 32;
-    KEY.PAGE_UP     = 33;
-    KEY.PAGE_DOWN   = 34;
-    KEY.ARROW_UP    = 38;
-    KEY.ARROW_DOWN  = 40;
-    KEY.A           = 65;
-    KEY.C           = 67;
-    KEY.D           = 68;
-    KEY.E           = 69;
-    KEY.J           = 74;
-    KEY.R           = 82;
-    KEY.S           = 83;
-    KEY.T           = 84;
-    KEY.W           = 87;
-    KEY.F1          = 112;
-    KEY.F2          = 113;
-    KEY.F3          = 114;
-    KEY.F4          = 115;
-    KEY.F5          = 116;
-    KEY.F6          = 117;
-    KEY.F7          = 118;
-    KEY.F8          = 119;
-    KEY.F9          = 120;
-    KEY.F10         = 121;
-    KEY.F11         = 122;
-    KEY.SLASH       = 191;
-    KEY.F11         = 122;
+    static hud = null;
 
-export let Game = {
-    start_time:         performance.now(),
-    last_saved_time:    performance.now() - 20000,
-    world_name:         null,
-    username:           null,
-    session_id:         null,
-    hud:                null,
-    canvas:             document.getElementById('renderSurface'),
-    /**
-     * @type { World }
-     */
-    world:              null,
-    /**
-     * @type { Renderer }
-     */
-    render:             null, // renderer
-    resources:          null,
-    physics:            null, // physics simulator
-    player:             null,
-    mouseX:             0,
-    mouseY:             0,
-    inventory:          null,
-    prev_player_state:  null,
-    controls:           {
-        mouse_sensitivity: 1.0,
-        inited: false,
-        enabled: false,
-        clearStates: function() {
-            Game.world.localPlayer.keys[KEY.W] = false;
-            Game.world.localPlayer.keys[KEY.A] = false;
-            Game.world.localPlayer.keys[KEY.S] = false;
-            Game.world.localPlayer.keys[KEY.D] = false;
-            Game.world.localPlayer.keys[KEY.J] = false;
-            Game.world.localPlayer.keys[KEY.SPACE] = false;
-            Game.world.localPlayer.keys[KEY.SHIFT] = false;
-        }
-    },
-    // Ajust world state
-    ajustSavedState: function(saved_state) {
-        if(!saved_state.hasOwnProperty('game_mode')) {
-            let gm = new GameMode();
-            saved_state.game_mode = gm.getCurrent().id;
-        }
-        if(!saved_state.hasOwnProperty('generator')) {
-            saved_state.generator = {id: 'biome2'};
-        }
-        return saved_state;
-    },
+    constructor() {
+        this.start_time             = performance.now();
+        this.last_saved_time        = performance.now() - 20000;
+        this.world_name             = null;
+        this.username               = null;
+        this.session_id             = null;
+        this.canvas                 = document.getElementById('renderSurface');
+        /**
+        * @type { World }
+        */
+        this.world                  = null;
+        /**
+        * @type { Renderer }
+        */
+        this.render                 = null; // renderer
+        this.physics                = null; // physics simulator
+        this.player                 = null;
+        this.mouseX                 = 0;
+        this.mouseY                 = 0;
+        this.inventory              = null;
+        this.prev_player_state      = null;
+        // Controls
+        this.controls = {
+            mouse_sensitivity: 1.0,
+            inited: false,
+            enabled: false,
+            clearStates: function() {
+                Game.world.localPlayer.keys[KEY.W] = false;
+                Game.world.localPlayer.keys[KEY.A] = false;
+                Game.world.localPlayer.keys[KEY.S] = false;
+                Game.world.localPlayer.keys[KEY.D] = false;
+                Game.world.localPlayer.keys[KEY.J] = false;
+                Game.world.localPlayer.keys[KEY.SPACE] = false;
+                Game.world.localPlayer.keys[KEY.SHIFT] = false;
+            }
+        };
+        // loopTime
+        this.loopTime = {
+            history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ],
+            prev: null,
+            min: null,
+            max: null,
+            avg: null,
+            add: function(value) {
+                this.prev = value;
+                if(this.min === null || this.min > value) {
+                    this.min = value;
+                }
+                if(this.max === null || this.max < value) {
+                    this.max = value;
+                }
+                this.history.shift();
+                this.history.push(value);
+                let sum = this.history.reduce((a, b) => a + b, 0);
+                this.avg = (sum / this.history.length) || 0;
+            }
+        };
+    }
 
     load(settings) {
-        this.resources = new Resources();
-        return this.resources.load({
+        return Resources.load({
             hd:             settings.hd,
             texture_pack:   settings.texture_pack,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu',
             imageBitmap:    true
         });
-    },
+    }
 
     async Start(session, world_guid, settings) {
+        //
+        Game.hud = new HUD(0, 0);
         this.sounds = new Sounds();
         // Create a new world
-        this.world = new World(BLOCK, session, world_guid, settings);
         this.render = new Renderer('renderSurface');
         this.load(settings)
             .then(() => {
-                this.render.init(this.world, settings, this.resources).then(() => {
+                this.world = new World(session, world_guid, settings, BLOCK);
+                this.render.init(this.world, settings).then(() => {
                     (async () => {
-                        await BLOCK.load(this.resources.resource_packs).then(() => {
+                        await BLOCK.load(Resources.resource_packs).then(() => {
                             return this.world.connect();
                         });
                     })();
                 })
             })
-    },
+    }
 
     // postServerConnect...
     postServerConnect() {
@@ -143,12 +118,13 @@ export let Game = {
         this.player         = new Player();
         this.player.setInputCanvas('renderSurface');
         //
-        this.hud.add(fps, 0);
-        this.inventory      = new Inventory(BLOCK, this.player, this.hud);
-        this.hotbar         = new Hotbar(this.hud, this.inventory);
+        Game.hud.add(fps, 0);
+        this.inventory      = new Inventory(this.player, Game.hud);
+        this.hotbar         = new Hotbar(Game.hud, this.inventory);
         //
         this.player.setWorld(this.world);
-        this.player.chat    = new Chat(BLOCK);
+        this.player.chat    = new Chat();
+        //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
         this.world.fixRotate();
@@ -159,7 +135,7 @@ export let Game = {
         this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);
-    },
+    }
 
     setGameStarted(value) {
         let bodyClassList = document.querySelector('body').classList;
@@ -168,7 +144,7 @@ export let Game = {
         } else {
             bodyClassList.remove('started');
         }
-    },
+    }
 
     setControlsEnabled(value) {
         this.controls.enabled = value;
@@ -178,9 +154,9 @@ export let Game = {
         } else {
             bodyClassList.remove('controls_enabled');
         }
-    },
+    }
 
-    startBackgroundMusic: function() {
+    startBackgroundMusic() {
         /*
         setTimeout(function(){
             try {
@@ -195,30 +171,8 @@ export let Game = {
             }
         }, 1000);
         */
-    },
-    loopTime: {
-        history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ],
-        prev: null,
-        min: null,
-        max: null,
-        avg: null,
-        add: function(value) {
-            this.prev = value;
-            if(this.min === null || this.min > value) {
-                this.min = value;
-            }
-            if(this.max === null || this.max < value) {
-                this.max = value;
-            }
-            this.history.shift();
-            this.history.push(value);
-            let sum = this.history.reduce((a, b) => a + b, 0);
-            this.avg = (sum / this.history.length) || 0;
-        }
-    },
+    }
+
     // Render loop
     loop() {
         let tm = performance.now();
@@ -241,9 +195,10 @@ export let Game = {
         fps.incr();
         that.loopTime.add(performance.now() - tm);
         window.requestAnimationFrame(that.loop);
-    },
+    }
+
     // Отправка информации о позиции и ориентации игрока на сервер
-    sendPlayerState: function() {
+    sendPlayerState() {
         this.current_player_state = {
             rotate:             this.world.localPlayer.rotate,
             pos:                this.world.localPlayer.lerpPos,
@@ -259,8 +214,9 @@ export let Game = {
                 data: this.current_player_state
             });
         }
-    },
-    releaseMousePointer: function() {
+    }
+
+    releaseMousePointer() {
         try {
             // this.canvas.exitPointerLock();
             // Attempt to unlock
@@ -268,14 +224,16 @@ export let Game = {
         } catch(e) {
             console.error(e);
         }
-    },
-    setupMousePointerIfNoOpenWindows: function() {
-        if(this.hud.wm.getVisibleWindows().length > 0) {
+    }
+
+    setupMousePointerIfNoOpenWindows() {
+        if(Game.hud.wm.getVisibleWindows().length > 0) {
             return;
         }
         this.setupMousePointer();
-    },
-    setupMousePointer: function() {
+    }
+
+    setupMousePointer() {
         let that = this;
         if(!that.world) {
             return;
@@ -315,8 +273,9 @@ export let Game = {
         document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
         element.requestPointerLock();
         that.controls.inited = true;
-    },
-    readMouseMove: function() {
+    }
+
+    readMouseMove() {
         let that = this;
         // Mouse wheel
         document.addEventListener('wheel', function(e) {
@@ -375,5 +334,6 @@ export let Game = {
                 that.world.addRotate(new Vector(x, 0, z));
             }
         }, false);
-    },
-};
+    }
+
+}

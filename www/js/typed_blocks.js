@@ -1,5 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
+import {BLOCK} from "./blocks.js";
 
 export class TBlock {
 

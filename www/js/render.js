@@ -1,13 +1,12 @@
 "use strict";
 
-import HUD from "./hud.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {Game} from "./game.js";
 import {Mth, VectorCollector} from "./helpers.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
+import {Resources} from "./resources.js";
 
 const {mat4} = glMatrix;
 
@@ -105,18 +104,18 @@ export class Renderer {
         return canvas2d;
     }
 
-    async init(world, settings, resources) {
+    async init(world, settings) {
         return new Promise(resolve => {
             (async () => {
-                await this._init(world, settings, resources, resolve);
+                await this._init(world, settings, resolve);
             })();
         })
     }
 
     // todo
     // GO TO PROMISE
-    async _init(world, settings, resources, callback) {
-        this.resources          = resources;
+    async _init(world, settings, callback) {
+
         this.skyBox             = null;
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
@@ -127,7 +126,7 @@ export class Renderer {
 
         await renderBackend.init();
 
-        const shader = this.shader = renderBackend.createShader({ code: resources.codeMain});
+        const shader = this.shader = renderBackend.createShader({ code: Resources.codeMain});
 
         // Create projection and view matrices
         this.projMatrix     = this.shader.projMatrix;
@@ -148,7 +147,7 @@ export class Renderer {
         this.terrainBlockSize = 1;
 
         this.terrainTexture = renderBackend.createTexture({
-            source: await this.genTerrain(resources.terrain.image),
+            source: await this.genTerrain(Resources.terrain.image),
             minFilter: 'nearest',
             magFilter: 'nearest',
             anisotropy: this.useAnisotropy ? 4.0 : 0.0,
@@ -176,7 +175,6 @@ export class Renderer {
 
         // HUD
         // Build main HUD
-        Game.hud = new HUD(0, 0);
         this.HUD = {
             tick: 0,
             bufRect: null,
@@ -189,20 +187,19 @@ export class Renderer {
     }
 
     initSky() {
-        const { resources } = this;
         return this.skyBox = this.renderBackend.createCubeMap({
-            code: resources.codeSky,
+            code: Resources.codeSky,
             uniforms: {
                 u_brightness: 1.0,
                 u_textureOn: true
             },
             sides: [
-                resources.sky.posx,
-                resources.sky.negx,
-                resources.sky.posy,
-                resources.sky.negy,
-                resources.sky.posz,
-                resources.sky.negz
+                Resources.sky.posx,
+                Resources.sky.negx,
+                Resources.sky.posy,
+                Resources.sky.negy,
+                Resources.sky.posz,
+                Resources.sky.negz
             ]
         });
     }

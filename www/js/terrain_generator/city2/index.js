@@ -2,6 +2,7 @@ import {Color, Vector} from '../../helpers.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from '../default.js';
+import {BLOCK} from '../../blocks.js';
 
 //
 let palette = {
@@ -50,15 +51,14 @@ await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(block_manager) {
+    constructor(seed, world_id) {
         super();
         this.setSeed(0);
         //
-        this.block_manager = block_manager;
         // Voxel buildings
         this.voxel_buildings = [
-            new Vox_Mesh(this.block_manager, vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(this.block_manager, vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
+            new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
+            new Vox_Mesh(vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
         ];
     }
 

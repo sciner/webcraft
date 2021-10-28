@@ -1,3 +1,5 @@
+import {BLOCK} from "../blocks.js";
+
 export class Instrument_Hand {
 
     constructor(inventory_item, inventory) {

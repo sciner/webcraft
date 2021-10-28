@@ -1,15 +1,15 @@
 import {Button, Label} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
+import {BLOCK} from "../blocks.js";
 
 export default class InventoryWindow extends BaseCraftWindow {
 
-    constructor(block_manager, recipes, x, y, w, h, id, title, text, inventory) {
+    constructor(recipes, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
         this.recipes = recipes;
         this.inventory = inventory;
-        this.block_manager = block_manager;
 
         // Get window by ID
         const ct = this;
@@ -163,7 +163,7 @@ export default class InventoryWindow extends BaseCraftWindow {
         if(!craft_result) {
             return this.resultSlot.setItem(null);
         }
-        let block = Object.assign({count: craft_result.count}, this.block_manager.fromId(craft_result.item_id));
+        let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
         this.resultSlot.setItem(block);
     }

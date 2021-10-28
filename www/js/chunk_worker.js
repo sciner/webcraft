@@ -596,7 +596,7 @@ async function importModules(terrain_type, seed, world_id) {
                 }).then(() => {
                     // Load module
                     import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
-                        terrainGenerator = new module.default(BLOCK, seed, world_id);
+                        terrainGenerator = new module.default(seed, world_id);
                     }).then(() => {
                         // Init vars
                         // 1. Fill all_blocks
@@ -668,12 +668,12 @@ onmessage = async function(e) {
                 // 1. Get chunk
                 let chunk = chunks.get(m.addr);
                 if(chunk) {
-                    // 2. Set new block
+                    // 2. Set block
                     if(m.type) {
                         chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
                     let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
-                    // 3. Clear vertices for new block and around near
+                    // 3. Clear vertices for block and around near
                     chunk.setDirtyBlocks(pos);
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, false));

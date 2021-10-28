@@ -1,9 +1,10 @@
 import {Color} from '../../helpers.js';
 import { Default_Terrain_Generator } from '../default.js';
+import {BLOCK} from '../../blocks.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor() {
+    constructor(seed, world_id) {
         super();
         this.setSeed(0);
     }
