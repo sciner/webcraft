@@ -1,11 +1,8 @@
 package Type
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"madcraft.io/madcraft/Struct"
 )
@@ -65,44 +62,24 @@ func (this *Chunk) GetChunkKey(pos Struct.Vector3) string {
 	return fmt.Sprintf("c_%d_%d_%d", pos.X, pos.Y, pos.Z)
 }
 
-// GetFileName
-func (this *Chunk) GetFileName() string {
-	ps := string(os.PathSeparator)
-	dir := this.World.GetDir()
-	chunkKey := this.GetChunkKey(this.Pos)
-	return dir + ps + chunkKey + ".json"
-}
-
 // Load from file
 func (this *Chunk) Load() {
-	// file, _ := json.Marshal(this.ModifyList)
-	fileName := this.GetFileName()
-	//  log.Println("Before load from " + fileName)
-	s, err := ioutil.ReadFile(fileName)
+	ml, err := this.World.Db.LoadModifiers(this)
 	if err != nil {
-		// Chunk file not found
-		// log.Printf("Error load chunk from file: %s", err)
+		log.Printf("Error: %v", err)
 		return
 	}
-	err = json.Unmarshal([]byte(s), &this.ModifyList)
-	if err != nil {
-		log.Println("Error Unmarshal chunk ", err)
-		return
+	this.ModifyList = ml
+	if this.Pos.X == 181 && this.Pos.Y == 2 && this.Pos.Z == 174 {
+		log.Printf("%s, ml.length = %d", this.GetChunkKey(this.Pos), len(ml))
 	}
-	// log.Println("this.ModifyList", this.ModifyList)
-}
-
-// Save to file
-func (this *Chunk) Save() {
-	file, _ := json.Marshal(this.ModifyList)
-	fileName := this.GetFileName()
-	log.Println("Before save to " + fileName)
-	_ = ioutil.WriteFile(fileName, file, 0644)
 }
 
 // BlockSet
 func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notifyAuthor bool) bool {
+
 	blockKey := this.GetBlockKey(params.Pos)
+
 	// Если на этом месте есть сущность, тогда запретить ставить что-то на это место
 	entity, entity_type := this.World.Entities.GetEntityByPos(params.Pos)
 	if entity != nil {
@@ -124,7 +101,7 @@ func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notify
 	// Create entity
 	switch params.Item.ID {
 	case Struct.BLOCK_CHEST:
-		params.Item.EntityID = this.World.Entities.CreateChest(params, conn)
+		params.Item.EntityID = this.World.Entities.CreateChest(this.World, conn, params)
 		log.Println("CreateEntity", params.Item.EntityID)
 		if len(params.Item.EntityID) == 0 {
 			return false
@@ -134,8 +111,6 @@ func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notify
 	//
 	this.ModifyList[blockKey] = params.Item
 	log.Println("BlockSet", this.Pos, params.Pos, params.Item, conn.ID)
-	// Save to file
-	this.Save()
 	// Send to users
 	packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}

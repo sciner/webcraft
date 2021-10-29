@@ -46,6 +46,80 @@ func GetWorldDatabase(filename string) *WorldDatabase {
 	}
 }
 
+// ChunkBecameModified...
+func (this *WorldDatabase) ChunkBecameModified() ([]*Struct.Vector3, error) {
+	//
+	var resp []*Struct.Vector3
+	//
+	rows, err := this.Conn.Query("SELECT DISTINCT CAST(round(x / 16 - 0.5) AS INT) AS x, CAST(round(y / 32 - 0.5) AS INT) AS y, CAST(round(z / 16 - 0.5) AS INT) AS z FROM world_modify")
+	if err != nil {
+		log.Printf("SQL_ERROR41: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		addr := Struct.Vector3{}
+		err := rows.Scan(&addr.X, &addr.Y, &addr.Z)
+		if err != nil {
+			fmt.Println(err)
+			return resp, err
+		}
+		resp = append(resp, &addr)
+	}
+	return resp, nil
+}
+
+// LoadModifiers...
+func (this *WorldDatabase) LoadModifiers(chunk *Chunk) (map[string]Struct.BlockItem, error) {
+	//
+	resp := make(map[string]Struct.BlockItem)
+	//
+	x := chunk.Pos.X * 16
+	y := chunk.Pos.Y * 32
+	z := chunk.Pos.Z * 16
+	rows, err := this.Conn.Query("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE x >= $1 AND x < $2 AND y >= $3 AND y < $4 AND z >= $5 AND z < $6", x, x+CHUNK_SIZE_X, y, y+CHUNK_SIZE_Y, z, z+CHUNK_SIZE_Z)
+	if err != nil {
+		log.Printf("SQL_ERROR40: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var x int64
+		var y int64
+		var z int64
+		item := &Struct.BlockItem{}
+		item.Power = 1
+		var params_string string
+		var extra_data *string
+		var entity_id *string
+		err := rows.Scan(&x, &y, &z, &params_string, &item.Power, &entity_id, &extra_data)
+		if err != nil {
+			fmt.Println(err)
+			return resp, err
+		}
+		//
+		params := &Struct.BlockItem{}
+		if err := json.Unmarshal([]byte(params_string), &params); err != nil {
+			panic(err)
+		}
+		//
+		if entity_id != nil {
+			item.EntityID = string(*entity_id)
+		}
+		//
+		if extra_data != nil {
+			if err := json.Unmarshal([]byte(*extra_data), &item.ExtraData); err != nil {
+				panic(err)
+			}
+		}
+		//
+		item.ID = params.ID
+		item.Rotate = params.Rotate
+		//
+		pos := fmt.Sprintf("%d,%d,%d", x, y, z)
+		resp[pos] = *item
+	}
+	return resp, nil
+}
+
 // Сырой запрос в БД
 func (this *WorldDatabase) RAWQuery(sql_query string) {
 	this.Mu.Lock()
@@ -152,15 +226,31 @@ func (this *WorldDatabase) InsertChatMessage(conn *UserConn, world *World, param
 func (this *WorldDatabase) BlockSet(conn *UserConn, world *World, params *Struct.ParamBlockSet) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
-	user_session_id := 0
-	params_json, _ := json.Marshal(params)
-	// _, err := this.Conn.Query(`INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
-	query := `INSERT INTO world_modify(user_id, dt, world_id, user_session_id, params, x, y, z) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	var null_string *string
+	// user_session_id := conn.Session.SessionID
+	params_json, _ := json.Marshal(params.Item)
+	query := `INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	// Prepare statement. This is good to avoid SQL injections
+	statement, err := this.Conn.Prepare(query)
 	if err != nil {
 		log.Printf("ERROR26: %v", err)
 	}
-	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), world.Properties.ID, user_session_id, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z)
+	entity_id := null_string
+	extra_data := null_string
+	// Extra data
+	if params.Item.ExtraData != nil {
+		extra_data_bytes, _ := json.Marshal(params.Item.ExtraData)
+		s := string(extra_data_bytes)
+		extra_data = &s
+	}
+	// Entity ID
+	if len(params.Item.EntityID) > 0 {
+		entity_id = &params.Item.EntityID
+	}
+	_, err = statement.Exec(conn.Session.UserID, time.Now().Unix(), world.Properties.ID, params_json, params.Pos.X, params.Pos.Y, params.Pos.Z, entity_id, extra_data)
+	if params.Item.ExtraData != nil {
+		// @todo Update extra data
+	}
 	if err != nil {
 		log.Printf("SQL_ERROR4: %v", err)
 	}
@@ -283,6 +373,101 @@ func (this *WorldDatabase) SavePlayerInventory(conn *UserConn, inventory *Struct
 	_, err = statement.Exec(string(inventory_bytes), conn.Session.UserID)
 	if err != nil {
 		log.Printf("SQL_ERROR33: %v", err)
+	}
+	return err
+}
+
+// LoadWorldChests...
+func (this *WorldDatabase) LoadWorldChests(world *World) (map[string]*Chest, map[string]*EntityBlock, error) {
+	Chests := make(map[string]*Chest)       // `json:"chests"`
+	Blocks := make(map[string]*EntityBlock) // `json:"blocks"` // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
+
+	rows, err := this.Conn.Query("SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest")
+	if err != nil {
+		log.Printf("SQL_ERROR42: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var x int64
+		var y int64
+		var z int64
+		var dt int64
+		var user_id int64
+		var entity_id string
+		var block_item_string string
+		var slots_string string
+
+		err := rows.Scan(&x, &y, &z, &dt, &user_id, &entity_id, &block_item_string, &slots_string)
+		if err != nil {
+			fmt.Println(err)
+			return Chests, Blocks, err
+		}
+
+		// EntityBlock
+		EntityBlock := &EntityBlock{
+			ID:   entity_id,
+			Type: "chest",
+		}
+
+		// Block item
+		bi := &Struct.BlockItem{}
+		if err := json.Unmarshal([]byte(block_item_string), &bi); err != nil {
+			panic(err)
+		}
+
+		// slots
+		slots := make(map[int]*ChestSlot)
+		if err := json.Unmarshal([]byte(slots_string), &slots); err != nil {
+			panic(err)
+		}
+
+		Chest := &Chest{
+			UserID: user_id,          //  `json:"user_id"` // Кто автор
+			Time:   time.Unix(dt, 0), // `json:"time"` // Время создания, time.Now()
+			Item:   *bi,              // `json:"item"` // Предмет
+			Slots:  slots,            // `json:"slots"`
+		}
+
+		pos := fmt.Sprintf("%d,%d,%d", x, y, z)
+
+		Chests[entity_id] = Chest
+		Blocks[pos] = EntityBlock
+
+	}
+	return Chests, Blocks, nil
+}
+
+// CreateChest...
+func (this *WorldDatabase) CreateChest(conn *UserConn, pos *Struct.Vector3, chest *Chest) error {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	query := `INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Printf("SQL_ERROR44: %v", err)
+	}
+	item_json_bytes, _ := json.Marshal(chest.Item)
+	slots_json_bytes, _ := json.Marshal(chest.Slots)
+	_, err = statement.Exec(time.Now().Unix(), conn.Session.UserID, chest.Item.EntityID, string(item_json_bytes), string(slots_json_bytes), pos.X, pos.Y, pos.Z)
+	if err != nil {
+		log.Printf("SQL_ERROR45: %v", err)
+	}
+	return err
+}
+
+// SaveChestSlots...
+func (this *WorldDatabase) SaveChestSlots(chest *Chest) error {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	query := `UPDATE chest SET slots = $1 WHERE entity_id = $2`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		log.Printf("SQL_ERROR46: %v", err)
+	}
+	slots_json_bytes, _ := json.Marshal(chest.Slots)
+	_, err = statement.Exec(string(slots_json_bytes), chest.Item.EntityID)
+	if err != nil {
+		log.Printf("SQL_ERROR47: %v", err)
 	}
 	return err
 }

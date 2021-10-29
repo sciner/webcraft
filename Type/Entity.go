@@ -2,11 +2,8 @@ package Type
 
 import (
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 	"sync"
 	"time"
 
@@ -18,7 +15,7 @@ type (
 		ID       int     `json:"id"`
 		Count    int     `json:"count"`
 		Power    float32 `json:"power"`
-		EntityID string  `json:"entity_id"`
+		EntityID string  `json:"entity_id,omitempty"`
 	}
 	EntityBlock struct {
 		ID   string `json:"id"`
@@ -26,9 +23,9 @@ type (
 	}
 	// Chest ...
 	Chest struct {
-		UserID string             `json:"user_id"` // Кто автор
+		UserID int64              `json:"user_id"` // Кто автор
 		Time   time.Time          `json:"time"`    // Время создания, time.Now()
-		Item   Struct.BlockItem   `json:"item"`    // предмет
+		Item   Struct.BlockItem   `json:"item"`    // Предмет
 		Slots  map[int]*ChestSlot `json:"slots"`
 	}
 	EntityManager struct {
@@ -74,7 +71,7 @@ func (this *EntityManager) GetEntityByPos(pos Struct.Vector3) (interface{}, stri
 }
 
 // CreateEntity...
-func (this *EntityManager) CreateChest(params *Struct.ParamBlockSet, conn *UserConn) string {
+func (this *EntityManager) CreateChest(world *World, conn *UserConn, params *Struct.ParamBlockSet) string {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	blockPosKey := this.GetBlockKey(params.Pos)
@@ -83,7 +80,7 @@ func (this *EntityManager) CreateChest(params *Struct.ParamBlockSet, conn *UserC
 		return ""
 	}
 	entity := &Chest{
-		UserID: conn.ID,
+		UserID: conn.Session.UserID,
 		Time:   time.Now(),
 		Item:   params.Item,
 		Slots:  make(map[int]*ChestSlot, 27),
@@ -94,7 +91,9 @@ func (this *EntityManager) CreateChest(params *Struct.ParamBlockSet, conn *UserC
 		ID:   entity.Item.EntityID,
 		Type: "chest",
 	}
-	this.Save()
+	// Save to DB
+	world.Db.CreateChest(conn, &params.Pos, entity)
+	// this.Save()
 	return entity.Item.EntityID
 }
 
@@ -102,11 +101,13 @@ func (this *EntityManager) CreateChest(params *Struct.ParamBlockSet, conn *UserC
 func (this *EntityManager) LoadChest(params *Struct.ParamLoadChest, conn *UserConn) {
 	if chest, ok := this.Chests[params.EntityID]; ok {
 		conn.SendChest(chest)
+	} else {
+		log.Println("Chest " + params.EntityID + " not found")
 	}
 }
 
 // Получены новые данные о содержимом слоте сундука
-func (this *EntityManager) SetChestSlotItem(params *Struct.ParamChestSetSlotItem, conn *UserConn) {
+func (this *EntityManager) SetChestSlotItem(world *World, conn *UserConn, params *Struct.ParamChestSetSlotItem) {
 	if chest, ok := this.Chests[params.EntityID]; ok {
 		this.Mu.Lock()
 		defer this.Mu.Unlock()
@@ -120,44 +121,24 @@ func (this *EntityManager) SetChestSlotItem(params *Struct.ParamChestSetSlotItem
 				Power:    params.Item.Power,
 			}
 		}
-		this.Save()
+		// Save chest slots to DB
+		world.Db.SaveChestSlots(chest)
 	}
 }
 
-// GetFileName
-func (this *EntityManager) GetFileName() string {
-	ps := string(os.PathSeparator)
-	dir := this.World.GetDir()
-	return dir + ps + "entities.json"
-}
-
-// Load from file
-func (this *EntityManager) Load(world *World) {
+// Load from DB
+func (this *EntityManager) Load(world *World) error {
 	this.World = world
 	this.Mu = &sync.Mutex{}
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
-	this.Chests = make(map[string]*Chest, 0)
-	this.Blocks = make(map[string]*EntityBlock, 0)
-	// file, _ := json.Marshal(this.ModifyList)
-	fileName := this.GetFileName()
-	log.Println("Before load from " + fileName)
-	s, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		log.Printf("Error load entity from file `%s`", err)
-		return
-	}
-	err = json.Unmarshal([]byte(s), &this)
-	if err != nil {
-		log.Printf("Error Unmarshal chunk `%s`", err)
-		return
-	}
-}
 
-// Save to file
-func (this *EntityManager) Save() {
-	file, _ := json.MarshalIndent(this, "", "\t")
-	fileName := this.GetFileName()
-	log.Println("Before save to " + fileName)
-	_ = ioutil.WriteFile(fileName, file, 0644)
+	chests, blocks, err := world.Db.LoadWorldChests(world)
+	if err != nil {
+		log.Printf("ERROR43: %v", err)
+		return err
+	}
+	this.Chests = chests
+	this.Blocks = blocks
+	return nil
 }

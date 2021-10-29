@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -179,7 +178,9 @@ func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 }
 
 func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
-	// log.Printf("OnCommand: %d", cmdIn.Name)
+	if cmdIn.Name != Struct.CMD_PLAYER_STATE && cmdIn.Name != Struct.CMD_CHUNK_ADD {
+		log.Printf("OnCommand: %d", cmdIn.Name)
+	}
 	switch cmdIn.Name {
 
 	case Struct.CMD_BLOCK_SET:
@@ -187,12 +188,14 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
+		// Ignore bedrock
 		if params.Item.ID != 1 {
 			chunkAddr := this.GetChunkAddr(params.Pos)
 			chunk := this.ChunkGet(chunkAddr)
-			this.Db.BlockSet(conn, this, params)
-			chunk.BlockSet(conn, params, false)
-			this.ChunkBecameModified(&chunkAddr)
+			if chunk.BlockSet(conn, params, false) {
+				this.Db.BlockSet(conn, this, params)
+				this.ChunkBecameModified(&chunkAddr)
+			}
 		}
 
 	case Struct.CMD_CREATE_ENTITY:
@@ -203,6 +206,8 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		chunkAddr := this.GetChunkAddr(params.Pos)
 		chunk := this.ChunkGet(chunkAddr)
 		chunk.BlockSet(conn, params, false)
+		this.Db.BlockSet(conn, this, params)
+		this.ChunkBecameModified(&chunkAddr)
 
 	// Пользователь подгрузил чанк
 	case Struct.CMD_CHUNK_ADD:
@@ -261,7 +266,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChestSetSlotItem
 		json.Unmarshal(out, &params)
-		this.Entities.SetChestSlotItem(params, conn)
+		this.Entities.SetChestSlotItem(this, conn, params)
 
 	case Struct.CMD_CHANGE_POS_SPAWN:
 		out, _ := json.Marshal(cmdIn.Data)
@@ -274,6 +279,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		var params *Struct.ParamTeleportRequest
 		json.Unmarshal(out, &params)
 		this.TeleportPlayer(conn, params)
+
 	case Struct.CMD_SAVE_INVENTORY:
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.PlayerInventory
@@ -390,11 +396,6 @@ func (this *World) GetDir() string {
 	return dir
 }
 
-// GetFileName...
-func (this *World) GetFileName() string {
-	return this.GetDir() + "/attr.json"
-}
-
 // Отправить всем, кроме указанных
 func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {
 	for _, conn := range this.Connections {
@@ -430,22 +431,11 @@ func (this *World) SendSelected(packets []Struct.JSONResponse, connections map[s
 // RestoreModifiedChunks...
 func (this *World) RestoreModifiedChunks() error {
 	this.ChunkModifieds = make(map[string]bool)
-	fileList, err := this.ScanChunkFiles()
+	list, err := this.Db.ChunkBecameModified()
 	if err != nil {
 		return err
 	}
-	for _, file := range fileList {
-		file = strings.Replace(file, "c_", "", -1)
-		file = strings.Replace(file, ".json", "", -1)
-		v := strings.Split(file, "_")
-		X, _ := strconv.Atoi(v[0])
-		Y, _ := strconv.Atoi(v[1])
-		Z, _ := strconv.Atoi(v[2])
-		vec := &Struct.Vector3{
-			X: X,
-			Y: Y,
-			Z: Z,
-		}
+	for _, vec := range list {
 		this.ChunkBecameModified(vec)
 	}
 	return nil

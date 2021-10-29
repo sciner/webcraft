@@ -46,6 +46,21 @@ CREATE TABLE "world_modify" (
   "user_session_id" INTEGER,
   "x" integer,
   "y" integer,
+  "z" integer,
+  "entity_id" TEXT NOT NULL,
+  "extra_data" TEXT,
+  "chest_id" INTEGER
+);
+
+CREATE TABLE "chest" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "dt" integer,
+  "user_id" INTEGER NOT NULL,
+  "entity_id" TEXT NOT NULL,
+  "item" TEXT NOT NULL,
+  "slots" TEXT NOT NULL,
+  "x" integer,
+  "y" integer,
   "z" integer
 );
 
