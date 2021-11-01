@@ -323,6 +323,8 @@ func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRe
 			conn.ID: conn,
 		}
 		this.SendSelected(packets, connections, []string{})
+		//
+		this.CheckPlayerVisibleChunks(conn, conn.ChunkRenderDist, true)
 	}
 }
 
@@ -490,18 +492,19 @@ func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlay
 	}
 	conn.Pos = params.Pos
 	conn.Rotate = params.Rotate
+	conn.ChunkRenderDist = params.ChunkRenderDist
 	this.SavePlayerState(conn)
-	this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist)
+	this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist, false)
 }
 
 // CheckPlayerVisibleChunks
-func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int) {
+func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int, force bool) {
 	conn.ChunkPos = this.GetChunkAddr(*&Struct.Vector3{
 		X: int(conn.Pos.X),
 		Y: int(conn.Pos.Y),
 		Z: int(conn.Pos.Z),
 	})
-	if !conn.ChunkPosO.Equal(conn.ChunkPos) {
+	if force || !conn.ChunkPosO.Equal(conn.ChunkPos) {
 		// чанки, находящиеся рядом с игроком, у которых есть модификаторы
 		modified_chunks := []*Struct.Vector3{}
 		x_rad := ChunkRenderDist + 5

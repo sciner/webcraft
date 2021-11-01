@@ -6,8 +6,6 @@ import {SkinManager} from './skin-manager.js';
 import {DemoMapManager} from './demo_map-manager.js';
 import {GameClass} from '../game.js';
 
-window.Game = new GameClass();
-
 // Mouse event enumeration
 window.MOUSE      = {};
     MOUSE.DOWN    = 1;
@@ -56,10 +54,25 @@ let app = angular.module('gameApp', []);
 let injectParams = ['$scope', '$timeout', 'helperService'];
 let gameCtrl = function($scope, $timeout, helperService) {
 
-    $scope.App              = new UIApp($scope);
-    $scope.texture_pack     = new TexturePackManager($scope);
-    $scope.skin             = new SkinManager($scope);
-    $scope.demoMaps         = new DemoMapManager($scope, $timeout);
+    window.Game                     = new GameClass();
+
+    $scope.App = window.Game.App    = new UIApp();
+    $scope.texture_pack             = new TexturePackManager($scope);
+    $scope.skin                     = new SkinManager($scope);
+    $scope.demoMaps                 = new DemoMapManager($scope, $timeout);
+
+    //
+    $scope.App.onLogin = (e) => {
+
+    };
+    $scope.App.onLogout = () => this.$scope.current_window.show('hello');
+    $scope.App.onError = (message) => {
+        // Multilingual messages
+        if(message in $scope.lang) {
+            message = $scope.lang[message];
+        }
+        alert(message);
+    };
 
     // Lang
     $scope.lang = {
@@ -149,6 +162,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             //
             var that = this;
             that.loading = true;
+            Game.session.login()
             helperService.api.call($scope.App, '/api/User/Login', this.form, function(resp) {
                 that.logged = true;
                 localStorage.setItem('username', resp.username);
@@ -276,10 +290,11 @@ let gameCtrl = function($scope, $timeout, helperService) {
             }
             var that = this;
             that.loading = true;
-            helperService.api.call($scope.App, '/api/Game/MyWorlds', {}, function(resp) {
-                that.list = resp;
-            }, null, null, function() {
-                that.loading = false;
+            $scope.App.MyWorlds({}, (worlds) => {
+                $timeout(() => {
+                    that.list = worlds;
+                    that.loading = false;
+                });
             });
         },
         // @deprecated
@@ -353,12 +368,13 @@ let gameCtrl = function($scope, $timeout, helperService) {
             var that = this;
             that.loading = true;
             let form = {...that.form};
-            helperService.api.call($scope.App, '/api/Game/CreateWorld', form, function(world) {
-                that.reset();
-                $scope.mygames.add(world);
-                $scope.StartWorld(world.guid);
-            }, null, null, function() {
-                that.loading = false;
+            $scope.App.CreateWorld(form, (world) => {
+                $timeout(() => {
+                    that.reset();
+                    $scope.mygames.add(world);
+                    $scope.StartWorld(world.guid);
+                    that.loading = false;
+                });
             });
         },
         open: function() {
@@ -410,7 +426,7 @@ app.directive('myEnter', directive);
 var helperServiceInjectParams = ['$http', '$q', '$timeout'];
 var helperServiceService = function($http, $q, $timeout) {
     var helperService = {
-        api: {
+        /*api: {
             // Организует вызов API, обработку ответа и вызов callback-функции
             call: function(App, url, data, callback, callback_error, callback_progress, callback_final) {
                 let session         = App.getSession()
@@ -474,7 +490,7 @@ var helperServiceService = function($http, $q, $timeout) {
                     alert('Got notification: ' + update);
                 });
             }
-        }
+        }*/
     };
     return helperService;
 };

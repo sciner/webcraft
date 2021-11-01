@@ -22,6 +22,7 @@ type (
 		PosSpawn         Struct.Vector3f
 		ChunkPos         Struct.Vector3
 		ChunkPosO        Struct.Vector3
+		ChunkRenderDist  int
 		Ws               *websocket.Conn
 		Mu               *sync.Mutex          // чтобы избежать коллизий записи в сокет
 		Join             chan *websocket.Conn // Register requests from the connections.

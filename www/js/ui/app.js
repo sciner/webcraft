@@ -1,75 +1,70 @@
+import {API_Client} from './api.js';
+import {} from './clipboard.js';
+
 export class UIApp {
 
-    constructor($scope) {
-        this.$scope = $scope;
-
-        // Clipboard
-        window.Clipboard = (function(window, document, navigator) {
-            var textArea, copy;
-            function isOS() {
-                return navigator.userAgent.match(/ipad|iphone/i);
-            }
-            function createTextArea(text) {
-                textArea = document.createElement('textArea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-            }
-            function selectText() {
-                var range, selection;
-                if (isOS()) {
-                    range = document.createRange();
-                    range.selectNodeContents(textArea);
-                    selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                    textArea.setSelectionRange(0, 999999);
-                } else {
-                    textArea.select();
-                }
-            }
-            function copyToClipboard() {        
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-            }
-            copy = function(text) {
-                createTextArea(text);
-                selectText();
-                copyToClipboard();
+    constructor() {
+        this.api = new API_Client();
+        // Session
+        let session_id = localStorage.getItem('session_id');
+        if(session_id) {
+            this.session = {
+                session_id: session_id,
+                username: localStorage.getItem('username')
             };
-            return {
-                copy: copy
-            };
-        })(window, document, navigator);
+        } else {
+            this.session = null;
+        }
+        // Hooks
+        this.onLogin = (e) => {};
+        this.onLogout = (e) => {};
+        this.onError = (e) => {};
 
     }
 
     logout() {
+        this.session.username = null;
+        this.session.session_id = null;
         localStorage.removeItem('username');
         localStorage.removeItem('session_id');
-        this.$scope.current_window.show('hello');
+        this.onLogout();
     }
 
     showError(message) {
-        // Multilingual messages
-        if(message in this.$scope.lang) {
-            message = this.$scope.lang[message];
-        }
-        alert(message);
+        this.onError(message);
     }
 
     isLogged() {
         return !!this.getSession();
     }
 
+    // MyWorlds...
+    async MyWorlds(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/Game/MyWorlds', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
+    // CreateWorld...
+    async CreateWorld(form, callback, callback_error, callback_progress, callback_final) {
+        let result = null;
+        await this.api.call(this, '/api/Game/CreateWorld', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     //
     getSession() {
-        if(!this.$scope.Game.session_id) {
-            return null;
-        }
-        return {
-            session_id: this.$scope.Game.session_id,
-            username: this.$scope.Game.username
-        }
+        return this.session;
     }
 
 }
