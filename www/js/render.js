@@ -1,13 +1,12 @@
 "use strict";
 
-import HUD from "./hud.js";
-import {CHUNK_SIZE_X} from "./blocks.js";
+import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {Game} from "./game.js";
 import {Mth, VectorCollector} from "./helpers.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
+import {Resources} from "./resources.js";
 
 const {mat4} = glMatrix;
 
@@ -49,6 +48,7 @@ export class Renderer {
         this.testLightOn        = false;
         this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
         this.frustum            = new FrustumProxy();
+        this.step_side          = 0;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -56,12 +56,6 @@ export class Renderer {
                 depth: true,
                 premultipliedAlpha: false
             });
-    }
-
-    async init(world, settings, resources) {
-        return new Promise(res => {
-            this._init(world, settings, resources, res);
-        })
     }
 
     get gl() {
@@ -110,13 +104,21 @@ export class Renderer {
         return canvas2d;
     }
 
+    async init(world, settings) {
+        return new Promise(resolve => {
+            (async () => {
+                await this._init(world, settings, resolve);
+            })();
+        })
+    }
+
     // todo
-    //  GO TO PROMISE
-    async _init(world, settings, resources, callback) {
-        this.resources          = resources;
+    // GO TO PROMISE
+    async _init(world, settings, callback) {
+
         this.skyBox             = null;
         this.videoCardInfoCache = null;
-        this.options         = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
+        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
         this.setWorld(world);
 
@@ -124,7 +126,7 @@ export class Renderer {
 
         await renderBackend.init();
 
-        const shader = this.shader = renderBackend.createShader({ code: resources.codeMain});
+        const shader = this.shader = renderBackend.createShader({ code: Resources.codeMain});
 
         // Create projection and view matrices
         this.projMatrix     = this.shader.projMatrix;
@@ -145,7 +147,7 @@ export class Renderer {
         this.terrainBlockSize = 1;
 
         this.terrainTexture = renderBackend.createTexture({
-            source: await this.genTerrain(resources.terrain.image),
+            source: await this.genTerrain(Resources.terrain.image),
             minFilter: 'nearest',
             magFilter: 'nearest',
             anisotropy: this.useAnisotropy ? 4.0 : 0.0,
@@ -159,8 +161,8 @@ export class Renderer {
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
-        this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
-        this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
+        // this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
+        // this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
@@ -173,7 +175,6 @@ export class Renderer {
 
         // HUD
         // Build main HUD
-        Game.hud = new HUD(0, 0);
         this.HUD = {
             tick: 0,
             bufRect: null,
@@ -186,20 +187,19 @@ export class Renderer {
     }
 
     initSky() {
-        const { resources } = this;
         return this.skyBox = this.renderBackend.createCubeMap({
-            code: resources.codeSky,
+            code: Resources.codeSky,
             uniforms: {
                 u_brightness: 1.0,
                 u_textureOn: true
             },
             sides: [
-                resources.sky.posx,
-                resources.sky.negx,
-                resources.sky.posy,
-                resources.sky.negy,
-                resources.sky.posz,
-                resources.sky.negz
+                Resources.sky.posx,
+                Resources.sky.negx,
+                Resources.sky.posy,
+                Resources.sky.negy,
+                Resources.sky.posz,
+                Resources.sky.negz
             ]
         });
     }
@@ -287,16 +287,6 @@ export class Renderer {
         this.terrainTexture.bind(4);
         this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
         this.world.chunkManager.draw(this, false);
-        /*
-        if(!this.vl && Game.shift.x != 0) {
-            this.vl = new Vox_Loader('/data/monu10.vox', (chunks) => {
-                this.voxel_mesh = new Vox_Mesh(chunks[0], new Vector(3120, 65, 2863), Game.shift, this.materials['regular']);
-            });
-        }
-        if(this.voxel_mesh) {
-            this.voxel_mesh.draw(this.renderBackend);
-        }
-        */
         this.world.draw(this, delta);
         // 3. Draw players and rain
         this.drawPlayers(delta);
@@ -315,6 +305,7 @@ export class Renderer {
         shader.bind();
         for(let id of Object.keys(this.world.players)) {
             let player = this.world.players[id];
+            if(player.itsme && id != 'itsme') continue;
             if(player.id != this.world.server.id) {
                 player.draw(this, this.camPos, delta);
             }
@@ -357,11 +348,11 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(pos, ang) {
-
-        let pitch           = ang[0]; // X
-        let roll            = ang[1]; // Z
-        let yaw             = ang[2]; // Y
+    setCamera(pos, rotate) {
+        // @todo Возможно тут надо поменять Z и Y местами
+        let pitch           = rotate.x; // X
+        let roll            = rotate.y; // Z
+        let yaw             = rotate.z; // Y
         this.camPos.copyFrom(pos);
         mat4.identity(this.viewMatrix);
         // bobView
@@ -390,7 +381,7 @@ export class Renderer {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
-            let speed_mul = 1.2;
+            let speed_mul = 1.0;
             let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
             let f1 = -(player.walkDist * speed_mul + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
@@ -406,6 +397,10 @@ export class Renderer {
                 0.0,
                 -Math.abs(Mth.cos(f1 * Math.PI) * f2),
             ]);
+            if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
+                this.step_side = viewMatrix[1];
+                player.onStep(this.step_side);
+            }
         }
     }
 

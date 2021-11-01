@@ -1,14 +1,14 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
-import {CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableResultSlot} from "./craft_table.js";
-import RECIPES from "../recipes.js";
+import {Button, Label} from "../../tools/gui/wm.js";
+import {BaseCraftWindow, CraftTableRecipeSlot} from "./base_craft_window.js";
 import {BLOCK} from "../blocks.js";
 
-export default class InventoryWindow extends Window {
+export default class InventoryWindow extends BaseCraftWindow {
 
-    constructor(x, y, w, h, id, title, text, inventory) {
+    constructor(recipes, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
 
+        this.recipes = recipes;
         this.inventory = inventory;
 
         // Get window by ID
@@ -17,6 +17,14 @@ export default class InventoryWindow extends Window {
         ct.style.border.hidden = true;
         ct.setBackground('./media/gui/form-inventory.png');
         ct.hide();
+        
+        // Craft area
+        this.area = {
+            size: {
+                width: 2,
+                height: 2
+            }
+        };
 
         //
         this.addPlayerBox();
@@ -28,7 +36,7 @@ export default class InventoryWindow extends Window {
 
         // Add buttons
         this.addCloseButton();
-        // this.addRecipesButton();
+        this.addRecipesButton();
 
         // Ширина / высота слота
         this.cell_size = 36;
@@ -40,16 +48,17 @@ export default class InventoryWindow extends Window {
         this.createInventorySlots(this.cell_size);
 
         // Итоговый слот (то, что мы получим)
-        this.createResultSlot();
+        this.createResultSlot(306, 54);
         
         // Обработчик открытия формы
         this.onShow = function() {
-            this.getRoot().center(this);
             Game.releaseMousePointer();
         }
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
+            // Close recipe window
+            Game.hud.wm.getWindow('frmRecipe').hide();
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
@@ -95,10 +104,12 @@ export default class InventoryWindow extends Window {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
+        let btnRecipes = new Button(208, 122, 40, 36, 'btnRecipes', null);
         btnRecipes.setBackground('./media/gui/recipes.png');
-        btnRecipes.onMouseDown = function(e) {
-            // ct.hide();
+        btnRecipes.onMouseDown = (e) => {
+            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+            frmRecipe.assignCraftWindow(this);
+            frmRecipe.toggleVisibility();
         }
         ct.add(btnRecipes);
     }
@@ -130,54 +141,7 @@ export default class InventoryWindow extends Window {
             ct.add(this.craft.slots[i] = lblSlot);
         }
     }
-    
-    /**
-    * Итоговый слот (то, что мы получим)
-    */
-    createResultSlot() {
-        const ct = this;
-        // x, y, w, h, id, title, text, ct, slot_index
-        let lblResultSlot = this.resultSlot = new CraftTableResultSlot(306, 54, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
-        lblResultSlot.onMouseEnter = function() {
-            this.style.background.color = '#ffffff33';
-        }
-        lblResultSlot.onMouseLeave = function() {
-            this.style.background.color = '#00000000';
-        }
-        ct.add(lblResultSlot);
-    }
-    
-    /**
-    * Создание слотов для инвентаря
-    * @param int sz Ширина / высота слота
-    */
-    createInventorySlots(sz) {
-        const ct = this;
-        if(ct.inventory_slots) {
-            console.error('createInventorySlots() already created');
-            return;
-        }
-        ct.inventory_slots  = [];
-        // нижний ряд (видимые на хотбаре)
-        let sx          = 14;
-        let sy          = 282;
-        let xcnt        = 9;
-        for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
-        }
-        sx              = 14;
-        sy              = 166;
-        xcnt            = 9;
-        // верхние 3 ряда
-        for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
-            ct.add(lblSlot);
-            ct.inventory_slots.push(lblSlot);
-        }
-    }
-    
+
     // собираем и проверяем шаблон
     checkRecipe() {
         let pattern_array = [];
@@ -195,7 +159,7 @@ export default class InventoryWindow extends Window {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        let craft_result = RECIPES.crafting_shaped.searchRecipeResult(pattern_array);
+        let craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array);
         if(!craft_result) {
             return this.resultSlot.setItem(null);
         }

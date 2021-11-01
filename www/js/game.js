@@ -1,242 +1,164 @@
-import Sounds from "./sounds.js";
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import Physics from "./physics.js";
-import Player from "./player.js";
-import Inventory from "./inventory.js";
 import {fps} from "./fps.js";
-import {Hotbar} from "./hotbar.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
 import {GameMode} from "./game_mode.js";
+import HUD from "./hud.js";
 
-export {BLOCK};
+import {Chat} from "./chat.js";
+import Sounds from "./sounds.js";
+import Physics from "./physics.js";
+import Inventory from "./inventory.js";
+import {Hotbar} from "./hotbar.js";
+import {Player} from "./player.js";
 
-/*
-import {TypedBlocks} from "./typed_blocks.js";
-let tbs = new TypedBlocks();
-let vec = new Vector(0, 5, 14);
-let block           = tbs.get(vec);
-block.power         = .8;
-block.rotate        = new Vector(1, 2, 3);
-block.entity_id     = 'entity_id';
-block.texture       = 'texture';
-block.extra_data    = 'extra_data';
-block               = tbs.get(vec);
-console.log(block.id, block.power, block.rotate, block.properties, block.entity_id, block.texture, block.extra_data);
-*/
+export class GameClass {
 
-// Mouse event enumeration
-export let MOUSE         = {};
-    MOUSE.DOWN    = 1;
-    MOUSE.UP      = 2;
-    MOUSE.MOVE    = 3;
-    MOUSE.CLICK   = 4;
-    MOUSE.BUTTON_LEFT   = 0;
-    MOUSE.BUTTON_WHEEL  = 1;
-    MOUSE.BUTTON_RIGHT  = 2;
+    static hud = null;
 
-export let KEY           = {};
-    KEY.BACKSPACE   = 8;
-    KEY.ENTER       = 13;
-    KEY.SHIFT       = 16;
-    KEY.ESC         = 27;
-    KEY.SPACE       = 32;
-    KEY.PAGE_UP     = 33;
-    KEY.PAGE_DOWN   = 34;
-    KEY.ARROW_UP    = 38;
-    KEY.ARROW_DOWN  = 40;
-    KEY.A           = 65;
-    KEY.C           = 67;
-    KEY.D           = 68;
-    KEY.E           = 69;
-    KEY.J           = 74;
-    KEY.R           = 82;
-    KEY.S           = 83;
-    KEY.T           = 84;
-    KEY.W           = 87;
-    KEY.F1          = 112;
-    KEY.F2          = 113;
-    KEY.F3          = 114;
-    KEY.F4          = 115;
-    KEY.F5          = 116;
-    KEY.F6          = 117;
-    KEY.F7          = 118;
-    KEY.F8          = 119;
-    KEY.F9          = 120;
-    KEY.F10         = 121;
-    KEY.F11         = 122;
-    KEY.SLASH       = 191;
-    KEY.F11         = 122;
-
-export let Game = {
-    start_time:         performance.now(),
-    last_saved_time:    performance.now() - 20000,
-    world_name:         null,
-    hud:                null,
-    canvas:             document.getElementById('renderSurface'),
-    /**
-     * @type { World }
-     */
-    world:              null,
-    /**
-     * @type { Renderer }
-     */
-    render:             null, // renderer
-    resources:          null,
-    physics:            null, // physics simulator
-    player:             null,
-    mouseX:             0,
-    mouseY:             0,
-    inventory:          null,
-    prev_player_state:  null,
-    controls:           {
-        inited: false,
-        enabled: false,
-        clearStates: function() {
-            Game.world.localPlayer.keys[KEY.W] = false;
-            Game.world.localPlayer.keys[KEY.A] = false;
-            Game.world.localPlayer.keys[KEY.S] = false;
-            Game.world.localPlayer.keys[KEY.D] = false;
-            Game.world.localPlayer.keys[KEY.J] = false;
-            Game.world.localPlayer.keys[KEY.SPACE] = false;
-            Game.world.localPlayer.keys[KEY.SHIFT] = false;
-        }
-    },
-    // createNewWorld
-    createNewWorld: function(form) {
-        /*
-        this.world.server.Send({
-            name: ServerClient.WORLD_CREATE,
-            data: form
-        });
+    constructor() {
+        this.start_time             = performance.now();
+        this.last_saved_time        = performance.now() - 20000;
+        this.world_name             = null;
+        this.username               = null;
+        this.session_id             = null;
+        this.canvas                 = document.getElementById('renderSurface');
+        /**
+        * @type { World }
         */
-        let spawnPoint = new Vector(
-            2914.5,
-            150.0,
-            2884.5
-        );
-        return Object.assign(form, {
-            spawnPoint: spawnPoint,
-            pos: spawnPoint,
-            brightness: 1.0,
-            modifiers: {},
-            rotate: new Vector(0, 0, 0),
-            inventory: {
-                items: BLOCK.getStartInventory(),
-                current: {
-                    index: 0,
-                    id: null
-                }
+        this.world                  = null;
+        /**
+        * @type { Renderer }
+        */
+        this.render                 = null; // renderer
+        this.physics                = null; // physics simulator
+        this.player                 = null;
+        this.mouseX                 = 0;
+        this.mouseY                 = 0;
+        this.inventory              = null;
+        this.prev_player_state      = null;
+        // Controls
+        this.controls = {
+            mouse_sensitivity: 1.0,
+            inited: false,
+            enabled: false,
+            clearStates: function() {
+                Game.world.localPlayer.keys[KEY.W] = false;
+                Game.world.localPlayer.keys[KEY.A] = false;
+                Game.world.localPlayer.keys[KEY.S] = false;
+                Game.world.localPlayer.keys[KEY.D] = false;
+                Game.world.localPlayer.keys[KEY.J] = false;
+                Game.world.localPlayer.keys[KEY.SPACE] = false;
+                Game.world.localPlayer.keys[KEY.SHIFT] = false;
             }
-        })
-    },
-
-    // Ajust world state
-    ajustSavedState: function(saved_state) {
-        if(!saved_state.hasOwnProperty('game_mode')) {
-            let gm = new GameMode();
-            saved_state.game_mode = gm.getCurrent().id;
-        }
-        if(!saved_state.hasOwnProperty('generator')) {
-            saved_state.generator = {id: 'biome2'};
-        }
-        return saved_state;
-    },
+        };
+        // loopTime
+        this.loopTime = {
+            history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ],
+            prev: null,
+            min: null,
+            max: null,
+            avg: null,
+            add: function(value) {
+                this.prev = value;
+                if(this.min === null || this.min > value) {
+                    this.min = value;
+                }
+                if(this.max === null || this.max < value) {
+                    this.max = value;
+                }
+                this.history.shift();
+                this.history.push(value);
+                let sum = this.history.reduce((a, b) => a + b, 0);
+                this.avg = (sum / this.history.length) || 0;
+            }
+        };
+    }
 
     load(settings) {
-        this.resources = new Resources();
-        return this.resources.load({
+        return Resources.load({
             hd:             settings.hd,
             texture_pack:   settings.texture_pack,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu',
             imageBitmap:    true
         });
-    },
+    }
 
-    // initGame...
-    initGame(saved_world, settings) {
-        this.world_name     = saved_world.id;
-        this.seed           = saved_world.seed;
-        saved_world         = this.ajustSavedState(saved_world);
-        this.sounds         = new Sounds();
+    async Start(session, world_guid, settings, resource_loading_progress) {
+        //
+        Game.hud = new HUD(0, 0);
+        this.sounds = new Sounds();
         // Create a new world
-        this.world = new World(saved_world);
-        this.world.init()
+        this.render = new Renderer('renderSurface');
+        // Resources
+        Resources.onLoading = resource_loading_progress;
+        this.load(settings)
             .then(() => {
-                this.render = new Renderer('renderSurface');
-                return this.load(settings);
+                this.world = new World(session, world_guid, settings, BLOCK);
+                this.render.init(this.world, settings).then(() => {
+                    (async () => {
+                        await BLOCK.load(Resources.resource_packs).then(() => {
+                            return this.world.connect();
+                        });
+                    })();
+                })
             })
-            .then(()=>{
-                return this.render.init(this.world, settings, this.resources);
-            })
-            .then(this.postInitGame.bind(this))
-    },
+    }
 
-    // postInitGame...
-    postInitGame() {
-        this.fps        = fps;
-        this.physics    = new Physics();
-        this.player     = new Player();
-        this.inventory  = new Inventory(this.player, this.hud);
+    // postServerConnect...
+    postServerConnect() {
+        //
+        this.fps            = fps;
+        this.physics        = new Physics(this.world);
+        this.player         = new Player();
         this.player.setInputCanvas('renderSurface');
-        this.hud.add(fps, 0);
-        this.hotbar = new Hotbar(this.hud, this.inventory);
-        this.physics.setWorld(this.world);
+        //
+        Game.hud.add(fps, 0);
+        this.inventory      = new Inventory(this.player, Game.hud);
+        this.hotbar         = new Hotbar(Game.hud, this.inventory);
+        //
         this.player.setWorld(this.world);
+        this.player.chat    = new Chat();
+        //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
         this.world.fixRotate();
         //
         this.readMouseMove();
         this.startBackgroundMusic();
-        document.querySelector('body').classList.add('started');
+        this.setGameStarted(true);
         this.loop = this.loop.bind(this);
         // Run render loop
         window.requestAnimationFrame(this.loop);
-        // setInterval(that.loop, 1);
-        this.setupHitSounds();
-    },
+    }
 
-    // Звуки шагов
-    setupHitSounds: function() {
-        let playHit = () => {
-            let player = Game.world.localPlayer;
-            if(!player || player.in_water || !player.walking || !this.controls.enabled) {
-                return;
-            }
-            let f = player.walkDist - player.walkDistO;
-            if(f > 0) {
-                let pos = Game.world.localPlayer.getBlockPos();
-                let world_block = Game.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-                if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
-                    let default_sound = 'madcraft:block.wood';
-                    let action = 'hit';
-                    let sound = world_block.hasOwnProperty('sound') ? world_block.sound : default_sound;
-                    let sound_list = Game.sounds.getList(sound, action);
-                    if(!sound_list) {
-                        sound = default_sound;
-                    }
-                    Game.sounds.play(sound, action);
-                }
-            }
-        };
-        this.interval425 = setInterval(() => {
-            if(this.world && this.world.localPlayer && !this.world.localPlayer.running) {
-                playHit();
-            }
-        }, 425);
-        this.interval300 = setInterval(() => {
-            if(this.world && this.world.localPlayer && this.world.localPlayer.running) {
-                playHit();
-            }
-        }, 300);
-    },
+    setGameStarted(value) {
+        let bodyClassList = document.querySelector('body').classList;
+        if(value) {
+            bodyClassList.add('started');
+        } else {
+            bodyClassList.remove('started');
+        }
+    }
 
-    startBackgroundMusic: function() {
+    setControlsEnabled(value) {
+        this.controls.enabled = value;
+        let bodyClassList = document.querySelector('body').classList;
+        if(value) {
+            bodyClassList.add('controls_enabled');
+        } else {
+            bodyClassList.remove('controls_enabled');
+        }
+    }
+
+    startBackgroundMusic() {
         /*
         setTimeout(function(){
             try {
@@ -251,30 +173,8 @@ export let Game = {
             }
         }, 1000);
         */
-    },
-    loopTime: {
-        history: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ],
-        prev: null,
-        min: null,
-        max: null,
-        avg: null,
-        add: function(value) {
-            this.prev = value;
-            if(this.min === null || this.min > value) {
-                this.min = value;
-            }
-            if(this.max === null || this.max < value) {
-                this.max = value;
-            }
-            this.history.shift();
-            this.history.push(value);
-            let sum = this.history.reduce((a, b) => a + b, 0);
-            this.avg = (sum / this.history.length) || 0;
-        }
-    },
+    }
+
     // Render loop
     loop() {
         let tm = performance.now();
@@ -289,7 +189,7 @@ export let Game = {
         }
         that.world.update();
         // Draw world
-        that.render.setCamera(that.player.getEyePos(), that.player.angles);
+        that.render.setCamera(that.player.getEyePos(), that.player.rotate);
         that.render.draw(fps.delta);
         // Send player state
         that.sendPlayerState();
@@ -297,24 +197,28 @@ export let Game = {
         fps.incr();
         that.loopTime.add(performance.now() - tm);
         window.requestAnimationFrame(that.loop);
-    },
+    }
+
     // Отправка информации о позиции и ориентации игрока на сервер
-    sendPlayerState: function() {
+    sendPlayerState() {
         this.current_player_state = {
-            angles: this.world.localPlayer.angles.map(value => Math.round(value * 1000) / 1000),
-            pos:    this.world.localPlayer.pos,
-            ping:   Math.round(this.world.server.ping_value)
+            rotate:             this.world.localPlayer.rotate,
+            pos:                this.world.localPlayer.lerpPos,
+            ping:               Math.round(this.world.server.ping_value),
+            chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
+        // console.log(this.current_player_state.rotate);
         this.current_player_state_json = JSON.stringify(this.current_player_state);
         if(this.current_player_state_json != this.prev_player_state) {
             this.prev_player_state = this.current_player_state_json;
             this.world.server.Send({
-                name: ServerClient.EVENT_PLAYER_STATE,
+                name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state
             });
         }
-    },
-    releaseMousePointer: function() {
+    }
+
+    releaseMousePointer() {
         try {
             // this.canvas.exitPointerLock();
             // Attempt to unlock
@@ -322,14 +226,16 @@ export let Game = {
         } catch(e) {
             console.error(e);
         }
-    },
-    setupMousePointerIfNoOpenWindows: function() {
-        if(this.hud.wm.getVisibleWindows().length > 0) {
+    }
+
+    setupMousePointerIfNoOpenWindows() {
+        if(Game.hud.wm.getVisibleWindows().length > 0) {
             return;
         }
         this.setupMousePointer();
-    },
-    setupMousePointer: function() {
+    }
+
+    setupMousePointer() {
         let that = this;
         if(!that.world) {
             return;
@@ -346,15 +252,15 @@ export let Game = {
         }
         let pointerlockchange = function(event) {
             if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
-                that.controls.enabled = true;
-                console.log('Pointer lock enabled!');
+                that.setControlsEnabled(true);
+                // console.log('Pointer lock enabled!');
             }  else {
-                that.controls.enabled = false;
+                that.setControlsEnabled(false);
                 if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
                 that.controls.clearStates();
-                console.info('Pointer lock lost!');
+                // console.info('Pointer lock lost!');
             }
         }
         let pointerlockerror = function(event) {
@@ -369,44 +275,35 @@ export let Game = {
         document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
         element.requestPointerLock();
         that.controls.inited = true;
-    },
-    readMouseMove: function() {
+    }
+
+    readMouseMove() {
         let that = this;
-        that.prevMovementX = 0;
-        that.prevMovementZ = 0;
+        // Mouse wheel
         document.addEventListener('wheel', function(e) {
+            if(e.ctrlKey) return;
             if(that.player) {
+                //
                 if(Game.controls.enabled) {
                     that.player.onScroll(e.deltaY > 0);
                 }
+                //
+                if(Game.hud.wm.getVisibleWindows().length > 0) {
+                    Game.hud.wm.mouseEventDispatcher({
+                        original_event:     e,
+                        type:               e.type,
+                        shiftKey:           e.shiftKey,
+                        button:             e.button,
+                        offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
+                        offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                    });
+                }
             }
         });
-        document.addEventListener('wheel', function(e) {
-            if(Game.hud.wm.getVisibleWindows().length > 0) {
-                Game.hud.wm.mouseEventDispatcher({
-                    original_event:     e,
-                    type:               e.type,
-                    shiftKey:           e.shiftKey,
-                    button:             e.button,
-                    offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                    offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
-                });
-            }
-        });
+        // Mouse move
         document.addEventListener('mousemove', function(e) {
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-            // bug fix https://bugs.chromium.org/p/chromium/issues/detail?id=781182
-            /*if(Math.abs(z) > 300) {
-                x = that.prevMovementX;
-                z = that.prevMovementZ;
-            }*/
-            that.prevMovementX = x;
-            that.prevMovementZ = z;
-            if(that.player.zoom) {
-                x *= ZOOM_FACTOR * 0.5;
-                z *= ZOOM_FACTOR * 0.5;
-            }
             if(Game.hud.wm.getVisibleWindows().length > 0) {
             	if(that.controls.enabled) {
                     Game.mouseY += x;
@@ -427,9 +324,18 @@ export let Game = {
                     offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
                 });
             } else {
+                // x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                // z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
+                if(that.player.zoom) {
+                    x *= ZOOM_FACTOR * 0.5;
+                    z *= ZOOM_FACTOR * 0.5;
+                }
                 //
                 that.world.addRotate(new Vector(x, 0, z));
             }
         }, false);
-    },
-};
+    }
+
+}

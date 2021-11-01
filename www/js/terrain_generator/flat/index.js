@@ -1,26 +1,24 @@
-import {blocks} from '../../biomes.js';
 import {Color} from '../../helpers.js';
+import { Default_Terrain_Generator } from '../default.js';
+import {BLOCK} from '../../blocks.js';
 
-export default class Terrain_Generator {
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor() {
-        this.seed = 0;
-    }
-
-
-    setSeed(seed) {
+    constructor(seed, world_id) {
+        super();
+        this.setSeed(0);
     }
 
     generate(chunk) {
 
-        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? blocks.BEDROCK : blocks.SAND;
+        let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;
 
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
                     // BEDROCK
                     for(let y = 0; y < 1; y++) {
-                        chunk.blocks[x][z][y] = b;
+                        this.setBlock(chunk, x, y, z, b, false);
                     }
                 }
             }

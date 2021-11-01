@@ -9,64 +9,66 @@ import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
 import {MeshManager} from "./mesh_manager.js";
 import {DEFAULT_PICKAT_DIST} from "./pickat.js";
-
-const MAX_DIST_FOR_SHIFT = 800;
+import {Resources} from "./resources.js";
 
 // World container
 export class World {
 
-    constructor(saved_state) {
-        this._savedState = saved_state;
-        this.server_state = null;
-        this.clouds = null;
-        // Autosave
-        setInterval(() => {
-            console.log('Autosave ... OK');
-            Game.saves.save(this);
-        }, 60000 * 5);
-
+    constructor(session, world_guid, settings) {
+        this.session        = session;
+        this.world_guid     = world_guid;
+        this.settings       = settings;
+        this.players        = [];
     }
 
+    // Create server client
     async connect() {
         let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
             '//' + location.hostname +
             (location.port ? ':' + location.port : '') +
             '/ws';
         return new Promise(res => {
-            const server = new ServerClient(serverURL, () => {
-                res(server);
+            const server = new ServerClient(serverURL, this.session.session_id, () => {
+                this.server = server;
+                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: this.world_guid}});
+                res(this.server);
             });
         });
     }
 
-    async init() {
-        const saved_state = this._savedState;
-        // Create server client
-        this.server = await this.connect();
-        this.server.Send({name: ServerClient.EVENT_CONNECT, data: {id: saved_state.id, seed: saved_state.seed + ''}});
-        this.players        = [];
+    // Это вызывается после того, как пришло состояние игрока по вебсокету
+    onServerConnect(state) {
+        //
+        this.saved_state = state;
+        //
+        this.saved_state    = state;
+        this.seed           = state.seed;
+        this.clouds         = null;
         this.rainTim        = null;
-        this.saved_state    = saved_state;
-        this.seed           = saved_state.seed;
-        this.chunkManager   = new ChunkManager(this);
+        this.rotate         = new Vector(state.rotate.x / Math.PI * 1800, state.rotate.y / Math.PI * 1800, state.rotate.z / Math.PI * 1800);
         this.rotateRadians  = new Vector(0, 0, 0);
         this.rotateDegree   = new Vector(0, 0, 0);
+        this.fixRotate();
+        //
+        Game.postServerConnect();
+        //
+        this.chunkManager   = new ChunkManager(this);
         this.meshes         = new MeshManager();
-        this.rotate         = new Vector(saved_state.rotate.x, saved_state.rotate.y, saved_state.rotate.z);
-        this.spawnPoint     = new Vector(saved_state.spawnPoint.x, saved_state.spawnPoint.y, saved_state.spawnPoint.z);
-        if(saved_state.hasOwnProperty('chunk_render_dist')) {
-            this.chunkManager.setRenderDist(saved_state.chunk_render_dist);
+        //
+        if(state.hasOwnProperty('chunk_render_dist')) {
+            this.chunkManager.setRenderDist(state.chunk_render_dist);
         }
         // Game mode
-        this.game_mode = new GameMode(this, saved_state.game_mode);
+        this.game_mode = new GameMode(this, state.game_mode);
     }
 
+    // setServerState...
     setServerState(server_state) {
         this.server_state = server_state;
         this.server_state_give_time = performance.now();
     }
 
-    //
+    // getTime...
     getTime() {
         if(!this.server_state) {
             return null;
@@ -85,6 +87,7 @@ export class World {
         };
     }
 
+    // getPickatDistance...
     getPickatDistance() {
         return (DEFAULT_PICKAT_DIST * (this.game_mode.isCreative() ? 2 : 1)) | 0;
     }
@@ -109,13 +112,14 @@ export class World {
 
     //
     createClone() {
+        let player = this.localPlayer;
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
             itsme:          true,
-            angles:         this.localPlayer.angles,
-            pos:            new Vector(this.localPlayer.pos.x, this.localPlayer.pos.y, this.localPlayer.pos.z),
-            yaw:            this.localPlayer.angles[2],
-            pitch:          this.localPlayer.angles[0],
+            rotate:         player.rotate.clone(),
+            pos:            player.pos.clone(),
+            pitch:          player.rotate.x,
+            yaw:            player.rotate.z,
             skin:           Game.skins.getById(Game.skin.id),
             nick:           Game.username
         });
@@ -159,23 +163,16 @@ export class World {
         }
     }
 
-    // randomTeleport
-    randomTeleport(pos) {
-        if(typeof pos === 'undefined') {
-            pos = new Vector(1000 + Math.random() * 2000000, 120, 1000 + Math.random() * 2000000);
-        }
-        this.localPlayer.setPosition(pos);
-    }
-
     // underWaterfall
     underWaterfall() {
         this.setBlock(parseInt(this.localPlayer.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.localPlayer.pos.z), BLOCK.FLOWING_WATER, 1);
     }
 
     addRotate(vec3) {
-        const speed     = 1.0;
+        // this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
+        // this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
         this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
-        this.rotate.z   += vec3.z * speed; // Z поворот в стороны (yaw)
+        this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
         this.fixRotate();
     }
 
@@ -204,16 +201,6 @@ export class World {
 
     // update
     update() {
-        /* if(Game.world.localPlayer) {
-            let pos = Game.world.localPlayer.pos;
-            if(Math.abs(pos.x - Game.shift.x) > MAX_DIST_FOR_SHIFT || Math.abs(pos.z - Game.shift.z) > MAX_DIST_FOR_SHIFT) {
-                Game.shift.x    = pos.x;
-                Game.shift.z    = pos.z;
-                let tm          = performance.now();
-                let points      = this.chunkManager.shift({...Game.shift});
-                console.info('SHIFTED', Game.shift, (Math.round((performance.now() - tm) * 10) / 10) + 'ms', points);
-            }
-        } */
         this.chunkManager.update();
     }
 
@@ -223,7 +210,6 @@ export class World {
         let row = {
             id:                 Game.world_name,
             seed:               Game.seed,
-            spawnPoint:         that.spawnPoint,
             pos:                that.localPlayer.pos,
             flying:             that.localPlayer.getFlying(),
             generator:          this._savedState.generator,
@@ -247,7 +233,9 @@ export class World {
 
     // saveToDB
     saveToDB(callback) {
-        Game.saves.save(this, callback);
+        if(callback) {
+            callback();
+        }
         return;
     }
 

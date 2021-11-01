@@ -1,11 +1,38 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import { Sphere } from "./frustum.js";
+import {BLOCK} from "./blocks.js";
+
+export const CHUNK_SIZE_X                   = 16;
+export const CHUNK_SIZE_Y                   = 32;
+export const CHUNK_SIZE_Z                   = 16;
+export const CHUNK_BLOCKS                   = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+export const CHUNK_SIZE_Y_MAX               = 4096;
+export const MAX_CAVES_LEVEL                = 256;
+
+// Возвращает адрес чанка по глобальным абсолютным координатам
+export function getChunkAddr(x, y, z) {
+    if(x instanceof Vector) {
+        y = x.y;
+        z = x.z;
+        x = x.x;
+    }
+    //
+    let v = new Vector(
+        Math.floor(x / CHUNK_SIZE_X),
+        Math.floor(y / CHUNK_SIZE_Y),
+        Math.floor(z / CHUNK_SIZE_Z)
+    );
+    // Fix negative zero
+    if(v.x == 0) {v.x = 0;}
+    if(v.y == 0) {v.y = 0;}
+    if(v.z == 0) {v.z = 0;}
+    return v;
+}
 
 // Creates a new chunk
-export default class Chunk {
+export class Chunk {
 
     getChunkManager() {
         return Game.world.chunkManager;
@@ -213,7 +240,7 @@ export default class Chunk {
     }
 
     // setBlock
-    setBlock(x, y, z, type, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x, y, z, item, is_modify, power, rotate, entity_id, extra_data) {
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
@@ -242,18 +269,18 @@ export default class Chunk {
         let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
-            type = BLOCK.BLOCK_BY_ID[type.id];
+            let material = BLOCK.BLOCK_BY_ID[item.id];
             let pos = new Vector(x, y, z);
             this.tblocks.delete(pos);
-            let new_block           = this.tblocks.get(pos);
-            new_block.id            = type.id;
-            new_block.extra_data    = extra_data;
-            new_block.entity_id     = entity_id;
-            new_block.power         = power;
-            new_block.rotate        = rotate;
-            new_block.falling       = !!type.gravity;
+            let tblock           = this.tblocks.get(pos);
+            tblock.id            = material.id;
+            tblock.extra_data    = extra_data;
+            tblock.entity_id     = entity_id;
+            tblock.power         = power;
+            tblock.rotate        = rotate;
+            tblock.falling       = !!material.gravity;
             //
-            update_vertices         = true; // !!extra_data || JSON.stringify(this.tblocks.get(pos)) != JSON.stringify(type);
+            update_vertices         = true;
         }
         // Run webworker method
         if(update_vertices) {
@@ -264,7 +291,7 @@ export default class Chunk {
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
                 z:          z + this.coord.z,
-                type:       type,
+                type:       item,
                 is_modify:  is_modify,
                 power:      power,
                 rotate:     rotate,
@@ -293,7 +320,7 @@ export default class Chunk {
             let updated_chunks = [this.key];
             for(var update_neighbor of update_neighbours) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
-                let chunk_addr = BLOCK.getChunkAddr(pos);
+                let chunk_addr = getChunkAddr(pos);
                 let key = chunkManager.getPosChunkKey(chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {

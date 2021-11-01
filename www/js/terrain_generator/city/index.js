@@ -1,49 +1,19 @@
-import {blocks} from '../../biomes.js';
 import {Color, Vector} from '../../helpers.js';
-import {impl as alea} from '../../../vendors/alea.js';
 import {BLOCK} from '../../blocks.js';
-import {Vox_Loader} from "../../vox/loader.js";
-import {Vox_Mesh} from "../../vox/mesh.js";
+import {alea, Default_Terrain_Generator} from "../default.js";
 
-//
-let vox_templates = {};
-await Vox_Loader.load('/vox/city/City_1.vox', (chunks) => {
-    let palette = {
-        // 81: BLOCK.CONCRETE,
-        // 97: BLOCK.OAK_PLANK,
-        // 121: BLOCK.STONE_BRICK,
-        // 122: BLOCK.SMOOTH_STONE,
-        // 123: BLOCK.GRAVEL,
-    };
-    vox_templates.city1 = {chunk: chunks[0], palette: palette};
-});
-await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
-    vox_templates.city2 = {chunk: chunks[0], palette: {}};
-});
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
-export default class Terrain_Generator {
-
-    constructor() {
-        this.seed = 0;
-        //
-        const blocks = this.blocks1 = [];
-        for(let key in BLOCK) {
-            if (key.substring(0, 4) === 'TERR' || key.substring(0, 4) === 'WOOL') {
-                blocks.push(BLOCK[key]);
+    constructor(seed, world_id) {
+        super();
+        this.setSeed(0);
+        // Init palette blocks
+        this.blocks1 = [];
+        for(let b of BLOCK.list) {
+            if (b.name.substring(0, 4) === 'TERR' || b.name.substring(0, 4) === 'WOOL') {
+                this.blocks1.push(b);
             }
         }
-        //
-        for(let key of Object.keys(blocks)) {
-            let b = blocks[key];
-            b = {...b};
-            delete(b.texture);
-            blocks[key] = b;
-        }
-        // Voxel buildings
-        this.voxel_buildings = [
-            new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
-            new Vox_Mesh(vox_templates.city2, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null)
-        ];
     }
 
     /**
@@ -64,18 +34,17 @@ export default class Terrain_Generator {
 
             const seed                  = chunk.addr.sub(new Vector(0, chunk.addr.y, 0)).toString();
             let aleaRandom              = new alea(seed);
-            const { blocks1 }           = this;
 
-            let BRICK   = blocks.BRICK;
-            let GLASS   = blocks.GLASS;
-            let LIGHT   = blocks.GLOWSTONE;
+            let BRICK   = BLOCK.BRICK;
+            let GLASS   = BLOCK.GLASS;
+            let LIGHT   = BLOCK.GLOWSTONE;
             const wnd   = [0, 0, 0, 0, 0, 0, 0, 0, 0];
 
             let r = aleaRandom.double();
             if(r < .2) {
-                BRICK = blocks.CONCRETE;
+                BRICK = BLOCK.CONCRETE;
             } else if (r < .4) {
-                BRICK = blocks.STONE_BRICK;
+                BRICK = BLOCK.STONE_BRICK;
             }
 
             // ЖД через каждые 9 кварталов
@@ -87,11 +56,11 @@ export default class Terrain_Generator {
                     for(let x = 0; x < chunk.size.x; x++) {
                         for (let z = 0; z < chunk.size.z; z++) {
                             if(x == 0 || x >= 14) {
-                                chunk.blocks[x][z][0] = blocks.BEDROCK;
+                                this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                             } else if (x == 1 || x == 13) {
-                                chunk.blocks[x][z][0] = blocks.CONCRETE;
+                                this.setBlock(chunk, x, 0, z, BLOCK.CONCRETE, false);
                             } else if(x) {
-                                chunk.blocks[x][z][0] = blocks.DIRT;
+                                this.setBlock(chunk, x, 0, z, BLOCK.DIRT, false);
                             }
                         }
                     }
@@ -99,33 +68,33 @@ export default class Terrain_Generator {
                     // ЖД
                     for(let z = 0; z < chunk.size.z; z++) {
                         // рельсы
-                        chunk.blocks[7][z][12] = blocks.OAK_PLANK;
+                        this.setBlock(chunk, 7, 12, z, BLOCK.OAK_PLANK, false);
                         // по краям рельс
-                        chunk.blocks[6][z][12] = blocks.STONE_BRICK;
-                        chunk.blocks[7][z][12] = blocks.STONE_BRICK;
+                        this.setBlock(chunk, 6, 12, z, BLOCK.STONE_BRICK, false);
+                        this.setBlock(chunk, 7, 12, z, BLOCK.STONE_BRICK, false);
                         // шпалы
                         if(z % 2 == 0) {
                             for(let a of [4, 5, 6, 7, 8, 9]) {
-                                chunk.blocks[a][z][12 + 1] = blocks.CONCRETE;
+                                this.setBlock(chunk, a, 12 + 1, z, BLOCK.CONCRETE, false);
                             }
                         }
                         // рельсы
                         for(let y = 14; y < 15; y++) {
-                            chunk.blocks[5][z][y] = blocks.WOOL_BLACK;
-                            chunk.blocks[8][z][y] = blocks.WOOL_BLACK;
+                            this.setBlock(chunk, 5, y, z, BLOCK.WOOL_BLACK, false);
+                            this.setBlock(chunk, 8, y, z, BLOCK.WOOL_BLACK, false);
                         }
                         // столбы
                         if(z == 4) {
                             for(let y = 0; y < 12; y++) {
-                                chunk.blocks[5][z][y] = blocks.STONE_BRICK;
-                                chunk.blocks[8][z][y] = blocks.STONE_BRICK;
+                                this.setBlock(chunk, 5, y, z, BLOCK.STONE_BRICK, false);
+                                this.setBlock(chunk, 8, y, z, BLOCK.STONE_BRICK, false);
                             }
                         }
                     }
 
                     // разметка
                     for(let x = 1; x < chunk.size.z-2; x += 2) {
-                        chunk.blocks[15][x + 1][0] = blocks.SNOW_BLOCK;
+                        this.setBlock(chunk, 15, 0, x + 1, BLOCK.SNOW_BLOCK, false);
                     }
 
                 }
@@ -152,13 +121,13 @@ export default class Terrain_Generator {
                                     // территория строений
                                     // трава
                                     if (x >= 2 && x <= 12 && z >= 3 && z <= 13) {
-                                        chunk.blocks[x][z][y] = blocks.DIRT;
+                                        this.setBlock(chunk, x, y, z, BLOCK.DIRT, false);
                                     } else {
-                                        chunk.blocks[x][z][y] = blocks.CONCRETE;
+                                        this.setBlock(chunk, x, y, z, BLOCK.CONCRETE, false);
                                     }
                                 } else {
                                     // дороги вокруг дома
-                                    chunk.blocks[x][z][y] = blocks.BEDROCK;
+                                    this.setBlock(chunk, x, y, z, BLOCK.BEDROCK, false);
                                 }
                             }
                         }
@@ -166,31 +135,31 @@ export default class Terrain_Generator {
 
                     // Разметка
                     for(let v = 1; v < chunk.size.z - 2; v += 2) {
-                        chunk.blocks[v][0][0] = blocks.SNOW_BLOCK;
-                        chunk.blocks[15][v + 1][0] = blocks.SNOW_BLOCK;
+                        this.setBlock(chunk, v, 0, 0, BLOCK.SNOW_BLOCK, false);
+                        this.setBlock(chunk, 15, 0, v + 1, BLOCK.SNOW_BLOCK, false);
                         // Тачка
-                        let carColor = blocks1[(aleaRandom.double() * blocks1.length | 0)];
+                        let carColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                         if(aleaRandom.double() < .1) {
-                            chunk.blocks[6][0][1] = blocks.CONCRETE;
-                            chunk.blocks[8][0][1] = blocks.CONCRETE;
+                            this.setBlock(chunk, 6, 1, 0, BLOCK.CONCRETE, false);
+                            this.setBlock(chunk, 8, 1, 0, BLOCK.CONCRETE, false);
                             for(let cv = 5; cv < 10; cv++) {
-                                chunk.blocks[cv][0][2] = carColor;
+                                this.setBlock(chunk, cv, 2, 0, carColor, false);
                             }
-                            chunk.blocks[6][0][3] = blocks.GLASS;
-                            chunk.blocks[7][0][3] = blocks.GLASS;
-                            chunk.blocks[8][0][3] = blocks.GLASS;
+                            this.setBlock(chunk, 6, 3, 0, BLOCK.GLASS, false);
+                            this.setBlock(chunk, 7, 3, 0, BLOCK.GLASS, false);
+                            this.setBlock(chunk, 8, 3, 0, BLOCK.GLASS, false);
                         }
                         // Тачка 2
-                        carColor = blocks1[(aleaRandom.double() * blocks1.length | 0)];
+                        carColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                         if(aleaRandom.double() < .1) {
-                            chunk.blocks[15][6][1] = blocks.CONCRETE;
-                            chunk.blocks[15][8][1] = blocks.CONCRETE;
+                            this.setBlock(chunk, 15, 1, 6, BLOCK.CONCRETE, false);
+                            this.setBlock(chunk, 15, 1, 8, BLOCK.CONCRETE, false);
                             for(let cv = 5; cv < 10; cv++) {
-                                chunk.blocks[15][cv][2] = carColor;
+                                this.setBlock(chunk, 15, 2, cv, carColor, false);
                             }
-                            chunk.blocks[15][6][3] = blocks.GLASS;
-                            chunk.blocks[15][7][3] = blocks.GLASS;
-                            chunk.blocks[15][8][3] = blocks.GLASS;
+                            this.setBlock(chunk, 15, 3, 6, BLOCK.GLASS, false);
+                            this.setBlock(chunk, 15, 3, 7, BLOCK.GLASS, false);
+                            this.setBlock(chunk, 15, 3, 8, BLOCK.GLASS, false);
                         }
                     }
 
@@ -199,14 +168,15 @@ export default class Terrain_Generator {
                         let y = 1;
                         for(let x = 3; x <= 11; x++) {
                             for(let z = 4; z <= 12; z++) {
-                                chunk.blocks[x][z][y] = blocks.DIRT;
+                                this.setBlock(chunk, x, y, z, BLOCK.DIRT, false);
                             }
                         }
                         this.plantTree({
                                 height: (aleaRandom.double() * 4 | 0) + 5,
                                 type: {
-                                    trunk: blocks.SPRUCE,
-                                    leaves: blocks.SPRUCE_LEAVES,
+                                    style: 'wood',
+                                    trunk: BLOCK.SPRUCE_TRUNK.id,
+                                    leaves: BLOCK.SPRUCE_LEAVES.id,
                                     height: 7
                                 }
                             },
@@ -220,7 +190,7 @@ export default class Terrain_Generator {
                 // Здание
                 if(levels > 0) {
                     aleaRandom = new alea(seed);
-                    let mainColor = blocks1[(aleaRandom.double() * blocks1.length | 0)];
+                    let mainColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                     let y = 1;
                     for(let level = 1; level <= levels; level++) {
                         let h = (aleaRandom.double() * 2 | 0) + 3; // высота комнаты
@@ -231,7 +201,7 @@ export default class Terrain_Generator {
                         if(y - chunk.coord.y >= 0 && y - chunk.coord.y < chunk.size.y) {
                             for(let x = 2; x <= 12; x++) {
                                 for (let z = 3; z <= 13; z++) {
-                                    chunk.blocks[x][z][y - chunk.coord.y] = mainColor;
+                                    this.setBlock(chunk, x, y - chunk.coord.y, z, mainColor, false);
                                 }
                             }
                         }
@@ -242,7 +212,7 @@ export default class Terrain_Generator {
                                 wnd[i] = aleaRandom.double() * 12 < 1.0 ? LIGHT : null;
                             }
                             if (aleaRandom.double() < .1) {
-                                mainColor = blocks1[(aleaRandom.double() * blocks1.length | 0)];
+                                mainColor = this.blocks1[(aleaRandom.double() * this.blocks1.length | 0)];
                             }
                             for(let y_abs = y + 1; y_abs <= y + h; y_abs++) {
                                 if(y_abs < chunk.coord.y || y_abs >= chunk.coord.y + chunk.size.y) {
@@ -254,15 +224,20 @@ export default class Terrain_Generator {
                                     if (x > 0 && x < 3) b = 0;
                                     if (x > 3 && x < 7) b = 1;
                                     if (x > 7 && x < 10) b = 2;
-                                    chunk.blocks[x + 2][3][y] = b >= 0 ? GLASS : BRICK;
-                                    chunk.blocks[x + 2][13][y] = b >= 0 ? GLASS: BRICK;
-                                    chunk.blocks[2][x + 3][y] = b >= 0 ? GLASS: BRICK;
-                                    chunk.blocks[12][x + 3][y] = b >= 0 ? GLASS: BRICK;
+                                    this.setBlock(chunk, x + 2, y, 3, b >= 0 ? GLASS : BRICK, false);
+                                    this.setBlock(chunk, x + 2, y, 3, b >= 0 ? GLASS : BRICK, false);
+                                    this.setBlock(chunk, x + 2, y, 13, b >= 0 ? GLASS : BRICK, false);
+                                    this.setBlock(chunk, 2, y, x + 3, b >= 0 ? GLASS : BRICK, false);
+                                    this.setBlock(chunk, 12, y, x + 3, b >= 0 ? GLASS : BRICK, false);
                                     if (b > 0 && x > 0 && x < 10) {
-                                        chunk.blocks[x + 2][4][y] ||= wnd[b * 4 + 0];
-                                        chunk.blocks[x + 2][12][y] ||= wnd[b * 4 + 1];
-                                        chunk.blocks[3][x + 3][y] ||= wnd[b * 4 + 2];
-                                        chunk.blocks[11][x + 3][y] ||= wnd[b * 4 + 3];
+                                        // chunk.blocks[x + 2][4][y] ||= wnd[b * 4 + 0];
+                                        // chunk.blocks[x + 2][12][y] ||= wnd[b * 4 + 1];
+                                        // chunk.blocks[3][x + 3][y] ||= wnd[b * 4 + 2];
+                                        // chunk.blocks[11][x + 3][y] ||= wnd[b * 4 + 3];
+                                        // this.setBlock(chunk, x + 2, y, 4, wnd[b * 4 + 0], false);
+                                        // this.setBlock(chunk, x + 2, y, 12, wnd[b * 4 + 1], false);
+                                        // this.setBlock(chunk, 3,     y, x + 3, wnd[b * 4 + 2], false);
+                                        // this.setBlock(chunk, 11,    y, x + 3, wnd[b * 4 + 3], false);
                                     }
                                 }
                             }
@@ -276,7 +251,7 @@ export default class Terrain_Generator {
                             let ceil_z = 4 + parseInt(aleaRandom.double() * 8);
                             for(let i = 0; i < sz; i++) {
                                 for(let j = 0; j < sz; j++) {
-                                    chunk.blocks[ceil_x + i][ceil_z + j][y - chunk.coord.y] = mainColor;
+                                    this.setBlock(chunk, ceil_x + i, y - chunk.coord.y, ceil_z + j, mainColor, false);
                                 }
                             }
                         }
@@ -299,44 +274,6 @@ export default class Terrain_Generator {
             }
         };
 
-    }
-
-    plantTree(options, chunk, x, y, z) {
-        const height        = options.height;
-        const type        = options.type;
-        let ystart = y + height;
-        // ствол
-        for(let p = y; p < ystart; p++) {
-            if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    chunk.blocks[x][z][p] = type.trunk;
-                }
-            }
-        }
-        // дуб, берёза
-        let py = y + height;
-        for(let rad of [1, 1, 2, 2]) {
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                        let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) ||
-                            (i == x - rad && j == z + rad) ||
-                            (i == x + rad && j == z - rad);
-                        let m2 = (py == y + height) ||
-                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                        if(m && m2) {
-                            continue;
-                        }
-                        let b = chunk.blocks[i][j][py];
-                        if(!b || b.id >= 0 && b.id != type.trunk.id) {
-                            chunk.blocks[i][j][py] = type.leaves;
-                        }
-                    }
-                }
-            }
-            py--;
-        }
     }
 
 }

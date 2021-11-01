@@ -1,9 +1,8 @@
-import {blocks} from '../../biomes.js';
 import {Color, Vector} from '../../helpers.js';
-import {impl as alea} from '../../../vendors/alea.js';
-import {BLOCK} from '../../blocks.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
+import { Default_Terrain_Generator } from '../default.js';
+import {BLOCK} from '../../blocks.js';
 
 //
 let palette = {
@@ -50,24 +49,12 @@ await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
     vox_templates.city2 = {chunk: chunks[0], palette: palette};
 });
 
-export default class Terrain_Generator {
+export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor() {
-        this.seed = 0;
+    constructor(seed, world_id) {
+        super();
+        this.setSeed(0);
         //
-        const blocks = this.blocks1 = [];
-        for(let key in BLOCK) {
-            if (key.substring(0, 4) === 'TERR' || key.substring(0, 4) === 'WOOL') {
-                blocks.push(BLOCK[key]);
-            }
-        }
-        //
-        for(let key of Object.keys(blocks)) {
-            let b = blocks[key];
-            b = {...b};
-            delete(b.texture);
-            blocks[key] = b;
-        }
         // Voxel buildings
         this.voxel_buildings = [
             new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
@@ -91,16 +78,11 @@ export default class Terrain_Generator {
 
         if(chunk.addr.y < 5) {
 
-            //
-            let setBlock = (x, y, z, block) => {
-                chunk.blocks[x][z][y] = block;
-            };
-
             // только на первом уровне
             if(chunk.addr.y == 0) {
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
-                        setBlock(x, 0, z, blocks.BEDROCK);
+                        this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
                     }
                 }
             }
@@ -119,7 +101,7 @@ export default class Terrain_Generator {
                             xyz.z = xyz.z % 126;
                             let block   = vb.getBlock(xyz);
                             if(block) {
-                                setBlock(x, y, z, block.id);
+                                this.setBlock(chunk, x, y, z, block, false);
                             }
                         }
                     }
@@ -141,44 +123,6 @@ export default class Terrain_Generator {
             }
         };
 
-    }
-
-    plantTree(options, chunk, x, y, z) {
-        const height        = options.height;
-        const type        = options.type;
-        let ystart = y + height;
-        // ствол
-        for(let p = y; p < ystart; p++) {
-            if(chunk.getBlock(x + chunk.coord.x, p + chunk.coord.y, z + chunk.coord.z).id >= 0) {
-                if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-                    chunk.blocks[x][z][p] = type.trunk;
-                }
-            }
-        }
-        // дуб, берёза
-        let py = y + height;
-        for(let rad of [1, 1, 2, 2]) {
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                        let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) ||
-                            (i == x - rad && j == z + rad) ||
-                            (i == x + rad && j == z - rad);
-                        let m2 = (py == y + height) ||
-                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                        if(m && m2) {
-                            continue;
-                        }
-                        let b = chunk.blocks[i][j][py];
-                        if(!b || b.id >= 0 && b.id != type.trunk.id) {
-                            chunk.blocks[i][j][py] = type.leaves;
-                        }
-                    }
-                }
-            }
-            py--;
-        }
     }
 
 }

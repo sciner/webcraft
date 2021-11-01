@@ -1,8 +1,7 @@
-import Chat from "./chat.js";
 import {ROTATE, Vector} from "./helpers.js";
-import {BLOCK} from "./blocks.js";
+import {getChunkAddr} from "./chunk.js";
 import {Kb} from "./kb.js";
-import {Game} from "./game.js";
+import {BLOCK} from "./blocks.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
@@ -17,7 +16,7 @@ const PLAYER_HEIGHT                     = 1.7;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 
 // Creates a new local player manager.
-export default class Player {
+export class Player {
 
     constructor() {
         this.inventory              = null;
@@ -36,8 +35,7 @@ export default class Player {
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
-        this.angles                 = [0, 0, Math.PI];
-        this.chat                   = new Chat();
+        this.rotate                 = new Vector(0, 0, Math.PI);
         this.velocity               = new Vector(0, 0, 0);
         this.walkDist               = 0;
         this.walkDistO              = 0;
@@ -47,6 +45,7 @@ export default class Player {
         this.blockPosO              = new Vector(0, 0, 0);
         this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
+        this.step_count             = 0;
     }
 
     // Assign the local player to a world.
@@ -57,7 +56,8 @@ export default class Player {
         this.world.localPlayer      = this;
         this.keys                   = {};
         this.eventHandlers          = {};
-        this.pos                    = world.saved_state ? new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z) : world.spawnPoint;
+        this.pos                    = new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z);
+        this.rotate                 = new Vector(world.saved_state.rotate);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
@@ -65,12 +65,37 @@ export default class Player {
             this.setFlying(!!world.saved_state.flying);
         }
         // pickAt
-        this.pickAt                 = new PickAt(this.world.renderer, (...args) => {
+        this.pickAt                 = new PickAt(this.world, this.world.renderer, (...args) => {
             return this.onTarget(...args);
         });
         // Prismarine player control
         this.pr                     = new PrismarinePlayerControl(world, this.pos);
         this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
+    }
+
+    // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
+    onStep(step_side) {
+        this.step_count++;
+        let world = this.world;
+        let player = world.localPlayer;
+        if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
+            return;
+        }
+        let f = player.walkDist - player.walkDistO;
+        if(f > 0) {
+            let pos = world.localPlayer.getBlockPos();
+            let world_block = world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+            if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
+                let default_sound   = 'madcraft:block.stone';
+                let action          = 'hit';
+                let sound           = world_block.getSound();
+                let sound_list      = Game.sounds.getList(sound, action);
+                if(!sound_list) {
+                    sound = default_sound;
+                }
+                Game.sounds.play(sound, action);
+            }
+        }
     }
 
     // onTarget
@@ -261,15 +286,6 @@ export default class Player {
                 return true;
                 break;
             }
-            // Save [F2]
-            case KEY.F2: {
-                if(!down) {
-                    Game.world.saveToDB();
-                    this.chat.messages.addSystem('Saved ... OK');
-                }
-                return true;
-                break;
-            }
             // Set spawnpoint [F3]
             case KEY.F3: {
                 if(!down) {
@@ -303,10 +319,7 @@ export default class Player {
                             cnt++;
                         }
                     } else {
-                        let np = this.pos;
-                        Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
-                        console.log('Spawnpoint changed');
-                        this.chat.messages.addSystem('Spawnpoint changed');
+                        this.changeSpawnpoint();
                     }
                 }
                 return true;
@@ -323,9 +336,7 @@ export default class Player {
             // Export world [F7]
             case KEY.F7: {
                 if(!down) {
-                    //if(e.shiftKey) {
                     Game.world.createClone();
-                    //}
                 }
                 return true;
                 break;
@@ -342,11 +353,11 @@ export default class Player {
                                     pos.y += pos.n.y;
                                     if(pos.n.y < 0) pos.y--;
                                 }
-                                Game.world.randomTeleport(pos);
+                                this.teleport(null, pos);
                             }
                         }, 1000);
                     } else {
-                        Game.world.randomTeleport();
+                        this.teleport('random', null);
                     }
                 }
                 return true;
@@ -379,7 +390,7 @@ export default class Player {
             // R (Respawn)
             case KEY.R: {
                 if(!down) {
-                    this.setPosition(Game.world.spawnPoint);
+                    Game.world.server.Teleport('spawn');
                 }
                 return true;
                 break;
@@ -515,6 +526,7 @@ export default class Player {
             let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             let extra_data  = world_block.extra_data;
             let rotate      = world_block.rotate;
+            let entity_id   = world_block.entity_id;
             if(world_block && world_block.id > 0) {
                 world_block = world_block.material;
             }
@@ -528,7 +540,7 @@ export default class Player {
                 }
                 world.setBlock(pos.x, pos.y, pos.z, world_block, null, rotate, null, extra_data);
             } else if(createBlock) {
-                let replaceBlock = world_block && (world_block.fluid || world_block.id == BLOCK.GRASS.id);
+                let replaceBlock = world_block && BLOCK.canReplace(world_block.id); // (world_block.fluid || world_block.id == BLOCK.GRASS.id);
                 if(!replaceBlock) {
                     pos.x += pos.n.x;
                     pos.y += pos.n.y;
@@ -541,7 +553,7 @@ export default class Player {
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!replaceBlock) {
                     let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    if(existingBlock.id > 0) {
+                    if(!existingBlock.canReplace()) {
                         return;
                     }
                 }
@@ -554,7 +566,7 @@ export default class Player {
                                 break;
                             }
                             case BLOCK.CHEST.id: {
-                                Game.hud.wm.getWindow('frmChest').load(world_block);
+                                Game.hud.wm.getWindow('frmChest').load(entity_id);
                                 break;
                             }
                         }
@@ -680,6 +692,21 @@ export default class Player {
         }, pickat_dist);
     }
 
+    changeSpawnpoint() {
+        let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
+        Game.world.server.SetPosSpawn(pos);
+        this.chat.messages.addSystem('Установлена точка возрождения ' + pos.toString());
+    }
+
+    // randomTeleport
+    teleport(place_id, pos) {
+        if(place_id != null) {
+            return Game.world.server.Teleport(place_id);
+        } else if(typeof pos != 'undefined' && pos) {
+            Game.world.server.Teleport(null, pos);
+        }
+    }
+
     //
     getCurrentInstrument() {
         let buildMaterial = this.buildMaterial;
@@ -735,6 +762,7 @@ export default class Player {
 
     //
     setPosition(vec) {
+        Game.world.chunkManager.clearNerby();
         let pc = this.getPlayerControl();
         pc.player.entity.position.copyFrom(vec);
     }
@@ -764,8 +792,8 @@ export default class Player {
             let delta = (performance.now() - this.lastUpdate) / 1000;
             delta = Math.min(delta, 1.0);
             // View
-            this.angles[0] = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
-            this.angles[2] = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
+            this.rotate.x = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
+            this.rotate.z = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
 
             let pc                 = this.getPlayerControl();
             this.posO              = new Vector(this.lerpPos);
@@ -776,7 +804,7 @@ export default class Player {
             pc.controls.jump       = !!this.keys[KEY.SPACE];
             pc.controls.sneak      = !!this.keys[KEY.SHIFT];
             pc.controls.sprint     = this.running;
-            pc.player_state.yaw    = this.angles[2];
+            pc.player_state.yaw    = this.rotate.z;
 
             // Physics tick
             let ticks = pc.tick(delta);
@@ -828,16 +856,16 @@ export default class Player {
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
-                this.chunkAddr          = BLOCK.getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
+                this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
 
             // Внутри какого блока находится голова (в идеале глаза)
-            let hby = this.pos.y + this.height;
-            this.headBlock = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
-            this.eyes_in_water_o = this.eyes_in_water;
-            this.eyes_in_water = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
+            let hby                 = this.pos.y + this.height;
+            this.headBlock          = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
+            this.eyes_in_water_o    = this.eyes_in_water;
+            this.eyes_in_water      = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);

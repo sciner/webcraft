@@ -2,13 +2,13 @@
     {
         "id": "demo",
         "url": "/data/map_demo.json",
-        "title": "♾️ Demo public server",
+        "title": "🟩 Demo public server",
         "state": {
             "id":"demo",
             "seed":"demo",
+            "pos_spawn": {"x":2895.7,"y": 67,"z": 2783.06},
             "pos": {"x":2895.7,"y": 67,"z": 2783.06},
             "rotate": {"x": 71, "y": 104206, "z": 513.9},
-            "spawnPoint": {"x":2895.7,"y": 67,"z": 2783.06},
             "brightness":1,
             "inventory": {"current":{"index": 0, "id":80}}
         }

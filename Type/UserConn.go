@@ -14,19 +14,23 @@ import (
 type (
 	// UserConn ...
 	UserConn struct {
-		ID       string // уникальный ID соединения
-		IDInt    int64  // ID в базе данных
-		Username string
-		Skin     string
-		Angles   []float32
-		Pos      Struct.Vector3f
-		Ws       *websocket.Conn
-		Mu       *sync.Mutex          // чтобы избежать коллизий записи в сокет
-		Join     chan *websocket.Conn // Register requests from the connections.
-		Time     time.Time            // Время соединения, time.Now()
-		Leave    chan *websocket.Conn // Unregister requests from connections.
-		Closed   bool
-		World    *World
+		Session          *Struct.UserSession
+		ID               string // уникальный GUID пользователя
+		Skin             string
+		Rotate           Struct.Vector3f
+		Pos              Struct.Vector3f
+		PosSpawn         Struct.Vector3f
+		ChunkPos         Struct.Vector3
+		ChunkPosO        Struct.Vector3
+		ChunkRenderDist  int
+		Ws               *websocket.Conn
+		Mu               *sync.Mutex          // чтобы избежать коллизий записи в сокет
+		Join             chan *websocket.Conn // Register requests from the connections.
+		Time             time.Time            // Время соединения, time.Now()
+		LastInPacketTime time.Time            // Время, когда была последняя активность от игрока по вебсокету
+		Leave            chan *websocket.Conn // Unregister requests from connections.
+		Closed           bool
+		World            *World
 	}
 )
 
@@ -61,9 +65,10 @@ func (this *UserConn) Receiver() {
 		var cmdIn Struct.Command
 		err = json.Unmarshal([]byte(command), &cmdIn)
 		if err == nil {
+			this.LastInPacketTime = time.Now()
 			// log.Println("-> CMD:", cmdIn.Name, "From:", this.ID)
 			switch cmdIn.Name {
-			case Struct.COMMAND_CONNECT:
+			case Struct.CMD_CONNECT:
 				if this.World != nil {
 					// @todo
 					log.Println("Сперва нужно выйти из предыдущего мира")
@@ -72,13 +77,14 @@ func (this *UserConn) Receiver() {
 					out, _ := json.Marshal(cmdIn.Data)
 					var param *Struct.CmdConnect
 					json.Unmarshal(out, &param)
-					log.Printf("Connect to world ID: %s; Seed: %s", param.ID, param.Seed)
-					this.World = Worlds.Get(param.ID, param.Seed)
+					log.Printf("Connect to world ID: %s", param.WorldGUID)
+					//
+					this.World = Worlds.Get(param.WorldGUID)
 					this.World.OnPlayer(this)
 				}
-			case Struct.COMMAND_PING:
+			case Struct.CMD_PING:
 				this.SendPong()
-			case Struct.COMMAND_DATA:
+			case Struct.CMD_DATA:
 				// do nothing
 			default:
 				if this.World == nil {
@@ -101,20 +107,20 @@ Exit:
 }
 
 func (this *UserConn) SendHelo() {
-	packet := Struct.JSONResponse{Name: Struct.COMMAND_MSG_HELLO, Data: "Welcome to " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_MSG_HELLO, Data: "Welcome to " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
 
 func (this *UserConn) SendPong() {
-	packet := Struct.JSONResponse{Name: Struct.COMMAND_PONG, Data: nil, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_PONG, Data: nil, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
 
 // Отправка содержимого сундука
 func (this *UserConn) SendChest(chest *Chest) {
-	packet := Struct.JSONResponse{Name: Struct.COMMAND_CHEST, Data: chest, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CHEST_CONTENT, Data: chest, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }

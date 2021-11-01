@@ -1,7 +1,8 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
-import {BLOCK} from '../blocks.js';
+import {getChunkAddr} from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
+import {BLOCK} from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
@@ -10,14 +11,14 @@ export default class Particles_Block_Destroy {
 
     // Constructor
     constructor(render, block, pos, small) {
-        let chunk_addr  = BLOCK.getChunkAddr(pos.x, pos.y, pos.z);
+        let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
         if(!chunk.map) {
             debugger;
             return false;
         }
         let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
-        this.yaw        = -Game.world.localPlayer.angles[2];
+        this.yaw        = -Game.world.localPlayer.rotate.z;
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
         let ao          = [0, 0, 0, 0];

@@ -1,0 +1,19 @@
+[
+    {
+        "id": 518,
+        "inventory_icon_id": 221,
+        "spawnable": false,
+        "passable": 0,
+        "sound": "madcraft:block.stone",
+        "texture": [
+            0,
+            0
+        ],
+        "name": "LODESTONE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "max_in_stack": 64
+    }
+]

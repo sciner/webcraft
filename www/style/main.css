@@ -46,21 +46,36 @@ body {
     /* animation: scrollBg 90s linear infinite; */
 }
 
+:root {
+    --animate-duration: .3s;
+    --animate-delay: .3s;
+    --animate-repeat: .3;
+}
+
 .form-doubles {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
+}
+
+/* On screens that are 600px or less, set the background color to olive */
+@media screen and (max-width: 600px) {
+    .form-doubles {
+        flex-wrap: wrap;
+    }
+    #form-shareGame {
+        width: 90%;
+    }
 }
 
 h4 {
     margin-top: 0;
 }
 
-form {
+form, .form-styled {
     border-radius: 3px;
     margin: 1em;
-    width: 285px;
-    max-width: 100%;
+    width: 100%;
+    max-width: 340px;
     /*
     background-color: #aaa;
     border: 2px solid white;
@@ -74,7 +89,7 @@ form {
     text-align: center;
 }
 
-input[type="text"] {
+input[type="text"], input[type="password"] {
     border: 2px solid white;
     font-family: 'minecraftia';
     background: #000;
@@ -84,6 +99,7 @@ input[type="text"] {
     margin-bottom: 1em;
     color: white;
     text-shadow: 2px 2px 1px #555;
+    width: 100%;
 }
 
 .disabled {
@@ -96,6 +112,17 @@ body.started #main-menu {
 }
 
 body:not(.started) #renderSurface {
+    display: none;
+}
+
+.visible_in_game_menu {
+    z-index: 2;
+}
+body.started.controls_enabled .visible_in_game_menu {
+    display: none;
+}
+
+body:not(.started) .visible_only_in_game_menu {
     display: none;
 }
 
@@ -230,4 +257,42 @@ button {
 	color: white;
 	font-family: minecraftia;
 	font-size: 16px;
+}
+
+#btns-pad {
+    position: fixed;
+    right: .5em;
+    bottom: .5em;
+    z-index: 2;
+}
+#btns-pad > * {
+    margin: .5em;
+}
+
+#form-shareGame {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 3;
+    background: #3bb464 !important;
+    border-top-color: #4bc774 !important;
+    border-bottom-color: #319953 !important;
+    border-top: 3px solid;
+    border-bottom: 3px solid;
+    box-shadow: 0 0 50px #000;
+}
+
+#form-shareGame > div {
+    margin-bottom: 1em;
+    margin-bottom: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.vt-card p {
+    margin: 0;
+    font-size: 14px;
+    text-shadow: none;
 }

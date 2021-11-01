@@ -1,22 +1,33 @@
+import {RecipeWindow} from "./window/index.js";
 import {Helpers} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 
-const RECIPES = {
-    all:             [],
-    crafting_shaped: {
-        list: [],
-        searchRecipeResult: function(pattern_array) {
-            for(let recipe of this.list) {
-                if(recipe.pattern_array.length == pattern_array.length) {
-                    if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
-                        return recipe.result;
+export class RecipeManager {
+
+    constructor(inventory_image) {
+        this.inventory_image = inventory_image;
+        this.all = [];
+        this.crafting_shaped = {
+            list: [],
+            searchRecipeResult: function(pattern_array) {
+                for(let recipe of this.list) {
+                    if(recipe.pattern_array.length == pattern_array.length) {
+                        if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
+                            return recipe.result;
+                        }
                     }
                 }
+                return null;
             }
-            return null;
-        }
-    },
-    add: function(recipe) {
+        };
+        this.load(() => {
+            // Recipe window
+            this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
+            Game.hud.wm.add(this.frmRecipe);
+        });
+    }
+
+    add(recipe) {
         if(!recipe) {
             throw 'Empty recipe';
         }
@@ -57,6 +68,54 @@ const RECIPES = {
                 }
                 let r = Object.assign({}, recipe);
                 r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
+                // Calculate pattern minimal area size
+                let min_x = 100;
+                let min_y = 100;
+                let max_x = -100;
+                let max_y = -100;
+                for(let row in recipe.pattern) {
+                    let s = recipe.pattern[row].trim().split('');
+                    if(s.length > 0) {
+                        if(row < min_y) min_y = row;
+                        if(row > max_y) max_y = row;
+                        for(let col in s) {
+                            if(col < min_x) min_x = col;
+                            if(col > max_x) max_x = col;
+                        }
+                    }
+                }
+                //
+                r.size = {
+                    width: max_x - min_x + 1,
+                    height: max_y - min_y + 1
+                };
+                //
+                r.getCroppedPatternArray = function(size) {
+                    let resp = [];
+                    for(let i in this.pattern_array) {
+                        if(i % 3 == size.width) {
+                            continue;
+                        }
+                        resp.push(this.pattern_array[i]);
+                    }
+                    return resp;
+                };
+                // Need resources
+                r.need_resources = new Map();
+                for(let item_id of r.pattern_array) {
+                    if(!item_id) {
+                        continue;
+                    }
+                    if(!r.need_resources.has(item_id)) {
+                        r.need_resources.set(item_id, {
+                            item_id: item_id,   
+                            count: 0
+                        });
+                    }
+                    r.need_resources.get(item_id).count++;
+                }
+                r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
+                //
                 this.crafting_shaped.list.push(r);
                 break;
             }
@@ -65,8 +124,9 @@ const RECIPES = {
                 break;
             }
         }
-    },
-    makeRecipePattern: function(pattern, keys) {
+    }
+
+    makeRecipePattern(pattern, keys) {
         // Make pattern
         for(let pk in pattern) {
             if(pattern[pk].length < 3) {
@@ -87,12 +147,28 @@ const RECIPES = {
                 return keys[key];
             });
     }
-}
 
-Helpers.loadJSON('../data/recipes.json', function(json) {
-    for(let recipe of json) {
-        RECIPES.add(recipe);
+    // Compare two patterns for equals
+    patternsIsEqual(p1, p2) {
+        if(p1.length != p2.length) {
+            return false;
+        }
+        for(let i of p1) {
+            if(p1[i] != p2[i]) {
+                return false;
+            }
+        }
+        return true;
     }
-});
 
-export default RECIPES;
+    load(callback) {
+        let that = this;
+        Helpers.loadJSON('../data/recipes.json', function(json) {
+            for(let recipe of json) {
+                that.add(recipe);
+            }
+            callback();
+        });
+    }
+
+}

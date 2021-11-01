@@ -1,6 +1,8 @@
 package Struct
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	BLOCK_CHEST      int   = 54
@@ -8,27 +10,33 @@ const (
 	GAME_DAY_SECONDS int64 = 24000
 
 	// команды
-	COMMAND_MSG_HELLO          int = 1
-	COMMAND_PING               int = 3
-	COMMAND_PONG               int = 4
-	COMMAND_ERROR              int = 7   // какая-то ошибка (ИСХ)
-	COMMAND_DATA               int = 200 // custom string data
-	COMMAND_IS_TYPING          int = 201 //
-	COMMAND_CONNECT            int = 34  // в мир вошел новый игрок
-	CLIENT_BLOCK_DESTROY       int = 35
-	CLIENT_BLOCK_SET           int = 36
-	EVENT_CHUNK_ADD            int = 37
-	EVENT_CHUNK_REMOVE         int = 38
-	EVENT_CHUNK_LOADED         int = 39
-	EVENT_CHAT_SEND_MESSAGE    int = 40 // Клиент прислал сообщение
-	CLIENT_PLAYER_JOIN         int = 41 // Информирование клиента о том, что другой игрок вошел в игру
-	CLIENT_PLAYER_LEAVE        int = 42 // Информирование клиента о том, что другой игрок покинул игру
-	EVENT_PLAYER_STATE         int = 43
-	CLIENT_CREATE_ENTITY       int = 44 // Клиент хочет создать сущность
-	CLIENT_LOAD_CHEST          int = 45 // Клиент запросил содержимое сундука
-	COMMAND_CHEST              int = 46 // Отправка клиенту содержимого сундука
-	CLIENT_SET_CHEST_SLOT_ITEM int = 47 // Получены новые данные о содержимом слоте сундука
-	WORLD_STATE                int = 60 // состояние мира
+	CMD_MSG_HELLO              int = 1
+	CMD_PING                   int = 3
+	CMD_PONG                   int = 4
+	CMD_ERROR                  int = 7   // какая-то ошибка (ИСХ)
+	CMD_DATA                   int = 200 // custom string data
+	CMD_IS_TYPING              int = 201 //
+	CMD_CONNECT                int = 34  // в мир вошел новый игрок
+	CMD_BLOCK_DESTROY          int = 35
+	CMD_BLOCK_SET              int = 36
+	CMD_CHUNK_ADD              int = 37
+	CMD_CHUNK_REMOVE           int = 38
+	CMD_CHUNK_LOADED           int = 39
+	CMD_CHAT_SEND_MESSAGE      int = 40 // Клиент прислал сообщение
+	CMD_PLAYER_JOIN            int = 41 // Информирование клиента о том, что другой игрок вошел в игру
+	CMD_PLAYER_LEAVE           int = 42 // Информирование клиента о том, что другой игрок покинул игру
+	CMD_PLAYER_STATE           int = 43
+	CMD_CREATE_ENTITY          int = 44 // Клиент хочет создать сущность
+	CMD_LOAD_CHEST             int = 45 // Клиент запросил содержимое сундука
+	CMD_CHEST_CONTENT          int = 46 // Отправка клиенту содержимого сундука
+	CMD_SET_CHEST_SLOT_ITEM    int = 47 // Получены новые данные о содержимом слоте сундука
+	CMD_WORLD_STATE            int = 60 // состояние мира
+	CMD_CONNECTED              int = 62
+	CMD_CHANGE_POS_SPAWN       int = 63
+	CMD_TELEPORT_REQUEST       int = 64
+	CMD_TELEPORT               int = 65
+	CMD_SAVE_INVENTORY         int = 66
+	CMD_NEARBY_MODIFIED_CHUNKS int = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -58,9 +66,9 @@ type (
 		Z int `json:"z"`
 	}
 	Vector3f struct {
-		X float32 `json:"x"`
-		Y float32 `json:"y"`
-		Z float32 `json:"z"`
+		X float64 `json:"x"`
+		Y float64 `json:"y"`
+		Z float64 `json:"z"`
 	}
 	BlockItem struct {
 		ID        int                    `json:"id"`
@@ -79,21 +87,12 @@ type (
 	}
 	// CmdConnect
 	CmdConnect struct {
-		ID   string `json:"id"`
-		Seed string `json:"seed"`
+		WorldGUID string `json:"world_guid"`
 	}
 	// CmdChunkState
 	CmdChunkState struct {
 		Pos        Vector3              `json:"pos"`
 		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
-	}
-	//
-	WorldAttrs struct {
-		ID       string    `json:"id"`
-		Seed     string    `json:"seed"`
-		CTime    time.Time `json:"time"` // Время создания, time.Now()
-		Title    string    `json:"title"`
-		AuthodID string    `json:"author_id"`
 	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {
@@ -102,11 +101,28 @@ type (
 		Item      BlockItem `json:"item"`
 	}
 	ParamPlayerState struct {
-		Nickname string    `json:"nickname"`
-		ID       string    `json:"id"`
-		Angles   []float32 `json:"angles"`
-		Pos      Vector3f  `json:"pos"`
-		Ping     int       `json:"ping"`
+		Nickname        string   `json:"nickname"`
+		ID              string   `json:"id"`
+		Pos             Vector3f `json:"pos"`
+		Rotate          Vector3f `json:"rotate"`
+		Ping            int      `json:"ping"`
+		ChunkRenderDist int      `json:"chunk_render_dist"`
+	}
+	PlayerInventoryCurrent struct {
+		Index int64 `json:"index"`
+	}
+	PlayerInventory struct {
+		Items   []*BlockItem            `json:"items"`
+		Current *PlayerInventoryCurrent `json:"current"`
+	}
+	PlayerState struct {
+		Brightness float32          `json:"brightness"`
+		PosSpawn   *Vector3f        `json:"pos_spawn"`
+		Pos        *Vector3f        `json:"pos"`
+		Rotate     *Vector3f        `json:"rotate"`
+		Flying     bool             `json:"flying"`
+		Inventory  *PlayerInventory `json:"inventory"`
+		World      *WorldProperties `json:"world"`
 	}
 	/*
 		ParamCreateEntity struct {
@@ -128,11 +144,11 @@ type (
 		Text     string `json:"text"`
 	}
 	ParamPlayerJoin struct {
-		ID       string    `json:"id"`
-		Nickname string    `json:"nickname"`
-		Skin     string    `json:"skin"`
-		Angles   []float32 `json:"angles"`
-		Pos      Vector3f  `json:"pos"`
+		ID       string   `json:"id"`
+		Nickname string   `json:"nickname"`
+		Skin     string   `json:"skin"`
+		Pos      Vector3f `json:"pos"`
+		Rotate   Vector3f `json:"rotate"`
 	}
 	ParamPlayerLeave struct {
 		ID string `json:"id"`
@@ -146,6 +162,16 @@ type (
 		Age      int64 `json:"age"`       // Возраст мира с момента его создания в игровых днях
 		AgeShift int64 `json:"age_shift"` // Смещение времени в игровых секундах
 		DayTime  int64 `json:"day_time"`  // Текущее время в игровых секундах (0 ... 23999)
+	}
+	WorldProperties struct {
+		ID        int64                  `json:"id"`
+		UserID    int64                  `json:"user_id"`
+		Dt        time.Time              `json:"dt"`
+		GUID      string                 `json:"guid"`
+		Title     string                 `json:"title"`
+		Seed      string                 `json:"seed"`
+		Generator map[string]interface{} `json:"generator"`
+		PosSpawn  *Vector3f              `json:"pos_spawn"`
 	}
 	// JSONResponse ...
 	JSONResponse struct {
@@ -176,4 +202,34 @@ type (
 		Code int    `json:"code"`
 		Text string `json:"text"`
 	}
+	// UserSession ...
+	UserSession struct {
+		UserID    int64  `json:"user_id"`
+		UserGUID  string `json:"user_guid"`
+		Username  string `json:"username"`
+		SessionID string `json:"session_id"`
+	}
+	ParamPosSpawn struct {
+		Pos Vector3f `json:"pos"`
+	}
+	// Запрос от клиента на перемещение к указанному месту или координате
+	ParamTeleportRequest struct {
+		PlaceID string    `json:"place_id"`
+		Pos     *Vector3f `json:"pos"`
+	}
+	// Исходящая от сервера команда для клиента, о перемещении
+	ParamTeleport struct {
+		PlaceID string    `json:"place_id"`
+		Pos     *Vector3f `json:"pos"`
+	}
+	SessionError struct{}
 )
+
+func (m *SessionError) Error() string {
+	return "error_invalid_session"
+}
+
+// Vector3.Equal
+func (this *Vector3) Equal(vec Vector3) bool {
+	return this.X == vec.X && this.Y == vec.Y && this.Z == vec.Z
+}

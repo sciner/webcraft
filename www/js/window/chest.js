@@ -1,6 +1,6 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
-import {CraftTableInventorySlot} from "./craft_table.js";
 import {BLOCK} from "../blocks.js";
+import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {CraftTableInventorySlot} from "./base_craft_window.js";
 
 export default class ChestWindow extends Window {
 
@@ -17,9 +17,6 @@ export default class ChestWindow extends Window {
         ct.style.border.hidden = true;
         ct.setBackground('./media/gui/form-chest.png');
         ct.hide();
-
-        // Add buttons
-        this.addCloseButton();
 
         this.dragItem = null;
 
@@ -77,13 +74,13 @@ export default class ChestWindow extends Window {
     }
 
     // Запрос содержимого сундука
-    load(block) {
+    load(entity_id) {
         let that = this;
         this.lbl1.setText('LOADING...');
-        this.entity_id  = block.entity_id;
+        this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.world.server.LoadChest(block.entity_id);
+        Game.world.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);

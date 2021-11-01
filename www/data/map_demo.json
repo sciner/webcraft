@@ -2,7 +2,7 @@
     "id":"demo",
     "pos": {"x":2895.7,"y": 67,"z": 2783.06},
     "rotate": {"x": 71, "y": 104206, "z": 513.9},
-    "spawnPoint": {"x":2895.7,"y": 67,"z": 2783.06},
+    "pos_spawn": {"x":2895.7,"y": 67,"z": 2783.06},
     "brightness":1,
     "inventory":{"current":{"id":80}}
 }

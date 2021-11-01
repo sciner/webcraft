@@ -1,11 +1,11 @@
-import {BLOCK} from "./blocks.js";
 import { Vector } from "./helpers.js";
+import { BLOCK } from "./blocks.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
 const SYSTEM_NAME               = '<MadCraft>';
 
-export default class Chat {
+export class Chat {
 
     constructor() {
         this.active                 = false;
@@ -146,7 +146,7 @@ export default class Chat {
                         let x = parseFloat(temp[0].trim());
                         let y = parseFloat(temp[1].trim());
                         let z = parseFloat(temp[2].trim());
-                        Game.world.localPlayer.setPosition(new Vector(x, y, z));
+                        Game.world.localPlayer.teleport(null, new Vector(x, y, z));
                     } else {
                         Game.world.localPlayer.chat.messages.addError(`Incorrect argument for command`);
                     }
@@ -168,15 +168,7 @@ export default class Chat {
                     break;
                 }
                 case '/spawnpoint': {
-                    let np = Game.world.localPlayer.pos;
-                    let pos = new Vector(
-                        Math.round(np.x),
-                        Math.round(Game.world.localPlayer.pos.y),
-                        Math.round(Game.world.localPlayer.pos.z)
-                    );
-                    Game.world.spawnPoint = new Vector(np.x, np.y, np.z);
-                    Game.world.saveToDB();
-                    Game.world.localPlayer.chat.messages.addSystem('Установлена точка возрождения ' + pos.x + ', ' + pos.y + ', ' + pos.z);
+                    Game.world.localPlayer.changeSpawnpoint();
                     break;
                 }
                 case '/weather': {

@@ -1,5 +1,6 @@
 import {Color, Vector} from '../helpers.js';
 import { default as push_plane_style } from '../block_style/plane.js';
+import {BLOCK} from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
@@ -8,7 +9,6 @@ export default class Particles_Sun {
 
     // Constructor
     constructor(gl, pos) {
-        // this.yaw        = -Game.world.localPlayer.angles[2];
         this.life       = 1;
         let lm          = new Color(0, 0, 0, 0);
         let ao          = [0, 0, 0, 0];

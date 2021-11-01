@@ -1,7 +1,7 @@
 import {Color, DIRECTION, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
-import {BLOCK} from '../blocks.js';
 import { default as push_plane_style } from '../block_style/plane.js';
 import GeometryTerrain from "../geometry_terrain.js";
+import {BLOCK} from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
@@ -10,7 +10,7 @@ export default class Particles_Raindrop {
 
     // Constructor
     constructor(gl, pos) {
-        this.yaw        = -Game.world.localPlayer.angles[2];
+        this.yaw        = -Game.world.localPlayer.rotate.z;
         this.life       = 0.5;
         let lm          = new Color(0, 0, 0, 0);
         let ao          = [0, 0, 0, 0];

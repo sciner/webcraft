@@ -1,11 +1,7 @@
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.js";
 import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector } from './helpers.js';
+import { ResourcePackManager } from './resource_pack_manager.js';
 
-export const CHUNK_SIZE_X                   = 16;
-export const CHUNK_SIZE_Y                   = 32;
-export const CHUNK_SIZE_Z                   = 16;
-export const CHUNK_BLOCKS                   = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
-export const CHUNK_SIZE_Y_MAX               = 4096;
-export const MAX_CAVES_LEVEL                = 256;
 export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
@@ -29,12 +25,15 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 export class BLOCK {
 
-    static styles = [];
-    static ao_invisible_blocks = [];
+    static list                 = [];
+    static styles               = [];
+    static ao_invisible_blocks  = [];
+
+    static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'];
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
-        /*let index = BLOCK.getIndex(x, y, z);
+        let index = BLOCK.getIndex(x, y, z);
         if(index >= 0 && index < CHUNK_BLOCKS) {
             let light_power = lightmap[index];
             if(light_power != 0) {
@@ -46,11 +45,11 @@ export class BLOCK {
                     ao[3] - light_power,
                 ];
             }
-        }*/
+        }
         return ao;
     }
 
-    // Return flat index of chunk block
+    // Return flat index of chunk block 
     static getIndex(x, y, z) {
         if(x instanceof Vector) {
             y = x.y;
@@ -66,26 +65,6 @@ export class BLOCK {
         }
         */
         return index;
-    }
-
-    // Возвращает адрес чанка по глобальным абсолютным координатам
-    static getChunkAddr(x, y, z) {
-        if(x instanceof Vector) {
-            y = x.y;
-            z = x.z;
-            x = x.x;
-        }
-        //
-        let v = new Vector(
-            Math.floor(x / CHUNK_SIZE_X),
-            Math.floor(y / CHUNK_SIZE_Y),
-            Math.floor(z / CHUNK_SIZE_Z)
-        );
-        // Fix negative zero
-        if(v.x == 0) {v.x = 0;}
-        if(v.y == 0) {v.y = 0;}
-        if(v.z == 0) {v.z = 0;}
-        return v;
     }
 
     //
@@ -111,10 +90,6 @@ export class BLOCK {
         if(y < 0) v.y = CHUNK_SIZE_Y - 1 - v.y;
         if(z < 0) v.z = CHUNK_SIZE_Z - 1 - v.z;
         return v;
-    }
-
-    static add(block) {
-        this[block.name] = block;
     }
 
     // Call before setBlock
@@ -163,8 +138,6 @@ export class BLOCK {
         return b;
     }
 
-    
-
     // Returns a block structure for the given id.
     static fromName(name) {
         if(name.indexOf(':') >= 0) {
@@ -181,6 +154,18 @@ export class BLOCK {
     static isPlants(id) {
         let b = this.fromId(id);
         return b && !!b.planting;
+    }
+
+    // Can replace
+    static canReplace(block_id) {
+        if(block_id == 0) {
+            return true;
+        }
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.FLOWING_WATER.id, BLOCK.CLOUD.id].indexOf(block_id) >= 0) {
+            return true;
+        }
+        let block = BLOCK.BLOCK_BY_ID[block_id];
+        return !!block.fluid;
     }
 
     // Блок может быть уничтожен водой
@@ -220,18 +205,23 @@ export class BLOCK {
         return group;
     }
 
-    // getAll
-    static getAll() {
-        if(this.list) {
-            return this.list;
+    static reset() {
+        this.list                   = [];
+        this.BLOCK_BY_ID            = {};
+        this.BLOCK_BY_TAGS          = {};
+        this.ao_invisible_blocks    = [];
+    }
+
+    static add(block) {
+        // Check duplicate ID
+        if(this.BLOCK_BY_ID.hasOwnProperty(block.id))  {
+            console.error('Duplicate block id ', block.id, block);
         }
-        let list = this.list = [];
-        this.BLOCK_BY_ID = {};
-        this.BLOCK_BY_TAGS = {};
         // Function calc and return destroy time for specific block
-        let calcDestroyTime = (block)  => {
+        let calcDestroyTime = (block) => {
             let destroy_time = .4;
-            if(block.id == BLOCK.BEDROCK.id) {
+            // bedrock
+            if(block.id == 1) {
                 return -1;
             }
             if(block.hasOwnProperty('style')) {
@@ -262,59 +252,42 @@ export class BLOCK {
             return destroy_time;
         };
         //
-        let max_id = -1;
-        this.ao_invisible_blocks = [];
-        for(let mat in this) {
-            let B = this[mat];
-            if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
-                // Check duplicate ID
-                if(this.BLOCK_BY_ID.hasOwnProperty(B.id))  {
-                    console.error('Duplicate block id ', B.id, B);
+        block.style = block.hasOwnProperty('style') ? block.style : 'default';
+        if(block.style && block.style == 'triangle') {
+            return;
+        }
+        block.destroy_time      = calcDestroyTime(block);
+        block.power             = 1;
+        block.group             = this.getBlockStyleGroup(block);
+        block.selflit           = block.hasOwnProperty('selflit') && block.selflit;
+        block.transparent       = block.hasOwnProperty('transparent') && block.transparent;
+        // Fix properties
+        if(!block.hasOwnProperty('light')) block.light = null;
+        if(!block.hasOwnProperty('spawnable')) block.spawnable = true;
+        if(!block.hasOwnProperty('max_in_stack')) block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
+        if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;
+        if(block.style && block.style == 'planting') block.planting = true;
+        if(block.style && block.style == 'stairs') block.transparent = true;
+        if(block.planting || block.style == 'fence' || block.style == 'ladder') this.ao_invisible_blocks.push(block.id);
+        // Parse tags
+        if(block.hasOwnProperty('tags')) {
+            for(let tag of block.tags) {
+                if(!this.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
+                    this.BLOCK_BY_TAGS[tag] = [];
                 }
-                //
-                B.name = mat;
-                B.destroy_time = calcDestroyTime(B);
-                B.power = 1;
-                B.group = this.getBlockStyleGroup(B);
-                B.selflit = B.hasOwnProperty('selflit') && B.selflit;
-                B.transparent = B.hasOwnProperty('transparent') && B.transparent;
-                B.style = B.hasOwnProperty('style') ? B.style : 'default';
-                // Fix properties
-                if(!B.hasOwnProperty('light')) B.light = null;
-                if(!B.hasOwnProperty('spawnable')) B.spawnable = true;
-                if(!B.hasOwnProperty('max_in_stack')) B.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
-                if(!B.hasOwnProperty('inventory_icon_id')) B.inventory_icon_id = 0;
-                if(B.style && B.style == 'planting') B.planting = true;
-                if(B.style && B.style == 'stairs') B.transparent = true;
-                if(B.style && B.style == 'triangle') continue;
-                if(B.planting || B.style == 'fence' || B.style == 'ladder') this.ao_invisible_blocks.push(B.id);
-                //
-                if(B.id > max_id) {
-                    max_id = B.id;
-                }
-                //
-                this.BLOCK_BY_ID[B.id] = B;
-                if(B.hasOwnProperty('tags')) {
-                    for(let tag of B.tags) {
-                        if(!this.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
-                            this.BLOCK_BY_TAGS[tag] = [];
-                        }
-                        this.BLOCK_BY_TAGS[tag].push(B);
-                    }
-                }
-                //
-                list.push(B);
+                this.BLOCK_BY_TAGS[tag].push(block);
             }
         }
-        // visible_for_ao
-        for(let mat in this) {
-            let B = this[mat];
-            if(typeof(B) == 'object' && B.hasOwnProperty('id')) {
-                B.visible_for_ao = BLOCK.visibleForAO(B);
-            }
-        }
-        console.log('Max BLOCK.id = ', max_id);
-        return list;
+        // Calculate in last time, after all init procedures
+        block.visible_for_ao    = BLOCK.visibleForAO(block);
+        this[block.name] = block;
+        this.BLOCK_BY_ID[block.id] = block;
+        this.list.push(block);
+    }
+
+    // getAll
+    static getAll() {
+        return this.list;
     }
 
     /**
@@ -414,17 +387,6 @@ export class BLOCK {
         if(block_id < 1) return false;
         if(this.ao_invisible_blocks.indexOf(block_id) >= 0) return false;
         return true;
-    }
-
-    // pushVertices
-    static pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
-        // const style = 'style' in block ? block.style : 'default';
-        const style = block.properties.style;
-        let module = this.styles[style];
-        if(!module) {
-            throw 'Invalid vertices style `' + style + '`';
-        }
-        return module.func(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
     }
 
     // Return inventory icon pos
@@ -779,37 +741,28 @@ export class BLOCK {
 
 };
 
-//
-await fetch('../data/blocks.json').then(response => response.json()).then(json => {
-    json.sort((a, b) => {
-        //
-        if(a.inventory_icon_id == 0) {
-            return 1;
-        } else if(b.inventory_icon_id == 0) {
-            return -1;
+// Load
+BLOCK.load = async function(resource_packs) {
+
+    // Load supported block styles
+    await fetch('../data/block_style.json').then(response => response.json()).then(json => {
+        for(let code of json) {
+            // load module
+            import("./block_style/" + code + ".js").then(module => {
+                BLOCK.registerStyle(module.default);
+            });
         }
-        //
-        if(!a.style) a.style = 'default';
-        if(!b.style) b.style = 'default';
-        if(a.style != b.style) {
-            return a.style > b.style ? 1 : -1;
-        }
-        return b.id - a.id;
     });
-    for(let block of json) {
-        BLOCK.add(block);
-    }
-});
 
-// Run getAll()
-BLOCK.getAll();
-
-// Load supported block styles
-await fetch('../data/block_style.json').then(response => response.json()).then(json => {
-    for(let code of json) {
-        // load module
-        import("./block_style/" + code + ".js").then(module => {
-            BLOCK.registerStyle(module.default);
-        });
+    //
+    if(BLOCK.list.length == 0) {
+        // Reset slots
+        BLOCK.reset();
+        // Load Resourse packs (blocks)
+        BLOCK.resource_pack_manager = new ResourcePackManager();
+        for(let rp of resource_packs.values()) {
+            await BLOCK.resource_pack_manager.registerResourcePack(rp);
+        }
     }
-});
+
+};

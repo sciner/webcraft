@@ -78,7 +78,7 @@ export default class MainMenu extends Window {
 
     addCloseButton() {
         // Close button
-        let btnClose = this.btnClose = new Button(20, 130, this.width - 40, 40, 'btnClose', 'Save and exit');
+        let btnClose = this.btnClose = new Button(20, 130, this.width - 40, 40, 'btnClose', 'Exit');
         btnClose.style.background.color = '#777777ff';
         btnClose.style.color = '#ffffffff';
         btnClose.style.font.shadow = {
@@ -89,10 +89,12 @@ export default class MainMenu extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         btnClose.onMouseDown = function(e) {
-            Game.world.saveToDB(function() {
+            /*Game.world.saveToDB(function() {
                 // document.exitFullscreen();
                 location.reload();
             });
+            */
+            location.reload();
         }
         btnClose.onMouseEnter = function() {
             this.style.background.color = '#8892c9';

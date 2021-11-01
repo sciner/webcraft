@@ -14,7 +14,7 @@ export class Kb {
                     return false;
                 }
             }
-            if (e.ctrlKey) {
+            if (e.ctrlKey && e.key !== '0') {
                 event.preventDefault();
                 event.stopPropagation();
                 return false;

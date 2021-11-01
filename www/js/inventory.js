@@ -1,11 +1,11 @@
-import {BLOCK} from "./blocks.js";
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
+import {RecipeManager} from "./recipes.js";
+import { BLOCK } from "./blocks.js";
 
 // Player inventory
-
 export default class Inventory {
-    
+
     constructor(player, hud) {
         let that            = this;
         this.player         = player;
@@ -19,35 +19,46 @@ export default class Inventory {
             this.items.push(null);
         }
         //
-        this.restoreItems(Game.world.saved_state.inventory.items);
+        this.restoreItems(Game.world.saved_state.inventory);
+        this.select(Game.world.saved_state.inventory.current.index);
         // set inventory to user
         this.player.setInventory(this);
         //
-        this.select(Game.world.saved_state.inventory.current.index);
-        //
         let image = new Image(); // new Image(40, 40); // Размер изображения
-        image.onload = function() {
+        image.onload = () => {
             that.inventory_image = image;
             that.hud.add(that, 0);
+
+            // Recipe manager
+            this.recipes = new RecipeManager(image);
+
+            // CraftTable
+            this.ct = new CraftTable(this.recipes, 0, 0, 352, 332, 'frmCraft', null, null, this);
+            this.ct.visible = false;
+            hud.wm.add(this.ct);
+
+            // Inventory window
+            this.frmInventory = new InventoryWindow(this.recipes, 10, 10, 352, 332, 'frmInventory', null, null, this);
+            hud.wm.add(this.frmInventory);
+            // Creative Inventory window
+            this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
+            hud.wm.add(this.frmCreativeInventory);
+            // Chest window
+            this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
+            hud.wm.add(this.frmChest);
+
         }
         image.src = './media/inventory2.png';
-        // CraftTable
-        this.ct = new CraftTable(10, 10, 352, 332, 'frmCraft', null, null, this);
-        hud.wm.add(this.ct);
-        // Inventory window
-        this.frmInventory = new InventoryWindow(10, 10, 352, 332, 'frmInventory', null, null, this);
-        hud.wm.add(this.frmInventory);
-        // Creative Inventory window
-        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
-        hud.wm.add(this.frmCreativeInventory);
-        // Chest window
-        this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
-        hud.wm.add(this.frmChest);
     }
 
     //
     exportItems() {
-        let resp = [];
+        let resp = {
+            current: {
+                index: this.index
+            },
+            items: []
+        }
         for(var item of this.items) {
             let t = null;
             if(item) {
@@ -64,18 +75,49 @@ export default class Inventory {
                     }
                 }
             }
-            resp.push(t);
+            resp.items.push(t);
+        }
+        return resp;
+    }
+
+    // Возвращает список того, чего и в каком количестве не хватает в текущем инвентаре по указанному списку
+    hasResources(resources) {
+        let resp = [];
+        for(let resource of resources) {
+            let r = {
+                item_id: resource.item_id,
+                count: resource.count
+            };
+            // Each all items in inventoryy
+            for(var item of this.items) {
+                if(!item) {
+                    continue;
+                }
+                if(item.id == r.item_id) {
+                    if(item.count > r.count) {
+                        r.count = 0;
+                    } else {
+                        r.count -= item.count;
+                    }
+                    if(r.count == 0) {
+                        break;
+                    }
+                }
+            }
+            if(r.count > 0) {
+                resp.push(r);
+            }
         }
         return resp;
     }
 
     //
-    restoreItems(items) {
-        this.items          = []; // new Array(this.max_count);
+    restoreItems(saved_inventory) {
+        let items = saved_inventory.items;
+        this.items = []; // new Array(this.max_count);
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-
         this.index = 0;
         for(let k in items) {
             if(k >= this.items.length) {
@@ -101,8 +143,38 @@ export default class Inventory {
     }
 
     // Refresh
-    refresh() {
+    refresh(changed) {
+        Game.world.server.SaveInventory(this.exportItems());
         this.hud.refresh();
+        try {
+            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+            frmRecipe.paginator.update();
+        } catch(e) {
+            // do nothing
+        }
+    }
+
+    // decrementByItemID
+    decrementByItemID(item_id, count) {
+        for(let i in this.items) {
+            let item = this.items[i];
+            if(!item || item.count < 1) {
+                continue;
+            }
+            if(item.id == item_id) {
+                if(item.count >= count) {
+                    item.count -= count;
+                    if(item.count < 1) {
+                        this.items[i] = null;
+                    }
+                    break;
+                } else {
+                    count -= item.count;
+                    item.count = 0;
+                    this.items[i] = null;
+                }
+            }
+        }
     }
     
     increment(mat) {
@@ -132,13 +204,13 @@ export default class Inventory {
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
-                            this.refresh();
+                            this.refresh(true);
                             return;
                         } else {
                             let remains = (item.count + mat.count) - item_max_count;
                             item.count = item_max_count;
                             mat.count = remains;
-                            this.refresh();
+                            this.refresh(true);
                         }
                     }
                 }
@@ -161,7 +233,7 @@ export default class Inventory {
                 if(mat.count > 0) {
                     this.increment(mat);
                 }
-                this.refresh();
+                this.refresh(true);
                 return;
             }
         }
@@ -176,7 +248,7 @@ export default class Inventory {
         if(this.current.count < 1) {
             this.current = this.player.buildMaterial = this.items[this.index] = null;
         }
-        this.refresh();
+        this.refresh(true);
     }
     
     //
@@ -196,7 +268,7 @@ export default class Inventory {
         }
         this.index = index;
         this.current = this.player.buildMaterial = this.items[index];
-        this.refresh();
+        this.refresh(false);
         this.player.onInventorySelect(this.current);
     }
     
@@ -223,7 +295,7 @@ export default class Inventory {
                 let item = this.items[k];
                 if(item.id == mat.id) {
                     this.select(parseInt(k));
-                    return this.refresh();
+                    return this.refresh(false);
                 }
             }
         }
@@ -234,7 +306,7 @@ export default class Inventory {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
-                return this.refresh();
+                return this.refresh(true);
             }
         }
         // Start new cell
@@ -246,7 +318,7 @@ export default class Inventory {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
                 this.select(parseInt(k));
-                return this.refresh();
+                return this.refresh(true);
             }
         }
         // Replace current cell
@@ -255,7 +327,7 @@ export default class Inventory {
             this.items[k] = Object.assign({count: 1}, mat);
             delete(this.items[k].texture);
             this.select(parseInt(k));
-            return this.refresh();
+            return this.refresh(true);
         }
     }
     
@@ -263,9 +335,10 @@ export default class Inventory {
         if(!this.index) {
             this.index = 0;
         }
-        hud.wm.center(this.ct);
-        hud.wm.center(this.frmInventory);
-        hud.wm.center(this.frmCreativeInventory);
+        hud.wm.centerChild();
+        // hud.wm.center(this.ct);
+        // hud.wm.center(this.frmInventory);
+        // hud.wm.center(this.frmCreativeInventory);
     }
     
     drawHotbar(hud, cell_size, pos) {

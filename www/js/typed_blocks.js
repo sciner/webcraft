@@ -1,5 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {BLOCK, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
+import {BLOCK} from "./blocks.js";
 
 export class TBlock {
 
@@ -129,6 +130,23 @@ export class TBlock {
     }
     get metadata() {
         return this.tb.metadata.get(this.vec);
+    }
+
+    getSound() {
+        let sound = null;
+        if(this.id) {
+            let mat = this.material;
+            sound = mat.hasOwnProperty('sound') ? mat.sound : null;
+        }
+        return sound;
+    }
+
+    isPlant() {
+        return this.material.planting;
+    }
+
+    canReplace() {
+        return BLOCK.canReplace(this.id);
     }
 
 }

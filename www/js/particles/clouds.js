@@ -1,44 +1,40 @@
 import {Vector} from '../helpers.js';
-import {BLOCK} from '../blocks.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
-import { TBlock } from '../typed_blocks.js';
+import {BLOCK} from "../blocks.js";
 
 const {mat4} = glMatrix;
 
 const push_cube = push_cube_style.getRegInfo().func;
 
-/*loadTexture(render) {
-let that = this;
-Resources
-    .loadImage('/media/clouds.png', false)
-    .then(image1 => {
-        const texture1 = render.renderBackend.createTexture({
-            source: image1,
-            minFilter: 'nearest',
-            magFilter: 'nearest'
-        });
-        this.that.clouds_ = render.materials.transparent.getSubMat(texture1);
-    });
-}*/
+class TBlock {
+    
+    constructor(id) {this.id = id;}
+
+    get material() {
+        return BLOCK.BLOCK_BY_ID[this.id];
+    }
+
+    getCardinalDirection() {
+        return Vector.ZERO;
+    }
+
+}
 
 // World
 const FakeCloudWorld = {
     clouds: {
+        imgData: null,
         size: new Vector(256, 1, 256),
         blocks: Array(256).fill(null).map(el => Array(256).fill(null)),
-        init: function(data) {
+        init: function() {
             let index = 0;
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
-                    let is_cloud = data[index + 3] > 10;
+                    let is_cloud = this.imgData.data[index + 3] > 10;
                     if(is_cloud) {
-                        this.blocks[x][z] = {
-                            id:         BLOCK.CLOUD.id,
-                            material:   BLOCK.CLOUD,
-                            getCardinalDirection: () => new Vector(0, 0, 0)
-                        };
+                        this.blocks[x][z] = new TBlock(BLOCK.CLOUD.id);
                     }
                     index += 4;
                 }
@@ -58,40 +54,26 @@ const FakeCloudWorld = {
                     }
                 }
             }
-            return {
-                id:         BLOCK.AIR.id,
-                material:   BLOCK.AIR,
-                getCardinalDirection: () => new Vector(0, 0, 0)
-            };
+            return new TBlock(BLOCK.AIR.id);
         }
     }
 }
-
-// Загрузка карты облаков
-await Resources
-    .loadImage('/media/clouds.png', false)
-    .then(image1 => {
-        let canvas          = document.createElement('canvas');
-        canvas.width        = 256;
-        canvas.height       = 256;
-        let ctx             = canvas.getContext('2d');
-        ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
-        var imgData = ctx.getImageData(0, 0, 256, 256);
-        FakeCloudWorld.clouds.init(imgData.data);
-    });
 
 export default class Particles_Clouds {
 
     // Constructor
     constructor(gl, pos) {
+        FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
         BLOCK.clearBlockCache();
         this.scale      = new Vector(8, 4, 8);
         this.pn         = performance.now();
-        this.yaw        = -Math.PI; // -Game.world.localPlayer.angles[2];
+        this.yaw        = -Math.PI;
         this.life       = 0.5;
         this.loading    = false;
         this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.vertices   = [];
+        //
+        FakeCloudWorld.clouds.init();
         //
         let cloud_movement = 128;
         this.pos.x += cloud_movement * this.scale.x;
@@ -128,7 +110,7 @@ export default class Particles_Clouds {
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
         //
-        console.log(parseInt(this.vertices.length/21) + ' quads in clouds ');
+        console.log(parseInt(this.vertices.length / 21) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
     }

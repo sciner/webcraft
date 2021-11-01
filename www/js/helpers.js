@@ -18,7 +18,6 @@ export class Mth {
 
 }
 
-
 // VectorCollector...
 export class VectorCollectorNew {
 
@@ -452,6 +451,13 @@ export class Vector {
         this.x *= scalar;
         this.y *= scalar;
         this.z *= scalar;
+        return this;
+    }
+
+    divScalar(scalar) {
+        this.x /= scalar;
+        this.y /= scalar;
+        this.z /= scalar;
         return this;
     }
 

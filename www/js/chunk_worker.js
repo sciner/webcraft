@@ -1,5 +1,3 @@
-let queue               = [];
-
 // Modules
 let Vector              = null;
 let VectorCollector     = null;
@@ -8,16 +6,19 @@ let BLOCK               = null;
 let CHUNK_SIZE_X        = null;
 let CHUNK_SIZE_Y        = null;
 let CHUNK_SIZE_Z        = null;
-let CHUNK_BLOCKS        = null;
+let getChunkAddr        = null;
 let CHUNK_SIZE_Y_MAX    = null;
 let MAX_CAVES_LEVEL     = null;
-
-let MAX_TORCH_POWER     = 16;
+let BIOMES              = null;
 
 // Vars
+let blocks              = null;
 let all_blocks          = []; // 1. All blocks
 let chunks              = null;
 let terrainGenerator    = null;
+
+// Consts
+let MAX_TORCH_POWER     = 16;
 
 // ChunkManager
 class ChunkManager {
@@ -36,7 +37,7 @@ class ChunkManager {
 
     // Возвращает координаты чанка по глобальным абсолютным координатам
     getChunkAddr(x, y, z) {
-        return BLOCK.getChunkAddr(x, y, z);
+        return getChunkAddr(x, y, z);
     }
 
     /**
@@ -119,10 +120,15 @@ class Chunk {
         //  4. Find lights
         this.findLights();
         // 5. Result
-        postMessage(['blocks_generated', c]);
+        try {
+            postMessage(['blocks_generated', c]);
+        } catch(e) {
+            console.log(JSON.stringify(c));
+            debugger;
+        }
     }
 
-    // Процедура поиска всех источников света в чанке
+    // findLights...
     findLights() {
         this.lights = [];
         /*for(let y = 0; y < this.size.y; y++) {
@@ -247,46 +253,30 @@ class Chunk {
         block.extra_data = extra_data;
     }
 
-    // Обновление карты свет для чанка
+    // updateLights
     updateLights() {
-        this.lightmap_temp = new Uint8Array(this.size.x * this.size.y * this.size.z);
+        if(!this.lightmap) {
+            this.lightmap = new Uint8Array(this.size.x * this.size.y * this.size.z);
+        }
+        // @todo доработать
+        return;
         //
-        let vc = new VectorCollector();
-        // Рекурсивный метод заливки светом пустых или прозрачных блоков
         let fillLight = (lx, ly, lz, power) => {
             if(power < 1) {
                 return;
             }
             let f = (x, y, z, power) => {
-                let chunk = this;
-                let b = null;
-                let in_chunk = x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X & z < CHUNK_SIZE_Z & y < CHUNK_SIZE_Y;
-                let bi = null;
-                if(in_chunk) {
-                    bi = new Vector(x, y, z);
-                    b = chunk.blocks[x][z][y];
-                } else {
-                    let offset = BLOCK.getChunkAddr(x, y, z);
-                    chunk = vc.add(offset, () => {
-                        let c = chunks[this.addr.add(offset).toChunkKey()];
-                        if(!c) return null;
-                        c.lightmap_temp = new Uint8Array(this.size.x * this.size.y * this.size.z);
-                        return c;
-                    });
-                    if(!chunk) return;
-                    bi = BLOCK.getBlockIndex(chunk.coord.x + x, chunk.coord.y + y, chunk.coord.z + z);
-                    b = chunk.blocks[bi.x][bi.z][bi.y];
-                }
-                if(!b || (b.id == 0 || b.transparent)) {
-                    // let index = BLOCK.getIndex(bi.x, bi.y, bi.z);
-                    let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * bi.y + (bi.z * CHUNK_SIZE_X) + bi.x;
-                    if(chunk.lightmap_temp[index] < power) {
-                        chunk.lightmap_temp[index] = power;
-                        fillLight(x, y, z, power);
+                if(x >= 0 && y >= 0 && z >= 0 && x < 16 && z < 16 && y < 32) {
+                    let b = this.blocks[x][z][y];
+                    if(!b || b.id == 0 || b.transparent) {
+                        let index = BLOCK.getIndex(x, y, z);
+                        if(this.lightmap[index] < power) {    
+                            this.lightmap[index] = power;
+                            fillLight(x, y, z, power);
+                        }
                     }
                 }
             };
-            // Запуск заливки 6 соседей по разным направлениям
             f(lx + 1, ly, lz, power - 1);
             f(lx - 1, ly, lz, power - 1);
             f(lx, ly + 1, lz, power - 1);
@@ -294,37 +284,32 @@ class Chunk {
             f(lx, ly, lz + 1, power - 1);
             f(lx, ly, lz - 1, power - 1);
         };
-        // Если у чанка есть свои источники света
-        if(this.lights.length > 0) {
-            // Each lights
-            for(let light of this.lights) {
-                let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
-                let index = BLOCK.getIndex(light.pos);
-                this.lightmap_temp[index] = power;
-                fillLight(light.pos.x, light.pos.y, light.pos.z, power);
-            }
-        }
-        // Обход источников света в соседних чанках
-        for(let x = -1; x <= 1; x++) {
-            for(let y = -1; y <= 1; y++) {
-                for(let z = -1; z <= 1; z++) {
-                    if(x == 0 && y == 0 && z == 0) continue;
-                    let vec = new Vector(x * CHUNK_SIZE_X, y * CHUNK_SIZE_Y, z * CHUNK_SIZE_Z);
-                    let key = BLOCK.getChunkAddr(vec.add(this.coord)).toChunkKey();
-                    let chunk = chunks[key];
-                    if(chunk) {
-                        for(let light of chunk.lights) {
-                            let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
-                            let pos = light.pos.add(vec);
-                            fillLight(pos.x, pos.y, pos.z, power);
-                        }
-                    }        
-                }
-            }
+        //
+        // this.neighbour_chunks
+        // Lightmap
+        for(let light of this.lights) {
+            let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
+            let index = BLOCK.getIndex(light.pos);
+            this.lightmap[index] = power;
+            fillLight(light.pos.x, light.pos.y, light.pos.z, power);
         }
         //
-        this.lightmap = this.lightmap_temp;
-        delete(this.lightmap_temp);
+        let neighbours = [
+            {pos: new Vector(CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.px},
+            {pos: new Vector(-CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.nx},
+            {pos: new Vector(0, CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.py},
+            {pos: new Vector(0, -CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.ny},
+            {pos: new Vector(0, 0, CHUNK_SIZE_Z), chunk: this.neighbour_chunks.pz},
+            {pos: new Vector(0, 0, -CHUNK_SIZE_Z), chunk: this.neighbour_chunks.nz},
+        ];
+        for(let n of neighbours) {
+            if(!n.chunk) continue;
+            for(let light of n.chunk.lights) {
+                let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
+                let pos = light.pos.add(n.pos);
+                fillLight(pos.x, pos.y, pos.z, power);
+            }
+        }
     }
 
     // Возвращает всех 6-х соседей блока
@@ -481,27 +466,27 @@ class Chunk {
             }
             // if block with gravity
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-            if(block.properties.gravity && block.pos.y > 0 && block.falling) {
+            if(block.material.gravity && block.pos.y > 0 && block.falling) {
                 let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
                 if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
                     this.gravity_blocks.push(block.pos);
                 }
             }
             // if block is fluid
-            if(block.properties.fluid) {
+            if(block.material.fluid) {
                 this.fluid_blocks.push(block.pos);
             }
             if(block.vertices === null) {
                 block.vertices = [];
                 let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
-                BLOCK.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
+                block.material.resource_pack.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices[block.properties.group]) {
-                    this.vertices[block.properties.group] = {...group_templates[block.properties.group]};
+                if(!this.vertices[block.material.group]) {
+                    this.vertices[block.material.group] = {...group_templates[block.material.group]};
                 }
-                this.vertices[block.properties.group].list.push(...block.vertices);
+                this.vertices[block.material.group].list.push(...block.vertices);
             }
         }
 
@@ -512,10 +497,10 @@ class Chunk {
         return true;
     }
 
+    // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
-    setDirtyBlocks(pos, find_neighbors) {
+    setDirtyBlocks(pos) {
         let dirty_rad = MAX_TORCH_POWER;
-        let vc = new VectorCollector();
         let cnt = 0;
         // let needUpdateLightmap = false;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
@@ -524,14 +509,19 @@ class Chunk {
                     let x = pos.x + cx;
                     let y = pos.y + cy;
                     let z = pos.z + cz;
-                    //
-                    let dist = pos.distance(new Vector(x, y, z));
-                    if(dist > MAX_TORCH_POWER) continue;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
+                        //
+                        /*if(!needUpdateLightmap) {
+                            let index = BLOCK.getIndex(x, y, z);
+                            if(index >= 0) {
+                                needUpdateLightmap = true;
+                            }
+                        }*/
+                        //
                         let pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
                             let block = this.tblocks.get(pos);
-                            if(block.properties.gravity) {
+                            if(block.material.gravity) {
                                 if(cy == 1 && cx == 0 && cz == 0) {
                                     block.falling = true;
                                 }
@@ -541,15 +531,16 @@ class Chunk {
                                 cnt++;
                             }
                         }
-                    } else if(find_neighbors) {
-                        vc.add(BLOCK.getChunkAddr(x + this.coord.x, y + this.coord.y, z + this.coord.z), () => {});
                     }
                 }
             }
         }
+        // if(needUpdateLightmap) {
+        // @todo Переделать на вызов только в случае, если свет был поставлен или убран
         this.findLights();
-        // this.updateLights();
-        return vc;
+        this.updateLights();
+        // }
+        return cnt;
     }
 
 }
@@ -579,41 +570,55 @@ async function importModules(terrain_type, seed, world_id) {
         TypedBlocks = module.TypedBlocks;
     });
     // load module
-    await import("./blocks.js").then(module => {
-        BLOCK = module.BLOCK;
+    await import("./chunk.js").then(module => {
         CHUNK_SIZE_X        = module.CHUNK_SIZE_X;
         CHUNK_SIZE_Y        = module.CHUNK_SIZE_Y;
         CHUNK_SIZE_Z        = module.CHUNK_SIZE_Z;
-        CHUNK_BLOCKS        = module.CHUNK_BLOCKS;
         CHUNK_SIZE_Y_MAX    = module.CHUNK_SIZE_Y_MAX;
         MAX_CAVES_LEVEL     = module.MAX_CAVES_LEVEL;
+        getChunkAddr        = module.getChunkAddr;
     });
     // load module
-    await import("./biomes.js").then(module => {
-        blocks = module.blocks;
+    await import("./blocks.js").then(module => {
+        BLOCK = module.BLOCK;
+        (async function(){
+            let all = [];
+            let resource_packs = new Set();
+            // Resource packs
+            for(let init_file of BLOCK.resource_packs) {
+                all.push(import(init_file).then((module) => {resource_packs.add(module.default);}));
+            }
+            await Promise.all(all).then(() => { return this; });
+            all = [BLOCK.load(resource_packs)]
+            await Promise.all(all).then(() => {
+                import("./terrain_generator/biomes.js").then(module => {
+                    BIOMES = module.BIOMES;
+                }).then(() => {
+                    // Load module
+                    import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
+                        terrainGenerator = new module.default(seed, world_id);
+                    }).then(() => {
+                        // Init vars
+                        // 1. Fill all_blocks
+                        for(let b of BLOCK.getAll()) {
+                            b = {...b};
+                            delete(b.texture);
+                            all_blocks.push(b);
+                        }
+                        /*
+                        for(let k in all_blocks) {
+                            all_blocks[k] = {...all_blocks[k]};
+                            delete(all_blocks[k].texture);
+                        }*/
+                        //
+                        world.chunkManager = new ChunkManager();
+                        // Worker inited
+                        postMessage(['worker_inited', null]);
+                    });
+                });
+            });
+        })();
     });
-    // load module
-    await import("./terrain_generator/" + terrain_type + "/index.js").then(module => {
-        terrainGenerator = new module.default(seed, world_id);
-    });
-    // Init vars
-    // 1. Fill all_blocks
-    for(let b of BLOCK.getAll()) {
-        b = {...b};
-        delete(b.texture);
-        all_blocks.push(b);
-    }
-    for(let k in all_blocks) {
-        all_blocks[k] = {...all_blocks[k]};
-        delete(all_blocks[k].texture);
-    }
-    //
-    world.chunkManager = new ChunkManager();
-    // Run queue items
-    for(let item of queue) {
-        await onmessage(item);
-    }
-    queue = [];
 }
 
 // On message callback function
@@ -625,11 +630,7 @@ onmessage = async function(e) {
         let generator_params = args;
         let seed = e.data[2];
         let world_id = e.data[3];
-        importModules(generator_params.id, seed, world_id); // biome2 | city | flat
-        return;
-    }
-    if (!BLOCK || !terrainGenerator) {
-        return queue.push(e);
+        return importModules(generator_params.id, seed, world_id); // biome2 | city | flat
     }
     switch(cmd) {
         case 'createChunk': {
@@ -662,24 +663,24 @@ onmessage = async function(e) {
         }
         case 'setBlock': {
             let result = [];
-            let pn = performance.now();
+            // let pn = performance.now();
             for(let m of args) {
                 // 1. Get chunk
                 let chunk = chunks.get(m.addr);
                 if(chunk) {
-                    // 2. Set new block
+                    // 2. Set block
                     if(m.type) {
                         chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
-                    // 3. Clear vertices for new block and around near
                     let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
-                    let neighbot_chunk_keys = chunk.setDirtyBlocks(pos, true);
+                    // 3. Clear vertices for block and around near
+                    chunk.setDirtyBlocks(pos);
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, false));
                     chunk.vertices = null;
                 }
             }
-            // console.log(result.length, performance.now() - pn);
+            // console.log(result.length, performance.now() - pn, JSON.stringify(result).length, result);
             // 5. Send result to chunk manager
             postMessage(['vertices_generated', result]);
             break;

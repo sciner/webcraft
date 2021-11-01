@@ -1,6 +1,6 @@
 import GeometryTerrain from "../geometry_terrain.js";
-import { Vector, MULTIPLY, DIRECTION } from "../helpers.js";
-import {BLOCK} from "../blocks.js";
+import { MULTIPLY, DIRECTION } from "../helpers.js";
+import { BLOCK } from "../blocks.js";
 
 export class Vox_Mesh {
 

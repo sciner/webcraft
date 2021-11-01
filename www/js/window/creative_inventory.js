@@ -1,7 +1,6 @@
-import {Window, Label, Button} from "../../tools/gui/wm.js";
-import {CraftTableRecipeSlot, CraftTableInventorySlot, CraftTableResultSlot} from "./craft_table.js";
-import RECIPES from "../recipes.js";
-import {BLOCK} from "../blocks.js";
+import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {CraftTableInventorySlot} from "./base_craft_window.js";
+import { BLOCK } from "../blocks.js";
 
 class CreativeInventoryCollection extends Window {
 
@@ -30,6 +29,22 @@ class CreativeInventoryCollection extends Window {
         //
         let all_blocks = BLOCK.getAll().filter((i) => {
             return (i.id > 0) && i.spawnable;
+        });
+        //
+        all_blocks.sort((a, b) => {
+            //
+            if(a.inventory_icon_id == 0) {
+                return 1;
+            } else if(b.inventory_icon_id == 0) {
+                return -1;
+            }
+            //
+            if(!a.style) a.style = 'default';
+            if(!b.style) b.style = 'default';
+            if(a.style != b.style) {
+                return a.style > b.style ? 1 : -1;
+            }
+            return b.id - a.id;
         });
         // Create slots
         this.initCollection(all_blocks);
