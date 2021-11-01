@@ -274,9 +274,13 @@ let gameCtrl = function($scope, $timeout, helperService) {
             return;
         }
         // Show Loading...
-        // $scope.current_window.show('loading');
+        $scope.current_window.show('loading');
         $scope.settings.save();
-        $scope.Game.Start(session, world_guid, $scope.settings.form);
+        $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
+            $timeout(function(){
+                $scope.resource_loading_state = resource_loading_state;
+            });
+        });
     };
 
     // My games

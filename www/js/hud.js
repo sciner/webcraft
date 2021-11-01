@@ -3,10 +3,12 @@ import {MainMenu} from "./window/index.js";
 import {fps} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
+import {Resources} from "./resources.js";
 
 export default class HUD {
 
     constructor(width, height) {
+
         // Create canvas used to draw HUD
         let canvas                      = this.canvas = document.createElement('canvas');
         canvas.id                       = 'cnvHUD';
@@ -141,7 +143,7 @@ export default class HUD {
     refresh() {
         this.need_refresh = true;
     }
-    
+
     clear() {
         this.ctx.fillStyle = '#000000';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);

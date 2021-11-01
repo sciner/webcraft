@@ -91,12 +91,14 @@ export class GameClass {
         });
     }
 
-    async Start(session, world_guid, settings) {
+    async Start(session, world_guid, settings, resource_loading_progress) {
         //
         Game.hud = new HUD(0, 0);
         this.sounds = new Sounds();
         // Create a new world
         this.render = new Renderer('renderSurface');
+        // Resources
+        Resources.onLoading = resource_loading_progress;
         this.load(settings)
             .then(() => {
                 this.world = new World(session, world_guid, settings, BLOCK);

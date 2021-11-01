@@ -2,6 +2,8 @@ import {BLOCK} from "./blocks.js";
 
 export class Resources {
 
+    static onLoading = (state) => {};
+
     /**
      * @param settings
      * @param settings.hd hd textures
@@ -68,6 +70,19 @@ export class Resources {
         for(let init_file of BLOCK.resource_packs) {
             all.push(import(init_file).then((module) => {that.resource_packs.add(module.default);}));
         }
+        //
+        let d = 0;
+        for (const p of all) {
+            p.then(()=> {    
+                d ++;
+                this.onLoading({
+                    loaded:     d,
+                    total:      all.length,
+                    percent:    (d * 100) / all.length
+                });
+            });
+          }
+
         // TODO: add retry
         return Promise.all(all); // .then(() => { return this; });
     }
