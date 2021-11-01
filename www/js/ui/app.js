@@ -6,27 +6,26 @@ export class UIApp {
     constructor() {
         this.api = new API_Client();
         // Session
-        let session_id = localStorage.getItem('session_id');
-        if(session_id) {
-            this.session = {
-                session_id: session_id,
-                username: localStorage.getItem('username')
-            };
-        } else {
-            this.session = null;
-        }
+        this._loadSession();
         // Hooks
         this.onLogin = (e) => {};
         this.onLogout = (e) => {};
         this.onError = (e) => {};
+    }
 
+    _loadSession() {
+        // Session
+        let session = localStorage.getItem('session');
+        if(session) {
+            this.session = JSON.parse(session);
+        } else {
+            this.session = null;
+        }
     }
 
     logout() {
-        this.session.username = null;
-        this.session.session_id = null;
-        localStorage.removeItem('username');
-        localStorage.removeItem('session_id');
+        this.session = null;
+        localStorage.removeItem('session');
         this.onLogout();
     }
 
@@ -36,6 +35,21 @@ export class UIApp {
 
     isLogged() {
         return !!this.getSession();
+    }
+
+    // Login...
+    async Login(form, callback, callback_error, callback_progress, callback_final) {
+        let that = this;
+        let result = [];
+        await this.api.call(this, '/api/User/Login', form, (resp) => {
+            result = resp;
+            localStorage.setItem('session', JSON.stringify(result));
+            that._loadSession();
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
     }
 
     // MyWorlds...

@@ -18,12 +18,10 @@ export class API_Client {
         }
         var options = {
             method:                 'POST',
-            // url:                    url,
             headers:                headers,
             body:                   data instanceof FormData ? data : JSON.stringify(data),
             uploadEventHandlers:    {}
         };
-        console.log(options);
         if(callback_progress instanceof Function) {
             options.uploadEventHandlers.progress = callback_progress;
         }

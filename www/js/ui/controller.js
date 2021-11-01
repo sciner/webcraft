@@ -65,13 +65,13 @@ let gameCtrl = function($scope, $timeout, helperService) {
     $scope.App.onLogin = (e) => {
 
     };
-    $scope.App.onLogout = () => this.$scope.current_window.show('hello');
+    $scope.App.onLogout = () => $scope.current_window.show('hello');
     $scope.App.onError = (message) => {
         // Multilingual messages
         if(message in $scope.lang) {
             message = $scope.lang[message];
         }
-        alert(message);
+        vt.error(message);
     };
 
     // Lang
@@ -162,16 +162,14 @@ let gameCtrl = function($scope, $timeout, helperService) {
             //
             var that = this;
             that.loading = true;
-            Game.session.login()
-            helperService.api.call($scope.App, '/api/User/Login', this.form, function(resp) {
-                that.logged = true;
-                localStorage.setItem('username', resp.username);
-                localStorage.setItem('session_id', resp.session_id);
-                that.reset();
-                that.onSuccess(resp.username, resp.session_id);
-                $scope.current_window.show('main');
-            }, null, null, function() {
-                that.loading = false;
+            $scope.App.Login(this.form, (resp) => {
+                $timeout(() => {
+                    that.logged = true;
+                    that.reset();
+                    that.onSuccess(resp);
+                    $scope.current_window.show('main');
+                    that.loading = false;
+                });
             });
         },
         autoLogin: function(form) {
@@ -188,18 +186,19 @@ let gameCtrl = function($scope, $timeout, helperService) {
             return this.form.username && this.form.password;
         },
         init: function() {
-            let username = localStorage.getItem('username');
-            let session_id = localStorage.getItem('session_id');
-            this.logged = !!session_id;
+            let session = $scope.App.getSession();
+            // let username = localStorage.getItem('username');
+            // let session_id = localStorage.getItem('session_id');
+            this.logged = !!session;
             if(!this.logged) {
                 $scope.current_window.show('hello');
                 return false;
             }
-            this.onSuccess(username, session_id);
+            this.onSuccess(session);
         },
-        onSuccess(username, session_id) {
-            $scope.Game.username = username;
-            $scope.Game.session_id = session_id;
+        onSuccess(session) {
+            $scope.Game.username = session.username;
+            $scope.Game.session_id = session.session_id;
             $scope.mygames.load();
         }
     };
