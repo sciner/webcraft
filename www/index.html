@@ -109,7 +109,7 @@
         </div>
 
         <!-- Main menu -->
-        <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Game && !demoMaps.loading && login.logged">
+        <div id="main-menu" class="flex0 flex-column animate__animated animate__fadeIn" ng-if="Game && login.logged">
 
             <!-- Main menu -->
             <div ng-show="current_window.id == 'main'" class="form-doubles">
@@ -162,10 +162,8 @@
                     <h4 class="text-center">Commands:</h4>
                     <div style="font-size: 14px;">
                         <strong>WASD</strong> - Moving
-                        <!-- <br><strong>F2</strong> - Save -->
                         <br><strong>F4</strong> - Set position as spawnpoint
                         <br><strong>R</strong> - Respawn
-                        <!-- <br><strong>J</strong> - Big jump -->
                         <br><strong>0-9</strong> - Select block
                         <br><strong>Left mouse button</strong> - Remove block
                         <br><strong>Right mouse button</strong> - Set block

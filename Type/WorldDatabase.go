@@ -332,13 +332,6 @@ func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
 		log.Printf("SQL_ERROR12: %v", err)
 	}
 	return err
-	/*
-		_, err := this.Conn.Query(`UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`, )
-		if err != nil {
-			log.Printf("SQL_ERROR12: %v", err)
-		}
-		return err
-	*/
 }
 
 // ChangePosSpawn...

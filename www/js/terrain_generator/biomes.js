@@ -138,9 +138,10 @@ BIOMES.TUNDRA = {
         ]
     },
     plants: {
-        frequency: TREE_FREQUENCY,
+        frequency: .5,
         list: [
-            {percent: 1, block: BLOCK.BROWN_MUSHROOM.id}
+            {percent: .9985, block: BLOCK.GRASS.id},
+            {percent: .0015, block: BLOCK.BROWN_MUSHROOM.id}
         ]
     }
 };

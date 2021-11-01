@@ -178,9 +178,7 @@ func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 }
 
 func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
-	if cmdIn.Name != Struct.CMD_PLAYER_STATE && cmdIn.Name != Struct.CMD_CHUNK_ADD {
-		log.Printf("OnCommand: %d", cmdIn.Name)
-	}
+
 	switch cmdIn.Name {
 
 	case Struct.CMD_BLOCK_SET:
@@ -324,6 +322,7 @@ func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRe
 		}
 		this.SendSelected(packets, connections, []string{})
 		//
+		conn.Pos = *new_pos
 		this.CheckPlayerVisibleChunks(conn, conn.ChunkRenderDist, true)
 	}
 }

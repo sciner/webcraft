@@ -1,9 +1,7 @@
-import Saves from '../saves.js';
 import {Vector, Helpers} from '../helpers.js';
 import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
-import {DemoMapManager} from './demo_map-manager.js';
 import {GameClass} from '../game.js';
 
 // Mouse event enumeration
@@ -59,7 +57,6 @@ let gameCtrl = function($scope, $timeout, helperService) {
     $scope.App = window.Game.App    = new UIApp();
     $scope.texture_pack             = new TexturePackManager($scope);
     $scope.skin                     = new SkinManager($scope);
-    $scope.demoMaps                 = new DemoMapManager($scope, $timeout);
 
     //
     $scope.App.onLogin = (e) => {
@@ -259,10 +256,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         loading: false,
         latest_save: false,
         init: function() {
-            this.saves = new Saves(function(instance) {
-                $scope.Game.saves = instance;
-            });
-            $scope.demoMaps.load();
+            // do nothing
         }
     };
 
@@ -371,6 +365,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             var that = this;
             that.loading = true;
             let form = {...that.form};
+            form.seed = $scope.App.GenerateSeed(form.seed);
             $scope.App.CreateWorld(form, (world) => {
                 $timeout(() => {
                     that.reset();
@@ -383,8 +378,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         open: function() {
             this.form.generator.id = this.generators.list[0].id;
             $scope.current_window.show('newgame');
-            this.form.seed = Helpers.getRandomInt(1000000, 4000000000) + '';
-            this.form.id = Helpers.generateID();
+            this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },
         close: function() {
             $scope.current_window.show('main');

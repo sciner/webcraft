@@ -1,5 +1,6 @@
 import {API_Client} from './api.js';
 import {} from './clipboard.js';
+import {Helpers} from '../helpers.js';
 
 export class UIApp {
 
@@ -11,6 +12,27 @@ export class UIApp {
         this.onLogin = (e) => {};
         this.onLogout = (e) => {};
         this.onError = (e) => {};
+    }
+
+    // Minecraft compatibility seed
+    GenerateSeed(value) {
+        let isInt = !isNaN(value) && 
+                   parseInt(Number(value)) == value && 
+                   !isNaN(parseInt(value, 10));
+        if(isInt) {
+            return value + '';
+        }
+        value += '';
+        if(value == '' || value == '0') {
+            value = Helpers.getRandomInt(1000000, 4000000000);
+        }
+        var hash = 0, i, chr;
+        for (i = 0; i < value.length; i++) {
+            chr   = value.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash + '';
     }
 
     _loadSession() {

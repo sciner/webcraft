@@ -201,13 +201,13 @@ export class GameClass {
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState() {
+        let pos = this.world.localPlayer.lerpPos.clone();
         this.current_player_state = {
             rotate:             this.world.localPlayer.rotate,
-            pos:                this.world.localPlayer.lerpPos,
+            pos:                pos.multiplyScalar(100).round().divScalar(100),
             ping:               Math.round(this.world.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
-        // console.log(this.current_player_state.rotate);
         this.current_player_state_json = JSON.stringify(this.current_player_state);
         if(this.current_player_state_json != this.prev_player_state) {
             this.prev_player_state = this.current_player_state_json;

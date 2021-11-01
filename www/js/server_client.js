@@ -45,7 +45,6 @@ export default class ServerClient {
             out_packets: {},
             in_packets: {}
         };
-        this._loadID();
         this.ws = new WebSocket(url + '?session_id=' + session_id + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
         this.ws.onmessage = function(e) {
             that._onMessage(e);
@@ -65,16 +64,6 @@ export default class ServerClient {
                 });
             }, (Helpers.isDev() ? 300 : 5) * 1000);
         };
-    }
-
-    // Restore local use ID or create it
-    _loadID() {
-        let id = localStorage.getItem('id');
-        if(!id) {
-            id = Helpers.generateID();
-            localStorage.setItem('id', id)
-        }
-        this.id = id;
     }
 
     // New commands from server
