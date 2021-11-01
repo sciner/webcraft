@@ -82,7 +82,7 @@ export default class HUD {
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                let txt = 'LOADING ... ' + Math.round(cl / nc * 100) + '%';
+                let txt = 'GENERATE TERRAIN ... ' + Math.round(cl / nc * 100) + '%';
                 //
                 let x = w / 2;
                 let y = h / 2 + 50;
