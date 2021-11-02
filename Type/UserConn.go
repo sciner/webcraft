@@ -20,6 +20,7 @@ type (
 		Rotate           Struct.Vector3f
 		Pos              Struct.Vector3f
 		PosSpawn         Struct.Vector3f
+		PositionChanged  bool
 		ChunkPos         Struct.Vector3
 		ChunkPosO        Struct.Vector3
 		ChunkRenderDist  int

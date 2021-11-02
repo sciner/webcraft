@@ -81,9 +81,9 @@ class Biome {
                 const py = (SY - SZ / 2 + (y)); // * options.SCALE;
 
                 // Влажность
-                let humidity = Helpers.clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6);
+                let humidity = Helpers.clamp(noisefn(px / options.SCALE_HUMIDITY, py / options.SCALE_HUMIDITY, 0) + 0.6, 0, 1);
                 // Экватор
-                let equator = Helpers.clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6);
+                let equator = Helpers.clamp(noisefn(px / options.SCALE_EQUATOR, py / options.SCALE_EQUATOR, 0) + 0.6, 0, 1);
 
                 // Высота
                 let value = (

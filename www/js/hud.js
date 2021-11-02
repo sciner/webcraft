@@ -3,7 +3,6 @@ import {MainMenu} from "./window/index.js";
 import {fps} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
-import {Resources} from "./resources.js";
 
 export default class HUD {
 
@@ -14,7 +13,6 @@ export default class HUD {
         canvas.id                       = 'cnvHUD';
         canvas.width                    = width;
         canvas.height                   = height;
-        // canvas.style.display            = 'none';
         canvas.style.position           = 'fixed';
         canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
         canvas.style.zIndex             = 0;
@@ -304,7 +302,6 @@ export default class HUD {
         if(time) {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
         }
-        // this.text += '\nYAW: ' + Math.round(Game.world.rotateDegree.z);
         // Chunks inited
         this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
         //

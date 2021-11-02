@@ -5,7 +5,6 @@ import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
-import {GameMode} from "./game_mode.js";
 import HUD from "./hud.js";
 
 import {Chat} from "./chat.js";
@@ -129,7 +128,7 @@ export class GameClass {
         //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
-        this.world.fixRotate();
+        // this.player.fixRotate();
         //
         this.readMouseMove();
         this.startBackgroundMusic();
@@ -203,7 +202,7 @@ export class GameClass {
     sendPlayerState() {
         let pos = this.world.localPlayer.lerpPos.clone();
         this.current_player_state = {
-            rotate:             this.world.localPlayer.rotate,
+            rotate:             this.player.rotate,
             pos:                pos.multiplyScalar(100).round().divScalar(100),
             ping:               Math.round(this.world.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
@@ -333,7 +332,7 @@ export class GameClass {
                     z *= ZOOM_FACTOR * 0.5;
                 }
                 //
-                that.world.addRotate(new Vector(x, 0, z));
+                that.player.addRotate(new Vector(x, 0, z));
             }
         }, false);
     }

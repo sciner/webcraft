@@ -70,6 +70,8 @@ func (this *WorldDatabase) ChunkBecameModified() ([]*Struct.Vector3, error) {
 
 // LoadModifiers...
 func (this *WorldDatabase) LoadModifiers(chunk *Chunk) (map[string]Struct.BlockItem, error) {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
 	//
 	resp := make(map[string]Struct.BlockItem)
 	//
@@ -356,6 +358,8 @@ func (this *WorldDatabase) ChangePosSpawn(conn *UserConn, params *Struct.ParamPo
 
 // SavePlayerInventory...
 func (this *WorldDatabase) SavePlayerInventory(conn *UserConn, inventory *Struct.PlayerInventory) error {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
 	inventory_bytes, _ := json.Marshal(inventory)
 	//
 	query := `UPDATE user SET inventory = $1 WHERE id = $2`

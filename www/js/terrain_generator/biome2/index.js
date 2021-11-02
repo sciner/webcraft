@@ -116,9 +116,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     noisefn(px / 350, pz / 350) * .5;
                 value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
                 // Влажность
-                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2);
+                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2, 0, 1);
                 // Экватор
-                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1);
+                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
                 // Get biome
                 let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
                 value = value * biome.max_height + 68;

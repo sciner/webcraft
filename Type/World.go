@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,20 +24,43 @@ const (
 
 type (
 	World struct {
-		Properties     *Struct.WorldProperties
-		Mu             *sync.Mutex          // чтобы избежать коллизий
-		Connections    map[string]*UserConn // Registered connections.
-		Chunks         map[Struct.Vector3]*Chunk
-		Entities       *EntityManager
-		CreateTime     time.Time // Время создания, time.Now()
-		Directory      string
-		State          *Struct.WorldState
-		Db             *WorldDatabase
-		DBGame         *GameDatabase
-		Chat           *Chat
-		ChunkModifieds map[string]bool
+		Properties       *Struct.WorldProperties
+		Mu               *sync.Mutex          // чтобы избежать коллизий
+		Connections      map[string]*UserConn // Registered connections.
+		Chunks           map[Struct.Vector3]*Chunk
+		Entities         *EntityManager
+		CreateTime       time.Time // Время создания, time.Now()
+		Directory        string
+		State            *Struct.WorldState
+		Db               *WorldDatabase
+		DBGame           *GameDatabase
+		Chat             *Chat
+		ChunkModifieds   map[string]bool
+		tickerWorldTimer chan bool // makes a world that run a periodic function
 	}
 )
+
+/**
+* Таймер
+**/
+func schedule(what func(), delay time.Duration) chan bool {
+	stop := make(chan bool)
+	go func() {
+		i := 0
+		for {
+			if i > 0 {
+				what()
+			}
+			i++
+			select {
+			case <-time.After(delay):
+			case <-stop:
+				return
+			}
+		}
+	}()
+	return stop
+}
 
 func (this *World) Load(guid string) {
 	this.Properties = &Struct.WorldProperties{
@@ -62,6 +86,31 @@ func (this *World) Load(guid string) {
 	this.Properties = world_properties
 	//
 	this.Entities.Load(this)
+	//
+	this.tickerWorldTimer = schedule(func() {
+		pn := this.getTimer()
+		this.save()
+		this.tick()
+		// time elapsed forcurrent tick
+		log.Printf("Tick took %sms", strconv.Itoa(int(this.getTimer()-pn)))
+	}, 5000*time.Millisecond)
+}
+
+// save player positions
+func (this *World) save() {
+	for _, conn := range this.Connections {
+		this.Db.SavePlayerState(conn)
+		conn.PositionChanged = false
+	}
+}
+
+// save player positions
+func (this *World) tick() {
+}
+
+// getTimer
+func (this *World) getTimer() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func (this *World) updateWorldState() {
@@ -327,11 +376,6 @@ func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRe
 	}
 }
 
-// SavePlayerState...
-func (this *World) SavePlayerState(conn *UserConn) {
-	this.Db.SavePlayerState(conn)
-}
-
 // PlayerLeave... Игрок разорвал соединение с сервером
 func (this *World) PlayerLeave(conn *UserConn) {
 	log.Printf("Player leave %s (%s)", conn.Session.Username, conn.ID)
@@ -359,7 +403,6 @@ func (this *World) PlayerLeave(conn *UserConn) {
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}
 	this.SendAll(packets2, []string{conn.ID})
-
 }
 
 //
@@ -492,7 +535,7 @@ func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlay
 	conn.Pos = params.Pos
 	conn.Rotate = params.Rotate
 	conn.ChunkRenderDist = params.ChunkRenderDist
-	this.SavePlayerState(conn)
+	conn.PositionChanged = true
 	this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist, false)
 }
 
@@ -534,4 +577,8 @@ func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int,
 		this.SendSelected(packets, connections, []string{})
 		conn.ChunkPosO = conn.ChunkPos
 	}
+}
+
+func (this *World) Destroy() {
+	this.tickerWorldTimer <- true
 }
