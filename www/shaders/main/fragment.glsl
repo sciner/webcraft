@@ -5,6 +5,10 @@ precision highp float;
 #define LOG2 1.442695
 const float desaturateFactor = 2.0;
 
+// vignetting
+const float outerRadius = .65, innerRadius = .4, intensity = .1;
+const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
+
 uniform sampler2D u_texture;
 uniform sampler2D u_texture_mask;
 
@@ -59,6 +63,15 @@ void drawCrosshair() {
             outColor.b = 1.0 - outColor.b;
             outColor.a = 1.0;
     }
+}
+
+void drawVignetting() {
+    vec2 relativePosition = gl_FragCoord.xy / u_resolution - .5;
+    relativePosition.y *= u_resolution.x / u_resolution.y;
+    float len = length(relativePosition);
+    float vignette = smoothstep(outerRadius, innerRadius, len);
+    float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
+    outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity);
 }
 
 vec3 gamma(vec3 color){
@@ -151,6 +164,15 @@ void main() {
 
         // Draw crosshair
         drawCrosshair();
+
+        // gamma
+        // outColor.rgb = pow(outColor.rgb, vec3(0.7));
+
+        // contrast
+        // outColor.rgb = outColor.rgb * 0.25 + 0.75* outColor.rgb * outColor.rgb *(3.0-2.0* outColor.rgb);
+
+        // vignetting
+        drawVignetting();
 
     } else {
         outColor = texture(u_texture, texc);

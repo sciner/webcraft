@@ -14,7 +14,7 @@ export default class HUD {
         canvas.width                    = width;
         canvas.height                   = height;
         canvas.style.position           = 'fixed';
-        canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
+        // canvas.style.background         = 'radial-gradient(circle at 50% 50%, rgba(0,0,0, 0) 50%, rgb(0 0 0 / 30%) 100%)';
         canvas.style.zIndex             = 0;
         canvas.style.pointerEvents      = 'none';
         canvas.style.width = '100vw';
