@@ -23,5 +23,5 @@ Game.world.setRain(true);
 
 // Set block at current player coordanates
 let pp = Game.world.localPlayer.getBlockPos();
-Game.world.setBlock(pp.x, pp.y, pp.z, {id: 10, name: "BRICK"}, 1, null);
+Game.world.setBlock(pp.x, pp.y, pp.z, {id: 10}, 1, null);
 ```

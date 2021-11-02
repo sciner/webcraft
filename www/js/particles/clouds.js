@@ -13,7 +13,7 @@ class TBlock {
     constructor(id) {this.id = id;}
 
     get material() {
-        return BLOCK.BLOCK_BY_ID[this.id];
+        return BLOCK.BLOCK_BY_ID.get(this.id);
     }
 
     getCardinalDirection() {

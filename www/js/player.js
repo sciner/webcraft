@@ -113,7 +113,7 @@ export class Player {
         // destroyBlock
         } else if(e.destroyBlock) {
             let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
-            let block           = BLOCK.BLOCK_BY_ID[world_block.id];
+            let block           = BLOCK.BLOCK_BY_ID.get(world_block.id);
             let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative(), this.getCurrentInstrument());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 this.world.destroyBlock(block, bPos, true);

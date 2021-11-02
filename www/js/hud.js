@@ -85,7 +85,7 @@ export default class HUD {
                 let txt = 'GENERATE TERRAIN ... ' + Math.round(cl / nc * 100) + '%';
                 //
                 let x = w / 2;
-                let y = h / 2 + 50;
+                let y = h / 2;
                 let padding = 15;
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';

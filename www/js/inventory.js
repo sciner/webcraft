@@ -181,7 +181,7 @@ export default class Inventory {
         if(!mat.id) {
             throw 'Empty mat ID';
         }
-        let block = BLOCK.BLOCK_BY_ID[mat.id];
+        let block = BLOCK.BLOCK_BY_ID.get(mat.id);
         if(!block) {
             throw 'Invalid mat ID';
         }

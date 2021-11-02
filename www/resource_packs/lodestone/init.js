@@ -1,21 +1,21 @@
+import { BLOCK } from "../../js/blocks.js";
+
 const getRunningScript = () => {
     return decodeURI(new Error().stack.match(/([^ \n\(@])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0])
 }
 
 export default class ResourcePack {
 
-    constructor(block_manager) {
+    constructor() {
         this.id = 'lodestone';
-        this.block_manager = block_manager;
     }
 
     async init() {
         let that = this;
-        let block_manager = this.block_manager;
         return fetch(getRunningScript() + '/../blocks.json', {mode: 'no-cors'}).then(response => response.json()).then(blocks => {
             for(let block of blocks) {
                 block.resource_pack = that;
-                block_manager.add(block);
+                BLOCK.add(block);
             }
         });
     }
@@ -23,7 +23,7 @@ export default class ResourcePack {
     // pushVertices
     pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
         const style = block.material.style;
-        let module = this.block_manager.styles[style];
+        let module = BLOCK.styles[style];
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }

@@ -148,11 +148,25 @@ export class ChunkManager {
         if(this.nearby_modified_list.has(item.addr)) {
             this.world.server.ChunkAdd(item.addr);
         } else {
-            setTimeout(() => {
-                this.setChunkState({"pos": item.addr, "modify_list": null});
-            }, 1);
+           if(!this.setChunkState({pos: item.addr, modify_list: null})) {
+               return false;
+           }
         }
         return true;
+    }
+
+    // Установить начальное состояние указанного чанка
+    setChunkState(state) {
+        let prepare = this.chunks_prepare.get(state.pos);
+        if(prepare) {
+            let chunk = new Chunk(state.pos, state.modify_list);
+            chunk.load_time = performance.now() - prepare.start_time;
+            this.chunks.add(state.pos, chunk);
+            this.rendered_chunks.total++;
+            this.chunks_prepare.delete(state.pos);
+            return true;
+        }
+        return false;
     }
 
     // Remove
@@ -169,18 +183,6 @@ export class ChunkManager {
     postWorkerMessage(data) {
         this.worker.postMessage(data);
     };
-
-    // Установить начальное состояние указанного чанка
-    setChunkState(state) {
-        let prepare = this.chunks_prepare.get(state.pos);
-        if(prepare) {
-            let chunk = new Chunk(state.pos, state.modify_list);
-            chunk.load_time = performance.now() - prepare.start_time;
-            this.chunks.add(state.pos, chunk);
-            this.rendered_chunks.total++;
-            this.chunks_prepare.delete(state.pos);
-        }
-    }
 
     // Update
     update() {
@@ -363,7 +365,7 @@ export class ChunkManager {
                 b = block;
             }
             if(action) {
-                b = BLOCK.BLOCK_BY_ID[b.id];
+                b = BLOCK.BLOCK_BY_ID.get(b.id);
                 if(b.hasOwnProperty('sound')) {
                     Game.sounds.play(b.sound, action);
                 }

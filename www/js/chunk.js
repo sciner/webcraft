@@ -66,6 +66,7 @@ export class Chunk {
 
         this.seed = chunkManager.world.seed;
         this.tblocks = null;
+        this.isLive = true;
 
         this.id = [
             this.addr.x,
@@ -240,7 +241,7 @@ export class Chunk {
         let chunkManager = this.getChunkManager();
         //
         if(!is_modify) {
-            let material = BLOCK.BLOCK_BY_ID[item.id];
+            let material = BLOCK.BLOCK_BY_ID.get(item.id);
             let pos = new Vector(x, y, z);
             this.tblocks.delete(pos);
             let tblock           = this.tblocks.get(pos);
