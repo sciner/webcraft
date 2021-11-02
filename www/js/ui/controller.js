@@ -217,11 +217,11 @@ let gameCtrl = function($scope, $timeout, helperService) {
             //
             var that = this;
             that.loading = true;
-            helperService.api.call($scope.App, '/api/User/Registration', this.form, function(resp) {
-                $scope.login.autoLogin(that.form);
-                that.reset();
-            }, null, null, function() {
-                that.loading = false;
+            $scope.App.Registration(this.form, (resp) => {
+                $timeout(() => {
+                    $scope.login.autoLogin(that.form);
+                    that.reset();
+                });
             });
         },
         reset: function() {

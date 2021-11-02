@@ -59,6 +59,18 @@ export class UIApp {
         return !!this.getSession();
     }
 
+    // Registration...
+    async Registration(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/User/Registration', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     // Login...
     async Login(form, callback, callback_error, callback_progress, callback_final) {
         let that = this;
