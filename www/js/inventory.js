@@ -51,6 +51,14 @@ export default class Inventory {
         image.src = './media/inventory2.png';
     }
 
+    open() {
+        if(Game.world.game_mode.isCreative()) {
+            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+        } else {
+            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
+        }
+    }
+
     //
     exportItems() {
         let resp = {

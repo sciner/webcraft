@@ -238,7 +238,7 @@ export class Renderer {
         const { gl, shader, renderBackend } = this;
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
-        let player = this.world.localPlayer;
+        let player = this.world.player;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
@@ -377,7 +377,7 @@ export class Renderer {
 
     // Original bobView
     bobView(viewMatrix) {
-        let player = this.world.localPlayer;
+        let player = this.player;
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //

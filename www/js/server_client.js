@@ -101,7 +101,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.world.localPlayer.chat.messages.add(cmd.data.nickname, cmd.data.text);
+                    Game.world.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
                     break;
                 }
                 case ServerClient.CMD_CHEST_CONTENT: {
@@ -151,7 +151,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_TELEPORT: {
-                    Game.world.localPlayer.setPosition(cmd.data.pos);
+                    Game.world.player.setPosition(cmd.data.pos);
                     break;
                 }
                 case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {

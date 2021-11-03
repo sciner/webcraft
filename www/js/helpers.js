@@ -679,10 +679,10 @@ export class SpiralGenerator {
 export class MyArray extends Array {
     sortBy(...args) {
         return this.sort(function(obj1, obj2) {
-            if(!Game.world || !Game.world.localPlayer) {
+            if(!Game.world || !Game.world.player) {
                 return;
             }
-            let playerPos = Game.world.localPlayer.pos;
+            let playerPos = Game.world.player.pos;
             let dist1 = Math.sqrt(Math.pow(playerPos.x - obj1.coord.x, 2) + Math.pow(playerPos.y - obj1.coord.y, 2));
             let dist2 = Math.sqrt(Math.pow(playerPos.x - obj2.coord.x, 2) + Math.pow(playerPos.y - obj2.coord.y, 2));
             if(dist1 > dist2) {

@@ -47,7 +47,6 @@ export class Player {
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
         this.world                  = world;
-        this.world.localPlayer      = this;
         this.keys                   = {};
         this.eventHandlers          = {};
         // Position
@@ -104,13 +103,13 @@ export class Player {
     onStep(step_side) {
         this.step_count++;
         let world = this.world;
-        let player = world.localPlayer;
+        let player = player;
         if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
             return;
         }
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
-            let pos = world.localPlayer.getBlockPos();
+            let pos = player.getBlockPos();
             let world_block = world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
             if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
@@ -325,9 +324,9 @@ export class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        let x = (Game.player.pos.x | 0) - 11;
-                        let y = Game.player.pos.y | 0;
-                        let z = (Game.player.pos.z | 0) - 13;
+                        let x = (Game.world.player.pos.x | 0) - 11;
+                        let y = Game.world.player.pos.y | 0;
+                        let z = (Game.world.player.pos.z | 0) - 13;
                         let d = 10;
                         let cnt = 0;
                         let startx = x;
@@ -426,11 +425,7 @@ export class Player {
             case KEY.E: {
                 if(!down) {
                     if(Game.hud.wm.getVisibleWindows().length == 0) {
-                        if(Game.world.game_mode.isCreative()) {
-                            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
-                        } else {
-                            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
-                        }
+                        this.inventory.open();
                         return true;
                     }
                 }

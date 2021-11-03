@@ -199,7 +199,7 @@ export default class HUD {
         }
     
         // Make info for draw
-        if(!this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.hasDrawContent()) {
+        if(!this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.player.chat.hasDrawContent()) {
             return false;
         }
         this.need_refresh = false;
@@ -281,7 +281,7 @@ export default class HUD {
             this.text += '\nRenderer: ' + vci.renderer;
         }
         this.text += '\nMAT: ';
-        let mat = Game.player.buildMaterial;
+        let mat = Game.world.player.buildMaterial;
         if(mat) {
             this.text += ' ' + mat.id + ' / ' + mat.name;
             if(mat.fluid) {
@@ -313,8 +313,8 @@ export default class HUD {
         //
         // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
-        let playerBlockPos = Game.world.localPlayer.getBlockPos();
-        let chunk = Game.world.localPlayer.overChunk;
+        let playerBlockPos = Game.world.player.getBlockPos();
+        let chunk = Game.world.player.overChunk;
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + fps.speed + ' km/h';
         if(chunk) {
             let biome = null;
@@ -338,7 +338,7 @@ export default class HUD {
             if(player.itsme) {
                 this.text += ' <- YOU';
             } else {
-                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, Game.world.localPlayer.pos)) + 'm';
+                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, Game.world.player.pos)) + 'm';
             }
             this.text += '\n';
         }

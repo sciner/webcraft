@@ -98,7 +98,7 @@ export class World {
             this.clouds = this.createClouds(pos);
         }
         // Picking target
-        let player = this.localPlayer;
+        let player = this.player;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
             player.pickAt.update(this.getPickatDistance());
         }
@@ -107,7 +107,7 @@ export class World {
 
     //
     createClone() {
-        let player = this.localPlayer;
+        let player = this.player;
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
             itsme:          true,
@@ -146,7 +146,7 @@ export class World {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(function(){
-                    let pos = Game.world.localPlayer.pos;
+                    let pos = Game.world.player.pos;
                     Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
                 }, 25);
             }
@@ -160,7 +160,7 @@ export class World {
 
     // underWaterfall
     underWaterfall() {
-        this.setBlock(parseInt(this.localPlayer.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.localPlayer.pos.z), BLOCK.FLOWING_WATER, 1);
+        this.setBlock(parseInt(this.player.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.player.pos.z), BLOCK.FLOWING_WATER, 1);
     }
 
     // update
