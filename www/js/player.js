@@ -914,6 +914,20 @@ export class Player {
         this.lastUpdate = performance.now();
     }
 
+    // Emulate user keyboard control
+    walk(direction, duration) {
+        let key = null;
+        switch(direction) {
+            case 'forward': key = KEY.W; break;
+            case 'back': key = KEY.S; break;
+            case 'left': key = KEY.A; break;
+            case 'right': key = KEY.D; break;
+            default: throw 'Invalid direction';
+        }
+        this.onKeyEvent({ctrlKey: false}, key, true, true);
+        setTimeout(() => {this.onKeyEvent({ctrlKey: false}, key, false, true);}, duration);
+    }
+
     // Проверка падения (урон)
     checkFalling() {
         if(!Game.world.game_mode.isSurvival()) {

@@ -8,6 +8,13 @@ export class Kb {
         this.options        = options;
         this.keys_fired     = {down: {}, up: {}};
 
+        /*window.onbeforeunload = function (e) {
+            // Cancel the event
+            e.preventDefault();
+            // Chrome requires returnValue to be set
+            e.returnValue = 'Really want to quit the game?';
+        };*/
+
         document.onkeydown = function(e) {
             if (e.target.tagName != 'INPUT') {
                 if(that._onKeyEvent(e, e.keyCode, true)) {
@@ -15,8 +22,8 @@ export class Kb {
                 }
             }
             if (e.ctrlKey && e.key !== '0') {
-                event.preventDefault();
-                event.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
                 return false;
             }
         }
