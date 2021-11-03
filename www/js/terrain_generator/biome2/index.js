@@ -104,8 +104,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let map                     = new Map(chunk, this.options);
         this.caveManager.addSpiral(chunk.addr);
         //
-        for(let x = 0; x < chunk.size.x; x += 2) {
-            for(let z = 0; z < chunk.size.z; z += 2) {
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
                 // Высота горы в точке
@@ -155,10 +155,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(biome.code == 'OCEAN') {
                     cell.block = BLOCK.STILL_WATER.id;
                 }
-                map.cells[x][z] = cell;
-                map.cells[x + 1][z + 1] = cell;
-                map.cells[x + 1][z] = cell;
-                map.cells[x][z + 1] = cell;
+                try {
+                    map.cells[x][z] = cell;
+                    // map.cells[x + 1][z + 1] = cell;
+                    // map.cells[x + 1][z] = cell;
+                    // map.cells[x][z + 1] = cell;
+                } catch(e) {
+                    debugger;
+                }
             }
         }
         // Clear maps_cache
