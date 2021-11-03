@@ -16,6 +16,7 @@ h3 {
 }
 
 .btn {
+    font-family: minecraftia;
     width: 100%;
     outline: 2px solid black;
     background-image: url('../media/gui/button_center.png');
@@ -25,7 +26,6 @@ h3 {
     display: inline-block;
     background-repeat: repeat;
     padding: .65em 0;
-    font-family: minecraftia;
     text-align: center;
     color: white;
     font-size: 16px;
@@ -38,16 +38,16 @@ h3 {
 }
 
 .btn:hover {
-    border-bottom: 4px solid #59639A;
-    border-right: 2px solid #59639A;
-    border-left: 2px solid #BDC6FF;
-    border-top: 2px solid #BDC6FF;
+    border-bottom-color: #59639A;
+    border-right-color: #59639A;
+    border-left-color: #BDC6FF;
+    border-top-color: #BDC6FF;
     background-image: url('../media/gui/button_active_center.png');
     color: #FFFFA0;
 }
 
 .btn2 {
-    font-family: minecraftia;
+    /* font-family: minecraftia; */
     font-size: 16px;
     line-height: 1.3em;
     text-shadow: #3f3f3f 2px 2px 0px;
@@ -87,7 +87,6 @@ h3 {
     background: #46c571 !important;
 }
 
-
 .btn-action {
     background: rgb(235, 232, 232) !important;
     border-top-color: rgb(255, 255, 255) !important;
@@ -99,4 +98,118 @@ h3 {
 .btn-action:hover {
     transition: background-color .3s;
     background: #fff !important;
+}
+
+/* NEW DESIGN */
+body {
+    line-height: normal;
+    text-shadow: none;
+    font-family: Ubuntu;
+    background: url(/media/design/stars.png), url(/media/design/clouds.png),
+            linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);
+    background-repeat: repeat-x;
+    background-size: contain;
+    background-position: center;
+}
+
+.btn {
+    font-family: Ubuntu;
+    transition: background-color .3s;
+    background: #317195;
+    border: 1px solid white;
+    text-shadow: none;
+    box-shadow: none;
+    outline: none;
+    border-radius: 3px;
+    font-size: 22px;
+    padding: 0.5em 1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1em;
+    white-space: nowrap;
+}
+.btn:hover {
+    transition: background-color .3s;
+    background-image: none;
+    border-color: white;
+    background-color: #308dc2;
+    color: white;
+}
+
+.btn-danger {
+    background: #B7173D;
+    border: 2px solid #840935;
+}
+.btn-danger:hover {
+    background: #d81845;
+}
+
+.btn-main {
+    background: #01B55F;
+    border-color: #049650;
+}
+.btn-main:hover {
+    background: #11C56F;
+    background-image: none;
+    border-color: white;
+}
+
+.btn-warning {
+    background: #EB9B00;
+    border-color: #D18020;
+}
+.btn-warning:hover {
+    background: #FBAB10;
+    background-image: none;
+    border-color: white;
+}
+
+#main-menu {
+    align-items: center;
+}
+
+h4 {
+    font-size: 28px;
+    font-weight: normal;
+    margin: 0.5em 0;
+}
+
+form {
+    width: auto;
+}
+
+.form-profile {
+    font-size: 24px;
+    margin-top: 1em;
+    background: rgba(34, 25, 65, 0.5);
+    border-radius: 5px;
+}
+
+.form-title {
+    background: rgba(34, 25, 65, 0.5);
+    padding: 0.3em 1em;
+}
+
+.form-content, .form-title {
+    padding: 0.3em 1em;
+    border-radius: 5px;
+}
+
+input[type="text"], input[type="password"] {
+    text-shadow: none;
+    font-family: Ubuntu;
+}
+
+form, .form-styled {
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-bar {
+    display: grid;
+    grid-gap: 1em;
+    grid-template-columns: 1fr 1fr;
 }

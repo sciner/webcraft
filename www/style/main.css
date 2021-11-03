@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;700&display=swap');
+
 /* Minecraft-like pixely font */
 @font-face {
 	font-family: minecraftia;
@@ -32,11 +34,11 @@
 
 body {
 	height: 100%;
-	font-family: minecraftia;
 	font-size: 16px;
     line-height: 1.3em;
 	text-shadow: #3f3f3f 2px 2px 0px;
-	background: #1e150f url( '../media/background.png');
+    font-family: minecraftia;
+    background: #1e150f url( '../media/background.png');
     min-height: 100vh;
     padding: 0;
     margin: 0;
@@ -145,7 +147,7 @@ button {
     padding: 1em 2em;
     border-radius: 0;
     border: none;
-    font-family: minecraftia;
+    /* font-family: minecraftia; */
     font-size: 25px;
 }
 
