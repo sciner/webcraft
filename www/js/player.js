@@ -75,7 +75,6 @@ export class Player {
         vec3.divScalar(900); // .multiplyScalar(Math.PI);
         this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
         this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
-        
         this.setRotate(this.rotate);
     }
 
@@ -98,7 +97,7 @@ export class Player {
         this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
         this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
 
-        this.update();
+        // this.update();
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
