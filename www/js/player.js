@@ -103,7 +103,7 @@ export class Player {
     onStep(step_side) {
         this.step_count++;
         let world = this.world;
-        let player = player;
+        let player = world.player;
         if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
             return;
         }
