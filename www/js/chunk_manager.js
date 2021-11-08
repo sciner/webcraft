@@ -22,7 +22,9 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];
         this.worker_inited          = false;
+        this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+        this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         this.clearNerby();
         //
@@ -45,7 +47,8 @@ export class ChunkManager {
             let args = e.data[1];
             switch(cmd) {
                 case 'worker_inited': {
-                    that.worker_inited = true;
+                    that.worker_counter--;
+                    that.worker_inited = that.worker_counter === 0;
                     break;
                 }
                 case 'blocks_generated': {
@@ -61,6 +64,24 @@ export class ChunkManager {
                         if(chunk) {
                             chunk.onVerticesGenerated(result);
                         }
+                    }
+                    break;
+                }
+            }
+        }
+        this.lightWorker.onmessage = function(e) {
+            let cmd = e.data[0];
+            let args = e.data[1];
+            switch(cmd) {
+                case 'worker_inited': {
+                    that.worker_counter--;
+                    that.worker_inited = that.worker_counter === 0;
+                    break;
+                }
+                case 'light_generated': {
+                    let chunk = that.chunks.get(args.addr);
+                    if(chunk) {
+                        chunk.onLightGenerated(args);
                     }
                     break;
                 }
@@ -300,7 +321,7 @@ export class ChunkManager {
 
     /**
      * getPosChunkKey...
-     * @param {Vector} pos 
+     * @param {Vector} pos
      * @returns string
      */
     getPosChunkKey(pos) {

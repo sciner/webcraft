@@ -2,8 +2,6 @@
  * light worker sends messages periodically, separating light waves
  */
 
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./blocks";
-
 /**
  * settings
  */
@@ -21,7 +19,8 @@ let VectorCollector = null;
 let Vector = null;
 let chunks = null;
 const world = {
-    chunkManager: null
+    chunkManager: null,
+    queue: null
 }
 
 const maxLight = 15;
@@ -45,7 +44,7 @@ class LightQueue {
     doWaves(msLimit) {
         msLimit = msLimit || globalStepMs;
         const startTime = performance.now(), endTime = performance.now();
-        const { wavesChunk, wavesCoord } = this;
+        const {wavesChunk, wavesCoord} = this;
         let wn = maxLight;
         let chunkAddr = new Vector();
         do {
@@ -60,7 +59,7 @@ class LightQueue {
                     continue;
                 }
 
-                const { outerSize } = chunk;
+                const {outerSize} = chunk;
                 const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
 
                 const x = coord % outerSize.x;
@@ -131,9 +130,8 @@ class LightQueue {
      * @param ind
      * @param coord
      */
-    add(chunk, coord, waveNum)
-    {
-        const { wavesChunk, wavesCoord } = this;
+    add(chunk, coord, waveNum) {
+        const {wavesChunk, wavesCoord} = this;
         wavesChunk[waveNum].push(chunk);
         wavesCoord[waveNum].push(coord);
     }
@@ -168,7 +166,7 @@ class Chunk {
 
     init() {
         this.len = this.size.x * this.size.y * this.size.z;
-        this.outerLen = (this.size.x + 1) * (this.size.y + 1) * (this.size.z + 1);
+        this.outerLen = (this.size.x + 2) * (this.size.y + 2) * (this.size.z + 2);
         this.lightSource = new Uint8Array(this.len);
         this.lightMap = new Uint8Array(this.len);
         this.lightPrev = new Uint8Array(this.len);
@@ -176,7 +174,7 @@ class Chunk {
 
     fillOuter() {
         //checks neighbour chunks
-        const {size, outerSize} = this;
+        const {size, outerSize, lightSource} = this;
         const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
         let neibAddr = new Vector();
         let dest = this.lightMap;
@@ -254,12 +252,20 @@ class Chunk {
                 }
         }
 
-        // TODO: add to queue
+        for (let inner = 0; inner < this.len; inner++) {
+            const outer = inner + sx + sy + sz;
+            const m = Math.max(lightSource[inner], dest[outer]);
+            if (m > 0) {
+                world.light.add(this, outer, m);
+            }
+        }
     }
 }
 
 function run() {
 }
+
+const msgQueue = [];
 
 async function importModules() {
     await import("./helpers.js").then(module => {
@@ -269,10 +275,13 @@ async function importModules() {
     });
     modulesReady = true;
     //for now , its nothing
-    for (let item of queue) {
+    for (let item of msgQueue) {
         await onmessage(item);
     }
-    queue = [];
+    postMessage(['worker_inited', null]);
+    world.chunkManager = new ChunkManager();
+    world.light = new LightQueue();
+    msgQueue.length = 0;
 }
 
 onmessage = async function (e) {
@@ -284,7 +293,7 @@ onmessage = async function (e) {
         return;
     }
     if (!modulesReady) {
-        return queue.push(e);
+        return msgQueue.push(e);
     }
     //do stuff
 

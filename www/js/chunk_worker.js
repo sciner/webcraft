@@ -270,7 +270,7 @@ class Chunk {
                     let b = this.blocks[x][z][y];
                     if(!b || b.id == 0 || b.transparent) {
                         let index = BLOCK.getIndex(x, y, z);
-                        if(this.lightmap[index] < power) {    
+                        if(this.lightmap[index] < power) {
                             this.lightmap[index] = power;
                             fillLight(x, y, z, power);
                         }

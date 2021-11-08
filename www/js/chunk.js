@@ -36,7 +36,7 @@ export class Chunk {
 
     getChunkManager() {
         return Game.world.chunkManager;
-    }    
+    }
 
     constructor(pos, modify_list) {
 
@@ -105,7 +105,9 @@ export class Chunk {
         this.tblocks            = new TypedBlocks();
         this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
         this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.light_buffer     = args.tblocks.light_buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.light_source = new Uint8Array(this.tblocks.light_buffer, 0, this.tblocks.count);
         this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
         this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
         this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
@@ -124,11 +126,14 @@ export class Chunk {
         if(!this.map) {
             this.map = args.map;
         }
+        //args.lightmap
+    }
+
+    onLightGenerated(args) {
         this.lightData = args.lightmap || null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }
-        //args.lightmap
     }
 
     drawBufferGroup(render, group, mat) {
