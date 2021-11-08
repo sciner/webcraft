@@ -87,9 +87,10 @@ export class ChunkManager {
                 }
             }
         }
-        // Init webworker
+        // Init webworkers
         let world_state = world.saved_state.world;
         this.postWorkerMessage(['init', world_state.generator, world_state.seed, world_state.guid]);
+        this.postLightWorkerMessage(['init', null]);
     }
 
     //
@@ -203,6 +204,11 @@ export class ChunkManager {
     // postWorkerMessage
     postWorkerMessage(data) {
         this.worker.postMessage(data);
+    };
+
+    // postLightWorkerMessage
+    postLightWorkerMessage(data) {
+        this.lightWorker.postMessage(data);
     };
 
     // Update
