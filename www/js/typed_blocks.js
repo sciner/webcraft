@@ -149,6 +149,11 @@ export class TBlock {
         return BLOCK.canReplace(this.id);
     }
 
+    hasTag(tag) {
+        let mat = this.material;
+        return mat.tags && mat.tags.indexOf(tag) >= 0;
+    }
+
 }
 
 // TypedBlocks

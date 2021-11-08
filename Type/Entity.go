@@ -71,7 +71,7 @@ func (this *EntityManager) GetEntityByPos(pos Struct.Vector3) (interface{}, stri
 }
 
 // CreateEntity...
-func (this *EntityManager) CreateChest(world *World, conn *UserConn, params *Struct.ParamBlockSet) string {
+func (this *EntityManager) CreateChest(world *World, conn *PlayerConn, params *Struct.ParamBlockSet) string {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	blockPosKey := this.GetBlockKey(params.Pos)
@@ -98,7 +98,7 @@ func (this *EntityManager) CreateChest(world *World, conn *UserConn, params *Str
 }
 
 // LoadChest...
-func (this *EntityManager) LoadChest(params *Struct.ParamLoadChest, conn *UserConn) {
+func (this *EntityManager) LoadChest(params *Struct.ParamLoadChest, conn *PlayerConn) {
 	if chest, ok := this.Chests[params.EntityID]; ok {
 		conn.SendChest(chest)
 	} else {
@@ -107,7 +107,7 @@ func (this *EntityManager) LoadChest(params *Struct.ParamLoadChest, conn *UserCo
 }
 
 // Получены новые данные о содержимом слоте сундука
-func (this *EntityManager) SetChestSlotItem(world *World, conn *UserConn, params *Struct.ParamChestSetSlotItem) {
+func (this *EntityManager) SetChestSlotItem(world *World, conn *PlayerConn, params *Struct.ParamChestSetSlotItem) {
 	if chest, ok := this.Chests[params.EntityID]; ok {
 		this.Mu.Lock()
 		defer this.Mu.Unlock()

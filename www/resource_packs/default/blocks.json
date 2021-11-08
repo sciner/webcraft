@@ -182,6 +182,7 @@
     },
     {
         "id": 198,
+        "name": "BIRCH_LEAVES",
         "inventory_icon_id": 3441,
         "spawnable": true,
         "transparent": true,
@@ -190,7 +191,9 @@
             20,
             18
         ],
-        "name": "BIRCH_LEAVES",
+        "tags": [
+            "leaves"
+        ],
         "destroy_time": 1,
         "power": 1,
         "selflit": false,
@@ -199,6 +202,7 @@
     },
     {
         "id": 233,
+        "name": "OAK_LEAVES",
         "inventory_icon_id": 3403,
         "transparent": true,
         "sound": "madcraft:block.grass",
@@ -206,7 +210,9 @@
             21,
             18
         ],
-        "name": "OAK_LEAVES",
+        "tags": [
+            "leaves"
+        ],
         "destroy_time": 1,
         "power": 1,
         "selflit": false,
@@ -216,6 +222,7 @@
     },
     {
         "id": 220,
+        "name": "ACACIA_LEAVES",
         "inventory_icon_id": 3403,
         "transparent": true,
         "sound": "madcraft:block.grass",
@@ -223,7 +230,9 @@
             22,
             18
         ],
-        "name": "ACACIA_LEAVES",
+        "tags": [
+            "leaves"
+        ],
         "destroy_time": 1,
         "power": 1,
         "selflit": false,
@@ -233,6 +242,7 @@
     },
     {
         "id": 190,
+        "name": "SPRUCE_LEAVES",
         "inventory_icon_id": 3441,
         "spawnable": true,
         "transparent": true,
@@ -241,7 +251,9 @@
             23,
             18
         ],
-        "name": "SPRUCE_LEAVES",
+        "tags": [
+            "leaves"
+        ],
         "destroy_time": 1,
         "power": 1,
         "selflit": false,
@@ -870,6 +882,9 @@
             4,
             16
         ],
+        "tags": [
+            "mask_biome"
+        ],
         "name": "GRASS",
         "destroy_time": 0,
         "power": 1,
@@ -878,6 +893,38 @@
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
+    },
+    {
+        "id": 106,
+        "transparent": true,
+        "width": 0.0625,
+        "texture": {
+            "south": [
+                6,
+                16
+            ],
+            "side": [
+                4,
+                12
+            ]
+        },
+        "align": [
+            "back"
+        ],
+        "tags": [
+            "vines",
+            "mask_biome"
+        ],
+        "style": "ladder",
+        "name": "VINES",
+        "passable": 0.25,
+        "destroy_time": 0.4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 3447
     },
     {
         "id": 32,
@@ -1454,6 +1501,26 @@
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3366
+    },
+    {
+        "id": 520,
+        "style": "stairs",
+        "sound": "madcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            4,
+            2
+        ],
+        "name": "MOSS_COBBLESTONE_STAIRS",
+        "destroy_time": 7,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 3274
     },
     {
         "id": 56,
@@ -2055,37 +2122,6 @@
         "planting": true
     },
     {
-        "id": 106,
-        "transparent": true,
-        "width": 0.0625,
-        "texture": {
-            "south": [
-                15,
-                8
-            ],
-            "side": [
-                4,
-                12
-            ]
-        },
-        "align": [
-            "back"
-        ],
-        "tags": [
-            "anycardinal"
-        ],
-        "style": "ladder",
-        "name": "VINES",
-        "passable": 0.25,
-        "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3447
-    },
-    {
         "id": 108,
         "inventory_icon_id": 3241,
         "style": "stairs",
@@ -2353,6 +2389,7 @@
         "id": 135,
         "inventory_icon_id": 3231,
         "style": "stairs",
+        "sound": "madcraft:block.wood",
         "tags": [
             "stairs"
         ],
@@ -2394,6 +2431,7 @@
         "id": 163,
         "inventory_icon_id": 3223,
         "style": "stairs",
+        "sound": "madcraft:block.wood",
         "tags": [
             "stairs"
         ],
@@ -2414,6 +2452,7 @@
         "id": 134,
         "inventory_icon_id": 3318,
         "style": "stairs",
+        "sound": "madcraft:block.wood",
         "tags": [
             "stairs"
         ],
@@ -2686,6 +2725,7 @@
         "fluid": false,
         "sound": "madcraft:block.grass",
         "tags": [
+            "mask_biome",
             "dirt"
         ],
         "texture": {
@@ -3186,6 +3226,7 @@
     },
     {
         "id": 65,
+        "name": "LADDER",
         "inventory_icon_id": 3271,
         "width": 0.0625,
         "align": [
@@ -3205,7 +3246,9 @@
                 12
             ]
         },
-        "name": "LADDER",
+        "tags": [
+            "ladder"
+        ],
         "destroy_time": 4,
         "power": 1,
         "selflit": false,

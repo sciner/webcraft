@@ -15,26 +15,26 @@ func init() {
 }
 
 type (
-	// UserConnMan ...
-	UserConnMan struct {
-		Connections map[string]*UserConn // Registered connections.
+	// PlayerConnMan ...
+	PlayerConnMan struct {
+		Connections map[string]*PlayerConn // Registered connections.
 	}
 )
 
 // Run in goroutine
-func (this *UserConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *websocket.Conn) *UserConn {
+func (this *PlayerConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *websocket.Conn) *PlayerConn {
 	//
 	if val, ok := this.Connections[session_id]; ok {
-		log.Printf("Used existing UserConn")
+		log.Printf("Used existing PlayerConn")
 		val.Close()
 		delete(this.Connections, session_id)
 	}
 	//
-	session, err := DB.GetUserSession(session_id)
+	session, err := DB.GetPlayerSession(session_id)
 	if err != nil || session == nil {
 		return nil
 	}
-	log.Println("Before new UserConn", session)
+	log.Println("Before new PlayerConn", session)
 	//
 	for _, conn := range this.Connections {
 		if conn.Session.UserGUID == session.UserGUID {
@@ -43,13 +43,13 @@ func (this *UserConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *
 		}
 	}
 	//
-	this.Connections[session_id] = &UserConn{
+	this.Connections[session_id] = &PlayerConn{
 		Session: session,
 		ID:      session.UserGUID,
 		Skin:    skin,
 		Ws:      Ws,
 	}
-	log.Printf("Create new UserConn")
+	log.Printf("Create new PlayerConn")
 	//
 	go this.Connections[session_id].Receiver()
 	return this.Connections[session_id]

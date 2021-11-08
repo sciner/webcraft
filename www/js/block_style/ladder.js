@@ -1,4 +1,4 @@
-import {MULTIPLY, ROTATE, DIRECTION} from '../helpers.js';
+import {MULTIPLY, ROTATE, DIRECTION, QUAD_FLAGS} from '../helpers.js';
 
 // Лестница
 export default class style {
@@ -10,7 +10,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z) {
+    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
 
         if(typeof block == 'undefined') {
             return;
@@ -22,7 +22,19 @@ export default class style {
         let bH          = 1.0;
         let width       = block.material.width ? block.material.width : 1;
         let lm          = MULTIPLY.COLOR.WHITE;
-        let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+        let c           = null;
+        let flags       = 0;
+
+        // Texture color multiplier
+        if(block.id == BLOCK.VINES.id) {
+            // c = BLOCK.calcTexture(texture, DIRECTION.UP);
+            c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+            lm = biome.dirt_color;
+            // flags = QUAD_FLAGS.NORMAL_UP;
+            flags = QUAD_FLAGS.MASK_BIOME;
+        } else {
+            c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+        }
 
         switch(cardinal_direction) {
             case ROTATE.S: {
@@ -32,7 +44,7 @@ export default class style {
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, 0);
+                    lm.a, lm.a, lm.a, lm.a, flags);
                 break;
             }
             case ROTATE.W: {
@@ -42,7 +54,7 @@ export default class style {
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, 0);
+                    lm.a, lm.a, lm.a, lm.a, flags);
                 break;
             }
             case ROTATE.N: {
@@ -52,7 +64,7 @@ export default class style {
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, 0);
+                    lm.a, lm.a, lm.a, lm.a, flags);
                 break;
             }
             case ROTATE.E: {
@@ -62,7 +74,7 @@ export default class style {
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, 0);
+                    lm.a, lm.a, lm.a, lm.a, flags);
                 break;
             }
         }

@@ -54,7 +54,9 @@ let gameCtrl = function($scope, $timeout, helperService) {
 
     window.Game                     = new GameClass();
 
-    $scope.App = window.Game.App    = new UIApp();
+    Game.preload();
+
+    $scope.App                      = Game.App = new UIApp();
     $scope.texture_pack             = new TexturePackManager($scope);
     $scope.skin                     = new SkinManager($scope);
 
@@ -189,6 +191,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             this.logged = !!session;
             if(!this.logged) {
                 $scope.current_window.show('hello');
+                $scope.loadingComplete();
                 return false;
             }
             this.onSuccess(session);
@@ -268,14 +271,25 @@ let gameCtrl = function($scope, $timeout, helperService) {
             return;
         }
         // Show Loading...
-        $scope.current_window.show('loading');
-        $scope.settings.save();
-        $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
-            $timeout(function(){
-                $scope.resource_loading_state = resource_loading_state;
+        Game.hud.draw();
+        $timeout(function(){
+            // $scope.current_window.show('loading');
+            $scope.settings.save();
+            $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
+                Game.hud.draw(true);
+                /*
+                $timeout(function(){
+                    $scope.resource_loading_state = resource_loading_state;
+                });
+                */
             });
         });
     };
+
+    // loadingComplete
+    $scope.loadingComplete = function() {
+        document.getElementById('loading').classList.add('loading-complete');
+    }
 
     // My games
     $scope.mygames = {
@@ -283,7 +297,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         load: function() {
             let session = $scope.App.getSession();
             if(!session) {
-                return;
+                return that.loadingComplete();
             }
             var that = this;
             that.loading = true;
@@ -291,6 +305,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
                 $timeout(() => {
                     that.list = worlds;
                     that.loading = false;
+                    $scope.loadingComplete();
                 });
             });
         },

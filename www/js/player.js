@@ -49,6 +49,7 @@ export class Player {
         this.world                  = world;
         this.keys                   = {};
         this.eventHandlers          = {};
+        this.indicators             = world.saved_state.indicators;
         // Position
         this.pos                    = new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z);
         this.prevPos                = new Vector(this.pos);
@@ -578,6 +579,9 @@ export class Player {
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
                 }
+                if(replaceBlock && this.buildMaterial.style == 'ladder') {
+                    return;
+                }
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!replaceBlock) {
                     let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
@@ -648,7 +652,8 @@ export class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(world_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
+                                // Лианы можно ставить на блоки с прозрачностью
+                                if(world_block.transparent && world_block.style != 'default') {
                                     return;
                                 }
                                 if(pos.n.y == 0) {
@@ -928,6 +933,7 @@ export class Player {
         if(!Game.world.game_mode.isSurvival()) {
             return;
         }
+        // let onGround = this.pr.player_state.onGround;
         if(!this.onGround) {
             // do nothing
         } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
@@ -937,7 +943,7 @@ export class Player {
                 let damage = -height - 3;
                 // let falling_time = performance.now() - this.lastOnGroundTime;
                 if(damage > 0) {
-                    Game.hotbar.damage(damage / 20, 'falling');
+                    Game.hotbar.damage(damage, 'falling');
                 }
             }
             this.lastOnGroundTime = null;

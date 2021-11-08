@@ -20,7 +20,7 @@ export default class style {
         let lm = MULTIPLY.COLOR.WHITE;
         let flags = QUAD_FLAGS.NORMAL_UP;
         // Texture color multiplier
-        if(block.id == BLOCK.GRASS.id) {
+        if(block.hasTag('mask_biome')) {
             lm = biome.dirt_color;
             flags |= QUAD_FLAGS.MASK_BIOME;
         }

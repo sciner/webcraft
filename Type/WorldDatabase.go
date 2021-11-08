@@ -17,7 +17,7 @@ import (
 )
 
 type (
-	// UserConn ...
+	// PlayerConn ...
 	WorldDatabase struct {
 		Mu   *sync.Mutex // чтобы избежать коллизий
 		Conn *sql.DB
@@ -123,17 +123,20 @@ func (this *WorldDatabase) LoadModifiers(chunk *Chunk) (map[string]Struct.BlockI
 }
 
 // Сырой запрос в БД
-func (this *WorldDatabase) RAWQuery(sql_query string) {
-	this.Mu.Lock()
-	defer this.Mu.Unlock()
+func (this *WorldDatabase) RAWQuery(sql_query string, lock bool) error {
+	if lock {
+		this.Mu.Lock()
+		defer this.Mu.Unlock()
+	}
 	_, err := this.Conn.Query(sql_query)
 	if err != nil {
 		log.Printf("SQL_ERROR5: %v", err)
 	}
+	return err
 }
 
 // RegisterUser... Возвращает игрока либо создает и возвращает его
-func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struct.Vector3f, lock bool) (int64, *Struct.PlayerState, error) {
+func (this *WorldDatabase) RegisterUser(conn *PlayerConn, default_pos_spawn *Struct.Vector3f, lock bool) (int64, *Struct.PlayerState, error) {
 	if lock {
 		this.Mu.Lock()
 		defer this.Mu.Unlock()
@@ -141,7 +144,7 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 	// Find existing world record
 	player_state := &Struct.PlayerState{}
 	// @todo
-	rows, err := this.Conn.Query("SELECT id, inventory, pos, pos_spawn, rotate FROM user WHERE guid = $1", conn.ID)
+	rows, err := this.Conn.Query("SELECT id, inventory, pos, pos_spawn, rotate, indicators FROM user WHERE guid = $1", conn.ID)
 	if err != nil {
 		log.Printf("SQL_ERROR1: %v", err)
 	}
@@ -152,7 +155,8 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 		var pos string
 		var pos_spawn string
 		var rotate string
-		err := rows.Scan(&IDInt, &inventory, &pos, &pos_spawn, &rotate)
+		var indicators string
+		err := rows.Scan(&IDInt, &inventory, &pos, &pos_spawn, &rotate, &indicators)
 		if err != nil {
 			fmt.Println(err)
 			return 0, nil, err
@@ -177,6 +181,11 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 		if err != nil {
 			return 0, nil, err
 		}
+		// Indicators
+		err = json.Unmarshal([]byte(indicators), &player_state.Indicators)
+		if err != nil {
+			return 0, nil, err
+		}
 		//
 		return IDInt, player_state, nil
 	}
@@ -193,13 +202,16 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 		Current: &Struct.PlayerInventoryCurrent{},
 	}
 	inventory_bytes, _ := json.Marshal(inventory)
-	// result, err := this.Conn.Exec("INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)", conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
-	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
-	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	// Indicators default values
+	indicators := Struct.InitPlayerIndicators()
+	indicators_bytes, _ := json.Marshal(indicators)
+	//
+	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	statement, err := this.Conn.Prepare(query)
 	if err != nil {
 		log.Printf("ERROR24: %v", err)
 	}
-	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes))
+	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes), string(indicators_bytes))
 	if err != nil || result == nil {
 		log.Printf("SQL_ERROR2: %v", err)
 		log.Println(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), conn.Skin)
@@ -209,12 +221,11 @@ func (this *WorldDatabase) RegisterUser(conn *UserConn, default_pos_spawn *Struc
 }
 
 // Добавление сообщения в чат
-func (this *WorldDatabase) InsertChatMessage(conn *UserConn, world *World, params *Struct.ParamChatSendMessage) {
+func (this *WorldDatabase) InsertChatMessage(conn *PlayerConn, world *World, params *Struct.ParamChatSendMessage) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
-	// _, err := this.Conn.Query(`INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`, conn.Session.UserID, time.Now().Unix(), params.Text, world.Properties.ID, 0)
 	query := `INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES ($1, $2, $3, $4, $5)`
-	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	statement, err := this.Conn.Prepare(query)
 	if err != nil {
 		log.Printf("ERROR25: %v", err)
 	}
@@ -225,7 +236,7 @@ func (this *WorldDatabase) InsertChatMessage(conn *UserConn, world *World, param
 }
 
 // Установка блока
-func (this *WorldDatabase) BlockSet(conn *UserConn, world *World, params *Struct.ParamBlockSet) {
+func (this *WorldDatabase) BlockSet(conn *PlayerConn, world *World, params *Struct.ParamBlockSet) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	var null_string *string
@@ -319,17 +330,18 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 }
 
 // SavePlayerState...
-func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
+func (this *WorldDatabase) SavePlayerState(conn *PlayerConn) error {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	pos_json_bytes, _ := json.Marshal(conn.Pos)
 	rotate_json_bytes, _ := json.Marshal(conn.Rotate)
-	query := `UPDATE user SET pos = $1, rotate = $2, dt_moved = $3 WHERE id = $4`
+	indicators_json_bytes, _ := json.Marshal(conn.Indicators)
+	query := `UPDATE user SET pos = $1, rotate = $2, dt_moved = $3, indicators = $4 WHERE id = $5`
 	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
 	if err != nil {
 		log.Printf("SQL_ERROR12_2: %v", err)
 	}
-	_, err = statement.Exec(string(pos_json_bytes), string(rotate_json_bytes), time.Now().Unix(), conn.Session.UserID)
+	_, err = statement.Exec(string(pos_json_bytes), string(rotate_json_bytes), time.Now().Unix(), string(indicators_json_bytes), conn.Session.UserID)
 	if err != nil {
 		log.Printf("SQL_ERROR12: %v", err)
 	}
@@ -337,7 +349,7 @@ func (this *WorldDatabase) SavePlayerState(conn *UserConn) error {
 }
 
 // ChangePosSpawn...
-func (this *WorldDatabase) ChangePosSpawn(conn *UserConn, params *Struct.ParamPosSpawn) error {
+func (this *WorldDatabase) ChangePosSpawn(conn *PlayerConn, params *Struct.ParamPosSpawn) error {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	//
@@ -357,7 +369,7 @@ func (this *WorldDatabase) ChangePosSpawn(conn *UserConn, params *Struct.ParamPo
 }
 
 // SavePlayerInventory...
-func (this *WorldDatabase) SavePlayerInventory(conn *UserConn, inventory *Struct.PlayerInventory) error {
+func (this *WorldDatabase) SavePlayerInventory(conn *PlayerConn, inventory *Struct.PlayerInventory) error {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	inventory_bytes, _ := json.Marshal(inventory)
@@ -435,7 +447,7 @@ func (this *WorldDatabase) LoadWorldChests(world *World) (map[string]*Chest, map
 }
 
 // CreateChest...
-func (this *WorldDatabase) CreateChest(conn *UserConn, pos *Struct.Vector3, chest *Chest) error {
+func (this *WorldDatabase) CreateChest(conn *PlayerConn, pos *Struct.Vector3, chest *Chest) error {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	query := `INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
@@ -467,4 +479,66 @@ func (this *WorldDatabase) SaveChestSlots(chest *Chest) error {
 		log.Printf("SQL_ERROR47: %v", err)
 	}
 	return err
+}
+
+func (this *WorldDatabase) Init() {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	rows_tables, err := this.Conn.Query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'options'")
+	if err != nil {
+		log.Printf("SQL_ERROR50: %v", err)
+	}
+	defer rows_tables.Close()
+	options_exists := false
+	// Check options table exists
+	for rows_tables.Next() {
+		options_exists = true
+	}
+	// Create table options if not exists
+	if !options_exists {
+		_ = this.RAWQuery("CREATE TABLE \"options\" (\"id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"version\" integer NOT NULL DEFAULT 0)", false)
+		_ = this.RAWQuery("INSERT INTO options(version) VALUES(0)", false)
+	}
+	//
+	this.ApplyMigrations()
+}
+
+func (this *WorldDatabase) ApplyMigrations() {
+	// Read options
+	rows, err := this.Conn.Query("SELECT version FROM options")
+	if err != nil {
+		log.Printf("SQL_ERROR51: %v", err)
+	}
+	version := 0
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&version)
+		if err != nil {
+			log.Printf("SQL_ERROR52: %v", err)
+		}
+	}
+	if version == 0 {
+		err = this.RAWQuery("alter table user add column indicators text", false)
+		if err != nil {
+			log.Printf("SQL_ERROR53: %v", err)
+		}
+		err = this.RAWQuery("update options set version = 1", false)
+		if err != nil {
+			log.Printf("SQL_ERROR54: %v", err)
+		}
+		//
+		query := `UPDATE user SET indicators = $1`
+		statement, err := this.Conn.Prepare(query)
+		if err != nil {
+			log.Printf("SQL_ERROR55: %v", err)
+		}
+		indicators := Struct.InitPlayerIndicators()
+		indicators_json_bytes, _ := json.Marshal(indicators)
+		_, err = statement.Exec(indicators_json_bytes)
+		if err != nil {
+			log.Printf("SQL_ERROR56: %v", err)
+		}
+		this.ApplyMigrations()
+		return
+	}
 }

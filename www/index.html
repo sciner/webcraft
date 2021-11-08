@@ -10,8 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
 	<!-- Stylesheet -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
-    <link href="style/main.css" rel="stylesheet" type="text/css">
-	<link href="style/ui.css" rel="stylesheet" type="text/css">
+    <link href="style/main.less" rel="stylesheet/less" type="text/css">
+    <link href="style/ui.less" rel="stylesheet/less" type="text/css" />
 	<!-- Third party -->
     <script src="vendors/gl-matrix-3.3.min.js" type="text/javascript"></script>
     <script src="vendors/howler.min.js" type="text/javascript"></script>
@@ -21,6 +21,19 @@
     <script src="vendors/objParser.js"></script>
     -->
     <script src="js/ui/controller.js" type="module"></script>
+    <script>
+        less = {
+          env: 'development',
+          async: false,
+          fileAsync: false,
+          poll: 1000,
+          functions: {},
+          dumpLineNumbers: 'comments',
+          relativeUrls: false,
+          rootpath: ":/a.com/"
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.1.1/less.min.js"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>
 
@@ -52,14 +65,14 @@
 
         <!-- <h3 ng-if="current_window.id != 'loading'">{{current_window.getTitle()}}</h3> -->
 
-        <div class="flex0">
-            <img src="/media/design/logo.png" style="width: 50%; margin: 2em auto;" ng-if="current_window.id != 'hello'">
-            <img src="/media/design/art.png" style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);" ng-if="current_window.id == 'hello'">
-            <img src="/media/design/logo.png" style="position: fixed; width: 560px; bottom: 450px; left: 50%; transform: translateX(-50%);" ng-if="current_window.id == 'hello'">
+        <div id="main-pictures" class="flex0">
+            <img src="/media/design/logo.png" class="logo-others" ng-if="current_window.id != 'hello'">
+            <img src="/media/design/art.png" class="pic-art" ng-if="current_window.id == 'hello'">
+            <img src="/media/design/logo.png" class="logo-main" ng-if="current_window.id == 'hello'">
         </div>
 
         <!-- Hello -->
-        <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'hello'" style="position: fixed; bottom: 300px; left: 0;">
+        <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'hello'">
 
             <!-- <img src="/media/design/art.png" style="margin: auto; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);"> -->
             <div class="flex0 flex-column">
@@ -126,7 +139,7 @@
                 <form>
                     <div>
                         <div ng-if="mygames.list.length > 0">
-                            <h4 class="text-center">My Games:</h4>
+                            <!-- <h4 class="text-center">My Games:</h4> -->
                             <div ng-repeat="item in mygames.list track by item.id">
                                 <button class="btn" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
                             </div>
@@ -137,14 +150,15 @@
                     </div>
                 </form>
 
-                <form>
-                        
+                <form class="flex-column flex-justify-start">
+
                     <div class="form-profile">
-                        <div class="form-title">You logged as @{{Game.username}}</div>
-
+                        <div class="form-title">
+                            <span>@{{Game.username}}</span>
+                            <button class="btn btn-danger btn-round" ng-click="App.logout()">&times;</button>
+                        </div>
                         <div class="form-content">
-
-                            <h4 class="text-center">Settings:</h4>
+                            <!-- <h4 class="text-center">Settings:</h4> -->
                             <!-- Skin -->
                             <button class="btn" ng-click="skin.open()">
                                 <span>🙂 Change skin</span>
@@ -159,21 +173,16 @@
                                 </div> -->
                             </div>
                             <!-- Generate mipmap -->
-                            <div style="display: flex; align-items: center; justify-content: center; margin-top: 1em;">
+                            <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
                                 <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
                                 <label for="input-mipmap">Generate mipmap</label>
                             </div>
-
-                            <br>
-                            <button class="btn btn-danger" ng-click="App.logout()">
-                                <span>Logout</span>
-                            </button>
                         </div>
                     </div>
 
-                    <div style="display: none;">
+                    <div style="font-size: 14px; padding: 1em 0 2em 0;">
                         <h4 class="text-center">Commands:</h4>
-                        <div style="font-size: 14px;">
+                        <div>
                             <strong>WASD</strong> - Moving
                             <br><strong>F4</strong> - Set position as spawnpoint
                             <br><strong>R</strong> - Respawn
@@ -183,20 +192,12 @@
                             <br><strong>Mouse whell</strong> - Clone block under cursor
                             <br><strong>Ctrl, Double W</strong> - Running
                             <br><br>Other:
-                            <br><strong>F7</strong> - Draw player model at current pos
+                            <!-- <br><strong>F7</strong> - Draw player model at current pos
                             <br><strong>F8</strong> - Teleport to random location
-                            <br><strong>F9</strong> - Night (toggle)
+                            <br><strong>F9</strong> - Night (toggle) -->
                             <br><strong>F10</strong> - Change game mode
                         </div>
                     </div>
-
-                    <!-- <br>
-                    <br>
-                    <h4 class="text-center">Thank you:</h4>
-                    <div style="font-size: 14px;">
-                        <strong>128 texture pack</strong> - <a href="https://gitlab.com/drummyfish/minetest-texturepack" style="color: #2196f3;">@drummyfish</a>
-                    </div> -->
-                    
                 </form>
 
             </div>
@@ -274,6 +275,11 @@
     </div>
 
     <script src="/vendors/vanilla-toast.min.js"></script>
+    <div style="font-family: Ubuntu; position: fixed; opacity: 0;">1</div>
+
+    <div id="loading" style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 2; background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);">
+
+    </div>
 
 </body>
 </html>

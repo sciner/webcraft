@@ -37,8 +37,8 @@ export class Window {
                 vertical: 'top' // "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
             },
             font: {
-                size: 16,
-                family: 'Minecraftia',
+                size: 20,
+                family: 'Ubuntu',
                 shadow: {
                     enable: false,
                     x: 0,

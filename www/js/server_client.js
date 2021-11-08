@@ -34,6 +34,8 @@ export default class ServerClient {
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
     static CMD_SAVE_INVENTORY           = 66;
     static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
+    static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
+    static CMD_ENTITY_INDICATORS        = 69;
 
     // Constructor
     constructor(url, session_id, onOpenCallback) {
@@ -158,6 +160,10 @@ export default class ServerClient {
                     Game.world.chunkManager.setNearbyModified(cmd.data);
                     break;
                 }
+                case ServerClient.CMD_ENTITY_INDICATORS: {
+                    Game.world.player.indicators = cmd.data.indicators;
+                    break;
+                }
             }
         }
     }
@@ -234,5 +240,23 @@ export default class ServerClient {
     SaveInventory(inventory_state) {
         this.Send({name: ServerClient.CMD_SAVE_INVENTORY, data: inventory_state});
     }
+
+    // Modify indicator request
+    ModifyIndicator(indicator, value, comment) {
+        let data = {
+            indicator: indicator,
+            value: value,
+            comment: comment
+        }
+        this.Send({name: ServerClient.CMD_MODIFY_INDICATOR_REQUEST, data: data});
+    }
+
+    /*
+        CMD_UPDATE_INDICATOR
+        let min_damage = .5/20;
+        this.live = Math.max(this.live - damage_value, 0);
+        this.live = Math.round(this.live / min_damage) * min_damage;
+        this.hud.refresh();
+    */
 
 }

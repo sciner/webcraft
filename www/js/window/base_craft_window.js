@@ -57,7 +57,7 @@ export class CraftTableSlot extends Label {
         } else {
             ctx.textBaseline    = 'top';
             ctx.textAlign       = 'left';
-            ctx.font            = '11px Minecraftia';
+            ctx.font            = '11px Ubuntu';
             let text            = item.name.substring(0, 4);
             ctx.fillStyle       = '#000000ff';
             ctx.fillText(text, x + 2, y + 2);
@@ -67,7 +67,7 @@ export class CraftTableSlot extends Label {
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = '18px Minecraftia';
+            ctx.font                = '18px Ubuntu';
             ctx.fillStyle           = '#000000ff';
             ctx.fillText(item.count, x + width + 2, y + height + 2);
             ctx.fillStyle           = '#ffffffff';

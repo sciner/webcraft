@@ -18,7 +18,9 @@ export class GameClass {
 
     static hud = null;
 
-    constructor() {
+    constructor() {}
+
+    preload() {
         this.start_time             = performance.now();
         this.last_saved_time        = performance.now() - 20000;
         this.world_name             = null;
@@ -78,6 +80,10 @@ export class GameClass {
                 this.avg = (sum / this.history.length) || 0;
             }
         };
+        //
+        this.hud    = new HUD(0, 0);
+        this.sounds = new Sounds();
+        this.render = new Renderer('renderSurface');
     }
 
     load(settings) {
@@ -91,17 +97,12 @@ export class GameClass {
     }
 
     async Start(session, world_guid, settings, resource_loading_progress) {
-        //
-        Game.hud = new HUD(0, 0);
-        this.sounds = new Sounds();
         // Create a new world
-        this.render = new Renderer('renderSurface');
         // Resources
         Resources.onLoading = resource_loading_progress;
         this.load(settings)
             .then(() => {
                 this.world = new World(session, world_guid, settings, BLOCK);
-                console.log('1');
                 this.render.init(this.world, settings).then(() => {
                     (async () => {
                         await BLOCK.load(Resources.resource_packs).then(() => {

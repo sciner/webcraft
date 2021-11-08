@@ -33,7 +33,7 @@ export default class PlayerModel {
         this.textContext                = this.textCanvas.getContext('2d');
         this.textContext.textAlign      = 'left';
         this.textContext.textBaseline   = 'top';
-        this.textContext.font           = '24px Minecraftia';
+        this.textContext.font           = '24px Ubuntu';
         this.modelMatrix                = mat4.create();
     }
 
@@ -547,7 +547,7 @@ export default class PlayerModel {
         ctx.fillStyle   = '#00000055';
         ctx.fillRect(0, 0, w, 45);
         ctx.fillStyle   = '#fff';
-        ctx.font        = '24px Minecraftia';
+        ctx.font        = '24px Ubuntu';
         ctx.fillText(nickname, 10, 12);
 
         // abstraction

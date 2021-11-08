@@ -23,7 +23,7 @@ func (this *WorldMan) Get(world_guid string) *World {
 	this.Worlds[world_guid] = &World{
 		DBGame:      this.GameDB,
 		Mu:          &sync.Mutex{},
-		Connections: make(map[string]*UserConn, 0),
+		Connections: make(map[string]*PlayerConn, 0),
 		Chunks:      make(map[Struct.Vector3]*Chunk, 0),
 		Entities:    &EntityManager{},
 	}

@@ -27,7 +27,7 @@ func (this *User) Registration(req *http.Request, params map[string]interface{})
 }
 
 // Login ...Авторизация
-func (this *User) Login(req *http.Request, params map[string]interface{}) (*Struct.UserSession, error) {
+func (this *User) Login(req *http.Request, params map[string]interface{}) (*Struct.PlayerSession, error) {
 	username := params["username"].(string)
 	password := params["password"].(string)
 	session, err := this.Db.LoginUser(username, password)

@@ -16,6 +16,11 @@ class TBlock {
         return BLOCK.BLOCK_BY_ID.get(this.id);
     }
 
+    hasTag(tag) {
+        let mat = this.material;
+        return mat.tags && mat.tags.indexOf(tag) >= 0;
+    }
+
     getCardinalDirection() {
         return Vector.ZERO;
     }
@@ -111,7 +116,7 @@ export default class Particles_Clouds {
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
         //
-        console.log(parseInt(this.vertices.length / 21) + ' quads in clouds ');
+        // console.log(parseInt(this.vertices.length / 21) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
     }

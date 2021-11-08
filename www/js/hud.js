@@ -3,6 +3,7 @@ import {MainMenu} from "./window/index.js";
 import {fps} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
+import {Resources} from "./resources.js";
 
 export default class HUD {
 
@@ -35,7 +36,7 @@ export default class HUD {
         this.prevDrawTime               = 0;
 
         // Vignette
-        this.makeVignette(width, height);
+        // this.makeVignette(width, height);
 
         // Splash screen (Loading...)
         this.splash = {
@@ -45,18 +46,21 @@ export default class HUD {
             init: function(hud) {
                 let that = this;
                 that.hud = hud;
-                let image = new Image();
+                /*let image = new Image();
                 image.onload = function() {
                     that.image = this;
                 }
                 image.src = '../media/background.png';
+                */
             },
             draw: function() {
                 let cl = 0;
                 let nc = 45;
-                for(let chunk of Game.world.chunkManager.chunks) {
-                    if(chunk.inited) {
-                        cl++;
+                if(Game.world && Game.world.chunkManager) {
+                    for(let chunk of Game.world.chunkManager.chunks) {
+                        if(chunk.inited) {
+                            cl++;
+                        }
                     }
                 }
                 this.loading = cl < nc;
@@ -68,19 +72,30 @@ export default class HUD {
                 let ctx = this.hud.ctx;
                 ctx.save();
                 if(this.image) {
-                    for(let x = 0; x < w; x += this.image.width) {
+                    /*for(let x = 0; x < w; x += this.image.width) {
                         for(let y = 0; y < h; y += this.image.height) {
                             ctx.drawImage(this.image, x, y);
                         }
-                    }
+                    }*/
                 } else {
-                    // color for background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-                    // draw background rect assuming height of font
+                    // Create gradient
+                    var grd = ctx.createLinearGradient(0, 0, 0, h);
+                    grd.addColorStop(0, '#1c1149');
+                    grd.addColorStop(0.5365, '#322d6f');
+                    grd.addColorStop(1, '#66408d');
+                    // Fill with gradient
+                    ctx.fillStyle = grd;
                     ctx.fillRect(0, 0, w, h);
                 }
                 //
-                let txt = 'GENERATE TERRAIN ... ' + Math.round(cl / nc * 100) + '%';
+                let txt = '';
+                if(Resources.progress && Resources.progress.percent < 100) {
+                    txt = 'LOADING RESOURCES ... ' + Math.round(Resources.progress.percent) + '%';
+                } else if(cl == 0) {
+                    txt = 'CONNECTING TO SERVER...';
+                } else {
+                    txt = 'GENERATE PLANET ... ' + Math.round(cl / nc * 100) + '%';
+                }
                 //
                 let x = w / 2;
                 let y = h / 2;
@@ -161,18 +176,18 @@ export default class HUD {
         return this.active;
     }
 
-    makeVignette(width, height) {
+    /*makeVignette(width, height) {
         this.vignette = this.ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width / 2);
         this.vignette.addColorStop(0, 'rgba(255, 255, 255, 0)');
         this.vignette.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
-    }
+    }*/
 
     drawVignette() {
         // this.ctx.fillStyle = this.vignette;
         // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    draw() {
+    draw(force) {
 
         this.frmMainMenu.parent.center(this.frmMainMenu);
 
@@ -188,28 +203,29 @@ export default class HUD {
             new_height =  Math.round(332 * 3.5);
             new_width = Math.round(new_height * (Game.canvas.width / Game.canvas.height));
         }
-    
+
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
             this.width  = this.ctx.canvas.width   = new_width;
             this.height = this.ctx.canvas.height  = new_height;
-            this.ctx.font = '24px Minecraftia';
+            this.ctx.font = '24px Ubuntu';
             Game.hud.wm.resize(this.width, this.height);
             // Vignette
-            this.makeVignette(this.width, this.height);
+            // this.makeVignette(this.width, this.height);
         }
     
         // Make info for draw
-        if(!this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.player.chat.hasDrawContent()) {
+        let hasDrawContent = Game.world && Game.world.player && Game.world.player.chat.hasDrawContent();
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !hasDrawContent) {
             return false;
         }
         this.need_refresh = false;
         this.prevDrawTime = performance.now();
-    
+
         this.clear();
 
         // Draw vignette
-        this.drawVignette();
-    
+        // this.drawVignette();
+
         // Draw splash screen...
         if(this.splash.draw()) {
             return;
@@ -217,35 +233,15 @@ export default class HUD {
     
         // Set style
         this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = '20px Minecraftia';
+        this.ctx.font           = '20px Ubuntu';
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
     
         this.ctx.save();
     
         if(this.isActive()) {
-    
             // Draw game technical info
             this.drawInfo();
-    
-            // Crosshair
-            /*
-            for(let cs of [{width: '2', color: 'black'}, {width: '1', color: 'white'}]) {
-            this.ctx.beginPath();
-                let x = this.ctx.canvas.width / 2;
-                let y = this.ctx.canvas.height / 2;
-                x = Math.floor(x) + 0.5;
-                y = Math.floor(y) + 0.5;
-                this.ctx.lineWidth = cs.width;
-                this.ctx.moveTo(x, y - 10);
-                this.ctx.lineTo(x, y + 10);
-                this.ctx.moveTo(x - 10,  y);
-                this.ctx.lineTo(x + 10,  y);
-                this.ctx.strokeStyle = cs.color;
-            this.ctx.stroke();
-            }
-            */
-
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
@@ -264,7 +260,7 @@ export default class HUD {
             this.wm.style.background.color = '#00000000';
             this.wm.draw(false);
         }
-    
+
     }
  
     toggleInfo() {
@@ -274,12 +270,17 @@ export default class HUD {
 
     //
     prepareText() {
+        this.text = '';
+        // If render inited
+        if(!Game.render || !Game.world || !Game.world.player) {
+            return;
+        }
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
-        this.text += 'FPS: ' + Math.round(fps.fps) + ' / ' + (Math.round(1000 / fps.avg * 100) / 100) + ' ms';
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += '\nRenderer: ' + vci.renderer;
         }
+        this.text += 'FPS: ' + Math.round(fps.fps) + ' / ' + (Math.round(1000 / fps.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
         let mat = Game.world.player.buildMaterial;
         if(mat) {
@@ -302,14 +303,17 @@ export default class HUD {
         if(time) {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
         }
-        // Chunks inited
-        this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
-        //
-        let quads_length_total = Game.world.chunkManager.vertices_length_total;
-        this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-            ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
-        //
-        this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
+        // If render inited
+        if(Game.render) {
+            // Chunks inited
+            this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
+            //
+            let quads_length_total = Game.world.chunkManager.vertices_length_total;
+            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+                ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+            //
+            this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
+        }
         //
         // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
@@ -348,7 +352,7 @@ export default class HUD {
         this.prevInfo = this.text;
         return true;
     }
-    
+
     // Draw game technical info
     drawInfo() {
         if(!this.draw_info) {

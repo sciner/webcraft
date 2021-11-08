@@ -277,6 +277,8 @@ export class BLOCK {
                 }
                 this.BLOCK_BY_TAGS[tag].push(block);
             }
+        } else {
+            block.tags = [];
         }
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
