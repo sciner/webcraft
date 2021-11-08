@@ -1,9 +1,7 @@
-import Saves from '../saves.js';
 import {Vector, Helpers} from '../helpers.js';
 import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
-import {DemoMapManager} from './demo_map-manager.js';
 import {GameClass} from '../game.js';
 
 // Mouse event enumeration
@@ -56,10 +54,11 @@ let gameCtrl = function($scope, $timeout, helperService) {
 
     window.Game                     = new GameClass();
 
-    $scope.App = window.Game.App    = new UIApp();
+    Game.preload();
+
+    $scope.App                      = Game.App = new UIApp();
     $scope.texture_pack             = new TexturePackManager($scope);
     $scope.skin                     = new SkinManager($scope);
-    $scope.demoMaps                 = new DemoMapManager($scope, $timeout);
 
     //
     $scope.App.onLogin = (e) => {
@@ -192,6 +191,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             this.logged = !!session;
             if(!this.logged) {
                 $scope.current_window.show('hello');
+                $scope.loadingComplete();
                 return false;
             }
             this.onSuccess(session);
@@ -220,11 +220,11 @@ let gameCtrl = function($scope, $timeout, helperService) {
             //
             var that = this;
             that.loading = true;
-            helperService.api.call($scope.App, '/api/User/Registration', this.form, function(resp) {
-                $scope.login.autoLogin(that.form);
-                that.reset();
-            }, null, null, function() {
-                that.loading = false;
+            $scope.App.Registration(this.form, (resp) => {
+                $timeout(() => {
+                    $scope.login.autoLogin(that.form);
+                    that.reset();
+                });
             });
         },
         reset: function() {
@@ -259,10 +259,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         loading: false,
         latest_save: false,
         init: function() {
-            this.saves = new Saves(function(instance) {
-                $scope.Game.saves = instance;
-            });
-            $scope.demoMaps.load();
+            // do nothing
         }
     };
 
@@ -274,14 +271,25 @@ let gameCtrl = function($scope, $timeout, helperService) {
             return;
         }
         // Show Loading...
-        $scope.current_window.show('loading');
-        $scope.settings.save();
-        $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
-            $timeout(function(){
-                $scope.resource_loading_state = resource_loading_state;
+        Game.hud.draw();
+        $timeout(function(){
+            // $scope.current_window.show('loading');
+            $scope.settings.save();
+            $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
+                Game.hud.draw(true);
+                /*
+                $timeout(function(){
+                    $scope.resource_loading_state = resource_loading_state;
+                });
+                */
             });
         });
     };
+
+    // loadingComplete
+    $scope.loadingComplete = function() {
+        document.getElementById('loading').classList.add('loading-complete');
+    }
 
     // My games
     $scope.mygames = {
@@ -289,7 +297,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         load: function() {
             let session = $scope.App.getSession();
             if(!session) {
-                return;
+                return that.loadingComplete();
             }
             var that = this;
             that.loading = true;
@@ -297,6 +305,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
                 $timeout(() => {
                     that.list = worlds;
                     that.loading = false;
+                    $scope.loadingComplete();
                 });
             });
         },
@@ -371,6 +380,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
             var that = this;
             that.loading = true;
             let form = {...that.form};
+            form.seed = $scope.App.GenerateSeed(form.seed);
             $scope.App.CreateWorld(form, (world) => {
                 $timeout(() => {
                     that.reset();
@@ -383,8 +393,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         open: function() {
             this.form.generator.id = this.generators.list[0].id;
             $scope.current_window.show('newgame');
-            this.form.seed = Helpers.getRandomInt(1000000, 4000000000) + '';
-            this.form.id = Helpers.generateID();
+            this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },
         close: function() {
             $scope.current_window.show('main');

@@ -1,6 +1,7 @@
 import {Color} from '../helpers.js';
 
-const CACTUS_MAX_HEIGHT     = 7;
+const CACTUS_MIN_HEIGHT     = 2;
+const CACTUS_MAX_HEIGHT     = 5;
 const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
 const TREE_FREQUENCY        = 0.015;
@@ -106,7 +107,12 @@ BIOMES.SCORCHED = {
     title:      'ОБОГРЕВАЮЩИЙ',
     max_height: 12,
     dirt_block: [BLOCK.SAND],
-    trees:      {frequency: 0},
+    trees:      {
+        frequency: TREE_FREQUENCY / 4,
+        list: [
+            {percent: 1, trunk: BLOCK.CACTUS.id, leaves: null, style: 'cactus', height: {min: CACTUS_MIN_HEIGHT, max: CACTUS_MAX_HEIGHT}}
+        ]
+    },
     plants:     {frequency: 0}
 };
 
@@ -134,13 +140,15 @@ BIOMES.TUNDRA = {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
+            {percent: 0.01, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT * 3}},
+            {percent: 0.98, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
-        frequency: TREE_FREQUENCY,
+        frequency: .5,
         list: [
-            {percent: 1, block: BLOCK.BROWN_MUSHROOM.id}
+            {percent: .9985, block: BLOCK.GRASS.id},
+            {percent: .0015, block: BLOCK.BROWN_MUSHROOM.id}
         ]
     }
 };

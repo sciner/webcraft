@@ -28,7 +28,7 @@ export class RecipeSlot extends Window {
     }
 
     update() {
-        let inventory = Game.world.localPlayer.inventory;
+        let inventory = Game.world.player.inventory;
         this.can_make = inventory.hasResources(this.recipe.need_resources).length == 0;
         if(this.can_make) {
             let craft_area_size = this.parent.craft_window.area.size;

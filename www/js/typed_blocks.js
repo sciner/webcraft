@@ -106,12 +106,12 @@ export class TBlock {
 
     // properties
     get properties() {
-        return BLOCK.BLOCK_BY_ID[this.id] || null;
+        return BLOCK.BLOCK_BY_ID.get(this.id) || null;
     }
 
     // material
     get material() {
-        return BLOCK.BLOCK_BY_ID[this.id] || null;
+        return BLOCK.BLOCK_BY_ID.get(this.id) || null;
     }
 
     //
@@ -154,6 +154,11 @@ export class TBlock {
 
     canReplace() {
         return BLOCK.canReplace(this.id);
+    }
+
+    hasTag(tag) {
+        let mat = this.material;
+        return mat.tags && mat.tags.indexOf(tag) >= 0;
     }
 
 }

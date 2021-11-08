@@ -1,5 +1,9 @@
 precision highp float;
 
+// vignetting
+const float outerRadius = .65, innerRadius = .4, intensity = .1;
+const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); //red
+
 //
 uniform samplerCube u_texture;
 uniform float u_brightness;
@@ -26,6 +30,15 @@ void drawCrosshair() {
     }
 }
 
+void drawVignetting() {
+    vec2 relativePosition = gl_FragCoord.xy / u_resolution - .5;
+    relativePosition.y *= u_resolution.x / u_resolution.y;
+    float len = length(relativePosition);
+    float vignette = smoothstep(outerRadius, innerRadius, len);
+    float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, vignetteColor, vignetteOpacity);
+}
+
 void main() {
     if(u_textureOn) {
         vec4 color = textureCube(u_texture, v_texCoord);
@@ -33,4 +46,6 @@ void main() {
     }
     // Draw crosshair
     drawCrosshair();
+    // vignetting
+    drawVignetting();
 }

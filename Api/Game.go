@@ -19,7 +19,7 @@ type (
 // CreateWorld... Создание нового мира (сервера)
 func (this *Game) CreateWorld(req *http.Request, params map[string]interface{}) (*Type.WorldCreated, error) {
 	session_id := req.Header.Get("x-session-id")
-	session, err := this.Db.GetUserSession(session_id)
+	session, err := this.Db.GetPlayerSession(session_id)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (this *Game) CreateWorld(req *http.Request, params map[string]interface{}) 
 // MyWorlds... Возвращает все сервера созданные мной и те, которые я себе добавил
 func (this *Game) MyWorlds(req *http.Request, params map[string]interface{}) ([]*Struct.WorldProperties, error) {
 	session_id := req.Header.Get("x-session-id")
-	session, err := this.Db.GetUserSession(session_id)
+	session, err := this.Db.GetPlayerSession(session_id)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (this *Game) MyWorlds(req *http.Request, params map[string]interface{}) ([]
 func (this *Game) JoinWorld(req *http.Request, params map[string]interface{}) (*Struct.WorldProperties, error) {
 	world_guid := params["world_guid"].(string)
 	session_id := req.Header.Get("x-session-id")
-	session, err := this.Db.GetUserSession(session_id)
+	session, err := this.Db.GetPlayerSession(session_id)
 	if err != nil {
 		return nil, err
 	}

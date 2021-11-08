@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;700&display=swap');
+
 /* Minecraft-like pixely font */
 @font-face {
 	font-family: minecraftia;
 	src:
         /* url('mcfont.woff') format('woff'), */
-        url('minecraftia.ttf');
+        url('/style/minecraftia.ttf');
 }
 
 /* General page style */
@@ -32,11 +34,11 @@
 
 body {
 	height: 100%;
-	font-family: minecraftia;
 	font-size: 16px;
     line-height: 1.3em;
 	text-shadow: #3f3f3f 2px 2px 0px;
-	background: #1e150f url( '../media/background.png');
+    font-family: Ubuntu;
+    background: #1e150f url( '../media/background.png');
     min-height: 100vh;
     padding: 0;
     margin: 0;
@@ -53,15 +55,13 @@ body {
 }
 
 .form-doubles {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-gap: 1em;
+    grid-template-columns: 1fr 1fr;
 }
 
 /* On screens that are 600px or less, set the background color to olive */
 @media screen and (max-width: 600px) {
-    .form-doubles {
-        flex-wrap: wrap;
-    }
     #form-shareGame {
         width: 90%;
     }
@@ -73,16 +73,8 @@ h4 {
 
 form, .form-styled {
     border-radius: 3px;
-    margin: 1em;
     width: 100%;
     max-width: 340px;
-    /*
-    background-color: #aaa;
-    border: 2px solid white;
-    border-left-color: #6c6c6c;
-    border-bottom-color: #6c6c6c;
-    box-shadow: 1em 1em 1em #000000ff;
-    */
 }
 
 .text-center {
@@ -91,7 +83,7 @@ form, .form-styled {
 
 input[type="text"], input[type="password"] {
     border: 2px solid white;
-    font-family: 'minecraftia';
+    font-family: 'Ubuntu';
     background: #000;
     font-size: 16px;
     line-height: 40px;
@@ -107,8 +99,13 @@ input[type="text"], input[type="password"] {
     opacity: .5;
 }
 
-body.started #main-menu {
-    display: none;
+body {
+    &.started {
+        padding: 0px;
+        #main-menu {
+            display: none;
+        }
+    }
 }
 
 body:not(.started) #renderSurface {
@@ -145,7 +142,7 @@ button {
     padding: 1em 2em;
     border-radius: 0;
     border: none;
-    font-family: minecraftia;
+    /* font-family: Ubuntu; */
     font-size: 25px;
 }
 
@@ -193,7 +190,7 @@ button {
 	
 	color: white;
 	
-	font-family: minecraftia;
+	font-family: Ubuntu;
 	font-size: 24px;
 }
 
@@ -255,7 +252,7 @@ button {
 	outline: none;
 	
 	color: white;
-	font-family: minecraftia;
+	font-family: Ubuntu;
 	font-size: 16px;
 }
 

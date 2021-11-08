@@ -51,6 +51,14 @@ export default class Inventory {
         image.src = './media/inventory2.png';
     }
 
+    open() {
+        if(Game.world.game_mode.isCreative()) {
+            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
+        } else {
+            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
+        }
+    }
+
     //
     exportItems() {
         let resp = {
@@ -181,7 +189,7 @@ export default class Inventory {
         if(!mat.id) {
             throw 'Empty mat ID';
         }
-        let block = BLOCK.BLOCK_BY_ID[mat.id];
+        let block = BLOCK.BLOCK_BY_ID.get(mat.id);
         if(!block) {
             throw 'Invalid mat ID';
         }
@@ -351,7 +359,7 @@ export default class Inventory {
         // img,sx,sy,swidth,sheight,x,y,width,height
         const hud_pos = new Vector(pos.x, pos.y, 0);
         // style
-        hud.ctx.font            = '18px Minecraftia';
+        hud.ctx.font            = '18px Ubuntu';
         hud.ctx.textAlign       = 'right';
         hud.ctx.textBaseline    = 'bottom';
         for(const k in this.items) {
@@ -378,7 +386,7 @@ export default class Inventory {
                     );
                 } else {
                     hud.ctx.textBaseline    = 'top';
-                    hud.ctx.font            = '12px Minecraftia';
+                    hud.ctx.font            = '12px Ubuntu';
                     let text = item.name.substring(0, 4);
                     hud.ctx.fillStyle = '#000000ff';
                     hud.ctx.fillText(text, hud_pos.x + cell_size - 5, hud_pos.y + 20);
@@ -387,7 +395,7 @@ export default class Inventory {
                 }
                 if(item.count > 1) {
                     hud.ctx.textBaseline    = 'bottom';
-                    hud.ctx.font            = '18px Minecraftia';
+                    hud.ctx.font            = '18px Ubuntu';
                     hud.ctx.fillStyle = '#000000ff';
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size);
                     hud.ctx.fillStyle = '#ffffffff';

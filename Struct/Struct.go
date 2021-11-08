@@ -10,33 +10,35 @@ const (
 	GAME_DAY_SECONDS int64 = 24000
 
 	// команды
-	CMD_MSG_HELLO              int = 1
-	CMD_PING                   int = 3
-	CMD_PONG                   int = 4
-	CMD_ERROR                  int = 7   // какая-то ошибка (ИСХ)
-	CMD_DATA                   int = 200 // custom string data
-	CMD_IS_TYPING              int = 201 //
-	CMD_CONNECT                int = 34  // в мир вошел новый игрок
-	CMD_BLOCK_DESTROY          int = 35
-	CMD_BLOCK_SET              int = 36
-	CMD_CHUNK_ADD              int = 37
-	CMD_CHUNK_REMOVE           int = 38
-	CMD_CHUNK_LOADED           int = 39
-	CMD_CHAT_SEND_MESSAGE      int = 40 // Клиент прислал сообщение
-	CMD_PLAYER_JOIN            int = 41 // Информирование клиента о том, что другой игрок вошел в игру
-	CMD_PLAYER_LEAVE           int = 42 // Информирование клиента о том, что другой игрок покинул игру
-	CMD_PLAYER_STATE           int = 43
-	CMD_CREATE_ENTITY          int = 44 // Клиент хочет создать сущность
-	CMD_LOAD_CHEST             int = 45 // Клиент запросил содержимое сундука
-	CMD_CHEST_CONTENT          int = 46 // Отправка клиенту содержимого сундука
-	CMD_SET_CHEST_SLOT_ITEM    int = 47 // Получены новые данные о содержимом слоте сундука
-	CMD_WORLD_STATE            int = 60 // состояние мира
-	CMD_CONNECTED              int = 62
-	CMD_CHANGE_POS_SPAWN       int = 63
-	CMD_TELEPORT_REQUEST       int = 64
-	CMD_TELEPORT               int = 65
-	CMD_SAVE_INVENTORY         int = 66
-	CMD_NEARBY_MODIFIED_CHUNKS int = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
+	CMD_MSG_HELLO                int = 1
+	CMD_PING                     int = 3
+	CMD_PONG                     int = 4
+	CMD_ERROR                    int = 7   // какая-то ошибка (ИСХ)
+	CMD_DATA                     int = 200 // custom string data
+	CMD_IS_TYPING                int = 201 //
+	CMD_CONNECT                  int = 34  // в мир вошел новый игрок
+	CMD_BLOCK_DESTROY            int = 35
+	CMD_BLOCK_SET                int = 36
+	CMD_CHUNK_ADD                int = 37
+	CMD_CHUNK_REMOVE             int = 38
+	CMD_CHUNK_LOADED             int = 39
+	CMD_CHAT_SEND_MESSAGE        int = 40 // Клиент прислал сообщение
+	CMD_PLAYER_JOIN              int = 41 // Информирование клиента о том, что другой игрок вошел в игру
+	CMD_PLAYER_LEAVE             int = 42 // Информирование клиента о том, что другой игрок покинул игру
+	CMD_PLAYER_STATE             int = 43
+	CMD_CREATE_ENTITY            int = 44 // Клиент хочет создать сущность
+	CMD_LOAD_CHEST               int = 45 // Клиент запросил содержимое сундука
+	CMD_CHEST_CONTENT            int = 46 // Отправка клиенту содержимого сундука
+	CMD_SET_CHEST_SLOT_ITEM      int = 47 // Получены новые данные о содержимом слоте сундука
+	CMD_WORLD_STATE              int = 60 // состояние мира
+	CMD_CONNECTED                int = 62
+	CMD_CHANGE_POS_SPAWN         int = 63
+	CMD_TELEPORT_REQUEST         int = 64
+	CMD_TELEPORT                 int = 65
+	CMD_SAVE_INVENTORY           int = 66
+	CMD_NEARBY_MODIFIED_CHUNKS   int = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
+	CMD_MODIFY_INDICATOR_REQUEST int = 68
+	CMD_ENTITY_INDICATORS        int = 69
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -115,14 +117,24 @@ type (
 		Items   []*BlockItem            `json:"items"`
 		Current *PlayerInventoryCurrent `json:"current"`
 	}
+	PlayerIndicator struct {
+		Name  string `json:"name"`
+		Value int64  `json:"value"`
+	}
+	PlayerIndicators struct {
+		Live   *PlayerIndicator `json:"live"`
+		Food   *PlayerIndicator `json:"food"`
+		Oxygen *PlayerIndicator `json:"oxygen"`
+	}
 	PlayerState struct {
-		Brightness float32          `json:"brightness"`
-		PosSpawn   *Vector3f        `json:"pos_spawn"`
-		Pos        *Vector3f        `json:"pos"`
-		Rotate     *Vector3f        `json:"rotate"`
-		Flying     bool             `json:"flying"`
-		Inventory  *PlayerInventory `json:"inventory"`
-		World      *WorldProperties `json:"world"`
+		Brightness float32           `json:"brightness"`
+		PosSpawn   *Vector3f         `json:"pos_spawn"`
+		Pos        *Vector3f         `json:"pos"`
+		Rotate     *Vector3f         `json:"rotate"`
+		Flying     bool              `json:"flying"`
+		Inventory  *PlayerInventory  `json:"inventory"`
+		Indicators *PlayerIndicators `json:"indicators"`
+		World      *WorldProperties  `json:"world"`
 	}
 	/*
 		ParamCreateEntity struct {
@@ -202,8 +214,8 @@ type (
 		Code int    `json:"code"`
 		Text string `json:"text"`
 	}
-	// UserSession ...
-	UserSession struct {
+	// PlayerSession ...
+	PlayerSession struct {
 		UserID    int64  `json:"user_id"`
 		UserGUID  string `json:"user_guid"`
 		Username  string `json:"username"`
@@ -222,6 +234,16 @@ type (
 		PlaceID string    `json:"place_id"`
 		Pos     *Vector3f `json:"pos"`
 	}
+	// Входящая команда от клиента, об перемещении одного из индикаторов
+	ParamsModifyIndicatorRequest struct {
+		Indicator string `json:"indicator"`
+		Value     int64  `json:"value"`
+		Comment   string `json:"comment"`
+	}
+	ParamsEntityIndicator struct {
+		EntityID   string            `json:"entity_id"`
+		Indicators *PlayerIndicators `json:"indicators"`
+	}
 	SessionError struct{}
 )
 
@@ -232,4 +254,22 @@ func (m *SessionError) Error() string {
 // Vector3.Equal
 func (this *Vector3) Equal(vec Vector3) bool {
 	return this.X == vec.X && this.Y == vec.Y && this.Z == vec.Z
+}
+
+// InitPlayerIndicators...
+func InitPlayerIndicators() *PlayerIndicators {
+	return &PlayerIndicators{
+		Live: &PlayerIndicator{
+			Name:  "live",
+			Value: 20,
+		},
+		Food: &PlayerIndicator{
+			Name:  "food",
+			Value: 20,
+		},
+		Oxygen: &PlayerIndicator{
+			Name:  "oxygen",
+			Value: 10,
+		},
+	}
 }

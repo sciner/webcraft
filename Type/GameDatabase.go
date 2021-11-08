@@ -95,7 +95,7 @@ func (this *GameDatabase) UserExists(username string) bool {
 }
 
 // LoginUser...
-func (this *GameDatabase) LoginUser(username, password string) (*Struct.UserSession, error) {
+func (this *GameDatabase) LoginUser(username, password string) (*Struct.PlayerSession, error) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	rows, err := this.Conn.Query("SELECT id, username, password FROM user WHERE username = $1 LIMIT 1", username)
@@ -104,7 +104,7 @@ func (this *GameDatabase) LoginUser(username, password string) (*Struct.UserSess
 		return nil, err
 	}
 	defer rows.Close()
-	session := &Struct.UserSession{}
+	session := &Struct.PlayerSession{}
 	exists_password := ""
 	for rows.Next() {
 		if err := rows.Scan(&session.UserID, &session.Username, &exists_password); err != nil {
@@ -115,14 +115,14 @@ func (this *GameDatabase) LoginUser(username, password string) (*Struct.UserSess
 		return nil, errors.New("error_invalid_login_or_password")
 	}
 	if session.UserID > 0 {
-		session.SessionID, _ = this.CreateUserSession(session.UserID)
+		session.SessionID, _ = this.CreatePlayerSession(session.UserID)
 		return session, nil
 	}
 	return nil, err
 }
 
 // Регистрация новой сессии пользователя
-func (this *GameDatabase) CreateUserSession(user_id int64) (string, error) {
+func (this *GameDatabase) CreatePlayerSession(user_id int64) (string, error) {
 	token := uuid.New().String()
 	// result, err := this.Conn.Exec(`INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`, time.Now().Unix(), user_id, token)
 	query := `INSERT INTO user_session(dt, user_id, token) VALUES ($1, $2, $3)`
@@ -140,8 +140,8 @@ func (this *GameDatabase) CreateUserSession(user_id int64) (string, error) {
 	}
 }
 
-// GetUserSession...
-func (this *GameDatabase) GetUserSession(session_id string) (*Struct.UserSession, error) {
+// GetPlayerSession...
+func (this *GameDatabase) GetPlayerSession(session_id string) (*Struct.PlayerSession, error) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	rows, err := this.Conn.Query("SELECT u.id AS user_id, u.username, u.guid FROM user_session s LEFT JOIN user u ON u.id = s.user_id WHERE token = $1 LIMIT 1", session_id)
@@ -150,7 +150,7 @@ func (this *GameDatabase) GetUserSession(session_id string) (*Struct.UserSession
 		return nil, err
 	}
 	defer rows.Close()
-	session := &Struct.UserSession{}
+	session := &Struct.PlayerSession{}
 	for rows.Next() {
 		if err := rows.Scan(&session.UserID, &session.Username, &session.UserGUID); err != nil {
 			return nil, err

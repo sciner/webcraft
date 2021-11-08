@@ -5,7 +5,6 @@ import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import ServerClient from "./server_client.js";
-import {GameMode} from "./game_mode.js";
 import HUD from "./hud.js";
 
 import {Chat} from "./chat.js";
@@ -19,13 +18,16 @@ export class GameClass {
 
     static hud = null;
 
-    constructor() {
+    constructor() {}
+
+    preload() {
         this.start_time             = performance.now();
         this.last_saved_time        = performance.now() - 20000;
         this.world_name             = null;
         this.username               = null;
         this.session_id             = null;
         this.canvas                 = document.getElementById('renderSurface');
+        this.block_manager          = BLOCK;
         /**
         * @type { World }
         */
@@ -35,7 +37,6 @@ export class GameClass {
         */
         this.render                 = null; // renderer
         this.physics                = null; // physics simulator
-        this.player                 = null;
         this.mouseX                 = 0;
         this.mouseY                 = 0;
         this.inventory              = null;
@@ -46,13 +47,13 @@ export class GameClass {
             inited: false,
             enabled: false,
             clearStates: function() {
-                Game.world.localPlayer.keys[KEY.W] = false;
-                Game.world.localPlayer.keys[KEY.A] = false;
-                Game.world.localPlayer.keys[KEY.S] = false;
-                Game.world.localPlayer.keys[KEY.D] = false;
-                Game.world.localPlayer.keys[KEY.J] = false;
-                Game.world.localPlayer.keys[KEY.SPACE] = false;
-                Game.world.localPlayer.keys[KEY.SHIFT] = false;
+                Game.world.player.keys[KEY.W] = false;
+                Game.world.player.keys[KEY.A] = false;
+                Game.world.player.keys[KEY.S] = false;
+                Game.world.player.keys[KEY.D] = false;
+                Game.world.player.keys[KEY.J] = false;
+                Game.world.player.keys[KEY.SPACE] = false;
+                Game.world.player.keys[KEY.SHIFT] = false;
             }
         };
         // loopTime
@@ -79,6 +80,10 @@ export class GameClass {
                 this.avg = (sum / this.history.length) || 0;
             }
         };
+        //
+        this.hud    = new HUD(0, 0);
+        this.sounds = new Sounds();
+        this.render = new Renderer('renderSurface');
     }
 
     load(settings) {
@@ -92,11 +97,7 @@ export class GameClass {
     }
 
     async Start(session, world_guid, settings, resource_loading_progress) {
-        //
-        Game.hud = new HUD(0, 0);
-        this.sounds = new Sounds();
         // Create a new world
-        this.render = new Renderer('renderSurface');
         // Resources
         Resources.onLoading = resource_loading_progress;
         this.load(settings)
@@ -117,19 +118,18 @@ export class GameClass {
         //
         this.fps            = fps;
         this.physics        = new Physics(this.world);
-        this.player         = new Player();
-        this.player.setInputCanvas('renderSurface');
+        this.world.player   = new Player();
+        this.world.player.setInputCanvas('renderSurface');
         //
         Game.hud.add(fps, 0);
-        this.inventory      = new Inventory(this.player, Game.hud);
+        this.inventory      = new Inventory(this.world.player, Game.hud);
         this.hotbar         = new Hotbar(Game.hud, this.inventory);
         //
-        this.player.setWorld(this.world);
-        this.player.chat    = new Chat();
+        this.world.player.setWorld(this.world);
+        this.world.player.chat    = new Chat();
         //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
-        this.world.fixRotate();
         //
         this.readMouseMove();
         this.startBackgroundMusic();
@@ -183,13 +183,13 @@ export class GameClass {
             // Simulate physics
             that.physics.simulate();
             // Update local player
-            that.player.update();
+            that.world.player.update();
         } else {
-            that.player.lastUpdate = null;
+            that.world.player.lastUpdate = null;
         }
         that.world.update();
         // Draw world
-        that.render.setCamera(that.player.getEyePos(), that.player.rotate);
+        that.render.setCamera(that.world.player.getEyePos(), that.world.player.rotate);
         that.render.draw(fps.delta);
         // Send player state
         that.sendPlayerState();
@@ -201,13 +201,13 @@ export class GameClass {
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState() {
+        let pos = this.world.player.lerpPos.clone();
         this.current_player_state = {
-            rotate:             this.world.localPlayer.rotate,
-            pos:                this.world.localPlayer.lerpPos,
+            rotate:             this.world.player.rotate,
+            pos:                pos.multiplyScalar(100).round().divScalar(100),
             ping:               Math.round(this.world.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
-        // console.log(this.current_player_state.rotate);
         this.current_player_state_json = JSON.stringify(this.current_player_state);
         if(this.current_player_state_json != this.prev_player_state) {
             this.prev_player_state = this.current_player_state_json;
@@ -256,7 +256,7 @@ export class GameClass {
                 // console.log('Pointer lock enabled!');
             }  else {
                 that.setControlsEnabled(false);
-                if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.localPlayer.chat.active) {
+                if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.player.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
                 that.controls.clearStates();
@@ -282,10 +282,10 @@ export class GameClass {
         // Mouse wheel
         document.addEventListener('wheel', function(e) {
             if(e.ctrlKey) return;
-            if(that.player) {
+            if(that.world.player) {
                 //
                 if(Game.controls.enabled) {
-                    that.player.onScroll(e.deltaY > 0);
+                    that.world.player.onScroll(e.deltaY > 0);
                 }
                 //
                 if(Game.hud.wm.getVisibleWindows().length > 0) {
@@ -328,12 +328,12 @@ export class GameClass {
                 // z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
-                if(that.player.zoom) {
+                if(that.world.player.zoom) {
                     x *= ZOOM_FACTOR * 0.5;
                     z *= ZOOM_FACTOR * 0.5;
                 }
                 //
-                that.world.addRotate(new Vector(x, 0, z));
+                that.world.player.addRotate(new Vector(x, 0, z));
             }
         }, false);
     }

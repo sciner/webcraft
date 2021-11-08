@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,20 +24,43 @@ const (
 
 type (
 	World struct {
-		Properties     *Struct.WorldProperties
-		Mu             *sync.Mutex          // чтобы избежать коллизий
-		Connections    map[string]*UserConn // Registered connections.
-		Chunks         map[Struct.Vector3]*Chunk
-		Entities       *EntityManager
-		CreateTime     time.Time // Время создания, time.Now()
-		Directory      string
-		State          *Struct.WorldState
-		Db             *WorldDatabase
-		DBGame         *GameDatabase
-		Chat           *Chat
-		ChunkModifieds map[string]bool
+		Properties       *Struct.WorldProperties
+		Mu               *sync.Mutex            // чтобы избежать коллизий
+		Connections      map[string]*PlayerConn // Registered connections.
+		Chunks           map[Struct.Vector3]*Chunk
+		Entities         *EntityManager
+		CreateTime       time.Time // Время создания, time.Now()
+		Directory        string
+		State            *Struct.WorldState
+		Db               *WorldDatabase
+		DBGame           *GameDatabase
+		Chat             *Chat
+		ChunkModifieds   map[string]bool
+		tickerWorldTimer chan bool // makes a world that run a periodic function
 	}
 )
+
+/**
+* Таймер
+**/
+func schedule(what func(), delay time.Duration) chan bool {
+	stop := make(chan bool)
+	go func() {
+		i := 0
+		for {
+			if i > 0 {
+				what()
+			}
+			i++
+			select {
+			case <-time.After(delay):
+			case <-stop:
+				return
+			}
+		}
+	}()
+	return stop
+}
 
 func (this *World) Load(guid string) {
 	this.Properties = &Struct.WorldProperties{
@@ -46,6 +70,8 @@ func (this *World) Load(guid string) {
 	this.CreateTime = this.getDirectoryCTime(this.Directory)
 	this.State = &Struct.WorldState{}
 	this.Db = GetWorldDatabase(this.Directory + "/world.sqlite")
+	//
+	this.Db.Init()
 	//
 	err := this.RestoreModifiedChunks()
 	//
@@ -62,6 +88,31 @@ func (this *World) Load(guid string) {
 	this.Properties = world_properties
 	//
 	this.Entities.Load(this)
+	//
+	this.tickerWorldTimer = schedule(func() {
+		pn := this.getTimer()
+		this.save()
+		this.tick()
+		// time elapsed forcurrent tick
+		log.Printf("Tick took %sms", strconv.Itoa(int(this.getTimer()-pn)))
+	}, 5000*time.Millisecond)
+}
+
+// Save player positions
+func (this *World) save() {
+	for _, conn := range this.Connections {
+		this.Db.SavePlayerState(conn)
+		conn.PositionChanged = false
+	}
+}
+
+// Game tick
+func (this *World) tick() {
+}
+
+// getTimer
+func (this *World) getTimer() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
 func (this *World) updateWorldState() {
@@ -79,7 +130,7 @@ func (this *World) updateWorldState() {
 }
 
 // OnPlayer...
-func (this *World) OnPlayer(conn *UserConn) {
+func (this *World) OnPlayer(conn *PlayerConn) {
 	// 1. Add new connection
 	if val, ok := this.Connections[conn.ID]; ok {
 		log.Printf("OnPlayer delete existing conn: %s", conn.ID)
@@ -100,6 +151,8 @@ func (this *World) OnPlayer(conn *UserConn) {
 	}
 	// 3.
 	conn.PosSpawn = *player_state.PosSpawn
+	//
+	conn.Indicators = player_state.Indicators
 	// 4. Send about all other players
 	for _, c := range this.Connections {
 		if c.ID != conn.ID {
@@ -130,7 +183,7 @@ func (this *World) OnPlayer(conn *UserConn) {
 	// 6. Write to chat about new player
 	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
 	// 7. Send World State for new player
-	cons := make(map[string]*UserConn, 0)
+	cons := make(map[string]*PlayerConn, 0)
 	cons[conn.ID] = conn
 	this.SendWorldState(cons)
 	player_state.World = this.Properties
@@ -138,14 +191,14 @@ func (this *World) OnPlayer(conn *UserConn) {
 }
 
 // SendPlayerState
-func (this *World) SendPlayerState(conn *UserConn, player_state *Struct.PlayerState) {
+func (this *World) SendPlayerState(conn *PlayerConn, player_state *Struct.PlayerState) {
 	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: player_state, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
 }
 
 // Send World State
-func (this *World) SendWorldState(connections map[string]*UserConn) {
+func (this *World) SendWorldState(connections map[string]*PlayerConn) {
 	this.updateWorldState()
 	packet3 := Struct.JSONResponse{Name: Struct.CMD_WORLD_STATE, Data: this.State, ID: nil}
 	packets3 := []Struct.JSONResponse{packet3}
@@ -177,14 +230,11 @@ func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 	return v
 }
 
-func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
-	if cmdIn.Name != Struct.CMD_PLAYER_STATE && cmdIn.Name != Struct.CMD_CHUNK_ADD {
-		log.Printf("OnCommand: %d", cmdIn.Name)
-	}
+func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
+
 	switch cmdIn.Name {
 
 	case Struct.CMD_BLOCK_SET:
-
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
@@ -199,7 +249,6 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		}
 
 	case Struct.CMD_CREATE_ENTITY:
-
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamBlockSet
 		json.Unmarshal(out, &params)
@@ -230,7 +279,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		this.Mu.Lock()
 		defer this.Mu.Unlock()
 		// забудем, что юзер в этом чанке
-		chunk.RemoveUserConn(conn)
+		chunk.RemovePlayerConn(conn)
 		// если в чанке больше нет юзеров, до удалим чанк
 		if len(chunk.Connections) < 1 {
 			delete(this.Chunks, params.Pos)
@@ -254,7 +303,6 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		// Update local position
 		this.ChangePlayerPosition(conn, params)
 		this.SendAll(packets, []string{conn.ID})
-		// this.SendAll(packets, []string{})
 
 	case Struct.CMD_LOAD_CHEST:
 		out, _ := json.Marshal(cmdIn.Data)
@@ -285,11 +333,43 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *UserConn) {
 		var params *Struct.PlayerInventory
 		json.Unmarshal(out, &params)
 		this.Db.SavePlayerInventory(conn, params)
+
+	case Struct.CMD_MODIFY_INDICATOR_REQUEST:
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.ParamsModifyIndicatorRequest
+		json.Unmarshal(out, &params)
+		switch params.Indicator {
+		case "live":
+			conn.Indicators.Live.Value += params.Value
+		case "food":
+			conn.Indicators.Food.Value += params.Value
+		case "oxygen":
+			conn.Indicators.Oxygen.Value += params.Value
+		}
+		if params.Indicator == "live" && conn.Indicators.Live.Value < 0 {
+			conn.Indicators.Live.Value = 20
+			this.TeleportPlayer(conn, &Struct.ParamTeleportRequest{
+				PlaceID: "spawn",
+			})
+		}
+		// notify player about his new indicators
+		send_params := &Struct.ParamsEntityIndicator{
+			Indicators: conn.Indicators,
+		}
+		json.Unmarshal(out, &conn.Indicators)
+		packet := Struct.JSONResponse{Name: Struct.CMD_ENTITY_INDICATORS, Data: send_params, ID: nil}
+		packets := []Struct.JSONResponse{packet}
+		connections := map[string]*PlayerConn{
+			conn.ID: conn,
+		}
+		this.SendSelected(packets, connections, []string{})
+		// @todo notify all about change?
+
 	}
 }
 
 // TeleportPlayer
-func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRequest) {
+func (this *World) TeleportPlayer(conn *PlayerConn, params *Struct.ParamTeleportRequest) {
 	var new_pos *Struct.Vector3f
 	if params.Pos != nil {
 		new_pos = params.Pos
@@ -319,27 +399,25 @@ func (this *World) TeleportPlayer(conn *UserConn, params *Struct.ParamTeleportRe
 		}
 		packet := Struct.JSONResponse{Name: Struct.CMD_TELEPORT, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
-		connections := map[string]*UserConn{
+		connections := map[string]*PlayerConn{
 			conn.ID: conn,
 		}
 		this.SendSelected(packets, connections, []string{})
 		//
+		conn.Pos = *new_pos
 		this.CheckPlayerVisibleChunks(conn, conn.ChunkRenderDist, true)
 	}
 }
 
-// SavePlayerState...
-func (this *World) SavePlayerState(conn *UserConn) {
-	this.Db.SavePlayerState(conn)
-}
-
 // PlayerLeave... Игрок разорвал соединение с сервером
-func (this *World) PlayerLeave(conn *UserConn) {
+func (this *World) PlayerLeave(conn *PlayerConn) {
 	log.Printf("Player leave %s (%s)", conn.Session.Username, conn.ID)
 	// Unsubscribe from chunks
 	for _, chunk := range this.Chunks {
-		chunk.RemoveUserConn(conn)
+		chunk.RemovePlayerConn(conn)
 	}
+	//
+	this.save()
 	// Delete from current connected list
 	delete(this.Connections, conn.ID)
 	// Notify about leave
@@ -351,7 +429,6 @@ func (this *World) PlayerLeave(conn *UserConn) {
 	packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_LEAVE, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.SendAll(packets, []string{conn.ID})
-
 	// Write to chat about new player
 	chatMessage := &Struct.ParamChatSendMessage{
 		Nickname: "<SERVER>",
@@ -360,7 +437,6 @@ func (this *World) PlayerLeave(conn *UserConn) {
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
 	packets2 := []Struct.JSONResponse{packet2}
 	this.SendAll(packets2, []string{conn.ID})
-
 }
 
 //
@@ -374,7 +450,7 @@ func (this *World) ChunkGet(pos Struct.Vector3) *Chunk {
 	}
 	this.Chunks[pos] = &Chunk{
 		Pos:         pos,
-		Connections: make(map[string]*UserConn, 0),
+		Connections: make(map[string]*PlayerConn, 0),
 		World:       this,
 		ModifyList:  make(map[string]Struct.BlockItem, 0),
 	}
@@ -415,7 +491,7 @@ func (this *World) SendAll(packets []Struct.JSONResponse, exceptIDs []string) {
 }
 
 // Отправить только указанным
-func (this *World) SendSelected(packets []Struct.JSONResponse, connections map[string]*UserConn, exceptIDs []string) {
+func (this *World) SendSelected(packets []Struct.JSONResponse, connections map[string]*PlayerConn, exceptIDs []string) {
 	for _, conn := range connections {
 		found := false
 		for _, ID := range exceptIDs {
@@ -471,19 +547,19 @@ func (this *World) ScanChunkFiles() ([]string, error) {
 }
 
 // LoadChunkForPlayer...
-func (this *World) LoadChunkForPlayer(conn *UserConn, pos Struct.Vector3) *Chunk {
+func (this *World) LoadChunkForPlayer(conn *PlayerConn, pos Struct.Vector3) *Chunk {
 	// получим чанк
 	chunk := this.ChunkGet(pos)
 	//
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	// запомним, что юзер в этом чанке
-	chunk.AddUserConn(conn)
+	chunk.AddPlayerConn(conn)
 	return chunk
 }
 
 //
-func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlayerState) {
+func (this *World) ChangePlayerPosition(conn *PlayerConn, params *Struct.ParamPlayerState) {
 	if params.Pos.Y < 1 {
 		this.TeleportPlayer(conn, &Struct.ParamTeleportRequest{
 			PlaceID: "spawn",
@@ -493,12 +569,12 @@ func (this *World) ChangePlayerPosition(conn *UserConn, params *Struct.ParamPlay
 	conn.Pos = params.Pos
 	conn.Rotate = params.Rotate
 	conn.ChunkRenderDist = params.ChunkRenderDist
-	this.SavePlayerState(conn)
+	conn.PositionChanged = true
 	this.CheckPlayerVisibleChunks(conn, params.ChunkRenderDist, false)
 }
 
 // CheckPlayerVisibleChunks
-func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int, force bool) {
+func (this *World) CheckPlayerVisibleChunks(conn *PlayerConn, ChunkRenderDist int, force bool) {
 	conn.ChunkPos = this.GetChunkAddr(*&Struct.Vector3{
 		X: int(conn.Pos.X),
 		Y: int(conn.Pos.Y),
@@ -529,10 +605,14 @@ func (this *World) CheckPlayerVisibleChunks(conn *UserConn, ChunkRenderDist int,
 		// this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", conn.ChunkPos)+" ... "+strconv.Itoa(cnt), []string{})
 		packet := Struct.JSONResponse{Name: Struct.CMD_NEARBY_MODIFIED_CHUNKS, Data: modified_chunks, ID: nil}
 		packets := []Struct.JSONResponse{packet}
-		connections := map[string]*UserConn{
+		connections := map[string]*PlayerConn{
 			conn.ID: conn,
 		}
 		this.SendSelected(packets, connections, []string{})
 		conn.ChunkPosO = conn.ChunkPos
 	}
+}
+
+func (this *World) Destroy() {
+	this.tickerWorldTimer <- true
 }

@@ -94,7 +94,7 @@ export class BLOCK {
 
     // Call before setBlock
     static makeExtraData(block, pos) {
-        block = BLOCK.BLOCK_BY_ID[block.id];
+        block = BLOCK.BLOCK_BY_ID.get(block.id);
         let extra_data = null;
         if(!block.tags) {
             return extra_data;
@@ -120,8 +120,8 @@ export class BLOCK {
 
     // Returns a block structure for the given id.
     static fromId(id) {
-        if(this.BLOCK_BY_ID.hasOwnProperty(id)) {
-            return this.BLOCK_BY_ID[id]
+        if(this.BLOCK_BY_ID.has(id)) {
+            return this.BLOCK_BY_ID.get(id);
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
@@ -164,7 +164,7 @@ export class BLOCK {
         if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.FLOWING_WATER.id, BLOCK.CLOUD.id].indexOf(block_id) >= 0) {
             return true;
         }
-        let block = BLOCK.BLOCK_BY_ID[block_id];
+        let block = BLOCK.BLOCK_BY_ID.get(block_id);
         return !!block.fluid;
     }
 
@@ -207,14 +207,14 @@ export class BLOCK {
 
     static reset() {
         this.list                   = [];
-        this.BLOCK_BY_ID            = {};
+        this.BLOCK_BY_ID            = new Map();
         this.BLOCK_BY_TAGS          = {};
         this.ao_invisible_blocks    = [];
     }
 
-    static add(block) {
+    static async add(block) {
         // Check duplicate ID
-        if(this.BLOCK_BY_ID.hasOwnProperty(block.id))  {
+        if(this.BLOCK_BY_ID.has(block.id))  {
             console.error('Duplicate block id ', block.id, block);
         }
         // Function calc and return destroy time for specific block
@@ -277,11 +277,13 @@ export class BLOCK {
                 }
                 this.BLOCK_BY_TAGS[tag].push(block);
             }
+        } else {
+            block.tags = [];
         }
         // Calculate in last time, after all init procedures
-        block.visible_for_ao    = BLOCK.visibleForAO(block);
+        block.visible_for_ao = BLOCK.visibleForAO(block);
         this[block.name] = block;
-        this.BLOCK_BY_ID[block.id] = block;
+        BLOCK.BLOCK_BY_ID.set(block.id, block);
         this.list.push(block);
     }
 

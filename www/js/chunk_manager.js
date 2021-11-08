@@ -169,11 +169,25 @@ export class ChunkManager {
         if(this.nearby_modified_list.has(item.addr)) {
             this.world.server.ChunkAdd(item.addr);
         } else {
-            setTimeout(() => {
-                this.setChunkState({"pos": item.addr, "modify_list": null});
-            }, 1);
+           if(!this.setChunkState({pos: item.addr, modify_list: null})) {
+               return false;
+           }
         }
         return true;
+    }
+
+    // Установить начальное состояние указанного чанка
+    setChunkState(state) {
+        let prepare = this.chunks_prepare.get(state.pos);
+        if(prepare) {
+            let chunk = new Chunk(state.pos, state.modify_list);
+            chunk.load_time = performance.now() - prepare.start_time;
+            this.chunks.add(state.pos, chunk);
+            this.rendered_chunks.total++;
+            this.chunks_prepare.delete(state.pos);
+            return true;
+        }
+        return false;
     }
 
     // Remove
@@ -191,32 +205,21 @@ export class ChunkManager {
         this.worker.postMessage(data);
     };
 
-    // Установить начальное состояние указанного чанка
-    setChunkState(state) {
-        let prepare = this.chunks_prepare.get(state.pos);
-        if(prepare) {
-            let chunk = new Chunk(state.pos, state.modify_list);
-            chunk.load_time = performance.now() - prepare.start_time;
-            this.chunks.add(state.pos, chunk);
-            this.rendered_chunks.total++;
-            this.chunks_prepare.delete(state.pos);
-        }
-    }
-
     // Update
     update() {
         if(!this.update_chunks || !this.worker_inited || !this.nearby_modified_list) {
             return false;
         }
         let world = this.world;
-        if(!world.localPlayer) {
+        if(!world.player) {
             return;
         }
+        let player = world.player;
         let frustum = Game.render.frustum;
         let chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         let div2 = new Vector(2, 2, 2);
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        let chunkAddr = getChunkAddr(world.localPlayer.pos.x, world.localPlayer.pos.y, world.localPlayer.pos.z);
+        let chunkAddr = getChunkAddr(player.pos.x, player.pos.y, player.pos.z);
         if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
             this.poses = [];
             this.prev_margin = this.margin;
@@ -384,7 +387,7 @@ export class ChunkManager {
                 b = block;
             }
             if(action) {
-                b = BLOCK.BLOCK_BY_ID[b.id];
+                b = BLOCK.BLOCK_BY_ID.get(b.id);
                 if(b.hasOwnProperty('sound')) {
                     Game.sounds.play(b.sound, action);
                 }

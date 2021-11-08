@@ -11,36 +11,36 @@ type (
 	// Chunk ...
 	Chunk struct {
 		Pos         Struct.Vector3              `json:"-"`
-		Connections map[string]*UserConn        `json:"-"` // Registered connections.
+		Connections map[string]*PlayerConn      `json:"-"` // Registered connections.
 		World       *World                      `json:"-"`
 		ModifyList  map[string]Struct.BlockItem `json:"modify_list"`
 	}
 )
 
-// AddUserConn...
-func (this *Chunk) AddUserConn(conn *UserConn) bool {
+// AddPlayerConn...
+func (this *Chunk) AddPlayerConn(conn *PlayerConn) bool {
 	if _, ok := this.Connections[conn.ID]; ok {
-		log.Println("AddUserConn ... exists", this.Pos)
+		log.Println("AddPlayerConn ... exists", this.Pos)
 		// return false
 	}
 	this.Connections[conn.ID] = conn
-	// log.Println("AddUserConn ... OK", this.Pos)
+	// log.Println("AddPlayerConn ... OK", this.Pos)
 	return true
 }
 
-// RemoveUserConn...
-func (this *Chunk) RemoveUserConn(conn *UserConn) bool {
+// RemovePlayerConn...
+func (this *Chunk) RemovePlayerConn(conn *PlayerConn) bool {
 	if _, ok := this.Connections[conn.ID]; ok {
 		delete(this.Connections, conn.ID)
-		// log.Println("RemoveUserConn ... true", this.Pos)
+		// log.Println("RemovePlayerConn ... true", this.Pos)
 		return true
 	}
-	// log.Println("RemoveUserConn ... false", this.Pos)
+	// log.Println("RemovePlayerConn ... false", this.Pos)
 	return false
 }
 
 // Chunk loaded
-func (this *Chunk) Loaded(conn *UserConn) bool {
+func (this *Chunk) Loaded(conn *PlayerConn) bool {
 	// log.Println("SendChunkLoaded", this.Pos)
 	data := &Struct.CmdChunkState{
 		Pos:        this.Pos,
@@ -76,7 +76,7 @@ func (this *Chunk) Load() {
 }
 
 // BlockSet
-func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notifyAuthor bool) bool {
+func (this *Chunk) BlockSet(conn *PlayerConn, params *Struct.ParamBlockSet, notifyAuthor bool) bool {
 
 	blockKey := this.GetBlockKey(params.Pos)
 
@@ -92,7 +92,7 @@ func (this *Chunk) BlockSet(conn *UserConn, params *Struct.ParamBlockSet, notify
 		}
 		packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
-		cons := make(map[string]*UserConn, 0)
+		cons := make(map[string]*PlayerConn, 0)
 		cons[conn.ID] = conn
 		this.World.SendSelected(packets, cons, []string{})
 		return false

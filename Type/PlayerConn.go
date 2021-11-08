@@ -12,14 +12,16 @@ import (
 )
 
 type (
-	// UserConn ...
-	UserConn struct {
-		Session          *Struct.UserSession
+	// PlayerConn ...
+	PlayerConn struct {
+		Session          *Struct.PlayerSession
+		World            *World
 		ID               string // уникальный GUID пользователя
 		Skin             string
 		Rotate           Struct.Vector3f
 		Pos              Struct.Vector3f
 		PosSpawn         Struct.Vector3f
+		PositionChanged  bool
 		ChunkPos         Struct.Vector3
 		ChunkPosO        Struct.Vector3
 		ChunkRenderDist  int
@@ -30,17 +32,17 @@ type (
 		LastInPacketTime time.Time            // Время, когда была последняя активность от игрока по вебсокету
 		Leave            chan *websocket.Conn // Unregister requests from connections.
 		Closed           bool
-		World            *World
+		Indicators       *Struct.PlayerIndicators
 	}
 )
 
 // Run in goroutine
-func (this *UserConn) Close() {
+func (this *PlayerConn) Close() {
 	this.Closed = true
 }
 
 // Run in goroutine
-func (this *UserConn) Receiver() {
+func (this *PlayerConn) Receiver() {
 
 	this.Mu = &sync.Mutex{}
 	this.Time = time.Now()
@@ -54,14 +56,14 @@ func (this *UserConn) Receiver() {
 		}
 		_, command, err := this.Ws.ReadMessage()
 		if err != nil {
-			log.Println("************** UserConn.Receiver().ReadMessage() ERROR", err)
+			log.Println("************** PlayerConn.Receiver().ReadMessage() ERROR", err)
 			goto Exit
 		}
 		// Входящая команда от пользователя на сервер
 		// commandString := string(command)
 		// log.Printf("commandString: " + commandString)
 		// Command ... Входящая команда от пользователя на сервер
-		// func (ur *UserRoom) Command(command string, uConn *UserConn) {
+		// func (ur *UserRoom) Command(command string, uConn *PlayerConn) {
 		var cmdIn Struct.Command
 		err = json.Unmarshal([]byte(command), &cmdIn)
 		if err == nil {
@@ -106,26 +108,26 @@ Exit:
 	this.Closed = true
 }
 
-func (this *UserConn) SendHelo() {
+func (this *PlayerConn) SendHelo() {
 	packet := Struct.JSONResponse{Name: Struct.CMD_MSG_HELLO, Data: "Welcome to " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
 
-func (this *UserConn) SendPong() {
+func (this *PlayerConn) SendPong() {
 	packet := Struct.JSONResponse{Name: Struct.CMD_PONG, Data: nil, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
 
 // Отправка содержимого сундука
-func (this *UserConn) SendChest(chest *Chest) {
+func (this *PlayerConn) SendChest(chest *Chest) {
 	packet := Struct.JSONResponse{Name: Struct.CMD_CHEST_CONTENT, Data: chest, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
 
-func (this *UserConn) WriteJSON(packets []Struct.JSONResponse) {
+func (this *PlayerConn) WriteJSON(packets []Struct.JSONResponse) {
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	this.Ws.WriteJSON(packets)

@@ -62,7 +62,7 @@ export class GameMode {
         for(let mode of this.modes) {
             if(mode.id == id) {
                 this.current = mode;
-                let player = this.world.localPlayer;
+                let player = this.world.player;
                 if(player) {
                     if(!mode.can_fly) {
                         player.setFlying(false);
@@ -74,6 +74,7 @@ export class GameMode {
                 return true;
             }
         }
+        return false;
     }
 
     // Переключить на следующий игровой режим

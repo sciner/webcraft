@@ -7,8 +7,6 @@ export class Hotbar {
         this.hud                = hud;
         this.inventory          = inventory;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
-        this.lives              = 1; // 0.95;
-        this.foods              = 1.;
         //
         this.sounds = {
             hit3: new Howl({src: ['/sounds/hit3.ogg'], volume: .5})
@@ -23,10 +21,7 @@ export class Hotbar {
     //
     damage(damage_value, reason_text) {
         if(damage_value > 0) {
-            let min_damage = .5/20;
-            this.lives = Math.max(this.lives - damage_value, 0);
-            this.lives = Math.round(this.lives / min_damage) * min_damage;
-            this.hud.refresh();
+            Game.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
             this.sounds.hit3.play();
         }
@@ -60,8 +55,12 @@ export class Hotbar {
             w,
             h
         );
-        // lives
-        for(let i = 0; i < Math.floor(this.lives * 10); i++) {
+        // Indicators
+        let indicators = Game.world.player.indicators;
+        let live = indicators.live.value / 20;
+        let food = indicators.food.value / 20;
+        // live
+        for(let i = 0; i < Math.floor(live * 10); i++) {
             hud.ctx.drawImage(
                 this.image,
                 0,
@@ -74,21 +73,21 @@ export class Hotbar {
                 ss
             );
         }
-        if(Math.round(this.lives * 10) > Math.floor(this.lives * 10)) {
+        if(Math.round(live * 10) > Math.floor(live * 10)) {
             hud.ctx.drawImage(
                 this.image,
                 0,
                 150 + ss,
                 ss,
                 ss,
-                hud_pos.x + Math.floor(this.lives * 10) * 24,
+                hud_pos.x + Math.floor(live * 10) * 24,
                 hud_pos.y + 30,
                 ss,
                 ss
             );
         }
         // foods
-        for(let i = 0; i < Math.floor(this.foods * 10); i++) {
+        for(let i = 0; i < Math.floor(food * 10); i++) {
             hud.ctx.drawImage(
                 this.image,
                 ss,
@@ -101,14 +100,14 @@ export class Hotbar {
                 ss
             );
         }
-        if(Math.round(this.foods * 10) > Math.floor(this.foods * 10)) {
+        if(Math.round(food * 10) > Math.floor(food * 10)) {
             hud.ctx.drawImage(
                 this.image,
                 ss,
                 150 + ss,
                 ss,
                 ss,
-                hud_pos.x + w - (Math.floor(this.foods * 10) * 24 + ss),
+                hud_pos.x + w - (Math.floor(food * 10) * 24 + ss),
                 hud_pos.y + 30,
                 ss,
                 ss

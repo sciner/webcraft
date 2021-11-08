@@ -1,5 +1,17 @@
 export const TX_CNT = 32;
 
+/*Object.defineProperty(String.prototype, 'hashCode', {
+    value: function() {
+        var hash = 0, i, chr;
+        for (i = 0; i < this.length; i++) {
+            chr   = this.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    }
+});*/
+
 export class Mth {
 
     static lerp(amount, value1, value2) {
@@ -19,7 +31,7 @@ export class Mth {
 }
 
 // VectorCollector...
-export class VectorCollectorNew {
+export class VectorCollector {
 
     constructor(list) {
         this.clear();
@@ -131,123 +143,6 @@ export class VectorCollectorNew {
     }
 
 }
-
-// VectorCollector...
-export class VectorCollectorOld {
-
-    constructor(list) {
-        this.clear();
-        if(list) {
-            this.list = list;
-        }
-    }
-
-    *[Symbol.iterator]() {
-        for(let x in this.list) {
-            for(let y in this.list[x]) {
-                for(let z in this.list[x][y]) {
-                    yield this.list[x][y][z];
-                }
-            }
-        }
-    }
-
-    clear() {
-        this.list = [];
-        this.size = 0;
-    }
-
-    set(vec, value) {
-        if(!this.list[vec.x]) this.list[vec.x] = [];
-        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
-        if(!this.list[vec.x][vec.y][vec.z]) {
-            this.size++;
-        }
-        if (typeof value === 'function') {
-            value = value(vec);
-        }
-        this.list[vec.x][vec.y][vec.z] = value;
-    }
-
-    add(vec, value) {
-        if(!this.list[vec.x]) this.list[vec.x] = [];
-        if(!this.list[vec.x][vec.y]) this.list[vec.x][vec.y] = [];
-        if(!this.list[vec.x][vec.y][vec.z]) {
-            if (typeof value === 'function') {
-                value = value(vec);
-            }
-            this.list[vec.x][vec.y][vec.z] = value;
-            this.size++;
-        }
-        return this.list[vec.x][vec.y][vec.z];
-    }
-
-    delete(vec) {
-        if(!this.has(vec)) {
-            return false;
-        }
-        this.size--;
-        delete(this.list[vec.x][vec.y][vec.z]);
-        return true;
-    }
-
-    has(vec) {
-        // return !!this.list[vec.x]?.[vec.y]?.[vec.z];
-        if(!this.list[vec.x]) return false;
-        if(!this.list[vec.x][vec.y]) return false;
-        if(!this.list[vec.x][vec.y][vec.z]) return false;
-        return true;
-    }
-
-    get(vec) {
-        if(!this.list[vec.x]) return null;
-        if(!this.list[vec.x][vec.y]) return null;
-        if(!this.list[vec.x][vec.y][vec.z]) return null;
-        return this.list[vec.x][vec.y][vec.z];
-    }
-
-    keys() {
-        let resp = [];
-        for(let x in this.list) {
-            for(let y in this.list[x]) {
-                for(let z in this.list[x][y]) {
-                    resp.push(new Vector(x|0, y|0, z|0));
-                }
-            }
-        }
-        return resp;
-    }
-
-    values() {
-        let resp = [];
-        for(let item of this) {
-            resp.push(item);
-        }
-        return resp;
-    }
-
-    reduce(max_size) {
-        if(this.size < max_size) {
-            return false;
-        }
-        /*
-        let keys = Object.keys(this.maps_cache);
-        if(keys.length > MAX_ENTR) {
-            let del_count = Math.floor(keys.length - MAX_ENTR * 0.333);
-            console.info('Clear maps_cache, del_count: ' + del_count);
-            for(let key of keys) {
-                if(--del_count == 0) {
-                    break;
-                }
-                delete(this.maps_cache[key]);
-            }
-        }
-        */
-    }
-
-}
-
-export class VectorCollector extends VectorCollectorNew {} ;
 
 // Color
 export class Color {
@@ -429,11 +324,13 @@ export class Vector {
         return this.add(new Vector(x, y, z));
     }
 
-    floored() {return new Vector(
-        Math.floor(this.x),
-        Math.floor(this.y),
-        Math.floor(this.z)
-    )}
+    floored() {
+        return new Vector(
+            Math.floor(this.x),
+            Math.floor(this.y),
+            Math.floor(this.z)
+        );
+    }
 
     translate(x, y, z) {
         this.x += x;
@@ -783,10 +680,10 @@ export class SpiralGenerator {
 export class MyArray extends Array {
     sortBy(...args) {
         return this.sort(function(obj1, obj2) {
-            if(!Game.world || !Game.world.localPlayer) {
+            if(!Game.world || !Game.world.player) {
                 return;
             }
-            let playerPos = Game.world.localPlayer.pos;
+            let playerPos = Game.world.player.pos;
             let dist1 = Math.sqrt(Math.pow(playerPos.x - obj1.coord.x, 2) + Math.pow(playerPos.y - obj1.coord.y, 2));
             let dist2 = Math.sqrt(Math.pow(playerPos.x - obj2.coord.x, 2) + Math.pow(playerPos.y - obj2.coord.y, 2));
             if(dist1 > dist2) {

@@ -22,6 +22,7 @@ export class DemoMapManager {
     }
 
     run(item) {
+        console.log(34567);
         let that = this;
         let $scope = this.$scope;
         $scope.settings.save();

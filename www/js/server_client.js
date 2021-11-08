@@ -34,6 +34,8 @@ export default class ServerClient {
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
     static CMD_SAVE_INVENTORY           = 66;
     static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
+    static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
+    static CMD_ENTITY_INDICATORS        = 69;
 
     // Constructor
     constructor(url, session_id, onOpenCallback) {
@@ -45,7 +47,6 @@ export default class ServerClient {
             out_packets: {},
             in_packets: {}
         };
-        this._loadID();
         this.ws = new WebSocket(url + '?session_id=' + session_id + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
         this.ws.onmessage = function(e) {
             that._onMessage(e);
@@ -65,16 +66,6 @@ export default class ServerClient {
                 });
             }, (Helpers.isDev() ? 300 : 5) * 1000);
         };
-    }
-
-    // Restore local use ID or create it
-    _loadID() {
-        let id = localStorage.getItem('id');
-        if(!id) {
-            id = Helpers.generateID();
-            localStorage.setItem('id', id)
-        }
-        this.id = id;
     }
 
     // New commands from server
@@ -112,7 +103,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.world.localPlayer.chat.messages.add(cmd.data.nickname, cmd.data.text);
+                    Game.world.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
                     break;
                 }
                 case ServerClient.CMD_CHEST_CONTENT: {
@@ -162,11 +153,15 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_TELEPORT: {
-                    Game.world.localPlayer.setPosition(cmd.data.pos);
+                    Game.world.player.setPosition(cmd.data.pos);
                     break;
                 }
                 case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
                     Game.world.chunkManager.setNearbyModified(cmd.data);
+                    break;
+                }
+                case ServerClient.CMD_ENTITY_INDICATORS: {
+                    Game.world.player.indicators = cmd.data.indicators;
                     break;
                 }
             }
@@ -245,5 +240,23 @@ export default class ServerClient {
     SaveInventory(inventory_state) {
         this.Send({name: ServerClient.CMD_SAVE_INVENTORY, data: inventory_state});
     }
+
+    // Modify indicator request
+    ModifyIndicator(indicator, value, comment) {
+        let data = {
+            indicator: indicator,
+            value: value,
+            comment: comment
+        }
+        this.Send({name: ServerClient.CMD_MODIFY_INDICATOR_REQUEST, data: data});
+    }
+
+    /*
+        CMD_UPDATE_INDICATOR
+        let min_damage = .5/20;
+        this.live = Math.max(this.live - damage_value, 0);
+        this.live = Math.round(this.live / min_damage) * min_damage;
+        this.hud.refresh();
+    */
 
 }

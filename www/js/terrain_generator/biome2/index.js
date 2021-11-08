@@ -104,8 +104,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let map                     = new Map(chunk, this.options);
         this.caveManager.addSpiral(chunk.addr);
         //
-        for(let x = 0; x < chunk.size.x; x += 2) {
-            for(let z = 0; z < chunk.size.z; z += 2) {
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
                 // Высота горы в точке
@@ -116,9 +116,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     noisefn(px / 350, pz / 350) * .5;
                 value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
                 // Влажность
-                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2);
+                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2, 0, 1);
                 // Экватор
-                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1);
+                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
                 // Get biome
                 let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
                 value = value * biome.max_height + 68;
@@ -155,10 +155,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(biome.code == 'OCEAN') {
                     cell.block = BLOCK.STILL_WATER.id;
                 }
-                map.cells[x][z] = cell;
-                map.cells[x + 1][z + 1] = cell;
-                map.cells[x + 1][z] = cell;
-                map.cells[x][z + 1] = cell;
+                try {
+                    map.cells[x][z] = cell;
+                    // map.cells[x + 1][z + 1] = cell;
+                    // map.cells[x + 1][z] = cell;
+                    // map.cells[x][z + 1] = cell;
+                } catch(e) {
+                    debugger;
+                }
             }
         }
         // Clear maps_cache

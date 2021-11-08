@@ -25,7 +25,7 @@ export class Instrument_Hand {
         if(block.id == BLOCK.DIRT_PATH.id) {
             block = BLOCK.fromId(BLOCK.DIRT.id);
         }
-        if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(block.id) < 0) {
+        if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(block.id) < 0 || block.tags.indexOf('leaves') >= 0) {
             this.inventory.increment({count: 1, id: block.id, power: block.power});
         }
         return true;

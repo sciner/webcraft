@@ -1,5 +1,5 @@
 import {ChunkManager} from "./chunk_manager.js";
-import {Helpers, Vector} from "./helpers.js";
+import {Vector} from "./helpers.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
@@ -9,7 +9,6 @@ import {GameMode} from "./game_mode.js";
 import ServerClient from "./server_client.js";
 import {MeshManager} from "./mesh_manager.js";
 import {DEFAULT_PICKAT_DIST} from "./pickat.js";
-import {Resources} from "./resources.js";
 
 // World container
 export class World {
@@ -45,10 +44,6 @@ export class World {
         this.seed           = state.seed;
         this.clouds         = null;
         this.rainTim        = null;
-        this.rotate         = new Vector(state.rotate.x / Math.PI * 1800, state.rotate.y / Math.PI * 1800, state.rotate.z / Math.PI * 1800);
-        this.rotateRadians  = new Vector(0, 0, 0);
-        this.rotateDegree   = new Vector(0, 0, 0);
-        this.fixRotate();
         //
         Game.postServerConnect();
         //
@@ -103,7 +98,7 @@ export class World {
             this.clouds = this.createClouds(pos);
         }
         // Picking target
-        let player = this.localPlayer;
+        let player = this.player;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
             player.pickAt.update(this.getPickatDistance());
         }
@@ -112,7 +107,7 @@ export class World {
 
     //
     createClone() {
-        let player = this.localPlayer;
+        let player = this.player;
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
             itsme:          true,
@@ -151,7 +146,7 @@ export class World {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(function(){
-                    let pos = Game.world.localPlayer.pos;
+                    let pos = Game.world.player.pos;
                     Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
                 }, 25);
             }
@@ -165,70 +160,12 @@ export class World {
 
     // underWaterfall
     underWaterfall() {
-        this.setBlock(parseInt(this.localPlayer.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.localPlayer.pos.z), BLOCK.FLOWING_WATER, 1);
-    }
-
-    addRotate(vec3) {
-        // this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
-        // this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
-        this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
-        this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
-        this.fixRotate();
-    }
-
-    fixRotate() {
-        // let halfYaw = (Game.render.canvas.width || window.innerWidth) * 0.5;
-        let halfPitch = (Game.render.canvas.height || window.innerHeight) * 0.5;
-        if(this.rotate.z <= -1800) {
-            this.rotate.z = 1799.9;
-        }
-        if(this.rotate.z >= 1800) {
-            this.rotate.z = -1800;
-        }
-        //
-        this.rotate.x = Math.max(this.rotate.x, -halfPitch);
-        this.rotate.x = Math.min(this.rotate.x, halfPitch);
-        let x = (this.rotate.x / halfPitch) * 90;
-        let y = 0;
-        let z = this.rotate.z / 10;
-        this.rotateRadians.x = Helpers.deg2rad(x);
-        this.rotateRadians.y = Helpers.deg2rad(y);
-        this.rotateRadians.z = Helpers.deg2rad(z);
-        this.rotateDegree.x = Helpers.rad2deg(this.rotateRadians.x);
-        this.rotateDegree.y = Helpers.rad2deg(this.rotateRadians.y);
-        this.rotateDegree.z = Helpers.rad2deg(this.rotateRadians.z) + 180;
+        this.setBlock(parseInt(this.player.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.player.pos.z), BLOCK.FLOWING_WATER, 1);
     }
 
     // update
     update() {
         this.chunkManager.update();
-    }
-
-    // exportJSON
-    exportJSON(callback) {
-        let that = this;
-        let row = {
-            id:                 Game.world_name,
-            seed:               Game.seed,
-            pos:                that.localPlayer.pos,
-            flying:             that.localPlayer.getFlying(),
-            generator:          this._savedState.generator,
-            chunk_render_dist:  Game.world.chunkManager.CHUNK_RENDER_DIST,
-            rotate:             that.rotate,
-            brightness:         that.renderer.brightness,
-            game_mode:          that.game_mode.getCurrent().id,
-            inventory:  {
-                items: Game.world.localPlayer.inventory.exportItems(),
-                current: {
-                    index: Game.world.localPlayer.inventory.index
-                }
-            }
-        };
-        if(callback) {
-            callback(row);
-        } else {
-            Helpers.saveJSON(row, Game.world_name + '.json');
-        }
     }
 
     // saveToDB

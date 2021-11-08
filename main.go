@@ -21,7 +21,7 @@ import (
 )
 
 // User connections manager
-var Users Type.UserConnMan
+var Users Type.PlayerConnMan
 
 var DB = Type.GetGameDatabase(getDir() + "/game.sqlite3")
 
@@ -54,8 +54,8 @@ func main() {
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
 
 	// User connections manager
-	Users = Type.UserConnMan{
-		Connections: make(map[string]*Type.UserConn, 0),
+	Users = Type.PlayerConnMan{
+		Connections: make(map[string]*Type.PlayerConn, 0),
 	}
 
 	http.HandleFunc("/ws", homeHandler)

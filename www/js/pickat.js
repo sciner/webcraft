@@ -56,7 +56,7 @@ export class PickAt {
 
     //
     get(callback, pickat_distance) {
-        const player = this.world.localPlayer;
+        const player = this.world.player;
         const render = this.render;
         const pos = new Vector(player.pos);
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);

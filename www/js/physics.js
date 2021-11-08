@@ -65,7 +65,7 @@ export default class Physics {
                     let z = pos.z;
                     let block = world.chunkManager.getBlock(x, y, z);
                     if(block.fluid && block.power) {
-                        world.setBlock(x, y, z, BLOCK.fromId(block.fluid.still_block_id), block.power);
+                        (x, y, z, BLOCK.fromId(block.fluid.still_block_id), block.power);
                         let underBlock = world.chunkManager.getBlock(x, y, z - 1);
                         let underBlockIsFluid = [
                             BLOCK.STILL_WATER.id,

@@ -11,7 +11,7 @@ export class CraftTableSlot extends Label {
 
     setItem(item) {
         if(this.slot_index !== null) {
-            Game.world.localPlayer.inventory.setItem(this.slot_index, item);
+            Game.world.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
         }
@@ -19,7 +19,7 @@ export class CraftTableSlot extends Label {
 
     getItem() {
         if(this.slot_index !== null) {
-            return Game.world.localPlayer.inventory.items[this.slot_index];
+            return Game.world.player.inventory.items[this.slot_index];
         } else {
             return this.item;
         }
@@ -57,7 +57,7 @@ export class CraftTableSlot extends Label {
         } else {
             ctx.textBaseline    = 'top';
             ctx.textAlign       = 'left';
-            ctx.font            = '11px Minecraftia';
+            ctx.font            = '11px Ubuntu';
             let text            = item.name.substring(0, 4);
             ctx.fillStyle       = '#000000ff';
             ctx.fillText(text, x + 2, y + 2);
@@ -67,7 +67,7 @@ export class CraftTableSlot extends Label {
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = '18px Minecraftia';
+            ctx.font                = '18px Ubuntu';
             ctx.fillStyle           = '#000000ff';
             ctx.fillText(item.count, x + width + 2, y + height + 2);
             ctx.fillStyle           = '#ffffffff';
@@ -207,7 +207,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(e.shiftKey) {
                     switch(this.parent.id) {
                         case 'frmInventory': {
-                            let srcList = Game.world.localPlayer.inventory.items;
+                            let srcList = Game.world.player.inventory.items;
                             let srcListFirstIndexOffset = this.slot_index < 9 ? 9 : 0;
                             let targetList = this.slot_index < 9 ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, 9);
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -217,7 +217,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             break;
                         }
                         case 'frmChest': {
-                            let srcList = e.target.is_chest_slot ? Game.world.localPlayer.inventory.items : this.parent.getSlots();
+                            let srcList = e.target.is_chest_slot ? Game.world.player.inventory.items : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -227,7 +227,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             break;
                         }
                         case 'frmCraft': {
-                            let srcList = e.target.is_craft_slot ? Game.world.localPlayer.inventory.items : this.parent.getSlots();
+                            let srcList = e.target.is_craft_slot ? Game.world.player.inventory.items : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -300,7 +300,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                     }
                     // проверить слоты инвентаря
-                    let inventory_items = Game.world.localPlayer.inventory.items;
+                    let inventory_items = Game.world.player.inventory.items;
                     for(let i in inventory_items) {
                         if(need_count == 0) {
                             break;

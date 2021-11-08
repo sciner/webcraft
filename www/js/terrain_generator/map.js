@@ -80,7 +80,7 @@ export class Map {
     // Генерация растительности
     generateVegetation() {
         let chunk           = this.chunk;
-        let aleaRandom      = new alea(chunk.seed + '_' + chunk.id);
+        let aleaRandom      = new alea(chunk.seed + '_' + chunk.coord.toString());
         this.trees          = [];
         this.plants         = new VectorCollector();
         let biome           = null;
@@ -124,7 +124,8 @@ export class Map {
                         for(let type of biome.trees.list) {
                             s += type.percent;
                             if(r < s) {
-                                const height = Helpers.clamp(Math.round(aleaRandom.double() * type.height.max), type.height.min, type.height.max);
+                                let r = aleaRandom.double();
+                                const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
                                 const rad = Math.max(parseInt(height / 2), 2);
                                 this.trees.push({
                                     biome_code: biome.code,

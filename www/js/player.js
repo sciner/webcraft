@@ -1,4 +1,4 @@
-import {ROTATE, Vector} from "./helpers.js";
+import {Helpers, ROTATE, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {Kb} from "./kb.js";
 import {BLOCK} from "./blocks.js";
@@ -6,11 +6,6 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
-
-// ==========================================
-// Player
-// This class contains the code that manages the local player.
-// ==========================================
 
 const PLAYER_HEIGHT                     = 1.7;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -35,7 +30,6 @@ export class Player {
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
-        this.rotate                 = new Vector(0, 0, Math.PI);
         this.velocity               = new Vector(0, 0, 0);
         this.walkDist               = 0;
         this.walkDistO              = 0;
@@ -53,14 +47,18 @@ export class Player {
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
         this.world                  = world;
-        this.world.localPlayer      = this;
         this.keys                   = {};
         this.eventHandlers          = {};
+        this.indicators             = world.saved_state.indicators;
+        // Position
         this.pos                    = new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z);
-        this.rotate                 = new Vector(world.saved_state.rotate);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
+        // Rotate
+        this.rotateDegree           = new Vector(0, 0, 0);
+        this.setRotate(world.saved_state.rotate);
+        // Flying state
         if(world.saved_state) {
             this.setFlying(!!world.saved_state.flying);
         }
@@ -73,17 +71,46 @@ export class Player {
         this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
     }
 
+    addRotate(vec3) {
+        vec3.divScalar(900); // .multiplyScalar(Math.PI);
+        this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
+        this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
+        this.setRotate(this.rotate);
+    }
+
+    // setRotate
+    // @var vec3 (0 ... PI)
+    setRotate(vec3) {
+
+        this.rotate = new Vector(vec3);
+        // let halfPitch = (Game.render.canvas.height || window.innerHeight) / 1800;
+
+        if(this.rotate.z < 0) {
+            this.rotate.z = (Math.PI * 2) + this.rotate.z;
+        }
+
+        this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
+        this.rotate.z = this.rotate.z % (Math.PI * 2);
+
+        // rad to degree
+        this.rotateDegree.x = (this.rotate.x / Math.PI) * 180;
+        this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
+        this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
+
+        // this.update();
+    }
+
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
     onStep(step_side) {
         this.step_count++;
         let world = this.world;
-        let player = world.localPlayer;
+        let player = world.player;
         if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
             return;
         }
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
-            let pos = world.localPlayer.getBlockPos();
+            let pos = player.getBlockPos();
             let world_block = world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
             if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
@@ -113,7 +140,7 @@ export class Player {
         // destroyBlock
         } else if(e.destroyBlock) {
             let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
-            let block           = BLOCK.BLOCK_BY_ID[world_block.id];
+            let block           = BLOCK.BLOCK_BY_ID.get(world_block.id);
             let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative(), this.getCurrentInstrument());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 this.world.destroyBlock(block, bPos, true);
@@ -298,9 +325,9 @@ export class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        let x = (Game.player.pos.x | 0) - 11;
-                        let y = Game.player.pos.y | 0;
-                        let z = (Game.player.pos.z | 0) - 13;
+                        let x = (Game.world.player.pos.x | 0) - 11;
+                        let y = Game.world.player.pos.y | 0;
+                        let z = (Game.world.player.pos.z | 0) - 13;
                         let d = 10;
                         let cnt = 0;
                         let startx = x;
@@ -399,11 +426,7 @@ export class Player {
             case KEY.E: {
                 if(!down) {
                     if(Game.hud.wm.getVisibleWindows().length == 0) {
-                        if(Game.world.game_mode.isCreative()) {
-                            Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
-                        } else {
-                            Game.hud.wm.getWindow('frmInventory').toggleVisibility();
-                        }
+                        this.inventory.open();
                         return true;
                     }
                 }
@@ -534,7 +557,13 @@ export class Player {
             let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
             if(isTrapdoor) {
                 // Trapdoor
-                extra_data.opened = !extra_data.opened;
+                if(!extra_data) {
+                    extra_data = {
+                        opened: false,
+                        point: new Vector(0, 0, 0)
+                    };
+                }
+                extra_data.opened = extra_data && !extra_data.opened;
                 if(world_block.sound) {
                     Game.sounds.play(world_block.sound, 'open');
                 }
@@ -548,6 +577,9 @@ export class Player {
                 }
                 // Запрет установки блока на блоки, которые занимает игрок
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
+                    return;
+                }
+                if(replaceBlock && this.buildMaterial.style == 'ladder') {
                     return;
                 }
                 // Запрет установки блока, если на позиции уже есть другой блок
@@ -592,16 +624,16 @@ export class Player {
                         }
                     }
                 } else {
-                    let playerRotate = Game.world.rotateDegree;
+                    let rotateDegree = this.rotateDegree;
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), playerRotate);
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                             }
                         } else {
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, rotateDegree, null, extra_data);
                         }
                     } else {
                         // Create block
@@ -612,7 +644,7 @@ export class Player {
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), playerRotate);
+                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                                 let b = BLOCK.fromId(this.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');
@@ -620,7 +652,8 @@ export class Player {
                             }
                         } else {
                             if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                if(world_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
+                                // Лианы можно ставить на блоки с прозрачностью
+                                if(world_block.transparent && world_block.style != 'default') {
                                     return;
                                 }
                                 if(pos.n.y == 0) {
@@ -630,7 +663,7 @@ export class Player {
                                         // x
                                     }
                                 } else {
-                                    let cardinal_direction = BLOCK.getCardinalDirection(playerRotate).z;
+                                    let cardinal_direction = BLOCK.getCardinalDirection(rotateDegree).z;
                                     let ok = false;
                                     for(let i = 0; i < 4; i++) {
                                         let pos2 = new Vector(pos.x, pos.y, pos.z);
@@ -658,7 +691,7 @@ export class Player {
                                         let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
                                         if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
                                             cardinal_direction = cd;
-                                            playerRotate.z = (playerRotate.z + i * 90) % 360;
+                                            rotateDegree.z = (rotateDegree.z + i * 90) % 360;
                                             ok = true;
                                             break;
                                         }
@@ -668,7 +701,7 @@ export class Player {
                                     }
                                 }
                             }
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, playerRotate, null, extra_data);
+                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, rotateDegree, null, extra_data);
                         }
                     }
                     this.inventory.decrement();
@@ -787,13 +820,11 @@ export class Player {
 
     // Updates this local player (gravity, movement)
     update() {
+        // View
         if(this.lastUpdate != null && !Game.hud.splash.loading) {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = (performance.now() - this.lastUpdate) / 1000;
             delta = Math.min(delta, 1.0);
-            // View
-            this.rotate.x = parseInt(this.world.rotateRadians.x * 100000) / 100000; // pitch | вверх-вниз (X)
-            this.rotate.z = parseInt(this.world.rotateRadians.z * 100000) / 100000; // yaw | влево-вправо (Z)
 
             let pc                 = this.getPlayerControl();
             this.posO              = new Vector(this.lerpPos);
@@ -883,11 +914,26 @@ export class Player {
         this.lastUpdate = performance.now();
     }
 
+    // Emulate user keyboard control
+    walk(direction, duration) {
+        let key = null;
+        switch(direction) {
+            case 'forward': key = KEY.W; break;
+            case 'back': key = KEY.S; break;
+            case 'left': key = KEY.A; break;
+            case 'right': key = KEY.D; break;
+            default: throw 'Invalid direction';
+        }
+        this.onKeyEvent({ctrlKey: false}, key, true, true);
+        setTimeout(() => {this.onKeyEvent({ctrlKey: false}, key, false, true);}, duration);
+    }
+
     // Проверка падения (урон)
     checkFalling() {
         if(!Game.world.game_mode.isSurvival()) {
             return;
         }
+        // let onGround = this.pr.player_state.onGround;
         if(!this.onGround) {
             // do nothing
         } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
@@ -897,7 +943,7 @@ export class Player {
                 let damage = -height - 3;
                 // let falling_time = performance.now() - this.lastOnGroundTime;
                 if(damage > 0) {
-                    Game.hotbar.damage(damage / 20, 'falling');
+                    Game.hotbar.damage(damage, 'falling');
                 }
             }
             this.lastOnGroundTime = null;

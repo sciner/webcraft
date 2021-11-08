@@ -125,18 +125,20 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID.get(options.type.trunk), true);
         }
     }
 
     // Пенёк
-    plantStump(chunk, x, y, z, block, force_replace) {
+    plantStump(options, chunk, x, y, z, block, force_replace) {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID.get(options.type.trunk), true);
         }
-        this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID[options.type.leaves], true);
+        if(options.type.leaves) {
+            this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID.get(options.type.leaves), true);
+        }
     }
 
     // Акация
@@ -150,7 +152,7 @@ export class Default_Terrain_Generator {
             for(let p = y; p < ystart; p++) {
                 x += px;
                 z += pz;
-                that.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
+                that.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID.get(options.type.trunk), true);
                 let r = random.double();
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
                     r *= 10;
@@ -177,7 +179,7 @@ export class Default_Terrain_Generator {
                             let b = chunk.tblocks.get(new Vector(i, py, j));
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                                that.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
+                                that.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID.get(options.type.leaves), false);
                             }
                         }
                     }
@@ -193,13 +195,14 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
+            let trunk = BLOCK.BLOCK_BY_ID.get(options.type.trunk);
+            this.setBlock(chunk, x, p, z, trunk, true);
         }
         // листва
         let r = 1;
         let rad = Math.round(r);
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-            this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
+            this.setBlock(chunk, x, ystart, z, BLOCK.BLOCK_BY_ID.get(options.type.leaves), false);
             if(options.biome_code == 'SNOW') {
                 this.setBlock(chunk, x, ystart + 1, z, BLOCK.SNOW, false);
             }
@@ -218,7 +221,7 @@ export class Default_Terrain_Generator {
                             let b = chunk.getBlock(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
                             let b_id = !b ? 0 : (typeof b == 'number' ? b : b.id);
                             if(b_id === BLOCK.AIR.id) {
-                                this.setBlock(chunk, i, y, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
+                                this.setBlock(chunk, i, y, j, BLOCK.BLOCK_BY_ID.get(options.type.leaves), false);
                                 if(options.biome_code == 'SNOW') {
                                     this.setBlock(chunk, i, y + 1, j, BLOCK.SNOW, false);
                                 }
@@ -236,7 +239,7 @@ export class Default_Terrain_Generator {
         let ystart = y + options.height;
         // ствол
         for(let p = y; p < ystart; p++) {
-            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID[options.type.trunk], true);
+            this.setBlock(chunk, x, p, z, BLOCK.BLOCK_BY_ID.get(options.type.trunk), true);
         }
         // листва
         let py = y + options.height;
@@ -257,7 +260,7 @@ export class Default_Terrain_Generator {
                         let b = chunk.tblocks.get(new Vector(i, py, j));
                         let b_id = b.id; // !b ? 0 : (typeof b == 'number' ? b : b.id);
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                            this.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID[options.type.leaves], false);
+                            this.setBlock(chunk, i, py, j, BLOCK.BLOCK_BY_ID.get(options.type.leaves), false);
                         }
                     }
                 }

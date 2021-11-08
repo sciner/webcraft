@@ -72,14 +72,18 @@ export class Resources {
         }
         //
         let d = 0;
+        this.progress = {
+            loaded:     0,
+            total:      all.length,
+            percent:    0
+        };
+
         for (const p of all) {
             p.then(()=> {    
                 d ++;
-                this.onLoading({
-                    loaded:     d,
-                    total:      all.length,
-                    percent:    (d * 100) / all.length
-                });
+                this.progress.loaded = d;
+                this.progress.percent = (d * 100) / all.length;
+                this.onLoading({...this.progress});
             });
           }
 
