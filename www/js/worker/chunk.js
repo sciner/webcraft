@@ -68,6 +68,13 @@ export class Chunk {
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
     }
 
+<<<<<<< HEAD
+=======
+    /*get chunkManager() {
+        return world.chunkManager;
+    }*/
+
+>>>>>>> main
     init() {
         // Variables
         this.vertices_length    = 0;
@@ -249,7 +256,11 @@ export class Chunk {
                     let b = this.blocks[x][z][y];
                     if(!b || b.id == 0 || b.transparent) {
                         let index = BLOCK.getIndex(x, y, z);
+<<<<<<< HEAD
                         if(this.lightmap[index] < power) {
+=======
+                        if(this.lightmap[index] < power) {    
+>>>>>>> main
                             this.lightmap[index] = power;
                             fillLight(x, y, z, power);
                         }

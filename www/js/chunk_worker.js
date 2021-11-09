@@ -5,10 +5,9 @@ let WorldManager        = null;
 let worlds              = null;
 let world               = null;
 
-
 /**
- * @param {string} terrain_type
- */
+* @param {string} terrain_type
+*/
 async function importModules(terrain_type, seed, world_id) {
     // load module
     await import('./helpers.js').then(module => {
