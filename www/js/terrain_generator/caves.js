@@ -1,5 +1,6 @@
-import {impl as alea} from '../../../vendors/alea.js';
+import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_Y_MAX, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
 
 // Cave...
 export class Cave {

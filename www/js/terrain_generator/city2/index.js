@@ -41,11 +41,18 @@ let palette = {
     // 122: BLOCK.SMOOTH_STONE,
     // 123: BLOCK.GRAVEL,
 };
+
+// Костыль для NodeJS
+let root_dir = '.';
+if(typeof process === 'undefined') {
+    root_dir = '';
+}
+
 let vox_templates = {};
-await Vox_Loader.load('/vox/city/City_1.vox', (chunks) => {
+await Vox_Loader.load(root_dir + '/data/vox/city/City_1.vox', (chunks) => {
     vox_templates.city1 = {chunk: chunks[0], palette: palette};
 });
-await Vox_Loader.load('/vox/city/City_2.vox', (chunks) => {
+await Vox_Loader.load(root_dir + '/data/vox/city/City_2.vox', (chunks) => {
     vox_templates.city2 = {chunk: chunks[0], palette: palette};
 });
 

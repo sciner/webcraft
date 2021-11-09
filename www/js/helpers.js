@@ -407,6 +407,9 @@ export let DIRECTION_NAME = {};
 
 export class Helpers {
 
+    static fetch;
+    static fs;
+
     // clamp
     static clamp(x, min, max) {
         if(!min) {
@@ -598,6 +601,20 @@ export class Helpers {
         // or output as hex if preferred
     }
 
+}
+
+// Make fetch functions
+if(typeof fetch === 'undefined') {
+    Helpers.fetch = async (url) => import(url);
+    Helpers.fetchJSON = async (url) => import(url).then(response => response.default);
+    Helpers.fetchBinary = async (url) => {
+        let binary = Helpers.fs.readFileSync(url);
+        return binary.buffer;
+    };
+} else {
+    Helpers.fetch = async (url) => fetch(url);
+    Helpers.fetchJSON = async (url) => fetch(url).then(response => response.json());
+    Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
 }
 
 // SpiralGenerator ...

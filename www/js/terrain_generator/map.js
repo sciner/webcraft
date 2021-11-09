@@ -1,6 +1,8 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import {Vector, Helpers, Color, VectorCollector} from '../helpers.js';
+import {BLOCK} from "../blocks.js";
+import {BIOMES} from "./biomes.js";
 
 export class Map {
 

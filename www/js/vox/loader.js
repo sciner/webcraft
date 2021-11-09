@@ -1,3 +1,5 @@
+import {Helpers} from "../helpers.js";
+
 export class Vox_Loader {
 
     constructor(url, onload) {
@@ -7,8 +9,7 @@ export class Vox_Loader {
     }
 
     static async load(url, onload) {
-        await fetch(url)
-            .then(r => r.arrayBuffer())
+        await Helpers.fetchBinary(url)
             .then(buffer => {
                 const data = new DataView(buffer);
                 const id = data.getUint32(0, true);

@@ -1,4 +1,5 @@
 import { BLOCK } from "../../js/blocks.js";
+import { Helpers } from '../../js/helpers.js';
 
 const getRunningScript = () => {
     return decodeURI(new Error().stack.match(/([^ \n\(@])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0])
@@ -22,7 +23,7 @@ export default class ResourcePack {
     async init() {
         let that = this;
         let dir = getRunningScript() + '/..';
-        await fetch(dir + '/blocks.json', {mode: 'no-cors'}).then(response => response.json()).then(blocks => {
+        await Helpers.fetchJSON(dir + '/blocks.json', {mode: 'no-cors'}).then(blocks => {
             for(let block of blocks) {
                 block.resource_pack = that;
                 BLOCK.add(block);
