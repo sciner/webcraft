@@ -52,6 +52,9 @@ class LightQueue {
                 while (wn >= 0 && wavesChunk[wn].length === 0) {
                     wn--;
                 }
+                if (wn < 0) {
+                    break;
+                }
                 let chunk = wavesChunk[wn].pop();
                 let coord = wavesCoord[wn].pop();
                 chunk.waveCounter--;
@@ -86,6 +89,7 @@ class LightQueue {
                     continue;
                 }
                 chunk.lightData[coord] = val;
+                chunk.lastID++;
 
                 //TODO: copy to neib chunks
 
@@ -134,6 +138,7 @@ class LightQueue {
         const {wavesChunk, wavesCoord} = this;
         wavesChunk[waveNum].push(chunk);
         wavesCoord[waveNum].push(coord);
+        chunk.waveCounter++;
     }
 }
 
@@ -263,6 +268,20 @@ class Chunk {
 }
 
 function run() {
+    world.light.doWaves(16);
+
+    world.chunkManager.chunks.forEach((key, chunk) => {
+        if (chunk.waveCounter === 0)
+            return;
+        if (chunk.sentID !== chunk.lastID)
+            return;
+        chunk.sentID = chunk.lastID;
+        postMessage(['light_generated', {
+            addr: chunk.addr,
+            lightmap: chunk.lightMap,
+            lightID: chunk.lastID
+        }]);
+    })
 }
 
 const msgQueue = [];
@@ -282,6 +301,8 @@ async function importModules() {
     world.chunkManager = new ChunkManager();
     world.light = new LightQueue();
     msgQueue.length = 0;
+
+    setInterval(run, 20);
 }
 
 onmessage = async function (e) {
@@ -313,9 +334,6 @@ onmessage = async function (e) {
                 chunk.removed = true;
                 chunks.delete(args.addr);
             }
-            break;
-        }
-        case 'lightChunk': {
             break;
         }
     }
