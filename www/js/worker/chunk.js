@@ -175,7 +175,7 @@ export class Chunk {
             debugger;
         }
         if(block == null) {
-            return blocks.AIR;
+            return BLOCK.AIR;
         }
         return block || world.chunkManager.DUMMY;
     }
@@ -451,7 +451,7 @@ export class Chunk {
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
             if(block.material.gravity && block.pos.y > 0 && block.falling) {
                 let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
-                if([blocks.AIR.id, blocks.GRASS.id].indexOf(block_under.id) >= 0) {
+                if([BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block_under.id) >= 0) {
                     this.gravity_blocks.push(block.pos);
                 }
             }
