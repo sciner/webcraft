@@ -29,6 +29,7 @@ class TBlock {
 
 // World
 const FakeCloudWorld = {
+    blocks_pushed: 0,
     clouds: {
         imgData: null,
         size: new Vector(256, 1, 256),

@@ -1,4 +1,5 @@
 import {Color} from '../helpers.js';
+import {BLOCK} from "../blocks.js";
 
 const CACTUS_MIN_HEIGHT     = 2;
 const CACTUS_MAX_HEIGHT     = 5;

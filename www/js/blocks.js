@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.js";
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector } from './helpers.js';
+import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector, Helpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 
 export const TRANS_TEX                      = [4, 12];
@@ -206,10 +206,10 @@ export class BLOCK {
     }
 
     static reset() {
-        this.list                   = [];
-        this.BLOCK_BY_ID            = new Map();
-        this.BLOCK_BY_TAGS          = {};
-        this.ao_invisible_blocks    = [];
+        BLOCK.list                   = [];
+        BLOCK.BLOCK_BY_ID            = new Map();
+        BLOCK.BLOCK_BY_TAGS          = {};
+        BLOCK.ao_invisible_blocks    = [];
     }
 
     static async add(block) {
@@ -618,7 +618,6 @@ export class BLOCK {
                             // добавление недостающих
                             if(checkIfSame(neighbours.EAST)) {
                                 let cd = neighbours.EAST.getCardinalDirection().z;
-                                // console.log(cd, ROTATE.S, ROTATE.N)
                                 if(cd == ROTATE.N) {
                                     poses.push(new Vector(.5, yt, 0));
                                 } else if(cd == ROTATE.S) {
@@ -743,14 +742,34 @@ export class BLOCK {
 
 };
 
+// Init
+BLOCK.init = async function(cb) {
+
+    // Init resource packs and other
+    let all = [];
+    let resource_packs = new Set();
+    for(let init_file of BLOCK.resource_packs) {
+        all.push(import('..' + init_file).then((module) => {resource_packs.add(module.default);}));
+    }
+    await Promise.all(all).then(() => { return this; });
+    all = [BLOCK.load(resource_packs)]
+
+    // After
+    await Promise.all(all).then(cb);
+
+}
+
 // Load
 BLOCK.load = async function(resource_packs) {
 
     // Load supported block styles
-    await fetch('../data/block_style.json').then(response => response.json()).then(json => {
+    let json_url = '../data/block_style.json';
+
+    await Helpers.fetchJSON(json_url)
+    .then((json) => {
         for(let code of json) {
-            // load module
-            import("./block_style/" + code + ".js").then(module => {
+            // Load module
+            import('./block_style/' + code + '.js').then(module => {
                 BLOCK.registerStyle(module.default);
             });
         }

@@ -1,7 +1,7 @@
 "use strict";
 
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
-import {impl as alea} from '../../vendors/alea.js';
+import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
 
 export default class style {
@@ -377,15 +377,6 @@ export default class style {
                 lm.r, lm.g, lm.b,
                 ...ao, flags | sideFlags);
         }
-
-        // debugger;
-        /*for(let i = 0; i < vertices.length; i += 21) {
-            vertices[i+16] = -5.5;
-            vertices[i+17] = -5.5;
-            vertices[i+18] = -5.5;
-            vertices[i+19] = -4.5;
-        }
-        */
 
     }
 

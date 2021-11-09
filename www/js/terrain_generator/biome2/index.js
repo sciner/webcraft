@@ -7,10 +7,17 @@ import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
+import {BIOMES} from "../biomes.js";
+
+// Костыль для NodeJS
+let root_dir = '.';
+if(typeof process === 'undefined') {
+    root_dir = '';
+}
 
 //
 let vox_templates = {};
-await Vox_Loader.load('/data/monu10.vox', (chunks) => {
+await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
     let palette = {
         81: BLOCK.CONCRETE,
         97: BLOCK.OAK_PLANK,
@@ -20,10 +27,10 @@ await Vox_Loader.load('/data/monu10.vox', (chunks) => {
     };
     vox_templates.monu10 = {chunk: chunks[0], palette: palette};
 });
-await Vox_Loader.load('/data/small_castle.vox', (chunks) => {
+await Vox_Loader.load(root_dir + '/data/vox/small_castle.vox', (chunks) => {
     vox_templates.small_castle = {chunk: chunks[0], palette: {}};
 });
-await Vox_Loader.load('/data/castle.vox', (chunks) => {
+await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
     let palette = {
         93: BLOCK.GRAVEL,
         106: BLOCK.STONE_BRICK,
@@ -262,26 +269,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
         }
-
-        //
-        /*if(chunk.addr.x == 194) {
-            let ab = all_blocks;
-            for(let x = 0; x < chunk.size.x; x++) {
-                for(let z = 0; z < chunk.size.z; z++) {
-                    for(let y = 0; y < chunk.size.y; y++) {
-                        let index = aleaRandom.double() * ab.length;
-                        index = index | 0;
-                        let b = ab[index];
-                        if(!b || !b.spawnable || b.is_item || !b.sound || b.is_entity || b.transparent || (b.style && b.style == 'triangle')) {
-                            y--;
-                            continue;
-                        }
-                        setBlock(x, y, z, b.id);
-                    }
-                }
-            }
-            return map;
-        }*/
 
         //
         for(let x = 0; x < chunk.size.x; x++) {

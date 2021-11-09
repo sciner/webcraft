@@ -10,6 +10,7 @@ const float outerRadius = .65, innerRadius = .4, intensity = .1;
 const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
 
 uniform sampler2D u_texture;
+uniform sampler2D u_texture_mask;
 
 uniform vec3 u_camera_pos;
 // Fog

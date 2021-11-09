@@ -46,6 +46,7 @@ export class ChunkManager {
             let cmd = e.data[0];
             let args = e.data[1];
             switch(cmd) {
+                case 'world_inited':
                 case 'worker_inited': {
                     that.worker_counter--;
                     that.worker_inited = that.worker_counter === 0;
