@@ -4,6 +4,7 @@ import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
 import {Helpers} from "../../helpers.js";
+import {Resources} from "../../resources.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -269,6 +270,11 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createShader(options) {
         return new WebGLTerrainShader(this, options);
+    }
+
+    async createResourcePackShader(options) {
+        let shaderCode = await Resources.loadWebGLShaders(options.vertex, options.fragment);
+        return this.createShader(shaderCode);
     }
 
     createBuffer(options) {

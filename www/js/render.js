@@ -7,6 +7,7 @@ import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
+import { BLOCK } from "./blocks.js";
 
 const {mat4} = glMatrix;
 
@@ -116,37 +117,35 @@ export class Renderer {
     // GO TO PROMISE
     async _init(world, settings, callback) {
 
+        this.setWorld(world);
+        const {renderBackend} = this;
+        await renderBackend.init();
+
         this.skyBox             = null;
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
 
-        this.setWorld(world);
-
-        const {renderBackend} = this;
-
-        await renderBackend.init();
-
-        const shader = this.shader = renderBackend.createShader({ code: Resources.codeMain});
-
-        // Create projection and view matrices
-        this.projMatrix     = this.shader.projMatrix;
-        this.viewMatrix     = this.shader.viewMatrix;
-        this.modelMatrix    = this.shader.modelMatrix;
-        this.camPos         = this.shader.camPos;
-        this.brightness     = 1;
-
-        // Initialise WebGL
-        // const gl = this.renderBackend.gl;
-
-        this.viewportWidth        = this.canvas.width;
-        this.viewportHeight       = this.canvas.height;
+        this.brightness         = 1;
+        this.viewportWidth      = this.canvas.width;
+        this.viewportHeight     = this.canvas.height;
         renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
         this.useAnisotropy = settings.mipmap;
         this.terrainTexSize = 1;
         this.terrainBlockSize = 1;
 
-        this.terrainTexture = renderBackend.createTexture({
+        // Init shaders for all resource packs
+        await BLOCK.resource_pack_manager.initShaders(renderBackend);
+        let rp = BLOCK.resource_pack_manager.get('default');
+        const shader = this.shader = rp.shader;
+
+        // Create projection and view matrices
+        this.projMatrix         = shader.projMatrix;
+        this.viewMatrix         = shader.viewMatrix;
+        this.modelMatrix        = shader.modelMatrix;
+        this.camPos             = shader.camPos;
+
+        shader.texture = this.terrainTexture = renderBackend.createTexture({
             source: await this.genTerrain(Resources.terrain.image),
             minFilter: 'nearest',
             magFilter: 'nearest',
@@ -161,12 +160,7 @@ export class Renderer {
             label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
         }
 
-        // this.texWhite = renderBackend.createTexture({ source: await this.genColorTexture('white') });
-        // this.texBlack = renderBackend.createTexture({ source: await this.genColorTexture('black') });
-
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
-
-        shader.texture = this.terrainTexture;
 
         if (renderBackend) {
             // SkyBox

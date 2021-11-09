@@ -382,6 +382,10 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
+    async createResourcePackShader(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
     createBuffer(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }

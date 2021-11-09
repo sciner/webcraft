@@ -1,0 +1,15 @@
+{
+    "shader": {
+        "webgl": {
+            "vertex": "/shaders/webgl/vertex.glsl",
+            "fragment": "/shaders/webgl/fragment.glsl"
+        },
+        "webgpu": "/shaders/webgpu/shader.wgsl"
+    },
+    "textures": {
+        "lodestone": {
+            "url": "/textutes/lodestone_top.png",
+            "tx_cnt": 1
+        }
+    }
+}

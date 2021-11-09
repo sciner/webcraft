@@ -5,6 +5,7 @@ import {WebGPUMaterial} from "./WebGPUMaterial.js";
 import {WebGPUTexture} from "./WebGPUTexture.js";
 import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
+import {Resources} from "../../resources.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -61,6 +62,11 @@ export default class WebGPURenderer extends BaseRenderer{
 
     createShader(options = {}) {
         return new WebGPUTerrainShader(this, options);
+    }
+
+    async createResourcePackShader(shader_uri) {
+        let shaderCode = await Resources.loadWebGPUShader(shader_uri);
+        return this.createShader(shaderCode);
     }
 
     createMaterial(options = {}) {

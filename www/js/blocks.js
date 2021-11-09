@@ -30,6 +30,7 @@ export class BLOCK {
     static ao_invisible_blocks  = [];
 
     static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'];
+    static resource_pack_manager = null;
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
@@ -263,6 +264,7 @@ export class BLOCK {
         block.transparent       = block.hasOwnProperty('transparent') && block.transparent;
         // Fix properties
         if(!block.hasOwnProperty('light')) block.light = null;
+        if(!block.hasOwnProperty('passable')) block.passable = 0;
         if(!block.hasOwnProperty('spawnable')) block.spawnable = true;
         if(!block.hasOwnProperty('max_in_stack')) block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
         if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;

@@ -32,11 +32,11 @@ export class Resources {
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
         let all = [];
         if (settings.wgsl) {
-            all.push(loadTextFile('./shaders/main_gpu/shader.wgsl').then((txt) => { that.codeMain = { vertex: txt, fragment: txt} } ));
+            // all.push(loadTextFile('./resource_packs/default/shaders/webgpu/shader.wgsl').then((txt) => { that.codeMain = { vertex: txt, fragment: txt} } ));
             all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { that.codeSky = { vertex: txt, fragment: txt} } ));
         } else {
-            all.push(loadTextFile('./shaders/main/vertex.glsl').then((txt) => { that.codeMain.vertex = txt } ));
-            all.push(loadTextFile('./shaders/main/fragment.glsl').then((txt) => { that.codeMain.fragment = txt } ));
+            // all.push(loadTextFile('./resource_packs/default/shaders/webgl/vertex.glsl').then((txt) => { that.codeMain.vertex = txt } ));
+            // all.push(loadTextFile('./resource_packs/default/shaders/webgl/fragment.glsl').then((txt) => { that.codeMain.fragment = txt } ));
             all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { that.codeSky.vertex = txt } ));
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { that.codeSky.fragment = txt } ));
         }
@@ -89,6 +89,35 @@ export class Resources {
 
         // TODO: add retry
         return Promise.all(all); // .then(() => { return this; });
+    }
+
+    //
+    static async loadWebGLShaders(vertex, fragment) {
+        let all = [];
+        let resp = {
+            code: {
+                vertex: null,
+                fragment: null
+            }
+        };
+        all.push(Resources.loadTextFile(vertex).then((txt) => { resp.code.vertex = txt } ));
+        all.push(Resources.loadTextFile(fragment).then((txt) => { resp.code.fragment = txt } ));
+        await Promise.all(all);
+        return resp;
+    }
+
+    //
+    static async loadWebGPUShader(shader_uri) {
+        let all = [];
+        let resp = {
+            code: {
+                vertex: null,
+                fragment: null
+            }
+        };
+        all.push(Resources.loadTextFile(shader_uri).then((txt) => { resp.code.vertex = txt; resp.code.fragment = txt;}));
+        await Promise.all(all);
+        return resp;
     }
 
     static loadTextFile(url) {

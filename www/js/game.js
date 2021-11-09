@@ -102,14 +102,14 @@ export class GameClass {
         Resources.onLoading = resource_loading_progress;
         this.load(settings)
             .then(() => {
-                this.world = new World(session, world_guid, settings, BLOCK);
-                this.render.init(this.world, settings).then(() => {
-                    (async () => {
-                        await BLOCK.load(Resources.resource_packs).then(() => {
+                BLOCK.init().then(() => {
+                    this.world = new World(session, world_guid, settings, BLOCK);
+                    this.render.init(this.world, settings).then(() => {
+                        (async () => {
                             return this.world.connect();
-                        });
-                    })();
-                })
+                        })();
+                    })
+                });
             })
     }
 

@@ -46,6 +46,13 @@ void main() {
     }
     // Draw crosshair
     drawCrosshair();
+
+    // gamma
+    // gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(0.7));
+
+    // contrast
+    // gl_FragColor.rgb = gl_FragColor.rgb * 0.25 + 0.75* gl_FragColor.rgb * gl_FragColor.rgb *(3.0-2.0* gl_FragColor.rgb);
+
     // vignetting
     drawVignetting();
 }
