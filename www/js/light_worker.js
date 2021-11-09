@@ -271,7 +271,7 @@ function run() {
     world.light.doWaves(16);
 
     world.chunkManager.chunks.forEach((key, chunk) => {
-        if (chunk.waveCounter === 0)
+        if (chunk.waveCounter !== 0)
             return;
         if (chunk.sentID !== chunk.lastID)
             return;

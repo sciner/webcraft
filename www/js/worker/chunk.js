@@ -240,61 +240,6 @@ export class Chunk {
                 tb.light_source = mat.light_power.a;
             }
         }
-        if(!this.lightmap) {
-            this.lightmap = new Uint8Array(this.size.x * this.size.y * this.size.z);
-        }
-        // @todo доработать
-        return;
-        //
-        let fillLight = (lx, ly, lz, power) => {
-            if(power < 1) {
-                return;
-            }
-            let f = (x, y, z, power) => {
-                if(x >= 0 && y >= 0 && z >= 0 && x < 16 && z < 16 && y < 32) {
-                    let b = this.blocks[x][z][y];
-                    if(!b || b.id == 0 || b.transparent) {
-                        let index = BLOCK.getIndex(x, y, z);
-                        if(this.lightmap[index] < power) {
-                            this.lightmap[index] = power;
-                            fillLight(x, y, z, power);
-                        }
-                    }
-                }
-            };
-            f(lx + 1, ly, lz, power - 1);
-            f(lx - 1, ly, lz, power - 1);
-            f(lx, ly + 1, lz, power - 1);
-            f(lx, ly - 1, lz, power - 1);
-            f(lx, ly, lz + 1, power - 1);
-            f(lx, ly, lz - 1, power - 1);
-        };
-        //
-        // this.neighbour_chunks
-        // Lightmap
-        for(let light of this.lights) {
-            let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
-            let index = BLOCK.getIndex(light.pos);
-            this.lightmap[index] = power;
-            fillLight(light.pos.x, light.pos.y, light.pos.z, power);
-        }
-        //
-        let neighbours = [
-            {pos: new Vector(CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.px},
-            {pos: new Vector(-CHUNK_SIZE_X, 0, 0), chunk: this.neighbour_chunks.nx},
-            {pos: new Vector(0, CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.py},
-            {pos: new Vector(0, -CHUNK_SIZE_Y, 0), chunk: this.neighbour_chunks.ny},
-            {pos: new Vector(0, 0, CHUNK_SIZE_Z), chunk: this.neighbour_chunks.pz},
-            {pos: new Vector(0, 0, -CHUNK_SIZE_Z), chunk: this.neighbour_chunks.nz},
-        ];
-        for(let n of neighbours) {
-            if(!n.chunk) continue;
-            for(let light of n.chunk.lights) {
-                let power = (light.power.a / 256 * MAX_TORCH_POWER) | 0;
-                let pos = light.pos.add(n.pos);
-                fillLight(pos.x, pos.y, pos.z, power);
-            }
-        }
     }
 
     // Возвращает всех 6-х соседей блока
