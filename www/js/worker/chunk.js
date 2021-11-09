@@ -234,6 +234,12 @@ export class Chunk {
 
     // updateLights
     updateLights() {
+        for(let tb of this.tblocks) {
+            let mat = tb.material;
+            if(mat.light_power) {
+                tb.light_source = mat.light_power.a;
+            }
+        }
         if(!this.lightmap) {
             this.lightmap = new Uint8Array(this.size.x * this.size.y * this.size.z);
         }
