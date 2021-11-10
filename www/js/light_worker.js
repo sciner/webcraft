@@ -154,10 +154,10 @@ class ChunkManager {
 
 class Chunk {
     constructor(args) {
-        Object.assign(this, args);
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
         this.outerSize = new Vector(args.size.x + 2, args.size.y + 2, args.size.z + 2);
+        this.lightSource = args.light_buffer ? new Uint8Array(args.light_buffer) : null;
 
         this.lastID = 0;
         this.sentID = 0;
@@ -172,7 +172,9 @@ class Chunk {
     init() {
         this.len = this.size.x * this.size.y * this.size.z;
         this.outerLen = (this.size.x + 2) * (this.size.y + 2) * (this.size.z + 2);
-        this.lightSource = new Uint8Array(this.len);
+        if (!this.lightSource) {
+            this.lightSource = new Uint8Array(this.len);
+        }
         this.lightMap = new Uint8Array(this.len);
         this.lightPrev = new Uint8Array(this.len);
     }
@@ -278,7 +280,7 @@ function run() {
         chunk.sentID = chunk.lastID;
         postMessage(['light_generated', {
             addr: chunk.addr,
-            lightmap: chunk.lightMap,
+            lightmap_buffer: chunk.lightMap.buffer,
             lightID: chunk.lastID
         }]);
     })

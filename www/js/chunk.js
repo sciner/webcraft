@@ -118,6 +118,8 @@ export class Chunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
+        this.getChunkManager().postLightWorkerMessage(['createChunk',
+            {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
     }
 
     // onVerticesGenerated ... Webworker callback method
@@ -212,6 +214,7 @@ export class Chunk {
         }
         // Run webworker method
         this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        this.getChunkManager().postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
     }
 
     // buildVertices

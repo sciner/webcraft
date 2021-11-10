@@ -237,7 +237,7 @@ export class Chunk {
         for(let tb of this.tblocks) {
             let mat = tb.material;
             if(mat.light_power) {
-                tb.light_source = mat.light_power.a;
+                tb.light_source = Math.floor(mat.light_power.a / 16.0);
             }
         }
     }
