@@ -538,7 +538,7 @@ export class Player {
         }
         let destroyBlock    = e.destroyBlock;
         let cloneBlock      = e.cloneBlock;
-        let createBlock     = e.createBlock && this.buildMaterial;
+        let createBlock     = e.createBlock;
         let world           = this.world;
         let pickat_dist     = this.world.getPickatDistance();
         // Picking

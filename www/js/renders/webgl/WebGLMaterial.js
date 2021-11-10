@@ -1,6 +1,7 @@
 import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
 
 export class WebGLMaterial extends BaseMaterial {
+
     constructor(context, options) {
         super(context, options);
     }
@@ -36,9 +37,9 @@ export class WebGLMaterial extends BaseMaterial {
         if (!this.cullFace) {
             gl.enable(gl.CULL_FACE);
         }
-        if (this.opaque) {
+        /*if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
-        }
+        }*/
         if (this.ignoreDepth) {
             gl.enable(gl.DEPTH_TEST);
         }

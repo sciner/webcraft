@@ -63,39 +63,6 @@ export class Renderer {
         return this.renderBackend.gl;
     }
 
-    async genTerrain(image) {
-        this.terrainTexSize = image.width;
-        this.terrainBlockSize = image.width / 512 * 16;
-        if (!this.useAnisotropy) {
-            if (image instanceof  self.ImageBitmap) {
-                return  image;
-            }
-            return await self.createImageBitmap(image, {premultiplyAlpha: 'none'});
-        }
-        const canvas2d = document.createElement('canvas');
-        const context = canvas2d.getContext('2d');
-        const w = image.width;
-        canvas2d.width = w * 2;
-        canvas2d.height = w * 2;
-        let offset = 0;
-        context.drawImage(image, 0, 0);
-        for (let dd = 2; dd <= 16; dd *= 2) {
-            const nextOffset = offset + w * 2 / dd;
-            context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
-            offset = nextOffset;
-        }
-        offset = 0;
-        for (let dd = 2; dd <= 16; dd *= 2) {
-            const nextOffset = offset + w * 2 / dd;
-            context.drawImage(canvas2d, 0, offset, w * 2, w * 2 / dd, 0, nextOffset, w * 2, w / dd);
-            offset = nextOffset;
-        }
-        // canvas2d.width = 0;
-        // canvas2d.height = 0;
-        // return await self.createImageBitmap(canvas2d);
-        return canvas2d;
-    }
-
     async genColorTexture(clr) {
         const canvas2d = document.createElement('canvas');
         canvas2d.width = canvas2d.height = 16;
@@ -130,35 +97,29 @@ export class Renderer {
         this.viewportHeight     = this.canvas.height;
         renderBackend.resize(this.viewportWidth, this.viewportHeight);
 
-        this.useAnisotropy = settings.mipmap;
-        this.terrainTexSize = 1;
-        this.terrainBlockSize = 1;
-
         // Init shaders for all resource packs
         await BLOCK.resource_pack_manager.initShaders(renderBackend);
-        let rp = BLOCK.resource_pack_manager.get('default');
-        const shader = this.shader = rp.shader;
+        await BLOCK.resource_pack_manager.initTextures(renderBackend, settings);
+
+        // Make materials for all shaders
+        for(let [_, rp] of BLOCK.resource_pack_manager.list) {
+            rp.shader.materials = {
+                regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader: rp.shader}),
+                doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader: rp.shader}),
+                transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader: rp.shader}),
+                doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader: rp.shader}),
+                label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader: rp.shader}),
+            }
+        }
+
+        // Prepare default resource pack shader
+        let rp                  = BLOCK.resource_pack_manager.get('default');
+        this.shader             = rp.shader;
 
         // Create projection and view matrices
-        this.projMatrix         = shader.projMatrix;
-        this.viewMatrix         = shader.viewMatrix;
-        this.modelMatrix        = shader.modelMatrix;
-        this.camPos             = shader.camPos;
-
-        shader.texture = this.terrainTexture = renderBackend.createTexture({
-            source: await this.genTerrain(Resources.terrain.image),
-            minFilter: 'nearest',
-            magFilter: 'nearest',
-            anisotropy: this.useAnisotropy ? 4.0 : 0.0,
-        });
-
-        this.materials = {
-            regular: renderBackend.createMaterial({ cullFace: true, opaque: true, shader}),
-            doubleface: renderBackend.createMaterial({ cullFace: false, opaque: true, shader}),
-            transparent: renderBackend.createMaterial({ cullFace: true, opaque: false, shader}),
-            doubleface_transparent: renderBackend.createMaterial({ cullFace: false, opaque: false, shader}),
-            label: renderBackend.createMaterial({ cullFace: false, ignoreDepth: true, shader}),
-        }
+        this.projMatrix         = this.shader.projMatrix;
+        this.viewMatrix         = this.shader.viewMatrix;
+        this.camPos             = this.shader.camPos;
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
@@ -239,29 +200,10 @@ export class Renderer {
         let fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : currentRenderState.fogColor;
         renderBackend.beginFrame(fogColor);
         //
-        shader.blockSize = this.terrainBlockSize / this.terrainTexSize;
-        shader.pixelSize = 1.0 / this.terrainTexSize;
-        // In water
-        if(player.eyes_in_water) {
-            shader.fogColor = fogColor;
-            shader.chunkBlockDist = 8;
-            shader.fogAddColor = settings.fogUnderWaterAddColor;
-            shader.brightness = this.brightness;
-        } else {
-            shader.fogColor = fogColor;
-            shader.chunkBlockDist = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-            shader.fogAddColor = currentRenderState.fogAddColor;
-            shader.brightness = this.brightness;
-        }
-        shader.fogDensity = currentRenderState.fogDensity;
-        shader.texture = this.terrainTexture;
-        shader.mipmap = this.terrainTexture.anisotropy;
         const {
             width, height
         } = renderBackend.size;
-        shader.resolution = [width, height];
-        shader.testLightOn = this.testLightOn;
-        shader.sunDir = this.sunDir;
+        //
         if (renderBackend.gl) {
             mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
         } else {
@@ -275,16 +217,47 @@ export class Renderer {
             }
             this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }
-        shader.bind();
-        shader.update();
-        // 2. Draw chunks
-        this.terrainTexture.bind(4);
+        //
         this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
-        this.world.chunkManager.draw(this, false);
-        this.world.draw(this, delta);
-        // 3. Draw players and rain
-        this.drawPlayers(delta);
-        this.world.chunkManager.draw(this, true);
+        for(let transparent of [false, true]) {
+            for(let [_, rp] of BLOCK.resource_pack_manager.list) {
+                let shader                  = rp.shader;
+                // In water
+                if(player.eyes_in_water) {
+                    shader.fogColor         = fogColor;
+                    shader.chunkBlockDist   = 8;
+                    shader.fogAddColor      = settings.fogUnderWaterAddColor;
+                    shader.brightness       = this.brightness;
+                } else {
+                    shader.fogColor         = fogColor;
+                    shader.chunkBlockDist   = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+                    shader.fogAddColor      = currentRenderState.fogAddColor;
+                    shader.brightness       = this.brightness;
+                }
+                //
+                shader.projMatrix           = this.shader.projMatrix;
+                shader.viewMatrix           = this.shader.viewMatrix;
+                shader.camPos               = this.shader.camPos;
+                shader.time                 = performance.now();
+                shader.fogDensity           = currentRenderState.fogDensity;
+                shader.resolution           = [width, height];
+                shader.testLightOn          = this.testLightOn;
+                shader.sunDir               = this.sunDir;
+                // 2. Draw chunks
+                this.world.chunkManager.draw(this, rp, transparent);
+            }
+            if(!transparent) {
+                let shader = this.shader;
+                // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
+                if(shader.texture) {
+                    shader.bind();
+                    this.world.draw(this, delta);
+                    // 3. Draw players and rain
+                    this.drawPlayers(delta);
+                }
+            }
+        }
+
         this.world.chunkManager.rendered_chunks.fact = this.world.chunkManager.rendered_chunks.vc.size;
         // 4. Draw HUD
         if(this.HUD) {

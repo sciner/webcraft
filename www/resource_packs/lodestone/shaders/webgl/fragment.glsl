@@ -8,6 +8,7 @@ const float desaturateFactor = 2.0;
 // vignetting
 const float outerRadius = .65, innerRadius = .4, intensity = .1;
 const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
+const vec3 noiseLevelRGBA = vec3(.2, .2, .2);
 
 uniform sampler2D u_texture;
 uniform sampler2D u_texture_mask;
@@ -25,6 +26,7 @@ uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
 uniform vec3 sun_dir;
+uniform float u_time;
 
 in vec3 v_position;
 in vec2 v_texcoord;
@@ -144,6 +146,11 @@ void main() {
 
         // Apply light
         color.rgb *= u_brightness2 * light;
+
+        // Blink
+        color.r += sin(u_time / 125.) / 15.;
+        color.g += sin(u_time / 125.) / 15.;
+        color.b += sin(u_time / 125.) / 15.;
 
         outColor = color;
 

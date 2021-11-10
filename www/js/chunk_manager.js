@@ -90,7 +90,7 @@ export class ChunkManager {
     }
 
     // Draw level chunks
-    draw(render, transparent) {
+    draw(render, resource_pack, transparent) {
         if(!this.worker_inited || !this.nearby_modified_list) {
             return;
         }
@@ -104,7 +104,7 @@ export class ChunkManager {
         // let show = new VectorCollector();
         // let hide = new VectorCollector();
         for(let group of groups) {
-            const mat = render.materials[group];
+            const mat = resource_pack.shader.materials[group];
             for(let item of this.poses) {
                 if(item.chunk) {
                     if(item.chunk.need_apply_vertices) {
@@ -116,7 +116,7 @@ export class ChunkManager {
                         // Check frustum
                         item.chunk.updateInFrustum(render);
                         if(item.chunk.in_frustum) {
-                            if(item.chunk.drawBufferGroup(render.renderBackend, group, mat)) {
+                            if(item.chunk.drawBufferGroup(render.renderBackend, resource_pack, group, mat)) {
                                 // show.add(item.addr);
                                 this.rendered_chunks.vc.add(item.chunk.addr, null);
                             }

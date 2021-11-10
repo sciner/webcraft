@@ -6,7 +6,7 @@
         "sound": "madcraft:block.stone",
         "style": "cube",
         "texture": {
-            "source": "lodestone",
+            "id": "lodestone",
             "side": [0, 0]
         },
         "destroy_time": 4,

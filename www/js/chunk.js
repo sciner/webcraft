@@ -123,15 +123,30 @@ export class Chunk {
         }
     }
 
-    drawBufferGroup(render, group, mat) {
-        if(this.vertices.has(group)) {
-            let buffer = null;
-            if(buffer = this.vertices.get(group).buffer) {
-                render.drawMesh(buffer, mat, this.coord);
-                return true;
+    drawBufferGroup(render, resource_pack, group, mat) {
+        let drawed = false;
+        for(let [_, v] of this.vertices) {
+            if(v.resource_pack_id == resource_pack.id && v.material_group == group) {
+                if(v.buffer) {
+                    // Apply texture
+                    let shader                  = resource_pack.shader;
+                    let texture                 = resource_pack.getTexture(v.texture_id);
+                    let terrainBlockSize        = texture.width / 512 * 16;
+                    let terrainTexSize          = texture.width;
+                    shader.texture              = texture.texture;
+                    shader.mipmap               = shader.texture.anisotropy;
+                    shader.blockSize            = terrainBlockSize / terrainTexSize;
+                    shader.pixelSize            = 1.0 / terrainTexSize;
+                    shader.texture.bind(4);
+                    shader.bind();
+                    shader.update();
+                    //
+                    render.drawMesh(v.buffer, mat, this.coord);
+                    drawed = true;
+                }
             }
         }
-        return false;
+        return drawed;
     }
 
     // Apply vertices
@@ -154,11 +169,14 @@ export class Chunk {
             this.vertices.delete(key);
         }
         // Добавление чанка в отрисовщик
-        for(let key of Object.keys(args.vertices)) {
-            let v = args.vertices[key];
+        for(let [key, v] of Object.entries(args.vertices)) {
             if(v.list.length > 0) {
+                let temp = key.split('/');
                 this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
                 v.buffer              = new GeometryTerrain(v.list);
+                v.resource_pack_id    = temp[0];
+                v.material_group      = temp[1];
+                v.texture_id          = temp[2];
                 this.vertices.set(key, v);
                 delete(v.list);
             }

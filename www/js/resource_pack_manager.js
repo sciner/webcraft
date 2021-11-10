@@ -25,7 +25,14 @@ export class ResourcePackManager {
     // Init shaders for all resource packs
     async initShaders(renderBackend) {
         for (let [_, value] of this.list.entries()) {
-            await value.initShader(renderBackend);
+            await value.initShaders(renderBackend);
+        }
+    }
+
+    // Init textures
+    async initTextures(renderBackend, options) {
+        for (let [_, value] of this.list.entries()) {
+            await value.initTextures(renderBackend, options);
         }
     }
 

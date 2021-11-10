@@ -308,8 +308,24 @@ export class BLOCK {
         return destroy_time;
     }
 
+    // Возвращает координаты текстуры с учетом информации из ресурс-пака
+    static calcMaterialTexture(material, dir) {
+        let tx_cnt = TX_CNT;
+        // Get tx_cnt from resource pack texture
+        if (typeof material.texture === 'object' && 'id' in material.texture) {
+            let tex = material.resource_pack.conf.textures[material.texture.id];
+            if('tx_cnt' in tex) {
+                tx_cnt = tex.tx_cnt;
+            }
+        }
+        return this.calcTexture(material.texture, dir, tx_cnt);
+    }
+
     // Возвращает координаты текстуры
-    static calcTexture(c, dir) {
+    static calcTexture(c, dir, tx_cnt) {
+        if(typeof tx_cnt == 'undefined') {
+            tx_cnt = TX_CNT;
+        }
         if (c instanceof Array) {
             // do nothing
         } else if(c instanceof Function) {
@@ -336,10 +352,10 @@ export class BLOCK {
             debugger;
         }
         return [
-            (c[0] + 0.5) / TX_CNT,
-            (c[1] + 0.5) / TX_CNT,
-            1 / TX_CNT,
-            1 / TX_CNT,
+            (c[0] + 0.5) / tx_cnt,
+            (c[1] + 0.5) / tx_cnt,
+            1 / tx_cnt,
+            1 / tx_cnt,
         ];
     }
 

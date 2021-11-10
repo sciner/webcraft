@@ -127,7 +127,7 @@ export default class Particles_Clouds {
         // движение на восток
         let wind_move = delta * .01;
         this.pos.x -= wind_move;
-        render.renderBackend.drawMesh(this.buffer, render.materials.transparent, this.pos, this.modelMatrix);
+        render.renderBackend.drawMesh(this.buffer, render.shader.materials.transparent, this.pos, this.modelMatrix);
     }
 
     destroy(render) {

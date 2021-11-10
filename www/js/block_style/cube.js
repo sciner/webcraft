@@ -157,7 +157,7 @@ export default class style {
                     if(BLOCK.visibleForAO(am) && am.id != BLOCK.DIRT_PATH.id) {ao[3] = ao_value;}
                 }
             }
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_UP);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
@@ -210,7 +210,7 @@ export default class style {
         // Bottom
         if(canDrawFace(neighbours.DOWN)) {
             ao = [.5, .5, .5, .5];
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_DOWN);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
             }
@@ -249,7 +249,7 @@ export default class style {
                 if(ah && ah.material.visible_for_ao) {ao[3] = ao_value;}
                 if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_FORWARD);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
             }
@@ -288,7 +288,7 @@ export default class style {
                 if(ah && ah.material.visible_for_ao) {ao[1] = ao_value;}
                 if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_BACK);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
             }
@@ -327,7 +327,7 @@ export default class style {
                 if(ah && ah.material.visible_for_ao) {ao[1] = ao_value;}
                 if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_LEFT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
             }
@@ -366,7 +366,7 @@ export default class style {
                 if(ah && ah.material.visible_for_ao) {ao[3] = ao_value;}
                 if(aj && aj.material.visible_for_ao) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
             }
-            c = BLOCK.calcTexture(block.material.texture, DIRECTION_RIGHT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
             }

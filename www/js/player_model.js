@@ -87,8 +87,8 @@ export default class PlayerModel {
                             });
                             this.texPlayer =  texture1;
                             this.texPlayer2 = texture2;
-                            this.matPlayer = render.materials.doubleface.getSubMat(texture1);
-                            this.matPlayer2 = render.materials.transparent.getSubMat(texture2);
+                            this.matPlayer = render.shader.materials.doubleface.getSubMat(texture1);
+                            this.matPlayer2 = render.shader.materials.transparent.getSubMat(texture2);
                             document.getElementsByTagName('body')[0].append(image2);
                         })
                 });
@@ -565,7 +565,7 @@ export default class PlayerModel {
             -w/2, 0, h, w/256, 0, 1, 1, 1, 0.7, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
         ];
         return {
-            material: render.materials.label.getSubMat(texture),
+            material: render.shader.materials.label.getSubMat(texture),
             model: new GeometryTerrain(GeometryTerrain.convertFrom12(vertices))
         };
     }

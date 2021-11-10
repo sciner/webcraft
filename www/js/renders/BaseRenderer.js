@@ -139,7 +139,8 @@ export class BaseShader {
 
 }
 
-export class BaseTerrainShader extends BaseShader{
+export class BaseTerrainShader extends BaseShader {
+
     constructor(context, options) {
         super(context, options);
 
@@ -158,6 +159,7 @@ export class BaseTerrainShader extends BaseShader{
         this.addPos = [0,0,0];
         this.texture = null;
         this.camPos = new Vector();
+        this.u_time = 0;
     }
 
     bind() {

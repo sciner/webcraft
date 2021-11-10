@@ -1,32 +1,32 @@
 import {BLOCK} from "./blocks.js";
 import {Helpers} from './helpers.js';
+import {Resources} from'./resources.js';
 
 export class BaseResourcePack {
 
     constructor() {
         this.id = null;
         this.dir = null;
+        this.textures = new Map();
     }
 
     async init() {
         let dir = this.dir;
         let that = this;
-        let blocks = null;
         //
         await Helpers.fetchJSON(dir + '/conf.json').then((json) => {
             that.conf = json;
         });
         //
         await Helpers.fetchJSON(dir + '/blocks.json').then((json) => {
-            blocks = json;
-            for(let block of blocks) {
+            for(let block of json) {
                 block.resource_pack = that;
                 BLOCK.add(block);
             }
         });
     }
 
-    async initShader(renderBackend) {
+    async initShaders(renderBackend) {
         let shader_options = null;
         if('gl' in renderBackend) {
             shader_options = this.conf.shader.webgl;
@@ -38,7 +38,83 @@ export class BaseResourcePack {
         let that = this;
         return renderBackend.createResourcePackShader(shader_options).then((shader) => {
             that.shader = shader;
+            shader.resource_pack_id = that.id;
         });
+    }
+
+    async initTextures(renderBackend, settings) {
+        let that = this;
+        const loadImage = async (url) => Resources.loadImage(url, true);
+        if('textures' in this.conf) {
+            for(let [k, v] of Object.entries(this.conf.textures)) {
+                // Image
+                await loadImage(this.dir + v.image).then(async (image) => {
+                    v.texture = renderBackend.createTexture({
+                        source: await that.genMipMapTexture(image, settings),
+                        minFilter: 'nearest',
+                        magFilter: 'nearest',
+                        anisotropy: settings.mipmap ? 4.0 : 0.0,
+                    });
+                    v.width = image.width;
+                    v.height = image.height;
+                });
+                // Image N
+                v.texture_n = null;
+                if('image_n' in v) {
+                    await loadImage(this.dir + v.image_n).then(async (image_n) => {
+                        v.texture_n = renderBackend.createTexture({
+                            source: await that.genMipMapTexture(image_n, settings),
+                            minFilter: 'nearest',
+                            magFilter: 'nearest',
+                            anisotropy: settings.mipmap ? 4.0 : 0.0,
+                        });
+                    });
+                }
+                this.textures.set(k, v);
+            }
+        }
+    }
+
+    //
+    async genMipMapTexture(image, settings) {
+        if (!settings.mipmap) {
+            if (image instanceof  self.ImageBitmap) {
+                return  image;
+            }
+            return await self.createImageBitmap(image, {premultiplyAlpha: 'none'});
+        }
+        const canvas2d = document.createElement('canvas');
+        const context = canvas2d.getContext('2d');
+        const w = image.width;
+        canvas2d.width = w * 2;
+        canvas2d.height = w * 2;
+        let offset = 0;
+        context.drawImage(image, 0, 0);
+        for (let dd = 2; dd <= 16; dd *= 2) {
+            const nextOffset = offset + w * 2 / dd;
+            context.drawImage(canvas2d, offset, 0, w * 2 / dd, w, nextOffset, 0, w / dd, w);
+            offset = nextOffset;
+        }
+        offset = 0;
+        for (let dd = 2; dd <= 16; dd *= 2) {
+            const nextOffset = offset + w * 2 / dd;
+            context.drawImage(canvas2d, 0, offset, w * 2, w * 2 / dd, 0, nextOffset, w * 2, w / dd);
+            offset = nextOffset;
+        }
+        // canvas2d.width = 0;
+        // canvas2d.height = 0;
+        // return await self.createImageBitmap(canvas2d);
+        /*
+            var link = document.createElement('a');
+            link.download = 'filename.png';
+            link.href = canvas2d.toDataURL()
+            link.click();
+        */
+        return canvas2d;
+    }
+
+    getTexture(id) {
+        return this.textures.get(id);
     }
 
     // pushVertices

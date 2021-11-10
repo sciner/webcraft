@@ -8,7 +8,8 @@
     },
     "textures": {
         "lodestone": {
-            "url": "/textutes/lodestone_top.png",
+            "image": "/textures/lodestone_top.png",
+            "image_n": "/textures/lodestone_top_n.png",
             "tx_cnt": 1
         }
     }

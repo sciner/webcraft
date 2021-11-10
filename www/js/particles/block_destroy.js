@@ -97,7 +97,7 @@ export default class Particles_Block_Destroy {
             p.gravity -= delta / 250000;
         }
         this.buffer.updateInternal(this.vertices);
-        render.renderBackend.drawMesh(this.buffer, render.materials.doubleface, this.pos, this.modelMatrix);
+        render.renderBackend.drawMesh(this.buffer, render.shader.materials.doubleface, this.pos, this.modelMatrix);
     }
 
     destroy(render) {

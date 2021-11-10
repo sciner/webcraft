@@ -466,10 +466,18 @@ export class Chunk {
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices[block.material.group]) {
-                    this.vertices[block.material.group] = {...group_templates[block.material.group]};
+                let resource_pack_id = block.material.resource_pack.id;
+                let mat_group = block.material.group;
+                let texture_id = 'default';
+                if(typeof block.material.texture == 'object' && 'id' in block.material.texture) {
+                    texture_id = block.material.texture.id;
                 }
-                this.vertices[block.material.group].list.push(...block.vertices);
+                let key = `${resource_pack_id}/${mat_group}/${texture_id}`;
+                if(!this.vertices[key]) {
+                    this.vertices[key] = JSON.parse(JSON.stringify(group_templates[mat_group])); // {...group_templates[mat_group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                }
+                // Push vertices
+                this.vertices[key].list.push(...block.vertices);
             }
         }
 

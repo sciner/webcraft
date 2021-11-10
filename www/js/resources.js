@@ -32,11 +32,8 @@ export class Resources {
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
         let all = [];
         if (settings.wgsl) {
-            // all.push(loadTextFile('./resource_packs/default/shaders/webgpu/shader.wgsl').then((txt) => { that.codeMain = { vertex: txt, fragment: txt} } ));
             all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { that.codeSky = { vertex: txt, fragment: txt} } ));
         } else {
-            // all.push(loadTextFile('./resource_packs/default/shaders/webgl/vertex.glsl').then((txt) => { that.codeMain.vertex = txt } ));
-            // all.push(loadTextFile('./resource_packs/default/shaders/webgl/fragment.glsl').then((txt) => { that.codeMain.fragment = txt } ));
             all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { that.codeSky.vertex = txt } ));
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { that.codeSky.fragment = txt } ));
         }
