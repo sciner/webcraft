@@ -122,13 +122,12 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        float u_brightness2 = u_brightness;
+        /*float u_brightness2 = u_brightness;
 
         if(u_TestLightOn) {
             u_brightness2 = clamp(1. + u_brightness2, 0., 1.);
             color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
-        }
-
+        }*/
         // Static point light
         /*
         PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
@@ -141,6 +140,8 @@ void main() {
             }
         }
         */
+
+        float u_brightness2 = 1.0;
 
         // Apply light
         color.rgb *= u_brightness2 * light;
