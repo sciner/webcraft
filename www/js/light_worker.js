@@ -56,7 +56,7 @@ class LightQueue {
                     break;
                 }
                 let chunk = wavesChunk[wn].pop();
-                let coord = wavesCoord[wn].pop();
+                const coord = wavesCoord[wn].pop();
                 chunk.waveCounter--;
                 if (chunk.removed) {
                     continue;
@@ -65,35 +65,36 @@ class LightQueue {
                 const {outerSize} = chunk;
                 const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
 
-                const x = coord % outerSize.x;
-                coord -= x;
-                coord /= outerSize.x;
-                const z = coord % outerSize.y;
-                coord -= z;
-                coord /= outerSize.y;
-                const y = coord;
+                let tmp = coord;
+                const x = tmp % outerSize.x;
+                tmp -= x;
+                tmp /= outerSize.x;
+                const z = tmp % outerSize.z;
+                tmp -= z;
+                tmp /= outerSize.z;
+                const y = tmp;
 
-                let val = chunk.lightSource[coord];
+                let val = chunk.lightSource[coord - sx - sz - sy];
                 if (val === BLOCK) {
                     val = 0;
                 } else {
                     for (let d = 0; d < 6; d++) {
                         let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                         let coord2 = sx * x2 + sy * y2 + sz * z2;
-                        val = Math.max(val, chunk.lightData[coord2] - 1);
+                        val = Math.max(val, chunk.lightMap[coord2] - 1);
                     }
                 }
-                const old = chunk.lightData[coord];
+                const old = chunk.lightMap[coord];
                 const prev = chunk.lightPrev[coord];
                 if (old === val && prev === val) {
                     continue;
                 }
-                chunk.lightData[coord] = val;
+                chunk.lightMap[coord] = val;
                 chunk.lastID++;
 
                 //TODO: copy to neib chunks
 
-                const waveNum = Math.max(old, val);
+                const waveNum = Math.max(Math.max(old, val) - 1, 0);
                 for (let d = 0; d < 6; d++) {
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
@@ -114,7 +115,7 @@ class LightQueue {
                             wavesChunk[waveNum].push(coord2);
                             chunk2.waveCounter++;
                         } else {
-                            chunk.lightData[coord2] = Math.max(val - 1, 0);
+                            chunk.lightMap[coord2] = Math.max(val - 1, 0);
                             wavesChunk[waveNum].push(chunk);
                             wavesChunk[waveNum].push(coord);
                             chunk.waveCounter++;

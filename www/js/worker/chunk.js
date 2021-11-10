@@ -97,7 +97,7 @@ export class Chunk {
         this.applyModifyList();
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
         //  4. Find lights
-        this.findLights();
+        this.updateLights();
         // 5. Result
         return {
             key:        this.key,

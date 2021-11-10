@@ -118,6 +118,7 @@ export class Chunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
+
         this.getChunkManager().postLightWorkerMessage(['createChunk',
             {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
     }
