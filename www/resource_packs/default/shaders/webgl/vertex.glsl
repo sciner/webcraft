@@ -71,7 +71,7 @@ void main() {
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     vec3 n = normalize(v_normal);
-    float dayLight = max(.5, max(.7, dot(n, u_SunDir)) - v_color.a);
+    float dayLight = max(.3, max(.7, dot(n, u_SunDir)) - v_color.a);
 
     if(u_fogOn) {
         if (flagBiome < 0.5) {
