@@ -134,7 +134,7 @@ export class Chunk {
     }
 
     onLightGenerated(args) {
-        this.lightData = args.lightmap || null;
+        this.lightData = args.lightmap_buffer ? new Uint8Array(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }

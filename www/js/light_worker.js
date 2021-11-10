@@ -17,7 +17,6 @@ let globalStepMs = 1000.0 / 120.0;
 let modulesReady = false;
 let VectorCollector = null;
 let Vector = null;
-let chunks = null;
 const world = {
     chunkManager: null,
     queue: null
@@ -43,7 +42,8 @@ class LightQueue {
 
     doWaves(msLimit) {
         msLimit = msLimit || globalStepMs;
-        const startTime = performance.now(), endTime = performance.now();
+        const startTime = performance.now();
+        let endTime = performance.now();
         const {wavesChunk, wavesCoord} = this;
         let wn = maxLight;
         let chunkAddr = new Vector();
@@ -62,8 +62,9 @@ class LightQueue {
                     continue;
                 }
 
-                const {outerSize} = chunk;
+                const {outerSize, size} = chunk;
                 const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+                const iy = size.x * size.z, ix = 1, iz = size.x;
 
                 let tmp = coord;
                 const x = tmp % outerSize.x;
@@ -74,7 +75,7 @@ class LightQueue {
                 tmp /= outerSize.z;
                 const y = tmp;
 
-                let val = chunk.lightSource[coord - sx - sz - sy];
+                let val = chunk.lightSource[ix * (x - 1) + iy * (y - 1) + iz * (z - 1)];
                 if (val === BLOCK) {
                     val = 0;
                 } else {
@@ -90,6 +91,7 @@ class LightQueue {
                     continue;
                 }
                 chunk.lightMap[coord] = val;
+                chunk.lightPrev[coord] = val;
                 chunk.lastID++;
 
                 //TODO: copy to neib chunks
@@ -108,25 +110,26 @@ class LightQueue {
                         chunkAddr.z += dz[d];
                         let chunk2 = world.chunkManager.getChunk(chunkAddr);
                         if (chunk2 !== null) {
-                            coord2 = coord - dx[d] * sx * (outerSize.x - 1)
-                                - dy[d] * sy * (outerSize.y - 1)
-                                - dz[d] * sz * (outerSize.z - 1);
+                            coord2 = coord - dx[d] * sx * (size.x - 1)
+                                - dy[d] * sy * (size.y - 1)
+                                - dz[d] * sz * (size.z - 1);
                             wavesChunk[waveNum].push(chunk2);
-                            wavesChunk[waveNum].push(coord2);
+                            wavesCoord[waveNum].push(coord2);
                             chunk2.waveCounter++;
                         } else {
                             chunk.lightMap[coord2] = Math.max(val - 1, 0);
                             wavesChunk[waveNum].push(chunk);
-                            wavesChunk[waveNum].push(coord);
+                            wavesCoord[waveNum].push(coord);
                             chunk.waveCounter++;
                         }
                     } else {
                         wavesChunk[waveNum].push(chunk);
-                        wavesChunk[waveNum].push(coord2);
+                        wavesCoord[waveNum].push(coord2);
                         chunk.waveCounter++;
                     }
                 }
             }
+            endTime = performance.now();
         } while (endTime < startTime + msLimit);
     }
 
@@ -145,11 +148,24 @@ class LightQueue {
 
 class ChunkManager {
     constructor() {
+        this.chunks = new VectorCollector();
+        this.list = [];
     }
 
     // Get
     getChunk(addr) {
-        return chunks.get(addr);
+        return this.chunks.get(addr);
+    }
+
+    add(chunk) {
+        this.list.push(chunk);
+        this.chunks.add(chunk.addr, chunk);
+    }
+
+    delete(chunk) {
+        if (this.chunks.delete(chunk.addr)) {
+            this.list.splice(this.list.indexOf(chunk));
+        }
     }
 }
 
@@ -176,14 +192,15 @@ class Chunk {
         if (!this.lightSource) {
             this.lightSource = new Uint8Array(this.len);
         }
-        this.lightMap = new Uint8Array(this.len);
-        this.lightPrev = new Uint8Array(this.len);
+        this.lightMap = new Uint8Array(this.outerLen);
+        this.lightPrev = new Uint8Array(this.outerLen);
     }
 
     fillOuter() {
         //checks neighbour chunks
         const {size, outerSize, lightSource} = this;
         const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+        const iy = size.x * size.z, ix = 1, iz = size.x;
         let neibAddr = new Vector();
         let dest = this.lightMap;
         let neib;
@@ -260,23 +277,26 @@ class Chunk {
                 }
         }
 
-        for (let inner = 0; inner < this.len; inner++) {
-            const outer = inner + sx + sy + sz;
-            const m = Math.max(lightSource[inner], dest[outer]);
-            if (m > 0) {
-                world.light.add(this, outer, m);
-            }
-        }
+        for (let y = 0; y < size.y; y++)
+            for (let z = 0; z < size.z; z++)
+                for (let x=0; x < size.x; x++) {
+                    const inner = x * ix + y * iy + z * iz;
+                    const outer = (x + 1) * sx + (y + 1) * sy + (z + 1) * sz;
+                    const m = Math.max(lightSource[inner], dest[outer]);
+                    if (m > 0) {
+                        world.light.add(this, outer, m);
+                    }
+                }
     }
 }
 
 function run() {
     world.light.doWaves(16);
 
-    world.chunkManager.chunks.forEach((key, chunk) => {
+    world.chunkManager.list.forEach((chunk) => {
         if (chunk.waveCounter !== 0)
             return;
-        if (chunk.sentID !== chunk.lastID)
+        if (chunk.sentID === chunk.lastID)
             return;
         chunk.sentID = chunk.lastID;
         postMessage(['light_generated', {
@@ -293,7 +313,6 @@ async function importModules() {
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
         VectorCollector = module.VectorCollector;
-        chunks = new VectorCollector();
     });
     modulesReady = true;
     //for now , its nothing
@@ -323,19 +342,19 @@ onmessage = async function (e) {
 
     switch (cmd) {
         case 'createChunk': {
-            if (!chunks.has(args.addr)) {
+            if (!world.chunkManager.getChunk(args.addr)) {
                 let chunk = new Chunk(args);
                 chunk.init();
                 chunk.fillOuter();
-                chunks.add(args.addr, chunk);
+                world.chunkManager.add(chunk);
             }
             break;
         }
         case 'destructChunk': {
-            let chunk = chunks.get(args.addr);
+            let chunk = world.chunkManager.getChunk(args.addr);
             if (chunk) {
                 chunk.removed = true;
-                chunks.delete(args.addr);
+                world.chunkManager.delete(chunk);
             }
             break;
         }
