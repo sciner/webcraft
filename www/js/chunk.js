@@ -130,6 +130,11 @@ export class Chunk {
         if(!this.map) {
             this.map = args.map;
         }
+        if (args.light_buffer)
+        {
+            this.getChunkManager().postLightWorkerMessage(['createChunk',
+                {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
+        }
         //args.lightmap
     }
 
@@ -289,8 +294,17 @@ export class Chunk {
             tblock.power         = power;
             tblock.rotate        = rotate;
             tblock.falling       = !!material.gravity;
+            tblock.light_source = BLOCK.getLightPower(material);
             //
             update_vertices         = true;
+
+            // updating light here
+            const sy = (this.size.x + 4) * (this.size.z + 4), sx = 1, sz = this.size.x + 4;
+            const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
+            const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
+            const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
+            chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr, innerCoord, outerCoord,
+                light_source: tblock.light_source}]);
         }
         // Run webworker method
         if(update_vertices) {
@@ -348,6 +362,7 @@ export class Chunk {
                     });
                 }
             }
+
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }

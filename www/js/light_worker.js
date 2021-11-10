@@ -145,6 +145,9 @@ class LightQueue {
      */
     add(chunk, coord, waveNum) {
         const {wavesChunk, wavesCoord} = this;
+        if (waveNum > maxLight) {
+            waveNum = maxLight;
+        }
         wavesChunk[waveNum].push(chunk);
         wavesCoord[waveNum].push(coord);
         chunk.waveCounter++;
@@ -169,7 +172,7 @@ class ChunkManager {
 
     delete(chunk) {
         if (this.chunks.delete(chunk.addr)) {
-            this.list.splice(this.list.indexOf(chunk));
+            this.list.splice(this.list.indexOf(chunk), 1);
         }
     }
 }
@@ -362,6 +365,14 @@ onmessage = async function (e) {
                 world.chunkManager.delete(chunk);
             }
             break;
+        }
+        case 'setBlock': {
+            let chunk = world.chunkManager.getChunk(args.addr);
+            if (chunk) {
+                const { innerCoord, outerCoord, light_source } = args;
+                chunk.lightSource[innerCoord] = light_source;
+                world.light.add(chunk, outerCoord, Math.max(chunk.lightMap[outerCoord], light_source));
+            }
         }
     }
 }

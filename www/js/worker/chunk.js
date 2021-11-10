@@ -235,10 +235,7 @@ export class Chunk {
     // updateLights
     updateLights() {
         for(let tb of this.tblocks) {
-            let mat = tb.material;
-            if(mat.light_power) {
-                tb.light_source = Math.floor(mat.light_power.a / 16.0);
-            }
+            tb.light_source = BLOCK.getLightPower(tb.material);
         }
     }
 
@@ -465,11 +462,6 @@ export class Chunk {
                 }
             }
         }
-        // if(needUpdateLightmap) {
-        // @todo Переделать на вызов только в случае, если свет был поставлен или убран
-        this.findLights();
-        this.updateLights();
-        // }
         return cnt;
     }
 

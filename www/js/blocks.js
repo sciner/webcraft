@@ -51,6 +51,16 @@ export class BLOCK {
         // return ao;
     }
 
+    static getLightPower(material) {
+        if(material.light_power) {
+            return Math.floor(material.light_power.a / 16.0);
+        } else if (!material.transparent) {
+            return 255;
+        } else {
+            return 0;
+        }
+    }
+
     // Return flat index of chunk block
     static getIndex(x, y, z) {
         if(x instanceof Vector) {
