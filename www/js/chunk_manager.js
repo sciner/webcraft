@@ -22,7 +22,9 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.dirty_chunks           = [];
         this.worker_inited          = false;
+        this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
+        this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         this.clearNerby();
         //
@@ -46,7 +48,8 @@ export class ChunkManager {
             switch(cmd) {
                 case 'world_inited':
                 case 'worker_inited': {
-                    that.worker_inited = true;
+                    that.worker_counter--;
+                    that.worker_inited = that.worker_counter === 0;
                     break;
                 }
                 case 'blocks_generated': {
@@ -67,9 +70,28 @@ export class ChunkManager {
                 }
             }
         }
-        // Init webworker
+        this.lightWorker.onmessage = function(e) {
+            let cmd = e.data[0];
+            let args = e.data[1];
+            switch(cmd) {
+                case 'worker_inited': {
+                    that.worker_counter--;
+                    that.worker_inited = that.worker_counter === 0;
+                    break;
+                }
+                case 'light_generated': {
+                    let chunk = that.chunks.get(args.addr);
+                    if(chunk) {
+                        chunk.onLightGenerated(args);
+                    }
+                    break;
+                }
+            }
+        }
+        // Init webworkers
         let world_state = world.saved_state.world;
         this.postWorkerMessage(['init', world_state.generator, world_state.seed, world_state.guid]);
+        this.postLightWorkerMessage(['init', null]);
     }
 
     //
@@ -183,6 +205,11 @@ export class ChunkManager {
     // postWorkerMessage
     postWorkerMessage(data) {
         this.worker.postMessage(data);
+    };
+
+    // postLightWorkerMessage
+    postLightWorkerMessage(data) {
+        this.lightWorker.postMessage(data);
     };
 
     // Update
@@ -304,7 +331,7 @@ export class ChunkManager {
 
     /**
      * getPosChunkKey...
-     * @param {Vector} pos 
+     * @param {Vector} pos
      * @returns string
      */
     getPosChunkKey(pos) {

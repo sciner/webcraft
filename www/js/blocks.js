@@ -34,23 +34,35 @@ export class BLOCK {
 
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
-        let index = BLOCK.getIndex(x, y, z);
-        if(index >= 0 && index < CHUNK_BLOCKS) {
-            let light_power = lightmap[index];
-            if(light_power != 0) {
-                light_power /= 4;
-                ao = [
-                    ao[0] - light_power,
-                    ao[1] - light_power,
-                    ao[2] - light_power,
-                    ao[3] - light_power,
-                ];
-            }
-        }
         return ao;
+
+        // let index = BLOCK.getIndex(x, y, z);
+        // if(index >= 0 && index < CHUNK_BLOCKS) {
+        //     let light_power = lightmap[index];
+        //     if(light_power != 0) {
+        //         light_power /= 4;
+        //         ao = [
+        //             ao[0] - light_power,
+        //             ao[1] - light_power,
+        //             ao[2] - light_power,
+        //             ao[3] - light_power,
+        //         ];
+        //     }
+        // }
+        // return ao;
     }
 
-    // Return flat index of chunk block 
+    static getLightPower(material) {
+        if(material.light_power) {
+            return Math.floor(material.light_power.a / 16.0);
+        } else if (!material.transparent) {
+            return 255;
+        } else {
+            return 0;
+        }
+    }
+
+    // Return flat index of chunk block
     static getIndex(x, y, z) {
         if(x instanceof Vector) {
             y = x.y;
@@ -504,7 +516,7 @@ export class BLOCK {
                 case 'pane': {
                     // F R B L
                     switch(b.getCardinalDirection().z) {
-                        case ROTATE.S: 
+                        case ROTATE.S:
                         case ROTATE.N: {
                             shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
                             break;

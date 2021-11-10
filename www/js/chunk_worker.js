@@ -116,7 +116,6 @@ function buildVertices(chunk, return_map) {
         fluid_blocks:           chunk.fluid_blocks,
         timers:                 chunk.timers,
         tm:                     chunk.tm,
-        lightmap:               chunk.lightmap
     };
     if(return_map) {
         resp.map = chunk.map.info;

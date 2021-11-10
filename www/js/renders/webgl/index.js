@@ -5,6 +5,7 @@ import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
 import {Helpers} from "../../helpers.js";
 import {Resources} from "../../resources.js";
+import {WebGLTexture3D} from "./WebGLTexture3D.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -240,6 +241,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        this._emptyTex3D.bind(5)
         return Promise.resolve(this);
     }
 
@@ -266,6 +268,10 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createTexture(options) {
         return new WebGLTexture(this, options);
+    }
+
+    createTexture3D(options) {
+        return new WebGLTexture3D(this, options);
     }
 
     createShader(options) {

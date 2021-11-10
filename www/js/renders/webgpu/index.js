@@ -176,7 +176,6 @@ export default class WebGPURenderer extends BaseRenderer{
         this.device = await this.adapter.requestDevice();
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
-
     }
 
     resize(w, h) {

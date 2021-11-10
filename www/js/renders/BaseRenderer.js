@@ -89,6 +89,49 @@ export class BaseTexture {
     }
 }
 
+export class BaseTexture3D {
+    constructor(context, {
+        width = 1,
+        height = 1,
+        depth = 1,
+        type = 'u8',
+        filter = 'nearest',
+        data = null
+    } = {}) {
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
+        this.minFilter = filter;
+        this.magFilter = filter;
+        this.type = type;
+        this.data = data;
+
+        this.context = context;
+        this.id = BaseRenderer.ID++;
+        this.dirty = true;
+        this.prevLength = 0;
+    }
+
+    upload() {
+        this.context._textures[this.id] = this;
+        this.dirty = false;
+    }
+
+    destroy() {
+        delete this.context._textures[this.id];
+    }
+
+    update(data) {
+        this.dirty = true;
+        if (data) {
+            this.data = data;
+        }
+    }
+
+    bind() {
+    }
+}
+
 export const BLEND_MODES = {
     NORMAL: 0,
     ADD: 1,
@@ -102,6 +145,7 @@ export class BaseMaterial {
         this.options = options;
         this.shader = options.shader;
         this.texture = options.texture || null;
+        this.lightTex = options.lightTex || null;
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
         this.ignoreDepth = options.ignoreDepth || false;
@@ -328,6 +372,9 @@ export default class BaseRenderer {
         };
         this._textures = {};
         this._buffers = {};
+        this._emptyTex3D = this.createTexture3D({
+            data: new Uint8Array(255)
+        })
     }
 
     get kind() {
@@ -369,7 +416,11 @@ export default class BaseRenderer {
      * @return {BaseTexture}
      */
     createTexture(options) {
-       throw new TypeError('Illegal invocation, must be overridden by subclass');
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    createTexture3D(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     createMaterial(options) {

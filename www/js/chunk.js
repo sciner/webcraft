@@ -36,7 +36,7 @@ export class Chunk {
 
     getChunkManager() {
         return Game.world.chunkManager;
-    }    
+    }
 
     constructor(pos, modify_list) {
 
@@ -51,6 +51,10 @@ export class Chunk {
             CHUNK_SIZE_Y,
             CHUNK_SIZE_Z
         );
+
+        this.lightTex = null;
+        this.lightData = null;
+        this.lightMats = {};
 
         // относительные координаты чанка
         this.addr = new Vector(
@@ -102,7 +106,9 @@ export class Chunk {
         this.tblocks            = new TypedBlocks();
         this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
         this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.light_buffer     = args.tblocks.light_buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.light_source = new Uint8Array(this.tblocks.light_buffer, 0, this.tblocks.count);
         this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
         this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
         this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
@@ -112,6 +118,9 @@ export class Chunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
+
+        this.getChunkManager().postLightWorkerMessage(['createChunk',
+            {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
     }
 
     // onVerticesGenerated ... Webworker callback method
@@ -120,6 +129,19 @@ export class Chunk {
         this.need_apply_vertices = true;
         if(!this.map) {
             this.map = args.map;
+        }
+        if (args.light_buffer)
+        {
+            this.getChunkManager().postLightWorkerMessage(['createChunk',
+                {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
+        }
+        //args.lightmap
+    }
+
+    onLightGenerated(args) {
+        this.lightData = args.lightmap_buffer ? new Uint8Array(args.lightmap_buffer) : null;
+        if (this.lightTex !== null) {
+            this.lightTex.update(this.lightData)
         }
     }
 
@@ -141,7 +163,25 @@ export class Chunk {
                     shader.bind();
                     shader.update();
                     //
-                    render.drawMesh(v.buffer, mat, this.coord);
+                    if (this.lightData) {
+                        if (!this.lightTex) {
+                            this.lightTex = render.createTexture3D({
+                                width: this.size.x + 4,
+                                height: this.size.z + 4,
+                                depth: this.size.y + 4,
+                                type: 'u8',
+                                filter: 'linear',
+                                data: this.lightData
+                            })
+                        }
+                        let light_key = resource_pack.id + '/' + group;
+                        if (!this.lightMats[light_key]) {
+                            this.lightMats[light_key] = mat.getLightMat(this.lightTex)
+                        }
+                        render.drawMesh(v.buffer, this.lightMats[light_key], this.coord);
+                    } else {
+                        render.drawMesh(v.buffer, mat, this.coord);
+                    }
                     drawed = true;
                 }
             }
@@ -194,8 +234,12 @@ export class Chunk {
         if(this.buffer) {
             this.buffer.destroy();
         }
+        if (this.lightTex) {
+            this.lightTex.destroy();
+        }
         // Run webworker method
         this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        this.getChunkManager().postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
     }
 
     // buildVertices
@@ -269,8 +313,17 @@ export class Chunk {
             tblock.power         = power;
             tblock.rotate        = rotate;
             tblock.falling       = !!material.gravity;
+            tblock.light_source = BLOCK.getLightPower(material);
             //
             update_vertices         = true;
+
+            // updating light here
+            const sy = (this.size.x + 4) * (this.size.z + 4), sx = 1, sz = this.size.x + 4;
+            const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
+            const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
+            const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
+            chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr, innerCoord, outerCoord,
+                light_source: tblock.light_source}]);
         }
         // Run webworker method
         if(update_vertices) {
@@ -328,6 +381,7 @@ export class Chunk {
                     });
                 }
             }
+
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }

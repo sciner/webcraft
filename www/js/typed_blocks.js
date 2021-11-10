@@ -23,6 +23,13 @@ export class TBlock {
         this.tb.id[this.index] = value;
     }
 
+    get light_source() {
+        return this.tb.light_source[this.index];
+    }
+    set light_source(value) {
+        this.tb.light_source[this.index] = value;
+    }
+
     //
     get power() {
         let resp = this.tb.power.get(this.vec);
@@ -162,7 +169,9 @@ export class TypedBlocks {
     constructor() {
         this.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
         this.buffer     = new ArrayBuffer(this.count * 2);
+        this.light_buffer= new ArrayBuffer(this.count);
         this.id         = new Uint16Array(this.buffer, 0, this.count);
+        this.light_source = new Uint8Array(this.light_buffer, 0, this.count);
         this.power      = new VectorCollector();
         this.rotate     = new VectorCollector();
         this.entity_id  = new VectorCollector();

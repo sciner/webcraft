@@ -23,6 +23,11 @@ export class WebGLMaterial extends BaseMaterial {
             tex.bind(4);
             WebGLMaterial.texState = this.texture;
         }
+        if (WebGLMaterial.lightState !== this.lightTex) {
+            const tex = this.lightTex || this.context._emptyTex3D;
+            tex.bind(5);
+            WebGLMaterial.lightState = this.lightTex;
+        }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {
                 case BLEND_MODES.ADD: gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); break;
@@ -54,6 +59,12 @@ export class WebGLMaterial extends BaseMaterial {
             cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
     }
 
+    getLightMat(lightTex = null) {
+        // nothing
+        return this.context.createMaterial({texture: this.texture, lightTex, shader: this.shader,
+            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
+    }
+
     updatePos(addPos, modelMatrix = null) {
         const { gl } = this.context;
         const { camPos } = this.shader;
@@ -72,4 +83,5 @@ export class WebGLMaterial extends BaseMaterial {
     }
 
     static texState = null;
+    static lightState = null;
 }
