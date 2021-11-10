@@ -41,6 +41,7 @@ export class WebGLTexture3D extends BaseTexture3D {
         const target = gl.TEXTURE_3D;
         gl.bindTexture(target, this.texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
         if (this.prevLength !== data.length) {
             this.prevLength = data.length;
             gl.texImage3D(target, 0, gl[FORMATS[this.type]],

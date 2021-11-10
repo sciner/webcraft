@@ -147,9 +147,9 @@ export class Chunk {
                 if (this.lightData) {
                     if (!this.lightTex) {
                         this.lightTex = render.createTexture3D({
-                            width: this.size.x + 2,
-                            height: this.size.z + 2,
-                            depth: this.size.y + 2,
+                            width: this.size.x + 4,
+                            height: this.size.z + 4,
+                            depth: this.size.y + 4,
                             type: 'u8',
                             filter: 'linear',
                             data: this.lightData

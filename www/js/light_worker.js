@@ -100,9 +100,9 @@ class LightQueue {
                 for (let d = 0; d < 6; d++) {
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                    if (x2 === 0 || x2 === outerSize.x - 1
-                        || y2 === 0 || y2 === outerSize.y - 1
-                        || z2 === 0 || z2 === outerSize.z - 1) {
+                    if (x2 === 0 || x2 === size.x + 1
+                        || y2 === 0 || y2 === size.y + 1
+                        || z2 === 0 || z2 === size.z + 1) {
                         // different chunk!
                         chunkAddr.copyFrom(chunk.addr);
                         chunkAddr.x += dx[d];
@@ -110,12 +110,17 @@ class LightQueue {
                         chunkAddr.z += dz[d];
                         let chunk2 = world.chunkManager.getChunk(chunkAddr);
                         if (chunk2 !== null) {
-                            coord2 = coord - dx[d] * sx * (size.x - 1)
-                                - dy[d] * sy * (size.y - 1)
-                                - dz[d] * sz * (size.z - 1);
+                            const shift = dx[d] * sx * size.x
+                                + dy[d] * sy * size.y
+                                + dz[d] * sz * size.z;
+
+                            coord2 = coord2 - shift;
                             wavesChunk[waveNum].push(chunk2);
                             wavesCoord[waveNum].push(coord2);
                             chunk2.waveCounter++;
+
+                            chunk2.lightMap[coord - shift] = val;
+                            chunk2.lastID++;
                         } else {
                             chunk.lightMap[coord2] = Math.max(val - 1, 0);
                             wavesChunk[waveNum].push(chunk);
@@ -173,7 +178,7 @@ class Chunk {
     constructor(args) {
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
-        this.outerSize = new Vector(args.size.x + 2, args.size.y + 2, args.size.z + 2);
+        this.outerSize = new Vector(args.size.x + 4, args.size.y + 4, args.size.z + 4);
         this.lightSource = args.light_buffer ? new Uint8Array(args.light_buffer) : null;
 
         this.lastID = 0;
@@ -188,7 +193,7 @@ class Chunk {
 
     init() {
         this.len = this.size.x * this.size.y * this.size.z;
-        this.outerLen = (this.size.x + 2) * (this.size.y + 2) * (this.size.z + 2);
+        this.outerLen = (this.size.x + 4) * (this.size.y + 4) * (this.size.z + 4);
         if (!this.lightSource) {
             this.lightSource = new Uint8Array(this.len);
         }

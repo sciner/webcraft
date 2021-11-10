@@ -82,7 +82,7 @@ void main() {
 
     vec3 lightCoord =  pos + v_normal.xzy * 0.5;
     lightCoord += 1.0;
-    lightCoord /= vec3(18.0, 18.0, 38.0);
+    lightCoord /= vec3(20.0, 20.0, 36.0);
     light = max(min(texture(u_lightTex, lightCoord).a * 16.0, 1.0), 0.2) * (1.0 - v_color.a);
 
     world_pos = (uModelMatrix *  vec4(pos, 1.0)).xyz + u_add_pos;
