@@ -109,6 +109,11 @@ void main() {
         vec4 color = texture(u_texture, texc * mipScale + mipOffset);
         // color *= vec4(1.2, 1.2, 1.2, 1.);
 
+        // Blink
+        // color.r += sin(u_time / 125.) / 15.;
+        // color.g += sin(u_time / 125.) / 15.;
+        // color.b += sin(u_time / 125.) / 15.;
+
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
             if (color.a < u_opaqueThreshold) {
@@ -131,9 +136,8 @@ void main() {
             color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
         }
 
-        // Static point light
-        /*
-        PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
+        /*// Static point light
+        PointLight pl = PointLight(vec3(2893., 2793., 68.), vec4(1.,1.,1.,1.), 7.); // 250000000
         float lightDistance = distance(pl.WorldSpacePos, world_pos + u_camera_pos);
         if(lightDistance < pl.Radius) {
             float percent = 1. - lightDistance / pl.Radius;
@@ -141,16 +145,10 @@ void main() {
                 u_brightness2 = clamp(percent + u_brightness2, 0., 1.);
                 // color = mix(color, pl.Color, percent);
             }
-        }
-        */
+        }*/
 
         // Apply light
         color.rgb *= u_brightness2 * light;
-
-        // Blink
-        color.r += sin(u_time / 125.) / 15.;
-        color.g += sin(u_time / 125.) / 15.;
-        color.b += sin(u_time / 125.) / 15.;
 
         outColor = color;
 

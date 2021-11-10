@@ -1,5 +1,5 @@
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
-import {Vector, Helpers} from "./helpers.js";
+import {DIRECTION, Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import { BLOCK } from "./blocks.js";
 
@@ -371,7 +371,23 @@ export default class Inventory {
                 if(!item.name) {
                     console.error(item);
                 }
-                if('inventory_icon_id' in item) {
+                let mat = BLOCK.fromId(item.id);
+                if(mat.inventory_icon_id == 0 && mat.resource_pack.id != 'default') {
+                    let c_front = BLOCK.calcMaterialTexture(mat, DIRECTION.FORWARD);
+                    let image = mat.resource_pack.getTexture(mat.texture.id);
+                    c_front = c_front.map((v) => v * image.width);
+                    hud.ctx.drawImage(
+                        image.texture.source,
+                        c_front[0] - c_front[2] / 2,
+                        c_front[1] - c_front[3] / 2,
+                        c_front[2],
+                        c_front[3],
+                        hud_pos.x + cell_size / 2 - 18,
+                        hud_pos.y + cell_size / 2 - 18,
+                        48,
+                        48
+                    );
+                } else {
                     let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
                     hud.ctx.drawImage(
                         this.inventory_image,
@@ -384,14 +400,6 @@ export default class Inventory {
                         48,
                         48
                     );
-                } else {
-                    hud.ctx.textBaseline    = 'top';
-                    hud.ctx.font            = '12px Ubuntu';
-                    let text = item.name.substring(0, 4);
-                    hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(text, hud_pos.x + cell_size - 5, hud_pos.y + 20);
-                    hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(text, hud_pos.x + cell_size - 5, hud_pos.y + 20 - 2);
                 }
                 if(item.count > 1) {
                     hud.ctx.textBaseline    = 'bottom';

@@ -29,7 +29,7 @@ export class BLOCK {
     static styles               = [];
     static ao_invisible_blocks  = [];
 
-    static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'];
+    static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'/*, '/resource_packs/quake2/init.js'*/];
     static resource_pack_manager = null;
 
     // applyLight2AO

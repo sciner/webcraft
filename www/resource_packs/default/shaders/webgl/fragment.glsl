@@ -130,9 +130,8 @@ void main() {
             color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
         }
 
-        // Static point light
-        /*
-        PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
+        /*// Static point light
+        PointLight pl = PointLight(vec3(2893., 2793., 68.), vec4(1.,1.,1.,1.), 7.); // 250000000
         float lightDistance = distance(pl.WorldSpacePos, world_pos + u_camera_pos);
         if(lightDistance < pl.Radius) {
             float percent = 1. - lightDistance / pl.Radius;
@@ -140,8 +139,7 @@ void main() {
                 u_brightness2 = clamp(percent + u_brightness2, 0., 1.);
                 // color = mix(color, pl.Color, percent);
             }
-        }
-        */
+        }*/
 
         // Apply light
         color.rgb *= u_brightness2 * light;
@@ -176,9 +174,26 @@ void main() {
         drawVignetting();
 
     } else {
-        outColor = texture(u_texture, texc);
-        if(outColor.a < 0.1) discard;
-        outColor *= v_color;
+        vec4 color = texture(u_texture, texc * mipScale + mipOffset);
+        if(color.a < 0.1) discard;
+        if (u_opaqueThreshold > 0.1) {
+            if (color.a < u_opaqueThreshold) {
+                discard;
+            } else {
+                color.a = 1.0;
+            }
+        }
+        if (v_color.r >= 0.0) {
+            vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize, texc.y) * mipScale + mipOffset);
+            vec4 color_mult = texture(u_texture, biome);
+            color.rgb += color_mask.rgb * color_mult.rgb;
+        }
+        float u_brightness2 = u_brightness;
+        if(u_TestLightOn) {
+            u_brightness2 = clamp(1. + u_brightness2, 0., 1.);
+            color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
+        }
+        outColor = color;
     }
 
 }
