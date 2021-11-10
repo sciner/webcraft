@@ -28,6 +28,12 @@ const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
 
+const edge = [
+    [1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0],
+    [1, 1, -1, -1, 0, 0, 0, 0, 1, 1, 1, -1],
+    [0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1],
+]
+
 class LightQueue {
     constructor() {
         this.wavesChunk = [];
@@ -151,6 +157,49 @@ class LightQueue {
         wavesChunk[waveNum].push(chunk);
         wavesCoord[waveNum].push(coord);
         chunk.waveCounter++;
+    }
+
+    fixEdge(chunk) {
+        const { size, outerSize } = chunk;
+        const dest = chunk.lightMap;
+
+        const chunkAddr = new Vector();
+
+        const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+
+        for (let i = 0; i < 12; i++)
+        {
+            chunkAddr.copyFrom(chunk.addr);
+            const dx = edge[0][i], dy = edge[1][i], dz = edge[2][i];
+            const tx = 1 - Math.abs(dx), ty = 1 - Math.abs(dy), tz = 1 - Math.abs(dz);
+            const len = size.x * tx + size.y * ty + size.z * tz + 2;
+            const x1 = dx > 0 ? size.x + 1 : 0;
+            const y1 = dy > 0 ? size.y + 1 : 0;
+            const z1 = dz > 0 ? size.z + 1 : 0;
+
+
+            chunkAddr.x += dx;
+            chunkAddr.y += dy;
+            chunkAddr.z += dz;
+
+            const chunk2 = world.chunkManager.getChunk(chunkAddr);
+            if (chunk2)
+            {
+                const src = chunk2.lightMap;
+                const shift = dx * size.x * sx + dy * size.y * sy + dz * size.z * sz;
+                for (let t = 0; t < len; t++) {
+                    const coord = (x1 + t * tx) * sx + (y1 + t * ty) * sy + (z1 + t * tz) * sz;
+                    dest[coord] = src[coord - shift];
+                }
+            } else
+            {
+                const shift = dx * sx + dy * sy + dz * sz;
+                for (let t = 0; t < len; t++) {
+                    const coord = (x1 + t * tx) * sx + (y1 + t * ty) * sy + (z1 + t * tz) * sz;
+                    dest[coord] = Math.max(dest[coord - shift] - 1, 0);
+                }
+            }
+        }
     }
 }
 
@@ -307,6 +356,9 @@ function run() {
         if (chunk.sentID === chunk.lastID)
             return;
         chunk.sentID = chunk.lastID;
+
+        world.light.fixEdge(chunk);
+
         postMessage(['light_generated', {
             addr: chunk.addr,
             lightmap_buffer: chunk.lightMap.buffer,
