@@ -296,13 +296,13 @@ async function importModules() {
     });
     modulesReady = true;
     //for now , its nothing
+    world.chunkManager = new ChunkManager();
+    world.light = new LightQueue();
     for (let item of msgQueue) {
         await onmessage(item);
     }
-    postMessage(['worker_inited', null]);
-    world.chunkManager = new ChunkManager();
-    world.light = new LightQueue();
     msgQueue.length = 0;
+    postMessage(['worker_inited', null]);
 
     setInterval(run, 20);
 }
