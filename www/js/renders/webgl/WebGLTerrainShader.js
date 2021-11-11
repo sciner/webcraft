@@ -79,7 +79,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform2fv(this.u_resolution, this.resolution);
         gl.uniform1f(this.u_TestLightOn, this.testLightOn);
         gl.uniform3fv(this.u_SunDir, this.sunDir);
-        gl.uniform1f(this.u_opaqueThreshold, 0.0);
+        // gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1i(this.u_texture, 4);
