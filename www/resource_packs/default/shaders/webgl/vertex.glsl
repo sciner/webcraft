@@ -49,11 +49,12 @@ void main() {
         v_normal = normalize(cross(a_axisX, a_axisY));
     }
 
-    // Crosshair
+	// Crosshair
+    float cm = 0.00065;
     if(u_resolution.x > u_resolution.y) {
-        crosshair = vec4(0., 0., u_resolution.x * 0.001, u_resolution.x * 0.001 * 7.);
+        crosshair = vec4(0., 0., u_resolution.x * cm, u_resolution.x * cm * 7.);
     } else {
-        crosshair = vec4(0., 0., u_resolution.y * 0.001, u_resolution.y * 0.001 * 7.);
+        crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
     }
 
     v_normal.yz = v_normal.zy;
