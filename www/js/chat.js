@@ -1,5 +1,6 @@
 import { Vector } from "./helpers.js";
 import { BLOCK } from "./blocks.js";
+import {Mesh_Default} from "./mesh/default.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -141,7 +142,10 @@ export class Chat {
         if(!this.active) {
             return;
         }
-        let text = this.buffer.join('');
+        let world   = Game.world;
+        let player  = Game.player;
+        let chat    = Game.player.chat;
+        let text    = this.buffer.join('');
         if(text != '' && text != '/') {
             this.messages.send(text);
             // Parse commands
@@ -153,22 +157,22 @@ export class Chat {
                         let x = parseFloat(temp[0].trim());
                         let y = parseFloat(temp[1].trim());
                         let z = parseFloat(temp[2].trim());
-                        Game.world.player.teleport(null, new Vector(x, y, z));
+                        player.teleport(null, new Vector(x, y, z));
                     } else {
-                        Game.world.player.chat.messages.addError(`Incorrect argument for command`);
+                        chat.messages.addError(`Incorrect argument for command`);
                     }
                     break;
                 }
                 case '/seed': {
-                    Game.world.player.chat.messages.addSystem('Ключ генератора [' + Game.world.seed + ']');
+                    chat.messages.addSystem('Ключ генератора [' + world.seed + ']');
                     break;
                 }
                 case '/gamemode': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();
-                        for(let mode of Game.world.game_mode.modes) {
+                        for(let mode of world.game_mode.modes) {
                             if(mode.id == name) {
-                                Game.world.game_mode.setMode(name);
+                                world.game_mode.setMode(name);
                             }
                         }
                     }
@@ -183,11 +187,11 @@ export class Chat {
                         '/seed',
                         '/give <item> [<count>]',
                     ];
-                    Game.world.player.chat.messages.addSystem('\n' + commands.join('\n'));
+                    chat.messages.addSystem('\n' + commands.join('\n'));
                     break;
                 }
                 case '/spawnpoint': {
-                    Game.world.player.changeSpawnpoint();
+                    player.changeSpawnpoint();
                     break;
                 }
                 case '/weather': {
@@ -195,29 +199,29 @@ export class Chat {
                         let name = temp[0].trim().toLowerCase();
                         switch(name) {
                             case 'rain': {
-                                Game.world.setRain(true);
-                                Game.world.player.chat.messages.addSystem('Установлена дождливая погода');
+                                world.setRain(true);
+                                chat.messages.addSystem('Установлена дождливая погода');
                                 break;
                             }
                             case 'clear': {
-                                Game.world.setRain(false);
-                                Game.world.player.chat.messages.addSystem('Установлена ясная погода');
+                                world.setRain(false);
+                                chat.messages.addSystem('Установлена ясная погода');
                                 break;
                             }
                             default: {
-                                Game.world.player.chat.messages.addError(`Incorrect argument for command`);
+                                chat.messages.addError(`Incorrect argument for command`);
                             }
                         }
                     }
                     break;
                 }
                 case '/obj': {
-                    let mesh = new Mesh_Default(
-                        Game.world.renderer.gl,
-                        Game.world.player.pos,
+                    new Mesh_Default(
+                        world.renderer.gl,
+                        player.pos,
                         '/vendors/Mickey Mouse.obj',
                         function(m) {
-                            Game.world.meshes.add(m)
+                            world.meshes.add(m)
                         }
                     )
                     break;
@@ -242,10 +246,10 @@ export class Chat {
                             block = {...block};
                             delete(block.texture);
                             block.count = cnt;
-                            Game.world.player.inventory.increment(block);
-                            Game.world.player.chat.messages.addSystem('Выдан: ' + block.name);
+                            player.inventory.increment(block);
+                            chat.messages.addSystem('Выдан: ' + block.name);
                         } else {
-                            Game.world.player.chat.messages.addError(`Unknown item '${name}'`);
+                            chat.messages.addError(`Unknown item '${name}'`);
                         }
                     }
                     break;

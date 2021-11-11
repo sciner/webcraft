@@ -1,7 +1,7 @@
 // Modules
 let Vector              = null;
 let BLOCK               = null;
-let WorldManager        = null;
+let WorkerWorldManager  = null;
 let worlds              = null;
 let world               = null;
 
@@ -15,7 +15,7 @@ async function importModules(terrain_type, seed, world_id) {
     });
     // load module
     await import('./worker/world.js').then(module => {
-        WorldManager = module.WorldManager;
+        WorkerWorldManager = module.WorkerWorldManager;
     });
     // load module
     await import('./blocks.js').then(module => {
@@ -23,7 +23,7 @@ async function importModules(terrain_type, seed, world_id) {
         return BLOCK.init();
     });
     //
-    worlds = new WorldManager();
+    worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators();
     world = worlds.add(terrain_type, seed, world_id);
     // Worker inited

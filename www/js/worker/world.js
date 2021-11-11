@@ -1,8 +1,8 @@
 import {ChunkManager, Chunk} from "./chunk.js";
 import { VectorCollector } from "../helpers.js";
 
-// WorldManager
-export class WorldManager {
+// WorkerWorldManager
+export class WorkerWorldManager {
 
     constructor() {
         this.list = new Map();
@@ -28,7 +28,7 @@ export class WorldManager {
             return this.list.get(key);
         }
         let generator = this.terrainGenerators.get(generator_code);
-        let world = new World(new generator(seed, world_id));
+        let world = new WorkerWorld(new generator(seed, world_id));
         this.list.set(key, world);
         return world;
     }
@@ -36,7 +36,7 @@ export class WorldManager {
 }
 
 // World
-export class World {
+export class WorkerWorld {
     
     constructor(generator) {
         this.generator = generator;

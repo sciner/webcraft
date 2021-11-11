@@ -22,10 +22,6 @@ export class GameClass {
 
     preload() {
         this.start_time             = performance.now();
-        this.last_saved_time        = performance.now() - 20000;
-        this.world_name             = null;
-        this.username               = null;
-        this.session_id             = null;
         this.canvas                 = document.getElementById('renderSurface');
         this.block_manager          = BLOCK;
         /**
@@ -47,13 +43,14 @@ export class GameClass {
             inited: false,
             enabled: false,
             clearStates: function() {
-                Game.world.player.keys[KEY.W] = false;
-                Game.world.player.keys[KEY.A] = false;
-                Game.world.player.keys[KEY.S] = false;
-                Game.world.player.keys[KEY.D] = false;
-                Game.world.player.keys[KEY.J] = false;
-                Game.world.player.keys[KEY.SPACE] = false;
-                Game.world.player.keys[KEY.SHIFT] = false;
+                let player = Game.player;
+                player.keys[KEY.W] = false;
+                player.keys[KEY.A] = false;
+                player.keys[KEY.S] = false;
+                player.keys[KEY.D] = false;
+                player.keys[KEY.J] = false;
+                player.keys[KEY.SPACE] = false;
+                player.keys[KEY.SHIFT] = false;
             }
         };
         // loopTime
@@ -96,17 +93,17 @@ export class GameClass {
         });
     }
 
-    async Start(session, world_guid, settings, resource_loading_progress) {
+    async Start(world_guid, settings, resource_loading_progress) {
         // Create a new world
         // Resources
         Resources.onLoading = resource_loading_progress;
         this.load(settings)
             .then(() => {
                 BLOCK.init().then(() => {
-                    this.world = new World(session, world_guid, settings, BLOCK);
+                    this.world = new World(world_guid, settings);
                     this.render.init(this.world, settings).then(() => {
                         (async () => {
-                            return this.world.connect();
+                            return this.world.connect(this.App.session.session_id);
                         })();
                     })
                 });
@@ -118,15 +115,16 @@ export class GameClass {
         //
         this.fps            = fps;
         this.physics        = new Physics(this.world);
-        this.world.player   = new Player();
-        this.world.player.setInputCanvas('renderSurface');
+        let player          = new Player();
+        this.player         = player;
+        player.setInputCanvas('renderSurface');
         //
         Game.hud.add(fps, 0);
-        this.inventory      = new Inventory(this.world.player, Game.hud);
+        this.inventory      = new Inventory(player, Game.hud);
         this.hotbar         = new Hotbar(Game.hud, this.inventory);
         //
-        this.world.player.setWorld(this.world);
-        this.world.player.chat    = new Chat();
+        player.setWorld(this.world);
+        player.chat         = new Chat();
         //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
@@ -177,22 +175,23 @@ export class GameClass {
 
     // Render loop
     loop() {
-        let tm = performance.now();
-        let that = this;
+        let that    = this;
+        let player  = Game.player;
+        let tm      = performance.now();
         if(that.controls.enabled) {
             // Simulate physics
             that.physics.simulate();
             // Update local player
-            that.world.player.update();
+            player.update();
         } else {
-            that.world.player.lastUpdate = null;
+            player.lastUpdate = null;
         }
         that.world.update();
         // Draw world
-        that.render.setCamera(that.world.player.getEyePos(), that.world.player.rotate);
+        that.render.setCamera(player, player.getEyePos(), player.rotate);
         that.render.draw(fps.delta);
         // Send player state
-        that.sendPlayerState();
+        that.sendPlayerState(player);
         // Счетчик FPS
         fps.incr();
         that.loopTime.add(performance.now() - tm);
@@ -200,10 +199,10 @@ export class GameClass {
     }
 
     // Отправка информации о позиции и ориентации игрока на сервер
-    sendPlayerState() {
-        let pos = this.world.player.lerpPos.clone();
+    sendPlayerState(player) {
+        let pos = player.lerpPos.clone();
         this.current_player_state = {
-            rotate:             this.world.player.rotate,
+            rotate:             player.rotate,
             pos:                pos.multiplyScalar(100).round().divScalar(100),
             ping:               Math.round(this.world.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
@@ -256,7 +255,7 @@ export class GameClass {
                 // console.log('Pointer lock enabled!');
             }  else {
                 that.setControlsEnabled(false);
-                if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.world.player.chat.active) {
+                if(Game.hud.wm.getVisibleWindows().length == 0 && !Game.player.chat.active) {
                     Game.hud.frmMainMenu.show();
                 }
                 that.controls.clearStates();
@@ -282,10 +281,10 @@ export class GameClass {
         // Mouse wheel
         document.addEventListener('wheel', function(e) {
             if(e.ctrlKey) return;
-            if(that.world.player) {
+            if(Game.player) {
                 //
                 if(Game.controls.enabled) {
-                    that.world.player.onScroll(e.deltaY > 0);
+                    Game.player.onScroll(e.deltaY > 0);
                 }
                 //
                 if(Game.hud.wm.getVisibleWindows().length > 0) {
@@ -328,12 +327,12 @@ export class GameClass {
                 // z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
-                if(that.world.player.zoom) {
+                if(Game.player.zoom) {
                     x *= ZOOM_FACTOR * 0.5;
                     z *= ZOOM_FACTOR * 0.5;
                 }
                 //
-                that.world.player.addRotate(new Vector(x, 0, z));
+                Game.player.addRotate(new Vector(x, 0, z));
             }
         }, false);
     }

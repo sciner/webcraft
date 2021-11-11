@@ -49,8 +49,8 @@ window.KEY          = {};
 
 let app = angular.module('gameApp', []);
 
-let injectParams = ['$scope', '$timeout', 'helperService'];
-let gameCtrl = function($scope, $timeout, helperService) {
+let injectParams = ['$scope', '$timeout'];
+let gameCtrl = function($scope, $timeout) {
 
     window.Game                     = new GameClass();
 
@@ -186,8 +186,6 @@ let gameCtrl = function($scope, $timeout, helperService) {
         },
         init: function() {
             let session = $scope.App.getSession();
-            // let username = localStorage.getItem('username');
-            // let session_id = localStorage.getItem('session_id');
             this.logged = !!session;
             if(!this.logged) {
                 $scope.current_window.show('hello');
@@ -197,8 +195,6 @@ let gameCtrl = function($scope, $timeout, helperService) {
             this.onSuccess(session);
         },
         onSuccess(session) {
-            $scope.Game.username = session.username;
-            $scope.Game.session_id = session.session_id;
             $scope.mygames.load();
         }
     };
@@ -275,7 +271,7 @@ let gameCtrl = function($scope, $timeout, helperService) {
         $timeout(function(){
             // $scope.current_window.show('loading');
             $scope.settings.save();
-            $scope.Game.Start(session, world_guid, $scope.settings.form, (resource_loading_state) => {
+            $scope.Game.Start(world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
                 /*
                 $timeout(function(){
@@ -431,80 +427,3 @@ let directive = function($q) {
 };
 directive.$inject = myEnterInjectParams;
 app.directive('myEnter', directive);
-
-/**
-* Утилиты
-*/
-var helperServiceInjectParams = ['$http', '$q', '$timeout'];
-var helperServiceService = function($http, $q, $timeout) {
-    var helperService = {
-        /*api: {
-            // Организует вызов API, обработку ответа и вызов callback-функции
-            call: function(App, url, data, callback, callback_error, callback_progress, callback_final) {
-                let session         = App.getSession()
-                let domains_api     = '';
-                let sessionID       = session ? session.session_id : null;
-                url                 = domains_api + url;
-                callback_error      = callback_error || null;
-                callback_progress   = callback_progress || null;
-                callback_final      = callback_final || null;
-                var deferred        = $q.defer();
-                var headers = {
-                    'X-Language-Locale': 'ru'
-                };
-                if(sessionID) {
-                    headers['X-Session-ID'] = sessionID;
-                }
-                var options = {
-                    method:                 'POST',
-                    url:                    url,
-                    headers:                headers,
-                    data:                   data instanceof FormData ? data : JSON.parse(JSON.stringify(data)),
-                    uploadEventHandlers:    {}
-                };
-                if(callback_progress instanceof Function) {
-                    options.uploadEventHandlers.progress = callback_progress;
-                }
-                if(data instanceof FormData) {
-                    options.headers['Content-Type'] = undefined;
-                }
-                var promise = $http(options);
-                promise.then(function(result) {
-                    result = result.data;
-                    if (result.error) {
-                        result = result.error;
-                        result.status = 'error';
-                    }
-                    if (result.status == 'error') {
-                        if (callback_error && callback_error instanceof Function) {
-                            callback_error(result);
-                        } else {
-                            if (result.code == 401) {
-                                App.logout();
-                            } else {
-                                App.showError(result.message, 4000);
-                            }
-                        }
-                    } else {
-                        if (callback && callback instanceof Function) {
-                            callback(result);
-                        }
-                    }
-                    if (callback_final && callback_final instanceof Function) {
-                        callback_final(result);
-                    }
-                }, function(reason) {
-                    App.showError('Failed: ' + reason, 4000);
-                    if (callback_final && callback_final instanceof Function) {
-                        callback_final(reason);
-                    }
-                }, function(update) {
-                    alert('Got notification: ' + update);
-                });
-            }
-        }*/
-    };
-    return helperService;
-};
-helperServiceService.$inject = helperServiceInjectParams;
-app.factory('helperService', helperServiceService);

@@ -1,7 +1,7 @@
 import {WebSocketServer} from "ws";
 import {BLOCK} from "../blocks.js";
 import {Helpers} from "../helpers.js";
-import {WorldManager} from "../worker/world.js";
+import {WorkerWorldManager} from "../worker/world.js";
 import fs from 'fs';
 
 let wsServer            = null;
@@ -11,7 +11,7 @@ await BLOCK.init();
 console.log('All blocks loaded, count: ', BLOCK.BLOCK_BY_ID.size);
 
 Helpers.fs = fs;
-worlds = new WorldManager();
+worlds = new WorkerWorldManager();
 await worlds.InitTerrainGenerators();
 
 // Create websocket server

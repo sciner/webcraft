@@ -103,7 +103,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.world.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
+                    Game.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
                     break;
                 }
                 case ServerClient.CMD_CHEST_CONTENT: {
@@ -114,7 +114,7 @@ export default class ServerClient {
                     let data = cmd.data;
                     Game.world.players[data.id] = new PlayerModel({
                         id:             data.id,
-                        itsme:          data.nickname == Game.world.session.username,
+                        itsme:          data.nickname == Game.App.session.username,
                         pos:            data.pos,
                         pitch:          data.rotate.x,
                         yaw:            data.rotate.z,
@@ -153,7 +153,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_TELEPORT: {
-                    Game.world.player.setPosition(cmd.data.pos);
+                    Game.player.setPosition(cmd.data.pos);
                     break;
                 }
                 case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
@@ -161,7 +161,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_ENTITY_INDICATORS: {
-                    Game.world.player.indicators = cmd.data.indicators;
+                    Game.player.indicators = cmd.data.indicators;
                     break;
                 }
             }

@@ -193,7 +193,7 @@ export class Renderer {
         const { gl, shader, renderBackend } = this;
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
-        let player = this.world.player;
+        let player = Game.player;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
@@ -315,7 +315,7 @@ export class Renderer {
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
-    setCamera(pos, rotate) {
+    setCamera(player, pos, rotate) {
         // @todo Возможно тут надо поменять Z и Y местами
         let pitch           = rotate.x; // X
         let roll            = rotate.y; // Z
@@ -323,7 +323,7 @@ export class Renderer {
         this.camPos.copyFrom(pos);
         mat4.identity(this.viewMatrix);
         // bobView
-        this.bobView(this.viewMatrix);
+        this.bobView(player, this.viewMatrix);
         //
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
         mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
@@ -343,8 +343,7 @@ export class Renderer {
     }
 
     // Original bobView
-    bobView(viewMatrix) {
-        let player = this.world.player;
+    bobView(player, viewMatrix) {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //

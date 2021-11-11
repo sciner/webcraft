@@ -62,7 +62,7 @@ export class GameMode {
         for(let mode of this.modes) {
             if(mode.id == id) {
                 this.current = mode;
-                let player = this.world.player;
+                let player = Game.player;
                 if(player) {
                     if(!mode.can_fly) {
                         player.setFlying(false);

@@ -13,21 +13,20 @@ import {DEFAULT_PICKAT_DIST} from "./pickat.js";
 // World container
 export class World {
 
-    constructor(session, world_guid, settings) {
-        this.session        = session;
+    constructor(world_guid, settings) {
         this.world_guid     = world_guid;
         this.settings       = settings;
         this.players        = [];
     }
 
     // Create server client
-    async connect() {
+    async connect(session_id) {
         let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
             '//' + location.hostname +
             (location.port ? ':' + location.port : '') +
             '/ws';
         return new Promise(res => {
-            const server = new ServerClient(serverURL, this.session.session_id, () => {
+            const server = new ServerClient(serverURL, session_id, () => {
                 this.server = server;
                 this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: this.world_guid}});
                 res(this.server);
@@ -98,16 +97,16 @@ export class World {
             this.clouds = this.createClouds(pos);
         }
         // Picking target
-        let player = this.player;
+        let player = Game.player;
         if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
-            player.pickAt.update(this.getPickatDistance());
+            player.pickAt.update(player.pos, this.getPickatDistance());
         }
         return true;
     }
 
     //
     createClone() {
-        let player = this.player;
+        let player = Game.player;
         this.players['itsme'] = new PlayerModel({
             id:             'itsme',
             itsme:          true,
@@ -116,7 +115,7 @@ export class World {
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skins.getById(Game.skin.id),
-            nick:           Game.username
+            nick:           Game.App.session.username
         });
     };
 
@@ -146,7 +145,7 @@ export class World {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(function(){
-                    let pos = Game.world.player.pos;
+                    let pos = Game.player.pos;
                     Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
                 }, 25);
             }
@@ -160,12 +159,12 @@ export class World {
 
     // underWaterfall
     underWaterfall() {
-        this.setBlock(parseInt(this.player.pos.x), CHUNK_SIZE_Y - 1, parseInt(this.player.pos.z), BLOCK.FLOWING_WATER, 1);
+        this.setBlock(parseInt(Game.player.pos.x), CHUNK_SIZE_Y - 1, parseInt(Game.player.pos.z), BLOCK.FLOWING_WATER, 1);
     }
 
     // update
     update() {
-        this.chunkManager.update();
+        this.chunkManager.update(Game.player.pos);
     }
 
     // saveToDB

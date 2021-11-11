@@ -97,14 +97,13 @@ export class Player {
         this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
         this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
 
-        // this.update();
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
     onStep(step_side) {
         this.step_count++;
         let world = this.world;
-        let player = world.player;
+        let player = this;
         if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
             return;
         }
@@ -325,9 +324,9 @@ export class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        let x = (Game.world.player.pos.x | 0) - 11;
-                        let y = Game.world.player.pos.y | 0;
-                        let z = (Game.world.player.pos.z | 0) - 13;
+                        let x = (this.pos.x | 0) - 11;
+                        let y = this.pos.y | 0;
+                        let z = (this.pos.z | 0) - 13;
                         let d = 10;
                         let cnt = 0;
                         let startx = x;
@@ -372,7 +371,7 @@ export class Player {
             case KEY.F8: {
                 if(!down) {
                     if(e.shiftKey) {
-                        this.pickAt.get((pos) => {
+                        this.pickAt.get(this.pos, (pos) => {
                             if(pos !== false) {
                                 if(pos.n.x != 0) pos.x += pos.n.x;
                                 if(pos.n.z != 0) pos.z += pos.n.z;
@@ -542,7 +541,7 @@ export class Player {
         let world           = this.world;
         let pickat_dist     = this.world.getPickatDistance();
         // Picking
-        this.pickAt.get((pos) => {
+        this.pickAt.get(this.pos, (pos) => {
             if(pos === false) {
                 return;
             }
@@ -579,9 +578,6 @@ export class Player {
                 if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
                     return;
                 }
-                if(replaceBlock && this.buildMaterial.style == 'ladder') {
-                    return;
-                }
                 // Запрет установки блока, если на позиции уже есть другой блок
                 if(!replaceBlock) {
                     let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
@@ -609,6 +605,9 @@ export class Player {
                 // Эта проверка обязательно должна быть тут, а не выше!
                 // Иначе не будут открываться сундуки и прочее
                 if(!this.buildMaterial || this.inventory.getCurrent().count < 1) {
+                    return;
+                }
+                if(replaceBlock && this.buildMaterial.style == 'ladder') {
                     return;
                 }
                 let matBlock = BLOCK.fromId(this.buildMaterial.id);

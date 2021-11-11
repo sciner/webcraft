@@ -3,7 +3,7 @@
 // This is not a full .obj parser.
 // see http://paulbourke.net/dataformats/obj/
 
-function parseOBJ(gl, text) {
+export function parseOBJ(gl, text) {
 
     // because indices are base 1 let's just fill in the 0th data
     const objPositions = [[0, 0, 0]];

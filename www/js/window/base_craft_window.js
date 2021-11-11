@@ -11,7 +11,7 @@ export class CraftTableSlot extends Label {
 
     setItem(item) {
         if(this.slot_index !== null) {
-            Game.world.player.inventory.setItem(this.slot_index, item);
+            Game.player.inventory.setItem(this.slot_index, item);
         } else {
             this.item = item;
         }
@@ -19,7 +19,7 @@ export class CraftTableSlot extends Label {
 
     getItem() {
         if(this.slot_index !== null) {
-            return Game.world.player.inventory.items[this.slot_index];
+            return Game.player.inventory.items[this.slot_index];
         } else {
             return this.item;
         }
@@ -186,6 +186,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
         // Drag & drop
         this.onMouseDown = function(e) {
             let that        = this;
+            let player      = Game.player;
             //
             let targetItem  = this.getInventoryItem();
             // Set new drag
@@ -207,7 +208,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(e.shiftKey) {
                     switch(this.parent.id) {
                         case 'frmInventory': {
-                            let srcList = Game.world.player.inventory.items;
+                            let srcList = player.inventory.items;
                             let srcListFirstIndexOffset = this.slot_index < 9 ? 9 : 0;
                             let targetList = this.slot_index < 9 ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, 9);
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -217,7 +218,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             break;
                         }
                         case 'frmChest': {
-                            let srcList = e.target.is_chest_slot ? Game.world.player.inventory.items : this.parent.getSlots();
+                            let srcList = e.target.is_chest_slot ? player.inventory.items : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -227,7 +228,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             break;
                         }
                         case 'frmCraft': {
-                            let srcList = e.target.is_craft_slot ? Game.world.player.inventory.items : this.parent.getSlots();
+                            let srcList = e.target.is_craft_slot ? player.inventory.items : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
@@ -256,6 +257,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
 
         // Drag & drop
         this.onDrop = function(e) {
+            let player      = Game.player;
             let that        = this;
             let drag        = e.drag;
             // @todo check instanceof!
@@ -300,7 +302,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                         }
                     }
                     // проверить слоты инвентаря
-                    let inventory_items = Game.world.player.inventory.items;
+                    let inventory_items = player.inventory.items;
                     for(let i in inventory_items) {
                         if(need_count == 0) {
                             break;
