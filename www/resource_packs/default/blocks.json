@@ -3124,7 +3124,7 @@
             ]
         },
         "name": "TORCH",
-        "destroy_time": 4,
+        "destroy_time": 0,
         "power": 1,
         "selflit": false,
         "light": null,

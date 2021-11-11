@@ -242,6 +242,9 @@ export class BLOCK {
                     return 0;
                 }
             }
+            if(block.id == 50) {
+                return 0;
+            }
             if(block.hasOwnProperty('sound')) {
                 switch(block.sound) {
                     case 'madcraft:block.grass':
@@ -282,7 +285,9 @@ export class BLOCK {
         if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;
         if(block.style && block.style == 'planting') block.planting = true;
         if(block.style && block.style == 'stairs') block.transparent = true;
-        if(block.planting || block.style == 'fence' || block.style == 'ladder') this.ao_invisible_blocks.push(block.id);
+        if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power) {
+            this.ao_invisible_blocks.push(block.id);
+        }
         // Parse tags
         if(block.hasOwnProperty('tags')) {
             for(let tag of block.tags) {
