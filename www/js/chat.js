@@ -217,7 +217,7 @@ export class Chat {
                 }
                 case '/obj': {
                     new Mesh_Default(
-                        world.renderer.gl,
+                        Game.render.gl,
                         player.pos,
                         '/vendors/Mickey Mouse.obj',
                         function(m) {

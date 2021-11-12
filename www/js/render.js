@@ -164,7 +164,6 @@ export class Renderer {
     // chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
     setWorld(world) {
         this.world = world;
-        world.renderer = this;
     }
 
     // setBrightness...

@@ -1,4 +1,5 @@
 import {BLOCK} from "../blocks.js";
+import { Helpers } from "../helpers.js";
 import {Label, Window} from "../../tools/gui/wm.js";
 
 export class CraftTableSlot extends Label {

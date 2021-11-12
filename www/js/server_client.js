@@ -184,7 +184,12 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_SET_CHEST_SLOT_ITEM, data: {
             entity_id: entity_id,
             slot_index: slot_index,
-            item: item
+            item: {
+                id: item.id,
+                entity_id: item.entity_id,
+                count: item.count,
+                power: item.power,
+            }
         }});
     }
 

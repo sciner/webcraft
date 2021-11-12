@@ -123,7 +123,7 @@ export class GameClass {
         this.hotbar         = new Hotbar(Game.hud, this.player.inventory);
         //
         this.setupMousePointer();
-        this.world.renderer.updateViewport();
+        this.render.updateViewport();
         //
         this.readMouseMove();
         this.startBackgroundMusic();
@@ -293,8 +293,8 @@ export class GameClass {
                         type:               e.type,
                         shiftKey:           e.shiftKey,
                         button:             e.button,
-                        offsetX:            Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                        offsetY:            Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                        offsetX:            Game.mouseX * (Game.hud.width / Game.render.canvas.width),
+                        offsetY:            Game.mouseY * (Game.hud.height / Game.render.canvas.height)
                     });
                 }
             }
@@ -319,12 +319,10 @@ export class GameClass {
                     type:       e.type,
                     shiftKey:   e.shiftKey,
                     button:     e.button,
-                    offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                    offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
+                    offsetX:    Game.mouseX * (Game.hud.width / Game.render.canvas.width),
+                    offsetY:    Game.mouseY * (Game.hud.height / Game.render.canvas.height)
                 });
             } else {
-                // x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
-                // z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 x = (x / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 z = (z / window.devicePixelRatio) * Game.controls.mouse_sensitivity;
                 if(Game.player.zoom) {

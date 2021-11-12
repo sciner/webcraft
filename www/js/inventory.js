@@ -14,12 +14,13 @@ export default class Inventory {
         this.index          = 0;
         this.max_count      = 36;
         this.hotbar_count   = 9;
-        this.items          = []; // new Array(this.max_count);
+        this.items          = [];
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
         //
         this.restoreItems(player.info.inventory);
+        this.onSelect = (item) => {};
         this.select(player.info.inventory.current.index);
         //
         let image = new Image(); // new Image(40, 40); // Размер изображения
@@ -263,7 +264,7 @@ export default class Inventory {
         // Обновить текущий инструмент у игрока
         this.select(this.index);
     }
-    
+
     //
     select(index) {
         if(index < 0) {
@@ -275,9 +276,9 @@ export default class Inventory {
         this.index = index;
         this.current = this.player.buildMaterial = this.items[index];
         this.refresh(false);
-        this.player.onInventorySelect(this.current);
+        this.onSelect(this.current);
     }
-    
+
     next() {
         this.select(++this.index);
     }

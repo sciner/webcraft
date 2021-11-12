@@ -114,6 +114,7 @@ func (this *EntityManager) SetChestSlotItem(world *World, conn *PlayerConn, para
 		if params.Item.Count == 0 {
 			delete(chest.Slots, params.SlotIndex)
 		} else {
+			log.Println(4)
 			chest.Slots[params.SlotIndex] = &ChestSlot{
 				ID:       params.Item.ID,
 				Count:    params.Item.Count,

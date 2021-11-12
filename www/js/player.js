@@ -18,25 +18,29 @@ export class Player {
     constructor(world, info) {
         this.info                   = info;
         this.indicators             = info.indicators;
-        this.inventory              = new Inventory(this, Game.hud);
         // Position
         this.pos                    = new Vector(info.pos.x, info.pos.y, info.pos.z);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         // Rotate
-        this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(info.rotate);
-        // Flying state
-        this.setFlying(!!info.flying);
         // Assign the player to a world.
         this.world                  = world;
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
         this.keys                   = {};
         this.eventHandlers          = {};
+        // Inventory
+        this.inventory              = new Inventory(this, Game.hud);
+        this.inventory.onSelect     = (item) => {
+            // Вызывается при переключении активного слота в инвентаре
+            if(this.pickAt) {
+                this.pickAt.resetProgress();
+            }
+        };
         // pickAt
-        this.pickAt                 = new PickAt(world, world.renderer, (...args) => {
+        this.pickAt                 = new PickAt(world, Game.render, (...args) => {
             return this.onTarget(...args);
         });
         // Player control
@@ -45,9 +49,8 @@ export class Player {
         // Chat
         this.chat                   = new Chat();
         //
-        this.client                 = null;
         this.falling                = false; // падает
-        this.flying                 = false; // летит
+        this.flying                 = !!info.flying; // летит
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
         this.walking                = false; // идёт по земле
@@ -60,7 +63,6 @@ export class Player {
         this.walking_frame          = 0;
         this.zoom                   = false;
         this.height                 = PLAYER_HEIGHT;
-        this.velocity               = new Vector(0, 0, 0);
         this.walkDist               = 0;
         this.walkDistO              = 0;
         this.bob                    = 0;
@@ -82,22 +84,19 @@ export class Player {
     // setRotate
     // @var vec3 (0 ... PI)
     setRotate(vec3) {
-
         this.rotate = new Vector(vec3);
-        // let halfPitch = (Game.render.canvas.height || window.innerHeight) / 1800;
-
         if(this.rotate.z < 0) {
             this.rotate.z = (Math.PI * 2) + this.rotate.z;
         }
-
         this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
         this.rotate.z = this.rotate.z % (Math.PI * 2);
-
-        // rad to degree
+        // Rad to degree
+        if(!this.rotateDegree) {
+            this.rotateDegree = Vector.ZERO.clone();
+        }
         this.rotateDegree.x = (this.rotate.x / Math.PI) * 180;
         this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
         this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
-
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
@@ -161,23 +160,6 @@ export class Player {
         return true;
     }
 
-    // Вызывается при переключении активного слота в инвентаре
-    onInventorySelect(inventory_item) {
-        if(this.pickAt) {
-            this.pickAt.resetProgress();
-        }
-    }
-
-    // Assign the local player to a socket client.
-    setClient(client) {
-        this.client = client;
-    }
-
-    // Assign player to a inventory
-    setInventory(inventory) {
-        this.inventory = inventory;
-    }
-
     // Set the canvas the renderer uses for some input operations.
     setInputCanvas(id) {
         this.canvas = document.getElementById(id);
@@ -186,11 +168,6 @@ export class Player {
             onKeyPress: (...args) => {return this.onKeyPress(...args);},
             onKeyEvent: (...args) => {return this.onKeyEvent(...args);}
         });
-    }
-
-    // Hook a player event.
-    on(event, callback) {
-        this.eventHandlers[event] = callback;
     }
 
     //
@@ -285,14 +262,11 @@ export class Player {
         }
 
         // Flying [Space]
-        if(keyCode == KEY.SPACE && Game.world.game_mode.canFly() && !this.in_water) {
-            if(this.velocity.y > 0) {
-                if(down && first) {
-                    if(!this.getFlying()) {
-                        this.velocity.y = 0;
-                        this.setFlying(true);
-                        console.log('flying');
-                    }
+        if(keyCode == KEY.SPACE && Game.world.game_mode.canFly() && !this.in_water && !this.onGround) {
+            if(down && first) {
+                if(!this.getFlying()) {
+                    this.setFlying(true);
+                    console.log('flying');
                 }
             }
         }
@@ -355,7 +329,7 @@ export class Player {
             // F6 (Test light)
             case KEY.F6: {
                 if(!down) {
-                    Game.world.renderer.testLightOn = !Game.world.renderer.testLightOn;
+                    Game.render.testLightOn = !Game.render.testLightOn;
                 }
                 return true;
                 break;
@@ -393,7 +367,7 @@ export class Player {
             // F9 (toggleNight | Under rain)
             case KEY.F9: {
                 if(!down) {
-                    Game.world.renderer.toggleNight();
+                    Game.render.toggleNight();
                 }
                 return true;
                 break;
@@ -408,7 +382,7 @@ export class Player {
             }
             case KEY.C: {
                 if(first) {
-                    Game.world.renderer.updateViewport();
+                    Game.render.updateViewport();
                     return true;
                 }
                 break;
@@ -465,10 +439,6 @@ export class Player {
             return true;
         }
         // Running
-        // w = 87 // up
-        // d = 68 // right
-        // a = 65 // left
-        // s = 83 // down
         if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
         if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
         if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
@@ -502,26 +472,22 @@ export class Player {
         return false;
     }
 
-    // Hook for mouse input.
+    // Hook for mouse input
     onMouseEvent(e, x, y, type, button_id, shiftKey) {
         let visibleWindows = Game.hud.wm.getVisibleWindows();
-        if(visibleWindows.length > 0) {
-            if (type == MOUSE.DOWN) {
-                Game.hud.wm.mouseEventDispatcher({
-                    type:       e.type,
-                    shiftKey:   e.shiftKey,
-                    button:     e.button,
-                    offsetX:    Game.mouseX * (Game.hud.width / Game.world.renderer.canvas.width),
-                    offsetY:    Game.mouseY * (Game.hud.height / Game.world.renderer.canvas.height)
-                });
-                return false;
-            }
+        if(type == MOUSE.DOWN && visibleWindows.length > 0) {
+            Game.hud.wm.mouseEventDispatcher({
+                type:       e.type,
+                shiftKey:   e.shiftKey,
+                button:     e.button,
+                offsetX:    Game.mouseX * (Game.hud.width / Game.render.canvas.width),
+                offsetY:    Game.mouseY * (Game.hud.height / Game.render.canvas.height)
+            });
+            return false;
         }
         if(!Game.controls.enabled || this.chat.active || visibleWindows.length > 0) {
             return false
         }
-        x = Game.render.canvas.width * 0.5;
-        y = Game.render.canvas.height * 0.5;
         // Mouse actions
         if (type == MOUSE.DOWN) {
             this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
@@ -707,14 +673,8 @@ export class Player {
                 }
             } else if(destroyBlock) {
                 // Destroy block
-                if(world_block.id != BLOCK.BEDROCK.id && world_block.id != BLOCK.STILL_WATER.id) {
+                if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_block.id) < 0) {
                     this.destroyBlock(world_block, pos, this.getCurrentInstrument());
-                    let block_over = this.world.chunkManager.getBlock(pos.x, pos.y + 1, pos.z);
-                    // delete plant over deleted block
-                    if(BLOCK.isPlants(block_over.id)) {
-                        pos.y++;
-                        world.chunkManager.destroyBlock(pos);
-                    }
                 }
             } else if(cloneBlock) {
                 if(world_block && world.game_mode.canBlockClone()) {
@@ -724,6 +684,29 @@ export class Player {
         }, pickat_dist);
     }
 
+    // Удалить блок используя инструмент
+    destroyBlock(block, pos, instrument) {
+        instrument.destroyBlock(block);
+        this.world.chunkManager.destroyBlock(pos);
+        // Delete plant over deleted block
+        let block_over = this.world.chunkManager.getBlock(pos.x, pos.y + 1, pos.z);
+        if(BLOCK.isPlants(block_over.id)) {
+            pos.y++;
+            this.destroyBlock(block_over.material, pos, instrument);
+        }
+    }
+
+    // getCurrentInstrument
+    getCurrentInstrument() {
+        let buildMaterial = this.buildMaterial;
+        let instrument = new Instrument_Hand(buildMaterial, this.inventory);
+        if(buildMaterial && buildMaterial.instrument_id) {
+            // instrument = new Instrument_Hand();
+        }
+        return instrument;
+    }
+
+    // changeSpawnpoint
     changeSpawnpoint() {
         let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
         Game.world.server.SetPosSpawn(pos);
@@ -739,22 +722,6 @@ export class Player {
         }
     }
 
-    //
-    getCurrentInstrument() {
-        let buildMaterial = this.buildMaterial;
-        let instrument = new Instrument_Hand(buildMaterial, this.inventory);
-        if(buildMaterial && buildMaterial.instrument_id) {
-            // instrument = new Instrument_Hand();
-        }
-        return instrument;
-    }
-
-    // Удалить блок используя инструмент
-    destroyBlock(block, pos, instrument) {
-        instrument.destroyBlock(block);
-        this.world.chunkManager.destroyBlock(pos);
-    }
-
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
         return this.lerpPos.add(new Vector(0.0, this.height, 0.0));
@@ -762,18 +729,14 @@ export class Player {
 
     // getBlockPos
     getBlockPos() {
-        let v = new Vector(
-            this.pos.x | 0,
-            this.pos.y | 0,
-            this.pos.z | 0
-        );
-        if(this.pos.x < 0) {
-            v.x--;
-        }
-        if(this.pos.z < 0) {
-            v.z--;
-        }
-        return v;
+        return this.pos.floored();
+    }
+
+    //
+    setPosition(vec) {
+        Game.world.chunkManager.clearNerby();
+        let pc = this.getPlayerControl();
+        pc.player.entity.position.copyFrom(vec);
     }
 
     getFlying() {
@@ -790,13 +753,6 @@ export class Player {
             return this.pr_spectator;
         }
         return this.pr;
-    }
-
-    //
-    setPosition(vec) {
-        Game.world.chunkManager.clearNerby();
-        let pc = this.getPlayerControl();
-        pc.player.entity.position.copyFrom(vec);
     }
 
     //
@@ -839,7 +795,7 @@ export class Player {
             // Physics tick
             let ticks = pc.tick(delta);
 
-            if(isSpectator || this.getFlying()) {
+            if(isSpectator) {
                 this.lerpPos = pc.player.entity.position;
                 this.pos = this.lerpPos;
             } else {
@@ -858,7 +814,7 @@ export class Player {
             // pc.player_state.onGround
             this.in_water_o = this.in_water;
             let velocity    = pc.player_state.vel;
-            this.onGroundO = this.onGround;
+            this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround;
             this.in_water   = pc.player_state.isInWater;
 
@@ -954,25 +910,26 @@ export class Player {
 
     //
     applyFov(delta) {
-        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = Game.render.options;
+        let render = Game.render;
+        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = render.options;
         if(this.zoom) {
-            if(Game.render.fov > FOV_ZOOM) {
-                let fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
-                Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+            if(render.fov > FOV_ZOOM) {
+                let fov = Math.max(render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
+                render.setPerspective(fov, 0.01, RENDER_DISTANCE);
             }
         } else {
             if(this.running) {
-                if(Game.render.fov < FOV_WIDE) {
-                    let fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
-                    Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                if(render.fov < FOV_WIDE) {
+                    let fov = Math.min(render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
+                    render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                 }
-            } else if(Game.render.fov < FOV_NORMAL) {
-                let fov = Math.min(Game.render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+            } else if(render.fov < FOV_NORMAL) {
+                let fov = Math.min(render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                render.setPerspective(fov, 0.01, RENDER_DISTANCE);
             } else {
-                if(Game.render.fov > FOV_NORMAL) {
-                    let fov = Math.max(Game.render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                    Game.render.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                if(render.fov > FOV_NORMAL) {
+                    let fov = Math.max(render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                    render.setPerspective(fov, 0.01, RENDER_DISTANCE);
                 }
             }
         }

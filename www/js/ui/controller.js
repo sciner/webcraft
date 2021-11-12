@@ -111,7 +111,7 @@ let gameCtrl = function($scope, $timeout) {
         apply: function() {
             // 0.84 1 -1
             if(typeof Game != 'undefined') {
-                Game.world.renderer.sunDir = [this.value.x, this.value.y, this.value.z];
+                Game.render.sunDir = [this.value.x, this.value.y, this.value.z];
             }
         },
         getValue: function() {

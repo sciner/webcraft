@@ -34,7 +34,7 @@ Game.world.players.drawGhost(Game.player);
 // Toggle rain
 Game.render.setRain(true);
 
-// Set block at current player coordanates
+// Set block at current player coordinates
 let pp = Game.player.getBlockPos();
 Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10});
 
