@@ -17,12 +17,15 @@ export class WebGLMaterial extends BaseMaterial {
         if (this.ignoreDepth) {
             gl.disable(gl.DEPTH_TEST);
         }
+
+        const tex = this.texture || this.shader.texture;
         if (WebGLMaterial.texState !== this.texture) {
             const tex = this.texture || this.shader.texture;
-            gl.uniform1f(this.shader.u_mipmap, tex.anisotropy);
             tex.bind(4);
             WebGLMaterial.texState = this.texture;
         }
+        gl.uniform1f(this.shader.u_mipmap, tex.anisotropy);
+
         if (WebGLMaterial.lightState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
             tex.bind(5);

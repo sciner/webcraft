@@ -76,7 +76,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // gl.uniform1f(this.u_fogDensity, this.fogDensity);
         gl.uniform4fv(this.u_fogColor, gu.fogColor);
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
-        gl.uniform1f(this.u_mipmap, this.mipmap);
         gl.uniform1f(this.u_brightness, gu.brightness);
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
         gl.uniform3f(this.u_camera_pos, gu.camPos.x, gu.camPos.z, gu.camPos.y);

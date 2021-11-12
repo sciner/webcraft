@@ -46,7 +46,7 @@ export class BaseTexture {
      * @param {number} height
      * @param {'linear' | 'nearest'} magFilter
      * @param {'linear' | 'nearest'} minFilter
-     * @param {number} anisotropy
+     * @param {TerrainTextureUniforms} style
      * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
      */
     constructor(context, {
@@ -54,15 +54,15 @@ export class BaseTexture {
         height = 1,
         magFilter = 'linear',
         minFilter = 'linear',
-        anisotropy = 0,
-        source = null
+        style = null,
+        source = null,
     } = {}) {
         this.width = width;
         this.height = height;
         this.magFilter = magFilter;
         this.minFilter = minFilter;
-        this.anisotropy = anisotropy;
         this.source = source;
+        this.style = style;
         this.context = context;
 
         this.id = BaseRenderer.ID++;
@@ -149,6 +149,7 @@ export class BaseMaterial {
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
         this.ignoreDepth = options.ignoreDepth || false;
+        this.mipmap = options.mipmap || false;
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
     }
 

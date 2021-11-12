@@ -1,6 +1,7 @@
 import {BLOCK} from "./blocks.js";
 import {Helpers} from './helpers.js';
 import {Resources} from'./resources.js';
+import {TerrainTextureUniforms} from "./renders/common.js";
 
 export class BaseResourcePack {
 
@@ -51,9 +52,9 @@ export class BaseResourcePack {
                 await loadImage(this.dir + v.image).then(async (image) => {
                     v.texture = renderBackend.createTexture({
                         source: await that.genMipMapTexture(image, settings),
+                        style: this.genTextureStyle(image, settings),
                         minFilter: 'nearest',
                         magFilter: 'nearest',
-                        anisotropy: settings.mipmap ? 4.0 : 0.0,
                     });
                     v.width = image.width;
                     v.height = image.height;
@@ -64,15 +65,25 @@ export class BaseResourcePack {
                     await loadImage(this.dir + v.image_n).then(async (image_n) => {
                         v.texture_n = renderBackend.createTexture({
                             source: await that.genMipMapTexture(image_n, settings),
+                            style: this.genTextureStyle(image_n, settings),
                             minFilter: 'nearest',
                             magFilter: 'nearest',
-                            anisotropy: settings.mipmap ? 4.0 : 0.0,
                         });
                     });
                 }
                 this.textures.set(k, v);
             }
         }
+    }
+
+    genTextureStyle(image, settings) {
+        let terrainTexSize          = image.width;
+        let terrainBlockSize        = image.width / 512 * 16;
+        const style = new TerrainTextureUniforms();
+        style.blockSize = terrainBlockSize / terrainTexSize;
+        style.pixelSize = 1.0 / terrainTexSize;
+        style.mipmap = settings.mipmap ? 4.0 : 0.0;
+        return style;
     }
 
     //

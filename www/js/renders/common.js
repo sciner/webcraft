@@ -1,0 +1,8 @@
+export class TerrainTextureUniforms {
+    constructor() {
+        this.blockSize = 16.0;
+        this.pixelSize = 1.0 / 512.0;
+        this.mipmap = 0;
+    }
+}
+
