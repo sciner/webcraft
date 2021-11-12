@@ -1,15 +1,20 @@
 // FPS
-export const fps = {
-    cnt:    0,
-    fps:    0,
-    avg:    0,
-    t:      performance.now(),
-    delta:  0,
-    walkDistO:    0,
-    speed: 0,
-    incr: function() {
+export class FPSCounter {
+
+    constructor() {
+        this.cnt        = 0;
+        this.fps        = 0;
+        this.avg        = 0;
+        this.delta      = 0;
+        this.walkDistO  = 0;
+        this.speed      = 0;
+        this.t          = performance.now();
+    }
+
+    incr() {
         this.cnt++;
         let now = performance.now();
+        let player = Game.player;
         if(now - this.t > 1000) {
             this.fps    = Math.round(this.cnt / ((now - this.t) / 1000));
             this.cnt    = 0;
@@ -17,13 +22,15 @@ export const fps = {
             this.avg    = 1000 / Game.loopTime.avg;
             this.t      = now;
             if(this.walkDistO > 0) {
-                this.speed = Math.round((Game.world.player.walkDist - this.walkDistO) * 3600 / 1000 * 100) / 100;
+                this.speed = Math.round((player.walkDist - this.walkDistO) * 3600 / 1000 * 100) / 100;
             }
-            this.walkDistO = Game.world.player.walkDist;
+            this.walkDistO = player.walkDist;
             // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.loopTime.avg * 1000) / 1000);
         };
-    },
-    drawHUD: function(hud) {
+    }
+
+    drawHUD(hud) {
         //
     }
-};
+
+}

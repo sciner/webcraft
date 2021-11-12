@@ -1,6 +1,10 @@
+import { Helpers, Vector } from "../helpers.js";
+import { parseOBJ } from "../../vendors/objParser.js";
+import GeometryTerrain from "../geometry_terrain.js";
+
 const {mat4} = glMatrix;
 
-class Mesh_Default {
+export class Mesh_Default {
 
     // Constructor
     constructor(gl, pos, file, callback) {
@@ -10,11 +14,12 @@ class Mesh_Default {
             pos.z
         );
         let that = this;
-        loadText(file, function(text) {
-            that.obj = parseOBJ(gl, text);
-            that.makeBuffers(gl);
-            callback(that);
-        });
+        Helpers.fetch(file).then(response => response.text())
+            .then(text => {
+                that.obj = parseOBJ(gl, text);
+                that.makeBuffers(gl);
+                callback(that);
+            });
     }
 
     makeBuffers(gl) {
@@ -60,6 +65,8 @@ class Mesh_Default {
         let gl = render.gl;
         let a_pos = new Vector(this.pos.x, this.pos.z, this.pos.y);
         //
+        uModelMat = null;
+        modelMatrix = null; // render.viewMatrix || render.projMatrix
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, modelMatrix, [a_pos.x, a_pos.y, a_pos.z]);
         // render

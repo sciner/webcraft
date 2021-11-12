@@ -1,5 +1,5 @@
 // Physics simulator.
-export default class Physics {
+export class Physics {
 	
     constructor(world) {
         this.lastStep = -1;
@@ -40,8 +40,8 @@ export default class Physics {
                     let block_under = world.chunkManager.getBlock(x, y - 1, z);
                     if([BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block_under.id) >= 0) {
                         let block = world.chunkManager.getBlock(x, y, z);
-                        world.setBlock(x, y - 1, z, block);
-                        world.setBlock(x, y, z, BLOCK.AIR);
+                        world.chunkManager.setBlock(x, y - 1, z, block);
+                        world.chunkManager.setBlock(x, y, z, BLOCK.AIR);
                     }
                 }
             }
@@ -75,7 +75,7 @@ export default class Physics {
                         ].indexOf(underBlock.id) >= 0;
                         let canFalling = BLOCK.destroyableByWater(underBlock) || underBlockIsFluid;
                         if(canFalling) {
-                            world.setBlock(x, y, z - 1, block, block.power);
+                            world.chunkManager.setBlock(x, y, z - 1, block, true, block.power);
                             continue;
                         }
                         let candidates = [
@@ -88,7 +88,7 @@ export default class Physics {
                             for(let zz = -1 ; zz <= 0; zz++) {
                                 let b2 = world.chunkManager.getBlock(n.x, n.y, n.z + zz);
                                 if(BLOCK.destroyableByWater(b2)) {
-                                    world.setBlock(n.x, n.y, n.z + zz, block, block.power - 0.1);
+                                    world.chunkManager.setBlock(n.x, n.y, n.z + zz, block, true, block.power - 0.1);
                                     break;
                                 }
                             }

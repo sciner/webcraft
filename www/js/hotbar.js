@@ -56,7 +56,7 @@ export class Hotbar {
             h
         );
         // Indicators
-        let indicators = Game.world.player.indicators;
+        let indicators = Game.player.indicators;
         let live = indicators.live.value / 20;
         let food = indicators.food.value / 20;
         // live

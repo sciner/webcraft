@@ -30,7 +30,6 @@ const (
 	CMD_LOAD_CHEST               int = 45 // Клиент запросил содержимое сундука
 	CMD_CHEST_CONTENT            int = 46 // Отправка клиенту содержимого сундука
 	CMD_SET_CHEST_SLOT_ITEM      int = 47 // Получены новые данные о содержимом слоте сундука
-	CMD_WORLD_STATE              int = 60 // состояние мира
 	CMD_CONNECTED                int = 62
 	CMD_CHANGE_POS_SPAWN         int = 63
 	CMD_TELEPORT_REQUEST         int = 64
@@ -96,6 +95,10 @@ type (
 		Pos        Vector3              `json:"pos"`
 		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
 	}
+	ParamWorldState struct {
+		Player *PlayerState     `json:"player"`
+		World  *WorldProperties `json:"world"`
+	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {
 		EntityID  string    `json:"entity_id"`
@@ -127,14 +130,12 @@ type (
 		Oxygen *PlayerIndicator `json:"oxygen"`
 	}
 	PlayerState struct {
-		Brightness float32           `json:"brightness"`
 		PosSpawn   *Vector3f         `json:"pos_spawn"`
 		Pos        *Vector3f         `json:"pos"`
 		Rotate     *Vector3f         `json:"rotate"`
 		Flying     bool              `json:"flying"`
 		Inventory  *PlayerInventory  `json:"inventory"`
 		Indicators *PlayerIndicators `json:"indicators"`
-		World      *WorldProperties  `json:"world"`
 	}
 	/*
 		ParamCreateEntity struct {
@@ -171,19 +172,22 @@ type (
 	WorldState struct {
 		// 1 игровая секунда = 72 реальных
 		// В 1 игровом дне 24000 игровых секунд
-		Age      int64 `json:"age"`       // Возраст мира с момента его создания в игровых днях
-		AgeShift int64 `json:"age_shift"` // Смещение времени в игровых секундах
-		DayTime  int64 `json:"day_time"`  // Текущее время в игровых секундах (0 ... 23999)
+		Age        int64   `json:"age"`       // Возраст мира с момента его создания в игровых днях
+		AgeShift   int64   `json:"age_shift"` // Смещение времени в игровых секундах
+		DayTime    int64   `json:"day_time"`  // Текущее время в игровых секундах (0 ... 23999)
+		Brightness float32 `json:"brightness"`
 	}
 	WorldProperties struct {
 		ID        int64                  `json:"id"`
-		UserID    int64                  `json:"user_id"`
-		Dt        time.Time              `json:"dt"`
+		UserID    int64                  `json:"user_id"` // Author
+		Dt        time.Time              `json:"dt"`      // Creation time
 		GUID      string                 `json:"guid"`
 		Title     string                 `json:"title"`
 		Seed      string                 `json:"seed"`
+		GameMode  string                 `json:"game_mode"`
 		Generator map[string]interface{} `json:"generator"`
-		PosSpawn  *Vector3f              `json:"pos_spawn"`
+		PosSpawn  *Vector3f              `json:"pos_spawn"` // Default player spawn position
+		State     *WorldState            `json:"state"`
 	}
 	// JSONResponse ...
 	JSONResponse struct {

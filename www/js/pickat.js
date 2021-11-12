@@ -55,10 +55,9 @@ export class PickAt {
     }
 
     //
-    get(callback, pickat_distance) {
-        const player = this.world.player;
+    get(pos, callback, pickat_distance) {
+        pos = new Vector(pos);
         const render = this.render;
-        const pos = new Vector(player.pos);
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         pos.y = render.camPos.y;
         const startBlock = new Vector(Math.floor(pos.x) + 0.5, Math.floor(pos.y) + 0.5, Math.floor(pos.z) + 0.5);
@@ -238,9 +237,9 @@ export class PickAt {
     }
 
     // update...
-    update(pickat_distance) {
+    update(pos, pickat_distance) {
         // Get actual pick-at block
-        let bPos = this.get(null, pickat_distance);
+        let bPos = this.get(pos, null, pickat_distance);
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         target_block.visible = !!bPos;
@@ -266,7 +265,7 @@ export class PickAt {
         }
         this.calcDamage();
         // draw
-        this.draw();
+        // this.draw();
     }
 
     // calcDamage...

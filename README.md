@@ -26,30 +26,30 @@ ws.onopen = function(event) {
 # Commands
 ```JS
 // Teleport current user to random location 
-Game.world.player.teleport('random', null);
+Game.player.teleport('random', null);
 
 // Draw current user model at current location
-Game.world.createClone();
+Game.world.players.drawGhost(Game.player);
 
 // Toggle rain
-Game.world.setRain(true);
+Game.render.setRain(true);
 
 // Set block at current player coordanates
-let pp = Game.world.player.getBlockPos();
-Game.world.setBlock(pp.x, pp.y, pp.z, {id: 10}, 1, null);
+let pp = Game.player.getBlockPos();
+Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10});
 
 // Emulate user keyboard control
 // .walk(direction, duration_milliseconds)
-Game.world.player.walk('forward', 2000); // forward|back|left|right
+Game.player.walk('forward', 2000); // forward|back|left|right
 
 // Get player rotate
-let rotate = Game.world.player.rotate;
+let rotate = Game.player.rotate;
 
 // Set player rotate
-Game.world.player.setRotate({x: 0, y: 0, z: 0});
+Game.player.setRotate({x: 0, y: 0, z: 0});
 
 // Send message to chat
-Game.world.player.chat.sendMessage('Hello, World!');
+Game.player.chat.sendMessage('Hello, World!');
 
 // Get all supported blocks
 let blocks = Game.block_manager.getAll();
@@ -58,5 +58,5 @@ let blocks = Game.block_manager.getAll();
 Game.world.game_mode.setMode('creative'); // survival|creative|adventure|spectator
 
 // Open inventory window
-Game.world.player.inventory.open();
+Game.player.inventory.open();
 ```

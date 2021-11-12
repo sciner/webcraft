@@ -1,6 +1,6 @@
 import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
-import {fps} from "./fps.js";
+import {FPSCounter} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
@@ -34,6 +34,8 @@ export default class HUD {
         this.items                      = [];
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
+
+        this.FPS                        = new FPSCounter();
 
         // Vignette
         // this.makeVignette(width, height);
@@ -214,7 +216,7 @@ export default class HUD {
         }
     
         // Make info for draw
-        let hasDrawContent = Game.world && Game.world.player && Game.world.player.chat.hasDrawContent();
+        let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
         if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !hasDrawContent) {
             return false;
         }
@@ -272,17 +274,19 @@ export default class HUD {
     prepareText() {
         this.text = '';
         // If render inited
-        if(!Game.render || !Game.world || !Game.world.player) {
+        if(!Game.render || !Game.world || !Game.player) {
             return;
         }
+        let world = Game.world;
+        let player = Game.player;
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
             this.text += '\nRenderer: ' + vci.renderer;
         }
-        this.text += 'FPS: ' + Math.round(fps.fps) + ' / ' + (Math.round(1000 / fps.avg * 100) / 100) + ' ms';
+        this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
-        let mat = Game.world.player.buildMaterial;
+        let mat = player.buildMaterial;
         if(mat) {
             this.text += ' ' + mat.id + ' / ' + mat.name;
             if(mat.fluid) {
@@ -291,35 +295,31 @@ export default class HUD {
         } else {
             this.text += 'NULL';
         }
-        this.text += '\nGame mode: ' + Game.world.game_mode.getCurrent().title;
-        if(performance.now() - Game.last_saved_time < 3000) {
-            this.text += '\nSaved ... OK';
+        this.text += '\nGame mode: ' + world.game_mode.getCurrent().title;
+        if(world.server.ping_value) {
+            this.text += '\nPING: ' + Math.round(world.server.ping_value) + ' ms';
         }
-        // text += '\nUsername: ' + Game.username;
-        if(Game.world.server.ping_value) {
-            this.text += '\nPING: ' + Math.round(Game.world.server.ping_value) + ' ms';
-        }
-        let time = Game.world.getTime();
+        let time = world.getTime();
         if(time) {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
         }
         // If render inited
         if(Game.render) {
             // Chunks inited
-            this.text += '\nChunks drawed: ' + Math.round(Game.world.chunkManager.rendered_chunks.fact) + ' / ' + Game.world.chunkManager.rendered_chunks.total + ' (' + Game.world.chunkManager.CHUNK_RENDER_DIST + ')';
+            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + world.chunkManager.CHUNK_RENDER_DIST + ')';
             //
-            let quads_length_total = Game.world.chunkManager.vertices_length_total;
+            let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
                 ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
             //
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
         //
-        // this.text += '\nChunks update: ' + (Game.world.chunkManager.update_chunks ? 'ON' : 'OFF');
+        // this.text += '\nChunks update: ' + (world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
-        let playerBlockPos = Game.world.player.getBlockPos();
-        let chunk = Game.world.player.overChunk;
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + fps.speed + ' km/h';
+        let playerBlockPos = player.getBlockPos();
+        let chunk = player.overChunk;
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
         if(chunk) {
             let biome = null;
             if(chunk.map) {
@@ -333,8 +333,7 @@ export default class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
-        for(let id of Object.keys(Game.world.players)) {
-            let player = Game.world.players[id];
+        for(let [id, player] of world.players.list) {
             if(id == 'itsme') {
                 continue;
             }
@@ -342,7 +341,7 @@ export default class HUD {
             if(player.itsme) {
                 this.text += ' <- YOU';
             } else {
-                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, Game.world.player.pos)) + 'm';
+                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, player.pos)) + 'm';
             }
             this.text += '\n';
         }
@@ -358,7 +357,7 @@ export default class HUD {
         if(!this.draw_info) {
             return;
         }
-        // let text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
+        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
         this.drawText(this.text, 10, 10);
     }
     

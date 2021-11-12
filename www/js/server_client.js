@@ -1,8 +1,8 @@
 import {Helpers, Vector} from "./helpers.js";
-import PlayerModel from "./player_model.js";
+import {PlayerModel} from "./player_model.js";
 import {BLOCK} from "./blocks.js";
 
-export default class ServerClient {
+export class ServerClient {
 
     // System
     static CMD_HELO                     = 1;
@@ -28,7 +28,6 @@ export default class ServerClient {
     static CMD_CHEST_CONTENT            = 46;
     static CMD_SET_CHEST_SLOT_ITEM      = 47; // Отправка на сервер новых данных слота текущего сундука
     //
-    static CMD_WORLD_STATE              = 60;
     static CMD_CHANGE_POS_SPAWN         = 63;
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
@@ -52,9 +51,7 @@ export default class ServerClient {
             that._onMessage(e);
         };
         this.ws.onclose = function(event) {
-            Game.world.saveToDB(function() {
-                location.reload();
-            });
+            location.reload();
         };
         this.ws.onopen = function(event) {
             onOpenCallback(event);
@@ -83,7 +80,7 @@ export default class ServerClient {
             // parse command
             switch(cmd.event) {
                 case ServerClient.CMD_CONNECTED: {
-                    Game.world.onServerConnect(cmd.data);
+                    Game.postServerConnect(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_BLOCK_SET: {
@@ -103,7 +100,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.world.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
+                    Game.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
                     break;
                 }
                 case ServerClient.CMD_CHEST_CONTENT: {
@@ -111,49 +108,19 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_PLAYER_JOIN: {
-                    let data = cmd.data;
-                    Game.world.players[data.id] = new PlayerModel({
-                        id:             data.id,
-                        itsme:          data.nickname == Game.world.session.username,
-                        pos:            data.pos,
-                        pitch:          data.rotate.x,
-                        yaw:            data.rotate.z,
-                        skin:           Game.skins.getById(data.skin),
-                        nick:           data.nickname
-                    });
+                    Game.world.players.add(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_PLAYER_LEAVE: {
-                    let data = cmd.data;
-                    delete(Game.world.players[data.id]);
+                    Game.world.players.delete(cmd.data.id);
                     break;
                 }
                 case ServerClient.CMD_PLAYER_STATE: {
-                    let data = cmd.data;
-                    let pl = Game.world.players[data.id];
-                    if(pl) {
-                        if(Helpers.distance(data.pos, pl.pos) > 0.001) {
-                            pl.moving = true;
-                        }
-                        pl.pos      = data.pos;
-                        pl.pitch    = data.rotate.x;
-                        pl.yaw      = data.rotate.z;
-                        if(pl.moving_timeout) {
-                            clearTimeout(pl.moving_timeout);
-                        }
-                        pl.moving_timeout = window.setTimeout(function() {
-                            pl.moving = false
-                        }, 100);
-                    }
-                    break;
-                }
-                case ServerClient.CMD_WORLD_STATE: {
-                    let data = cmd.data;
-                    Game.world.setServerState(data);
+                    Game.world.players.setState(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_TELEPORT: {
-                    Game.world.player.setPosition(cmd.data.pos);
+                    Game.player.setPosition(cmd.data.pos);
                     break;
                 }
                 case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
@@ -161,7 +128,7 @@ export default class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_ENTITY_INDICATORS: {
-                    Game.world.player.indicators = cmd.data.indicators;
+                    Game.player.indicators = cmd.data.indicators;
                     break;
                 }
             }

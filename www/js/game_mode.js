@@ -1,3 +1,5 @@
+import {DEFAULT_PICKAT_DIST} from "./pickat.js";
+
 export const GAME_MODE = {};
     GAME_MODE.CREATIVE = 'creative';
     GAME_MODE.SURVIVAL = 'survival';
@@ -62,7 +64,7 @@ export class GameMode {
         for(let mode of this.modes) {
             if(mode.id == id) {
                 this.current = mode;
-                let player = this.world.player;
+                let player = Game.player;
                 if(player) {
                     if(!mode.can_fly) {
                         player.setFlying(false);
@@ -88,6 +90,11 @@ export class GameMode {
         }
         let id = this.modes[index % this.modes.length].id;
         this.setMode(id);
+    }
+
+    // getPickatDistance...
+    getPickatDistance() {
+        return (DEFAULT_PICKAT_DIST * (this.isCreative() ? 2 : 1)) | 0;
     }
 
 }

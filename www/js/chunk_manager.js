@@ -1,6 +1,6 @@
 import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import {Chunk, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk.js";
-import ServerClient from "./server_client.js";
+import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 16;
@@ -89,8 +89,8 @@ export class ChunkManager {
             }
         }
         // Init webworkers
-        let world_state = world.saved_state.world;
-        this.postWorkerMessage(['init', world_state.generator, world_state.seed, world_state.guid]);
+        let world_info = world.info;
+        this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
         this.postLightWorkerMessage(['init', null]);
     }
 
@@ -213,20 +213,15 @@ export class ChunkManager {
     };
 
     // Update
-    update() {
+    update(player_pos) {
         if(!this.update_chunks || !this.worker_inited || !this.nearby_modified_list) {
             return false;
         }
-        let world = this.world;
-        if(!world.player) {
-            return;
-        }
-        let player = world.player;
         let frustum = Game.render.frustum;
         let chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         let div2 = new Vector(2, 2, 2);
         var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        let chunkAddr = getChunkAddr(player.pos.x, player.pos.y, player.pos.z);
+        let chunkAddr = getChunkAddr(player_pos.x, player_pos.y, player_pos.z);
         if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
             this.poses = [];
             this.prev_margin = this.margin;
@@ -405,16 +400,17 @@ export class ChunkManager {
     }
 
     // destroyBlock
-    destroyBlock(pos, is_modify) {
+    destroyBlock(pos) {
+        let render = Game.render;
         let block = this.getBlock(pos.x, pos.y, pos.z);
         if(block.id == BLOCK.TULIP.id) {
-            this.world.renderer.setBrightness(.15);
+            render.setBrightness(.15);
         } else if(block.id == BLOCK.DANDELION.id) {
-            this.world.renderer.setBrightness(1);
+            render.setBrightness(1);
         } else if(block.id == BLOCK.CACTUS.id) {
-            this.world.setRain(true);
+            render.setRain(true);
         }
-        this.world.destroyBlock(block, pos);
+        render.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
     }
 
