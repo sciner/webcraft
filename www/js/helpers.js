@@ -717,3 +717,33 @@ export class Vector4 {
     }
 
 }
+
+// AverageClockTimer
+export class AverageClockTimer {
+
+    constructor() {
+        this.prev       = null,
+        this.min        = null,
+        this.max        = null,
+        this.avg        = null,
+        this.sum        = 0,
+        this.history    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    add(value) {
+        this.prev = value;
+        if(this.min === null || this.min > value) {
+            this.min = value;
+        }
+        if(this.max === null || this.max < value) {
+            this.max = value;
+        }
+        this.sum -= this.history.shift();
+        this.sum += value;
+        this.history.push(value);
+        this.avg = (this.sum / this.history.length) || 0;
+    }
+
+}

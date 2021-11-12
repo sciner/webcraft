@@ -17,7 +17,7 @@ export class Chat {
             send: function(text) {
                 this.add('YOU', text);
                 Game.world.server.SendMessage(text);
-                Game.setupMousePointerIfNoOpenWindows();
+                Game.setupMousePointer(true);
             },
             addSystem: function(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);

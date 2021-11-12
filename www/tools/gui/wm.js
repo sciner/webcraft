@@ -268,7 +268,7 @@ export class Window {
         this.visible = false;
         this.resetHover();
         this.onHide();
-        if(Game.hud) {
+        if(typeof Game !== 'undefined' && Game.hud) {
             Game.hud.prevDrawTime = 0;
         }
     }

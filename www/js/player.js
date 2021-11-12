@@ -207,7 +207,7 @@ export class Player {
                 case KEY.ESC: {
                     if(down) {
                         this.chat.close();
-                        // Game.setupMousePointerIfNoOpenWindows();
+                        // Game.setupMousePointer(true);
                         return true;
                     }
                     break;
@@ -238,7 +238,7 @@ export class Player {
                 case KEY.E: {
                     if(!down) {
                         Game.hud.wm.closeAll();
-                        Game.setupMousePointer();
+                        Game.setupMousePointer(false);
                         return true;
                     }
                     break;
@@ -480,8 +480,8 @@ export class Player {
                 type:       e.type,
                 shiftKey:   e.shiftKey,
                 button:     e.button,
-                offsetX:    Game.mouseX * (Game.hud.width / Game.render.canvas.width),
-                offsetY:    Game.mouseY * (Game.hud.height / Game.render.canvas.height)
+                offsetX:    Game.controls.mouseX * (Game.hud.width / Game.render.canvas.width),
+                offsetY:    Game.controls.mouseY * (Game.hud.height / Game.render.canvas.height)
             });
             return false;
         }

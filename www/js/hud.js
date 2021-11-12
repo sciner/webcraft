@@ -5,7 +5,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 
-export default class HUD {
+export class HUD {
 
     constructor(width, height) {
 
@@ -196,14 +196,14 @@ export default class HUD {
         let new_width = null;
         let new_height = null;
     
-        if(Game.canvas.width > Game.canvas.height) {
+        if(Game.render.canvas.width > Game.render.canvas.height) {
             new_width =  Math.round(352 * 4.5);
-            new_height = Math.round(new_width * (Game.canvas.height / Game.canvas.width));
+            new_height = Math.round(new_width * (Game.render.canvas.height / Game.render.canvas.width));
             new_width = document.body.clientWidth;
             new_height = document.body.clientHeight;
         } else {
             new_height =  Math.round(332 * 3.5);
-            new_width = Math.round(new_height * (Game.canvas.width / Game.canvas.height));
+            new_width = Math.round(new_height * (Game.render.canvas.width / Game.render.canvas.height));
         }
 
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
@@ -357,7 +357,7 @@ export default class HUD {
         if(!this.draw_info) {
             return;
         }
-        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
+        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
         this.drawText(this.text, 10, 10);
     }
     

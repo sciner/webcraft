@@ -54,8 +54,6 @@ let gameCtrl = function($scope, $timeout) {
 
     window.Game                     = new GameClass();
 
-    Game.preload();
-
     $scope.App                      = Game.App = new UIApp();
     $scope.texture_pack             = new TexturePackManager($scope);
     $scope.skin                     = new SkinManager($scope);
@@ -269,15 +267,13 @@ let gameCtrl = function($scope, $timeout) {
         // Show Loading...
         Game.hud.draw();
         $timeout(function(){
-            // $scope.current_window.show('loading');
             $scope.settings.save();
-            $scope.Game.Start(world_guid, $scope.settings.form, (resource_loading_state) => {
+            let server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
+                '//' + location.hostname +
+                (location.port ? ':' + location.port : '') +
+                '/ws';
+            $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
-                /*
-                $timeout(function(){
-                    $scope.resource_loading_state = resource_loading_state;
-                });
-                */
             });
         });
     };

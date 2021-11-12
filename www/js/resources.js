@@ -6,7 +6,6 @@ export class Resources {
 
     /**
      * @param settings
-     * @param settings.hd hd textures
      * @param settings.glsl need glsl
      * @param settings.wgsl need wgls for webgpu
      * @param settings.imageBitmap return imageBitmap for image instead of Image
