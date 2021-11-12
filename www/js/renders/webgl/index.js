@@ -232,6 +232,7 @@ export default class WebGLRenderer extends BaseRenderer {
          */
         this.gl = null;
         this._textures = [];
+        this._shader = null;
         this._mat = null;
     }
 
@@ -315,7 +316,7 @@ export default class WebGLRenderer extends BaseRenderer {
         geom.bind(material.shader);
         material.shader.updatePos(a_pos, modelMatrix);
         gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
-        
+
         // stat
         this.stat.drawquads += geom.size;
         this.stat.drawcalls++;

@@ -183,27 +183,42 @@ export class BaseShader {
 
 }
 
-export class BaseTerrainShader extends BaseShader {
+export class GlobalUniformGroup {
+    constructor(options) {
+        this.projMatrix         = mat4.create();
+        this.viewMatrix         = mat4.create();
 
+        this.chunkBlockDist = 1;
+        this.brightness = 1;
+        this.resolution = [1, 1];
+        this.fogAddColor = [0,0,0,0];
+        this.fogColor = [1,1,1,1];
+        this.time = 0;
+
+        this.testLightOn = 0;
+        this.sunDir = [0, 0, 0];
+
+        this.updateID = 0;
+        this.camPos = new Vector();
+    }
+
+    update() {
+        this.updateID++;
+    }
+}
+
+export class BaseTerrainShader extends BaseShader {
     constructor(context, options) {
         super(context, options);
 
-        this.projMatrix         = mat4.create();
-        this.viewMatrix         = mat4.create();
+        this.globalUniforms = context.globalUniforms;
         this.modelMatrix        = mat4.create();
 
         this.blockSize = 1;
         this.pixelSize = 1;
-        this.chunkBlockDist = 1;
-        this.brightness = 1;
-        this.resolution = [1, 1];
         this.mipmap = 0;
-        this.fogAddColor = [0,0,0,0];
-        this.fogColor = [1,1,1,1];
         this.addPos = [0,0,0];
         this.texture = null;
-        this.camPos = new Vector();
-        this.u_time = 0;
     }
 
     bind() {
@@ -318,7 +333,6 @@ export class BaseCubeShader extends BaseShader {
 
         this.cull = false;
         this.depth = false;
-
     }
 
     set brightness (v) {
@@ -375,6 +389,8 @@ export default class BaseRenderer {
         this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(255)
         })
+
+        this.globalUniforms = new GlobalUniformGroup();
     }
 
     get kind() {

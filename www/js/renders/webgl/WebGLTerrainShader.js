@@ -53,6 +53,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.hasModelMatrix = false;
         this.time = performance.now();
 
+        this.globalID = -1;
     }
 
     bind() {
@@ -62,34 +63,38 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
     update() {
         const { gl } = this.context;
-        gl.uniformMatrix4fv(this.uModelMatrix, false, this.viewMatrix);
-        gl.uniformMatrix4fv(this.uProjMat, false, this.projMatrix);
+        const gu = this.globalUniforms;
+        if (this.globalID !== gu.updateID) {
+            return;
+        }
+        this.globalID = gu.updateID;
+
+        gl.uniformMatrix4fv(this.uModelMatrix, false, gu.viewMatrix);
+        gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
         gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
         this.hasModelMatrix = false;
         // gl.uniform1f(this.u_fogDensity, this.fogDensity);
-        gl.uniform4fv(this.u_fogColor, this.fogColor);
-        gl.uniform4fv(this.u_fogAddColor, this.fogAddColor);
+        gl.uniform4fv(this.u_fogColor, gu.fogColor);
+        gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
         gl.uniform1f(this.u_mipmap, this.mipmap);
-        gl.uniform1f(this.u_brightness, this.brightness);
-        gl.uniform1f(this.u_chunkBlockDist, this.chunkBlockDist);
-        gl.uniform3f(this.u_camera_pos, this.camPos.x, this.camPos.z, this.camPos.y);
+        gl.uniform1f(this.u_brightness, gu.brightness);
+        gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
+        gl.uniform3f(this.u_camera_pos, gu.camPos.x, gu.camPos.z, gu.camPos.y);
 
-        gl.uniform1f(this.u_blockSize, this.blockSize);
-        gl.uniform1f(this.u_pixelSize, this.pixelSize);
-        gl.uniform2fv(this.u_resolution, this.resolution);
-        gl.uniform1f(this.u_TestLightOn, this.testLightOn);
-        gl.uniform3fv(this.u_SunDir, this.sunDir);
+        gl.uniform2fv(this.u_resolution, gu.resolution);
+        gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
+        gl.uniform3fv(this.u_SunDir, gu.sunDir);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
         gl.uniform1i(this.u_texture, 4);
-        gl.uniform1f(this.u_time, this.time);
+        gl.uniform1f(this.u_time, gu.time);
         gl.uniform1i(this.u_lightTex, 5);
     }
 
     updatePos(pos, modelMatrix) {
         const { gl } = this.context;
-        const {camPos} = this;
+        const {camPos} = this.globalUniforms;
         if (pos) {
             gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.z - camPos.z, pos.y - camPos.y);
         } else {

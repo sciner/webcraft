@@ -46,7 +46,7 @@ export default class Particles_Raindrop {
         this.life   -= delta / 100000;
         delta       /= 1000;
         this.pos.y  += delta * -.40;
-        render.renderBackend.drawMesh(this.buffer, render.shader.materials.doubleface, this.pos, this.modelMatrix);
+        render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.doubleface, this.pos, this.modelMatrix);
     }
 
     destroy(render) {
