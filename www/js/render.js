@@ -311,10 +311,10 @@ export class Renderer {
         const {renderBackend, shader} = this;
         shader.bind();
         for(let [id, player] of this.world.players.list) {
-            //if(player.itsme && id != 'itsme') continue;
-            //if(player.id != this.world.server.id) {
+            if(player.itsme && id != 'itsme') continue;
+            if(player.id != this.world.server.id) {
                 player.draw(this, this.camPos, delta);
-            //}
+            }
         }
     }
 
