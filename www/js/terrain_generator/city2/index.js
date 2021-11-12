@@ -120,8 +120,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let cell = {biome: {dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0), code: 'City'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
+        let addr = chunk.addr;
+        let size = chunk.size;
+
         return {
-            chunk: chunk,
+            chunk: {
+                id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
+                blocks: {},
+                seed:   chunk.seed,
+                addr:   addr,
+                size:   size,
+                coord:  addr.mul(size),
+            },
             options: {
                 WATER_LINE: 63, // Ватер-линия
             },
