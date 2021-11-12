@@ -1,11 +1,10 @@
-"use strict";
 import GeometryTerrain from "./geometry_terrain.js";
-import {NORMALS, Vector, Helpers} from './helpers.js';
+import {NORMALS, Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 
 const {mat4} = glMatrix;
 
-export default class PlayerModel {
+export class PlayerModel {
 
     constructor(props) {
         this.texPlayer                  = null;

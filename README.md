@@ -29,14 +29,14 @@ ws.onopen = function(event) {
 Game.player.teleport('random', null);
 
 // Draw current user model at current location
-Game.world.createClone();
+Game.world.players.drawGhost(Game.player);
 
 // Toggle rain
-Game.world.setRain(true);
+Game.render.setRain(true);
 
 // Set block at current player coordanates
 let pp = Game.player.getBlockPos();
-Game.world.setBlock(pp.x, pp.y, pp.z, {id: 10}, 1, null);
+Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10});
 
 // Emulate user keyboard control
 // .walk(direction, duration_milliseconds)

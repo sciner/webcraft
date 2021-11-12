@@ -1,16 +1,13 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {fps} from "./fps.js";
 import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
-import ServerClient from "./server_client.js";
+import {ServerClient} from "./server_client.js";
 import HUD from "./hud.js";
 
-import {Chat} from "./chat.js";
-import Sounds from "./sounds.js";
-import Physics from "./physics.js";
-import Inventory from "./inventory.js";
+import {Sounds} from "./sounds.js";
+import {Physics} from "./physics.js";
 import {Hotbar} from "./hotbar.js";
 import {Player} from "./player.js";
 
@@ -35,7 +32,6 @@ export class GameClass {
         this.physics                = null; // physics simulator
         this.mouseX                 = 0;
         this.mouseY                 = 0;
-        this.inventory              = null;
         this.prev_player_state      = null;
         // Controls
         this.controls = {
@@ -100,10 +96,14 @@ export class GameClass {
         this.load(settings)
             .then(() => {
                 BLOCK.init().then(() => {
-                    this.world = new World(world_guid, settings);
+                    this.world = new World();
                     this.render.init(this.world, settings).then(() => {
                         (async () => {
-                            return this.world.connect(this.App.session.session_id);
+                            let server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
+                                '//' + location.hostname +
+                                (location.port ? ':' + location.port : '') +
+                                '/ws';
+                            return this.world.connect(server_url, this.App.session.session_id, world_guid);
                         })();
                     })
                 });
@@ -111,20 +111,16 @@ export class GameClass {
     }
 
     // postServerConnect...
-    postServerConnect() {
+    postServerConnect(info) {
+        // this.info           = info;
+        this.world.setInfo(info.world);
         //
-        this.fps            = fps;
         this.physics        = new Physics(this.world);
-        let player          = new Player();
+        let player          = new Player(this.world, info.player);
         this.player         = player;
         player.setInputCanvas('renderSurface');
         //
-        Game.hud.add(fps, 0);
-        this.inventory      = new Inventory(player, Game.hud);
-        this.hotbar         = new Hotbar(Game.hud, this.inventory);
-        //
-        player.setWorld(this.world);
-        player.chat         = new Chat();
+        this.hotbar         = new Hotbar(Game.hud, this.player.inventory);
         //
         this.setupMousePointer();
         this.world.renderer.updateViewport();
@@ -175,27 +171,31 @@ export class GameClass {
 
     // Render loop
     loop() {
-        let that    = this;
-        let player  = Game.player;
+        let player  = this.player;
         let tm      = performance.now();
-        if(that.controls.enabled) {
+        if(this.controls.enabled) {
             // Simulate physics
-            that.physics.simulate();
+            this.physics.simulate();
             // Update local player
             player.update();
         } else {
             player.lastUpdate = null;
         }
-        that.world.update();
+        this.world.chunkManager.update(player.pos);
+        //
+        // Picking target
+        if (player && player.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
+            player.pickAt.update(player.pos, this.world.game_mode.getPickatDistance());
+        }
         // Draw world
-        that.render.setCamera(player, player.getEyePos(), player.rotate);
-        that.render.draw(fps.delta);
+        this.render.setCamera(player, player.getEyePos(), player.rotate);
+        this.render.draw(this.hud.FPS.delta);
         // Send player state
-        that.sendPlayerState(player);
+        this.sendPlayerState(player);
         // Счетчик FPS
-        fps.incr();
-        that.loopTime.add(performance.now() - tm);
-        window.requestAnimationFrame(that.loop);
+        this.hud.FPS.incr();
+        this.loopTime.add(performance.now() - tm);
+        window.requestAnimationFrame(this.loop);
     }
 
     // Отправка информации о позиции и ориентации игрока на сервер

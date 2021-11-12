@@ -68,7 +68,7 @@ export class Chunk {
             this.addr.z * CHUNK_SIZE_Z
         );
 
-        this.seed = chunkManager.world.seed;
+        this.seed = chunkManager.world.info.seed;
         this.tblocks = null;
         this.isLive = true;
 

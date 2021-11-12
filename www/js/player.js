@@ -6,6 +6,8 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
+import Inventory from "./inventory.js";
+import {Chat} from "./chat.js";
 
 const PLAYER_HEIGHT                     = 1.7;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
@@ -13,8 +15,36 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 // Creates a new local player manager.
 export class Player {
 
-    constructor() {
-        this.inventory              = null;
+    constructor(world, info) {
+        this.info                   = info;
+        this.indicators             = info.indicators;
+        this.inventory              = new Inventory(this, Game.hud);
+        // Position
+        this.pos                    = new Vector(info.pos.x, info.pos.y, info.pos.z);
+        this.prevPos                = new Vector(this.pos);
+        this.lerpPos                = new Vector(this.pos);
+        this.posO                   = new Vector(0, 0, 0);
+        // Rotate
+        this.rotateDegree           = new Vector(0, 0, 0);
+        this.setRotate(info.rotate);
+        // Flying state
+        this.setFlying(!!info.flying);
+        // Assign the player to a world.
+        this.world                  = world;
+        this.previousForwardDown    = performance.now();
+        this.previousForwardUp      = performance.now();
+        this.keys                   = {};
+        this.eventHandlers          = {};
+        // pickAt
+        this.pickAt                 = new PickAt(world, world.renderer, (...args) => {
+            return this.onTarget(...args);
+        });
+        // Player control
+        this.pr                     = new PrismarinePlayerControl(world, this.pos);
+        this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
+        // Chat
+        this.chat                   = new Chat();
+        //
         this.client                 = null;
         this.falling                = false; // падает
         this.flying                 = false; // летит
@@ -40,35 +70,6 @@ export class Player {
         this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
         this.step_count             = 0;
-    }
-
-    // Assign the local player to a world.
-    setWorld(world) {
-        this.previousForwardDown    = performance.now();
-        this.previousForwardUp      = performance.now();
-        this.world                  = world;
-        this.keys                   = {};
-        this.eventHandlers          = {};
-        this.indicators             = world.saved_state.indicators;
-        // Position
-        this.pos                    = new Vector(world.saved_state.pos.x, world.saved_state.pos.y, world.saved_state.pos.z);
-        this.prevPos                = new Vector(this.pos);
-        this.lerpPos                = new Vector(this.pos);
-        this.posO                   = new Vector(0, 0, 0);
-        // Rotate
-        this.rotateDegree           = new Vector(0, 0, 0);
-        this.setRotate(world.saved_state.rotate);
-        // Flying state
-        if(world.saved_state) {
-            this.setFlying(!!world.saved_state.flying);
-        }
-        // pickAt
-        this.pickAt                 = new PickAt(this.world, this.world.renderer, (...args) => {
-            return this.onTarget(...args);
-        });
-        // Prismarine player control
-        this.pr                     = new PrismarinePlayerControl(world, this.pos);
-        this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
     }
 
     addRotate(vec3) {
@@ -142,7 +143,7 @@ export class Player {
             let block           = BLOCK.BLOCK_BY_ID.get(world_block.id);
             let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative(), this.getCurrentInstrument());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
-                this.world.destroyBlock(block, bPos, true);
+                Game.render.destroyBlock(block, bPos, true);
             }
             if(destroy_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
@@ -341,7 +342,7 @@ export class Player {
                                 z += 2;
                             }
                             x += 2;
-                            Game.world.setBlock(x, y, z, block, null, null, null, block.extra_data);
+                            Game.world.chunkManager.setBlock(x, y, z, block, true, null, null, null, block.extra_data);
                             cnt++;
                         }
                     } else {
@@ -362,7 +363,7 @@ export class Player {
             // Export world [F7]
             case KEY.F7: {
                 if(!down) {
-                    Game.world.createClone();
+                    Game.world.players.drawGhost(Game.player);
                 }
                 return true;
                 break;
@@ -392,7 +393,6 @@ export class Player {
             // F9 (toggleNight | Under rain)
             case KEY.F9: {
                 if(!down) {
-                    // Game.world.underWaterfall();
                     Game.world.renderer.toggleNight();
                 }
                 return true;
@@ -461,7 +461,7 @@ export class Player {
             if(keyCode == 48) {
                 keyCode = 58;
             }
-            Game.inventory.select(keyCode - 49);
+            this.inventory.select(keyCode - 49);
             return true;
         }
         // Running
@@ -539,7 +539,7 @@ export class Player {
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         let world           = this.world;
-        let pickat_dist     = this.world.getPickatDistance();
+        let pickat_dist     = this.world.game_mode.getPickatDistance();
         // Picking
         this.pickAt.get(this.pos, (pos) => {
             if(pos === false) {
@@ -566,7 +566,7 @@ export class Player {
                 if(world_block.sound) {
                     Game.sounds.play(world_block.sound, 'open');
                 }
-                world.setBlock(pos.x, pos.y, pos.z, world_block, null, rotate, null, extra_data);
+                world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_block, true, null, rotate, null, extra_data);
             } else if(createBlock) {
                 let replaceBlock = world_block && BLOCK.canReplace(world_block.id); // (world_block.fluid || world_block.id == BLOCK.GRASS.id);
                 if(!replaceBlock) {
@@ -619,7 +619,7 @@ export class Player {
                             pos.x -= pos.n.x;
                             pos.y -= pos.n.y;
                             pos.z -= pos.n.z;
-                            world.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, null, rotate, null, extra_data);
+                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data);
                         }
                     }
                 } else {
@@ -632,7 +632,7 @@ export class Player {
                                 Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                             }
                         } else {
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, rotateDegree, null, extra_data);
+                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
                         }
                     } else {
                         // Create block
@@ -700,7 +700,7 @@ export class Player {
                                     }
                                 }
                             }
-                            world.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, null, rotateDegree, null, extra_data);
+                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
                         }
                     }
                     this.inventory.decrement();
@@ -713,7 +713,7 @@ export class Player {
                     // delete plant over deleted block
                     if(BLOCK.isPlants(block_over.id)) {
                         pos.y++;
-                        world.chunkManager.destroyBlock(pos, true);
+                        world.chunkManager.destroyBlock(pos);
                     }
                 }
             } else if(cloneBlock) {
@@ -752,7 +752,7 @@ export class Player {
     // Удалить блок используя инструмент
     destroyBlock(block, pos, instrument) {
         instrument.destroyBlock(block);
-        this.world.chunkManager.destroyBlock(pos, true);
+        this.world.chunkManager.destroyBlock(pos);
     }
 
     // Returns the position of the eyes of the player for rendering.

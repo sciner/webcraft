@@ -1,5 +1,6 @@
 "use strict";
 
+import { Vector } from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth, VectorCollector} from "./helpers.js";
@@ -8,6 +9,11 @@ import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import { BLOCK } from "./blocks.js";
+import Particles_Block_Destroy from "./particles/block_destroy.js";
+import Particles_Raindrop from "./particles/raindrop.js";
+import Particles_Sun from "./particles/sun.js";
+import Particles_Clouds from "./particles/clouds.js";
+import {MeshManager} from "./mesh_manager.js";
 
 const {mat4} = glMatrix;
 
@@ -50,6 +56,8 @@ export class Renderer {
         this.sunDir             = [0.9593, 1.0293, 0.6293]; // [0.7, 1.0, 0.85];
         this.frustum            = new FrustumProxy();
         this.step_side          = 0;
+        this.clouds             = null;
+        this.rainTim            = null;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -57,19 +65,11 @@ export class Renderer {
                 depth: true,
                 premultipliedAlpha: false
             });
+        this.meshes = new MeshManager();
     }
 
     get gl() {
         return this.renderBackend.gl;
-    }
-
-    async genColorTexture(clr) {
-        const canvas2d = document.createElement('canvas');
-        canvas2d.width = canvas2d.height = 16;
-        const context = canvas2d.getContext('2d');
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, 16, 16);
-        return canvas2d;
     }
 
     async init(world, settings) {
@@ -217,6 +217,12 @@ export class Renderer {
             }
             this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }
+        // Clouds
+        if(!this.clouds) {
+            let pos = new Vector(player.pos);
+            pos.y = 128.1;
+            this.clouds = this.createClouds(pos);
+        }
         //
         this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
         for(let transparent of [false, true]) {
@@ -251,7 +257,9 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if(shader.texture) {
                     shader.bind();
-                    this.world.draw(this, delta);
+                    this.meshes.draw(this, delta);
+                    // this.world.draw(this, delta);
+                    player.pickAt.draw();
                     // 3. Draw players and rain
                     this.drawPlayers(delta);
                 }
@@ -266,12 +274,44 @@ export class Renderer {
         renderBackend.endFrame();
     }
 
+    // destroyBlock
+    destroyBlock(block, pos, small) {
+        this.meshes.add(new Particles_Block_Destroy(this.gl, block, pos, small));
+    }
+
+    // rainDrop
+    rainDrop(pos) {
+        this.meshes.add(new Particles_Raindrop(this.gl, pos));
+    }
+
+    // createClouds
+    createClouds(pos) {
+        // @todo Переделать в связи с появлением TBlock
+        return this.meshes.add(new Particles_Clouds(this.gl, pos));
+    }
+
+    // setRain
+    setRain(value) {
+        if(value) {
+            if(!this.rainTim) {
+                this.rainTim = setInterval(() => {
+                    let pos = Game.player.pos;
+                    this.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
+                }, 25);
+            }
+        } else {
+            if(this.rainTim) {
+                clearInterval(this.rainTim);
+                this.rainTim = null;
+            }
+        }
+    }
+
     // drawPlayers
     drawPlayers(delta) {
         const {renderBackend, shader} = this;
         shader.bind();
-        for(let id of Object.keys(this.world.players)) {
-            let player = this.world.players[id];
+        for(let [id, player] of this.world.players.list) {
             if(player.itsme && id != 'itsme') continue;
             if(player.id != this.world.server.id) {
                 player.draw(this, this.camPos, delta);

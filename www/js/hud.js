@@ -1,6 +1,6 @@
 import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
-import {fps} from "./fps.js";
+import {FPSCounter} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
@@ -34,6 +34,8 @@ export default class HUD {
         this.items                      = [];
         this.prevInfo                   = null;
         this.prevDrawTime               = 0;
+
+        this.FPS                        = new FPSCounter();
 
         // Vignette
         // this.makeVignette(width, height);
@@ -282,7 +284,7 @@ export default class HUD {
         if(!vci.error) {
             this.text += '\nRenderer: ' + vci.renderer;
         }
-        this.text += 'FPS: ' + Math.round(fps.fps) + ' / ' + (Math.round(1000 / fps.avg * 100) / 100) + ' ms';
+        this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
         let mat = player.buildMaterial;
         if(mat) {
@@ -317,7 +319,7 @@ export default class HUD {
         // Console =)
         let playerBlockPos = player.getBlockPos();
         let chunk = player.overChunk;
-        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + fps.speed + ' km/h';
+        this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
         if(chunk) {
             let biome = null;
             if(chunk.map) {
@@ -331,8 +333,7 @@ export default class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
-        for(let id of Object.keys(world.players)) {
-            let player = world.players[id];
+        for(let [id, player] of world.players.list) {
             if(id == 'itsme') {
                 continue;
             }
@@ -356,7 +357,7 @@ export default class HUD {
         if(!this.draw_info) {
             return;
         }
-        // let text = 'FPS: ' + Math.round(fps.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
+        // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.loopTime.avg);
         this.drawText(this.text, 10, 10);
     }
     

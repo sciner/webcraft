@@ -96,7 +96,6 @@ export default class InventoryWindow extends BaseCraftWindow {
         let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
-            Game.world.saveToDB();
         }
         ct.add(btnClose);
     }

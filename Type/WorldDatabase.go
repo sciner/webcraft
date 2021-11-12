@@ -277,7 +277,9 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 		return nil, err
 	}
 	defer rows.Close()
-	world := &Struct.WorldProperties{}
+	world := &Struct.WorldProperties{
+		State: &Struct.WorldState{},
+	}
 	var generator string
 	var pos_spawn string
 	var unix_time int64
@@ -312,6 +314,8 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 	}
 	//
 	world.Dt = time.Unix(unix_time, 0)
+	world.GameMode = "Survival"
+	log.Println(unix_time)
 	// Generator
 	err = json.Unmarshal([]byte(generator), &world.Generator)
 	if err != nil {

@@ -19,10 +19,8 @@ export default class Inventory {
             this.items.push(null);
         }
         //
-        this.restoreItems(Game.world.saved_state.inventory);
-        this.select(Game.world.saved_state.inventory.current.index);
-        // set inventory to user
-        this.player.setInventory(this);
+        this.restoreItems(player.info.inventory);
+        this.select(player.info.inventory.current.index);
         //
         let image = new Image(); // new Image(40, 40); // Размер изображения
         image.onload = () => {

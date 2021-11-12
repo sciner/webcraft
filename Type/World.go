@@ -29,9 +29,7 @@ type (
 		Connections      map[string]*PlayerConn // Registered connections.
 		Chunks           map[Struct.Vector3]*Chunk
 		Entities         *EntityManager
-		CreateTime       time.Time // Время создания, time.Now()
 		Directory        string
-		State            *Struct.WorldState
 		Db               *WorldDatabase
 		DBGame           *GameDatabase
 		Chat             *Chat
@@ -67,8 +65,6 @@ func (this *World) Load(guid string) {
 		GUID: guid,
 	}
 	this.Directory = this.GetDir()
-	this.CreateTime = this.getDirectoryCTime(this.Directory)
-	this.State = &Struct.WorldState{}
 	this.Db = GetWorldDatabase(this.Directory + "/world.sqlite")
 	//
 	this.Db.Init()
@@ -86,6 +82,7 @@ func (this *World) Load(guid string) {
 		return
 	}
 	this.Properties = world_properties
+	this.updateWorldState()
 	//
 	this.Entities.Load(this)
 	//
@@ -118,15 +115,15 @@ func (this *World) getTimer() int64 {
 func (this *World) updateWorldState() {
 	currentTime := time.Now()
 	// возраст в реальных секундах
-	diff_sec := currentTime.Sub(this.CreateTime).Seconds()
+	diff_sec := currentTime.Sub(this.Properties.Dt).Seconds()
 	// один игровой день в реальных секундах
 	game_day_in_real_seconds := float64(86400 / Struct.GAME_ONE_SECOND) // 1200
 	// возраст в игровых днях
 	age := diff_sec / game_day_in_real_seconds // например 215.23
 	// возраст в ЦЕЛЫХ игровых днях
-	this.State.Age = int64(math.Floor(age)) // например 215
+	this.Properties.State.Age = int64(math.Floor(age)) // например 215
 	// количество игровых секунд прошедших в текущем игровом дне
-	this.State.DayTime = int64((age - float64(this.State.Age)) * float64(Struct.GAME_DAY_SECONDS))
+	this.Properties.State.DayTime = int64((age - float64(this.Properties.State.Age)) * float64(Struct.GAME_DAY_SECONDS))
 }
 
 // OnPlayer...
@@ -182,31 +179,19 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 	this.SendAll(packets, []string{})
 	// 6. Write to chat about new player
 	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
-	// 7. Send World State for new player
-	cons := make(map[string]*PlayerConn, 0)
-	cons[conn.ID] = conn
-	this.SendWorldState(cons)
-	player_state.World = this.Properties
-	this.SendPlayerState(conn, player_state)
+	// 7. Send CMD_CONNECTED
+	this.SendConnectedInfo(conn, player_state, this.Properties)
 }
 
-// SendPlayerState
-func (this *World) SendPlayerState(conn *PlayerConn, player_state *Struct.PlayerState) {
-	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: player_state, ID: nil}
+// SendConnectedInfo
+func (this *World) SendConnectedInfo(conn *PlayerConn, player_state *Struct.PlayerState, world_state *Struct.WorldProperties) {
+	data := &Struct.ParamWorldState{
+		Player: player_state,
+		World:  world_state,
+	}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: data, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
-}
-
-// Send World State
-func (this *World) SendWorldState(connections map[string]*PlayerConn) {
-	this.updateWorldState()
-	packet3 := Struct.JSONResponse{Name: Struct.CMD_WORLD_STATE, Data: this.State, ID: nil}
-	packets3 := []Struct.JSONResponse{packet3}
-	if len(connections) > 0 {
-		this.SendSelected(packets3, connections, []string{})
-	} else {
-		this.SendAll(packets3, []string{})
-	}
 }
 
 // SendSystemChatMessage...

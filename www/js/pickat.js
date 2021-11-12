@@ -265,7 +265,7 @@ export class PickAt {
         }
         this.calcDamage();
         // draw
-        this.draw();
+        // this.draw();
     }
 
     // calcDamage...

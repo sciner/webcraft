@@ -164,7 +164,7 @@ export class Chat {
                     break;
                 }
                 case '/seed': {
-                    chat.messages.addSystem('Ключ генератора [' + world.seed + ']');
+                    chat.messages.addSystem('Ключ генератора [' + world.info.seed + ']');
                     break;
                 }
                 case '/gamemode': {
@@ -199,12 +199,12 @@ export class Chat {
                         let name = temp[0].trim().toLowerCase();
                         switch(name) {
                             case 'rain': {
-                                world.setRain(true);
+                                Game.render.setRain(true);
                                 chat.messages.addSystem('Установлена дождливая погода');
                                 break;
                             }
                             case 'clear': {
-                                world.setRain(false);
+                                Game.render.setRain(false);
                                 chat.messages.addSystem('Установлена ясная погода');
                                 break;
                             }

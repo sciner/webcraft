@@ -1,6 +1,6 @@
 import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
 import {Chunk, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk.js";
-import ServerClient from "./server_client.js";
+import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 16;
@@ -89,8 +89,8 @@ export class ChunkManager {
             }
         }
         // Init webworkers
-        let world_state = world.saved_state.world;
-        this.postWorkerMessage(['init', world_state.generator, world_state.seed, world_state.guid]);
+        let world_info = world.info;
+        this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
         this.postLightWorkerMessage(['init', null]);
     }
 
@@ -400,16 +400,17 @@ export class ChunkManager {
     }
 
     // destroyBlock
-    destroyBlock(pos, is_modify) {
+    destroyBlock(pos) {
+        let render = Game.render;
         let block = this.getBlock(pos.x, pos.y, pos.z);
         if(block.id == BLOCK.TULIP.id) {
-            this.world.renderer.setBrightness(.15);
+            render.setBrightness(.15);
         } else if(block.id == BLOCK.DANDELION.id) {
-            this.world.renderer.setBrightness(1);
+            render.setBrightness(1);
         } else if(block.id == BLOCK.CACTUS.id) {
-            this.world.setRain(true);
+            render.setRain(true);
         }
-        this.world.destroyBlock(block, pos);
+        render.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
     }
 

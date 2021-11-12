@@ -89,11 +89,6 @@ export default class MainMenu extends Window {
             color: 'rgba(0, 0, 0, 0.5)'
         }
         btnClose.onMouseDown = function(e) {
-            /*Game.world.saveToDB(function() {
-                // document.exitFullscreen();
-                location.reload();
-            });
-            */
             location.reload();
         }
         btnClose.onMouseEnter = function() {

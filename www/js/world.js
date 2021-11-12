@@ -1,178 +1,51 @@
 import {ChunkManager} from "./chunk_manager.js";
-import {Vector} from "./helpers.js";
-import Particles_Block_Destroy from "./particles/block_destroy.js";
-import Particles_Raindrop from "./particles/raindrop.js";
-import Particles_Sun from "./particles/sun.js";
-import Particles_Clouds from "./particles/clouds.js";
-import PlayerModel from "./player_model.js";
 import {GameMode} from "./game_mode.js";
-import ServerClient from "./server_client.js";
-import {MeshManager} from "./mesh_manager.js";
-import {DEFAULT_PICKAT_DIST} from "./pickat.js";
+import {PlayerManager} from "./player_manager.js";
+import {ServerClient} from "./server_client.js";
 
 // World container
 export class World {
 
-    constructor(world_guid, settings) {
-        this.world_guid     = world_guid;
-        this.settings       = settings;
-        this.players        = [];
+    constructor() {
+        this.players = new PlayerManager();
     }
 
-    // Create server client
-    async connect(session_id) {
-        let serverURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
-            '//' + location.hostname +
-            (location.port ? ':' + location.port : '') +
-            '/ws';
+    // Create server client and connect to world
+    async connect(server_url, session_id, world_guid) {
         return new Promise(res => {
-            const server = new ServerClient(serverURL, session_id, () => {
+            const server = new ServerClient(server_url, session_id, () => {
                 this.server = server;
-                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: this.world_guid}});
+                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world_guid}});
                 res(this.server);
             });
         });
     }
 
-    // Это вызывается после того, как пришло состояние игрока по вебсокету
-    onServerConnect(state) {
-        //
-        this.saved_state = state;
-        //
-        this.saved_state    = state;
-        this.seed           = state.seed;
-        this.clouds         = null;
-        this.rainTim        = null;
-        //
-        Game.postServerConnect();
-        //
-        this.chunkManager   = new ChunkManager(this);
-        this.meshes         = new MeshManager();
-        //
-        if(state.hasOwnProperty('chunk_render_dist')) {
-            this.chunkManager.setRenderDist(state.chunk_render_dist);
-        }
-        // Game mode
-        this.game_mode = new GameMode(this, state.game_mode);
+    // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
+    setInfo(info) {
+        this.info                   = info;
+        this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
+        this.game_mode              = new GameMode(this, info.game_mode);
+        this.chunkManager           = new ChunkManager(this);
     }
 
-    // setServerState...
-    setServerState(server_state) {
-        this.server_state = server_state;
-        this.server_state_give_time = performance.now();
-    }
-
-    // getTime...
+    // Возвращает игровое время
     getTime() {
-        if(!this.server_state) {
+        if(!this.world_state) {
             return null;
         }
-        let add = (performance.now() - this.server_state_give_time) / 1000 / 1200 * 24000 | 0;
-        let time = (this.server_state.day_time + 6000 + add) % 24000 | 0;
+        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
+        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
         let hours = time / 1000 | 0;
         let minutes = (time - hours * 1000) / 1000 * 60 | 0;
         let minutes_string = minutes > 9 ? minutes : '0' + minutes;
         let hours_string = hours > 9 ? hours : '0' + hours;
         return {
-            day:        this.server_state.age,
+            day:        this.world_state.age,
             hours:      hours,
             minutes:    minutes,
             string:     hours_string + ':' + minutes_string
         };
-    }
-
-    // getPickatDistance...
-    getPickatDistance() {
-        return (DEFAULT_PICKAT_DIST * (this.game_mode.isCreative() ? 2 : 1)) | 0;
-    }
-
-    // Draw
-    draw(render, delta) {
-        // Meshes
-        this.meshes.draw(render, delta);
-        // Clouds
-        if(!this.clouds) {
-            let pos = new Vector(this.saved_state.pos);
-            pos.y = 128.1;
-            this.clouds = this.createClouds(pos);
-        }
-        // Picking target
-        let player = Game.player;
-        if (player && player.pickAt && Game.hud.active && this.game_mode.canBlockAction()) {
-            player.pickAt.update(player.pos, this.getPickatDistance());
-        }
-        return true;
-    }
-
-    //
-    createClone() {
-        let player = Game.player;
-        this.players['itsme'] = new PlayerModel({
-            id:             'itsme',
-            itsme:          true,
-            rotate:         player.rotate.clone(),
-            pos:            player.pos.clone(),
-            pitch:          player.rotate.x,
-            yaw:            player.rotate.z,
-            skin:           Game.skins.getById(Game.skin.id),
-            nick:           Game.App.session.username
-        });
-    };
-
-    // setBlock
-    setBlock(x, y, z, type, power, rotate, entity_id, extra_data) {
-        this.chunkManager.setBlock(x, y, z, type, true, power, rotate, entity_id, extra_data);
-    }
-
-    // destroyBlock
-    destroyBlock(block, pos, small) {
-        this.meshes.add(new Particles_Block_Destroy(this.renderer.gl, block, pos, small));
-    }
-
-    // rainDrop
-    rainDrop(pos) {
-        this.meshes.add(new Particles_Raindrop(this.renderer.gl, pos));
-    }
-
-    // createClouds
-    createClouds(pos) {
-        // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this.renderer.gl, pos));
-    }
-
-    // setRain
-    setRain(value) {
-        if(value) {
-            if(!this.rainTim) {
-                this.rainTim = setInterval(function(){
-                    let pos = Game.player.pos;
-                    Game.world.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
-                }, 25);
-            }
-        } else {
-            if(this.rainTim) {
-                clearInterval(this.rainTim);
-                this.rainTim = null;
-            }
-        }
-    }
-
-    // underWaterfall
-    underWaterfall() {
-        this.setBlock(parseInt(Game.player.pos.x), CHUNK_SIZE_Y - 1, parseInt(Game.player.pos.z), BLOCK.FLOWING_WATER, 1);
-    }
-
-    // update
-    update() {
-        this.chunkManager.update(Game.player.pos);
-    }
-
-    // saveToDB
-    saveToDB(callback) {
-        if(callback) {
-            callback();
-        }
-        return;
     }
 
 }

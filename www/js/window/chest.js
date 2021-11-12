@@ -49,7 +49,6 @@ export default class ChestWindow extends Window {
             }
             this.getRoot().drag.clear();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');
-            Game.world.saveToDB();
         }
 
         // Add labels to window

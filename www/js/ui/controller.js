@@ -96,7 +96,7 @@ let gameCtrl = function($scope, $timeout) {
         visible: false,
         url: '',
         toggle: function() {
-            this.url = location.protocol + '//' + location.host + '#world_' + Game.world.saved_state.world.guid;
+            this.url = location.protocol + '//' + location.host + '#world_' + Game.world.info.guid;
             this.visible = !this.visible;
         },
         copy: function() {

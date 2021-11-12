@@ -206,7 +206,6 @@ export class CreativeInventoryWindow extends Window {
         let btnClose = new Button(ct.width - this.cell_size, 10, 20, 20, 'btnClose', '×');
         btnClose.onDrop = btnClose.onMouseDown = function(e) {
             ct.hide();
-            Game.world.saveToDB();
         }
         ct.add(btnClose);
     }
