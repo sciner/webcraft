@@ -35,5 +35,4 @@ export class ResourcePackManager {
             await value.initTextures(renderBackend, options);
         }
     }
-
 }

@@ -46,7 +46,7 @@ export class BaseTexture {
      * @param {number} height
      * @param {'linear' | 'nearest'} magFilter
      * @param {'linear' | 'nearest'} minFilter
-     * @param {number} anisotropy
+     * @param {TerrainTextureUniforms} style
      * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
      */
     constructor(context, {
@@ -54,15 +54,15 @@ export class BaseTexture {
         height = 1,
         magFilter = 'linear',
         minFilter = 'linear',
-        anisotropy = 0,
-        source = null
+        style = null,
+        source = null,
     } = {}) {
         this.width = width;
         this.height = height;
         this.magFilter = magFilter;
         this.minFilter = minFilter;
-        this.anisotropy = anisotropy;
         this.source = source;
+        this.style = style;
         this.context = context;
 
         this.id = BaseRenderer.ID++;
@@ -149,6 +149,7 @@ export class BaseMaterial {
         this.cullFace = options.cullFace || false;
         this.opaque = options.opaque || false;
         this.ignoreDepth = options.ignoreDepth || false;
+        this.mipmap = options.mipmap || false;
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
     }
 
@@ -183,27 +184,42 @@ export class BaseShader {
 
 }
 
-export class BaseTerrainShader extends BaseShader {
+export class GlobalUniformGroup {
+    constructor(options) {
+        this.projMatrix         = mat4.create();
+        this.viewMatrix         = mat4.create();
 
+        this.chunkBlockDist = 1;
+        this.brightness = 1;
+        this.resolution = [1, 1];
+        this.fogAddColor = [0,0,0,0];
+        this.fogColor = [1,1,1,1];
+        this.time = performance.now();
+
+        this.testLightOn = 0;
+        this.sunDir = [0, 0, 0];
+
+        this.updateID = 0;
+        this.camPos = new Vector();
+    }
+
+    update() {
+        this.updateID++;
+    }
+}
+
+export class BaseTerrainShader extends BaseShader {
     constructor(context, options) {
         super(context, options);
 
-        this.projMatrix         = mat4.create();
-        this.viewMatrix         = mat4.create();
+        this.globalUniforms = context.globalUniforms;
         this.modelMatrix        = mat4.create();
 
         this.blockSize = 1;
         this.pixelSize = 1;
-        this.chunkBlockDist = 1;
-        this.brightness = 1;
-        this.resolution = [1, 1];
         this.mipmap = 0;
-        this.fogAddColor = [0,0,0,0];
-        this.fogColor = [1,1,1,1];
         this.addPos = [0,0,0];
         this.texture = null;
-        this.camPos = new Vector();
-        this.u_time = 0;
     }
 
     bind() {
@@ -318,7 +334,6 @@ export class BaseCubeShader extends BaseShader {
 
         this.cull = false;
         this.depth = false;
-
     }
 
     set brightness (v) {
@@ -375,6 +390,8 @@ export default class BaseRenderer {
         this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(255)
         })
+
+        this.globalUniforms = new GlobalUniformGroup();
     }
 
     get kind() {

@@ -28,6 +28,7 @@ export default class ResourcePack extends BaseResourcePack {
             v.height = image.height;
             v.texture = renderBackend.createTexture({
                 source: await that.genMipMapTexture(image, settings),
+                style: await that.genTextureStyle(image, settings),
                 minFilter: 'nearest',
                 magFilter: 'nearest',
                 anisotropy: settings.mipmap ? 4.0 : 0.0,

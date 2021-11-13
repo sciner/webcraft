@@ -9,7 +9,7 @@ const {mat4} = glMatrix;
 const push_cube = push_cube_style.getRegInfo().func;
 
 class TBlock {
-    
+
     constructor(id) {this.id = id;}
 
     get material() {
@@ -127,7 +127,7 @@ export default class Particles_Clouds {
         // движение на восток
         let wind_move = delta * .01;
         this.pos.x -= wind_move;
-        render.renderBackend.drawMesh(this.buffer, render.shader.materials.transparent, this.pos, this.modelMatrix);
+        render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.transparent, this.pos, this.modelMatrix);
     }
 
     destroy(render) {

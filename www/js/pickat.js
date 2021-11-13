@@ -39,7 +39,7 @@ export class PickAt {
             cullFace: true,
             opaque: false,
             blendMode: BLEND_MODES.NORMAL,
-            shader: render.shader
+            shader: render.defaultShader,
         });
         // Material (target)
         this.material_target = this.material_damage.getSubMat(render.renderBackend.createTexture({

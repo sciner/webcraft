@@ -1,27 +1,52 @@
 import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
+import {TerrainTextureUniforms} from "../common.js";
 
 export class WebGLMaterial extends BaseMaterial {
-
     constructor(context, options) {
         super(context, options);
     }
 
     bind() {
         const { gl } = this.context;
+        const { shader } = this;
+
+        this.shader.bind();
+
+        const prevMat = this.shader._material;
+        if (prevMat === this)
+        {
+            return;
+        }
+        if (prevMat)
+        {
+            prevMat.unbind();
+        }
+
+        this.shader._material = this;
         if (!this.cullFace) {
             gl.disable(gl.CULL_FACE);
         }
         if (this.opaque) {
             gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
+        } else {
+            gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
         }
         if (this.ignoreDepth) {
             gl.disable(gl.DEPTH_TEST);
         }
+
+        const tex = this.texture || this.shader.texture;
         if (WebGLMaterial.texState !== this.texture) {
-            const tex = this.texture || this.shader.texture;
-            gl.uniform1f(this.shader.u_mipmap, tex.anisotropy);
             tex.bind(4);
             WebGLMaterial.texState = this.texture;
+        }
+        if (!prevMat || prevMat.texture !== this.texture)
+        {
+            const style = tex.style || TerrainTextureUniforms.default;
+
+            gl.uniform1f(shader.u_blockSize, style.blockSize);
+            gl.uniform1f(shader.u_pixelSize, style.pixelSize);
+            gl.uniform1f(shader.u_mipmap, style.mipmap);
         }
         if (WebGLMaterial.lightState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
@@ -42,9 +67,6 @@ export class WebGLMaterial extends BaseMaterial {
         if (!this.cullFace) {
             gl.enable(gl.CULL_FACE);
         }
-        /*if (this.opaque) {
-            gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
-        }*/
         if (this.ignoreDepth) {
             gl.enable(gl.DEPTH_TEST);
         }

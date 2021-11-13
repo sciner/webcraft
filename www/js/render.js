@@ -101,6 +101,8 @@ export class Renderer {
         await BLOCK.resource_pack_manager.initShaders(renderBackend);
         await BLOCK.resource_pack_manager.initTextures(renderBackend, settings);
 
+        this.globalUniforms = renderBackend.globalUniforms;
+
         // Make materials for all shaders
         for(let [_, rp] of BLOCK.resource_pack_manager.list) {
             rp.shader.materials = {
@@ -114,12 +116,12 @@ export class Renderer {
 
         // Prepare default resource pack shader
         let rp                  = BLOCK.resource_pack_manager.get('default');
-        this.shader             = rp.shader;
+        this.defaultShader             = rp.shader;
 
         // Create projection and view matrices
-        this.projMatrix         = this.shader.projMatrix;
-        this.viewMatrix         = this.shader.viewMatrix;
-        this.camPos             = this.shader.camPos;
+        this.projMatrix         = this.globalUniforms.projMatrix;
+        this.viewMatrix         = this.globalUniforms.viewMatrix;
+        this.camPos             = this.globalUniforms.camPos;
 
         this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
 
@@ -224,38 +226,42 @@ export class Renderer {
         }
         //
         this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
+
+        //updating global uniforms
+        let gu                  = this.globalUniforms;
+        // In water
+        if(player.eyes_in_water) {
+            gu.fogColor         = fogColor;
+            gu.chunkBlockDist   = 8;
+            gu.fogAddColor      = settings.fogUnderWaterAddColor;
+            gu.brightness       = this.brightness;
+        } else {
+            gu.fogColor         = fogColor;
+            gu.chunkBlockDist   = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+            gu.fogAddColor      = currentRenderState.fogAddColor;
+            gu.brightness       = this.brightness;
+        }
+        //
+        gu.time                 = performance.now();
+        gu.fogDensity           = currentRenderState.fogDensity;
+        gu.resolution           = [width, height];
+        gu.testLightOn          = this.testLightOn;
+        gu.sunDir               = this.sunDir;
+        gu.update();
+
+        this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;
+        this.defaultShader.bind(true);
+
         for(let transparent of [false, true]) {
             for(let [_, rp] of BLOCK.resource_pack_manager.list) {
-                let shader                  = rp.shader;
-                // In water
-                if(player.eyes_in_water) {
-                    shader.fogColor         = fogColor;
-                    shader.chunkBlockDist   = 8;
-                    shader.fogAddColor      = settings.fogUnderWaterAddColor;
-                    shader.brightness       = this.brightness;
-                } else {
-                    shader.fogColor         = fogColor;
-                    shader.chunkBlockDist   = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-                    shader.fogAddColor      = currentRenderState.fogAddColor;
-                    shader.brightness       = this.brightness;
-                }
-                //
-                shader.projMatrix           = this.shader.projMatrix;
-                shader.viewMatrix           = this.shader.viewMatrix;
-                shader.camPos               = this.shader.camPos;
-                shader.time                 = performance.now();
-                shader.fogDensity           = currentRenderState.fogDensity;
-                shader.resolution           = [width, height];
-                shader.testLightOn          = this.testLightOn;
-                shader.sunDir               = this.sunDir;
                 // 2. Draw chunks
                 this.world.chunkManager.draw(this, rp, transparent);
             }
             if(!transparent) {
-                let shader = this.shader;
+                let shader = this.defaultShader;
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
-                if(shader.texture) {
-                    shader.bind();
+                if (shader.texture) {
+                    shader.bind(true);
                     this.meshes.draw(this, delta);
                     // this.world.draw(this, delta);
                     player.pickAt.draw();
@@ -308,8 +314,8 @@ export class Renderer {
 
     // drawPlayers
     drawPlayers(delta) {
-        const {renderBackend, shader} = this;
-        shader.bind();
+        const {renderBackend, defaultShader} = this;
+        defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
             if(player.itsme && id != 'itsme') continue;
             if(player.id != this.world.server.id) {
@@ -372,7 +378,7 @@ export class Renderer {
         let matrix = new Float32Array(this.projMatrix);
         mat4.multiply(matrix, matrix, this.viewMatrix);
         this.frustum.setFromProjectionMatrix(matrix, this.camPos);
-        
+
         // Test frustum
         // let radius = 1;
         // let sphere = new Sphere(new Vector(2896.5, 67.5, 2790.5), Math.sqrt(3) * radius / 2);
