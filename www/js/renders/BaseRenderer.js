@@ -194,7 +194,7 @@ export class GlobalUniformGroup {
         this.resolution = [1, 1];
         this.fogAddColor = [0,0,0,0];
         this.fogColor = [1,1,1,1];
-        this.time = 0;
+        this.time = performance.now();
 
         this.testLightOn = 0;
         this.sunDir = [0, 0, 0];

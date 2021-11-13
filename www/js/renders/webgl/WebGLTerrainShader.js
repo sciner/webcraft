@@ -51,20 +51,45 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
 
         this.hasModelMatrix = false;
-        this.time = performance.now();
+
+        this._material = null;
 
         this.globalID = -1;
     }
 
-    bind() {
+    bind(force = false) {
         const {gl} = this.context;
+        const prevShader = this.context._shader;
+        if (prevShader === this && !force)
+        {
+            this.update();
+            return;
+        }
+        if (prevShader) {
+            prevShader.unbind();
+        }
+        this.context._shader = this;
         gl.useProgram(this.program);
+        this.update();
+    }
+
+    unbind() {
+        if (this._material)
+        {
+            this._material.unbind();
+            this._material = null;
+        }
+        this.context._shader = null;
     }
 
     update() {
         const { gl } = this.context;
         const gu = this.globalUniforms;
-        if (this.globalID !== gu.updateID) {
+        if (this.globalID === -1) {
+            gl.uniform1i(this.u_texture, 4);
+            gl.uniform1i(this.u_lightTex, 5);
+        }
+        if (this.globalID === gu.updateID) {
             return;
         }
         this.globalID = gu.updateID;
@@ -86,9 +111,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);
-        gl.uniform1i(this.u_texture, 4);
         gl.uniform1f(this.u_time, gu.time);
-        gl.uniform1i(this.u_lightTex, 5);
     }
 
     updatePos(pos, modelMatrix) {

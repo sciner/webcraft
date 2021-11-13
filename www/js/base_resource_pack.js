@@ -9,6 +9,7 @@ export class BaseResourcePack {
         this.id = null;
         this.dir = null;
         this.textures = new Map();
+        this.materials = new Map();
     }
 
     async init() {
@@ -137,5 +138,4 @@ export class BaseResourcePack {
         }
         return module.func(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
     }
-
 }

@@ -6,3 +6,4 @@ export class TerrainTextureUniforms {
     }
 }
 
+TerrainTextureUniforms.default = new TerrainTextureUniforms();

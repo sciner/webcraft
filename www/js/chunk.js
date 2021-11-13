@@ -147,43 +147,35 @@ export class Chunk {
 
     drawBufferGroup(render, resource_pack, group, mat) {
         let drawed = false;
-        for(let [_, v] of this.vertices) {
+        for(let [key, v] of this.vertices) {
             if(v.resource_pack_id == resource_pack.id && v.material_group == group) {
-                if(v.buffer) {
-                    // Apply texture
-                    let shader                  = resource_pack.shader;
-                    let texture                 = resource_pack.getTexture(v.texture_id);
-                    let terrainBlockSize        = texture.width / 512 * 16;
-                    let terrainTexSize          = texture.width;
-                    shader.texture              = texture.texture;
-                    shader.mipmap               = shader.texture.anisotropy;
-                    shader.blockSize            = terrainBlockSize / terrainTexSize;
-                    shader.pixelSize            = 1.0 / terrainTexSize;
-                    shader.texture.bind(4);
-                    shader.bind();
-                    shader.update();
-                    //
-                    if (this.lightData) {
-                        if (!this.lightTex) {
-                            this.lightTex = render.createTexture3D({
-                                width: this.size.x + 4,
-                                height: this.size.z + 4,
-                                depth: this.size.y + 4,
-                                type: 'u8',
-                                filter: 'linear',
-                                data: this.lightData
-                            })
-                        }
-                        let light_key = resource_pack.id + '/' + group;
-                        if (!this.lightMats[light_key]) {
-                            this.lightMats[light_key] = mat.getLightMat(this.lightTex)
-                        }
-                        render.drawMesh(v.buffer, this.lightMats[light_key], this.coord);
-                    } else {
-                        render.drawMesh(v.buffer, mat, this.coord);
-                    }
-                    drawed = true;
+                if(!v.buffer) {
+                    continue;
                 }
+                let texMat = resource_pack.materials.get(key);
+                if (!texMat) {
+                    texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
+                    resource_pack.materials.set(key, texMat);
+                }
+                if (this.lightData) {
+                    if (!this.lightTex) {
+                        this.lightTex = render.createTexture3D({
+                            width: this.size.x + 4,
+                            height: this.size.z + 4,
+                            depth: this.size.y + 4,
+                            type: 'u8',
+                            filter: 'linear',
+                            data: this.lightData
+                        })
+                    }
+                    if (!this.lightMats[key]) {
+                        this.lightMats[key] = texMat.getLightMat(this.lightTex)
+                    }
+                    render.drawMesh(v.buffer, this.lightMats[key], this.coord);
+                } else {
+                    render.drawMesh(v.buffer, texMat, this.coord);
+                }
+                drawed = true;
             }
         }
         return drawed;
