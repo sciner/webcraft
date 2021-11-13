@@ -29,9 +29,6 @@ export default class InventoryWindow extends BaseCraftWindow {
         //
         this.addPlayerBox();
 
-        // Add buttons
-        this.addCloseButton();
-
         this.dragItem = null;
 
         // Add buttons

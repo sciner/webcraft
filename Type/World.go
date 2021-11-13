@@ -156,7 +156,7 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 			params := &Struct.ParamPlayerJoin{
 				ID:       c.ID,
 				Skin:     c.Skin,
-				Nickname: c.Session.Username,
+				Username: c.Session.Username,
 				Pos:      c.Pos,
 				Rotate:   c.Rotate,
 			}
@@ -169,7 +169,7 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
-		Nickname: conn.Session.Username,
+		Username: conn.Session.Username,
 		Pos:      *player_state.Pos,
 		Rotate:   *player_state.Rotate,
 	}
@@ -197,7 +197,7 @@ func (this *World) SendConnectedInfo(conn *PlayerConn, player_state *Struct.Play
 // SendSystemChatMessage...
 func (this *World) SendSystemChatMessage(message string, except_conn_id_list []string) {
 	chatMessage := &Struct.ParamChatSendMessage{
-		Nickname: "<SERVER>",
+		Username: "<SERVER>",
 		Text:     message,
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
@@ -282,7 +282,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		var params *Struct.ParamPlayerState
 		json.Unmarshal(out, &params)
 		params.ID = conn.ID
-		params.Nickname = conn.Session.Username
+		params.Username = conn.Session.Username
 		packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_STATE, Data: params, ID: nil}
 		packets := []Struct.JSONResponse{packet}
 		// Update local position
@@ -409,14 +409,14 @@ func (this *World) PlayerLeave(conn *PlayerConn) {
 	params := &Struct.ParamPlayerJoin{
 		ID:       conn.ID,
 		Skin:     conn.Skin,
-		Nickname: conn.Session.Username,
+		Username: conn.Session.Username,
 	}
 	packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_LEAVE, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.SendAll(packets, []string{conn.ID})
 	// Write to chat about new player
 	chatMessage := &Struct.ParamChatSendMessage{
-		Nickname: "<SERVER>",
+		Username: "<SERVER>",
 		Text:     conn.Session.Username + " вышел из игры",
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}

@@ -434,4 +434,25 @@ export class ChunkManager {
         }
     }
 
+    //
+    setTestBlocks(pos) {
+        let d = 10;
+        let cnt = 0;
+        let startx = pos.x;
+        let all_items = BLOCK.getAll();
+        for(let i = 0; i < all_items.length; i++) {
+            let block = all_items[i]
+            if(block.fluid || block.is_item || !block.spawnable) {
+                continue;
+            }
+            if(cnt % d == 0) {
+                pos.x = startx;
+                pos.z += 2;
+            }
+            pos.x += 2;
+            this.setBlock(pos.x, pos.y, pos.z, block, true, null, null, null, block.extra_data);
+            cnt++;
+        }
+    }
+
 }

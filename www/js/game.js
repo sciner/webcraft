@@ -98,7 +98,7 @@ export class GameClass {
     loop() {
         let player  = this.player;
         let tm      = performance.now();
-        if(this.controls.enabled) {
+        if(this.controls.enabled && !this.hud.splash.loading) {
             // Simulate physics
             this.physics.simulate();
             // Update local player
@@ -107,7 +107,6 @@ export class GameClass {
             player.lastUpdate = null;
         }
         this.world.chunkManager.update(player.pos);
-        //
         // Picking target
         if (player.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, this.world.game_mode.getPickatDistance());

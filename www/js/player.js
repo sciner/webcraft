@@ -41,7 +41,7 @@ export class Player {
         };
         // pickAt
         this.pickAt                 = new PickAt(world, Game.render, (...args) => {
-            return this.onTarget(...args);
+            return this.onPickAtTarget(...args);
         });
         // Player control
         this.pr                     = new PrismarinePlayerControl(world, this.pos);
@@ -124,8 +124,8 @@ export class Player {
         }
     }
 
-    // onTarget
-    onTarget(bPos, e, times, number) {
+    // onPickAtTarget
+    onPickAtTarget(bPos, e, times, number) {
         // createBlock
         if(e.createBlock) {
             if(e.number > 1 && times < .2) {
@@ -160,6 +160,15 @@ export class Player {
         return true;
     }
 
+    //
+    onScroll(down) {
+        if(down) {
+            this.inventory.next();
+        } else {
+            this.inventory.prev();
+        }
+    }
+
     // Set the canvas the renderer uses for some input operations.
     setInputCanvas(id) {
         this.canvas = document.getElementById(id);
@@ -168,15 +177,6 @@ export class Player {
             onKeyPress: (...args) => {return this.onKeyPress(...args);},
             onKeyEvent: (...args) => {return this.onKeyEvent(...args);}
         });
-    }
-
-    //
-    onScroll(down) {
-        if(down) {
-            this.inventory.next();
-        } else {
-            this.inventory.prev();
-        }
     }
 
     // Hook for keyboard input.
@@ -191,45 +191,11 @@ export class Player {
 
         // Chat
         if(this.chat.active) {
-            switch(keyCode) {
-                case KEY.ARROW_UP:
-                case KEY.ARROW_DOWN: {
-                    if(down) {
-                        this.chat.historyNavigate(keyCode == KEY.ARROW_UP);
-                        return true;
-                    }
-                    break;
-                }
-                case KEY.F5: {
-                    return false;
-                    break;
-                }
-                case KEY.ESC: {
-                    if(down) {
-                        this.chat.close();
-                        // Game.setupMousePointer(true);
-                        return true;
-                    }
-                    break;
-                }
-                case KEY.BACKSPACE: {
-                    if(down) {
-                        this.chat.backspace();
-                        break;
-                    }
-                    return true;
-                }
-                case KEY.ENTER: {
-                    if(!down) {
-                        this.chat.submit();
-                    }
-                    return true;
-                    break;
-                }
-            }
+            this.chat.onKeyEvent(e, keyCode, down, first);
             return false;
         }
 
+        // Windows
         let vw = Game.hud.wm.getVisibleWindows();
         if(vw.length > 0) {
             switch(keyCode) {
@@ -247,38 +213,65 @@ export class Player {
             return;
         }
 
-        // Page Up
-        if(keyCode == KEY.PAGE_UP) {
-            if(down) {
-                Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST + 1);
-            }
-        }
-
-        // Set render distance [Page Down]
-        if(keyCode == KEY.PAGE_DOWN) {
-            if(down) {
-                Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST - 1);
-            }
-        }
-
-        // Flying [Space]
-        if(keyCode == KEY.SPACE && Game.world.game_mode.canFly() && !this.in_water && !this.onGround) {
-            if(down && first) {
-                if(!this.getFlying()) {
-                    this.setFlying(true);
-                    console.log('flying');
-                }
-            }
-        }
-
+        //
         if(this.keys[keyCode] && down) {
             // do nothing
         } else {
             this.keys[keyCode] = down ? performance.now(): false;
         }
+
+        // 0...9 (Select material)
+        if(!down && (keyCode >= 48 && keyCode <= 57)) {
+            if(keyCode == 48) {
+                keyCode = 58;
+            }
+            this.inventory.select(keyCode - 49);
+            return true;
+        }
+
         this.zoom = this.keys[KEY.C];
 
         switch(keyCode) {
+            // Page Up
+            case KEY.PAGE_UP: {
+                if(down) {
+                    Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST + 1);
+                }
+                break;
+            }
+            // Set render distance [Page Down]
+            case KEY.PAGE_DOWN: {
+                if(down) {
+                    Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST - 1);
+                }
+                break;
+            }
+            case KEY.SLASH: {
+                if(!down) {
+                    if(!this.chat.active) {
+                        this.chat.open(['/']);
+                    }
+                }
+                break;
+            }
+            case KEY.ENTER: {
+                if(!down) {
+                    this.chat.submit();
+                }
+                break;
+            }
+            // Flying [Space]
+            case KEY.SPACE: {
+                if(Game.world.game_mode.canFly() && !this.in_water && !this.onGround) {
+                    if(down && first) {
+                        if(!this.getFlying()) {
+                            // this.setFlying(true);
+                            console.log('flying');
+                        }
+                    }
+                }
+                break;
+            }
             // [F1]
             case KEY.F1: {
                 if(!down) {
@@ -299,26 +292,7 @@ export class Player {
             case KEY.F4: {
                 if(!down) {
                     if(e.shiftKey) {
-                        let x = (this.pos.x | 0) - 11;
-                        let y = this.pos.y | 0;
-                        let z = (this.pos.z | 0) - 13;
-                        let d = 10;
-                        let cnt = 0;
-                        let startx = x;
-                        let all_items = BLOCK.getAll();
-                        for(let i = 0; i < all_items.length; i++) {
-                            let block = all_items[i]
-                            if(block.fluid || block.is_item || !block.spawnable) {
-                                continue;
-                            }
-                            if(cnt % d == 0) {
-                                x = startx;
-                                z += 2;
-                            }
-                            x += 2;
-                            Game.world.chunkManager.setBlock(x, y, z, block, true, null, null, null, block.extra_data);
-                            cnt++;
-                        }
+                        Game.world.chunkManager.setTestBlocks(new Vector((this.pos.x | 0) - 11, this.pos.y | 0, (this.pos.z | 0) - 13));
                     } else {
                         this.changeSpawnpoint();
                     }
@@ -334,7 +308,7 @@ export class Player {
                 return true;
                 break;
             }
-            // Export world [F7]
+            // drawGhost [F7]
             case KEY.F7: {
                 if(!down) {
                     Game.world.players.drawGhost(Game.player);
@@ -415,29 +389,8 @@ export class Player {
                 return true;
                 break;
             }
-            case KEY.SLASH: {
-                if(!down) {
-                    if(!this.chat.active) {
-                        this.chat.open(['/']);
-                    }
-                }
-                break;
-            }
-            case KEY.ENTER: {
-                if(!down) {
-                    this.chat.submit();
-                }
-                break;
-            }
         }
-        // 0...9 (Select material)
-        if(!down && (keyCode >= 48 && keyCode <= 57)) {
-            if(keyCode == 48) {
-                keyCode = 58;
-            }
-            this.inventory.select(keyCode - 49);
-            return true;
-        }
+
         // Running
         if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
         if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
@@ -457,11 +410,7 @@ export class Player {
             }
         }
         if(e.ctrlKey) {
-            if(this.keys[KEY.W]) {
-                this.running = true;
-            } else {
-                this.running = false;
-            }
+            this.running = !!this.keys[KEY.W];
         } else {
             if(!down) {
                 if(keyCode == KEY.W) {
@@ -469,7 +418,9 @@ export class Player {
                 }
             }
         }
+
         return false;
+
     }
 
     // Hook for mouse input
@@ -776,11 +727,10 @@ export class Player {
     // Updates this local player (gravity, movement)
     update() {
         // View
-        if(this.lastUpdate != null && !Game.hud.splash.loading) {
+        if(this.lastUpdate) {
             let isSpectator = this.world.game_mode.isSpectator();
-            let delta = (performance.now() - this.lastUpdate) / 1000;
-            delta = Math.min(delta, 1.0);
-
+            let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
+            // 
             let pc                 = this.getPlayerControl();
             this.posO              = new Vector(this.lerpPos);
             pc.controls.back       = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
@@ -791,10 +741,9 @@ export class Player {
             pc.controls.sneak      = !!this.keys[KEY.SHIFT];
             pc.controls.sprint     = this.running;
             pc.player_state.yaw    = this.rotate.z;
-
             // Physics tick
             let ticks = pc.tick(delta);
-
+            //
             if(isSpectator) {
                 this.lerpPos = pc.player.entity.position;
                 this.pos = this.lerpPos;
@@ -810,16 +759,14 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
-
             // pc.player_state.onGround
             this.in_water_o = this.in_water;
             let velocity    = pc.player_state.vel;
             this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround;
             this.in_water   = pc.player_state.isInWater;
-
+            // Check falling
             this.checkFalling();
-
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             if(this.walking && this.onGround) {
@@ -846,7 +793,6 @@ export class Player {
                 this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
-
             // Внутри какого блока находится голова (в идеале глаза)
             let hby                 = this.pos.y + this.height;
             this.headBlock          = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
@@ -861,10 +807,8 @@ export class Player {
                     this.eyes_in_water = hby < (hby | 0) + power + .01;
                 }
             }
-
-            //
-            this.applyFov(delta);
-
+            // Update FOV
+            Game.render.updateFOV(delta, this.zoom, this.running);
         }
         this.lastUpdate = performance.now();
     }
@@ -905,33 +849,6 @@ export class Player {
         } else {
             this.lastOnGroundTime = performance.now();
             this.lastBlockPos = this.getBlockPos();
-        }
-    }
-
-    //
-    applyFov(delta) {
-        let render = Game.render;
-        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = render.options;
-        if(this.zoom) {
-            if(render.fov > FOV_ZOOM) {
-                let fov = Math.max(render.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
-                render.setPerspective(fov, 0.01, RENDER_DISTANCE);
-            }
-        } else {
-            if(this.running) {
-                if(render.fov < FOV_WIDE) {
-                    let fov = Math.min(render.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
-                    render.setPerspective(fov, 0.01, RENDER_DISTANCE);
-                }
-            } else if(render.fov < FOV_NORMAL) {
-                let fov = Math.min(render.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                render.setPerspective(fov, 0.01, RENDER_DISTANCE);
-            } else {
-                if(render.fov > FOV_NORMAL) {
-                    let fov = Math.max(render.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                    render.setPerspective(fov, 0.01, RENDER_DISTANCE);
-                }
-            }
         }
     }
 

@@ -435,4 +435,30 @@ export class Renderer {
         return resp;
     }
 
+    // updateFOV...
+    updateFOV(delta, zoom, running) {
+        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = this.options;
+        if(zoom) {
+            if(this.fov > FOV_ZOOM) {
+                let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
+                this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+            }
+        } else {
+            if(running) {
+                if(this.fov < FOV_WIDE) {
+                    let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
+                    this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                }
+            } else if(this.fov < FOV_NORMAL) {
+                let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+            } else {
+                if(this.fov > FOV_NORMAL) {
+                    let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
+                    this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                }
+            }
+        }
+    }
+
 }

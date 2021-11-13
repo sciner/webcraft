@@ -106,7 +106,7 @@ type (
 		Item      BlockItem `json:"item"`
 	}
 	ParamPlayerState struct {
-		Nickname        string   `json:"nickname"`
+		Username        string   `json:"username"`
 		ID              string   `json:"id"`
 		Pos             Vector3f `json:"pos"`
 		Rotate          Vector3f `json:"rotate"`
@@ -153,12 +153,12 @@ type (
 		Pos Vector3 `json:"pos"`
 	}
 	ParamChatSendMessage struct {
-		Nickname string `json:"nickname"`
+		Username string `json:"username"`
 		Text     string `json:"text"`
 	}
 	ParamPlayerJoin struct {
 		ID       string   `json:"id"`
-		Nickname string   `json:"nickname"`
+		Username string   `json:"username"`
 		Skin     string   `json:"skin"`
 		Pos      Vector3f `json:"pos"`
 		Rotate   Vector3f `json:"rotate"`

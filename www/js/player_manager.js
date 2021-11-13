@@ -3,21 +3,23 @@ import {PlayerModel} from "./player_model.js";
 
 export class PlayerManager {
 	
-    constructor() {
+    constructor(world) {
+        this.world = world;
         this.list = new Map();
     }
 
     // addPlayer
     add(data) {
-        this.list.set(data.id, new PlayerModel({
+        let player = new PlayerModel({
             id:             data.id,
-            itsme:          data.nickname == Game.App.session.username,
+            itsme:          data.username == Game.App.session.username,
             pos:            data.pos,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
             skin:           Game.skins.getById(data.skin),
-            nick:           data.nickname
-        }));
+            username:       data.username
+        });
+        this.list.set(data.id, player);
     }
 
     // getPlayer
@@ -62,7 +64,7 @@ export class PlayerManager {
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skins.getById(Game.skin.id),
-            nick:           Game.App.session.username
+            username:       Game.App.session.username
         }));
     };
 

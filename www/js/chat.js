@@ -25,12 +25,12 @@ export class Chat {
             addError: function(text) {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
-            add: function(nickname, text, timeout) {
+            add: function(username, text, timeout) {
                 if(!timeout) {
                     timeout = 0;
                 }
                 this.list.unshift({
-                    nickname:   nickname,
+                    username:   username,
                     text:       text,
                     time:       performance.now() - timeout
                 });
@@ -318,7 +318,7 @@ export class Chat {
                 for(let i in texts) {
                     let text = texts[i];
                     if(i == 0) {
-                        text = m.nickname + ': ' + text;
+                        text = m.username + ': ' + text;
                     }
                     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
@@ -340,6 +340,46 @@ export class Chat {
         // Restore original state
         hud.ctx.restore();
 
+    }
+
+    // Hook for keyboard input.
+    onKeyEvent(e, keyCode, down, first) {
+        switch(keyCode) {
+            case KEY.ARROW_UP:
+            case KEY.ARROW_DOWN: {
+                if(down) {
+                    this.historyNavigate(keyCode == KEY.ARROW_UP);
+                    return true;
+                }
+                break;
+            }
+            case KEY.F5: {
+                return false;
+                break;
+            }
+            case KEY.ESC: {
+                if(down) {
+                    this.close();
+                    // Game.setupMousePointer(true);
+                    return true;
+                }
+                break;
+            }
+            case KEY.BACKSPACE: {
+                if(down) {
+                    this.backspace();
+                    break;
+                }
+                return true;
+            }
+            case KEY.ENTER: {
+                if(!down) {
+                    this.submit();
+                }
+                return true;
+                break;
+            }
+        }
     }
 
 }

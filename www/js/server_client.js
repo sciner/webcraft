@@ -100,7 +100,7 @@ export class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.player.chat.messages.add(cmd.data.nickname, cmd.data.text);
+                    Game.player.chat.messages.add(cmd.data.username, cmd.data.text);
                     break;
                 }
                 case ServerClient.CMD_CHEST_CONTENT: {

@@ -337,7 +337,7 @@ export class HUD {
             if(id == 'itsme') {
                 continue;
             }
-            this.text += '🙎‍♂️' + player.nick;
+            this.text += '🙎‍♂️' + player.username;
             if(player.itsme) {
                 this.text += ' <- YOU';
             } else {

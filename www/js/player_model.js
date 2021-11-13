@@ -513,7 +513,7 @@ export class PlayerModel {
         if(options.draw_nametag) {
             // Draw player name
             if(!this.nametag) {
-                this.nametag = this.buildPlayerName(this.nick, render);
+                this.nametag = this.buildPlayerName(this.username, render);
             }
 
             mat4.identity(modelMatrix);
@@ -535,23 +535,23 @@ export class PlayerModel {
     // tag of the specified player over head.
     /**
      *
-     * @param {string} nickname
+     * @param {string} username
      * @param render
      * @return {{texture: BaseTexture, model: GeometryTerrain}}
      */
-    buildPlayerName(nickname, render) {
-        nickname        = nickname.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
+    buildPlayerName(username, render) {
+        username        = username.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
         let gl          = this.gl;
         let canvas      = this.textCanvas;
         let ctx         = this.textContext;
-        let w           = ctx.measureText(nickname).width + 16;
+        let w           = ctx.measureText(username).width + 16;
         let h           = 45;
         // Draw text box
         ctx.fillStyle   = '#00000055';
         ctx.fillRect(0, 0, w, 45);
         ctx.fillStyle   = '#fff';
         ctx.font        = '24px Ubuntu';
-        ctx.fillText(nickname, 10, 12);
+        ctx.fillText(username, 10, 12);
 
         // abstraction
         const texture = render.renderBackend.createTexture({

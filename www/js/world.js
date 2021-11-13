@@ -7,7 +7,7 @@ import {ServerClient} from "./server_client.js";
 export class World {
 
     constructor() {
-        this.players = new PlayerManager();
+        this.players = new PlayerManager(this);
     }
 
     // Create server client and connect to world
