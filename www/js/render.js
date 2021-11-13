@@ -250,7 +250,9 @@ export class Renderer {
         gu.sunDir               = this.sunDir;
         gu.update();
 
+        this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;
         this.defaultShader.bind(true);
+
         for(let transparent of [false, true]) {
             for(let [_, rp] of BLOCK.resource_pack_manager.list) {
                 // 2. Draw chunks
@@ -259,7 +261,7 @@ export class Renderer {
             if(!transparent) {
                 let shader = this.defaultShader;
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
-                if(shader.texture) {
+                if (shader.texture) {
                     shader.bind(true);
                     this.meshes.draw(this, delta);
                     // this.world.draw(this, delta);
