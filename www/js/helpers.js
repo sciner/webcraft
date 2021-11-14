@@ -483,6 +483,11 @@ export class Helpers {
             // left arm
             ctx.drawImage(image, 0, 48, 48, 16, 32, 48, 16, 16);
         }
+        // Debug
+        // var link = document.createElement('a');
+        // link.download = 'filename.png';
+        // link.href = canvas.toDataURL()
+        // link.click();
         canvas.toBlob(function(blob) {
             let filefromblob = new File([blob], 'image.png', {type: 'image/png'});
             callback(filefromblob);

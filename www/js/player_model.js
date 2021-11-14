@@ -87,7 +87,7 @@ export class PlayerModel {
                             this.texPlayer =  texture1;
                             this.texPlayer2 = texture2;
                             this.matPlayer = render.defaultShader.materials.doubleface.getSubMat(texture1);
-                            this.matPlayer2 = render.defaultShader.materials.transparent.getSubMat(texture2);
+                            this.matPlayer2 = render.defaultShader.materials.doubleface_transparent.getSubMat(texture2);
                             document.getElementsByTagName('body')[0].append(image2);
                         })
                 });
