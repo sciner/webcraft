@@ -54,6 +54,8 @@ export class WebGPUMaterial extends BaseMaterial {
          */
         this.positionData = null;
 
+        this.textureData = null;
+
         /**
          * @type{WebGPUTexture}
          */
@@ -89,7 +91,19 @@ export class WebGPUMaterial extends BaseMaterial {
         texture && texture.bind();
         mat.texture = texture || this.texture || this.shader.texture;
         mat.positionData = new Float32Array(this.shader.positionData);
+
+        const { style } = mat.texture;
+        if (style) {
+            mat.textureData = new Float32Array(this.shader.textureData);
+            mat.textureData[0] = style.pixelSize;
+            mat.textureData[1] = style.blockSize;
+            mat.textureData[2] = style.mipmap;
+        }
         return mat;
+    }
+
+    getLightSubMat(lightTexture = null) {
+        return this;
     }
 
     _init() {
@@ -110,7 +124,6 @@ export class WebGPUMaterial extends BaseMaterial {
         const {
             fragmentData,
             vertexData,
-            positionData
         } = shader;
 
         const base = shader.description;
@@ -171,14 +184,14 @@ export class WebGPUMaterial extends BaseMaterial {
 
         const  {
             vertexData,
-            fragmentData
+            fragmentData,
+            textureData
         } = shader;
 
         if ('opaqueThreshold' in shader) {
             // we can't use compileConstant, update UBO
             shader.opaqueThreshold = opaque ? 0.5 : 0;
         }
-
         // update only when not extended
 
         if (!supressExtend) {
@@ -238,22 +251,33 @@ export class WebGPUMaterial extends BaseMaterial {
         } = this.context;
 
         const texture = this.texture || this.shader.texture;
-        const data = this.positionData || this.shader.positionData;
-        data[16 + 3] = texture.anisotropy;
+        const positionData = this.positionData || this.shader.positionData;
+        const textureData = this.textureData || this.shader.textureData;
 
-        if (!data) {
+        if (!positionData) {
             return;
         }
 
         if (!this.positionUbo) {
             this.positionUbo = device.createBuffer({
-                size: data.byteLength,
+                size: positionData.byteLength,
                 usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
             })
         }
 
         device.queue.writeBuffer(
-            this.positionUbo, 0, data.buffer, data.byteOffset, data.byteLength
+            this.positionUbo, 0, positionData.buffer, positionData.byteOffset, positionData.byteLength
+        );
+
+        if (!this.textureUbo) {
+            this.textureUbo = device.createBuffer({
+                size: textureData.byteLength,
+                usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
+            })
+        }
+
+        device.queue.writeBuffer(
+            this.textureUbo, 0, textureData.buffer, textureData.byteOffset, textureData.byteLength
         );
 
         if (!this._skinGroup || texture !== this.lastState.texture) {
@@ -275,6 +299,12 @@ export class WebGPUMaterial extends BaseMaterial {
                         binding: 2,
                         resource: texture.view,
                     },
+                    {
+                        binding: 3,
+                        resource: {
+                            buffer: this.textureUbo
+                        }
+                    }
                 ]
             });
         }
@@ -289,7 +319,7 @@ export class WebGPUMaterial extends BaseMaterial {
             data.set(modelMatrix)
         }
 
-        const { camPos } = this.shader;
+        const { camPos } = this.shader.globalUniforms;
         const shift = 16;
 
         if (pos) {
@@ -316,9 +346,12 @@ export class WebGPUMaterial extends BaseMaterial {
         if (this._skinGroup) {
             this.positionUbo.destroy();
             this.positionUbo = null;
+            this.textureUbo.destroy();
+            this.textureUbo = null;
         }
 
         this.positionData = null;
+        this.textureData = null;
         this._skinGroup = null;
 
         // this is sub mat, not destroy parent mat

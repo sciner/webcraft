@@ -1,0 +1,68 @@
+import {BaseTexture3D} from "../BaseRenderer.js";
+
+const FORMATS = {
+    'u8': 'r8uint',
+    'u4_4_4_4': 'RGBA',
+}
+
+export class WebGPUTexture3D extends BaseTexture3D {
+    bind() {
+        if (this.dirty) {
+            return this.upload();
+        }
+
+        //console.warn('[WebGPUTexture] You can\'t bind WebGPU Texture');
+    }
+
+    upload() {
+        const  {
+            /**
+             * @type {GPUDevice}
+             */
+            device
+        } = this.context;
+
+        const isCube = Array.isArray(this.source) && this.source.length === 6;
+        /**
+         *
+         * @type {GPUTexture}
+         */
+        this.texture = this.texture || device.createTexture({
+            format: FORMATS[this.type],
+            dimension: '3d',
+            size: [ this.width, this.height, this.depth ],
+            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT
+        });
+
+        /**
+         *
+         * @type {GPUTextureView}
+         */
+        this.view = this.view || this.texture.createView({dimension: '3d' });
+
+        /**
+         *
+         * @type {GPUSampler}
+         */
+        this.sampler = this.sampler || device.createSampler( {
+            minFilter: this.minFilter || 'linear',
+            magFilter: this.magFilter || 'linear',
+        });
+
+        const { data, width, height, depth } = this;
+
+        if (!data) {
+            return;
+        }
+
+        device.queue.writeTexture (
+            { texture: this.texture },
+            data,
+            { bytesPerRow: width, rowsPerImage: height },
+            { width, height, depthOrArrayLayers: this.depth },
+        );
+
+
+        super.upload();
+    }
+}

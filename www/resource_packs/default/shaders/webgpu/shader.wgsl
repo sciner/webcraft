@@ -1,7 +1,6 @@
 [[block]] struct VExtendUniform {
     ModelMatrix : mat4x4<f32>;
     add_pos : vec3<f32>;
-    mipmap: f32;
 };
 
 [[block]] struct VUniforms {
@@ -9,9 +8,13 @@
     worldView : mat4x4<f32>;
     fogOn : f32;
     brightness : f32;
-    pixelSize : f32;
 };
 
+[[block]] struct TextureUniforms {
+    pixelSize : f32;
+    blockSize: f32;
+    mipmap: f32;
+};
 
 [[block]] struct FUniforms {
     // Fog
@@ -22,7 +25,6 @@
     chunkBlockDist: f32;
     //
     // brightness : f32;
-    blockSize : f32;
     opaqueThreshold : f32;
 };
 
@@ -61,8 +63,7 @@ struct VertexOutput {
 [[group(1), binding(0)]] var<uniform> eu : VExtendUniform;
 [[group(1), binding(1)]] var u_sampler: sampler;
 [[group(1), binding(2)]] var u_texture: texture_2d<f32>;
-
-//[[group(0), binding(4)]] var u_texture_mask: texture_2d<f32>;
+[[group(1), binding(3)]] var<uniform> tu : TextureUniforms;
 
 
 [[stage(vertex)]]
@@ -86,7 +87,7 @@ fn main_vert(a : Attrs) -> VertexOutput {
 
     var pos : vec3<f32> = a.position + (a.axisX * a.quad.x) + (a.axisY * a.quad.y);
     v.texcoord = a.uvCenter + (a.uvSize * a.quad);
-    v.texClamp = vec4<f32>(a.uvCenter - abs(a.uvSize * 0.5) + u.pixelSize * 0.5, a.uvCenter + abs(a.uvSize * 0.5) - u.pixelSize * 0.5);
+    v.texClamp = vec4<f32>(a.uvCenter - abs(a.uvSize * 0.5) + tu.pixelSize * 0.5, a.uvCenter + abs(a.uvSize * 0.5) - tu.pixelSize * 0.5);
 
     var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
     var n : vec3<f32> = normalize(v.normal);
@@ -114,7 +115,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     var mipOffset : vec2<f32> = vec2<f32>(0.0);
     var biome : vec2<f32> = v.color.rg;
 
-    if (eu.mipmap > 0.0) {
+    if (tu.mipmap > 0.0) {
         biome = biome * 0.5;
 
         // manual implementation of EXT_shader_texture_lod
@@ -149,7 +150,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         }
 
         if (v.color.r >= 0.0) {
-            var color_mask: vec4<f32> = textureSample(u_texture, u_sampler, vec2<f32>(texc.x + fu.blockSize, texc.y) * mipScale + mipOffset);
+            var color_mask: vec4<f32> = textureSample(u_texture, u_sampler, vec2<f32>(texc.x + tu.blockSize, texc.y) * mipScale + mipOffset);
             var color_mult: vec4<f32> = textureSample(u_texture, u_sampler, biome);
 
             color = vec4<f32>(

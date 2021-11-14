@@ -3,6 +3,7 @@ import BaseRenderer, {BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
 import {WebGPUTerrainShader} from "./WebGPUTerrainShader.js";
 import {WebGPUMaterial} from "./WebGPUMaterial.js";
 import {WebGPUTexture} from "./WebGPUTexture.js";
+import {WebGPUTexture3D} from "./WebGPUTexture3D.js";
 import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
 import {Resources} from "../../resources.js";
@@ -75,6 +76,10 @@ export default class WebGPURenderer extends BaseRenderer{
 
     createTexture(options = {}) {
         return new WebGPUTexture(this, options);
+    }
+
+    createTexture3D(options) {
+        return new WebGPUTexture3D(this, options);
     }
 
     createBuffer(options) {

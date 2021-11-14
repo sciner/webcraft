@@ -1,4 +1,5 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
+import {TerrainTextureUniforms} from "../common.js";
 
 export class WebGPUTerrainShader extends BaseTerrainShader{
     /**
@@ -14,19 +15,12 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
          * @type {GPURenderPipelineDescriptor}
          */
         this.description = null;
-        this.vertexData = new Float32Array((16 + 16 + 1 + 1 + 1));
-        this.positionData = new Float32Array((16 + 3 + 1));
-        this.fragmentData = new Float32Array((4 + 4 + 1 + 1 + 1));
+        this.vertexData = new Float32Array((16 + 16 + 1 + 1));
+        this.positionData = new Float32Array((16 + 3));
+        this.fragmentData = new Float32Array((4 + 4 + 1 + 1));
+        this.textureData = new Float32Array(1 + 1 + 1);
 
         this._init();
-    }
-
-    set opaqueThreshold(v) {
-        this.fragmentData[10] = v;
-    }
-
-    get opaqueThreshold() {
-        return this.fragmentData[10];
     }
 
     _init() {
@@ -151,7 +145,6 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         //fog
         this.vertexData.set([1], 32);
         this.vertexData.set([gu.brightness], 32 + 1);
-        this.vertexData.set([this.pixelSize], 32 + 1 + 1);
 
         // ModelMatrix
         this.positionData.set(this.modelMatrix, 0);
@@ -165,9 +158,12 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         // fog add color
         this.fragmentData.set(gu.fogAddColor, 4);
         this.fragmentData.set([gu.chunkBlockDist], 8);
-        this.fragmentData.set([this.blockSize], 9);
         // opaqueThreshold
-        //this.fragmentData.set([this.opaqueThreshold], 10);
+
+        const style = this.texture && this.texture.style ? this.texture.style : TerrainTextureUniforms.default;
+        this.textureData.set(style.pixelSize, 0);
+        this.textureData.set(style.blockSize, 1);
+        this.textureData.set(style.mipmap, 2);
 
         this.hasModelMatrix = false;
     }
