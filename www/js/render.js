@@ -215,6 +215,8 @@ export class Renderer {
             if(this.skyBox.shader.uniforms) {
                 this.skyBox.shader.uniforms.u_textureOn.value = this.brightness == 1 && !player.eyes_in_water;
                 this.skyBox.shader.uniforms.u_brightness.value = this.brightness;
+            } else {
+                this.skyBox.shader.brightness = this.brightness;
             }
             this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
         }

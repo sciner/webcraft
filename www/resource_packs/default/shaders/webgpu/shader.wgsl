@@ -104,7 +104,8 @@ fn main_vert(a : Attrs) -> VertexOutput {
     var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
     lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
     lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 36.0);
-    var nightLight: f32 = min(textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).a * 16.0, 1.0) * (1.0 - v.color.a);
+    var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).r;
+    var nightLight: f32 = min(lightSample * 16.0, 1.0) * (1.0 - v.color.a);
 
     v.light = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
 
@@ -145,7 +146,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     // Game
     if(u.fogOn > 0.0) {
         // Read texture
-        var color : vec4<f32> = textureSample(u_texture, u_sampler, texc * mipScale + mipOffset);
+        var color : vec4<f32> = textureSampleLevel(u_texture, u_sampler, texc * mipScale + mipOffset, 0.0);
 
         if(color.a < 0.1) {
             discard;
@@ -160,8 +161,8 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         }
 
         if (v.color.r >= 0.0) {
-            var color_mask: vec4<f32> = textureSample(u_texture, u_sampler, vec2<f32>(texc.x + tu.blockSize, texc.y) * mipScale + mipOffset);
-            var color_mult: vec4<f32> = textureSample(u_texture, u_sampler, biome);
+            var color_mask: vec4<f32> = textureSampleLevel(u_texture, u_sampler, vec2<f32>(texc.x + tu.blockSize, texc.y) * mipScale + mipOffset, 0.0);
+            var color_mult: vec4<f32> = textureSampleLevel(u_texture, u_sampler, biome, 0.0);
 
             color = vec4<f32>(
                 color.rgb + color_mask.rgb * color_mult.rgb,

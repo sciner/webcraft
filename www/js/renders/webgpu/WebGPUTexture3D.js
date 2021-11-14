@@ -58,7 +58,7 @@ export class WebGPUTexture3D extends BaseTexture3D {
             { texture: this.texture },
             data,
             { bytesPerRow: width, rowsPerImage: height },
-            { width, height, depthOrArrayLayers: this.depth },
+            { width, height, depthOrArrayLayers: depth },
         );
 
 
