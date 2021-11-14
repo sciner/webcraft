@@ -19,8 +19,17 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         this.positionData = new Float32Array((16 + 3));
         this.fragmentData = new Float32Array((4 + 4 + 1 + 1));
         this.textureData = new Float32Array(1 + 1 + 1);
+        this.globalID = -1;
 
         this._init();
+    }
+
+    set opaqueThreshold(v) {
+        this.fragmentData[9] = v;
+    }
+
+    get opaqueThreshold() {
+        return this.fragmentData[9];
     }
 
     _init() {
@@ -135,10 +144,16 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
 
     bind() {
         super.bind();
+        this.update();
     }
 
     update() {
         const gu = this.globalUniforms;
+        if (this.globalID === gu.updateID) {
+            return;
+        }
+        this.globalID = gu.updateID;
+
         // vertex data UBO
         this.vertexData.set(gu.projMatrix, 0);
         this.vertexData.set(gu.viewMatrix, 16);
