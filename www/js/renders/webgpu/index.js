@@ -123,6 +123,7 @@ export default class WebGPURenderer extends BaseRenderer{
             return;
         }
 
+        material.shader.bind();
         geom.bind(material.shader);
 
         if (a_pos) {
