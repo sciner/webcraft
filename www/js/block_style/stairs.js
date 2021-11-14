@@ -19,6 +19,11 @@ export default class style {
         let flags           = 0, sideFlags = 0, upFlags = 0;
         let shapes          = BLOCK.getShapes(pos, block, chunk, true, false, neighbours);
 
+        // Ambient occlusion
+        const ao_value      = .3;
+
+        let ao_bottom       = [ao_value, ao_value, ao_value, ao_value];
+
         // полная текстура
         let c_full = BLOCK.calcTexture(texture, DIRECTION.UP);
 
@@ -50,7 +55,7 @@ export default class style {
                 0, -zw, 0,
                 c[0], c[1], c[2] * xw, c[3] * zw,
                 lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags);
+                ...ao_bottom, flags);
             // South | Forward | z++ (XZY)
             vertices.push(xpos, zpos - zw/2, y_bottom + yw/2,
                 xw, 0, 0,

@@ -209,7 +209,7 @@ export default class style {
 
         // Bottom
         if(canDrawFace(neighbours.DOWN)) {
-            ao = [.5, .5, .5, .5];
+            ao = [ao_value, ao_value, ao_value, ao_value];
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
             if(chunk.coord) {
                 ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
