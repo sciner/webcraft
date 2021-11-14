@@ -64,6 +64,8 @@ struct VertexOutput {
 [[group(1), binding(1)]] var u_sampler: sampler;
 [[group(1), binding(2)]] var u_texture: texture_2d<f32>;
 [[group(1), binding(3)]] var<uniform> tu : TextureUniforms;
+[[group(1), binding(4)]] var lightTexSampler: sampler;
+[[group(1), binding(5)]] var lightTex: texture_3d<f32>;
 
 
 [[stage(vertex)]]
@@ -91,13 +93,21 @@ fn main_vert(a : Attrs) -> VertexOutput {
 
     var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
     var n : vec3<f32> = normalize(v.normal);
-    v.light = max(.5, dot(n, sun_dir) - v.color.a);
+    var dayLight: f32 = max(.5, dot(n, sun_dir) - v.color.a);
 
     if(u.fogOn > 0.0) {
         if (flagBiome < 0.5) {
             v.color.r = -1.0;
         }
     }
+
+    var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
+    lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
+    lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 36.0);
+    var nightLight: f32 = min(textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).a * 16.0, 1.0) * (1.0 - v.color.a);
+
+    v.light = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
+
     // 1. Pass the view position to the fragment shader
     v.position = (eu.ModelMatrix * vec4<f32>(pos, 1.0)).xyz + eu.add_pos;
     v.VPos = u.ProjMatrix * u.worldView * vec4<f32>(v.position, 1.0);
@@ -161,7 +171,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
 
         // Apply light
         color = vec4<f32>(
-            color.rgb * u.brightness * v.light,
+            color.rgb * v.light,
             color.a
         );
 

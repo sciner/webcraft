@@ -1,7 +1,7 @@
 import {BaseTexture3D} from "../BaseRenderer.js";
 
 const FORMATS = {
-    'u8': 'r8uint',
+    'u8': 'r8unorm',
     'u4_4_4_4': 'RGBA',
 }
 
@@ -22,7 +22,6 @@ export class WebGPUTexture3D extends BaseTexture3D {
             device
         } = this.context;
 
-        const isCube = Array.isArray(this.source) && this.source.length === 6;
         /**
          *
          * @type {GPUTexture}

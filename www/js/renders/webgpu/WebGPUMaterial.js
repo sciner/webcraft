@@ -38,7 +38,8 @@ export class WebGPUMaterial extends BaseMaterial {
         this.lastState = {
             shader: null,
             texture: null,
-            cullFace: null
+            cullFace: null,
+            lightTex: null
         };
 
 
@@ -102,8 +103,15 @@ export class WebGPUMaterial extends BaseMaterial {
         return mat;
     }
 
-    getLightSubMat(lightTexture = null) {
-        return this;
+    getLightMat(lightTex = null) {
+        const mat = new WebGPUMaterial(this.context, {
+            parent: this.parent || this, lightTex,  ...this.options
+        });
+        mat.texture = this.texture || this.shader.texture;
+        mat.positionData = new Float32Array(this.shader.positionData);
+        mat.textureData = this.textureData;
+
+        return mat;
     }
 
     _init() {
@@ -253,6 +261,7 @@ export class WebGPUMaterial extends BaseMaterial {
         const texture = this.texture || this.shader.texture;
         const positionData = this.positionData || this.shader.positionData;
         const textureData = this.textureData || this.shader.textureData;
+        const lightTex = this.lightTex || this.context._emptyTex3D;
 
         if (!positionData) {
             return;
@@ -280,8 +289,10 @@ export class WebGPUMaterial extends BaseMaterial {
             this.textureUbo, 0, textureData.buffer, textureData.byteOffset, textureData.byteLength
         );
 
-        if (!this._skinGroup || texture !== this.lastState.texture) {
+        if (!this._skinGroup || texture !== this.lastState.texture
+            || lightTex !== this.lastState.lightTex) {
             texture.bind();
+            lightTex.bind();
             this._skinGroup = device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(1),
                 entries: [
@@ -304,12 +315,21 @@ export class WebGPUMaterial extends BaseMaterial {
                         resource: {
                             buffer: this.textureUbo
                         }
-                    }
+                    },
+                    {
+                        binding: 4,
+                        resource: lightTex.sampler,
+                    },
+                    {
+                        binding: 5,
+                        resource: lightTex.view,
+                    },
                 ]
             });
         }
 
         this.lastState.texture = texture;
+        this.lastState.lightTex = lightTex;
 
     }
 
