@@ -129,6 +129,7 @@ export class ServerClient {
                 }
                 case ServerClient.CMD_ENTITY_INDICATORS: {
                     Game.player.indicators = cmd.data.indicators;
+                    Game.hud.refresh();
                     break;
                 }
             }

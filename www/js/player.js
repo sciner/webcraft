@@ -834,13 +834,15 @@ export class Player {
         }
         // let onGround = this.pr.player_state.onGround;
         if(!this.onGround) {
-            // do nothing
+            let pos = this.getBlockPos();
+            if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
+                this.lastBlockPos = pos;
+            }
         } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
             let bp = this.getBlockPos();
             let height = bp.y - this.lastBlockPos.y;
             if(height < 0) {
                 let damage = -height - 3;
-                // let falling_time = performance.now() - this.lastOnGroundTime;
                 if(damage > 0) {
                     Game.hotbar.damage(damage, 'falling');
                 }

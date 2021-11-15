@@ -103,7 +103,7 @@ fn main_vert(a : Attrs) -> VertexOutput {
 
     var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
     lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
-    lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 36.0);
+    lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 44.0);
     var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).r;
     var nightLight: f32 = min(lightSample * 16.0, 1.0) * (1.0 - v.color.a);
 

@@ -8,6 +8,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -51,7 +52,7 @@ func (this *WorldDatabase) ChunkBecameModified() ([]*Struct.Vector3, error) {
 	//
 	var resp []*Struct.Vector3
 	//
-	rows, err := this.Conn.Query("SELECT DISTINCT CAST(round(x / 16 - 0.5) AS INT) AS x, CAST(round(y / 32 - 0.5) AS INT) AS y, CAST(round(z / 16 - 0.5) AS INT) AS z FROM world_modify")
+	rows, err := this.Conn.Query("SELECT DISTINCT CAST(round(x / " + strconv.Itoa(CHUNK_SIZE_X) + " - 0.5) AS INT) AS x, CAST(round(y / " + strconv.Itoa(CHUNK_SIZE_Y) + " - 0.5) AS INT) AS y, CAST(round(z / " + strconv.Itoa(CHUNK_SIZE_Z) + " - 0.5) AS INT) AS z FROM world_modify")
 	if err != nil {
 		log.Printf("SQL_ERROR41: %v", err)
 	}
@@ -75,9 +76,9 @@ func (this *WorldDatabase) LoadModifiers(chunk *Chunk) (map[string]Struct.BlockI
 	//
 	resp := make(map[string]Struct.BlockItem)
 	//
-	x := chunk.Pos.X * 16
-	y := chunk.Pos.Y * 32
-	z := chunk.Pos.Z * 16
+	x := chunk.Pos.X * CHUNK_SIZE_X
+	y := chunk.Pos.Y * CHUNK_SIZE_Y
+	z := chunk.Pos.Z * CHUNK_SIZE_Z
 	rows, err := this.Conn.Query("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE x >= $1 AND x < $2 AND y >= $3 AND y < $4 AND z >= $5 AND z < $6", x, x+CHUNK_SIZE_X, y, y+CHUNK_SIZE_Y, z, z+CHUNK_SIZE_Z)
 	if err != nil {
 		log.Printf("SQL_ERROR40: %v", err)

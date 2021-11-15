@@ -22,8 +22,7 @@ export class BaseResourcePack {
         //
         await Helpers.fetchJSON(dir + '/blocks.json').then((json) => {
             for(let block of json) {
-                block.resource_pack = that;
-                BLOCK.add(block);
+                BLOCK.add(that, block);
             }
         });
     }

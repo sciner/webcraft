@@ -18,7 +18,7 @@ import (
 
 const (
 	CHUNK_SIZE_X int = 16
-	CHUNK_SIZE_Y int = 32
+	CHUNK_SIZE_Y int = 40
 	CHUNK_SIZE_Z int = 16
 )
 
@@ -331,7 +331,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		case "oxygen":
 			conn.Indicators.Oxygen.Value += params.Value
 		}
-		if params.Indicator == "live" && conn.Indicators.Live.Value < 0 {
+		if params.Indicator == "live" && conn.Indicators.Live.Value <= 0 {
 			conn.Indicators.Live.Value = 20
 			this.TeleportPlayer(conn, &Struct.ParamTeleportRequest{
 				PlaceID: "spawn",

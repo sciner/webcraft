@@ -93,7 +93,7 @@ func (this *PlayerConn) Receiver() {
 					// @todo
 					log.Println("Сперва нужно войти в мир")
 				} else {
-					this.World.OnCommand(cmdIn, this)
+					go this.World.OnCommand(cmdIn, this)
 				}
 			}
 		} else {

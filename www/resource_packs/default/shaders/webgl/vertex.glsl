@@ -82,7 +82,7 @@ void main() {
 
     vec3 lightCoord =  pos + v_normal.xzy * 0.5;
     lightCoord += 1.0;
-    lightCoord /= vec3(20.0, 20.0, 36.0);
+    lightCoord /= vec3(20.0, 20.0, 44.0);
     float nightLight = min(texture(u_lightTex, lightCoord).a * 16.0, 1.0) * (1.0 - v_color.a);
 
     light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);

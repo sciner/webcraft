@@ -35,21 +35,6 @@ export class BLOCK {
     // applyLight2AO
     static applyLight2AO(lightmap, ao, x, y, z) {
         return ao;
-
-        // let index = BLOCK.getIndex(x, y, z);
-        // if(index >= 0 && index < CHUNK_BLOCKS) {
-        //     let light_power = lightmap[index];
-        //     if(light_power != 0) {
-        //         light_power /= 4;
-        //         ao = [
-        //             ao[0] - light_power,
-        //             ao[1] - light_power,
-        //             ao[2] - light_power,
-        //             ao[3] - light_power,
-        //         ];
-        //     }
-        // }
-        // return ao;
     }
 
     static getLightPower(material) {
@@ -70,13 +55,6 @@ export class BLOCK {
             x = x.x;
         }
         let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-        /*
-        if(index < 0) {
-            index = -1;
-        } else if(index > CHUNK_BLOCKS) {
-            index = -1;
-        }
-        */
         return index;
     }
 
@@ -225,7 +203,7 @@ export class BLOCK {
         BLOCK.ao_invisible_blocks    = [];
     }
 
-    static async add(block) {
+    static async add(resource_pack, block) {
         // Check duplicate ID
         if(this.BLOCK_BY_ID.has(block.id))  {
             console.error('Duplicate block id ', block.id, block);
@@ -272,6 +250,7 @@ export class BLOCK {
         if(block.style && block.style == 'triangle') {
             return;
         }
+        block.resource_pack     = resource_pack;
         block.destroy_time      = calcDestroyTime(block);
         block.power             = 1;
         block.group             = this.getBlockStyleGroup(block);

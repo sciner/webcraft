@@ -5,7 +5,7 @@ import { Sphere } from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 
 export const CHUNK_SIZE_X                   = 16;
-export const CHUNK_SIZE_Y                   = 32;
+export const CHUNK_SIZE_Y                   = 40;
 export const CHUNK_SIZE_Z                   = 16;
 export const CHUNK_BLOCKS                   = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 export const CHUNK_SIZE_Y_MAX               = 4096;
