@@ -269,6 +269,8 @@ export class Renderer {
                     player.pickAt.draw();
                     // 3. Draw players and rain
                     this.drawPlayers(delta);
+                    // 4. Draw mobs
+                    this.drawMobs(delta);
                 }
             }
         }
@@ -323,6 +325,15 @@ export class Renderer {
             if(player.id != this.world.server.id) {
                 player.draw(this, this.camPos, delta);
             }
+        }
+    }
+
+    // drawMobs
+    drawMobs(delta) {
+        const {renderBackend, defaultShader} = this;
+        defaultShader.bind();
+        for(let [id, mob] of this.world.mobs.list) {
+            mob.draw(this, this.camPos, delta);
         }
     }
 

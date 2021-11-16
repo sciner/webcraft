@@ -26,6 +26,7 @@ func (this *WorldMan) Get(world_guid string) *World {
 		Connections: make(map[string]*PlayerConn, 0),
 		Chunks:      make(map[Struct.Vector3]*Chunk, 0),
 		Entities:    &EntityManager{},
+		Mobs:        make(map[string]*Mob, 0),
 	}
 	this.Worlds[world_guid].Load(world_guid)
 	return this.Worlds[world_guid]

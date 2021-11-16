@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"madcraft.io/madcraft/Struct"
 )
 
@@ -35,8 +36,13 @@ type (
 		Chat             *Chat
 		ChunkModifieds   map[string]bool
 		tickerWorldTimer chan bool // makes a world that run a periodic function
+		Mobs             map[string]*Mob
 	}
 )
+
+type ParamMobAdded struct {
+	Mobs map[string]*Mob `json:"mobs"`
+}
 
 /**
 * Таймер
@@ -181,6 +187,12 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 	this.SendSystemChatMessage(conn.Session.Username+" подключился", []string{conn.ID})
 	// 7. Send CMD_CONNECTED
 	this.SendConnectedInfo(conn, player_state, this.Properties)
+	// 8. Send all mobs in the world
+	if len(this.Mobs) > 0 {
+		packet_mobs := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: this.getMobsAsSlice(), ID: nil}
+		packets_mobs := []Struct.JSONResponse{packet_mobs}
+		this.SendAll(packets_mobs, []string{})
+	}
 }
 
 // SendConnectedInfo
@@ -350,7 +362,45 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		this.SendSelected(packets, connections, []string{})
 		// @todo notify all about change?
 
+	case Struct.CMD_MOB_ADD:
+		//
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.ParamMobAdd
+		json.Unmarshal(out, &params)
+		mob := &Mob{
+			ID:         uuid.New().String(),
+			Type:       params.Type,
+			Pos:        params.Pos,
+			Rotate:     Struct.Vector3f{},
+			Indicators: Struct.InitPlayerIndicators(),
+			World:      this,
+		}
+		this.Mobs[mob.ID] = mob
+		packet := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: []*Mob{mob}, ID: nil}
+		packets := []Struct.JSONResponse{packet}
+		this.SendAll(packets, []string{})
+	case Struct.CMD_MOB_DELETE:
+		//
+		out, _ := json.Marshal(cmdIn.Data)
+		var params *Struct.ParamMobDelete
+		json.Unmarshal(out, &params)
+		if _, ok := this.Mobs[params.ID]; ok {
+			delete(this.Mobs, params.ID)
+			packet := Struct.JSONResponse{Name: Struct.CMD_MOB_DELETED, Data: []string{params.ID}, ID: nil}
+			packets := []Struct.JSONResponse{packet}
+			this.SendAll(packets, []string{})
+		}
 	}
+}
+
+//
+func (this *World) getMobsAsSlice() []*Mob {
+	// Defines the Slice capacity to match the Map elements count
+	mobs := make([]*Mob, 0, len(this.Mobs))
+	for _, m := range this.Mobs {
+		mobs = append(mobs, m)
+	}
+	return mobs
 }
 
 // TeleportPlayer

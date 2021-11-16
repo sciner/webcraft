@@ -38,6 +38,10 @@ const (
 	CMD_NEARBY_MODIFIED_CHUNKS   int = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
 	CMD_MODIFY_INDICATOR_REQUEST int = 68
 	CMD_ENTITY_INDICATORS        int = 69
+	CMD_MOB_ADD                  int = 70
+	CMD_MOB_ADDED                int = 71
+	CMD_MOB_DELETE               int = 72
+	CMD_MOB_DELETED              int = 73
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -137,11 +141,6 @@ type (
 		Inventory  *PlayerInventory  `json:"inventory"`
 		Indicators *PlayerIndicators `json:"indicators"`
 	}
-	/*
-		ParamCreateEntity struct {
-			Pos  Vector3   `json:"pos"`
-			Item BlockItem `json:"item"`
-		}*/
 	ParamBlockSet struct {
 		Pos  Vector3   `json:"pos"`
 		Item BlockItem `json:"item"`
@@ -249,6 +248,13 @@ type (
 		Indicators *PlayerIndicators `json:"indicators"`
 	}
 	SessionError struct{}
+	ParamMobAdd  struct {
+		Type string   `json:"type"`
+		Pos  Vector3f `json:"pos"`
+	}
+	ParamMobDelete struct {
+		ID string `json:"id"`
+	}
 )
 
 func (m *SessionError) Error() string {

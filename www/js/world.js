@@ -1,6 +1,7 @@
 import {ChunkManager} from "./chunk_manager.js";
 import {GameMode} from "./game_mode.js";
 import {PlayerManager} from "./player_manager.js";
+import {MobManager} from "./mob_manager.js";
 import {ServerClient} from "./server_client.js";
 
 // World container
@@ -8,6 +9,7 @@ export class World {
 
     constructor() {
         this.players = new PlayerManager(this);
+        this.mobs = new MobManager(this);
     }
 
     // Create server client and connect to world

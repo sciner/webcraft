@@ -35,6 +35,11 @@ export class ServerClient {
     static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
     static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
+    // Mobs    
+	static CMD_MOB_ADD                  = 70;
+	static CMD_MOB_ADDED                = 71;
+	static CMD_MOB_DELETE               = 72;
+	static CMD_MOB_DELETED              = 73;
 
     // Constructor
     constructor(url, session_id, onOpenCallback) {
@@ -130,6 +135,18 @@ export class ServerClient {
                 case ServerClient.CMD_ENTITY_INDICATORS: {
                     Game.player.indicators = cmd.data.indicators;
                     Game.hud.refresh();
+                    break;
+                }
+                case ServerClient.CMD_MOB_ADDED: {
+                    for(let mob of cmd.data) {
+                        Game.world.mobs.add(mob);
+                    }
+                    break;
+                }
+                case ServerClient.CMD_MOB_DELETED: {
+                    for(let mob_id of cmd.data) {
+                        Game.world.mobs.delete(mob_id);
+                    }
                     break;
                 }
             }
