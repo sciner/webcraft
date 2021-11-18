@@ -193,13 +193,18 @@ export class Resources {
         return new Promise((res) => {
             loader.loadGLTF(url, {baseUri: ''}, (model) => {
                 for(const mesh of model.meshes) {
-                        const data = mesh.interlivedData || [];
+                    // mesh can be shared
+                    // skip same mesh    
+                    if (mesh.interlivedData) {
+                        continue;
+                    }
 
-                        for(const p of mesh.primitives) {
-                            Resources.unrollGltf(p, model, data);
-                        }	
+                    const data = [];
+                    for(const p of mesh.primitives) {
+                        Resources.unrollGltf(p, model, data);
+                    }	
 
-                        mesh.interlivedData = data;
+                    mesh.interlivedData = data;
                 }
 
                 return res(model);

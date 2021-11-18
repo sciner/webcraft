@@ -3,11 +3,14 @@ import {NORMALS, Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 
 const {mat4} = glMatrix;
+const computeMatrix = mat4.create();
 
 export class MobModel {
 
     constructor(props) {
 
+        this.type = props.type;
+        this.gltfAsset                  = null;
         this.texPlayer                  = null;
         this.texPlayer2                 = null;
 
@@ -19,7 +22,7 @@ export class MobModel {
         this.nametag                    = null;
         this.moving                     = false;
         this.aniframe                   = 0;
-        this.height                     = 0.26;
+        this.height                     = 0;
 
         this.modelMatrix                = mat4.create();
 
@@ -31,19 +34,33 @@ export class MobModel {
 
     }
 
+    traverse(node, cb, parent = null, args = {}) {
+        if(!cb.call(this, node, parent, args)) {
+            return false;
+        }
+
+        for(let next of node.children) {
+            if (!this.traverse(next, cb, node, args)) return false;
+        }
+
+        return true;
+    }
+
     // draw
     draw(render, camPos, delta) {
         const gl = this.gl = render.gl;
         this.drawLayer(render, camPos, delta, {
-            scale:          1.0,
+            scale:          .25,
             material:       this.matPlayer,
             draw_nametag:   false
         });
+        /*
         this.drawLayer(render, camPos, delta, {
             scale:          1.05,
             material:       this.matPlayer2,
             draw_nametag:   true
         });
+        */
     }
 
     // loadMesh...
@@ -61,6 +78,10 @@ export class MobModel {
      * @param {Renderer} render
      */
     loadTextures(render) {
+        if (this.texPlayer && this.texPlayer2) {
+            return;
+        }
+
         Resources
             .loadImage(this.skin.file, false)
             .then(image1 => {
@@ -82,7 +103,6 @@ export class MobModel {
                             this.texPlayer2 = texture2;
                             this.matPlayer = render.defaultShader.materials.doubleface.getSubMat(texture1);
                             this.matPlayer2 = render.defaultShader.materials.doubleface_transparent.getSubMat(texture2);
-                            document.getElementsByTagName('body')[0].append(image2);
                         })
                 });
             });
@@ -91,65 +111,51 @@ export class MobModel {
 
     // Loads the player head model into a vertex buffer for rendering.
     loadPlayerHeadModel() {
+        const node = Resources.models[this.type.replace('mob_','')] || Resources.models['70'];
 
-        // [x, y, z, tX, tY, lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
+        const clone = (node, parent = null) => {
+            const children = [];
 
-        let lm = {r: 0, g: 0, b: 0, a: 0};
+            for(const child of node.children) {
+                children.push(clone(child, parent));
+            }
 
-        // Player head
-        let vertices = [
-            // Top
-            -0.25, -0.25, 0.25, 8/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, -0.25, 0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, 0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, 0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -0.25, 0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -0.25, -0.25, 0.25, 8/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+            let geom = node.terrainGeometry;
 
-            // Bottom
-            -0.25, -0.25, -0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            -0.25, 0.25, -0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, 0.25, -0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, 0.25, -0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, -0.25, -0.25, 24/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            -0.25, -0.25, -0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+            if (node.mesh && node.mesh.interlivedData && !geom) {
+                geom = node.terrainGeometry =  new GeometryTerrain(GeometryTerrain.convertFrom12(node.mesh.interlivedData))
+            }
 
-            // Front
-            -0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            -0.25, -0.25, -0.25, 8/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            -0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+            return {
+                name: node.name,
+                matrix: mat4.clone(node.matrix),
+                worldMatrix: mat4.create(),
+                terrainGeometry: geom,
+                needUpdateMatrix: true,
+                children,
+            }
+        }
 
-            // Rear
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, 0.25, 32/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, -0.25, 32/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, -0.25, 32/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+        return this.gltfAsset = clone(node, null);
+    }
 
-            // Right
-            -0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    drawTraversed(node, parent, {render, material}) {
+        if (parent) {
+            mat4.multiply(node.worldMatrix, parent.worldMatrix, node.matrix);
+        }
 
-            // Left
-            0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, -0.25, -0.25, 8/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, -0.25, 0/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, -0.25, 0/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, 0.25, 0/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+        if (!node.terrainGeometry) {
+            return true;
+        }
 
-        ];
 
-        return this.playerHead = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
+        if (node.name !== 'body') {
+            //return true;
+        }
 
+        render.renderBackend.drawMesh(node.terrainGeometry, material, this.pos, node.worldMatrix);
+
+        return true;
     }
 
     // drawLayer
@@ -181,7 +187,7 @@ export class MobModel {
         }
 
         // Load mesh
-        if(!this.playerHead) {
+        if(!this.gltfAsset) {
             this.loadMesh(render);
         }
 
@@ -198,8 +204,11 @@ export class MobModel {
         mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
         mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
         mat4.rotateX(modelMatrix, modelMatrix, -pitch);
-        renderBackend.drawMesh(this.playerHead, material, a_pos, modelMatrix);
 
+        this.gltfAsset.worldMatrix = modelMatrix;
+        this.gltfAsset.needUpdateMatrix = false;
+
+        this.traverse(this.gltfAsset, this.drawTraversed, null, {render, material});
     }
 
 }
