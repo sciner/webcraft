@@ -178,7 +178,7 @@ export class Resources {
                         posData[index * POSITION.size + 2],
                         uvData[index * TEXCOORD_0.size + 0],
                         uvData[index * TEXCOORD_0.size + 1],
-                        1, 1, 1, 1,
+                        0, 0, 0, 0,
                         normData[index * NORMAL.size + 0],
                         normData[index * NORMAL.size + 1],
                         normData[index * NORMAL.size + 2],
