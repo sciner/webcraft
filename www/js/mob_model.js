@@ -188,6 +188,11 @@ export class MobModel {
     }
 
     update(camPos, delta) {
+
+        if (delta > 1000) {
+            delta = 1000
+        }
+
         const scale = 0.25;
         const modelMatrix = this.gltfAsset.matrix;
         const z_minus   = (this.height * scale - this.height);
