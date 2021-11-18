@@ -1,4 +1,6 @@
-import {BLOCK} from "./blocks.js";
+import { BLOCK } from "./blocks.js";
+import "./../vendors/gl-matrix-3.3.min.js";
+import { glTFLoader } from "./../vendors/minimal-gltf-loader.js";
 
 export class Resources {
 
@@ -25,6 +27,7 @@ export class Resources {
         that.physics = {
             features: null
         };
+        that.models = {};
         that.resource_packs = new Set();
         //
         const loadTextFile = Resources.loadTextFile;
@@ -61,6 +64,21 @@ export class Resources {
             ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
             that.clouds.texture = ctx.getImageData(0, 0, 256, 256);
         }));
+
+        all.push(
+            Resources.loadGltf('/media/models/models.gltf', null).then((model) => {
+                for(let node of model.scenes[0].nodes) {
+
+                    if (node.name.indexOf('model:') === -1) {
+                        continue;
+                    }
+
+                    node.gltf = model;
+                    const [, id] = node.name.split(":");
+                    that.models[id] = node;
+                }
+            })
+        );
 
         // Resource packs
         for(let init_file of BLOCK.resource_packs) {
@@ -136,6 +154,57 @@ export class Resources {
             };
             image.src = url;
         })
+    }
+
+    static unrollGltf(primitive, gltf, target = []) {
+        const data = target;
+        const {
+            NORMAL, POSITION, TEXCOORD_0
+        } = primitive.attributes;
+    
+        const posData = new Float32Array(POSITION.bufferView.data);
+        const normData = new Float32Array(NORMAL.bufferView.data);
+        const uvData = new Float32Array(TEXCOORD_0.bufferView.data);
+        
+        if (typeof primitive.indices === 'number') {
+                const indices = gltf.accessors[primitive.indices];
+                const i16 = new Uint16Array(indices.bufferView.data, primitive.indicesOffset, primitive.indicesLength);
+    
+                for(let i = 0; i < i16.length; i ++) {
+                    let index = i16[i];
+                    data.push(
+                        posData[index * POSITION.size + 0],
+                        posData[index * POSITION.size + 1],
+                        posData[index * POSITION.size + 2],
+                        uvData[index * TEXCOORD_0.size + 0],
+                        uvData[index * TEXCOORD_0.size + 1],
+                        1, 1, 1, 1,
+                        normData[index * NORMAL.size + 0],
+                        normData[index * NORMAL.size + 1],
+                        normData[index * NORMAL.size + 2],
+                    )
+                }
+        }
+    
+        return data;
+    }
+    static async loadGltf(url, options)  {
+        const loader = new glTFLoader(null);
+        return new Promise((res) => {
+            loader.loadGLTF(url, {baseUri: ''}, (model) => {
+                for(const mesh of model.meshes) {
+                        const data = mesh.interlivedData || [];
+
+                        for(const p of mesh.primitives) {
+                            Resources.unrollGltf(p, model, data);
+                        }	
+
+                        mesh.interlivedData = data;
+                }
+
+                return res(model);
+            });
+        });
     }
 
 }
