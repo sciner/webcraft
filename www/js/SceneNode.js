@@ -26,12 +26,13 @@ export class SceneNode {
 
         this.terrainGeometry = null;
 
+        this.pivot = vec3.create();
 
-        this.position = vec3.create(0, 0, 0, 0);
+        this.position = vec3.create();
 
         this.scale = vec3.set(vec3.create(), 1, 1, 1);
 
-        this.quat = quat.create(0, 0, 0, 1);
+        this.quat = quat.create();
 
         this._parentMatrixId = -1;
         this._oldMatrixId = 0;
@@ -99,7 +100,7 @@ export class SceneNode {
 
     get matrix() {
         if (this._oldMatrixId !== this.matrixId) {
-            mat4.fromRotationTranslationScale(this._matrix, this.quat, this.position, this.scale);
+            mat4.fromRotationTranslationScaleOrigin(this._matrix, this.quat, this.position, this.scale, this.pivot);
         }
 
         this._oldMatrixId = this.matrixId;

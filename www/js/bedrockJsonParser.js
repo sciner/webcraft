@@ -13,52 +13,52 @@ const computeRot = quat.create();
 
 const BOX_TEMPLATE = new Float32Array([
     // Top
-    -0.5, -0.5, 0.5, 8/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-    0.5, -0.5, 0.5, 16/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-    0.5, 0.5, 0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-    0.5, 0.5, 0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-    -0.5, 0.5, 0.5, 8/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-    -0.5, -0.5, 0.5, 8/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    0.0, 0.0, 1.0, 8/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    1.0, 0.0, 1.0, 16/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    1.0, 1.0, 1.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    1.0, 1.0, 1.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    0.0, 1.0, 1.0, 8/64, 8/64, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
+    0.0, 0.0, 1.0, 8/64, 0, 0, 0, 0, 0, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
 
     // Bottom
-    -0.5, -0.5, -0.5, 16/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-    -0.5, 0.5, -0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-    0.5, 0.5, -0.5, 24/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-    0.5, 0.5, -0.5, 24/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-    0.5, -0.5, -0.5, 24/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-    -0.5, -0.5, -0.5, 16/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    0.0, 0.0, 0.0, 16/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    0.0, 1.0, 0.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    1.0, 1.0, 0.0, 24/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    1.0, 1.0, 0.0, 24/64, 8/64, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    1.0, 0.0, 0.0, 24/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
+    0.0, 0.0, 0.0, 16/64, 0, 0, 0, 0, 0, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
 
     // Front
-    -0.5, -0.5, 0.5, 8/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-    -0.5, -0.5, -0.5, 8/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-    0.5, -0.5, -0.5, 16/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-    0.5, -0.5, -0.5, 16/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-    0.5, -0.5, 0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-    -0.5, -0.5, 0.5, 8/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    0.0, 0.0, 1.0, 8/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    0.0, 0.0, 0.0, 8/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    1.0, 0.0, 0.0, 16/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    1.0, 0.0, 0.0, 16/64, 16/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    1.0, 0.0, 1.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
+    0.0, 0.0, 1.0, 8/64, 8/64, 0, 0, 0, 0, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
 
     // Rear
-    -0.5, 0.5, 0.5, 24/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-    0.5, 0.5, 0.5, 32/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-    0.5, 0.5, -0.5, 32/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-    0.5, 0.5, -0.5, 32/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-    -0.5, 0.5, -0.5, 24/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-    -0.5, 0.5, 0.5, 24/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    0.0, 1.0, 1.0, 24/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    1.0, 1.0, 1.0, 32/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    1.0, 1.0, 0.0, 32/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    1.0, 1.0, 0.0, 32/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    0.0, 1.0, 0.0, 24/64, 16/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
+    0.0, 1.0, 1.0, 24/64, 8/64, 0, 0, 0, 0, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
 
     // Right
-    -0.5, -0.5, 0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-    -0.5, 0.5, 0.5, 24/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-    -0.5, 0.5, -0.5, 24/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-    -0.5, 0.5, -0.5, 24/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-    -0.5, -0.5, -0.5, 16/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-    -0.5, -0.5, 0.5, 16/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 0.0, 1.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 1.0, 1.0, 24/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 1.0, 0.0, 24/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 1.0, 0.0, 24/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 0.0, 0.0, 16/64, 16/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
+    0.0, 0.0, 1.0, 16/64, 8/64, 0, 0, 0, 0, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
 
     // Left
-    0.5, -0.5, 0.5, 8/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-    0.5, -0.5, -0.5, 8/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-    0.5, 0.5, -0.5, 0/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-    0.5, 0.5, -0.5, 0/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-    0.5, 0.5, 0.5, 0/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-    0.5, -0.5, 0.5, 8/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 0.0, 1.0, 8/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 0.0, 0.0, 8/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 1.0, 0.0, 0/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 1.0, 0.0, 0/64, 16/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 1.0, 1.0, 0/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
+    1.0, 0.0, 1.0, 8/64, 8/64, 0, 0, 0, 0, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
 
 ]);
 
@@ -96,29 +96,18 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
 function decodeCubes(cubes, description, offset = null) {
     const data = [];
 
+    computePos.set([0,0,0]);
+    computeScale.set([1, 1, 1]);
+    computeRot.set([0, 0, 0, 1]);
+
     for(let c of cubes) {
         c.origin && computePos.set(c.origin);
+        c.size && computeScale.set(c.size);
 
-        if (c.size) {
-            computePos[0] += c.size[0] / 2;
-            computePos[1] += c.size[1] / 2;
-            computePos[2] += c.size[2] / 2;
-        }
+        offset && vec3.subtract(computePos, computePos, offset);
 
-        computeScale.set(c.size || [1, 1, 1]);
-
-        if (offset) {
-            computePos[0] += offset[0];
-            computePos[1] += offset[1];
-            computePos[2] += offset[2];
-        }
-
-        if (c.rotation) {
-            quat.fromEuler(computeRot, ...c.rotation);
-        } else {
-            quat.identity(computeRot);
-        }
-
+        c.rotation && quat.fromEuler(computeRot, ...c.rotation);
+ 
         mat4.fromRotationTranslationScale(computeMatrix, computeRot, computePos, computeScale);
         //mat4.multiplyScalar(computeMatrix, computeMatrix, 1 / 36);
 
@@ -188,7 +177,7 @@ export function decodeJsonGeometryTree(json) {
         sceneNode.name = node.name;
 
         if (node.cubes) {
-            sceneNode.terrainGeometry = decodeCubes(node.cubes, description, node.pivot);
+            sceneNode.terrainGeometry = decodeCubes(node.cubes, description);
         }
 
         if (node.rotation) {
@@ -196,7 +185,7 @@ export function decodeJsonGeometryTree(json) {
         }
 
         if (node.pivot) {
-            sceneNode.position.set([-node.pivot[0], -node.pivot[1], -node.pivot[2]]);
+            sceneNode.pivot.set(node.pivot);
         }
 
         sceneNode.updateMatrix();

@@ -81,7 +81,7 @@ export class Resources {
         );
 
         all.push(
-            loadTextFile('/media/models/json/bee.geo.json').then((t) => that.models['json'] = JSON.parse(t))
+            loadTextFile('/media/models/json/TestBox.geo.json').then((t) => that.models['json'] = JSON.parse(t))
         );
 
         // Resource packs
