@@ -80,6 +80,10 @@ export class Resources {
             })
         );
 
+        all.push(
+            loadTextFile('/media/models/json/bee.geo.json').then((t) => that.models['json'] = JSON.parse(t))
+        );
+
         // Resource packs
         for(let init_file of BLOCK.resource_packs) {
             all.push(import(init_file).then((module) => {that.resource_packs.add(module.default);}));
