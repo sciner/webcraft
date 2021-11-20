@@ -68,7 +68,7 @@ export class Resources {
         }));
 
         all.push(
-            Resources.loadJsonDatabase('/media/models/json/database.json', '/media/models/json')
+            Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
                 .then((t) => Object.assign(that.models, t.assets))
                 .then((loaded) => {
                     console.log("Loaded models:", loaded);

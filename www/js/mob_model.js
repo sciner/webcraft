@@ -1,4 +1,3 @@
-import { NORMALS, Helpers } from './helpers.js';
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
@@ -24,7 +23,7 @@ export class MobModel {
         Object.assign(this, props);
 
         this.type = props.type;
-        this.skin = props.skin || 'base';
+        this.skin = props.skin;
 
         /**
          * @type {SceneNode[]}
@@ -140,7 +139,7 @@ export class MobModel {
             magFilter: 'nearest'
         });
 
-        this.material =  render.defaultShader.materials.regular.getSubMat(this.texture)
+        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture)
     }
 
     // Loads the player head model into a vertex buffer for rendering.
@@ -162,10 +161,11 @@ export class MobModel {
 
         if(asset.type === 'json') {
             this.sceneTree = ModelBuilder.fromJson(asset);
+            this.skin = this.skin || asset.baseSkin;
 
             if(!(this.skin in asset.skins)) {
                 console.warn("Can't locate skin: ", this.skin)
-                this.skin = 'base';
+                this.skin = asset.baseSkin;
             }
 
             this.loadTextures(render, asset.skins[this.skin]);

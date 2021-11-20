@@ -44,6 +44,7 @@ declare interface IGeoCube {
     origin?: IVector;
     rotation?: IVector;
     size?: IVector;
+    pivot?: IVector;
     inflate?: 0.5;
     uv: [number, number];
     mirror?: boolean;

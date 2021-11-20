@@ -48,7 +48,7 @@ export class SkinManager {
     }
 
     getURLById(skin_id) {
-        return './media/skins/' + skin_id + '.png';
+        return './media/models/player_skins/' + skin_id + '.png';
     }
 
     async init() {

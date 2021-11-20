@@ -49,9 +49,19 @@ function fillCube({
     // center of cube
     let cX = tX + (xX + yX + zX) * .5;
     let cY = tY + (xY + yY + zY) * .5;
-
-    const inf2 = .5 * (1.0 + inflate);
     let cZ = tZ + (xZ + yZ + zZ) * .5;
+    const inf2 = .5 * (1.0 + inflate / 2);
+
+
+    xX += Math.sign(xX) * inflate;
+    xY += Math.sign(xY) * inflate;
+    xZ += Math.sign(xZ) * inflate;
+    yX += Math.sign(yX) * inflate;
+    yY += Math.sign(yY) * inflate;
+    yZ += Math.sign(yZ) * inflate;
+    zX += Math.sign(zX) * inflate;
+    zY += Math.sign(zY) * inflate;
+    zZ += Math.sign(zZ) * inflate;
 
     const topUV = [sx + dz + dx / 2, sy + dz / 2, dx, dz];
     const bottomUV = [sx + dx + dx + dx / 2, sy + dz / 2, dz, dy];
@@ -149,7 +159,13 @@ function decodeCubes(cubes, description, offset = null) {
             (origin[0] - pivot[0]) * SCALE_RATIO,
             (origin[1] - pivot[1]) * SCALE_RATIO,
             (origin[2] - pivot[2]) * SCALE_RATIO
-        );  
+        );
+
+        // interference
+        computePos[0] += (0.5 - Math.random()) * 0.001;
+        computePos[1] += (0.5 - Math.random()) * 0.001;
+        computePos[2] += (0.5 - Math.random()) * 0.001;
+        
 
         if (c.rotation) {
             quat.fromEuler(
