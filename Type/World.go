@@ -370,6 +370,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		mob := &Mob{
 			ID:         uuid.New().String(),
 			Type:       params.Type,
+			Skin:       params.Skin,
 			Pos:        params.Pos,
 			Rotate:     Struct.Vector3f{},
 			Indicators: Struct.InitPlayerIndicators(),
