@@ -188,15 +188,15 @@ export class MobModel {
 
             this.loadTextures(render, asset.skins[this.skin]);
 
-            for(let i = 0; i < 8; i ++) {
-                const rl = this.sceneTree.findNode('leg_r' + i);
-                if (rl) this.rightLegs.push(rl);
+            this.rightLegs.push(this.sceneTree.findNode('RightLeg'));
 
-                const ll = this.sceneTree.findNode('leg_l' + i);
-                if (ll) this.leftLegs.push(ll);
-            }
+            this.leftLegs.push(this.sceneTree.findNode('LeftLeg'));
 
-            this.head = this.sceneTree.findNode('head');
+            this.rightLegs = this.rightLegs.filter(Boolean);
+            this.leftLegs = this.leftLegs.filter(Boolean);
+            
+        
+            this.head = this.sceneTree.findNode('Head');
         }
 
         return this.sceneTree;
