@@ -57,7 +57,7 @@ void main() {
         crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
     }
 
-    v_normal.yz = v_normal.zy;
+    v_normal = (uModelMatrix * vec4(v_normal, 0.0)).xzy;
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
 

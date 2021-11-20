@@ -85,7 +85,7 @@ fn main_vert(a : Attrs) -> VertexOutput {
         v.normal = normalize(cross(a.axisX, a.axisY));
     }
 
-    v.normal = vec3<f32>(v.normal.x, v.normal.z, v.normal.y);
+    v.normal = (eu.ModelMatrix * vec4<f32>(v.normal, 0.0)).xzy;
 
     var pos : vec3<f32> = a.position + (a.axisX * a.quad.x) + (a.axisY * a.quad.y);
     v.texcoord = a.uvCenter + (a.uvSize * a.quad);
