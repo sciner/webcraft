@@ -383,6 +383,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamMobAdd
 		json.Unmarshal(out, &params)
+		params.Rotate.Z = conn.Rotate.Z
 		this.AddMob(conn, params)
 	case Struct.CMD_MOB_DELETE:
 		//
@@ -405,7 +406,7 @@ func (this *World) AddMob(conn *PlayerConn, params *Struct.ParamMobAdd) {
 		Type:       params.Type,
 		Skin:       params.Skin,
 		Pos:        params.Pos,
-		Rotate:     Struct.Vector3f{},
+		Rotate:     params.Rotate,
 		Indicators: Struct.InitPlayerIndicators(),
 		World:      this,
 	}

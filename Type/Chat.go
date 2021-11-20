@@ -71,6 +71,7 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 				params.Pos.Z, _ = strconv.ParseFloat(fmt.Sprint(args[3]), 64)
 			}
 			//
+			params.Rotate.Z = conn.Rotate.Z
 			params.Type = fmt.Sprint(args[4])
 			params.Skin = fmt.Sprint(args[5])
 			world.AddMob(conn, params)
