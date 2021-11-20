@@ -346,7 +346,8 @@ export class Chat {
     }
 
     // Hook for keyboard input.
-    onKeyEvent(e, keyCode, down, first) {
+    onKeyEvent(e) {
+        const {keyCode, down, first} = e;
         switch(keyCode) {
             case KEY.ARROW_UP:
             case KEY.ARROW_DOWN: {

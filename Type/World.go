@@ -383,19 +383,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamMobAdd
 		json.Unmarshal(out, &params)
-		mob := &Mob{
-			ID:         uuid.New().String(),
-			Type:       params.Type,
-			Skin:       params.Skin,
-			Pos:        params.Pos,
-			Rotate:     Struct.Vector3f{},
-			Indicators: Struct.InitPlayerIndicators(),
-			World:      this,
-		}
-		this.Mobs[mob.ID] = mob
-		packet := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: []*Mob{mob}, ID: nil}
-		packets := []Struct.JSONResponse{packet}
-		this.SendAll(packets, []string{})
+		this.AddMob(conn, params)
 	case Struct.CMD_MOB_DELETE:
 		//
 		out, _ := json.Marshal(cmdIn.Data)
@@ -408,6 +396,23 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 			this.SendAll(packets, []string{})
 		}
 	}
+}
+
+// AddMob...
+func (this *World) AddMob(conn *PlayerConn, params *Struct.ParamMobAdd) {
+	mob := &Mob{
+		ID:         uuid.New().String(),
+		Type:       params.Type,
+		Skin:       params.Skin,
+		Pos:        params.Pos,
+		Rotate:     Struct.Vector3f{},
+		Indicators: Struct.InitPlayerIndicators(),
+		World:      this,
+	}
+	this.Mobs[mob.ID] = mob
+	packet := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: []*Mob{mob}, ID: nil}
+	packets := []Struct.JSONResponse{packet}
+	this.SendAll(packets, []string{})
 }
 
 //
