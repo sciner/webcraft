@@ -50,9 +50,9 @@ function fillCube({
     let cX = tX + (xX + yX + zX) * .5;
     let cY = tY + (xY + yY + zY) * .5;
     let cZ = tZ + (xZ + yZ + zZ) * .5;
-    const inf2 = .5 * (1.0 + inflate / 2);
+    const inf2 = .5;
 
-
+    inflate *= 2.0;
     xX += Math.sign(xX) * inflate;
     xY += Math.sign(xY) * inflate;
     xZ += Math.sign(xZ) * inflate;
@@ -142,7 +142,7 @@ function decodeCubes(cubes, description, offset = null) {
             size = [1,1,1],
             pivot = [0,0,0]
         } = c;
-        
+
         vec3.set(computePivot,
             pivot[0] * SCALE_RATIO,
             pivot[1] * SCALE_RATIO,
@@ -155,7 +155,7 @@ function decodeCubes(cubes, description, offset = null) {
             size[2] * SCALE_RATIO
         );
 
-        vec3.set(computePos, 
+        vec3.set(computePos,
             (origin[0] - pivot[0]) * SCALE_RATIO,
             (origin[1] - pivot[1]) * SCALE_RATIO,
             (origin[2] - pivot[2]) * SCALE_RATIO
@@ -165,7 +165,7 @@ function decodeCubes(cubes, description, offset = null) {
         computePos[0] += (0.5 - Math.random()) * 0.001;
         computePos[1] += (0.5 - Math.random()) * 0.001;
         computePos[2] += (0.5 - Math.random()) * 0.001;
-        
+
 
         if (c.rotation) {
             quat.fromEuler(
@@ -179,7 +179,7 @@ function decodeCubes(cubes, description, offset = null) {
         }
 
         mat4.fromRotationTranslationScale(
-            computeMatrix, 
+            computeMatrix,
             quat.create(),
             computePos,
             computeScale,
@@ -190,12 +190,12 @@ function decodeCubes(cubes, description, offset = null) {
         computeMatrix[12] += computePivot[0];
         computeMatrix[13] += computePivot[1];
         computeMatrix[14] += computePivot[2];
-    
-    
+
+
         fillCube({
                 matrix: computeMatrix,
                 uvPoint: c.uv,
-                inflate: c.inflate,
+                inflate: (c.inflate || 0) * SCALE_RATIO,
                 size: size,
                 textureSize: [description.texture_width, description.texture_height],
                 mirror: c.mirror,
