@@ -454,11 +454,6 @@ export class Helpers {
         return Math.floor(Math.random() * (max - min)) + min; //Максимум не включается, минимум включается
     }
 
-    static isDev() {
-        let loc = location.host;
-        return loc.indexOf('madcraft.io') < 0;
-    }
-
     static createSkinLayer2(text, image, callback) {
         let canvas          = document.createElement('canvas');
         canvas.width        = 64;
@@ -614,7 +609,7 @@ if(typeof fetch === 'undefined') {
     Helpers.fetch = async (url) => import(url);
     Helpers.fetchJSON = async (url) => import(url).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
-        let binary = Helpers.fs.readFileSync(url);
+        let binary = fs.readFileSync(url);
         return binary.buffer;
     };
 } else {

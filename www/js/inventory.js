@@ -1,13 +1,13 @@
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
 import {DIRECTION, Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
-import { BLOCK } from "./blocks.js";
+import {BLOCK} from "./blocks.js";
+import {Resources} from "./resources.js";
 
 // Player inventory
-export default class Inventory {
+export class Inventory {
 
-    constructor(player, hud) {
-        let that            = this;
+    constructor(player, hud, cb_onSelect) {
         this.player         = player;
         this.hud            = hud;
         this.current        = null;
@@ -15,6 +15,7 @@ export default class Inventory {
         this.max_count      = 36;
         this.hotbar_count   = 9;
         this.items          = [];
+        this.cb_onSelect    = cb_onSelect;
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
@@ -22,43 +23,20 @@ export default class Inventory {
         this.restoreItems(player.info.inventory);
         this.onSelect = (item) => {};
         this.select(player.info.inventory.current.index);
-        //
-        let image = new Image(); // new Image(40, 40); // Размер изображения
-        image.onload = () => {
-            that.inventory_image = image;
-            that.hud.add(that, 0);
-
-            // Recipe manager
-            this.recipes = new RecipeManager(image);
-
-            // CraftTable
-            this.ct = new CraftTable(this.recipes, 0, 0, 352, 332, 'frmCraft', null, null, this);
-            this.ct.visible = false;
-            hud.wm.add(this.ct);
-
-            // Inventory window
-            this.frmInventory = new InventoryWindow(this.recipes, 10, 10, 352, 332, 'frmInventory', null, null, this);
-            hud.wm.add(this.frmInventory);
-            // Creative Inventory window
-            this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
-            hud.wm.add(this.frmCreativeInventory);
-            // Chest window
-            this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
-            hud.wm.add(this.frmChest);
-
-        }
-        image.src = './media/inventory2.png';
+        // Recipe manager
+        this.recipes = new RecipeManager();
     }
 
+    // Open window
     open() {
-        if(Game.world.game_mode.isCreative()) {
+        if(this.player.world.game_mode.isCreative()) {
             Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
         } else {
             Game.hud.wm.getWindow('frmInventory').toggleVisibility();
         }
     }
 
-    //
+    // Return items from inventory
     exportItems() {
         let resp = {
             current: {
@@ -144,20 +122,23 @@ export default class Inventory {
             }
         }
     }
-    
+
+    // Return current active item in hotbar
     getCurrent() {
         return this.current;
     }
 
     // Refresh
     refresh(changed) {
-        Game.world.server.SaveInventory(this.exportItems());
-        this.hud.refresh();
-        try {
-            let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
-            frmRecipe.paginator.update();
-        } catch(e) {
-            // do nothing
+        this.player.server.SaveInventory(this.exportItems());
+        if(this.hud) {
+            this.hud.refresh();
+            try {
+                let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
+                frmRecipe.paginator.update();
+            } catch(e) {
+                // do nothing
+            }
         }
     }
 
@@ -183,7 +164,8 @@ export default class Inventory {
             }
         }
     }
-    
+
+    // Increment
     increment(mat) {
         if(!mat.id) {
             throw 'Empty mat ID';
@@ -205,7 +187,7 @@ export default class Inventory {
             let item = this.items[i];
             if(item) {
                 if(item.id == mat.id) {
-                    if(Game.world.game_mode.isCreative()) {
+                    if(this.player.world.game_mode.isCreative()) {
                         return;
                     }
                     if(item.count < item_max_count) {
@@ -248,7 +230,7 @@ export default class Inventory {
     
     // Decrement
     decrement() {
-        if(!this.current || Game.world.game_mode.isCreative()) {
+        if(!this.current || this.player.world.game_mode.isCreative()) {
             return;
         }
         this.current.count = Math.max(this.current.count - 1, 0);
@@ -289,7 +271,7 @@ export default class Inventory {
     
     // Клонирование материала в инвентарь
     cloneMaterial(mat) {
-        if(!Game.world.game_mode.isCreative()) {
+        if(!this.player.world.game_mode.isCreative()) {
             return false;
         }
         const MAX = mat.max_in_stack;
@@ -337,20 +319,22 @@ export default class Inventory {
             return this.refresh(true);
         }
     }
-    
+
+    // drawHUD
     drawHUD(hud) {
+        if(!this.inventory_image) {
+            return this.initUI();
+        }
         if(!this.index) {
             this.index = 0;
         }
         hud.wm.centerChild();
-        // hud.wm.center(this.ct);
-        // hud.wm.center(this.frmInventory);
-        // hud.wm.center(this.frmCreativeInventory);
     }
-    
+
+    // drawHotbar
     drawHotbar(hud, cell_size, pos) {
         if(!this.inventory_image) {
-            return;
+            return this.initUI();
         }
         hud.ctx.imageSmoothingEnabled = false;
         // 1. that.inventory_image
@@ -424,6 +408,25 @@ export default class Inventory {
             }
             hud_pos.x += cell_size;
         }
+    }
+
+    // initUI...
+    initUI() {
+        this.inventory_image = Resources.inventory.image;
+        this.hud.add(this, 0);
+        // CraftTable
+        this.ct = new CraftTable(this.recipes, 0, 0, 352, 332, 'frmCraft', null, null, this);
+        this.ct.visible = false;
+        this.hud.wm.add(this.ct);
+        // Inventory window
+        this.frmInventory = new InventoryWindow(this.recipes, 10, 10, 352, 332, 'frmInventory', null, null, this);
+        this.hud.wm.add(this.frmInventory);
+        // Creative Inventory window
+        this.frmCreativeInventory = new CreativeInventoryWindow(10, 10, 390, 416, 'frmCreativeInventory', null, null, this);
+        this.hud.wm.add(this.frmCreativeInventory);
+        // Chest window
+        this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
+        this.hud.wm.add(this.frmChest);
     }
 
 }

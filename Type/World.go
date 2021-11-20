@@ -217,6 +217,17 @@ func (this *World) SendSystemChatMessage(message string, except_conn_id_list []s
 	this.SendAll(packets2, except_conn_id_list)
 }
 
+// SendSystemChatMessageToSelectedPlayers...
+func (this *World) SendSystemChatMessageToSelectedPlayers(message string, connections map[string]*PlayerConn, exceptIDs []string) {
+	chatMessage := &Struct.ParamChatSendMessage{
+		Username: "<SERVER>",
+		Text:     message,
+	}
+	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
+	packets2 := []Struct.JSONResponse{packet2}
+	this.SendSelected(packets2, connections, exceptIDs)
+}
+
 //
 func (this *World) GetChunkAddr(pos Struct.Vector3) Struct.Vector3 {
 	v := Struct.Vector3{
@@ -318,6 +329,11 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		var params *Struct.ParamPosSpawn
 		json.Unmarshal(out, &params)
 		this.Db.ChangePosSpawn(conn, params)
+		message := "Установлена точка возрождения " + strconv.Itoa(int(params.Pos.X)) + ", " + strconv.Itoa(int(params.Pos.Y)) + ", " + strconv.Itoa(int(params.Pos.Z))
+		connections := map[string]*PlayerConn{
+			conn.ID: conn,
+		}
+		this.SendSystemChatMessageToSelectedPlayers(message, connections, []string{})
 
 	case Struct.CMD_TELEPORT_REQUEST:
 		out, _ := json.Marshal(cmdIn.Data)

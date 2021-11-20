@@ -51,9 +51,9 @@ export class SkinManager {
         return './media/skins/' + skin_id + '.png';
     }
 
-    init() {
+    async init() {
         let that = this;
-        Helpers.loadJSON('/data/skins.json', function(list) {
+        await Helpers.loadJSON('/data/skins.json', async function(list) {
             that.loading = false;
             for(let item of list) {
                 item.file = that.getURLById(item.id)

@@ -1,5 +1,4 @@
-import {Helpers, Vector} from "./helpers.js";
-import {PlayerModel} from "./player_model.js";
+import {Vector} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 
 export class ServerClient {
@@ -42,32 +41,59 @@ export class ServerClient {
 	static CMD_MOB_DELETED              = 73;
 
     // Constructor
-    constructor(url, session_id, onOpenCallback) {
-        let that                          = this;
-        this.chunks_added                 = 0;
-        that.ping_time                    = null;
-        that.ping_value                   = null;
-        this.stat                         = {
+    constructor(onHello) {
+        this.onHello                    = onHello;
+        this.chunks_added               = 0;
+        this.ping_time                  = null;
+        this.ping_value                 = null;
+        this.stat                       = {
             out_packets: {},
             in_packets: {}
         };
-        this.ws = new WebSocket(url + '?session_id=' + session_id + '&skin=' + Game.skin.id /*, 'protocolOne'*/);
-        this.ws.onmessage = function(e) {
-            that._onMessage(e);
-        };
-        this.ws.onclose = function(event) {
-            location.reload();
-        };
-        this.ws.onopen = function(event) {
-            onOpenCallback(event);
-            this.t = setInterval(function() {
-                that.ping_time = performance.now();
-                that.Send({
-                    name: ServerClient.CMD_PING,
-                    data: null
-                });
-            }, (Helpers.isDev() ? 300 : 5) * 1000);
-        };
+    }
+
+    SetPlayer(player) {
+        this.player = player;
+    }
+
+    playerConnectedToWorld(connection_info) {}
+
+    // 
+    async connect(ws, onOpen, onClose) {
+
+        let that = this;
+
+        return new Promise(res => {
+            that.ws = ws;
+            that.ws.onmessage = function(e) {
+                that._onMessage(e);
+            };
+            that.ws.onclose = function(event) {
+                onClose();
+            };
+            that.ws.onopen = function(event) {
+                onOpen(event);
+                res();
+                that.t = setInterval(function() {
+                    that.ping_time = performance.now();
+                    that.Send({
+                        name: ServerClient.CMD_PING,
+                        data: null
+                    });
+                }, 60000);
+            };
+        });
+
+    }
+
+    close(code) {
+        if(this.ws) {
+            this.ws.close(code);
+            this.ws = null;
+            if(this.t) {
+                clearInterval(this.t);
+            }
+        }
     }
 
     // New commands from server
@@ -76,16 +102,20 @@ export class ServerClient {
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
             // stat
-            if(!this.stat.in_packets[cmd.event]) {
-                this.stat.in_packets[cmd.event] = {count: 0, size: 0}
+            if(!this.stat.in_packets[cmd.name]) {
+                this.stat.in_packets[cmd.name] = {count: 0, size: 0}
             }
-            let in_packets = this.stat.in_packets[cmd.event];
+            let in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
             in_packets.size += event.data.length;
             // parse command
-            switch(cmd.event) {
+            switch(cmd.name) {
+                case ServerClient.CMD_HELO: {
+                    this.onHello(cmd);
+                    break;
+                }
                 case ServerClient.CMD_CONNECTED: {
-                    Game.postServerConnect(cmd.data);
+                    this.playerConnectedToWorld(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_BLOCK_SET: {
@@ -93,11 +123,11 @@ export class ServerClient {
                     let item = cmd.data.item;
                     let block = BLOCK.fromId(item.id);
                     let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
-                    Game.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
+                    this.player.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
                     break;
                 }
                 case ServerClient.CMD_CHUNK_LOADED: {
-                    Game.world.chunkManager.setChunkState(cmd.data);
+                    this.player.world.chunkManager.setChunkState(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_PONG: {
@@ -113,39 +143,39 @@ export class ServerClient {
                     break;
                 }
                 case ServerClient.CMD_PLAYER_JOIN: {
-                    Game.world.players.add(cmd.data);
+                    this.player.world.players.add(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_PLAYER_LEAVE: {
-                    Game.world.players.delete(cmd.data.id);
+                    this.player.world.players.delete(cmd.data.id);
                     break;
                 }
                 case ServerClient.CMD_PLAYER_STATE: {
-                    Game.world.players.setState(cmd.data);
+                    this.player.world.players.setState(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_TELEPORT: {
-                    Game.player.setPosition(cmd.data.pos);
+                    this.player.setPosition(cmd.data.pos);
                     break;
                 }
                 case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
-                    Game.world.chunkManager.setNearbyModified(cmd.data);
+                    this.player.world.chunkManager.setNearbyModified(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_ENTITY_INDICATORS: {
-                    Game.player.indicators = cmd.data.indicators;
+                    this.player.indicators = cmd.data.indicators;
                     Game.hud.refresh();
                     break;
                 }
                 case ServerClient.CMD_MOB_ADDED: {
                     for(let mob of cmd.data) {
-                        Game.world.mobs.add(mob);
+                        this.player.world.mobs.add(mob);
                     }
                     break;
                 }
                 case ServerClient.CMD_MOB_DELETED: {
                     for(let mob_id of cmd.data) {
-                        Game.world.mobs.delete(mob_id);
+                        this.player.world.mobs.delete(mob_id);
                     }
                     break;
                 }

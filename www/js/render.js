@@ -1,6 +1,6 @@
 "use strict";
 
-import { Vector } from "./helpers.js";
+import {Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth, VectorCollector} from "./helpers.js";
@@ -8,7 +8,7 @@ import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
-import { BLOCK } from "./blocks.js";
+import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
@@ -321,8 +321,8 @@ export class Renderer {
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
-            if(player.itsme && id != 'itsme') continue;
-            if(player.id != this.world.server.id) {
+            if(player.itsMe() && id != 'itsme') continue;
+            if(player.username != Game.App.session.username) {
                 player.draw(this, this.camPos, delta);
             }
         }

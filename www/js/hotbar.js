@@ -5,7 +5,6 @@ export class Hotbar {
     constructor(hud, inventory) {
         let that                = this;
         this.hud                = hud;
-        this.inventory          = inventory;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
         //
         this.sounds = {
@@ -19,9 +18,14 @@ export class Hotbar {
     }
 
     //
+    setInventory(inventory) {
+        this.inventory = inventory;
+    }
+
+    //
     damage(damage_value, reason_text) {
         if(damage_value > 0) {
-            Game.world.server.ModifyIndicator('live', -damage_value, reason_text);
+            Game.player.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
             this.sounds.hit3.play();
         }
@@ -114,19 +118,20 @@ export class Hotbar {
             );
         }
         // inventory_selector
-            // img,sx,sy,swidth,sheight,x,y,width,height
-            hud.ctx.drawImage(
-                this.image,
-                81,
-                150,
-                72,
-                69,
-                hud_pos.x - 3 + this.inventory.index * cell_size,
-                hud_pos.y + 48 + 30,
-                72,
-                69
-            );
-        this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + 48 + 30, 0));
+        hud.ctx.drawImage(
+            this.image,
+            81,
+            150,
+            72,
+            69,
+            hud_pos.x - 3 + this.inventory.index * cell_size,
+            hud_pos.y + 48 + 30,
+            72,
+            69
+        );
+        if(this.inventory) {
+            this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + 48 + 30, 0));
+        }
     }
 
 }

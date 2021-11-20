@@ -169,7 +169,7 @@ export class ChunkManager {
             start_time: performance.now()
         });
         if(this.nearby_modified_list.has(item.addr)) {
-            this.world.server.ChunkAdd(item.addr);
+            Game.player.server.ChunkAdd(item.addr);
         } else {
            if(!this.setChunkState({pos: item.addr, modify_list: null})) {
                return false;
@@ -199,7 +199,7 @@ export class ChunkManager {
         chunk.destruct();
         this.chunks.delete(addr)
         this.rendered_chunks.total--;
-        this.world.server.ChunkRemove(addr);
+        Game.player.server.ChunkRemove(addr);
     }
 
     // postWorkerMessage
@@ -338,6 +338,11 @@ export class ChunkManager {
 
     // Возвращает блок по абслютным координатам
     getBlock(x, y, z) {
+        if(x instanceof Vector || typeof x == 'object') {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
         let addr = getChunkAddr(x, y, z);
         let chunk = this.chunks.get(addr);
         if(chunk) {
@@ -366,7 +371,7 @@ export class ChunkManager {
         };
         if(is_modify) {
             // @server Отправляем на сервер инфу об установке блока
-            this.world.server.Send({
+            Game.player.server.Send({
                 name: ServerClient.CMD_BLOCK_SET,
                 data: {
                     pos: pos,

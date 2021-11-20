@@ -5,6 +5,32 @@ let WorkerWorldManager  = null;
 let worlds              = null;
 let world               = null;
 
+const worker = {
+
+    init: function() {
+        if(typeof process !== 'undefined') {
+            import('fs').then(fs => global.fs = fs);
+            import('worker_threads').then(module => {
+                this.parentPort = module.parentPort;
+                this.parentPort.on('message', onMessageFunc);    
+            });
+        } else {
+            onmessage = onMessageFunc
+        }
+    },
+
+    postMessage: function(message) {
+        if(this.parentPort) {
+            this.parentPort.postMessage(message);
+        } else {
+            postMessage(message);
+        }
+    }
+
+}
+
+worker.init();
+
 /**
 * @param {string} terrain_type
 */
@@ -27,24 +53,28 @@ async function importModules(terrain_type, seed, world_id) {
     await worlds.InitTerrainGenerators();
     world = worlds.add(terrain_type, seed, world_id);
     // Worker inited
-    postMessage(['world_inited', null]);
+    worker.postMessage(['world_inited', null]);
 }
 
 // On message callback function
-onmessage = async function(e) {
-    const cmd = e.data[0];
-    const args = e.data[1];
+async function onMessageFunc(e) {
+    let data = e;
+    if(typeof e == 'object' && 'data' in e) {
+        data = e.data;
+    }
+    const cmd = data[0];
+    const args = data[1];
     if(cmd == 'init') {
         // Init modules
-        let seed = e.data[2];
-        let world_id = e.data[3];
+        let seed = data[2];
+        let world_id = data[3];
         return await importModules(args.id, seed, world_id);
     }
     switch(cmd) {
         case 'createChunk': {
             if(!world.chunks.has(args.addr)) {
                 let ci = world.createChunk(args);
-                postMessage(['blocks_generated', ci]);
+                worker.postMessage(['blocks_generated', ci]);
             }
             break;
         }
@@ -62,7 +92,7 @@ onmessage = async function(e) {
                     chunk.vertices = null;
                 }
             }
-            postMessage(['vertices_generated', result]);
+            worker.postMessage(['vertices_generated', result]);
             break;
         }
         case 'setBlock': {
@@ -84,7 +114,7 @@ onmessage = async function(e) {
                 }
             }
             // 5. Send result to chunk manager
-            postMessage(['vertices_generated', result]);
+            worker.postMessage(['vertices_generated', result]);
             break;
         }
         case 'stat': {
@@ -100,6 +130,12 @@ onmessage = async function(e) {
             break;
         }
     }
+}
+
+if(typeof process !== 'undefined') {
+    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
+} else {
+    onmessage = onMessageFunc
 }
 
 // Rebuild vertices list

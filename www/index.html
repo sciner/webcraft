@@ -9,28 +9,27 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
 	<!-- Stylesheet -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="stylesheet" href="vendors/animate.min.css" />
     <link href="style/main.less" rel="stylesheet/less" type="text/css">
     <link href="style/ui.less" rel="stylesheet/less" type="text/css" />
 	<!-- Third party -->
-    <script src="vendors/gl-matrix-3.3.min.js" type="text/javascript"></script>
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
     <!-- <script src="vendors/webgl-utils.js"></script> -->
     <script src="js/ui/controller.js" type="module"></script>
     <script>
         less = {
-          env: 'production',
-          async: false,
-          fileAsync: false,
-          poll: 1000,
-          functions: {},
-          dumpLineNumbers: 'comments',
-          relativeUrls: false,
-          rootpath: ":/a.com/"
+            env: 'production',
+            async: false,
+            fileAsync: false,
+            poll: 1000,
+            functions: {},
+            dumpLineNumbers: 'comments',
+            relativeUrls: false,
+            rootpath: ":/a.com/"
         };
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.1.2/less.min.js" integrity="sha512-eXBn7AaMbUOWb3PSDhwcjByoM89FeO1SF9Jww6kqPYQkBrGZvqAKFbtqLHh5O95rYA/AOtWZ0QRO2S6rP+KsUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendors/less.min.js" integrity="sha512-eXBn7AaMbUOWb3PSDhwcjByoM89FeO1SF9Jww6kqPYQkBrGZvqAKFbtqLHh5O95rYA/AOtWZ0QRO2S6rP+KsUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>
 

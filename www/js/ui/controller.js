@@ -272,6 +272,7 @@ let gameCtrl = function($scope, $timeout) {
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
+            // server_url = 'ws://localhost:5701/ws';
             $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
             });

@@ -2,7 +2,6 @@ import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import { math } from "./lib/math.js";
 import {Resources} from "../../js/resources.js";
-// import { features } from "./features.js"; // import features from './lib/features.json' assert { type: "json" };
 
 const BLOCK_NOT_EXISTS = -2;
 

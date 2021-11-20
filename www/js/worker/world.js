@@ -6,7 +6,6 @@ export class WorkerWorldManager {
 
     constructor() {
         this.list = new Map();
-        // this.initTerrainGenerators();
     }
 
     async InitTerrainGenerators() {

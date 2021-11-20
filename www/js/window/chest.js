@@ -79,7 +79,7 @@ export default class ChestWindow extends Window {
         this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.world.server.LoadChest(this.entity_id);
+        Game.player.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);
@@ -103,7 +103,7 @@ export default class ChestWindow extends Window {
     
     // Отправка на сервер новых данных слота текущего сундука
     SendChestSlotItem(slot_index, item) {
-        Game.world.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
+        Game.player.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
     }
 
     // Очистка слотов сундука от предметов

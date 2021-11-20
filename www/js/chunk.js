@@ -1,7 +1,7 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
-import { Sphere } from "./frustum.js";
+import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 
 export const CHUNK_SIZE_X                   = 16;
@@ -104,7 +104,7 @@ export class Chunk {
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
         this.tblocks            = new TypedBlocks();
-        this.tblocks.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+        this.tblocks.count      = CHUNK_BLOCKS;
         this.tblocks.buffer     = args.tblocks.buffer;
         this.tblocks.light_buffer     = args.tblocks.light_buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
