@@ -110,10 +110,12 @@ func (this *Chat) parseCMD(args, format []string) ([]interface{}, error) {
 			}
 		case "string":
 			{
-				if _, err := strconv.Atoi(ch); err == nil {
-					return resp, errors.New("Invalid arg pos = " + strconv.Itoa(i))
+				if value, err := strconv.Atoi(ch); err == nil {
+					resp = append(resp, value)
+				} else {
+					resp = append(resp, string(ch))
 				}
-				resp = append(resp, ch)
+
 			}
 		}
 	}
