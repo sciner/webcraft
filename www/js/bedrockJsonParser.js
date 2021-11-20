@@ -62,7 +62,82 @@ const BOX_TEMPLATE = new Float32Array([
 
 ]);
 
+let lm = {r : -1, g : -1, b : -1};
+// let lm = {r : 0, g : 0, b : 0};
+let ao = [0, 0, 0, 0];
+
 function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, target) {
+    // let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
+    // let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
+    // let zX = matrix[8], zY = matrix[9], zZ = matrix[10];
+
+
+    let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
+    let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
+    let zX = matrix[8], zY = matrix[9], zZ = matrix[10];
+
+    let tX = matrix[12], tY = matrix[13], tZ = matrix[14];
+
+    const s = 4 / 64;
+    const flags = 0;
+
+    // center of cube
+    let cX = tX + (xX + yX + zX) * .5;
+    let cY = tY + (xY + yY + zY) * .5;
+
+    const inf2 = .5 * (1.0 + inflate);
+    let cZ = tZ + (xZ + yZ + zZ) * .5;
+
+    //top
+    let c = [8/64 + s, s, s, s];
+    target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
+        xX, xZ, xY,
+        zX, zZ, zY,
+        c[0], c[1], c[2], c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+    //bottom
+    c = [16/64 + s, s, s, s];
+    target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
+        xX, xZ, xY,
+        -zX, -zZ, -zY,
+        c[0], c[1], c[2], c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+    //south
+    c = [8/64 + s, 8/64 + s, s, s];
+    target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
+        xX, xZ, xY,
+        yX, yZ, yY,
+        c[0], c[1], c[2], -c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+    //north
+    c = [24/64 + s, 8/64 + s, s, s];
+    target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
+        xX, xZ, xY,
+        -yX, -yZ, -yY,
+        c[0], c[1], -c[2], c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+    //west
+    c = [16/64 + s, 8/64 + s, s, s];
+    target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
+        zX, zZ, zY,
+        -yX, -yZ, -yY,
+        c[0], c[1], -c[2], c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+    //east
+    c = [0/64 + s, 8/64 + s, s, s];
+    target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
+        zX, zZ, zY,
+        yX, yZ, yY,
+        c[0], c[1], c[2], -c[3],
+        lm.r, lm.g, lm.b,
+        ...ao, flags);
+
+
     const data = BOX_TEMPLATE.slice();
     const q = rot;
 
@@ -77,19 +152,22 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
 
         vec3.transformMat4(pos, pos, matrix);
         vec3.transformQuat(normal, normal, q);
-        
+
         //const uvIndex = i / 12;
         //uv[0] = uvPoint[0];
         //uv[1] = uvPoint[1];
     }
 
-    target.push(...data);
+    const target2 = GeometryTerrain.convertFrom12(data)
+
+    // target.push(...target2);
+
     return target;
 }
 
 /**
- * 
- * @param {IGeoCube[]} cubes 
+ *
+ * @param {IGeoCube[]} cubes
  * @param {IGeoTreeDescription} description
  * @param {IVector} offset
  */
@@ -107,7 +185,7 @@ function decodeCubes(cubes, description, offset = null) {
         offset && vec3.subtract(computePos, computePos, offset);
 
         c.rotation && quat.fromEuler(computeRot, ...c.rotation);
- 
+
         mat4.fromRotationTranslationScale(computeMatrix, computeRot, computePos, computeScale);
         //mat4.multiplyScalar(computeMatrix, computeMatrix, 1 / 36);
 
@@ -123,11 +201,11 @@ function decodeCubes(cubes, description, offset = null) {
         );
     }
 
-    return new GeometryTerrain(GeometryTerrain.convertFrom12(data));
+    return new GeometryTerrain(data);
 }
 /**
- * 
- * @param {IGeoFile | IGeoFileNew} json 
+ *
+ * @param {IGeoFile | IGeoFileNew} json
  */
 export function decodeJsonGeometryTree(json) {
     /**
@@ -167,9 +245,9 @@ export function decodeJsonGeometryTree(json) {
 
     for(let node of bones) {
         const sceneNode = new SceneNode();
- 
+
         if (!node.parent) {
-            quat.rotateX(sceneNode.quat, sceneNode.quat, Math.PI / 2);
+            // quat.rotateX(sceneNode.quat, sceneNode.quat, Math.PI / 2);
             root.addChild(sceneNode);
         }
 
