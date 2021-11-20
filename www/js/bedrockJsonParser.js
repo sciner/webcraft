@@ -4,7 +4,7 @@ import { SceneNode } from "./SceneNode.js";
 import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4, vec3, quat} = glMatrix;
-const SCALE_RATIO = 4 / 16;
+const SCALE_RATIO = 16 / 64;
 
 const computeMatrix = mat4.create();
 const computePos = vec3.create();
@@ -12,23 +12,10 @@ const computePivot = vec3.create();
 const computeScale = vec3.create();
 const computeRot = quat.create();
 
-let lm = {r : -1, g : -1, b : -1};
+const lm = {r : -1, g : -1, b : -1};
 // let lm = {r : 0, g : 0, b : 0};
-let ao = [0, 0, 0, 0];
+const ao = [0, 0, 0, 0];
 
-function convertVect (a, b, flip = false) {
-    if (flip) {
-        b[0] = a[0] / 16;
-        b[1] = a[2] / 16;
-        b[2] = a[1] / 16;
-    } else {
-        b[0] = a[0] / 16;
-        b[1] = a[1] / 16;
-        b[2] = a[2] / 16;
-    }
-
-    return b;
-}
 
 function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, target) {
     // let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
@@ -239,7 +226,7 @@ export function decodeJsonGeometryTree(json) {
                 sceneNode.quat,
                 node.rotation[0],
                 node.rotation[2],
-                node.rotation[1]
+                -node.rotation[1]
             )
         }
 
