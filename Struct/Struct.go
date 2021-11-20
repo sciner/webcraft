@@ -249,8 +249,10 @@ type (
 	}
 	SessionError struct{}
 	ParamMobAdd  struct {
-		Type string   `json:"type"`
-		Pos  Vector3f `json:"pos"`
+		Type   string   `json:"type"`
+		Skin   string   `json:"skin"`
+		Pos    Vector3f `json:"pos"`
+		Rotate Vector3f `json:"rotate"`
 	}
 	ParamMobDelete struct {
 		ID string `json:"id"`

@@ -1,163 +1,65 @@
-import GeometryTerrain from "./geometry_terrain.js";
-import {NORMALS, Helpers} from './helpers.js';
-import {Resources} from "./resources.js";
+import { Resources } from "./resources.js";
+import { SceneNode } from "./SceneNode.js";
+import * as ModelBuilder from "./modelBuilder.js";
 
-const {mat4} = glMatrix;
+const {mat4, vec3, quat} = glMatrix;
 
 export class MobModel {
 
     constructor(props) {
-
-        this.texPlayer                  = null;
-        this.texPlayer2                 = null;
-
-        this.matPlayer = null;
-        this.matPlayer2 = null;
+        this.sceneTree                  = null;
+        this.texture                  = null;
+        this.material = null;
 
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
-        this.moving                     = false;
+        this.moving                     = true;
         this.aniframe                   = 0;
-        this.height                     = 0.26;
+        this.height                     = 0;
 
         this.modelMatrix                = mat4.create();
 
-        this.skin = {
-            file: '/media/skins/16.png'
-        };
-
         Object.assign(this, props);
 
+        this.type = props.type;
+        this.skin = props.skin;
+
+        /**
+         * @type {SceneNode[]}
+         */
+        this.rightLegs = [];
+        /**
+         * @type {SceneNode[]}
+         */
+        this.leftLegs = [];
+        /**
+         * @type {SceneNode}
+         */
+        this.head = null;
     }
 
-    // draw
-    draw(render, camPos, delta) {
-        const gl = this.gl = render.gl;
-        this.drawLayer(render, camPos, delta, {
-            scale:          1.0,
-            material:       this.matPlayer,
-            draw_nametag:   false
-        });
-        this.drawLayer(render, camPos, delta, {
-            scale:          1.05,
-            material:       this.matPlayer2,
-            draw_nametag:   true
-        });
+    traverse(node, cb, parent = null, args = {}) {
+        if(!cb.call(this, node, parent, args)) {
+            return false;
+        }
+
+        for(let next of node.children) {
+            if (!this.traverse(next, cb, node, args)) return false;
+        }
+
+        return true;
     }
 
-    // loadMesh...
-    /**
-     *
-     * @param {Renderer} render
-     */
-    loadMesh(render) {
-        this.loadPlayerHeadModel(render);
-        this.loadTextures(render);
-    }
+    update(camPos, delta) {
 
-    /**
-     *
-     * @param {Renderer} render
-     */
-    loadTextures(render) {
-        Resources
-            .loadImage(this.skin.file, false)
-            .then(image1 => {
-                Helpers.createSkinLayer2(null, image1, (file) => {
-                    Resources
-                        .loadImage(URL.createObjectURL(file), false)
-                        .then(image2 => {
-                            const texture1 = render.renderBackend.createTexture({
-                                source: image1,
-                                minFilter: 'nearest',
-                                magFilter: 'nearest'
-                            });
-                            const texture2 = render.renderBackend.createTexture({
-                                source: image2,
-                                minFilter: 'nearest',
-                                magFilter: 'nearest'
-                            });
-                            this.texPlayer =  texture1;
-                            this.texPlayer2 = texture2;
-                            this.matPlayer = render.defaultShader.materials.doubleface.getSubMat(texture1);
-                            this.matPlayer2 = render.defaultShader.materials.doubleface_transparent.getSubMat(texture2);
-                            document.getElementsByTagName('body')[0].append(image2);
-                        })
-                });
-            });
+        if (delta > 1000) {
+            delta = 1000
+        }
 
-    }
-
-    // Loads the player head model into a vertex buffer for rendering.
-    loadPlayerHeadModel() {
-
-        // [x, y, z, tX, tY, lm.r, lm.g, lm.b, lm.a, n.x, n.y, n.z],
-
-        let lm = {r: 0, g: 0, b: 0, a: 0};
-
-        // Player head
-        let vertices = [
-            // Top
-            -0.25, -0.25, 0.25, 8/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, -0.25, 0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, 0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            0.25, 0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -0.25, 0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-            -0.25, -0.25, 0.25, 8/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.UP.x, NORMALS.UP.y, NORMALS.UP.z,
-
-            // Bottom
-            -0.25, -0.25, -0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            -0.25, 0.25, -0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, 0.25, -0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, 0.25, -0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            0.25, -0.25, -0.25, 24/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-            -0.25, -0.25, -0.25, 16/64, 0, lm.r, lm.g, lm.b, lm.a, NORMALS.DOWN.x, NORMALS.DOWN.y, NORMALS.DOWN.z,
-
-            // Front
-            -0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            -0.25, -0.25, -0.25, 8/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-            -0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.FORWARD.x, NORMALS.FORWARD.y, NORMALS.FORWARD.z,
-
-            // Rear
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, 0.25, 32/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, -0.25, 32/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            0.25, 0.25, -0.25, 32/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.BACK.x, NORMALS.BACK.y, NORMALS.BACK.z,
-
-            // Right
-            -0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, 0.25, 24/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, 0.25, -0.25, 24/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, -0.25, -0.25, 16/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-            -0.25, -0.25, 0.25, 16/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.RIGHT.x, NORMALS.RIGHT.y, NORMALS.RIGHT.z,
-
-            // Left
-            0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, -0.25, -0.25, 8/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, -0.25, 0/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, -0.25, 0/64, 16/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, 0.25, 0.25, 0/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-            0.25, -0.25, 0.25, 8/64, 8/64, lm.r, lm.g, lm.b, lm.a, NORMALS.LEFT.x, NORMALS.LEFT.y, NORMALS.LEFT.z,
-
-        ];
-
-        return this.playerHead = new GeometryTerrain(GeometryTerrain.convertFrom12(vertices));
-
-    }
-
-    // drawLayer
-    drawLayer(render, camPos, delta, options) {
-        const {modelMatrix} = this;
-        const {material, scale} = options;
-        const {renderBackend} = render;
-        const z_minus   = (this.height * options.scale - this.height);
+        const scale = 1;
+        const modelMatrix = this.sceneTree.matrix;
+        const z_minus   = (this.height * scale - this.height);
 
         let aniangle = 0;
         if(this.moving || Math.abs(this.aniframe) > 0.1) {
@@ -165,7 +67,7 @@ export class MobModel {
             if(this.aniframe > Math.PI) {
                 this.aniframe  = -Math.PI;
             }
-            aniangle = Math.PI / 2 * Math.sin(this.aniframe);
+            aniangle = Math.PI / 4 * Math.sin(this.aniframe);
             if(!this.moving && Math.abs(aniangle) < 0.1) {
                 this.aniframe = 0;
             }
@@ -173,33 +75,160 @@ export class MobModel {
 
         // Draw head
         let pitch = this.pitch;
+
         if(pitch < -0.5) {
             pitch = -0.5;
         }
+
         if(pitch > 0.5) {
             pitch = 0.5;
         }
 
-        // Load mesh
-        if(!this.playerHead) {
-            this.loadMesh(render);
+        // Draw head
+        mat4.identity(modelMatrix);
+        mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * scale - z_minus]);
+        mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
+        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
+        mat4.rotateX(modelMatrix, modelMatrix, -pitch);
+
+        this.sceneTree.matrix = modelMatrix;
+
+        for(let i = 0; i < this.leftLegs.length; i ++) {
+            const rl = this.rightLegs[i];
+            const ll = this.leftLegs[i];
+            const sign = i % 2 ? 1 : -1;
+
+            quat.identity(rl.quat);
+            quat.rotateX(rl.quat, rl.quat, aniangle * sign);
+
+            quat.identity(ll.quat);
+            quat.rotateX(ll.quat, ll.quat, -aniangle * sign);
+
+            rl.updateMatrix();
+            ll.updateMatrix();
         }
+    }
+
+    // draw
+    draw(render, camPos, delta) {
+        if (!this.sceneTree) {
+            this.loadModel(render);
+        }
+
+        this.update(camPos, delta);
+        this.drawLayer(render, camPos, delta, {
+            scale:          .25,
+            material:       this.material,
+            draw_nametag:   false
+        });
+    }
+
+    /**
+     *
+     * @param {Renderer} render
+     * @param {ImageBitmap | Image} image
+     */
+    loadTextures(render, image) {
+        if (this.texture) {
+            return;
+        }
+
+        this.texture = render.renderBackend.createTexture({
+            source: image,
+            minFilter: 'nearest',
+            magFilter: 'nearest'
+        });
+
+        this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture)
+    }
+
+    // Loads the player head model into a vertex buffer for rendering.
+    /**
+     * 
+     * @param {Renderer} render
+     */
+    loadModel(render) {
+        if (this.sceneTree) {
+            return;
+        }
+
+        if(this.type === 'player') {
+            if (this.skin === 'base') {
+                this.skin = '1';
+                this.type = 'player:steve';
+            } else {
+                this.type = 'player:steve';
+
+                if (!(this.skin in Resources.models[this.type].skins)) {
+                    this.type = 'player:alex';
+                }
+
+                if (!(this.skin in Resources.models[this.type].skins)) {
+                    this.type = 'player:steve';
+                    this.skin = '1';
+                }
+            }
+        }
+
+        const asset = Resources.models[this.type.replace('mob_','')] || Resources.models['bee'];
+
+        if (!asset) {
+            console.log("Can't lokate model for:", this.type);
+            return null;
+        }
+
+        if(asset.type === 'json') {
+            this.sceneTree = ModelBuilder.fromJson(asset);
+            this.skin = this.skin || asset.baseSkin;
+
+            if(!(this.skin in asset.skins)) {
+                console.warn("Can't locate skin: ", this.skin)
+                this.skin = asset.baseSkin;
+            }
+
+            this.loadTextures(render, asset.skins[this.skin]);
+
+            this.rightLegs.push(this.sceneTree.findNode('RightLeg'));
+
+            this.leftLegs.push(this.sceneTree.findNode('LeftLeg'));
+
+            this.rightLegs = this.rightLegs.filter(Boolean);
+            this.leftLegs = this.leftLegs.filter(Boolean);
+            
+        
+            this.head = this.sceneTree.findNode('Head');
+        }
+
+        return this.sceneTree;
+    
+    }
+
+    drawTraversed(node, parent, {render, material}) {
+
+        if (!node.terrainGeometry) {
+            return true;
+        }
+
+
+        if (node.name !== 'body') {
+            //return true;
+        }
+
+        render.renderBackend.drawMesh(node.terrainGeometry, material, this.pos, node.matrixWorld);
+
+        return true;
+    }
+
+    // drawLayer
+    drawLayer(render, camPos, delta, options) {
+        const { material, scale } = options;
 
         // Wait loading texture
         if(!options.material) {
             return;
         }
 
-        const a_pos = this.pos;
-
-        // Draw head
-        mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * options.scale - z_minus]);
-        mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
-        mat4.rotateX(modelMatrix, modelMatrix, -pitch);
-        renderBackend.drawMesh(this.playerHead, material, a_pos, modelMatrix);
-
+        this.traverse(this.sceneTree, this.drawTraversed, null, {render, material});
     }
 
 }

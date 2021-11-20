@@ -17,7 +17,8 @@ export class MobManager {
             pos:            data.pos,
             rotate:         data.rotate,
             pitch:          data.rotate.x,
-            yaw:            data.rotate.z
+            yaw:            data.rotate.z,
+            skin:           data.skin || 'base'
         });
         this.list.set(data.id, mob);
     }

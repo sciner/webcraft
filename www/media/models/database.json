@@ -1,0 +1,70 @@
+{
+    "assets": {
+        "horse": {
+            "type": "json",
+            "geom": "/json/horse.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "/textures/donkey.png",
+                "creamy": "/textures/horse_creamy.png"
+            }
+        },
+
+        "bee": {
+            "type": "json",
+            "geom": "/json/bee.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "/textures/bee.png"
+            }
+        },
+
+        "test": {
+            "type": "json",
+            "geom": "/json/TestBox.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "/textures/TestBox_Template.png"
+            }
+        },
+
+        "player:steve": {
+            "type": "json",
+            "geom": "/json/steve.geo.json",
+            "baseSkin": "1",
+            "skins": {
+                "1": "/player_skins/1.png",
+                "3": "/player_skins/3.png",
+                "4": "/player_skins/4.png",
+                "5": "/player_skins/5.png",
+                "6": "/player_skins/6.png",
+                "7": "/player_skins/7.png",
+                "9": "/player_skins/9.png",
+                "10": "/player_skins/10.png",
+                "11": "/player_skins/11.png",
+                "12": "/player_skins/12.png",
+                "13": "/player_skins/13.png",
+                "14": "/player_skins/14.png",
+                "15": "/player_skins/15.png",
+                "16": "/player_skins/16.png",
+                "17": "/player_skins/17.png",
+                "19": "/player_skins/19.png",
+                "20": "/player_skins/20.png",
+                "21": "/player_skins/21.png",
+                "22": "/player_skins/22.png",
+                "24": "/player_skins/24.png"
+            }
+        },
+        "player:alex": {
+            "type": "json",
+            "geom": "/json/alex.geo.json",
+            "baseSkin": "2",
+            "skins": {
+                "2": "/player_skins/2.png",
+                "8": "/player_skins/8.png",
+                "23": "/player_skins/23.png",
+                "25": "/player_skins/25.png"
+            }
+        }
+    }
+}
