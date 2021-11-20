@@ -152,6 +152,24 @@ export class MobModel {
             return;
         }
 
+        if(this.type === 'player') {
+            if (this.skin === 'base') {
+                this.skin = '1';
+                this.type = 'player:steve';
+            } else {
+                this.type = 'player:steve';
+
+                if (!(this.skin in Resources.models[this.type].skins)) {
+                    this.type = 'player:alex';
+                }
+
+                if (!(this.skin in Resources.models[this.type].skins)) {
+                    this.type = 'player:steve';
+                    this.skin = '1';
+                }
+            }
+        }
+
         const asset = Resources.models[this.type.replace('mob_','')] || Resources.models['bee'];
 
         if (!asset) {
