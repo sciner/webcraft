@@ -245,7 +245,7 @@ export class Player {
             this.inventory.select(keyCode - 49);
             return true;
         }
-        this.zoom = this.keys[KEY.C];
+        this.zoom = !!this.keys[KEY.C];
         // Running
         if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
         if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}

@@ -47,7 +47,7 @@ export class GameClass {
         this.prev_player_state  = null;
         this.setInputCanvas('renderSurface');
         this.setupMousePointer(false);
-        this.render.updateViewport();
+        // this.render.updateViewport();
         this.setupMouseListeners();
         //
         let bodyClassList = document.querySelector('body').classList;
@@ -232,13 +232,6 @@ export class GameClass {
                             player.nextGameMode();
                         }
                         return true;
-                        break;
-                    }
-                    case KEY.C: {
-                        if(first) {
-                            this.render.updateViewport();
-                            return true;
-                        }
                         break;
                     }
                     // R (Respawn)
