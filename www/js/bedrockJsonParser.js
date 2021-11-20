@@ -4,7 +4,7 @@ import { SceneNode } from "./SceneNode.js";
 import GeometryTerrain from "./geometry_terrain.js";
 
 const {mat4, vec3, quat} = glMatrix;
-const SCALE_RATIO = 16 / 64;
+const SCALE_RATIO = 1 / 16;
 
 const computeMatrix = mat4.create();
 const computePos = vec3.create();
@@ -41,8 +41,7 @@ function fillCube({
     const dx = size[0] / ( textureSize[0]);
     const dy = size[1] / ( textureSize[0]);
     const dz = size[2] / ( textureSize[0]);
-
-    const s = sx;
+    const flip = mirror ? -1 : 1;
 
     const flags = 0;
 
@@ -53,55 +52,62 @@ function fillCube({
     const inf2 = .5 * (1.0 + inflate);
     let cZ = tZ + (xZ + yZ + zZ) * .5;
 
+    const topUV = [sx + dz + dx / 2, sy + dz / 2, dx, dz];
+    const bottomUV = [sx + dx + dx + dx / 2, sy + dz / 2, dz, dy];
+    const northUV = [sx + dz + dx / 2, sy + dz + dy / 2, dx, dy];
+    const southUV = [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2, dx, dy];
+    const eastUV = [sx + dz + dx + dz / 2, sy + dz + dy / 2, dz, dy];
+    const westUV = [sx + dz / 2, sy + dz + dy / 2, dz, dy];
     //top
-    let c = [sx + dz + dx / 2, sy + dz / 2, dx, dz];
+    let c = topUV;
     target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
         xX, xZ, xY,
         zX, zZ, zY,
-        c[0], c[1], c[2], c[3],
+        c[0], c[1], c[2] * flip, -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
     //bottom
-    c = [sx + dx + dx + dx / 2, sy + dz / 2, dz, dy];
+    c = bottomUV;
     target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
         xX, xZ, xY,
         -zX, -zZ, -zY,
-        c[0], c[1], c[2], -c[3],
+        c[0], c[1], c[2] * flip, c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
 
     //north
-    c = [sx + dz + dx / 2, sy + dz + dy / 2, dx, dy];
+    c = northUV;
     target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
         xX, xZ, xY,
         yX, yZ, yY,
-        c[0], c[1], c[2], -c[3],
+        c[0], c[1], c[2] * flip, -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
 
     //south
-    c = [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2, dx, dy];
+    c = southUV;
     target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
         xX, xZ, xY,
         -yX, -yZ, -yY,
-        c[0], c[1], -c[2], c[3],
+        c[0], c[1], -c[2] * flip, c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
 
     //west
-    c = [sx + dz / 2, sy + dz + dy / 2, dz, dy];
+    c = mirror ? eastUV : westUV;
     target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
         zX, zZ, zY,
         -yX, -yZ, -yY,
-        c[0], c[1], -c[2], c[3],
+        c[0], c[1], -c[2] * flip, c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
+
     //east
-    c = [sx + dz + dx + dz / 2, sy + dz + dy / 2, dz, dy];
+    c = mirror ? westUV : eastUV;
     target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
         zX, zZ, zY,
         yX, yZ, yY,
-        c[0], c[1], c[2], -c[3],
+        c[0], c[1], c[2] * flip, -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
 

@@ -66,22 +66,11 @@ export class Resources {
         }));
 
         all.push(
-            Resources.loadGltf('/media/models/models.gltf', null).then((model) => {
-                for(let node of model.scenes[0].nodes) {
-
-                    if (node.name.indexOf('model:') === -1) {
-                        continue;
-                    }
-
-                    node.gltf = model;
-                    const [, id] = node.name.split(":");
-                    that.models[id] = node;
-                }
-            })
-        );
-
-        all.push(
-            loadTextFile('/media/models/json/horse.json').then((t) => that.models['json'] = JSON.parse(t))
+            Resources.loadJsonDatabase('/media/models/json/database.json', '/media/models/json')
+                .then((t) => Object.assign(that.models, t.assets))
+                .then((loaded) => {
+                    console.log("Loaded models:", loaded);
+                })
         );
 
         // Resource packs
@@ -138,8 +127,8 @@ export class Resources {
         return resp;
     }
 
-    static loadTextFile(url) {
-        return fetch(url).then(response => response.text());
+    static loadTextFile(url, json = false) {
+        return fetch(url).then(response => json ? response.json() : response.text());
     }
     
     static loadImage(url,  imageBitmap) {
@@ -192,6 +181,53 @@ export class Resources {
     
         return data;
     }
+
+    static async loadJsonModel(entry, key, baseUrl) {
+        const json = await Resources.loadTextFile(baseUrl + '/' + entry.geom, true);
+        const keys = Object.keys(entry.skins);
+        const skins = [];
+        
+        json.type = entry.type;
+        json.source = entry;
+        json.key = key;
+        json.skins = {};
+
+        for(let key of keys) {
+            skins.push(
+                Resources
+                .loadImage(baseUrl + '/' + entry.skins[key], !!self.createImageBitmap)
+                .then((image) => {
+                    json.skins[key] = image;
+                })
+            )
+        }
+        
+        await Promise.all(skins);
+
+        return json;
+    }
+
+    static async loadJsonDatabase(url, baseUrl) {
+        const base = await Resources.loadTextFile(url, true);
+        const process = [];
+
+        for(let key in base.assets) {
+            const entry = base.assets[key];
+            if (entry.type == 'json') {
+
+                process.push(
+                    Resources.loadJsonModel(entry, key, baseUrl).then((entry) => {
+                        base.assets[entry.key] = entry;
+                    })
+                )
+            }
+        }
+
+        await Promise.all(process);
+
+        return base;
+    }
+
     static async loadGltf(url, options)  {
         const loader = new glTFLoader(null);
         return new Promise((res) => {

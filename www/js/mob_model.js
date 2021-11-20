@@ -8,14 +8,9 @@ const {mat4, vec3, quat} = glMatrix;
 export class MobModel {
 
     constructor(props) {
-
-        this.type = props.type;
-        this.gltfAsset                  = null;
-        this.texPlayer                  = null;
-        this.texPlayer2                 = null;
-
-        this.matPlayer = null;
-        this.matPlayer2 = null;
+        this.sceneTree                  = null;
+        this.texture                  = null;
+        this.material = null;
 
         this.moving_timeout             = null;
         this.texture                    = null;
@@ -26,11 +21,10 @@ export class MobModel {
 
         this.modelMatrix                = mat4.create();
 
-        this.skin = {
-            file: '/media/models/json/textures/horse_creamy.png'
-        };
-
         Object.assign(this, props);
+
+        this.type = props.type;
+        this.skin = props.skin || 'base';
 
         /**
          * @type {SceneNode[]}
@@ -64,8 +58,8 @@ export class MobModel {
             delta = 1000
         }
 
-        const scale = 0.25;
-        const modelMatrix = this.gltfAsset.matrix;
+        const scale = 1;
+        const modelMatrix = this.sceneTree.matrix;
         const z_minus   = (this.height * scale - this.height);
 
         let aniangle = 0;
@@ -98,7 +92,7 @@ export class MobModel {
         mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
         mat4.rotateX(modelMatrix, modelMatrix, -pitch);
 
-        this.gltfAsset.matrix = modelMatrix;
+        this.sceneTree.matrix = modelMatrix;
 
         for(let i = 0; i < this.leftLegs.length; i ++) {
             const rl = this.rightLegs[i];
@@ -118,88 +112,77 @@ export class MobModel {
 
     // draw
     draw(render, camPos, delta) {
-        if (!this.gltfAsset) {
-            this.loadMesh(render);
+        if (!this.sceneTree) {
+            this.loadModel(render);
         }
 
         this.update(camPos, delta);
         this.drawLayer(render, camPos, delta, {
             scale:          .25,
-            material:       this.matPlayer,
+            material:       this.material,
             draw_nametag:   false
         });
-        /*
-        this.drawLayer(render, camPos, delta, {
-            scale:          1.05,
-            material:       this.matPlayer2,
-            draw_nametag:   true
-        });
-        */
-    }
-
-    // loadMesh...
-    /**
-     *
-     * @param {Renderer} render
-     */
-    loadMesh(render) {
-        this.loadPlayerHeadModel(render);
-        this.loadTextures(render);
     }
 
     /**
      *
      * @param {Renderer} render
+     * @param {ImageBitmap | Image} image
      */
-    loadTextures(render) {
-        if (this.texPlayer && this.texPlayer2) {
+    loadTextures(render, image) {
+        if (this.texture) {
             return;
         }
 
-        Resources
-            .loadImage(this.skin.file, false)
-            .then(image1 => {
-                Helpers.createSkinLayer2(null, image1, (file) => {
-                    Resources
-                        .loadImage(URL.createObjectURL(file), false)
-                        .then(image2 => {
-                            const texture1 = render.renderBackend.createTexture({
-                                source: image1,
-                                minFilter: 'nearest',
-                                magFilter: 'nearest'
-                            });
-                            const texture2 = render.renderBackend.createTexture({
-                                source: image2,
-                                minFilter: 'nearest',
-                                magFilter: 'nearest'
-                            });
-                            this.texPlayer =  texture1;
-                            this.texPlayer2 = texture2;
-                            this.matPlayer = render.defaultShader.materials.regular.getSubMat(texture1);
-                            this.matPlayer2 = render.defaultShader.materials.transparent.getSubMat(texture2);
-                        })
-                });
-            });
+        this.texture = render.renderBackend.createTexture({
+            source: image,
+            minFilter: 'nearest',
+            magFilter: 'nearest'
+        });
 
+        this.material =  render.defaultShader.materials.regular.getSubMat(this.texture)
     }
 
     // Loads the player head model into a vertex buffer for rendering.
-    loadPlayerHeadModel() {
-        const node = Resources.models['json'];// Resources.models[this.type.replace('mob_','')] || Resources.models['70'];
-
-        this.gltfAsset = ModelBuilder.fromJson(node);
-
-        for(let i = 0; i < 8; i ++) {
-            const rl = this.gltfAsset.findNode('leg_r' + i);
-            if (rl) this.rightLegs.push(rl);
-
-            const ll = this.gltfAsset.findNode('leg_l' + i);
-            if (ll) this.leftLegs.push(ll);
+    /**
+     * 
+     * @param {Renderer} render
+     */
+    loadModel(render) {
+        if (this.sceneTree) {
+            return;
         }
 
-        this.head = this.gltfAsset.findNode('head');
+        const asset = Resources.models[this.type.replace('mob_','')] || Resources.models['bee'];
 
-        return this.gltfAsset;
+        if (!asset) {
+            console.log("Can't lokate model for:", this.type);
+            return null;
+        }
+
+        if(asset.type === 'json') {
+            this.sceneTree = ModelBuilder.fromJson(asset);
+
+            if(!(this.skin in asset.skins)) {
+                console.warn("Can't locate skin: ", this.skin)
+                this.skin = 'base';
+            }
+
+            this.loadTextures(render, asset.skins[this.skin]);
+
+            for(let i = 0; i < 8; i ++) {
+                const rl = this.sceneTree.findNode('leg_r' + i);
+                if (rl) this.rightLegs.push(rl);
+
+                const ll = this.sceneTree.findNode('leg_l' + i);
+                if (ll) this.leftLegs.push(ll);
+            }
+
+            this.head = this.sceneTree.findNode('head');
+        }
+
+        return this.sceneTree;
+    
     }
 
     drawTraversed(node, parent, {render, material}) {
@@ -220,19 +203,14 @@ export class MobModel {
 
     // drawLayer
     drawLayer(render, camPos, delta, options) {
-        const {material, scale} = options;
-
-        // Load mesh
-        if(!this.gltfAsset) {
-            this.loadMesh(render);
-        }
+        const { material, scale } = options;
 
         // Wait loading texture
         if(!options.material) {
             return;
         }
 
-        this.traverse(this.gltfAsset, this.drawTraversed, null, {render, material});
+        this.traverse(this.sceneTree, this.drawTraversed, null, {render, material});
     }
 
 }
