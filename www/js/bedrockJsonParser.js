@@ -2,8 +2,9 @@
 
 import { SceneNode } from "./SceneNode.js";
 import GeometryTerrain from "./geometry_terrain.js";
+import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
 
-const {mat4, vec3, quat} = glMatrix;
+const { mat4, vec3, quat } = glMatrix;
 const SCALE_RATIO = 1 / 16;
 
 const computeMatrix = mat4.create();
