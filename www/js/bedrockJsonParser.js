@@ -62,19 +62,19 @@ function fillCube({
     zX += Math.sign(zX) * inflate;
     zY += Math.sign(zY) * inflate;
     zZ += Math.sign(zZ) * inflate;
-
-    const topUV = [sx + dz + dx / 2, sy + dz / 2, dx, dz];
-    const bottomUV = [sx + dx + dx + dx / 2, sy + dz / 2, dz, dy];
-    const northUV = [sx + dz + dx / 2, sy + dz + dy / 2, dx, dy];
-    const southUV = [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2, dx, dy];
-    const eastUV = [sx + dz + dx + dz / 2, sy + dz + dy / 2, dz, dy];
-    const westUV = [sx + dz / 2, sy + dz + dy / 2, dz, dy];
+    //                X                         Y                  w    h
+    const topUV =    [sx + dz + dx / 2         , sy + dz / 2      , dx, dz];
+    const bottomUV = [sx + dz + dx + dx / 2    , sy + dz / 2      , dz, dy];
+    const northUV =  [sx + dz + dx / 2         , sy + dz + dy / 2 , dx, dy];
+    const southUV =  [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2 , dx, dy];
+    const eastUV =   [sx + dz + dx + dz / 2    , sy + dz + dy / 2 , dz, dy];
+    const westUV =   [sx + dz / 2              , sy + dz + dy / 2 , dz, dy];
     //top
     let c = topUV;
     target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
         xX, xZ, xY,
         zX, zZ, zY,
-        c[0], c[1], c[2] * flip, -c[3],
+        c[0], c[1], c[2] * flip, c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
     //bottom
@@ -82,7 +82,7 @@ function fillCube({
     target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
         xX, xZ, xY,
         -zX, -zZ, -zY,
-        c[0], c[1], c[2] * flip, c[3],
+        c[0], c[1], c[2] * flip, -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
 
