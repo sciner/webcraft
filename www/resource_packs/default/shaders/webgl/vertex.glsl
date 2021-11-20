@@ -63,12 +63,6 @@ void main() {
 
     v_texcoord = a_uvCenter + (a_uvSize * a_quad);
 
-    // flip UV for top quad
-    // todo Looks dirty but working
-    if (abs(v_normal.y) * (1. - flagNormalUp) > 0.5 ) {
-        v_texcoord.y = a_uvCenter.y - (a_uvSize.y * a_quad.y);
-    }
-
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     vec3 n = normalize(v_normal);
