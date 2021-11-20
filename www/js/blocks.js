@@ -49,7 +49,7 @@ export class BLOCK {
 
     // Return flat index of chunk block
     static getIndex(x, y, z) {
-        if(x instanceof Vector) {
+        if(x instanceof Vector || typeof x == 'object') {
             y = x.y;
             z = x.z;
             x = x.x;

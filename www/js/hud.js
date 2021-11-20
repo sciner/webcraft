@@ -46,14 +46,7 @@ export class HUD {
             image:      null,
             hud:        null,
             init: function(hud) {
-                let that = this;
-                that.hud = hud;
-                /*let image = new Image();
-                image.onload = function() {
-                    that.image = this;
-                }
-                image.src = '../media/background.png';
-                */
+                this.hud = hud;
             },
             draw: function() {
                 let cl = 0;
@@ -296,8 +289,8 @@ export class HUD {
             this.text += 'NULL';
         }
         this.text += '\nGame mode: ' + world.game_mode.getCurrent().title;
-        if(world.server.ping_value) {
-            this.text += '\nPING: ' + Math.round(world.server.ping_value) + ' ms';
+        if(player.server.ping_value) {
+            this.text += '\nPING: ' + Math.round(player.server.ping_value) + ' ms';
         }
         let time = world.getTime();
         if(time) {
@@ -338,7 +331,7 @@ export class HUD {
                 continue;
             }
             this.text += '🙎‍♂️' + player.username;
-            if(player.itsme) {
+            if(player.itsMe()) {
                 this.text += ' <- YOU';
             } else {
                 this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, player.pos)) + 'm';

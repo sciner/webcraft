@@ -34,19 +34,6 @@ export class PickAt {
             start:      null
         }
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
-        // Material (damage)
-        this.material_damage = render.renderBackend.createMaterial({
-            cullFace: true,
-            opaque: false,
-            blendMode: BLEND_MODES.NORMAL,
-            shader: render.defaultShader,
-        });
-        // Material (target)
-        this.material_target = this.material_damage.getSubMat(render.renderBackend.createTexture({
-            source: Resources.pickat.target,
-            minFilter: 'nearest',
-            magFilter: 'nearest'
-        }));
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
@@ -179,7 +166,7 @@ export class PickAt {
     setEvent(e) {
         e.start_time        = performance.now();
         e.destroyBlock      = e.button_id == 1;
-        e.cloneBlock        = e.button_id == 2; // && this.world.game_mode.isCreative();
+        e.cloneBlock        = e.button_id == 2;
         e.createBlock       = e.button_id == 3;
         e.number            = 0;
         let damage_block = this.damage_block;
@@ -299,6 +286,9 @@ export class PickAt {
 
     // Draw meshes
     draw() {
+        if(!this.material_target) {
+            this.initMaterials();
+        }
         let render = this.render;
         let target_block = this.target_block;
         let damage_block = this.damage_block;
@@ -385,6 +375,23 @@ export class PickAt {
     // createDamageBuffer...
     createDamageBuffer(pos, c) {
         return this.createTargetBuffer(pos, c);
+    }
+
+    // initMaterials
+    initMaterials() {
+        // Material (damage)
+        this.material_damage = this.render.renderBackend.createMaterial({
+            cullFace: true,
+            opaque: false,
+            blendMode: BLEND_MODES.NORMAL,
+            shader: this.render.defaultShader,
+        });
+        // Material (target)
+        this.material_target = this.material_damage.getSubMat(this.render.renderBackend.createTexture({
+            source: Resources.pickat.target,
+            minFilter: 'nearest',
+            magFilter: 'nearest'
+        }));
     }
 
 }

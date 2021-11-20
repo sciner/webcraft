@@ -4,8 +4,7 @@ import {BLOCK} from "./blocks.js";
 
 export class RecipeManager {
 
-    constructor(inventory_image) {
-        this.inventory_image = inventory_image;
+    constructor() {
         this.all = [];
         this.crafting_shaped = {
             list: [],
@@ -21,9 +20,11 @@ export class RecipeManager {
             }
         };
         this.load(() => {
-            // Recipe window
-            this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
-            Game.hud.wm.add(this.frmRecipe);
+            if(!Game.is_server) {
+                // Recipe window
+                this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
+                Game.hud.wm.add(this.frmRecipe);
+            }
         });
     }
 
@@ -164,7 +165,7 @@ export class RecipeManager {
 
     load(callback) {
         let that = this;
-        Helpers.loadJSON('../data/recipes.json', function(json) {
+        Helpers.fetchJSON('../data/recipes.json').then(json => {
             for(let recipe of json) {
                 that.add(recipe);
             }

@@ -1,5 +1,6 @@
 import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
+import {Resources} from "../resources.js";
 
 export class RecipeSlot extends Window {
 
@@ -46,8 +47,7 @@ export class RecipeSlot extends Window {
     }
 
     drawItem(ctx, item, x, y, width, height) {
-        let inventory_image = this.parent.recipe_manager.inventory_image;
-        // this.recipe_manager.inventory_image
+        let inventory_image = Resources.inventory.image;
         if(!inventory_image) {
             return;
         }

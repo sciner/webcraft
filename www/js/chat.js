@@ -16,7 +16,7 @@ export class Chat {
             list: [],
             send: function(text) {
                 this.add('YOU', text);
-                Game.world.server.SendMessage(text);
+                Game.player.server.SendMessage(text);
                 Game.setupMousePointer(true);
             },
             addSystem: function(text) {
@@ -109,9 +109,12 @@ export class Chat {
         Game.hud.refresh();
     }
     
-    typeChar(ch) {
+    typeChar(charCode, ch) {
         if(!this.active) {
             return;
+        }
+        if(charCode == 13) {
+            return this.submit();
         }
         this.buffer.push(ch);
     }

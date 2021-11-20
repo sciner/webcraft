@@ -7,6 +7,7 @@ const {mat4} = glMatrix;
 export class PlayerModel {
 
     constructor(props) {
+
         this.texPlayer                  = null;
         this.texPlayer2                 = null;
 
@@ -22,23 +23,30 @@ export class PlayerModel {
 
         Object.assign(this, props);
 
-        // Create canvas used to draw name tags
-        this.textCanvas                 = document.createElement('canvas');
-        this.textCanvas.width           = 256;
-        this.textCanvas.height          = 64;
-        this.textCanvas.style.display   = 'none';
+    }
 
-        // Create context used to draw name tags
-        this.textContext                = this.textCanvas.getContext('2d');
-        this.textContext.textAlign      = 'left';
-        this.textContext.textBaseline   = 'top';
-        this.textContext.font           = '24px Ubuntu';
-        this.modelMatrix                = mat4.create();
+    itsMe() {
+        return this.username == Game.App.session.username;
     }
 
     // draw
     draw(render, camPos, delta) {
         const gl = this.gl = render.gl;
+        // Init graphics
+        if(!this.skin) {
+            this.skin = Game.skins.getById(this.skin_id);
+            // Create canvas used to draw name tags
+            this.textCanvas                 = document.createElement('canvas');
+            this.textCanvas.width           = 256;
+            this.textCanvas.height          = 64;
+            this.textCanvas.style.display   = 'none';
+            // Create context used to draw name tags
+            this.textContext                = this.textCanvas.getContext('2d');
+            this.textContext.textAlign      = 'left';
+            this.textContext.textBaseline   = 'top';
+            this.textContext.font           = '24px Ubuntu';
+            this.modelMatrix                = mat4.create();
+        }
         this.drawLayer(render, camPos, delta, {
             scale:          1.0,
             material:       this.matPlayer,

@@ -3,6 +3,7 @@ package Type
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"madcraft.io/madcraft/Struct"
 )
@@ -14,6 +15,7 @@ type (
 		Connections map[string]*PlayerConn      `json:"-"` // Registered connections.
 		World       *World                      `json:"-"`
 		ModifyList  map[string]Struct.BlockItem `json:"modify_list"`
+		Mu          *sync.Mutex                 `json:"-"` // чтобы избежать коллизий
 	}
 )
 
@@ -64,6 +66,7 @@ func (this *Chunk) GetChunkKey(pos Struct.Vector3) string {
 
 // Load from file
 func (this *Chunk) Load() {
+	this.Mu = &sync.Mutex{}
 	ml, err := this.World.Db.LoadModifiers(this)
 	if err != nil {
 		log.Printf("Error: %v", err)
@@ -107,7 +110,9 @@ func (this *Chunk) BlockSet(conn *PlayerConn, params *Struct.ParamBlockSet, noti
 			return false
 		}
 	}
-
+	//
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
 	//
 	this.ModifyList[blockKey] = params.Item
 	log.Println("BlockSet", this.Pos, params.Pos, params.Item, conn.ID)

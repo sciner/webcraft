@@ -1,23 +1,55 @@
 import {Helpers, ROTATE, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
-import {Kb} from "./kb.js";
 import {BLOCK} from "./blocks.js";
+import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
 import {SpectatorPlayerControl} from "./spectator-physics.js";
-import Inventory from "./inventory.js";
+import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 
+const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 
 // Creates a new local player manager.
 export class Player {
 
-    constructor(world, info) {
-        this.info                   = info;
+    constructor(world) {
+        this.world = world;
+    }
+
+    // Create server client and connect to world
+    async connect(server_url, session_id, skin_id, world_guid) {
+        return new Promise(async (res) => {
+            let ws = new WebSocket(server_url + '?session_id=' + session_id + '&skin=' + skin_id)
+            const server = new ServerClient((helo_data) => {
+                this.server.SetPlayer(this);
+                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world_guid}});
+                res(this.server);
+            });
+            server.playerConnectedToWorld = (connection_info) => {
+                this.playerConnectedToWorld(connection_info);
+            }
+            await server.connect(ws, () => {
+                this.server = server;
+            }, () => {
+                location.reload();
+            });
+        });
+    }
+
+    // playerConnectedToWorld...
+    playerConnectedToWorld(connection_info) {
+        let that = this;
+        this.world.setInfo(connection_info.world);
+        let info = connection_info.player;
+        //
+        this.info                   = connection_info.player;
         this.indicators             = info.indicators;
+        this.previousForwardDown    = performance.now();
+        this.previousForwardUp      = performance.now();
         // Position
         this.pos                    = new Vector(info.pos.x, info.pos.y, info.pos.z);
         this.prevPos                = new Vector(this.pos);
@@ -25,12 +57,6 @@ export class Player {
         this.posO                   = new Vector(0, 0, 0);
         // Rotate
         this.setRotate(info.rotate);
-        // Assign the player to a world.
-        this.world                  = world;
-        this.previousForwardDown    = performance.now();
-        this.previousForwardUp      = performance.now();
-        this.keys                   = {};
-        this.eventHandlers          = {};
         // Inventory
         this.inventory              = new Inventory(this, Game.hud);
         this.inventory.onSelect     = (item) => {
@@ -39,13 +65,14 @@ export class Player {
                 this.pickAt.resetProgress();
             }
         };
+        Game.hotbar.setInventory(this.inventory);
         // pickAt
-        this.pickAt                 = new PickAt(world, Game.render, (...args) => {
+        this.pickAt                 = new PickAt(this.world, Game.render, (...args) => {
             return this.onPickAtTarget(...args);
         });
         // Player control
-        this.pr                     = new PrismarinePlayerControl(world, this.pos);
-        this.pr_spectator           = new SpectatorPlayerControl(world, this.pos);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
+        this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         // Chat
         this.chat                   = new Chat();
         //
@@ -72,10 +99,31 @@ export class Player {
         this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
         this.step_count             = 0;
+        // Controls
+        this.keys                   = {};
+        this.controls = {
+            mouseX: 0,
+            mouseY: 0,
+            mouse_sensitivity: 1.0,
+            inited: false,
+            enabled: false,
+            clearStates: function() {
+                let player = that;
+                player.keys[KEY.W] = false;
+                player.keys[KEY.A] = false;
+                player.keys[KEY.S] = false;
+                player.keys[KEY.D] = false;
+                player.keys[KEY.J] = false;
+                player.keys[KEY.SPACE] = false;
+                player.keys[KEY.SHIFT] = false;
+            }
+        };
+        //
+        Game.Started();
     }
 
     addRotate(vec3) {
-        vec3.divScalar(900); // .multiplyScalar(Math.PI);
+        vec3.divScalar(900);
         this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
         this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
         this.setRotate(this.rotate);
@@ -101,10 +149,10 @@ export class Player {
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
     onStep(step_side) {
-        this.step_count++;
+        this.steps_count++;
         let world = this.world;
         let player = this;
-        if(!player || player.in_water || !player.walking || !Game.controls.enabled) {
+        if(!player || player.in_water || !player.walking || !player.controls.enabled) {
             return;
         }
         let f = player.walkDist - player.walkDistO;
@@ -169,57 +217,26 @@ export class Player {
         }
     }
 
-    // Set the canvas the renderer uses for some input operations.
-    setInputCanvas(id) {
-        this.canvas = document.getElementById(id);
-        this.kb = new Kb(this.canvas, {
-            onMouseEvent: (...args) => {return this.onMouseEvent(...args);},
-            onKeyPress: (...args) => {return this.onKeyPress(...args);},
-            onKeyEvent: (...args) => {return this.onKeyEvent(...args);}
-        });
+    // Hook for mouse input
+    onMouseEvent(e) {
+        let {type, button_id, shiftKey} = e;
+        // Mouse actions
+        if (type == MOUSE.DOWN) {
+            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+        } else if (type == MOUSE.UP) {
+            this.pickAt.clearEvent();
+        }
     }
 
-    // Hook for keyboard input.
-    onKeyPress(e) {
-        let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
-        let typedChar = String.fromCharCode(charCode);
-        this.chat.typeChar(typedChar);
-    }
-
-    // Hook for keyboard input.
-    onKeyEvent(e, keyCode, down, first) {
-
-        // Chat
-        if(this.chat.active) {
-            this.chat.onKeyEvent(e, keyCode, down, first);
-            return false;
-        }
-
-        // Windows
-        let vw = Game.hud.wm.getVisibleWindows();
-        if(vw.length > 0) {
-            switch(keyCode) {
-                // E (Inventory)
-                case KEY.ESC:
-                case KEY.E: {
-                    if(!down) {
-                        Game.hud.wm.closeAll();
-                        Game.setupMousePointer(false);
-                        return true;
-                    }
-                    break;
-                }
-            }
-            return;
-        }
-
+    // Hook for keyboard input
+    onKeyEvent(e) {
+        let {keyCode, down, first, shiftKey, ctrlKey} = e;
         //
         if(this.keys[keyCode] && down) {
             // do nothing
         } else {
             this.keys[keyCode] = down ? performance.now(): false;
         }
-
         // 0...9 (Select material)
         if(!down && (keyCode >= 48 && keyCode <= 57)) {
             if(keyCode == 48) {
@@ -228,169 +245,7 @@ export class Player {
             this.inventory.select(keyCode - 49);
             return true;
         }
-
         this.zoom = this.keys[KEY.C];
-
-        switch(keyCode) {
-            // Page Up
-            case KEY.PAGE_UP: {
-                if(down) {
-                    Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST + 1);
-                }
-                break;
-            }
-            // Set render distance [Page Down]
-            case KEY.PAGE_DOWN: {
-                if(down) {
-                    Game.world.chunkManager.setRenderDist(Game.world.chunkManager.CHUNK_RENDER_DIST - 1);
-                }
-                break;
-            }
-            case KEY.SLASH: {
-                if(!down) {
-                    if(!this.chat.active) {
-                        this.chat.open(['/']);
-                    }
-                }
-                break;
-            }
-            case KEY.ENTER: {
-                if(!down) {
-                    this.chat.submit();
-                }
-                break;
-            }
-            // Flying [Space]
-            case KEY.SPACE: {
-                if(Game.world.game_mode.canFly() && !this.in_water && !this.onGround) {
-                    if(down && first) {
-                        if(!this.getFlying()) {
-                            // this.setFlying(true);
-                            console.log('flying');
-                        }
-                    }
-                }
-                break;
-            }
-            // [F1]
-            case KEY.F1: {
-                if(!down) {
-                    Game.hud.toggleActive();
-                }
-                return true;
-                break;
-            }
-            // Set spawnpoint [F3]
-            case KEY.F3: {
-                if(!down) {
-                    Game.hud.toggleInfo();
-                }
-                return true;
-                break;
-            }
-            // Draw all blocks [F4]
-            case KEY.F4: {
-                if(!down) {
-                    if(e.shiftKey) {
-                        Game.world.chunkManager.setTestBlocks(new Vector((this.pos.x | 0) - 11, this.pos.y | 0, (this.pos.z | 0) - 13));
-                    } else {
-                        this.changeSpawnpoint();
-                    }
-                }
-                return true;
-                break;
-            }
-            // F6 (Test light)
-            case KEY.F6: {
-                if(!down) {
-                    Game.render.testLightOn = !Game.render.testLightOn;
-                }
-                return true;
-                break;
-            }
-            // drawGhost [F7]
-            case KEY.F7: {
-                if(!down) {
-                    Game.world.players.drawGhost(Game.player);
-                }
-                return true;
-                break;
-            }
-            // F8 (Random teleport)
-            case KEY.F8: {
-                if(!down) {
-                    if(e.shiftKey) {
-                        this.pickAt.get(this.pos, (pos) => {
-                            if(pos !== false) {
-                                if(pos.n.x != 0) pos.x += pos.n.x;
-                                if(pos.n.z != 0) pos.z += pos.n.z;
-                                if(pos.n.y != 0) {
-                                    pos.y += pos.n.y;
-                                    if(pos.n.y < 0) pos.y--;
-                                }
-                                this.teleport(null, pos);
-                            }
-                        }, 1000);
-                    } else {
-                        this.teleport('random', null);
-                    }
-                }
-                return true;
-                break;
-            }
-            // F9 (toggleNight | Under rain)
-            case KEY.F9: {
-                if(!down) {
-                    Game.render.toggleNight();
-                }
-                return true;
-                break;
-            }
-            // F10 (toggleUpdateChunks)
-            case KEY.F10: {
-                if(!down) {
-                    this.nextGameMode();
-                }
-                return true;
-                break;
-            }
-            case KEY.C: {
-                if(first) {
-                    Game.render.updateViewport();
-                    return true;
-                }
-                break;
-            }
-            // R (Respawn)
-            case KEY.R: {
-                if(!down) {
-                    Game.world.server.Teleport('spawn');
-                }
-                return true;
-                break;
-            }
-            // E (Inventory)
-            case KEY.E: {
-                if(!down) {
-                    if(Game.hud.wm.getVisibleWindows().length == 0) {
-                        this.inventory.open();
-                        return true;
-                    }
-                }
-                break;
-            }
-            // T (Open chat)
-            case KEY.T: {
-                if(!down) {
-                    if(!this.chat.active) {
-                        this.chat.open([]);
-                    }
-                }
-                return true;
-                break;
-            }
-        }
-
         // Running
         if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
         if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
@@ -409,7 +264,7 @@ export class Player {
                 this.previousForwardUp = n;
             }
         }
-        if(e.ctrlKey) {
+        if(ctrlKey) {
             this.running = !!this.keys[KEY.W];
         } else {
             if(!down) {
@@ -418,33 +273,7 @@ export class Player {
                 }
             }
         }
-
         return false;
-
-    }
-
-    // Hook for mouse input
-    onMouseEvent(e, x, y, type, button_id, shiftKey) {
-        let visibleWindows = Game.hud.wm.getVisibleWindows();
-        if(type == MOUSE.DOWN && visibleWindows.length > 0) {
-            Game.hud.wm.mouseEventDispatcher({
-                type:       e.type,
-                shiftKey:   e.shiftKey,
-                button:     e.button,
-                offsetX:    Game.controls.mouseX * (Game.hud.width / Game.render.canvas.width),
-                offsetY:    Game.controls.mouseY * (Game.hud.height / Game.render.canvas.height)
-            });
-            return false;
-        }
-        if(!Game.controls.enabled || this.chat.active || visibleWindows.length > 0) {
-            return false
-        }
-        // Mouse actions
-        if (type == MOUSE.DOWN) {
-            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
-        } else if (type == MOUSE.UP) {
-            this.pickAt.clearEvent();
-        }
     }
 
     // Called to perform an action based on the player's block selection and input.
@@ -485,7 +314,7 @@ export class Player {
                 }
                 world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_block, true, null, rotate, null, extra_data);
             } else if(createBlock) {
-                let replaceBlock = world_block && BLOCK.canReplace(world_block.id); // (world_block.fluid || world_block.id == BLOCK.GRASS.id);
+                let replaceBlock = world_block && BLOCK.canReplace(world_block.id);
                 if(!replaceBlock) {
                     pos.x += pos.n.x;
                     pos.y += pos.n.y;
@@ -546,7 +375,7 @@ export class Player {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                             }
                         } else {
                             world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
@@ -560,7 +389,7 @@ export class Player {
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                                 let b = BLOCK.fromId(this.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');
@@ -660,17 +489,12 @@ export class Player {
     // changeSpawnpoint
     changeSpawnpoint() {
         let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
-        Game.world.server.SetPosSpawn(pos);
-        this.chat.messages.addSystem('Установлена точка возрождения ' + pos.toString());
+        Game.player.server.SetPosSpawn(pos);
     }
 
     // randomTeleport
     teleport(place_id, pos) {
-        if(place_id != null) {
-            return Game.world.server.Teleport(place_id);
-        } else if(typeof pos != 'undefined' && pos) {
-            Game.world.server.Teleport(null, pos);
-        }
+        Game.player.server.Teleport(place_id, pos);
     }
 
     // Returns the position of the eyes of the player for rendering.
@@ -759,7 +583,6 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
-            // pc.player_state.onGround
             this.in_water_o = this.in_water;
             let velocity    = pc.player_state.vel;
             this.onGroundO  = this.onGround;
@@ -832,17 +655,23 @@ export class Player {
         if(!Game.world.game_mode.isSurvival()) {
             return;
         }
-        // let onGround = this.pr.player_state.onGround;
         if(!this.onGround) {
-            let pos = this.getBlockPos();
-            if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
-                this.lastBlockPos = pos;
+            let bpos = Game.player.getBlockPos().add({x: 0, y: -1, z: 0});
+            let block = Game.world.chunkManager.getBlock(bpos);
+            // ignore damage if dropped into water
+            if(block.material.is_fluid) {
+                this.lastBlockPos = this.getBlockPos();
+            } else {
+                let pos = this.getBlockPos();
+                if(this.lastBlockPos && pos.y > this.lastBlockPos.y) {
+                    this.lastBlockPos = pos;
+                }
             }
         } else if(this.onGround != this.onGroundO && this.lastOnGroundTime) {
             let bp = this.getBlockPos();
             let height = bp.y - this.lastBlockPos.y;
             if(height < 0) {
-                let damage = -height - 3;
+                let damage = -height - MAX_UNDAMAGED_HEIGHT;
                 if(damage > 0) {
                     Game.hotbar.damage(damage, 'falling');
                 }

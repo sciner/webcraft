@@ -1,26 +1,16 @@
-import {ChunkManager} from "./chunk_manager.js";
 import {GameMode} from "./game_mode.js";
+import {ChunkManager} from "./chunk_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {MobManager} from "./mob_manager.js";
-import {ServerClient} from "./server_client.js";
+import {Physics} from "./physics.js";
 
 // World container
 export class World {
 
     constructor() {
-        this.players = new PlayerManager(this);
-        this.mobs = new MobManager(this);
-    }
-
-    // Create server client and connect to world
-    async connect(server_url, session_id, world_guid) {
-        return new Promise(res => {
-            const server = new ServerClient(server_url, session_id, () => {
-                this.server = server;
-                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world_guid}});
-                res(this.server);
-            });
-        });
+        this.players    = new PlayerManager(this);
+        this.mobs       = new MobManager(this);
+        this.physics    = new Physics(this.world);
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения

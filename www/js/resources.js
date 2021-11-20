@@ -24,6 +24,7 @@ export class Resources {
         that.pickat = {};
         that.sky = {};
         that.clouds = {};
+        that.inventory = {};
         that.physics = {
             features: null
         };
@@ -42,6 +43,7 @@ export class Resources {
 
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { that.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { that.pickat.target = img}));
+        all.push(Resources.loadImage('media/inventory2.png', false).then((img) => {that.inventory.image = img}));
 
         let skiybox_dir = './media/skybox/park';
         // let skiybox_dir = './media/skybox/title_background';

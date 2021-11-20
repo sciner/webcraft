@@ -190,7 +190,7 @@ type (
 	}
 	// JSONResponse ...
 	JSONResponse struct {
-		Name int         `json:"event"`
+		Name int         `json:"name"`
 		Data interface{} `json:"data"`
 		ID   *string     `json:"id"`
 	}

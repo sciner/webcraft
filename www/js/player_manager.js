@@ -12,11 +12,10 @@ export class PlayerManager {
     add(data) {
         let player = new PlayerModel({
             id:             data.id,
-            itsme:          data.username == Game.App.session.username,
             pos:            data.pos,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
-            skin:           Game.skins.getById(data.skin),
+            skin_id:        data.skin,
             username:       data.username
         });
         this.list.set(data.id, player);
@@ -58,13 +57,13 @@ export class PlayerManager {
     drawGhost(player) {
         this.list.set('itsme', new PlayerModel({
             id:             'itsme',
-            itsme:          true,
+            itsme:          false,
             rotate:         player.rotate.clone(),
             pos:            player.pos.clone(),
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
-            skin:           Game.skins.getById(Game.skin.id),
-            username:       Game.App.session.username
+            skin_id:        Game.skin.id,
+            username:       Game.App.session.username + ' Ghost'
         }));
     };
 

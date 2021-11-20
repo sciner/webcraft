@@ -359,7 +359,7 @@ function run() {
 
         world.light.fixEdge(chunk);
 
-        postMessage(['light_generated', {
+        worker.postMessage(['light_generated', {
             addr: chunk.addr,
             lightmap_buffer: chunk.lightMap.buffer,
             lightID: chunk.lastID
@@ -368,6 +368,32 @@ function run() {
 }
 
 const msgQueue = [];
+
+const worker = {
+
+    init: function() {
+        if(typeof process !== 'undefined') {
+            import('fs').then(fs => global.fs = fs);
+            import('worker_threads').then(module => {
+                this.parentPort = module.parentPort;
+                this.parentPort.on('message', onMessageFunc);    
+            });
+        } else {
+            onmessage = onMessageFunc
+        }
+    },
+
+    postMessage: function(message) {
+        if(this.parentPort) {
+            this.parentPort.postMessage(message);
+        } else {
+            postMessage(message);
+        }
+    }
+
+}
+
+worker.init();
 
 async function importModules() {
     await import("./helpers.js").then(module => {
@@ -382,21 +408,25 @@ async function importModules() {
         await onmessage(item);
     }
     msgQueue.length = 0;
-    postMessage(['worker_inited', null]);
+    worker.postMessage(['worker_inited', null]);
 
     setInterval(run, 20);
 }
 
-onmessage = async function (e) {
-    const cmd = e.data[0];
-    const args = e.data[1];
+async function onMessageFunc(e) {
+    let data = e;
+    if(typeof e == 'object' && 'data' in e) {
+        data = e.data;
+    }
+    const cmd = data[0];
+    const args = data[1];
     if (cmd == 'init') {
         // Init modules
         importModules();
         return;
     }
     if (!modulesReady) {
-        return msgQueue.push(e);
+        return msgQueue.push(data);
     }
     //do stuff
 
@@ -427,4 +457,10 @@ onmessage = async function (e) {
             }
         }
     }
+}
+
+if(typeof process !== 'undefined') {
+    import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
+} else {
+    onmessage = onMessageFunc
 }

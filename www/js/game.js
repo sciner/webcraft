@@ -6,20 +6,23 @@ import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
 import {HUD} from "./hud.js";
 import {Sounds} from "./sounds.js";
-import {Physics} from "./physics.js";
-import {Hotbar} from "./hotbar.js";
 import {Player} from "./player.js";
+import {Kb} from "./kb.js";
+import {Hotbar} from "./hotbar.js";
 
 export class GameClass {
 
     constructor() {
+        this.is_server  = false;
         this.hud        = new HUD(0, 0);
+        this.hotbar     = new Hotbar(this.hud);
         this.sounds     = new Sounds();
         this.render     = new Renderer('renderSurface');
     }
 
     // Start
     async Start(server_url, world_guid, settings, resource_loading_progress) {
+        // Load resources
         Resources.onLoading = resource_loading_progress;
         await Resources.load({
             imageBitmap:    true,
@@ -27,65 +30,255 @@ export class GameClass {
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
-        this.world = new World();
+        //
         await BLOCK.init();
+        // Create world
+        this.world = new World();
         await this.render.init(this.world, settings);
-        return this.world.connect(server_url, this.App.session.session_id, world_guid);
+        // Create player and connect
+        this.player = new Player(this.world);
+        return this.player.connect(server_url, this.App.session.session_id, this.skin.id, world_guid);
     }
 
-    // postServerConnect...
-    postServerConnect(info) {
-        this.world.setInfo(info.world);
-        //
-        this.block_manager      = BLOCK;
-        this.physics            = new Physics(this.world);
-        this.player             = new Player(this.world, info.player);
-        this.hotbar             = new Hotbar(Game.hud, this.player.inventory);
+    // Started...
+    Started() {
         this.averageClockTimer  = new AverageClockTimer();
+        this.block_manager      = BLOCK;
         this.prev_player_state  = null;
-        // Controls
-        this.controls = {
-            mouseX: 0,
-            mouseY: 0,
-            mouse_sensitivity: 1.0,
-            inited: false,
-            enabled: false,
-            clearStates: function() {
-                let player = Game.player;
-                player.keys[KEY.W] = false;
-                player.keys[KEY.A] = false;
-                player.keys[KEY.S] = false;
-                player.keys[KEY.D] = false;
-                player.keys[KEY.J] = false;
-                player.keys[KEY.SPACE] = false;
-                player.keys[KEY.SHIFT] = false;
-            }
-        };
-        //
-        this.player.setInputCanvas('renderSurface');
+        this.setInputCanvas('renderSurface');
         this.setupMousePointer(false);
         this.render.updateViewport();
         this.setupMouseListeners();
         //
-        this.setGameStarted(true);
+        let bodyClassList = document.querySelector('body').classList;
+        bodyClassList.add('started');
         // Run render loop
         this.loop = this.loop.bind(this);
         window.requestAnimationFrame(this.loop);
     }
 
-    // setGameStarted
-    setGameStarted(value) {
-        let bodyClassList = document.querySelector('body').classList;
-        if(value) {
-            bodyClassList.add('started');
-        } else {
-            bodyClassList.remove('started');
-        }
+    // Set the canvas the renderer uses for some input operations.
+    setInputCanvas(element_id) {
+        let player = this.player;
+        let canvas = document.getElementById(element_id);
+        this.kb = new Kb(canvas, {
+            onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
+                let visibleWindows = this.hud.wm.getVisibleWindows();
+                if(type == MOUSE.DOWN && visibleWindows.length > 0) {
+                    this.hud.wm.mouseEventDispatcher({
+                        type:       e.type,
+                        shiftKey:   e.shiftKey,
+                        button:     e.button,
+                        offsetX:    this.player.controls.mouseX * (this.hud.width / this.render.canvas.width),
+                        offsetY:    this.player.controls.mouseY * (this.hud.height / this.render.canvas.height)
+                    });
+                    return false;
+                }
+                if(!this.player.controls.enabled || player.chat.active || visibleWindows.length > 0) {
+                    return false
+                }
+                return player.onMouseEvent({type: type, button_id: button_id, shiftKey: shiftKey});
+            },
+            // Hook for keyboard input
+            onKeyPress: (e) => {
+                let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
+                let typedChar = String.fromCharCode(charCode);
+                player.chat.typeChar(charCode, typedChar);
+            },
+            // Hook for keyboard input
+            onKeyEvent: (e, keyCode, down, first) => {
+                e = {
+                    keyCode: keyCode,
+                    down: down,
+                    first: first,
+                    shiftKey: e.shiftKey,
+                    ctrlKey: e.ctrlKey
+                }
+                // Chat
+                if(player.chat.active) {
+                    player.chat.onKeyEvent(e);
+                    return false;
+                }
+                // Windows
+                let vw = this.hud.wm.getVisibleWindows();
+                if(vw.length > 0) {
+                    switch(keyCode) {
+                        // E (Inventory)
+                        case KEY.ESC:
+                        case KEY.E: {
+                            if(!down) {
+                                this.hud.wm.closeAll();
+                                this.setupMousePointer(false);
+                                return true;
+                            }
+                            break;
+                        }
+                    }
+                    return;
+                }
+                //
+                switch(keyCode) {
+                    // Page Up
+                    case KEY.PAGE_UP: {
+                        if(down) {
+                            this.world.chunkManager.setRenderDist(this.world.chunkManager.CHUNK_RENDER_DIST + 1);
+                        }
+                        break;
+                    }
+                    // Set render distance [Page Down]
+                    case KEY.PAGE_DOWN: {
+                        if(down) {
+                            this.world.chunkManager.setRenderDist(this.world.chunkManager.CHUNK_RENDER_DIST - 1);
+                        }
+                        break;
+                    }
+                    case KEY.SLASH: {
+                        if(!down) {
+                            if(!player.chat.active) {
+                                player.chat.open(['/']);
+                            }
+                        }
+                        break;
+                    }
+                    // Flying [Space]
+                    case KEY.SPACE: {
+                        if(this.world.game_mode.canFly() && !player.in_water && !player.onGround) {
+                            if(down && first) {
+                                if(!player.getFlying()) {
+                                    // this.setFlying(true);
+                                    console.log('flying');
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    // [F1]
+                    case KEY.F1: {
+                        if(!down) {
+                            this.hud.toggleActive();
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F3] Toggle info
+                    case KEY.F3: {
+                        if(!down) {
+                            this.hud.toggleInfo();
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F4] Draw all blocks
+                    case KEY.F4: {
+                        if(!down) {
+                            if(e.shiftKey) {
+                                this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 11, player.pos.y | 0, (player.pos.z | 0) - 13));
+                            } else {
+                                player.changeSpawnpoint();
+                            }
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F6] (Test light)
+                    case KEY.F6: {
+                        if(!down) {
+                            this.render.testLightOn = !this.render.testLightOn;
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F7] Ddraw player "ghost"
+                    case KEY.F7: {
+                        if(!down) {
+                            this.world.players.drawGhost(this.player);
+                        }
+                        return true;
+                        break;
+                    }
+                    // [F8] Random teleport
+                    case KEY.F8: {
+                        if(!down) {
+                            if(e.shiftKey) {
+                                player.pickAt.get(player.pos, (pos) => {
+                                    if(pos !== false) {
+                                        if(pos.n.x != 0) pos.x += pos.n.x;
+                                        if(pos.n.z != 0) pos.z += pos.n.z;
+                                        if(pos.n.y != 0) {
+                                            pos.y += pos.n.y;
+                                            if(pos.n.y < 0) pos.y--;
+                                        }
+                                        player.teleport(null, pos);
+                                    }
+                                }, 1000);
+                            } else {
+                                player.teleport('random', null);
+                            }
+                        }
+                        return true;
+                        break;
+                    }
+                    // F9 (toggleNight | Under rain)
+                    case KEY.F9: {
+                        if(!down) {
+                            this.render.toggleNight();
+                        }
+                        return true;
+                        break;
+                    }
+                    // F10 (toggleUpdateChunks)
+                    case KEY.F10: {
+                        if(!down) {
+                            player.nextGameMode();
+                        }
+                        return true;
+                        break;
+                    }
+                    case KEY.C: {
+                        if(first) {
+                            this.render.updateViewport();
+                            return true;
+                        }
+                        break;
+                    }
+                    // R (Respawn)
+                    case KEY.R: {
+                        if(!down) {
+                            this.player.server.Teleport('spawn');
+                        }
+                        return true;
+                        break;
+                    }
+                    // E (Inventory)
+                    case KEY.E: {
+                        if(!down) {
+                            if(this.hud.wm.getVisibleWindows().length == 0) {
+                                player.inventory.open();
+                                return true;
+                            }
+                        }
+                        break;
+                    }
+                    // T (Open chat)
+                    case KEY.T: {
+                        if(!down) {
+                            if(!player.chat.active) {
+                                player.chat.open([]);
+                            }
+                        }
+                        return true;
+                        break;
+                    }
+                }        
+                return player.onKeyEvent(e);
+            }
+        });
+
     }
 
     // setControlsEnabled
     setControlsEnabled(value) {
-        this.controls.enabled = value;
+        this.player.controls.enabled = value;
         let bodyClassList = document.querySelector('body').classList;
         if(value) {
             bodyClassList.add('controls_enabled');
@@ -98,9 +291,9 @@ export class GameClass {
     loop() {
         let player  = this.player;
         let tm      = performance.now();
-        if(this.controls.enabled && !this.hud.splash.loading) {
+        if(this.player.controls.enabled && !this.hud.splash.loading) {
             // Simulate physics
-            this.physics.simulate();
+            this.world.physics.simulate();
             // Update local player
             player.update();
         } else {
@@ -127,13 +320,13 @@ export class GameClass {
         this.current_player_state = {
             rotate:             player.rotate,
             pos:                player.lerpPos.clone().multiplyScalar(100).round().divScalar(100),
-            ping:               Math.round(this.world.server.ping_value),
+            ping:               Math.round(this.player.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
         let current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {
             this.prev_player_state = current_player_state_json;
-            this.world.server.Send({
+            this.player.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state
             });
@@ -157,13 +350,13 @@ export class GameClass {
         if(check_opened_windows && that.hud.wm.getVisibleWindows().length > 0) {
             return;
         }
-        if(!that.world || that.controls.enabled) {
+        if(!that.world || that.player.controls.enabled) {
             return;
         }
         let element = that.render.canvas;
         element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-        if(that.controls.inited) {
+        if(that.player.controls.inited) {
             element.requestPointerLock();
             return;
         }
@@ -175,7 +368,7 @@ export class GameClass {
                 if(that.hud.wm.getVisibleWindows().length == 0 && !that.player.chat.active) {
                     that.hud.frmMainMenu.show();
                 }
-                that.controls.clearStates();
+                that.player.controls.clearStates();
             }
         }
         let pointerlockerror = function(event) {
@@ -189,7 +382,7 @@ export class GameClass {
         document.addEventListener('mozpointerlockerror', pointerlockerror, false);
         document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
         element.requestPointerLock();
-        that.controls.inited = true;
+        that.player.controls.inited = true;
     }
 
     // setupMouseListeners...
@@ -200,7 +393,7 @@ export class GameClass {
             if(e.ctrlKey) return;
             if(that.player) {
                 //
-                if(that.controls.enabled) {
+                if(that.player.controls.enabled) {
                     that.player.onScroll(e.deltaY > 0);
                 }
                 //
@@ -210,19 +403,19 @@ export class GameClass {
                         type:               e.type,
                         shiftKey:           e.shiftKey,
                         button:             e.button,
-                        offsetX:            that.controls.mouseX * (that.hud.width / that.render.canvas.width),
-                        offsetY:            that.controls.mouseY * (that.hud.height / that.render.canvas.height)
+                        offsetX:            that.player.controls.mouseX * (that.hud.width / that.render.canvas.width),
+                        offsetY:            that.player.controls.mouseY * (that.hud.height / that.render.canvas.height)
                     });
                 }
             }
         });
         // Mouse move
         document.addEventListener('mousemove', function(e) {
-            let controls = that.controls;
+            let controls = that.player.controls;
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
             let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
             if(that.hud.wm.getVisibleWindows().length > 0) {
-            	if(that.controls.enabled) {
+            	if(controls.enabled) {
                     controls.mouseY += x;
                     controls.mouseX += z;
                     controls.mouseX = Math.max(controls.mouseX, 0);
