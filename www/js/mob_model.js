@@ -90,7 +90,7 @@ export class MobModel {
         if(pitch > 0.5) {
             pitch = 0.5;
         }
- 
+
         // Draw head
         mat4.identity(modelMatrix);
         mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * scale - z_minus]);
@@ -107,7 +107,7 @@ export class MobModel {
 
             quat.identity(rl.quat);
             quat.rotateX(rl.quat, rl.quat, aniangle * sign);
-         
+
             quat.identity(ll.quat);
             quat.rotateX(ll.quat, ll.quat, -aniangle * sign);
 
@@ -175,8 +175,8 @@ export class MobModel {
                             });
                             this.texPlayer =  texture1;
                             this.texPlayer2 = texture2;
-                            this.matPlayer = render.defaultShader.materials.doubleface.getSubMat(texture1);
-                            this.matPlayer2 = render.defaultShader.materials.doubleface_transparent.getSubMat(texture2);
+                            this.matPlayer = render.defaultShader.materials.regular.getSubMat(texture1);
+                            this.matPlayer2 = render.defaultShader.materials.transparent.getSubMat(texture2);
                         })
                 });
             });
