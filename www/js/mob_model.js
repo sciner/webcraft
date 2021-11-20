@@ -27,7 +27,7 @@ export class MobModel {
         this.modelMatrix                = mat4.create();
 
         this.skin = {
-            file: '/media/skins/16.png'
+            file: '/media/models/json/textures/horse_creamy.png'
         };
 
         Object.assign(this, props);

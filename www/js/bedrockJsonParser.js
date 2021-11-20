@@ -17,7 +17,14 @@ const lm = {r : -1, g : -1, b : -1};
 const ao = [0, 0, 0, 0];
 
 
-function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, target) {
+function fillCube({
+    matrix,
+    size,
+    textureSize,
+    uvPoint = [0,0],
+    mirror = false,
+    inflate = 0
+}, target) {
     // let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
     // let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
     // let zX = matrix[8], zY = matrix[9], zZ = matrix[10];
@@ -29,7 +36,14 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
 
     let tX = matrix[12], tY = matrix[13], tZ = matrix[14];
 
-    const s = 4 / 64;
+    const sx = uvPoint[0] / textureSize[0];
+    const sy = uvPoint[1] / textureSize[1];
+    const dx = size[0] / ( textureSize[0]);
+    const dy = size[1] / ( textureSize[0]);
+    const dz = size[2] / ( textureSize[0]);
+
+    const s = sx;
+
     const flags = 0;
 
     // center of cube
@@ -40,7 +54,7 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
     let cZ = tZ + (xZ + yZ + zZ) * .5;
 
     //top
-    let c = [8/64 + s, s, s, s];
+    let c = [sx + dz + dx / 2, sy + dz / 2, dx, dz];
     target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
         xX, xZ, xY,
         zX, zZ, zY,
@@ -48,31 +62,34 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
         lm.r, lm.g, lm.b,
         ...ao, flags);
     //bottom
-    c = [16/64 + s, s, s, s];
+    c = [sx + dx + dx + dx / 2, sy + dz / 2, dz, dy];
     target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
         xX, xZ, xY,
         -zX, -zZ, -zY,
-        c[0], c[1], c[2], c[3],
+        c[0], c[1], c[2], -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
-    //south
-    c = [8/64 + s, 8/64 + s, s, s];
+
+    //north
+    c = [sx + dz + dx / 2, sy + dz + dy / 2, dx, dy];
     target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
         xX, xZ, xY,
         yX, yZ, yY,
         c[0], c[1], c[2], -c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
-    //north
-    c = [24/64 + s, 8/64 + s, s, s];
+
+    //south
+    c = [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2, dx, dy];
     target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
         xX, xZ, xY,
         -yX, -yZ, -yY,
         c[0], c[1], -c[2], c[3],
         lm.r, lm.g, lm.b,
         ...ao, flags);
+
     //west
-    c = [16/64 + s, 8/64 + s, s, s];
+    c = [sx + dz / 2, sy + dz + dy / 2, dz, dy];
     target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
         zX, zZ, zY,
         -yX, -yZ, -yY,
@@ -80,7 +97,7 @@ function fillCube({ matrix, rot, pos, scale, uvPoint = [0,0], inflate = 0}, targ
         lm.r, lm.g, lm.b,
         ...ao, flags);
     //east
-    c = [0/64 + s, 8/64 + s, s, s];
+    c = [sx + dz + dx + dz / 2, sy + dz + dy / 2, dz, dy];
     target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
         zX, zZ, zY,
         yX, yZ, yY,
@@ -154,11 +171,11 @@ function decodeCubes(cubes, description, offset = null) {
     
         fillCube({
                 matrix: computeMatrix,
-                uvPoint: [c.uv[0] / description.texture_width, c.uv[1] / description.texture_height],
+                uvPoint: c.uv,
                 inflate: c.inflate,
-                pos: computePos,
-                rot: computeRot,
-                scale: computeScale,
+                size: size,
+                textureSize: [description.texture_width, description.texture_height],
+                mirror: c.mirror,
             },
             data
         );
