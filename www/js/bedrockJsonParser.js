@@ -64,7 +64,7 @@ function fillCube({
     zZ += Math.sign(zZ) * inflate;
     //                X                         Y                  w    h
     const topUV =    [sx + dz + dx / 2         , sy + dz / 2      , dx, dz];
-    const bottomUV = [sx + dz + dx + dx / 2    , sy + dz / 2      , dz, dy];
+    const bottomUV = [sx + dz + dx + dx / 2    , sy + dz / 2      , dx, dz];
     const northUV =  [sx + dz + dx / 2         , sy + dz + dy / 2 , dx, dy];
     const southUV =  [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2 , dx, dy];
     const eastUV =   [sx + dz + dx + dz / 2    , sy + dz + dy / 2 , dz, dy];
