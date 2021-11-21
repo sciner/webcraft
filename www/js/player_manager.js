@@ -16,8 +16,11 @@ export class PlayerManager {
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
             skin_id:        data.skin,
-            username:       data.username
+            username:       data.username,
         });
+
+        player.moving = false;
+
         this.list.set(data.id, player);
     }
 
@@ -39,6 +42,7 @@ export class PlayerManager {
         let player = this.get(data.id);
         if(player) {
             if(Helpers.distance(data.pos, player.pos) > 0.001) {
+                console.log(data.id, 'move');
                 player.moving = true;
             }
             player.pos      = data.pos;

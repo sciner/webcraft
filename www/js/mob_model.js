@@ -14,7 +14,7 @@ export class MobModel {
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
-        this.moving                     = true;
+        this.moving                     = false;
         this.aniframe                   = 0;
         this.height                     = 0;
 
