@@ -23,8 +23,7 @@ func (this *Chat) SendMessage(conn *PlayerConn, world *World, params *Struct.Par
 	if params.Text[0:1] == "/" {
 		err := this.runCmd(conn, world, params.Text)
 		if err != nil {
-			cons := make(map[string]*PlayerConn, 0)
-			cons[conn.ID] = conn
+			cons := map[string]*PlayerConn{conn.ID: conn}
 			this.World.SendSystemChatMessageToSelectedPlayers(fmt.Sprintf("%v", err), cons, []string{})
 		}
 		return
@@ -43,6 +42,44 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 	cmd := strings.ToLower(tmp[0])
 	log.Println("text: " + text)
 	switch cmd {
+	case "/admin":
+		{
+			if len(tmp) < 2 {
+				return errors.New("Invalid arguments count")
+			}
+			switch tmp[1] {
+			case "list":
+				{
+					admin_list := strings.Join(world.Admins.GetList(), ", ")
+					cons := map[string]*PlayerConn{conn.ID: conn}
+					this.World.SendSystemChatMessageToSelectedPlayers(admin_list, cons, []string{})
+				}
+			case "add":
+				{
+					if len(tmp) < 3 {
+						return errors.New("Invalid arguments count")
+					}
+					err := world.Admins.Add(conn, tmp[2])
+					if err != nil {
+						return err
+					}
+					cons := map[string]*PlayerConn{conn.ID: conn}
+					this.World.SendSystemChatMessageToSelectedPlayers("Admin added", cons, []string{})
+				}
+			case "remove":
+				{
+					if len(tmp) < 3 {
+						return errors.New("Invalid arguments count")
+					}
+					err := world.Admins.Remove(conn, tmp[2])
+					if err != nil {
+						return err
+					}
+					cons := map[string]*PlayerConn{conn.ID: conn}
+					this.World.SendSystemChatMessageToSelectedPlayers("Admin removed", cons, []string{})
+				}
+			}
+		}
 	case "/spawnmob":
 		{
 			args, err := this.parseCMD(tmp, []string{"string", "?int", "?int", "?int", "string", "string"})

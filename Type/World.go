@@ -37,6 +37,7 @@ type (
 		ChunkModifieds   map[string]bool
 		tickerWorldTimer chan bool // makes a world that run a periodic function
 		Mobs             map[string]*Mob
+		Admins           *WorldAdminManager
 	}
 )
 
@@ -80,6 +81,9 @@ func (this *World) Load(guid string) {
 	this.Chat = &Chat{
 		World: this,
 		Db:    this.Db,
+	}
+	this.Admins = &WorldAdminManager{
+		World: this,
 	}
 	//
 	world_properties, err := this.Db.GetWorld(guid, this.DBGame) // DBGame
@@ -143,7 +147,7 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 	log.Printf("OnPlayer add conn: %s", conn.ID)
 	this.Connections[conn.ID] = conn
 	// 2. Insert to DB if new player
-	user_id, player_state, err := this.Db.RegisterUser(this.Connections[conn.ID], this.Properties.PosSpawn, true)
+	user_id, player_state, err := this.Db.RegisterUser(this, this.Connections[conn.ID], this.Properties.PosSpawn, true)
 	if err != nil || user_id == 0 {
 		log.Println("ERROR14: User not registered")
 		return
@@ -378,24 +382,27 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		this.SendSelected(packets, connections, []string{})
 		// @todo notify all about change?
 
-	case Struct.CMD_MOB_ADD:
-		//
-		out, _ := json.Marshal(cmdIn.Data)
-		var params *Struct.ParamMobAdd
-		json.Unmarshal(out, &params)
-		params.Rotate.Z = conn.Rotate.Z
-		this.AddMob(conn, params)
-	case Struct.CMD_MOB_DELETE:
-		//
-		out, _ := json.Marshal(cmdIn.Data)
-		var params *Struct.ParamMobDelete
-		json.Unmarshal(out, &params)
-		if _, ok := this.Mobs[params.ID]; ok {
-			delete(this.Mobs, params.ID)
-			packet := Struct.JSONResponse{Name: Struct.CMD_MOB_DELETED, Data: []string{params.ID}, ID: nil}
-			packets := []Struct.JSONResponse{packet}
-			this.SendAll(packets, []string{})
-		}
+		/*
+			case Struct.CMD_MOB_ADD:
+				//
+				out, _ := json.Marshal(cmdIn.Data)
+				var params *Struct.ParamMobAdd
+				json.Unmarshal(out, &params)
+				params.Rotate.Z = conn.Rotate.Z
+				this.AddMob(conn, params)
+
+			case Struct.CMD_MOB_DELETE:
+				//
+				out, _ := json.Marshal(cmdIn.Data)
+				var params *Struct.ParamMobDelete
+				json.Unmarshal(out, &params)
+				if _, ok := this.Mobs[params.ID]; ok {
+					delete(this.Mobs, params.ID)
+					packet := Struct.JSONResponse{Name: Struct.CMD_MOB_DELETED, Data: []string{params.ID}, ID: nil}
+					packets := []Struct.JSONResponse{packet}
+					this.SendAll(packets, []string{})
+				}
+		*/
 	}
 }
 
