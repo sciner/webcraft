@@ -19,9 +19,8 @@ export class PlayerManager {
             username:       data.username,
         });
 
-        player.moving = false;
-
         this.list.set(data.id, player);
+        this.setState(data);
     }
 
     // getPlayer
@@ -40,21 +39,27 @@ export class PlayerManager {
     // setPlayerState
     setState(data) {
         let player = this.get(data.id);
-        if(player) {
-            if(Helpers.distance(data.pos, player.pos) > 0.001) {
-                console.log(data.id, 'move');
-                player.moving = true;
-            }
-            player.pos      = data.pos;
-            player.pitch    = data.rotate.x;
-            player.yaw      = data.rotate.z;
-            if(player.moving_timeout) {
-                clearTimeout(player.moving_timeout);
-            }
+
+        if(!player) { 
+            return;
+        }
+        
+        player.moving = Helpers.distance(data.pos, player.pos) > 0.001;
+        player.pos      = data.pos;
+        player.pitch    = data.rotate.x;
+        player.yaw      = data.rotate.z;
+
+        if(player.moving_timeout) {
+            clearTimeout(player.moving_timeout);
+            player.moving_timeout = null;
+        }
+
+        if (player.moving) {
             player.moving_timeout = window.setTimeout(function() {
                 player.moving = false
             }, 100);
         }
+    
     }
 
     //
