@@ -51,6 +51,10 @@ export class SkinManager {
         return './media/models/player_skins/' + skin_id + '.png';
     }
 
+    getPreviewByID(skin_id) {
+        return './media/skins/preview/' + skin_id + '.png';
+    }
+
     async init() {
         let that = this;
         await Helpers.loadJSON('/data/skins.json', async function(list) {
