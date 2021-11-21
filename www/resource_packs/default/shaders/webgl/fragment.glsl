@@ -146,8 +146,8 @@ void main() {
         vec3 absNormal = abs(v_normal);
         vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 42.0);
         float lightSample = texture(u_lightTex, lightCoord).a * 255.0 / 240.0;
-        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 255.0 / 48.0 * 0.3;
-        float dayLight = 1.0 - aoSample; //max(.3, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
+        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 255.0 / 48.0 * 0.4;
+        float dayLight = max(.3, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
         float nightLight = lightSample * (1.0 - aoSample);
         float light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);
         // Apply light
