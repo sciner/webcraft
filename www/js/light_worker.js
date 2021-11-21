@@ -97,11 +97,7 @@ class LightQueue {
                 const old = chunk.lightMap[coord];
                 const prev = chunk.lightPrev[coord];
                 const valAo = val + ao;
-                if ((old & MASK_BLOCK) === val && prev === val) {
-                    if (old !== valAo) {
-                        chunk.lightMap[coord] = valAo;
-                        chunk.lastID++;
-                    }
+                if (old === valAo && prev === val) {
                     continue;
                 }
                 chunk.lightMap[coord] = valAo;
@@ -135,7 +131,7 @@ class LightQueue {
                             chunk2.lightMap[coord - shift] = valAo;
                             chunk2.lastID++;
                         } else {
-                            chunk.lightMap[coord2] = Math.max(val - 1, 0) + ao;
+                            chunk.lightMap[coord2] = Math.max(val - 1, 0);
                             wavesChunk[waveNum].push(chunk);
                             wavesCoord[waveNum].push(coord);
                             chunk.waveCounter++;
@@ -328,7 +324,18 @@ class Chunk {
                 for (let j = 0; j < outerSize.z; j++) {
                     let ind = sy * i + sz * j;
                     dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2];
+                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
+                }
+            for (let i = 1; i + 1 < outerSize.y; i++)
+                for (let j = 1; j + 1 < outerSize.z; j++) {
+                    let ind = sy * i + sz * j;
+                    let inner = iy * (i - 1) + iz * (j - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        //TODO: check if its different from src (stored old value?)
+                        dest[ind + shift2] |= MASK_AO;
+                        src[ind + shift + shift2] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
         neibAddr.copyFrom(this.addr).x++;
@@ -339,8 +346,18 @@ class Chunk {
             for (let i = 0; i < outerSize.y; i++)
                 for (let j = 0; j < outerSize.z; j++) {
                     let ind = sy * i + sz * j;
-                    dest[ind + shift] = src[ind];
+                    dest[ind + shift] = src[ind] & MASK_BLOCK;
                     dest[ind + shift + shift2] = src[ind + shift2];
+                }
+            for (let i = 1; i + 1 < outerSize.y; i++)
+                for (let j = 1; j + 1 < outerSize.z; j++) {
+                    let ind = sy * i + sz * j;
+                    let inner = iy * (i - 1) + iz * (j - 1) + ix * (size.x - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        dest[ind + shift] |= MASK_AO;
+                        src[ind] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
         neibAddr.copyFrom(this.addr).y--;
@@ -352,7 +369,17 @@ class Chunk {
                 for (let j = 0; j < outerSize.z; j++) {
                     let ind = sx * i + sz * j;
                     dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2];
+                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
+                }
+            for (let i = 1; i + 1 < outerSize.x; i++)
+                for (let j = 1; j + 1 < outerSize.z; j++) {
+                    let ind = sx * i + sz * j;
+                    let inner = ix * (i - 1) + iz * (j - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        dest[ind + shift2] |= MASK_AO;
+                        src[ind + shift + shift2] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
         neibAddr.copyFrom(this.addr).y++;
@@ -363,8 +390,18 @@ class Chunk {
             for (let i = 0; i < outerSize.x; i++)
                 for (let j = 0; j < outerSize.z; j++) {
                     let ind = sx * i + sz * j;
-                    dest[ind + shift] = src[ind];
+                    dest[ind + shift] = src[ind] & MASK_BLOCK;
                     dest[ind + shift + shift2] = src[ind + shift2];
+                }
+            for (let i = 1; i + 1 < outerSize.x; i++)
+                for (let j = 1; j + 1 < outerSize.z; j++) {
+                    let ind = sx * i + sz * j;
+                    let inner = ix * (i - 1) + iz * (j - 1) + iy * (size.y - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        dest[ind + shift] |= MASK_AO;
+                        src[ind] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
         neibAddr.copyFrom(this.addr).z--;
@@ -376,7 +413,17 @@ class Chunk {
                 for (let j = 0; j < outerSize.y; j++) {
                     let ind = sx * i + sy * j;
                     dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2];
+                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
+                }
+            for (let i = 1; i + 1 < outerSize.x; i++)
+                for (let j = 1; j + 1 < outerSize.y; j++) {
+                    let ind = sx * i + sy * j;
+                    let inner = ix * (i - 1) + iy * (j - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        dest[ind + shift2] |= MASK_AO;
+                        src[ind + shift + shift2] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
         neibAddr.copyFrom(this.addr).z++;
@@ -387,8 +434,18 @@ class Chunk {
             for (let i = 0; i < outerSize.x; i++)
                 for (let j = 0; j < outerSize.y; j++) {
                     let ind = sx * i + sy * j;
-                    dest[ind + shift] = src[ind];
+                    dest[ind + shift] = src[ind] & MASK_BLOCK;
                     dest[ind + shift + shift2] = src[ind + shift2];
+                }
+            for (let i = 1; i + 1 < outerSize.x; i++)
+                for (let j = 1; j + 1 < outerSize.y; j++) {
+                    let ind = sx * i + sy * j;
+                    let inner = ix * (i - 1) + iy * (j - 1) + iz * (size.z - 1);
+                    if (lightSource[inner] & MASK_AO) {
+                        dest[ind + shift] |= MASK_AO;
+                        src[ind] |= MASK_AO;
+                        neib.lastID++;
+                    }
                 }
         }
 
