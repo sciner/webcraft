@@ -36,7 +36,7 @@ out vec4 crosshair;
 uniform sampler3D u_lightTex;
 
 void main() {
-    v_color         = vec4(a_color, dot(a_occlusion, a_quadOcc));
+    v_color         = vec4(a_color, 1.0);
 
     // find flags
     float flagBiome = step(1.5, a_flags);
@@ -57,7 +57,7 @@ void main() {
         crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
     }
 
-    v_normal = (uModelMatrix * vec4(v_normal, 0.0)).xzy;
+    v_normal = (uModelMatrix * vec4(v_normal, 0.0)).xyz;
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
 
@@ -65,8 +65,16 @@ void main() {
 
     v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
-    vec3 n = normalize(v_normal);
-    float dayLight = max(.3, max(.7, dot(n, u_SunDir)) - v_color.a);
+    vec3 n = normalize(v_normal).xzy;
+
+    vec3 lightCoord = (pos + 0.5) / vec3(18.0, 18.0, 42.0);
+    vec3 aoCoord = (pos + v_normal * 0.5 + 1.0) / vec3(18.0, 18.0, 42.0);
+
+    float lightSample = texture(u_lightTex, lightCoord).a * 255.0 / 240.0;
+    float aoSample = dot(texture(u_lightTex, aoCoord).rgb, abs(v_normal)) * 255.0 / 48.0 * 0.6;
+
+    // u_sunDir is in world coords, not view
+    float dayLight = max(.3, max(.7, dot(n, u_SunDir)) - aoSample);
 
     if(u_fogOn) {
         if (flagBiome < 0.5) {
@@ -74,10 +82,7 @@ void main() {
         }
     }
 
-    vec3 lightCoord =  pos + v_normal.xzy * 0.5;
-    lightCoord += 1.0;
-    lightCoord /= vec3(20.0, 20.0, 44.0);
-    float nightLight = min(texture(u_lightTex, lightCoord).a * 16.0, 1.0) * (1.0 - v_color.a);
+    float nightLight = lightSample * (1.0 - aoSample);
 
     light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);
 

@@ -1,8 +1,9 @@
 import {BaseTexture3D} from "../BaseRenderer.js";
 
 const FORMATS = {
+    'rgba8unorm': 'rgba8unorm',
     'u8': 'r8unorm',
-    'u4_4_4_4': 'RGBA',
+    'u4_4_4_4': 'rgba8unorm',
 }
 
 export class WebGPUTexture3D extends BaseTexture3D {

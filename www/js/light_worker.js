@@ -23,7 +23,8 @@ const world = {
 }
 
 const maxLight = 15;
-const BLOCK = 255;
+const BLOCK_SOURCE = 255;
+const BLOCK_LIGHT = -1;
 const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
@@ -82,8 +83,8 @@ class LightQueue {
                 const y = tmp;
 
                 let val = chunk.lightSource[ix * (x - 1) + iy * (y - 1) + iz * (z - 1)];
-                if (val === BLOCK) {
-                    val = 0;
+                if (val === BLOCK_SOURCE) {
+                    val = BLOCK_LIGHT;
                 } else {
                     for (let d = 0; d < 6; d++) {
                         let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
@@ -101,7 +102,6 @@ class LightQueue {
                 chunk.lastID++;
 
                 //TODO: copy to neib chunks
-
                 const waveNum = Math.max(Math.max(old, val) - 1, 0);
                 for (let d = 0; d < 6; d++) {
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
@@ -151,7 +151,7 @@ class LightQueue {
      */
     add(chunk, coord, waveNum) {
         const {wavesChunk, wavesCoord} = this;
-        if (waveNum > maxLight) {
+        if (waveNum < 0 || waveNum > maxLight) {
             waveNum = maxLight;
         }
         wavesChunk[waveNum].push(chunk);
@@ -201,6 +201,54 @@ class LightQueue {
             }
         }
     }
+
+    calcResult(chunk) {
+        const { size, outerSize, lightMap } = chunk;
+        const result = chunk.lightResult;
+
+        const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+
+        //TODO: separate multiple cycle
+
+        // Light + AO
+        let ind = 0;
+        for (let y=0; y < outerSize.y; y++)
+            for (let z=0; z < outerSize.z; z++)
+                for (let x=0; x < outerSize.x; x++) {
+                    const coord0 = sx * x + sy * y + sz * z;
+
+                    const boundX = (x === outerSize.x - 1) ? sx : 0;
+                    const boundY = (y === outerSize.y - 1) ? sy : 0;
+                    const boundZ = (z === outerSize.z - 1) ? sz : 0;
+
+                    let coord = coord0 - boundX - boundY - boundZ;
+                    let A = Math.max(Math.max(Math.max(lightMap[coord], lightMap[coord + sx])),
+                            Math.max(lightMap[coord + sy], lightMap[coord + sx + sy]),
+                        Math.max(Math.max(lightMap[coord + sz], lightMap[coord + sx + sz]),
+                            Math.max(lightMap[coord + sy + sz], lightMap[coord + sx + sy + sz])));
+                    A = Math.max(A, 0);
+
+                    coord = coord0 - boundY - boundZ;
+                    const R1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sy + sz] === BLOCK_LIGHT);
+                    const R2 = (lightMap[coord + sy] === BLOCK_LIGHT) + (lightMap[coord + sz] === BLOCK_LIGHT);
+                    const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
+
+                    coord = coord0 - boundX - boundY;
+                    const G1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sy + sx] === BLOCK_LIGHT);
+                    const G2 = (lightMap[coord + sy] === BLOCK_LIGHT) + (lightMap[coord + sx] === BLOCK_LIGHT);
+                    const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
+
+                    coord = coord0 - boundX - boundZ;
+                    const B1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sx + sz] === BLOCK_LIGHT);
+                    const B2 = (lightMap[coord + sx] === BLOCK_LIGHT) + (lightMap[coord + sz] === BLOCK_LIGHT);
+                    const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
+
+                    result[ind++] = R * 16.0;
+                    result[ind++] = G * 16.0;
+                    result[ind++] = B * 16.0;
+                    result[ind++] = A * 16.0;
+                }
+    }
 }
 
 class ChunkManager {
@@ -230,7 +278,7 @@ class Chunk {
     constructor(args) {
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
-        this.outerSize = new Vector(args.size.x + 4, args.size.y + 4, args.size.z + 4);
+        this.outerSize = new Vector(args.size.x + 2, args.size.y + 2, args.size.z + 2);
         this.lightSource = args.light_buffer ? new Uint8Array(args.light_buffer) : null;
 
         this.lastID = 0;
@@ -245,12 +293,14 @@ class Chunk {
 
     init() {
         this.len = this.size.x * this.size.y * this.size.z;
-        this.outerLen = (this.size.x + 4) * (this.size.y + 4) * (this.size.z + 4);
+        this.outerLen = (this.size.x + 2) * (this.size.y + 2) * (this.size.z + 2);
+        this.resultLen = this.outerLen;
         if (!this.lightSource) {
             this.lightSource = new Uint8Array(this.len);
         }
-        this.lightMap = new Uint8Array(this.outerLen);
-        this.lightPrev = new Uint8Array(this.outerLen);
+        this.lightMap = new Int8Array(this.outerLen);
+        this.lightPrev = new Int8Array(this.outerLen);
+        this.lightResult = new Uint8Array(this.resultLen * 4);
     }
 
     fillOuter() {
@@ -261,6 +311,7 @@ class Chunk {
         let neibAddr = new Vector();
         let dest = this.lightMap;
         let neib;
+
         neibAddr.copyFrom(this.addr).x--;
         neib = this.chunkManager.getChunk(neibAddr);
         if (neib) {
@@ -358,10 +409,11 @@ function run() {
         chunk.sentID = chunk.lastID;
 
         world.light.fixEdge(chunk);
+        world.light.calcResult(chunk);
 
         worker.postMessage(['light_generated', {
             addr: chunk.addr,
-            lightmap_buffer: chunk.lightMap.buffer,
+            lightmap_buffer: chunk.lightResult.buffer,
             lightID: chunk.lastID
         }]);
     })
@@ -376,7 +428,7 @@ const worker = {
             import('fs').then(fs => global.fs = fs);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);    
+                this.parentPort.on('message', onMessageFunc);
             });
         } else {
             onmessage = onMessageFunc

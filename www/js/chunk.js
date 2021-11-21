@@ -170,10 +170,10 @@ export class Chunk {
                 if (this.lightData) {
                     if (!this.lightTex) {
                         this.lightTex = render.createTexture3D({
-                            width: this.size.x + 4,
-                            height: this.size.z + 4,
-                            depth: this.size.y + 4,
-                            type: 'u8',
+                            width: this.size.x + 2,
+                            height: this.size.z + 2,
+                            depth: this.size.y + 2,
+                            type: 'rgba8unorm',
                             filter: 'linear',
                             data: this.lightData
                         })
@@ -320,7 +320,7 @@ export class Chunk {
             update_vertices         = true;
 
             // updating light here
-            const sy = (this.size.x + 4) * (this.size.z + 4), sx = 1, sz = this.size.x + 4;
+            const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
             const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
             const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
             const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
