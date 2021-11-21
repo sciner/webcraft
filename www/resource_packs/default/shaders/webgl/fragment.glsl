@@ -148,8 +148,9 @@ void main() {
         float lightSample = texture(u_lightTex, lightCoord).a * 255.0 / 240.0;
         float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 255.0 / 48.0;
         // darken ceiling
-        aoSample = 0.4 * (aoSample + max(0.7 - aoSample, 0.0) * max(-v_normal.z, 0.0));
-        float dayLight = max(.3, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample = 0.5 * (aoSample + max(0.7 - aoSample, 0.0) * max(-v_normal.z, 0.0));
+        float dayLight = max(.2, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
         float nightLight = lightSample * (1.0 - aoSample);
         float light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);
         // Apply light
