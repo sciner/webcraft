@@ -8,7 +8,7 @@ export class MobModel {
 
     constructor(props) {
         this.sceneTree                  = null;
-        this.texture                  = null;
+        this.texture                    = null;
         this.material = null;
 
         this.moving_timeout             = null;
@@ -37,6 +37,17 @@ export class MobModel {
          * @type {SceneNode}
          */
         this.head = null;
+
+        this.initialised = false;
+    }
+
+    lazyInit(render) {
+        if (this.initialised) {
+            return;
+        }
+
+        this.loadModel(render);
+        this.initialised = true;
     }
 
     traverse(node, cb, parent = null, args = {}) {
@@ -111,10 +122,7 @@ export class MobModel {
 
     // draw
     draw(render, camPos, delta) {
-        if (!this.sceneTree) {
-            this.loadModel(render);
-        }
-
+        this.lazyInit(render);
         this.update(camPos, delta);
         this.drawLayer(render, camPos, delta, {
             scale:          .25,
@@ -214,7 +222,7 @@ export class MobModel {
             //return true;
         }
 
-        render.renderBackend.drawMesh(node.terrainGeometry, material, this.pos, node.matrixWorld);
+        render.renderBackend.drawMesh(node.terrainGeometry, node.material || material, this.pos, node.matrixWorld);
 
         return true;
     }
