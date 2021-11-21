@@ -58,6 +58,8 @@ export class PlayerModel extends MobModel {
     loadModel(render) {
         super.loadModel(render);
 
+        this.sceneTree.scale.set([0.9, 0.9, 0.9]);
+
         this.head = this.sceneTree.findNode('Head');
         this.leftArm = this.sceneTree.findNode('LeftArm');
         this.rightArm = this.sceneTree.findNode('RightArm');
