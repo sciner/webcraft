@@ -19,6 +19,7 @@ export class PlayerManager {
             username:       data.username
         });
         this.list.set(data.id, player);
+        this.setState(data);
     }
 
     // getPlayer
