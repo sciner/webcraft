@@ -7,10 +7,8 @@ in vec3 a_axisY;
 in vec2 a_uvCenter;
 in vec2 a_uvSize;
 in vec3 a_color;
-in vec4 a_occlusion;
 in float a_flags;
 in vec2 a_quad;
-in vec4 a_quadOcc;
 
 uniform mat4 uProjMatrix;
 uniform mat4 u_worldView;

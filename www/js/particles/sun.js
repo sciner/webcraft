@@ -11,7 +11,6 @@ export default class Particles_Sun {
     constructor(gl, pos) {
         this.life       = 1;
         let lm          = new Color(0, 0, 0, 0);
-        let ao          = [0, 0, 0, 0];
         this.pos        = {...pos};
         this.vertices   = [];
         this.particles  = [];
@@ -23,7 +22,7 @@ export default class Particles_Sun {
         let x = 0;
         let y = 0;
         let z = 0;
-        push_plane(this.vertices, x, y, z, c_half, lm, ao, true, false, sz, sz, null);
+        push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, sz, null);
         let p = {x: x, y: y, z: z, vertices_count: 12/*, scale: 100, dist: 600*/};
         this.particles.push(p);
         this.vertices = new Float32Array(this.vertices);

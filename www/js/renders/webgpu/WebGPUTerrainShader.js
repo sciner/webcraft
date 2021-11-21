@@ -50,7 +50,7 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                 buffers: [
                     {
                         //position
-                        arrayStride: 21 * 4,
+                        arrayStride: 17 * 4,
                         stepMode: "instance",
                         attributes: [
                             {
@@ -86,13 +86,8 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                             {
                                 shaderLocation: 6,
                                 offset: 16 * 4,
-                                format: 'float32x4',
-                            },
-                            {
-                                shaderLocation: 7,
-                                offset: 20 * 4,
                                 format: 'float32',
-                            }
+                            },
                         ]
                     },
                     {

@@ -32,11 +32,6 @@ export class BLOCK {
     static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'/*, '/resource_packs/quake2/init.js'*/];
     static resource_pack_manager = null;
 
-    // applyLight2AO
-    static applyLight2AO(ao, x, y, z) {
-        return ao;
-    }
-
     static getLightPower(material) {
         if (!material) {
             return 0;

@@ -22,8 +22,6 @@ export default class style {
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.id == BLOCK.DIRT.id) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-            sideFlags = QUAD_FLAGS.MASK_BIOME;
-            upFlags = QUAD_FLAGS.MASK_BIOME;
         }
 
         let DIRECTION_BACK          = DIRECTION.BACK;
@@ -67,35 +65,34 @@ export default class style {
         }
 
         let tex = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let ao = calcAOForBlock(chunk, lightmap, x, y, z);
-        push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1, ao);
+        push_part(vertices, tex, x + .5, y, z + .5, 4/16, 4/16, 1);
 
         // South
         if(BLOCK.canFenceConnect(neighbours.SOUTH)) {
-            push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
-            push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16, ao);
+            push_part(vertices, tex, x + .5, y + 6/16, z + .5 - 5/16, 2/16, 6/16, 2/16,);
+            push_part(vertices, tex, x + .5, y + 12/16, z + .5 - 5/16, 2/16, 6/16, 2/16);
         }
         // North
         if(BLOCK.canFenceConnect(neighbours.NORTH)) {
-            push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
-            push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16, ao);
+            push_part(vertices, tex, x + .5, y + 6/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
+            push_part(vertices, tex, x + .5, y + 12/16, z + .5 + 5/16, 2/16, 6/16, 2/16);
         }
         // West
         if(BLOCK.canFenceConnect(neighbours.WEST)) {
-            push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
-            push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
+            push_part(vertices, tex, x + .5 - 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
+            push_part(vertices, tex, x + .5 - 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
         }
         // East
         if(BLOCK.canFenceConnect(neighbours.EAST)) {
-            push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16, ao);
-            push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16, ao);
+            push_part(vertices, tex, x + .5 + 5/16, y + 6/16, z + .5, 6/16, 2/16, 2/16);
+            push_part(vertices, tex, x + .5 + 5/16, y + 12/16, z + .5, 6/16, 2/16, 2/16);
         }
 
     }
 
 }
 
-function push_part(vertices, c, x, y, z, xs, zs, h, ao) {
+function push_part(vertices, c, x, y, z, xs, zs, h) {
     let lm          = MULTIPLY.COLOR.WHITE;
     let flags       = 0;
     let sideFlags   = 0;
@@ -105,197 +102,35 @@ function push_part(vertices, c, x, y, z, xs, zs, h, ao) {
         xs, 0, 0,
         0, zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b,
-        ...ao.TOP, flags | upFlags);
+        lm.r, lm.g, lm.b, flags | upFlags);
     // BOTTOM
     vertices.push(x, z, y,
         xs, 0, 0,
         0, -zs, 0,
         c[0], c[1], c[2] * xs, c[3] * zs,
-        lm.r, lm.g, lm.b,
-        ...ao.BOTTOM, flags);
+        lm.r, lm.g, lm.b, flags);
     // SOUTH
     vertices.push(x, z - zs/2, y + h/2,
         xs, 0, 0,
         0, 0, h,
         c[0], c[1], c[2]*xs, -c[3]*h,
-        lm.r, lm.g, lm.b,
-        ...ao.SOUTH, flags | sideFlags);
+        lm.r, lm.g, lm.b, flags | sideFlags);
     // NORTH
     vertices.push(x, z + zs/2, y + h/2,
         xs, 0, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*xs, c[3]*h,
-        lm.r, lm.g, lm.b,
-        ...ao.NORTH, flags | sideFlags);
+        lm.r, lm.g, lm.b, flags | sideFlags);
     // WEST
     vertices.push(x - xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, -h,
         c[0], c[1], -c[2]*zs, c[3]*h,
-        lm.r, lm.g, lm.b,
-        ...ao.WEST, flags | sideFlags);
+        lm.r, lm.g, lm.b, flags | sideFlags);
     // EAST
     vertices.push(x + xs/2, z, y + h/2,
         0, zs, 0,
         0, 0, h,
         c[0], c[1], c[2]*zs, -c[3]*h,
-        lm.r, lm.g, lm.b,
-        ...ao.EAST, flags | sideFlags);
-}
-
-function calcAOForBlock(chunk, lightmap, x, y, z) {
-
-    // Ambient occlusion
-    const ao_enabled = true;
-    const ao_value = .25;
-
-    // Result
-    let result = {
-        TOP:    [0, 0, 0, 0],
-        BOTTOM: [.5, .5, .5, .5],
-        SOUTH:  [0, 0, 0, 0],
-        NORTH:  [0, 0, 0, 0],
-        WEST:   [0, 0, 0, 0],
-        EAST:   [0, 0, 0, 0],
-    }
-
-    // TOP
-    if(ao_enabled) {
-        let ao = result.TOP;
-        let aa = BLOCK.getCachedBlock(chunk, x, y + 1, z - 1);
-        let ab = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z);
-        let ac = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
-        let ad = BLOCK.getCachedBlock(chunk, x, y + 1, z + 1);
-        let ae = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z);
-        let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
-        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
-        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(chunk, x, y + 1, z);
-        if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ab)) {ao[0] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; }
-        if(BLOCK.visibleForAO(ad)) {ao[2] = ao_value; ao[3] = ao_value; }
-        if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value; }
-        if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ag)) {ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[1] = ao_value;}
-        result.TOP = BLOCK.applyLight2AO(lightmap, ao, x, y + 1, z);
-    }
-
-    // SOUTH
-    if(ao_enabled) {
-        let ao = result.SOUTH;
-        // ao[0] - левый нижний
-        // ao[1] - правый нижний
-        // ao[2] - правый верхний
-        // ao[3] - левый верхний
-        let aa = BLOCK.getCachedBlock(chunk, x - 1, y, z - 1);
-        let ab = BLOCK.getCachedBlock(chunk, x + 1, y, z - 1);
-        let ac = BLOCK.getCachedBlock(chunk, x, y - 1, z - 1);
-        let ad = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z - 1);
-        let ae = BLOCK.getCachedBlock(chunk, x, y + 1, z - 1);
-        let af = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
-        let ag = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z - 1);
-        let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(chunk, x, y, z - 1); // to South
-        if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(af)) {ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
-        if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
-        result.SOUTH = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
-    }
-
-    // NORTH
-    if(ao_enabled) {
-        let ao = result.NORTH;
-        // ao[0] - правый верхний
-        // ao[1] - левый верхний
-        // ao[2] - левый нижний
-        // ao[3] - правый нижний
-        let aa = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z + 1);
-        let ab = BLOCK.getCachedBlock(chunk, x, y - 1, z + 1);
-        let ac = BLOCK.getCachedBlock(chunk, x + 1, y, z + 1);
-        let ad = BLOCK.getCachedBlock(chunk, x - 1, y, z + 1);
-        let ae = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z + 1);
-        let af = BLOCK.getCachedBlock(chunk, x, y + 1, z + 1);
-        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
-        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
-        let aj = BLOCK.getCachedBlock(chunk, x, y, z + 1); // to North
-        if(BLOCK.visibleForAO(aa)) {ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ac)) {ao[1] = ao_value; ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ae)) {ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(af)) {ao[0] = ao_value; ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value;}
-        if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
-        result.NORTH = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
-    }
-
-    // WEST
-    if(ao_enabled) {
-        let ao = result.WEST;
-        // ao[0] - правый верхний
-        // ao[1] - левый верхний
-        // ao[2] - левый нижний
-        // ao[3] - правый нижний
-        let aa = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z - 1);
-        let ab = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z);
-        let ac = BLOCK.getCachedBlock(chunk, x - 1, y - 1, z + 1);
-        let ad = BLOCK.getCachedBlock(chunk, x - 1, y, z - 1);
-        let ae = BLOCK.getCachedBlock(chunk, x - 1, y, z + 1);
-        let af = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z - 1);
-        let ag = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z);
-        let ah = BLOCK.getCachedBlock(chunk, x - 1, y + 1, z + 1);
-        let aj = BLOCK.getCachedBlock(chunk, x - 1, y, z); // to West
-        if(BLOCK.visibleForAO(aa)) {ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ab)) {ao[2] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ac)) {ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ad)) {ao[0] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ae)) {ao[1] = ao_value; ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
-        if(BLOCK.visibleForAO(ag)) {ao[0] = ao_value; ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ah)) {ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
-        result.WEST = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
-    }
-
-    // EAST
-    if(ao_enabled) {
-        let ao = result.EAST;
-        // ao[0] - левый нижний
-        // ao[1] - правый нижний
-        // ao[2] - правый верхний
-        // ao[3] - левый верхний
-        let aa = BLOCK.getCachedBlock(chunk, x + 1, y, z - 1);
-        let ab = BLOCK.getCachedBlock(chunk, x + 1, y, z + 1);
-        let ac = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z);
-        let ad = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z + 1);
-        let ae = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z + 1);
-        let af = BLOCK.getCachedBlock(chunk, x + 1, y - 1, z - 1);
-        let ag = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z);
-        let ah = BLOCK.getCachedBlock(chunk, x + 1, y + 1, z - 1);
-        let aj = BLOCK.getCachedBlock(chunk, x + 1, y, z); // to East
-        if(BLOCK.visibleForAO(aa)) {ao[0] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ab)) {ao[1] = ao_value; ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(ac)) {ao[0] = ao_value; ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ad)) {ao[1] = ao_value;}
-        if(BLOCK.visibleForAO(ae)) {ao[2] = ao_value;}
-        if(BLOCK.visibleForAO(af)) {ao[0] = ao_value;}
-        if(BLOCK.visibleForAO(ag)) {ao[2] = ao_value; ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(ah)) {ao[3] = ao_value;}
-        if(BLOCK.visibleForAO(aj)) {ao[0] = ao_value; ao[1] = ao_value; ao[2] = ao_value; ao[3] = ao_value;}
-        result.EAST = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
-    }
-
-    return result;
-
+        lm.r, lm.g, lm.b, flags | sideFlags);
 }

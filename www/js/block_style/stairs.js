@@ -14,15 +14,9 @@ export default class style {
 
         let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
-        let ao              = [0, 0, 0, 0];
         let pos             = new Vector(x, y, z);
         let flags           = 0, sideFlags = 0, upFlags = 0;
         let shapes          = BLOCK.getShapes(pos, block, chunk, true, false, neighbours);
-
-        // Ambient occlusion
-        const ao_value      = .3;
-
-        let ao_bottom       = [ao_value, ao_value, ao_value, ao_value];
 
         // полная текстура
         let c_full = BLOCK.calcTexture(texture, DIRECTION.UP);
@@ -47,43 +41,37 @@ export default class style {
                 xw, 0, 0,
                 0, zw, 0,
                 c[0], c[1], c[2] * xw, c[3] * zw,
-                lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags | upFlags);
+                lm.r, lm.g, lm.b, flags | upFlags);
             // Bottom
             vertices.push(xpos, zpos, y_bottom,
                 xw, 0, 0,
                 0, -zw, 0,
                 c[0], c[1], c[2] * xw, c[3] * zw,
-                lm.r, lm.g, lm.b,
-                ...ao_bottom, flags);
+                lm.r, lm.g, lm.b, flags);
             // South | Forward | z++ (XZY)
             vertices.push(xpos, zpos - zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, yw,
                 c[0], c[1], c[2] * xw, -c[3] * yw,
-                lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
             // North | Back | z--
             vertices.push(xpos, zpos + zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, -yw,
                 c[0], c[1], -c[2] * xw, c[3] * yw,
-                lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
             // West | Left | x--
             vertices.push(xpos - xw/2, zpos, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, -yw,
                 c[0], c[1], -c[2] * zw, c[3] * yw,
-                lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
             // East | Right | x++
             vertices.push(xpos + xw/2, zpos, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, yw,
                 c[0], c[1], -c[2] * zw, c[3] * yw,
-                lm.r, lm.g, lm.b,
-                ao[0], ao[1], ao[2], ao[3], flags | sideFlags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
     }

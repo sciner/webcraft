@@ -45,11 +45,9 @@ export default class GeometryTerrain {
         gl.enableVertexAttribArray(attribs.a_uvCenter);
         gl.enableVertexAttribArray(attribs.a_uvSize);
         gl.enableVertexAttribArray(attribs.a_color);
-        gl.enableVertexAttribArray(attribs.a_occlusion);
         gl.enableVertexAttribArray(attribs.a_flags);
 
         gl.enableVertexAttribArray(attribs.a_quad);
-        gl.enableVertexAttribArray(attribs.a_quadOcc);
 
         this.buffer.bind();
 
@@ -59,8 +57,7 @@ export default class GeometryTerrain {
         gl.vertexAttribPointer(attribs.a_uvCenter, 2, gl.FLOAT, false, stride, 9 * 4);
         gl.vertexAttribPointer(attribs.a_uvSize, 2, gl.FLOAT, false, stride, 11 * 4);
         gl.vertexAttribPointer(attribs.a_color, 3, gl.FLOAT, false, stride, 13 * 4);
-        gl.vertexAttribPointer(attribs.a_occlusion, 4, gl.FLOAT, false, stride, 16 * 4);
-        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 20 * 4);
+        gl.vertexAttribPointer(attribs.a_flags, 1, gl.FLOAT, false, stride, 16 * 4);
 
         gl.vertexAttribDivisor(attribs.a_position, 1);
         gl.vertexAttribDivisor(attribs.a_axisX, 1);
@@ -68,13 +65,11 @@ export default class GeometryTerrain {
         gl.vertexAttribDivisor(attribs.a_uvCenter, 1);
         gl.vertexAttribDivisor(attribs.a_uvSize, 1);
         gl.vertexAttribDivisor(attribs.a_color, 1);
-        gl.vertexAttribDivisor(attribs.a_occlusion, 1);
         gl.vertexAttribDivisor(attribs.a_flags, 1);
 
         this.quad.bind();
 
-        gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 6 * 4, 0);
-        gl.vertexAttribPointer(attribs.a_quadOcc, 4, gl.FLOAT, false, 6 * 4, 2 * 4);
+        gl.vertexAttribPointer(attribs.a_quad, 2, gl.FLOAT, false, 2 * 4, 0);
     }
 
     bind(shader)
@@ -166,12 +161,12 @@ export default class GeometryTerrain {
 
         const quadBuf = GeometryTerrain.quadBuf = context.createBuffer({
             data: new Float32Array([
-                -.5, -.5, 1, 0, 0, 0,
-                .5, -.5, 0, 1, 0, 0,
-                .5, .5, 0, 0, 1, 0,
-                -.5, -.5, 1, 0, 0, 0,
-                .5, .5, 0, 0, 1, 0,
-                -.5, .5, 0, 0, 0, 1]
+                -.5, -.5,
+                .5, -.5,
+                .5, .5,
+                -.5, -.5,
+                .5, .5,
+                -.5, .5]
             ),
             usage: 'static'
         });
@@ -244,17 +239,12 @@ export default class GeometryTerrain {
             newArr[k++] = vertices[j + 5];
             newArr[k++] = vertices[j + 6];
             newArr[k++] = vertices[j + 7];
-            // occlusion
-            newArr[k++] = vertices[j + d0 + 8];
-            newArr[k++] = vertices[j + du + 8];
-            newArr[k++] = vertices[j + dd + 8];
-            newArr[k++] = vertices[j + dv + 8];
-
+            // flags
             newArr[k++] = Math.abs(dot) < 1e-6 ? 1 : 0;
         }
 
         return newArr;
     }
 
-    static strideFloats = 21;
+    static strideFloats = 17;
 }
