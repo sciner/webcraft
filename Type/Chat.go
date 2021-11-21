@@ -82,6 +82,10 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 		}
 	case "/spawnmob":
 		{
+			err := world.Admins.CheckIsAdmin(conn)
+			if err != nil {
+				return err
+			}
 			args, err := this.parseCMD(tmp, []string{"string", "?int", "?int", "?int", "string", "string"})
 			if err != nil {
 				return err

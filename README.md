@@ -36,7 +36,7 @@ Game.render.setRain(true);
 
 // Set block at current player coordinates
 let pp = Game.player.getBlockPos();
-Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10});
+Game.world.chunkManager.setBlock(pp.x, pp.y, pp.z, {id: 10}, true);
 
 // Emulate user keyboard control
 // .walk(direction, duration_milliseconds)
@@ -59,4 +59,16 @@ Game.world.game_mode.setMode('creative'); // survival|creative|adventure|spectat
 
 // Open inventory window
 Game.player.inventory.open();
+
+// Spawn mob
+Game.player.server.Send({name: 70, data: {type: "horse", skin: "creamy", pos: Game.player.pos}});
+Game.player.server.Send({name: 70, data: {type: "bee", skin: "base", pos: Game.player.pos}});
+
+// Admins
+// 1. admin list managed only by chat commands
+// 2. only owner or another admin can add new admin
+// 3. owner cannot be removed from admins
+/admin list
+/admin add username
+/admin remove username
 ```

@@ -240,6 +240,68 @@ func (this *WorldDatabase) InsertChatMessage(conn *PlayerConn, world *World, par
 	}
 }
 
+// FindPlayer...
+func (this *WorldDatabase) FindPlayer(world_id int64, username string) (int64, string, error) {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	//
+	rows, err := this.Conn.Query("SELECT id, username FROM user WHERE lower(username) = LOWER($1)", username)
+	if err != nil {
+		return 0, "", err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id int64
+		var username string
+		err := rows.Scan(&id, &username)
+		if err == nil {
+			return id, username, nil
+		}
+	}
+	return 0, "", errors.New("Not found")
+}
+
+// AddAdmin...
+func (this *WorldDatabase) SetAdmin(world_id int64, username string, is_admin int64) error {
+	user_id, _, err := this.FindPlayer(world_id, username)
+	if err != nil {
+		return err
+	}
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	//
+	query := `UPDATE user SET is_admin = $1 WHERE id = $2`
+	statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+	if err != nil {
+		return err
+	}
+	_, err = statement.Exec(is_admin, user_id)
+	return err
+}
+
+// Вычитка списка администраторов
+func (this *WorldDatabase) LoadAdminList(world_id int64) ([]string, error) {
+	this.Mu.Lock()
+	defer this.Mu.Unlock()
+	//
+	resp := []string{}
+	rows, err := this.Conn.Query("SELECT username FROM user WHERE is_admin = $1", 1)
+	if err != nil {
+		return resp, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var username string
+		err := rows.Scan(&username)
+		if err != nil {
+			fmt.Println(err)
+			return resp, err
+		}
+		resp = append(resp, username)
+	}
+	return resp, nil
+}
+
 // Установка блока
 func (this *WorldDatabase) BlockSet(conn *PlayerConn, world *World, params *Struct.ParamBlockSet) {
 	this.Mu.Lock()

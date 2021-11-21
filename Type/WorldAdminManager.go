@@ -2,7 +2,6 @@ package Type
 
 import (
 	"errors"
-	"log"
 )
 
 type (
@@ -12,39 +11,58 @@ type (
 	}
 )
 
+// Load
+func (this *WorldAdminManager) Load() error {
+	list, err := this.World.Db.LoadAdminList(this.World.Properties.ID)
+	if err == nil {
+		this.List = list
+	}
+	return err
+}
+
 // Add
 func (this *WorldAdminManager) Add(conn *PlayerConn, username string) error {
-	err := this.checkRights(conn)
+	err := this.CheckIsAdmin(conn)
 	if err != nil {
 		return err
 	}
-	// Check if already exists
-	i := this.isUsernameExist(username)
-	if i >= 0 {
-		return errors.New("User already exists")
+	//
+	_, original_username, err := this.World.Db.FindPlayer(this.World.Properties.ID, username)
+	if err != nil {
+		return err
 	}
-	this.List = append(this.List, username)
-	return nil
+	err = this.World.Db.SetAdmin(this.World.Properties.ID, original_username, 1)
+	if err != nil {
+		return err
+	}
+	// Remove from array
+	return this.Load()
 }
 
 // Remove
 func (this *WorldAdminManager) Remove(conn *PlayerConn, username string) error {
-	err := this.checkRights(conn)
+	err := this.CheckIsAdmin(conn)
 	if err != nil {
 		return err
 	}
-	// Check if exists
-	i := this.isUsernameExist(username)
-	if i < 0 {
-		return errors.New("User not found")
+	//
+	user_id, original_username, err := this.World.Db.FindPlayer(this.World.Properties.ID, username)
+	if err != nil {
+		return err
 	}
-	this.List = append(this.List[:i], this.List[i+1:]...)
-	return nil
+	if user_id == this.World.Properties.UserID {
+		return errors.New("Can't remove owner")
+	}
+	err = this.World.Db.SetAdmin(this.World.Properties.ID, original_username, 0)
+	if err != nil {
+		return err
+	}
+	// Remove from array
+	return this.Load()
 }
 
-// Check permission for modify list
-func (this *WorldAdminManager) checkRights(conn *PlayerConn) error {
-	log.Println(conn.Session.UserID, this.World.Properties.UserID)
+// Check player is admin
+func (this *WorldAdminManager) CheckIsAdmin(conn *PlayerConn) error {
 	if conn.Session.UserID == this.World.Properties.UserID {
 		return nil
 	}
