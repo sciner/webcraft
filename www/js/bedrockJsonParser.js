@@ -34,11 +34,13 @@ function fillCube({
 
     let tX = matrix[12], tY = matrix[13], tZ = matrix[14];
 
-    const sx = uvPoint[0] / textureSize[0];
-    const sy = uvPoint[1] / textureSize[1];
-    const dx = size[0] / ( textureSize[0]);
-    const dy = size[1] / ( textureSize[0]);
-    const dz = size[2] / ( textureSize[0]);
+    
+    const itx = 1 / textureSize[0];
+    const ity = 1 / textureSize[1];
+
+    const [ sx, sy ] = uvPoint;
+    const [ dx, dy, dz ] = size;
+
     const flip = mirror ? -1 : 1;
 
     const flags = 0;
@@ -59,13 +61,13 @@ function fillCube({
     zX += Math.sign(zX) * inflate;
     zY += Math.sign(zY) * inflate;
     zZ += Math.sign(zZ) * inflate;
-    //                X                         Y                  w    h
-    const topUV =    [sx + dz + dx / 2         , sy + dz / 2      , dx, dz];
-    const bottomUV = [sx + dz + dx + dx / 2    , sy + dz / 2      , dx, dz];
-    const northUV =  [sx + dz + dx / 2         , sy + dz + dy / 2 , dx, dy];
-    const southUV =  [sx + 2 * dz + dx + dx / 2, sy + dz + dy / 2 , dx, dy];
-    const eastUV =   [sx + dz + dx + dz / 2    , sy + dz + dy / 2 , dz, dy];
-    const westUV =   [sx + dz / 2              , sy + dz + dy / 2 , dz, dy];
+    //                X                                  Y                         w         h
+    const topUV =    [itx * (sx + dz + dx / 2)         , ity * (sy + dz / 2)      , dx * itx, dz * ity];
+    const bottomUV = [itx * (sx + dz + dx + dx / 2)    , ity * (sy + dz / 2)      , dx * itx, dz * ity];
+    const northUV =  [itx * (sx + dz + dx / 2)         , ity * (sy + dz + dy / 2) , dx * itx, dy * ity];
+    const southUV =  [itx * (sx + 2 * dz + dx + dx / 2), ity * (sy + dz + dy / 2) , dx * itx, dy * ity];
+    const eastUV =   [itx * (sx + dz + dx + dz / 2)    , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
+    const westUV =   [itx * (sx + dz / 2)              , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
     //top
     let c = topUV;
     target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
@@ -120,18 +122,20 @@ function fillCube({
 
 /**
  *
- * @param {IGeoCube[]} cubes
+ * @param {IGeoTreeBones} bone
  * @param {IGeoTreeDescription} description
- * @param {IVector} offset
  */
-function decodeCubes(cubes, description, offset = null) {
+function decodeCubes(bone, description) {
     const data = [];
+    // only for 1.8 should apply flip
+    const offset = bone.bind_pose_rotation ? bone.pivot : null;
+    const flipX = !!bone.bind_pose_rotation ? -1 : 1;
 
-    for(let c of cubes) {
+    for(let c of bone.cubes) {
         const {
             origin = [0,0,0],
             size = [1,1,1],
-            pivot = [0,0,0]
+            pivot = offset || [0,0,0]
         } = c;
 
         vec3.set(computePivot,
@@ -157,13 +161,13 @@ function decodeCubes(cubes, description, offset = null) {
         computePos[1] += (0.5 - Math.random()) * 0.001;
         computePos[2] += (0.5 - Math.random()) * 0.001;
 
-
-        if (c.rotation) {
+        const rot = c.rotation || bone.bind_pose_rotation;
+        if (rot) {
             quat.fromEuler(
                 computeRot,
-                c.rotation[0],
-                c.rotation[1],
-                -c.rotation[2] // WHY???
+                flipX * rot[0],
+                rot[1],
+                -rot[2] // WHY???
             );
         } else {
             computeRot.set([0,0,0,1])
@@ -189,7 +193,7 @@ function decodeCubes(cubes, description, offset = null) {
                 inflate: (c.inflate || 0) * SCALE_RATIO,
                 size: size,
                 textureSize: [description.texture_width, description.texture_height],
-                mirror: c.mirror,
+                mirror: c.mirror || bone.mirror,
             },
             data
         );
@@ -199,9 +203,9 @@ function decodeCubes(cubes, description, offset = null) {
 }
 /**
  *
- * @param {IGeoFile | IGeoFileNew} json
  */
-export function decodeJsonGeometryTree(json) {
+export function decodeJsonGeometryTree(json, variant = null) {
+    variant = variant || json.variant || 0;
     /**
      * @type {IGeoTreeBones[]}
      */
@@ -214,8 +218,20 @@ export function decodeJsonGeometryTree(json) {
 
     // new format
     if (json["minecraft:geometry"]) {
-        bones = json["minecraft:geometry"][0].bones;
-        description = json["minecraft:geometry"][0].description;
+        /**
+         * @type {IGeoTreeNew[]}
+         */
+        const blob = json["minecraft:geometry"];
+        const dataset = (
+            variant 
+                ? (typeof variant === "number" 
+                    ? blob[variant] 
+                    : blob.find(e => e.description.identifier === variant))
+                : blob[0]
+            ) || blob[0];
+            
+        bones = dataset.bones;
+        description = dataset.description;
         name = description.identifier;
     } else {
         // old
@@ -248,7 +264,10 @@ export function decodeJsonGeometryTree(json) {
         sceneNode.name = node.name;
 
         if (node.cubes) {
-            sceneNode.terrainGeometry = decodeCubes(node.cubes, description);
+            sceneNode.terrainGeometry = decodeCubes(
+                node,
+                description,
+            );
         }
 
         if (node.rotation) {

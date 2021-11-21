@@ -25,6 +25,7 @@ export class SceneNode {
         this.source = null;
 
         this.terrainGeometry = null;
+        this.material = null;
 
         this.pivot = vec3.create();
 
