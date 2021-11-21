@@ -40,6 +40,8 @@ declare interface IGeoTreeBones {
     parent?: string;
     pivot?: IVector;
     rotation?: IVector;
+    // legacy 1.8
+    bind_pose_rotation?: IVector;
     cubes?: IGeoCube[];
     mirror?: boolean;
 }

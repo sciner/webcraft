@@ -135,14 +135,14 @@ function fillCube({
  * @param {IGeoTreeDescription} description
  * @param {IVector} offset
  */
-function decodeCubes(cubes, description, offset = null) {
+function decodeCubes(cubes, description, offset = null, bind_rotation = null) {
     const data = [];
 
     for(let c of cubes) {
         const {
             origin = [0,0,0],
             size = [1,1,1],
-            pivot = [0,0,0]
+            pivot = offset || [0,0,0]
         } = c;
 
         vec3.set(computePivot,
@@ -168,13 +168,13 @@ function decodeCubes(cubes, description, offset = null) {
         computePos[1] += (0.5 - Math.random()) * 0.001;
         computePos[2] += (0.5 - Math.random()) * 0.001;
 
-
-        if (c.rotation) {
+        const rot = c.rotation || bind_rotation;
+        if (rot) {
             quat.fromEuler(
                 computeRot,
-                c.rotation[0],
-                c.rotation[1],
-                -c.rotation[2] // WHY???
+                bind_rotation ? -rot[0] : rot[0],
+                rot[1],
+                -rot[2] // WHY???
             );
         } else {
             computeRot.set([0,0,0,1])
@@ -271,7 +271,12 @@ export function decodeJsonGeometryTree(json, variant = null) {
         sceneNode.name = node.name;
 
         if (node.cubes) {
-            sceneNode.terrainGeometry = decodeCubes(node.cubes, description);
+            sceneNode.terrainGeometry = decodeCubes(
+                node.cubes,
+                description,
+                node.bind_pose_rotation ? node.pivot : null,
+                node.bind_pose_rotation
+            );
         }
 
         if (node.rotation) {
