@@ -14,7 +14,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome, ao_enabled) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, ao_enabled) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;

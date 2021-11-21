@@ -13,7 +13,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
+    static func(block, vertices, chunk, x, y, z, neighbours) {
 
         const half          = 0.5 / TX_CNT;
         let poses           = [];

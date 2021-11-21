@@ -106,9 +106,7 @@ export class Chunk {
         this.tblocks            = new TypedBlocks();
         this.tblocks.count      = CHUNK_BLOCKS;
         this.tblocks.buffer     = args.tblocks.buffer;
-        this.tblocks.light_buffer     = args.tblocks.light_buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.light_source = new Uint8Array(this.tblocks.light_buffer, 0, this.tblocks.count);
         this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
         this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
         this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
@@ -119,8 +117,7 @@ export class Chunk {
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
 
-        this.getChunkManager().postLightWorkerMessage(['createChunk',
-            {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
+        this.initLights();
     }
 
     // onVerticesGenerated ... Webworker callback method
@@ -130,11 +127,6 @@ export class Chunk {
         if(!this.map) {
             this.map = args.map;
         }
-        if (args.light_buffer)
-        {
-            this.getChunkManager().postLightWorkerMessage(['createChunk',
-                {addr: this.addr, size: this.size, light_buffer: this.tblocks.light_buffer}]);
-        }
         //args.lightmap
     }
 
@@ -143,6 +135,24 @@ export class Chunk {
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }
+    }
+
+    initLights() {
+        const { size } = this;
+        const sz = size.x * size.y * size.z;
+        const light_buffer = this.light_buffer = new ArrayBuffer(sz);
+        const light_source = this.light_source = new Uint8Array(light_buffer);
+        const ids = this.tblocks.id;
+
+        let ind = 0;
+        for (let y=0; y < size.y; y++)
+            for (let z=0; z < size.z; z++)
+                for (let x=0; x < size.x; x++) {
+                    light_source[ind] = BLOCK.getLightPower(BLOCK.BLOCK_BY_ID.get(ids[ind]));
+                    ind++;
+                }
+        this.getChunkManager().postLightWorkerMessage(['createChunk',
+            {addr: this.addr, size: this.size, light_buffer}]);
     }
 
     drawBufferGroup(render, resource_pack, group, mat) {

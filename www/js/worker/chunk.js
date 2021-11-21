@@ -75,8 +75,6 @@ export class Chunk {
         this.dirty              = true;
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
-        this.lights             = [];
-        this.lightmap           = null;
         this.timers             = {
             init:               null,
             generate_terrain:   null,
@@ -96,33 +94,13 @@ export class Chunk {
         this.timers.apply_modify = performance.now();
         this.applyModifyList();
         this.timers.apply_modify = Math.round((performance.now() - this.timers.apply_modify) * 1000) / 1000;
-        //  4. Find lights
-        this.updateLights();
-        // 5. Result
+        // 4. Result
         return {
             key:        this.key,
             addr:       this.addr,
             tblocks:    this.tblocks,
             map:        this.map
         };
-    }
-
-    // findLights...
-    findLights() {
-        this.lights = [];
-        /*for(let y = 0; y < this.size.y; y++) {
-            for(let x = 0; x < this.size.x; x++) {
-                for(let z = 0; z < this.size.z; z++) {
-                    let block = this.blocks[x][z][y];
-                    if(block && block.light_power) {
-                        this.lights.push({
-                            power: block.light_power,
-                            pos: new Vector(x, y, z)
-                        });
-                    }
-                }
-            }
-        }*/
     }
 
     //
@@ -232,13 +210,6 @@ export class Chunk {
         block.extra_data = extra_data;
     }
 
-    // updateLights
-    updateLights() {
-        for(let tb of this.tblocks) {
-            tb.light_source = BLOCK.getLightPower(tb.material);
-        }
-    }
-
     // Возвращает всех 6-х соседей блока
     getBlockNeighbours(pos) {
         let x = pos.x;
@@ -339,7 +310,6 @@ export class Chunk {
         }
 
         // Create map of lowest blocks that are still lit
-        // let lightmap            = {};
         let tm                  = performance.now();
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
@@ -377,9 +347,6 @@ export class Chunk {
             pz: world.chunkManager.getChunk(new Vector(this.addr.x, this.addr.y, this.addr.z + 1))
         };
 
-        //  Update lights
-        this.updateLights();
-
         // Обход всех блоков данного чанка
         for(let block of this.tblocks) {
             if(block.id == BLOCK.AIR.id) {
@@ -406,7 +373,7 @@ export class Chunk {
             if(block.vertices === null) {
                 block.vertices = [];
                 let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
-                block.material.resource_pack.pushVertices(block.vertices, block, this, this.lightmap, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
+                block.material.resource_pack.pushVertices(block.vertices, block, this, block.pos.x, block.pos.y, block.pos.z, neighbours, biome);
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
@@ -427,7 +394,6 @@ export class Chunk {
 
         this.dirty = false;
         this.tm = performance.now() - tm;
-        // this.lightmap = null;
         this.neighbour_chunks = null;
         return true;
     }
@@ -437,7 +403,6 @@ export class Chunk {
     setDirtyBlocks(pos) {
         let dirty_rad = MAX_TORCH_POWER;
         let cnt = 0;
-        // let needUpdateLightmap = false;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {
                 for(let cy = -dirty_rad; cy <= dirty_rad; cy++) {
@@ -445,14 +410,6 @@ export class Chunk {
                     let y = pos.y + cy;
                     let z = pos.z + cz;
                     if(x >= 0 && y >= 0 && z >= 0 && x < this.size.x && y < this.size.y && z < this.size.z) {
-                        //
-                        /*if(!needUpdateLightmap) {
-                            let index = BLOCK.getIndex(x, y, z);
-                            if(index >= 0) {
-                                needUpdateLightmap = true;
-                            }
-                        }*/
-                        //
                         let pos = new Vector(x, y, z);
                         if(this.tblocks.has(pos)) {
                             let block = this.tblocks.get(pos);

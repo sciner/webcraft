@@ -10,7 +10,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
+    static func(block, vertices, chunk, x, y, z, neighbours) {
 
         if(typeof block == 'undefined') {
             return;
@@ -24,7 +24,7 @@ export default class style {
         let ao          = [0, 0, 0, 0];
         let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
 
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z);
+        ao = BLOCK.applyLight2AO(ao, x, y, z);
 
         switch(cardinal_direction) {
             case ROTATE.N:

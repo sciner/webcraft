@@ -33,11 +33,14 @@ export class BLOCK {
     static resource_pack_manager = null;
 
     // applyLight2AO
-    static applyLight2AO(lightmap, ao, x, y, z) {
+    static applyLight2AO(ao, x, y, z) {
         return ao;
     }
 
     static getLightPower(material) {
+        if (!material) {
+            return 0;
+        }
         if(material.light_power) {
             return Math.floor(material.light_power.a / 16.0);
         } else if (!material.transparent) {

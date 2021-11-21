@@ -13,7 +13,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z) {
+    static func(block, vertices, chunk, x, y, z) {
 
         const half = 0.5 / TX_CNT;
 
@@ -43,25 +43,25 @@ export default class style {
         // South
         let lm = MULTIPLY.COLOR.WHITE;
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z - 1);
+        ao = BLOCK.applyLight2AO(ao, x, y, z - 1);
         push_plane(vertices, x, yt, z - .5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
         // North
         lm = MULTIPLY.COLOR.WHITE;
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z + 1);
+        ao = BLOCK.applyLight2AO(ao, x, y, z + 1);
         push_plane(vertices, x, yt, z + .5, c_half_bottom, lm, ao, true, false, null, .5, null);
 
         // East
         lm = MULTIPLY.COLOR.WHITE;
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x + 1, y, z);
+        ao = BLOCK.applyLight2AO(ao, x + 1, y, z);
         push_plane(vertices, x + 0.5, yt, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
         // West
         lm = MULTIPLY.COLOR.WHITE;
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x - 1, y, z);
+        ao = BLOCK.applyLight2AO(ao, x - 1, y, z);
         push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, ao, false, false, null, .5, null);
 
         // Up and down
@@ -71,7 +71,7 @@ export default class style {
 
         // Up
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y + 1, z);
+        ao = BLOCK.applyLight2AO(ao, x, y + 1, z);
         vertices.push(x + 0.5, z + 0.5, yt + .5,
             1, 0, 0,
             0, 1, 0,
@@ -81,7 +81,7 @@ export default class style {
 
         // Down
         ao = [0, 0, 0, 0];
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y - 1, z);
+        ao = BLOCK.applyLight2AO(ao, x, y - 1, z);
         vertices.push(x + 0.5, z + 0.5, yt,
             1, 0, 0,
             0, -1, 0,

@@ -15,7 +15,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
         let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
         let lm = MULTIPLY.COLOR.WHITE;
         let flags = QUAD_FLAGS.NORMAL_UP;
@@ -29,7 +29,7 @@ export default class style {
             y -= .15;
         }
         if(chunk.coord) {
-            ao = BLOCK.applyLight2AO(lightmap, ao, x, Math.round(y), z);
+            ao = BLOCK.applyLight2AO(ao, x, Math.round(y), z);
         }
         let sz = 1 / 1.41;
         let index = x * CHUNK_SIZE_Z + z;

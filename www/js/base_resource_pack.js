@@ -129,12 +129,12 @@ export class BaseResourcePack {
     }
 
     // pushVertices
-    pushVertices(vertices, block, world, lightmap, x, y, z, neighbours, biome) {
+    pushVertices(vertices, block, world, x, y, z, neighbours, biome) {
         const style = block.material.style;
         let module = BLOCK.styles[style];
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
-        return module.func(block, vertices, world, lightmap, x, y, z, neighbours, biome, true);
+        return module.func(block, vertices, world, x, y, z, neighbours, biome, true);
     }
 }
