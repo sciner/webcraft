@@ -62,55 +62,8 @@
             "skins": {
                 "2": "/player_skins/2.png",
                 "8": "/player_skins/8.png",
-                "18": "/player_skins/18.png",
                 "23": "/player_skins/23.png",
                 "25": "/player_skins/25.png"
-            }
-        },
-        "chicken": {
-            "type": "json",
-            "geom": "/json/chicken.geo.json",
-            "baseSkin": "base",
-            "skins": {
-                "base": "/textures/chicken.png"
-            }
-        },
-        "axolotl": {
-            "type": "json",
-            "geom": "/json/axolotl.geo.json",
-            "baseSkin": "base",
-            "skins": {
-                "base": "/textures/axolotl/axolotl_blue.png",
-                "cyan": "/textures/axolotl/axolotl_cyan.png",
-                "gold": "/textures/axolotl/axolotl_gold.png",
-                "lucy": "/textures/axolotl/axolotl_lucy.png",
-                "wild": "/textures/axolotl/axolotl_wild.png"
-            }
-        },
-        "bat": {
-            "type": "json",
-            "geom": "/json/bat.geo.json",
-            "baseSkin": "base",
-            "skins": {
-                "base": "/textures/bat.png"
-            }
-        },
-        "pig": {
-            "type": "json",
-            "geom": "/json/pig.geo.json",
-            "baseSkin": "base",
-            "skins": {
-                "base": "/textures/pig/pig.png",
-                "saddle": "/textures/pig/pig_saddle.png",
-                "pigzombie": "/textures/pig/pigzombie.png"
-            }
-        },
-        "creeper": {
-            "type": "json",
-            "geom": "/json/creeper.geo.json",
-            "baseSkin": "base",
-            "skins": {
-                "base": "/textures/creeper/creeper.png"
             }
         }
     }
