@@ -91,19 +91,14 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
                         ]
                     },
                     {
-                        arrayStride: 6 * 4,
+                        arrayStride: 2 * 4,
                         stepMode: "vertex",
                         attributes: [
                             {
-                                shaderLocation: 8,
+                                shaderLocation: 7,
                                 offset: 0,
                                 format: "float32x2"
                             },
-                            {
-                                shaderLocation: 9,
-                                offset: 2 * 4,
-                                format: "float32x4"
-                            }
                         ]
                     }
                 ],

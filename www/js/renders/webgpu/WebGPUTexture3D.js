@@ -6,6 +6,11 @@ const FORMATS = {
     'u4_4_4_4': 'rgba8unorm',
 }
 
+const SZ = {
+    'rgba8unorm': 4,
+    'u8': 1,
+}
+
 export class WebGPUTexture3D extends BaseTexture3D {
     bind() {
         if (this.dirty) {
@@ -58,7 +63,7 @@ export class WebGPUTexture3D extends BaseTexture3D {
         device.queue.writeTexture (
             { texture: this.texture },
             data,
-            { bytesPerRow: width, rowsPerImage: height },
+            { bytesPerRow: width * SZ[this.type], rowsPerImage: height },
             { width, height, depthOrArrayLayers: depth },
         );
 

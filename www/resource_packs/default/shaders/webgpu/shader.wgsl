@@ -38,13 +38,9 @@ struct Attrs {
 
     [[location(5)]] color : vec3<f32>;
 
-    [[location(6)]] occlusion : vec4<f32>;
+    [[location(6)]] flags : f32;
 
-    [[location(7)]] flags : f32;
-
-    [[location(8)]] quad : vec2<f32>;
-
-    [[location(9)]] quadOcc : vec4<f32>;
+    [[location(7)]] quad : vec2<f32>;
 };
 
 struct VertexOutput {
@@ -54,7 +50,7 @@ struct VertexOutput {
     [[location(2)]] texClamp : vec4<f32>;
     [[location(3)]] color : vec4<f32>;
     [[location(4)]] normal : vec3<f32>;
-    [[location(5)]] light : f32;
+    [[location(5)]] chunk_pos : vec3<f32>;
 };
 
 [[group(0), binding(0)]] var<uniform> u : VUniforms;
@@ -72,7 +68,7 @@ struct VertexOutput {
 fn main_vert(a : Attrs) -> VertexOutput {
     var v: VertexOutput;
 
-    v.color = vec4<f32>(a.color, dot(a.occlusion, a.quadOcc));
+    v.color = vec4<f32>(a.color, 1.0);
 
     // find flags
     var flagBiome : f32 = step(1.5, a.flags);
@@ -85,15 +81,11 @@ fn main_vert(a : Attrs) -> VertexOutput {
         v.normal = normalize(cross(a.axisX, a.axisY));
     }
 
-    v.normal = (eu.ModelMatrix * vec4<f32>(v.normal, 0.0)).xzy;
+    v.normal = (eu.ModelMatrix * vec4<f32>(v.normal, 0.0)).xyz;
 
     var pos : vec3<f32> = a.position + (a.axisX * a.quad.x) + (a.axisY * a.quad.y);
     v.texcoord = a.uvCenter + (a.uvSize * a.quad);
     v.texClamp = vec4<f32>(a.uvCenter - abs(a.uvSize * 0.5) + tu.pixelSize * 0.5, a.uvCenter + abs(a.uvSize * 0.5) - tu.pixelSize * 0.5);
-
-    var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
-    var n : vec3<f32> = normalize(v.normal);
-    var dayLight: f32 = max(.5, dot(n, sun_dir) - v.color.a);
 
     if(u.fogOn > 0.0) {
         if (flagBiome < 0.5) {
@@ -101,16 +93,9 @@ fn main_vert(a : Attrs) -> VertexOutput {
         }
     }
 
-    var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
-    lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
-    lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 44.0);
-    var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).r;
-    var nightLight: f32 = min(lightSample * 16.0, 1.0) * (1.0 - v.color.a);
-
-    v.light = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
-
     // 1. Pass the view position to the fragment shader
-    v.position = (eu.ModelMatrix * vec4<f32>(pos, 1.0)).xyz + eu.add_pos;
+    v.chunk_pos = (eu.ModelMatrix * vec4<f32>(pos, 1.0)).xyz;
+    v.position = v.chunk_pos + eu.add_pos;
     v.VPos = u.ProjMatrix * u.worldView * vec4<f32>(v.position, 1.0);
 
     return v;
@@ -170,9 +155,20 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
             );
         }
 
+        var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
+
+        var lightCoord: vec3<f32> = (v.chunk_pos + 0.5) / vec3<f32>(18.0, 18.0, 42.0);
+        var absNormal: vec3<f32> = abs(v.normal);
+        var aoCoord: vec3<f32> = (v.chunk_pos + (v.normal + absNormal + 1.0) * 0.5) / vec3<f32>(18.0, 18.0, 42.0);
+        var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).a * 255.0 / 240.0;
+        var aoSample: f32 = dot(textureSampleLevel(lightTex, lightTexSampler, aoCoord, 0.0).rgb, absNormal) * 255.0 / 48.0 * 0.4;
+        var dayLight: f32 = max(.3, max(.7, dot(v.normal.xzy, sun_dir)) - aoSample);
+        var nightLight: f32 = lightSample * (1.0 - aoSample);
+        var light: f32 = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
+
         // Apply light
         color = vec4<f32>(
-            color.rgb * v.light,
+            color.rgb * light,
             color.a
         );
 
