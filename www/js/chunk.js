@@ -315,7 +315,7 @@ export class Chunk {
             tblock.power         = power;
             tblock.rotate        = rotate;
             tblock.falling       = !!material.gravity;
-            tblock.light_source = BLOCK.getLightPower(material);
+            const light = this.light_source[tblock.index] = BLOCK.getLightPower(material);
             //
             update_vertices         = true;
 
@@ -325,7 +325,7 @@ export class Chunk {
             const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
             const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
             chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr, innerCoord, outerCoord,
-                light_source: tblock.light_source}]);
+                light_source: light}]);
         }
         // Run webworker method
         if(update_vertices) {
