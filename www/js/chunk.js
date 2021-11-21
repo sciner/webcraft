@@ -169,7 +169,7 @@ export class Chunk {
                 }
                 if (this.lightData) {
                     if (!this.lightTex) {
-                        this.lightTex = render.createTexture3D({
+                        const lightTex = this.lightTex = render.createTexture3D({
                             width: this.size.x + 2,
                             height: this.size.z + 2,
                             depth: this.size.y + 2,
@@ -177,6 +177,8 @@ export class Chunk {
                             filter: 'linear',
                             data: this.lightData
                         })
+                        this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
+                        this.getChunkManager().lightmap_count ++;
                     }
                     if (!this.lightMats[key]) {
                         this.lightMats[key] = texMat.getLightMat(this.lightTex)
@@ -236,9 +238,14 @@ export class Chunk {
         if(this.buffer) {
             this.buffer.destroy();
         }
-        if (this.lightTex) {
-            this.lightTex.destroy();
+        const { lightTex } = this;
+        if (lightTex) {
+            this.getChunkManager().lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
+            this.getChunkManager().lightmap_count --;
+            lightTex.destroy();
         }
+        this.buffer = null;
+        this.lightTex = null;
         // Run webworker method
         this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
         this.getChunkManager().postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);

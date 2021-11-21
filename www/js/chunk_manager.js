@@ -20,6 +20,8 @@ export class ChunkManager {
         this.rendered_chunks        = {fact: 0, total: 0, vc: new VectorCollector()};
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
+        this.lightmap_count = 0;
+        this.lightmap_bytes = 0;
         this.dirty_chunks           = [];
         this.worker_inited          = false;
         this.worker_counter         = 2;
