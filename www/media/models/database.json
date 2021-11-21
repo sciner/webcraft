@@ -66,6 +66,14 @@
                 "23": "/player_skins/23.png",
                 "25": "/player_skins/25.png"
             }
+        },
+        "chicken": {
+            "type": "json",
+            "geom": "/json/chicken.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "/textures/chicken.png"
+            }
         }
     }
 }
