@@ -1,10 +1,14 @@
 declare interface IGeoFile {
     format_version: string;
+    skins: Record<string, any>;
+    variant?: string;
     [key: string]: IGeoTree;
 }
 
 declare interface IGeoFileNew {
     format_version: string;
+    skins: Record<string, any>;
+    variant?: string;
     ['minecraft:geometry']: IGeoTreeNew[];
 }
 
