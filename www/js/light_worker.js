@@ -23,8 +23,8 @@ const world = {
 }
 
 const maxLight = 15;
-const BLOCK_SOURCE = 255;
-const BLOCK_LIGHT = -1;
+const MASK_BLOCK = 127;
+const MASK_AO = 128;
 const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
@@ -83,26 +83,33 @@ class LightQueue {
                 const y = tmp;
 
                 let val = chunk.lightSource[ix * (x - 1) + iy * (y - 1) + iz * (z - 1)];
-                if (val === BLOCK_SOURCE) {
-                    val = BLOCK_LIGHT;
+                let ao = val & MASK_AO;
+                val &= MASK_BLOCK;
+                if (val === MASK_BLOCK) {
+                    val = 0;
                 } else {
                     for (let d = 0; d < 6; d++) {
                         let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                         let coord2 = sx * x2 + sy * y2 + sz * z2;
-                        val = Math.max(val, chunk.lightMap[coord2] - 1);
+                        val = Math.max(val, (chunk.lightMap[coord2] & MASK_BLOCK) - 1);
                     }
                 }
                 const old = chunk.lightMap[coord];
                 const prev = chunk.lightPrev[coord];
-                if (old === val && prev === val) {
+                const valAo = val + ao;
+                if ((old & MASK_BLOCK) === val && prev === val) {
+                    if (old !== valAo) {
+                        chunk.lightMap[coord] = valAo;
+                        chunk.lastID++;
+                    }
                     continue;
                 }
-                chunk.lightMap[coord] = val;
+                chunk.lightMap[coord] = valAo;
                 chunk.lightPrev[coord] = val;
                 chunk.lastID++;
 
                 //TODO: copy to neib chunks
-                const waveNum = Math.max(Math.max(old, val) - 1, 0);
+                const waveNum = Math.max(Math.max(old & MASK_BLOCK, val) - 1, 0);
                 for (let d = 0; d < 6; d++) {
                     let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
@@ -125,10 +132,10 @@ class LightQueue {
                             wavesCoord[waveNum].push(coord2);
                             chunk2.waveCounter++;
 
-                            chunk2.lightMap[coord - shift] = val;
+                            chunk2.lightMap[coord - shift] = valAo;
                             chunk2.lastID++;
                         } else {
-                            chunk.lightMap[coord2] = Math.max(val - 1, 0);
+                            chunk.lightMap[coord2] = Math.max(val - 1, 0) + ao;
                             wavesChunk[waveNum].push(chunk);
                             wavesCoord[waveNum].push(coord);
                             chunk.waveCounter++;
@@ -196,7 +203,7 @@ class LightQueue {
                 const shift = dx * sx + dy * sy + dz * sz;
                 for (let t = 0; t < len; t++) {
                     const coord = (x1 + t * tx) * sx + (y1 + t * ty) * sy + (z1 + t * tz) * sz;
-                    dest[coord] = Math.max(dest[coord - shift] - 1, 0);
+                    dest[coord] = Math.max((dest[coord - shift] & MASK_BLOCK) - 1, 0);
                 }
             }
         }
@@ -222,25 +229,25 @@ class LightQueue {
                     const boundZ = (z === outerSize.z - 1) ? sz : 0;
 
                     let coord = coord0 - boundX - boundY - boundZ;
-                    let A = Math.max(Math.max(Math.max(lightMap[coord], lightMap[coord + sx])),
-                            Math.max(lightMap[coord + sy], lightMap[coord + sx + sy]),
-                        Math.max(Math.max(lightMap[coord + sz], lightMap[coord + sx + sz]),
-                            Math.max(lightMap[coord + sy + sz], lightMap[coord + sx + sy + sz])));
+                    let A = Math.max(Math.max(Math.max(lightMap[coord] & MASK_BLOCK, lightMap[coord + sx] & MASK_BLOCK)),
+                            Math.max(lightMap[coord + sy] & MASK_BLOCK, lightMap[coord + sx + sy] & MASK_BLOCK),
+                        Math.max(Math.max(lightMap[coord + sz] & MASK_BLOCK, lightMap[coord + sx + sz] & MASK_BLOCK),
+                            Math.max(lightMap[coord + sy + sz] & MASK_BLOCK, lightMap[coord + sx + sy + sz] & MASK_BLOCK)));
                     A = Math.max(A, 0);
 
                     coord = coord0 - boundY - boundZ;
-                    const R1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sy + sz] === BLOCK_LIGHT);
-                    const R2 = (lightMap[coord + sy] === BLOCK_LIGHT) + (lightMap[coord + sz] === BLOCK_LIGHT);
+                    const R1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sy + sz] >= MASK_AO);
+                    const R2 = (lightMap[coord + sy] >= MASK_AO) + (lightMap[coord + sz] >= MASK_AO);
                     const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
 
                     coord = coord0 - boundX - boundY;
-                    const G1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sy + sx] === BLOCK_LIGHT);
-                    const G2 = (lightMap[coord + sy] === BLOCK_LIGHT) + (lightMap[coord + sx] === BLOCK_LIGHT);
+                    const G1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sy + sx] >= MASK_AO);
+                    const G2 = (lightMap[coord + sy] >= MASK_AO) + (lightMap[coord + sx] >= MASK_AO);
                     const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
 
                     coord = coord0 - boundX - boundZ;
-                    const B1 = (lightMap[coord] === BLOCK_LIGHT) + (lightMap[coord + sx + sz] === BLOCK_LIGHT);
-                    const B2 = (lightMap[coord + sx] === BLOCK_LIGHT) + (lightMap[coord + sz] === BLOCK_LIGHT);
+                    const B1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sx + sz] >= MASK_AO);
+                    const B2 = (lightMap[coord + sx] >= MASK_AO) + (lightMap[coord + sz] >= MASK_AO);
                     const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
                     result[ind++] = R * 16.0;
@@ -298,8 +305,8 @@ class Chunk {
         if (!this.lightSource) {
             this.lightSource = new Uint8Array(this.len);
         }
-        this.lightMap = new Int8Array(this.outerLen);
-        this.lightPrev = new Int8Array(this.outerLen);
+        this.lightMap = new Uint8Array(this.outerLen);
+        this.lightPrev = new Uint8Array(this.outerLen);
         this.lightResult = new Uint8Array(this.resultLen * 4);
     }
 
@@ -385,16 +392,30 @@ class Chunk {
                 }
         }
 
+        let found = false;
         for (let y = 0; y < size.y; y++)
             for (let z = 0; z < size.z; z++)
                 for (let x=0; x < size.x; x++) {
                     const inner = x * ix + y * iy + z * iz;
                     const outer = (x + 1) * sx + (y + 1) * sy + (z + 1) * sz;
-                    const m = Math.max(lightSource[inner], dest[outer]);
+                    const ao = lightSource[inner] & MASK_AO;
+                    let val = lightSource[inner] & MASK_BLOCK;
+                    if (val === MASK_BLOCK) {
+                        val = 0;
+                    }
+                    const m = Math.max(val, dest[outer] & MASK_BLOCK);
                     if (m > 0) {
                         world.light.add(this, outer, m);
+                    } else {
+                        if (ao || dest[outer]) {
+                            dest[outer] = ao;
+                            found = true;
+                        }
                     }
                 }
+        if (found) {
+            this.lastID++;
+        }
     }
 }
 
@@ -505,7 +526,7 @@ async function onMessageFunc(e) {
             if (chunk) {
                 const { innerCoord, outerCoord, light_source } = args;
                 chunk.lightSource[innerCoord] = light_source;
-                world.light.add(chunk, outerCoord, Math.max(chunk.lightMap[outerCoord], light_source));
+                world.light.add(chunk, outerCoord, Math.max(chunk.lightMap[outerCoord] & MASK_BLOCK, light_source & MASK_BLOCK));
             }
         }
     }

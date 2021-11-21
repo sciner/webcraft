@@ -36,13 +36,13 @@ export class BLOCK {
         if (!material) {
             return 0;
         }
+        let val = 0;
         if(material.light_power) {
-            return Math.floor(material.light_power.a / 16.0);
+            val = Math.floor(material.light_power.a / 16.0);
         } else if (!material.transparent) {
-            return 255;
-        } else {
-            return 0;
+            val = 127;
         }
+        return val + (material.visible_for_ao ? 128 : 0);
     }
 
     // Return flat index of chunk block
