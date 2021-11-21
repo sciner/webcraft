@@ -137,7 +137,7 @@ func (this *WorldDatabase) RAWQuery(sql_query string, lock bool) error {
 }
 
 // RegisterUser... Возвращает игрока либо создает и возвращает его
-func (this *WorldDatabase) RegisterUser(conn *PlayerConn, default_pos_spawn *Struct.Vector3f, lock bool) (int64, *Struct.PlayerState, error) {
+func (this *WorldDatabase) RegisterUser(world *World, conn *PlayerConn, default_pos_spawn *Struct.Vector3f, lock bool) (int64, *Struct.PlayerState, error) {
 	if lock {
 		this.Mu.Lock()
 		defer this.Mu.Unlock()
@@ -207,18 +207,22 @@ func (this *WorldDatabase) RegisterUser(conn *PlayerConn, default_pos_spawn *Str
 	indicators := Struct.InitPlayerIndicators()
 	indicators_bytes, _ := json.Marshal(indicators)
 	//
-	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	query := `INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	statement, err := this.Conn.Prepare(query)
 	if err != nil {
 		log.Printf("ERROR24: %v", err)
 	}
-	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes), string(indicators_bytes))
+	is_admin := 0
+	if world.Properties.UserID == conn.Session.UserID {
+		is_admin = 1
+	}
+	result, err := statement.Exec(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), string(pos_bytes), string(pos_bytes), string(rotate_bytes), string(inventory_bytes), string(indicators_bytes), is_admin)
 	if err != nil || result == nil {
 		log.Printf("SQL_ERROR2: %v", err)
 		log.Println(conn.Session.UserID, conn.Session.UserGUID, conn.Session.Username, time.Now().Unix(), conn.Skin)
 		return 0, nil, err
 	}
-	return this.RegisterUser(conn, default_pos_spawn, false)
+	return this.RegisterUser(world, conn, default_pos_spawn, false)
 }
 
 // Добавление сообщения в чат
@@ -272,7 +276,7 @@ func (this *WorldDatabase) BlockSet(conn *PlayerConn, world *World, params *Stru
 
 // GetWorld... Возвращает мир по его GUID либо создает и возвращает его
 func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*Struct.WorldProperties, error) {
-	rows, err := this.Conn.Query("SELECT id, guid, dt, title, seed, generator, pos_spawn FROM world WHERE guid = $1", world_guid)
+	rows, err := this.Conn.Query("SELECT id, guid, dt, title, seed, generator, pos_spawn, user_id FROM world WHERE guid = $1", world_guid)
 	if err != nil {
 		log.Printf("ERROR24: %v", err)
 		return nil, err
@@ -285,7 +289,7 @@ func (this *WorldDatabase) GetWorld(world_guid string, DBGame *GameDatabase) (*S
 	var pos_spawn string
 	var unix_time int64
 	for rows.Next() {
-		if err := rows.Scan(&world.ID, &world.GUID, &unix_time, &world.Title, &world.Seed, &generator, &pos_spawn); err != nil {
+		if err := rows.Scan(&world.ID, &world.GUID, &unix_time, &world.Title, &world.Seed, &generator, &pos_spawn, &world.UserID); err != nil {
 			return nil, err
 		}
 	}
@@ -543,6 +547,25 @@ func (this *WorldDatabase) ApplyMigrations() {
 		if err != nil {
 			log.Printf("SQL_ERROR56: %v", err)
 		}
+		this.ApplyMigrations()
+		return
+	}
+	if version == 1 {
+		err = this.RAWQuery("alter table user add column is_admin integer default 0", false)
+		if err != nil {
+			log.Printf("SQL_ERROR57: %v", err)
+		}
+		//
+		err = this.RAWQuery("update user set is_admin = 1 where id in (select user_id from world)", false)
+		if err != nil {
+			log.Printf("SQL_ERROR58: %v", err)
+		}
+		//
+		err = this.RAWQuery("update options set version = 2", false)
+		if err != nil {
+			log.Printf("SQL_ERROR59: %v", err)
+		}
+		//
 		this.ApplyMigrations()
 		return
 	}
