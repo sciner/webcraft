@@ -40,10 +40,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.a_uvCenter         = gl.getAttribLocation(program, 'a_uvCenter');
         this.a_uvSize           = gl.getAttribLocation(program, 'a_uvSize');
         this.a_color            = gl.getAttribLocation(program, 'a_color');
-        this.a_occlusion        = gl.getAttribLocation(program, 'a_occlusion');
         this.a_flags            = gl.getAttribLocation(program, 'a_flags');
         this.a_quad             = gl.getAttribLocation(program, 'a_quad');
-        this.a_quadOcc          = gl.getAttribLocation(program, 'a_quadOcc');
 
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');

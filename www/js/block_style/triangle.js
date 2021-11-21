@@ -13,13 +13,12 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
+    static func(block, vertices, chunk, x, y, z, neighbours) {
 
         const half          = 0.5 / TX_CNT;
         let poses           = [];
         let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;
-        let ao              = [0, 0, 0, 0];
 
         block.transparent   = true;
 
@@ -49,21 +48,20 @@ export default class style {
         // Нижний слэб
 
         // South - стенка 1
-        push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
+        push_plane(vertices, x, yb, z - 0.5, c_half_bottom, lm, true, false, null, .5, null);
 
         // North - стенка 2
-        push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, ao, true, false, null, .5, null);
+        push_plane(vertices, x, yb, z + 0.5, c_half_bottom, lm, true, false, null, .5, null);
 
         // East - стенка 3
-        push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, ao, false, false, null, 1, null);
+        push_plane(vertices, x + 0.5, yb, z, c_half_bottom, lm, false, false, null, 1, null);
 
         // West - стенка 4
         vertices.push(x + 1/2, y + 1/2, z + 1/2,
             1, 1, 0,
             0, 0, -1,
             ...c,
-            lm.r, lm.g, lm.b,
-            ...ao, null);
+            lm.r, lm.g, lm.b, 0);
 
         c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
 
@@ -73,8 +71,7 @@ export default class style {
             1, 0, 0,
             0, -1, 0,
             c[0], c[1], c[2], -c[3],
-            lm.r, lm.g, lm.b,
-            ...ao, 0);
+            lm.r, lm.g, lm.b, 0);
 
         // поверхность нижней ступени
         const bH = 1;

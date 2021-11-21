@@ -108,7 +108,7 @@ export default class Particles_Clouds {
                     neighbours.SOUTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z - 1);
                     neighbours.WEST = FakeCloudWorld.chunkManager.getBlock(x - 1, 0, z);
                     neighbours.EAST = FakeCloudWorld.chunkManager.getBlock(x + 1, 0, z);
-                    push_cube(block, this.vertices, FakeCloudWorld, null, x, y, z, neighbours, null, false);
+                    push_cube(block, this.vertices, FakeCloudWorld, x, y, z, neighbours, null, false);
                 }
             }
         }

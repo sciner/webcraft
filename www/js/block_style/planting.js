@@ -15,7 +15,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
         let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
         let lm = MULTIPLY.COLOR.WHITE;
         let flags = QUAD_FLAGS.NORMAL_UP;
@@ -24,12 +24,8 @@ export default class style {
             lm = biome.dirt_color;
             flags |= QUAD_FLAGS.MASK_BIOME;
         }
-        let ao = [0, 0, 0, 0];
         if(block.id == BLOCK.GRASS.id) {
             y -= .15;
-        }
-        if(chunk.coord) {
-            ao = BLOCK.applyLight2AO(lightmap, ao, x, Math.round(y), z);
         }
         let sz = 1 / 1.41;
         let index = x * CHUNK_SIZE_Z + z;
@@ -39,7 +35,7 @@ export default class style {
         let r = randoms[index] * 4/16 - 2/16;
         x += 0.5 - 0.5 / 1.41 + r;
         z += 0.5 - 0.5 / 1.41 + r;
-        push_plane(vertices, x, y, z, c, lm, ao, true, true, sz, undefined, sz, flags);
+        push_plane(vertices, x, y, z, c, lm, true, true, sz, undefined, sz, flags);
     }
 
 }

@@ -6,11 +6,13 @@ const TEXTURE_FILTER_GL = {
 }
 
 const FORMATS = {
+    'rgba8unorm': 'RGBA',
     'u8': 'ALPHA',
     'u4_4_4_4': 'RGBA',
 }
 
 const TYPES = {
+    'rgba8unorm': 'UNSIGNED_BYTE',
     'u8': 'UNSIGNED_BYTE',
     'u4_4_4_4': 'UNSIGNED_SHORT_4_4_4_4',
 }
@@ -53,6 +55,8 @@ export class WebGLTexture3D extends BaseTexture3D {
         }
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.NEAREST);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.NEAREST);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         super.upload();
     }
 

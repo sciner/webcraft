@@ -36,7 +36,6 @@ export class Vox_Mesh {
         };
 
         let lm          = MULTIPLY.COLOR.WHITE;
-        let ao          = [0, 0, 0, 0];
         let flags       = 0;
         let upFlags     = 0;
 
@@ -44,7 +43,7 @@ export class Vox_Mesh {
         const offsety   = this.offsety = size.x;
         const offsetz   = this.offsetz = size.x * size.y;
         const array     = new Uint8Array(size.x * size.y * size.z);
-        
+
         //
         this.blocks = new Array(size.x * size.y * size.z);
 
@@ -57,7 +56,6 @@ export class Vox_Mesh {
                 ...normals,
                 ...tex,           // texture
                 lm.r, lm.g, lm.b, // rgb
-                ...ao,            // AO
                 flags | upFlags);
         }
 
@@ -101,7 +99,7 @@ export class Vox_Mesh {
                 this.block_textures[block_id] = tex;
             }
             let tex = this.block_textures[block_id];
-            // 
+            //
             const index = x + (y * offsety) + (z * offsetz);
             //
             let block = tex.block;

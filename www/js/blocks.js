@@ -32,19 +32,17 @@ export class BLOCK {
     static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'/*, '/resource_packs/quake2/init.js'*/];
     static resource_pack_manager = null;
 
-    // applyLight2AO
-    static applyLight2AO(lightmap, ao, x, y, z) {
-        return ao;
-    }
-
     static getLightPower(material) {
-        if(material.light_power) {
-            return Math.floor(material.light_power.a / 16.0);
-        } else if (!material.transparent) {
-            return 255;
-        } else {
+        if (!material) {
             return 0;
         }
+        let val = 0;
+        if(material.light_power) {
+            val = Math.floor(material.light_power.a / 16.0);
+        } else if (!material.transparent) {
+            val = 127;
+        }
+        return val + (material.visible_for_ao ? 128 : 0);
     }
 
     // Return flat index of chunk block

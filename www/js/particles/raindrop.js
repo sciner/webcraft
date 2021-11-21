@@ -13,7 +13,6 @@ export default class Particles_Raindrop {
         this.yaw        = -Game.player.rotate.z;
         this.life       = 0.5;
         let lm          = new Color(0, 0, 0, 0);
-        let ao          = [0, 0, 0, 0];
         this.texture    = BLOCK.STILL_WATER.texture;
         let c           = BLOCK.calcTexture(this.texture, DIRECTION.FORWARD); // полная текстура
         this.pos        = new Vector(pos.x, pos.y, pos.z);
@@ -31,7 +30,7 @@ export default class Particles_Raindrop {
             let x = (Math.random() - Math.random()) * 16;
             let y = (Math.random() - Math.random()) * 16;
             let z = (Math.random() - Math.random()) * 16;
-            push_plane(this.vertices, x, y, z, c_half, lm, ao, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
+            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz / 3, sz, null, QUAD_FLAGS.NORMAL_UP);
         }
 
         this.modelMatrix = mat4.create();
