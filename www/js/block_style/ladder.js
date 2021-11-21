@@ -44,7 +44,7 @@ export default class style {
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, flags);
+                    flags);
                 break;
             }
             case ROTATE.W: {
@@ -54,7 +54,7 @@ export default class style {
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, flags);
+                    flags);
                 break;
             }
             case ROTATE.N: {
@@ -64,7 +64,7 @@ export default class style {
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, flags);
+                    flags);
                 break;
             }
             case ROTATE.E: {
@@ -74,7 +74,7 @@ export default class style {
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
                     lm.r, lm.g, lm.b,
-                    lm.a, lm.a, lm.a, lm.a, flags);
+                    flags);
                 break;
             }
         }
