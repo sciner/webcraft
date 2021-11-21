@@ -131,14 +131,16 @@ function fillCube({
 
 /**
  *
- * @param {IGeoCube[]} cubes
+ * @param {IGeoTreeBones} bone
  * @param {IGeoTreeDescription} description
- * @param {IVector} offset
  */
-function decodeCubes(cubes, description, offset = null, bind_rotation = null) {
+function decodeCubes(bone, description) {
     const data = [];
+    // only for 1.8 should apply flip
+    const offset = bone.bind_pose_rotation ? bone.pivot : null;
+    const flipX = !!bone.bind_pose_rotation ? -1 : 1;
 
-    for(let c of cubes) {
+    for(let c of bone.cubes) {
         const {
             origin = [0,0,0],
             size = [1,1,1],
@@ -168,11 +170,11 @@ function decodeCubes(cubes, description, offset = null, bind_rotation = null) {
         computePos[1] += (0.5 - Math.random()) * 0.001;
         computePos[2] += (0.5 - Math.random()) * 0.001;
 
-        const rot = c.rotation || bind_rotation;
+        const rot = c.rotation || bone.bind_pose_rotation;
         if (rot) {
             quat.fromEuler(
                 computeRot,
-                bind_rotation ? -rot[0] : rot[0],
+                flipX * rot[0],
                 rot[1],
                 -rot[2] // WHY???
             );
@@ -200,7 +202,7 @@ function decodeCubes(cubes, description, offset = null, bind_rotation = null) {
                 inflate: (c.inflate || 0) * SCALE_RATIO,
                 size: size,
                 textureSize: [description.texture_width, description.texture_height],
-                mirror: c.mirror,
+                mirror: c.mirror || bone.mirror,
             },
             data
         );
@@ -272,10 +274,8 @@ export function decodeJsonGeometryTree(json, variant = null) {
 
         if (node.cubes) {
             sceneNode.terrainGeometry = decodeCubes(
-                node.cubes,
+                node,
                 description,
-                node.bind_pose_rotation ? node.pivot : null,
-                node.bind_pose_rotation
             );
         }
 
