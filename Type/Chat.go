@@ -115,7 +115,10 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 			params.Rotate.Z = conn.Rotate.Z
 			params.Type = fmt.Sprint(args[4])
 			params.Skin = fmt.Sprint(args[5])
-			world.AddMob(conn, params)
+			err = world.AddMob(conn, params)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

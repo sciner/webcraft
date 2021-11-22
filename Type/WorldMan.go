@@ -11,8 +11,16 @@ type (
 	WorldMan struct {
 		GameDB *GameDatabase
 		Worlds map[string]*World // Registered connections
+		Models *ModelManager
 	}
 )
+
+//
+func (this *WorldMan) Init() {
+	this.Worlds = make(map[string]*World, 0)
+	this.Models = &ModelManager{}
+	this.Models.Init()
+}
 
 //
 func (this *WorldMan) Get(world_guid string) *World {

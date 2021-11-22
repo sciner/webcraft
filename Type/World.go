@@ -2,6 +2,7 @@ package Type
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -411,7 +412,15 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 }
 
 // AddMob...
-func (this *World) AddMob(conn *PlayerConn, params *Struct.ParamMobAdd) {
+func (this *World) AddMob(conn *PlayerConn, params *Struct.ParamMobAdd) error {
+	// Find model and skin
+	model := Worlds.Models.List[params.Type]
+	if model == nil {
+		return errors.New("Model not found")
+	}
+	if _, ok := model.Skins[params.Skin]; !ok {
+		return errors.New("Skin not found")
+	}
 	mob := &Mob{
 		ID:         uuid.New().String(),
 		Type:       params.Type,
@@ -425,6 +434,7 @@ func (this *World) AddMob(conn *PlayerConn, params *Struct.ParamMobAdd) {
 	packet := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: []*Mob{mob}, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.SendAll(packets, []string{})
+	return nil
 }
 
 //
