@@ -127,6 +127,7 @@ export class ChunkManager {
         }
         // let show = new VectorCollector();
         // let hide = new VectorCollector();
+        let pn = performance.now() / 1000;
         for(let group of groups) {
             const mat = resource_pack.shader.materials[group];
             for(let item of this.poses) {
@@ -138,7 +139,10 @@ export class ChunkManager {
                     }
                     if(item.chunk.vertices_length > 0) {
                         // Check frustum
-                        item.chunk.updateInFrustum(render);
+                        if(!item.chunk.frustum_update_time || (pn - item.chunk.frustum_update_time > 1/20)) {
+                            item.chunk.frustum_update_time = pn;
+                            item.chunk.updateInFrustum(render);
+                        }
                         if(item.chunk.in_frustum) {
                             if(item.chunk.drawBufferGroup(render.renderBackend, resource_pack, group, mat)) {
                                 // show.add(item.addr);
