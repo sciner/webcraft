@@ -2,7 +2,7 @@
     "assets": {
         "horse": {
             "type": "json",
-            "geom": "/json/horse.json",
+            "geom": "/json/horse_edit.geo.json",
             "baseSkin": "base",
             "skins": {
                 "base": "/textures/donkey.png",
