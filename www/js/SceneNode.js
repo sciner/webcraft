@@ -36,11 +36,11 @@ export class SceneNode {
         this.quat = quat.create();
 
         this._parentMatrixId = -1;
-        this._oldMatrixId = 0;
-        this._oldMatrixWorldId = 0;
+        this._oldMatrixId = -1;
+        this._oldMatrixWorldId = -1;
 
-        this.matrixId = -1;
-        this.matrixWorldId = -1;
+        this.matrixId = 0;
+        this.matrixWorldId = 0;
     }
 
     addChild(child) {
