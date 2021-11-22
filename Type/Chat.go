@@ -78,6 +78,10 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 					cons := map[string]*PlayerConn{conn.ID: conn}
 					this.World.SendSystemChatMessageToSelectedPlayers("Admin removed", cons, []string{})
 				}
+			default:
+				{
+					return errors.New("Invalid command argument")
+				}
 			}
 		}
 	case "/spawnmob":
