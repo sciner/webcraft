@@ -10,7 +10,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, lightmap, x, y, z, neighbours) {
+    static func(block, vertices, chunk, x, y, z, neighbours) {
 
         if(typeof block == 'undefined') {
             return;
@@ -21,10 +21,7 @@ export default class style {
         let texture     = block.material.texture;
         let bH          = 1.0;
         let lm          = MULTIPLY.COLOR.WHITE;
-        let ao          = [0, 0, 0, 0];
         let c           = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
-
-        ao = BLOCK.applyLight2AO(lightmap, ao, x, y, z);
 
         switch(cardinal_direction) {
             case ROTATE.N:
@@ -35,8 +32,7 @@ export default class style {
                     1, 0, 0,
                     0, 0, bH,
                     c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b,
-                    ...ao, 0);
+                    lm.r, lm.g, lm.b, 0);
                 break;
             }
             case ROTATE.E:
@@ -47,8 +43,7 @@ export default class style {
                     0, 1, 0,
                     0, 0, -bH,
                     c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    ...ao, 0);
+                    lm.r, lm.g, lm.b, 0);
                 break;
             }
         }

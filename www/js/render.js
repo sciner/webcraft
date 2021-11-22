@@ -227,7 +227,8 @@ export class Renderer {
             this.clouds = this.createClouds(pos);
         }
         //
-        this.world.chunkManager.rendered_chunks.vc = new VectorCollector();
+        this.world.chunkManager.rendered_chunks.fact = 0;
+        this.world.chunkManager.prepareRenderList(this);
 
         //updating global uniforms
         let gu                  = this.globalUniforms;
@@ -275,7 +276,6 @@ export class Renderer {
             }
         }
 
-        this.world.chunkManager.rendered_chunks.fact = this.world.chunkManager.rendered_chunks.vc.size;
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();

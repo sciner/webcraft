@@ -10,7 +10,7 @@ const float outerRadius = .65, innerRadius = .4, intensity = .1;
 const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
 
 uniform sampler2D u_texture;
-uniform sampler2D u_texture_mask;
+uniform lowp sampler3D u_lightTex;
 
 uniform vec3 u_camera_pos;
 // Fog
@@ -24,17 +24,17 @@ uniform float u_brightness;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
-uniform vec3 sun_dir;
+uniform vec3 u_SunDir;
 
 in vec3 v_position;
 in vec2 v_texcoord;
 in vec4 v_texClamp;
 in vec4 v_color;
 in vec3 v_normal;
-in float light;
 in float v_fogDepth;
 in vec4 crosshair;
 in vec3 world_pos;
+in vec3 chunk_pos;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
@@ -141,10 +141,21 @@ void main() {
         }
         */
 
-        float u_brightness2 = 1.0;
 
+        vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 42.0);
+        vec3 absNormal = abs(v_normal);
+        vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 42.0);
+        float lightSample = texture(u_lightTex, lightCoord).a * 255.0 / 240.0;
+        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 255.0 / 48.0 * 0.4;
+        // darken ceiling
+        aoSample = (aoSample + max(0.5 - aoSample, 0.0) * max(-v_normal.z, 0.0));
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample *= 0.5;
+        float dayLight = max(.3, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
+        float nightLight = lightSample * (1.0 - aoSample);
+        float light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);
         // Apply light
-        color.rgb *= u_brightness2 * light;
+        color.rgb *= light;
 
         outColor = color;
 

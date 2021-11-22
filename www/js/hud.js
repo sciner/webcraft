@@ -159,13 +159,13 @@ export class HUD {
         this.ctx.fillStyle = 'rgba(255, 0, 0, 0)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
-    
+
     //
     toggleActive() {
         this.active = !this.active;
         this.refresh();
     }
-    
+
     //
     isActive() {
         return this.active;
@@ -188,7 +188,7 @@ export class HUD {
 
         let new_width = null;
         let new_height = null;
-    
+
         if(Game.render.canvas.width > Game.render.canvas.height) {
             new_width =  Math.round(352 * 4.5);
             new_height = Math.round(new_width * (Game.render.canvas.height / Game.render.canvas.width));
@@ -207,7 +207,7 @@ export class HUD {
             // Vignette
             // this.makeVignette(this.width, this.height);
         }
-    
+
         // Make info for draw
         let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
         if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !hasDrawContent) {
@@ -225,15 +225,15 @@ export class HUD {
         if(this.splash.draw()) {
             return;
         }
-    
+
         // Set style
         this.ctx.fillStyle      = '#ff0000';
         this.ctx.font           = '20px Ubuntu';
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
-    
+
         this.ctx.save();
-    
+
         if(this.isActive()) {
             // Draw game technical info
             this.drawInfo();
@@ -245,7 +245,7 @@ export class HUD {
                 }
             }
         }
-    
+
         // Draw windows
         this.ctx.restore();
         if(this.wm.getVisibleWindows().length > 0) {
@@ -257,7 +257,7 @@ export class HUD {
         }
 
     }
- 
+
     toggleInfo() {
         this.draw_info = !this.draw_info;
         this.refresh();
@@ -302,8 +302,10 @@ export class HUD {
             this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + world.chunkManager.CHUNK_RENDER_DIST + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
-            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-                ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+                + ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+            this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
+                + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
             //
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
@@ -353,7 +355,7 @@ export class HUD {
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
         this.drawText(this.text, 10, 10);
     }
-    
+
     // Просто функция печати текста
     drawText(str, x, y) {
         this.ctx.fillStyle = '#ffffff';
@@ -362,7 +364,7 @@ export class HUD {
             this.drawTextBG(str[i], x, y + 28 * i);
         }
     }
-    
+
     // Напечатать текст с фоном
     drawTextBG(txt, x, y) {
         /// lets save current state as we make a lot of changes

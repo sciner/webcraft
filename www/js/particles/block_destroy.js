@@ -21,7 +21,6 @@ export default class Particles_Block_Destroy {
         this.yaw        = -Game.player.rotate.z;
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
-        let ao          = [0, 0, 0, 0];
         this.texture    = BLOCK.fromId(block.id).texture;
         let flags       = 0;
         let sideFlags   = 0;
@@ -61,7 +60,7 @@ export default class Particles_Block_Destroy {
             let x = (Math.random() - Math.random()) * .5;
             let y = (Math.random() - Math.random()) * .5;
             let z = (Math.random() - Math.random()) * .5;
-            push_plane(this.vertices, x, y, z, c_half, lm, ao, true, false, sz, sz, null, flags | upFlags | sideFlags);
+            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, sz, null, flags | upFlags | sideFlags);
             let p = {
                 x:              x,
                 y:              y,

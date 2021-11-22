@@ -1,8 +1,14 @@
 import {BaseTexture3D} from "../BaseRenderer.js";
 
 const FORMATS = {
+    'rgba8unorm': 'rgba8unorm',
     'u8': 'r8unorm',
-    'u4_4_4_4': 'RGBA',
+    'u4_4_4_4': 'rgba8unorm',
+}
+
+const SZ = {
+    'rgba8unorm': 4,
+    'u8': 1,
 }
 
 export class WebGPUTexture3D extends BaseTexture3D {
@@ -57,7 +63,7 @@ export class WebGPUTexture3D extends BaseTexture3D {
         device.queue.writeTexture (
             { texture: this.texture },
             data,
-            { bytesPerRow: width, rowsPerImage: height },
+            { bytesPerRow: width * SZ[this.type], rowsPerImage: height },
             { width, height, depthOrArrayLayers: depth },
         );
 

@@ -17,9 +17,14 @@ export class ChunkManager {
         this.modify_list            = {};
         this.world                  = world;
         this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
-        this.rendered_chunks        = {fact: 0, total: 0, vc: new VectorCollector()};
+        this.rendered_chunks        = {fact: 0, total: 0};
+        this.renderList             = new Map();
+        this.poses                  = [];
+
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
+        this.lightmap_count = 0;
+        this.lightmap_bytes = 0;
         this.dirty_chunks           = [];
         this.worker_inited          = false;
         this.worker_counter         = 2;
@@ -111,6 +116,53 @@ export class ChunkManager {
     refresh() {
     }
 
+    prepareRenderList(render) {
+        const {renderList} = this;
+        for (let [key, v] of renderList) {
+            for (let [key2, v2] of v) {
+                v2.length = 0;
+            }
+        }
+
+        let applyVerticesCan = 10;
+        for(let item of this.poses) {
+            const {chunk} = item;
+            if (!chunk) {
+                continue;
+            }
+            if(chunk.need_apply_vertices) {
+                if(applyVerticesCan-- > 0) {
+                    item.chunk.applyVertices();
+                }
+            }
+            if(chunk.vertices_length === 0) {
+                continue;
+            }
+            chunk.updateInFrustum(render);
+            if(!chunk.in_frustum) {
+                continue;
+            }
+            for(let [key, v] of chunk.vertices) {
+                let key1 = v.resource_pack_id;
+                let key2 = v.material_group;
+                if (!v.buffer) {
+                    continue;
+                }
+                if (!renderList.get(key1)) {
+                    renderList.set(key1, new Map());
+                }
+                const rpList = renderList.get(key1);
+                if (!rpList.get(key2)) {
+                    rpList.set(key2, []);
+                }
+                const list = rpList.get(key2);
+                list.push(chunk);
+                list.push(v);
+                chunk.rendered = 0;
+            }
+        }
+    }
+
     // Draw level chunks
     draw(render, resource_pack, transparent) {
         if(!this.worker_inited || !this.nearby_modified_list) {
@@ -125,33 +177,28 @@ export class ChunkManager {
         }
         // let show = new VectorCollector();
         // let hide = new VectorCollector();
+        let pn = performance.now() / 1000;
+
+        const rpList = this.renderList.get(resource_pack.id);
+        if (!rpList) {
+            return true;
+        }
         for(let group of groups) {
             const mat = resource_pack.shader.materials[group];
-            for(let item of this.poses) {
-                if(item.chunk) {
-                    if(item.chunk.need_apply_vertices) {
-                        if(applyVerticesCan-- > 0) {
-                            item.chunk.applyVertices();
-                        }
-                    }
-                    if(item.chunk.vertices_length > 0) {
-                        // Check frustum
-                        item.chunk.updateInFrustum(render);
-                        if(item.chunk.in_frustum) {
-                            if(item.chunk.drawBufferGroup(render.renderBackend, resource_pack, group, mat)) {
-                                // show.add(item.addr);
-                                this.rendered_chunks.vc.add(item.chunk.addr, null);
-                            }
-                        } else {
-                            //if(item.chunk.vertices.has(group)) {
-                            //    hide.add(item.addr);
-                            //}
-                        }
-                    }
+            const list = rpList.get(group);
+            if (!list) {
+                continue;
+            }
+            for (let i=0; i<list.length; i += 2) {
+                const chunk = list[i];
+                const vertices = list[i + 1];
+                chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
+                if (!chunk.rendered) {
+                    this.rendered_chunks.fact++;
                 }
+                chunk.rendered++;
             }
         }
-        // console.log(hide.size, show.size);
         return true;
     }
 

@@ -20,6 +20,7 @@ export class MobManager {
             yaw:            data.rotate.z,
             skin:           data.skin || 'base'
         });
+        mob.pos.y += 1/200; 
         this.list.set(data.id, mob);
     }
 

@@ -14,9 +14,6 @@ const computeScale = vec3.create();
 const computeRot = quat.create();
 
 const lm = {r : -1, g : -1, b : -1};
-// let lm = {r : 0, g : 0, b : 0};
-const ao = [0, 0, 0, 0];
-
 
 function fillCube({
     matrix,
@@ -77,16 +74,14 @@ function fillCube({
         xX, xZ, xY,
         zX, zZ, zY,
         c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
     //bottom
     c = bottomUV;
     target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
         xX, xZ, xY,
         -zX, -zZ, -zY,
         c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
 
     //north
     c = northUV;
@@ -94,8 +89,7 @@ function fillCube({
         xX, xZ, xY,
         yX, yZ, yY,
         c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
 
     //south
     c = southUV;
@@ -103,8 +97,7 @@ function fillCube({
         xX, xZ, xY,
         -yX, -yZ, -yY,
         c[0], c[1], -c[2] * flip, c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
 
     //west
     c = mirror ? eastUV : westUV;
@@ -112,8 +105,7 @@ function fillCube({
         zX, zZ, zY,
         -yX, -yZ, -yY,
         c[0], c[1], -c[2] * flip, c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
 
     //east
     c = mirror ? westUV : eastUV;
@@ -121,8 +113,7 @@ function fillCube({
         zX, zZ, zY,
         yX, yZ, yY,
         c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b,
-        ...ao, flags);
+        lm.r, lm.g, lm.b, flags);
 
     // target.push(...target2);
 
