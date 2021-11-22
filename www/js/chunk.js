@@ -96,6 +96,7 @@ export class Chunk {
         this.gravity_blocks             = [];
         // Frustum
         this.in_frustum                 = false; // в данный момент отрисован на экране
+        this.rendered                   = 0;
 
         chunkManager.addToDirty(this);
 
@@ -155,6 +156,36 @@ export class Chunk {
             {addr: this.addr, size: this.size, light_buffer}]);
     }
 
+    drawBufferVertices(render, resource_pack, group, mat, vertices) {
+        const v = vertices, key = v.key;
+        let texMat = resource_pack.materials.get(key);
+        if (!texMat) {
+            texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
+            resource_pack.materials.set(key, texMat);
+        }
+        if (this.lightData) {
+            if (!this.lightTex) {
+                const lightTex = this.lightTex = render.createTexture3D({
+                    width: this.size.x + 2,
+                    height: this.size.z + 2,
+                    depth: this.size.y + 2,
+                    type: 'rgba8unorm',
+                    filter: 'linear',
+                    data: this.lightData
+                })
+                this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
+                this.getChunkManager().lightmap_count ++;
+            }
+            if (!this.lightMats[key]) {
+                this.lightMats[key] = texMat.getLightMat(this.lightTex)
+            }
+            render.drawMesh(v.buffer, this.lightMats[key], this.coord);
+        } else {
+            render.drawMesh(v.buffer, texMat, this.coord);
+        }
+        return true;
+    }
+
     drawBufferGroup(render, resource_pack, group, mat) {
         let drawed = false;
         for(let [key, v] of this.vertices) {
@@ -162,32 +193,8 @@ export class Chunk {
                 if(!v.buffer) {
                     continue;
                 }
-                let texMat = resource_pack.materials.get(key);
-                if (!texMat) {
-                    texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
-                    resource_pack.materials.set(key, texMat);
-                }
-                if (this.lightData) {
-                    if (!this.lightTex) {
-                        const lightTex = this.lightTex = render.createTexture3D({
-                            width: this.size.x + 2,
-                            height: this.size.z + 2,
-                            depth: this.size.y + 2,
-                            type: 'rgba8unorm',
-                            filter: 'linear',
-                            data: this.lightData
-                        })
-                        this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
-                        this.getChunkManager().lightmap_count ++;
-                    }
-                    if (!this.lightMats[key]) {
-                        this.lightMats[key] = texMat.getLightMat(this.lightTex)
-                    }
-                    render.drawMesh(v.buffer, this.lightMats[key], this.coord);
-                } else {
-                    render.drawMesh(v.buffer, texMat, this.coord);
-                }
-                drawed = true;
+                const flag = this.drawBufferVertices(render, resource_pack, group, mat, v);
+                drawed = drawed || flag;
             }
         }
         return drawed;
@@ -221,6 +228,7 @@ export class Chunk {
                 v.resource_pack_id    = temp[0];
                 v.material_group      = temp[1];
                 v.texture_id          = temp[2];
+                v.key = key;
                 this.vertices.set(key, v);
                 delete(v.list);
             }

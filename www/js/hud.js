@@ -302,10 +302,10 @@ export class HUD {
             this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + world.chunkManager.CHUNK_RENDER_DIST + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
-            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total + // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
-                ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
+            this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
+                + ' / ' + Math.round(quads_length_total * GeometryTerrain.strideFloats * 4 / 1024 / 1024) + 'Mb';
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
-                ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
+                + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
             //
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
