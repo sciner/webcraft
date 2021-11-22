@@ -1,6 +1,7 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
+import { Helpers } from "./helpers.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -18,8 +19,6 @@ export class MobModel {
         this.aniframe                   = 0;
         this.height                     = 0;
 
-        this.modelMatrix                = mat4.create();
-
         Object.assign(this, props);
 
         this.type = props.type;
@@ -28,17 +27,16 @@ export class MobModel {
         /**
          * @type {SceneNode[]}
          */
-        this.rightLegs = [];
-        /**
-         * @type {SceneNode[]}
-         */
-        this.leftLegs = [];
+        this.legs = [];
+
         /**
          * @type {SceneNode}
          */
         this.head = null;
 
         this.initialised = false;
+
+        this.targetLook = 0;
     }
 
     lazyInit(render) {
@@ -68,10 +66,6 @@ export class MobModel {
             delta = 1000
         }
 
-        const scale = 1;
-        const modelMatrix = this.sceneTree.matrix;
-        const z_minus   = (this.height * scale - this.height);
-
         let aniangle = 0;
         if(this.moving || Math.abs(this.aniframe) > 0.1) {
             this.aniframe += (0.1 / 1000 * delta);
@@ -95,28 +89,46 @@ export class MobModel {
             pitch = 0.5;
         }
 
-        // Draw head
-        mat4.identity(modelMatrix);
-        mat4.translate(modelMatrix, modelMatrix, [0, 0, this.height * scale - z_minus]);
-        mat4.scale(modelMatrix, modelMatrix, [scale, scale, scale]);
-        mat4.rotateZ(modelMatrix, modelMatrix, Math.PI - this.yaw);
-        mat4.rotateX(modelMatrix, modelMatrix, -pitch);
+        // place
+        quat.fromEuler(this.sceneTree.quat,0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+        this.sceneTree.updateMatrix();
 
-        this.sceneTree.matrix = modelMatrix;
+        // legs
+        for(let i = 0; i < this.legs.length; i ++) {
+            const leg = this.legs[i];
+            const x = i % 2;
+            const y = i / 2 | 0;
+            const sign = x ^ y ? 1 : -1;
 
-        for(let i = 0; i < this.leftLegs.length; i ++) {
-            const rl = this.rightLegs[i];
-            const ll = this.leftLegs[i];
-            const sign = i % 2 ? 1 : -1;
+            quat.identity(leg.quat);
+            quat.rotateX(leg.quat, leg.quat, aniangle * sign);
 
-            quat.identity(rl.quat);
-            quat.rotateX(rl.quat, rl.quat, aniangle * sign);
+            leg.updateMatrix();
+        }
 
-            quat.identity(ll.quat);
-            quat.rotateX(ll.quat, ll.quat, -aniangle * sign);
+        if (this.head) {
+            // head
+            let angToCam = 0;
+            
+            if ( Helpers.distance(this.pos, camPos) < 5) {
+                angToCam = this.yaw  -Math.PI/2  + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x);
 
-            rl.updateMatrix();
-            ll.updateMatrix();
+                while(angToCam > Math.PI) angToCam -= Math.PI * 2;
+                while(angToCam < -Math.PI) angToCam += Math.PI * 2;
+
+                if (Math.abs(angToCam) >= Math.PI / 4) {
+                    angToCam = 0;
+                } 
+            }
+
+            if (Math.abs(angToCam - this.targetLook) > 0.05) {
+                this.targetLook += Math.sign(angToCam - this.targetLook) * 0.05;
+            }
+
+            const angZ = 180 * this.targetLook / Math.PI;
+
+            quat.fromEuler(this.head.quat, 0, 0, angZ);
+            this.head.updateMatrix();
         }
     }
 
@@ -195,20 +207,31 @@ export class MobModel {
             }
 
             this.loadTextures(render, asset.skins[this.skin]);
-
-            this.rightLegs.push(this.sceneTree.findNode('RightLeg'));
-
-            this.leftLegs.push(this.sceneTree.findNode('LeftLeg'));
-
-            this.rightLegs = this.rightLegs.filter(Boolean);
-            this.leftLegs = this.leftLegs.filter(Boolean);
-            
-        
-            this.head = this.sceneTree.findNode('Head');
         }
 
-        return this.sceneTree;
+        return this.postLoad(this.sceneTree);    
+    }
+
+    /**
+     * 
+     * @param {SceneNode} tree 
+     */
+    postLoad(tree) {
+        let leg;
+        for(let i = 0; i < 8; i ++) {
+            leg = tree.findNode('leg' + i);
+            leg && this.legs.push(leg);
+        }
+
+        // humanoid case
+        leg = tree.findNode('LeftLeg');
+        leg && this.legs.push(leg);
+
+        // humanoid case
+        leg = tree.findNode('RightLeg');
+        leg && this.legs.push(leg);
     
+        this.head = tree.findNode('head') || tree.findNode('Head');
     }
 
     drawTraversed(node, parent, {render, material}) {
@@ -217,12 +240,12 @@ export class MobModel {
             return true;
         }
 
-
-        if (node.name !== 'body') {
-            //return true;
-        }
-
-        render.renderBackend.drawMesh(node.terrainGeometry, node.material || material, this.pos, node.matrixWorld);
+        render.renderBackend.drawMesh(
+            node.terrainGeometry,
+            node.material || material,
+            this.pos,
+            node.matrixWorld
+        );
 
         return true;
     }

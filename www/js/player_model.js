@@ -55,16 +55,12 @@ export class PlayerModel extends MobModel {
         this.nametag.updateMatrix();
     }
 
-    loadModel(render) {
-        super.loadModel(render);
+    postLoad(tree) {
+        super.postLoad(tree);
+        tree.scale.set([0.9, 0.9, 0.9]);
 
-        this.sceneTree.scale.set([0.9, 0.9, 0.9]);
-
-        this.head = this.sceneTree.findNode('Head');
         this.leftArm = this.sceneTree.findNode('LeftArm');
         this.rightArm = this.sceneTree.findNode('RightArm');
-        this.leftLeg = this.sceneTree.findNode('LeftLeg');
-        this.rightLeg = this.sceneTree.findNode('RightLeg');
     }
 
     update(camPos, delta) {
@@ -109,11 +105,11 @@ export class PlayerModel extends MobModel {
         this.rightArm.updateMatrix();
         
         //leg
-        quat.fromEuler(this.leftLeg.quat, -0.5 * aniangle * 90, 0, 0);
-        this.leftLeg.updateMatrix();
+        quat.fromEuler(this.legs[0].quat, -0.5 * aniangle * 90, 0, 0);
+        this.legs[0].updateMatrix();
 
-        quat.fromEuler(this.rightLeg.quat, 0.5 * aniangle * 90, 0, 0);
-        this.rightLeg.updateMatrix();
+        quat.fromEuler(this.legs[1].quat, 0.5 * aniangle * 90, 0, 0);
+        this.legs[1].updateMatrix();
         
         // tag
         const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
