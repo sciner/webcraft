@@ -12,6 +12,7 @@ type (
 		GameDB *GameDatabase
 		Worlds map[string]*World // Registered connections
 		Models *ModelManager
+		Blocks *BlockManager
 	}
 )
 
@@ -19,7 +20,9 @@ type (
 func (this *WorldMan) Init() {
 	this.Worlds = make(map[string]*World, 0)
 	this.Models = &ModelManager{}
+	this.Blocks = &BlockManager{}
 	this.Models.Init()
+	this.Blocks.Init()
 }
 
 //

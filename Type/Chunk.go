@@ -3,6 +3,7 @@ package Type
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"sync"
 
 	"madcraft.io/madcraft/Struct"
@@ -80,6 +81,16 @@ func (this *Chunk) Load() {
 
 // BlockSet
 func (this *Chunk) BlockSet(conn *PlayerConn, params *Struct.ParamBlockSet, notifyAuthor bool) bool {
+
+	if Worlds.Blocks.IsEgg(params.Item.ID) {
+		material := Worlds.Blocks.List[params.Item.ID]
+		chat_message := &Struct.ParamChatSendMessage{
+			Username: conn.Session.Username,
+			Text:     "/spawnmob " + strconv.Itoa(params.Pos.X) + ".5 " + strconv.Itoa(params.Pos.Y) + " " + strconv.Itoa(params.Pos.Z) + ".5 " + material.SpawnEgg.Type + " " + material.SpawnEgg.Skin,
+		}
+		this.World.Chat.SendMessage(conn, this.World, chat_message)
+		return false
+	}
 
 	blockKey := this.GetBlockKey(params.Pos)
 

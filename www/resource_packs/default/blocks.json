@@ -3639,5 +3639,80 @@
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3603
+    },
+    {
+        "id": 521,
+        "name": "SPAWN_EGG_CHICKEN",
+        "inventory_icon_id": 1144,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "spawn_egg": {
+            "type": "chicken",
+            "skin": "base"
+        },
+        "texture": [
+            9,
+            9
+        ]
+    },
+    {
+        "id": 522,
+        "name": "SPAWN_EGG_CREEPER",
+        "inventory_icon_id": 1146,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "spawn_egg": {
+            "type": "creeper",
+            "skin": "base"
+        },
+        "texture": [
+            9,
+            9
+        ]
+    },
+    {
+        "id": 523,
+        "name": "SPAWN_EGG_PIG",
+        "inventory_icon_id": 1155,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "spawn_egg": {
+            "type": "pig",
+            "skin": "base"
+        },
+        "texture": [
+            9,
+            9
+        ]
+    },
+    {
+        "id": 524,
+        "name": "SPAWN_EGG_HORSE",
+        "inventory_icon_id": 1151,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "spawn_egg": {
+            "type": "horse",
+            "skin": "creamy"
+        },
+        "texture": [
+            9,
+            9
+        ]
+    },
+    {
+        "id": 525,
+        "name": "SPAWN_EGG_DONKEY",
+        "inventory_icon_id": 1370,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "spawn_egg": {
+            "type": "horse",
+            "skin": "base"
+        },
+        "texture": [
+            9,
+            9
+        ]
     }
 ]

@@ -90,7 +90,7 @@ func (this *Chat) runCmd(conn *PlayerConn, world *World, original_text string) e
 			if err != nil {
 				return err
 			}
-			args, err := this.parseCMD(tmp, []string{"string", "?int", "?int", "?int", "string", "string"})
+			args, err := this.parseCMD(tmp, []string{"string", "?float", "?float", "?float", "string", "string"})
 			if err != nil {
 				return err
 			}
@@ -147,6 +147,27 @@ func (this *Chat) parseCMD(args, format []string) ([]interface{}, error) {
 		case "?int":
 			{
 				value, err := strconv.Atoi(ch)
+				if err == nil {
+					resp = append(resp, value)
+				} else {
+					if ch == "~" {
+						resp = append(resp, nil)
+					} else {
+						return resp, errors.New("Invalid arg pos = " + strconv.Itoa(i))
+					}
+				}
+			}
+		case "float":
+			{
+				value, err := strconv.ParseFloat(ch, 8)
+				if err != nil {
+					return resp, errors.New("Invalid arg pos = " + strconv.Itoa(i))
+				}
+				resp = append(resp, value)
+			}
+		case "?float":
+			{
+				value, err := strconv.ParseFloat(ch, 8)
 				if err == nil {
 					resp = append(resp, value)
 				} else {

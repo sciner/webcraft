@@ -425,6 +425,10 @@ export class ChunkManager {
                     item: item
                 }
             });
+            let material = BLOCK.fromId(item.id);
+            if(material.spawn_egg) {
+                return;
+            }
             // заменяемый блок
             let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
             let b = null;
