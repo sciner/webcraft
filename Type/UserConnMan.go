@@ -9,9 +9,8 @@ import (
 var Worlds WorldMan
 
 func init() {
-	Worlds = WorldMan{
-		Worlds: make(map[string]*World, 0),
-	}
+	Worlds = WorldMan{}
+	Worlds.Init()
 }
 
 type (

@@ -37,7 +37,6 @@ func Read() {
 	configFilePath = pwd + "/conf.json"
 	log.Println("Read config from json-file:", configFilePath)
 	file, err := os.Open(configFilePath)
-	log.Println("helpers.init()")
 	if err != nil {
 		log.Fatalln("config file", err.Error())
 	}
