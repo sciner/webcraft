@@ -1,4 +1,5 @@
 import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
+import {pushSym} from '../CubeSym.js';
 
 // Люк
 export default class style {
@@ -20,8 +21,6 @@ export default class style {
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.id == BLOCK.DIRT.id) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-            sideFlags = QUAD_FLAGS.MASK_BIOME;
-            upFlags = QUAD_FLAGS.MASK_BIOME;
         }
 
         let DIRECTION_UP            = DIRECTION.UP;
@@ -85,64 +84,21 @@ export default class style {
             tex_side[2] -= (1 - thickness) / TX_CNT;
             tex_side[3] = thickness / TX_CNT;
             let size = new Vector(1, thickness, 1);
-            switch(cardinal_direction) {
-                case ROTATE.S: {
-                    tex_up_down[1] = tex_side[1];
-                    tex_up_down[2] = 1 / TX_CNT;
-                    tex_up_down[3] = thickness / TX_CNT;
-                    //
-                    tex_side[2] = 1 / TX_CNT;
-                    tex_side[3] = thickness / TX_CNT;
-                    //
-                    x_pos = .5;
-                    z_pos = 1 - thickness/2;
-                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
-                    break;
-                }
-                case ROTATE.N: {
-                    tex_up_down[1] = tex_side[1];
-                    tex_up_down[2] = 1 / TX_CNT;
-                    tex_up_down[3] = thickness / TX_CNT;
-                    //
-                    tex_side[2] = 1 / TX_CNT;
-                    tex_side[3] = thickness / TX_CNT;
-                    //
-                    x_pos = .5;
-                    z_pos = thickness/2;
-                    size = new Vector(1, thickness, 1);
-                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
-                    break;
-                }
-                case ROTATE.E: {
-                    tex_up_down[1] = tex_side[1];
-                    tex_up_down[2] = 1 / TX_CNT;
-                    tex_up_down[3] = thickness / TX_CNT;
-                    //
-                    tex_side[2] = 1 / TX_CNT;
-                    tex_side[3] = thickness / TX_CNT;
-                    //
-                    x_pos = thickness/2;
-                    z_pos = .5;
-                    size = new Vector(thickness, 1, 1);
-                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, size.x, size.y, size.z, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
-                    break;
-                }
-                case ROTATE.W: {
-                    tex_up_down[1] = tex_side[1];
-                    tex_up_down[2] = 1 / TX_CNT;
-                    tex_up_down[3] = thickness / TX_CNT;
-                    //
-                    tex_side[2] = 1 / TX_CNT;
-                    tex_side[3] = thickness / TX_CNT;
-                    //
-                    x_pos = 1 - thickness/2;
-                    z_pos = .5;
-                    size = new Vector(thickness, 1, 1);
-                    push_part(vertices, x + x_pos, y + y_pos, z + z_pos, thickness, 1, 1, tex_up_down, tex_side, tex_front, cardinal_direction, block.extra_data.opened, on_ceil);
-                    break;
-                }
-            }
 
+            tex_up_down[1] = tex_side[1];
+            tex_up_down[2] = 1 / TX_CNT;
+            tex_up_down[3] = thickness / TX_CNT;
+            //
+            tex_side[2] = 1 / TX_CNT;
+            tex_side[3] = thickness / TX_CNT;
+            //
+            x_pos = .5;
+            z_pos = thickness/2;
+            size = new Vector(1, thickness, 1);
+            push_part(vertices, cardinal_direction,
+                x + .5, y + .5, z + .5,
+                x_pos - .5, y_pos - .5, z_pos - .5,
+                size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
         } else {
             let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
             let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
@@ -152,29 +108,14 @@ export default class style {
             tex_front[3] = thickness / TX_CNT;
             tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
             tex_side[3] = thickness / TX_CNT;
-            switch(cardinal_direction) {
-                case ROTATE.S: {
-                    break;
-                }
-                case ROTATE.N: {
-                    break;
-                }
-                case ROTATE.E: {
-                    break;
-                }
-                case ROTATE.W: {
-                    break;
-                }
-            }
-            push_part(vertices, x + .5, y + y_pos, z + .5, 1, 1, thickness, tex_up_down, tex_front, tex_side, cardinal_direction, block.extra_data.opened, on_ceil);
+            push_part(vertices, cardinal_direction, x + .5, y + .5, z + .5,
+                    0, y_pos - .5, 0, 1, 1, thickness, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
         }
-
     }
-
 }
 
 //
-function push_part(vertices, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, cardinal_direction, opened, on_ceil) {
+function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, opened, on_ceil) {
 
     let lm              = MULTIPLY.COLOR.WHITE;
     let flags           = 0;
@@ -189,123 +130,59 @@ function push_part(vertices, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_si
     let east_rotate     = [0, zs, 0, 0, 0, ys];
 
     if(opened) {
-        switch(cardinal_direction) {
-            // SOUTH
-            case ROTATE.S: {
-                if(on_ceil) {
-                    top_rotate = [-xs, 0, 0, 0, -zs, 0];
-                    west_rotate = [0, 0, -ys, 0, -zs, 0];
-                    east_rotate = [0, 0, ys, 0, -zs, 0];
-                } else {
-                    bottom_rotate = [-xs, 0, 0, 0, zs, 0];
-                    north_rotate = [-xs, 0, 0, 0, 0, ys];
-                    south_rotate = [-xs, 0, 0, 0, 0, -ys];
-                    west_rotate = [0, 0, ys, 0, zs, 0];
-                    east_rotate = [0, 0, -ys, 0, zs, 0];
-                }
-                break;
-            }
-            // NORTH
-            case ROTATE.N: {
-                if(on_ceil) {
-                    bottom_rotate = [-xs, 0, 0, 0, zs, 0];
-                    west_rotate = [0, 0, ys, 0, zs, 0];
-                    east_rotate = [0, 0, -ys, 0, zs, 0];
-                } else {
-                    top_rotate = [-xs, 0, 0, 0, -zs, 0];
-                    north_rotate = [-xs, 0, 0, 0, 0, ys];
-                    south_rotate = [-xs, 0, 0, 0, 0, -ys];
-                    west_rotate = [0, 0,- ys, 0, -zs, 0];
-                    east_rotate = [0, 0, ys, 0, -zs, 0];
-                }
-                break;
-            }
-            case ROTATE.E: {
-                if(on_ceil) {
-                    top_rotate = [0, -zs, 0, xs, 0, 0];
-                    bottom_rotate = [0, zs, 0, xs, 0, 0];
-                    north_rotate = [0, 0, -ys, -xs, 0, 0];
-                    south_rotate = [0, 0, -ys, xs, 0, 0];
-                    west_rotate = [0, -zs, 0, 0, 0, ys];
-                } else {
-                    top_rotate = [0, zs, 0, -xs, 0, 0];
-                    bottom_rotate = [0, -zs, 0, -xs, 0, 0];
-                    north_rotate = [0, 0, ys, xs, 0, 0];
-                    south_rotate = [0, 0, ys, -xs, 0, 0];
-                    west_rotate = [0, zs, 0, 0, 0, -ys];
-                    east_rotate = [0, -zs, 0, 0, 0, -ys];
-                }
-                break;
-            }
-            case ROTATE.W: {
-                if(on_ceil) {
-                    top_rotate = [0, zs, 0, -xs, 0, 0];
-                    bottom_rotate = [0, -zs, 0, -xs, 0, 0];
-                    north_rotate = [0, 0, ys, xs, 0, 0];
-                    south_rotate = [0, 0, ys, -xs, 0, 0];
-                    west_rotate = [0, -zs, 0, 0, 0, ys];
-                } else {
-                    top_rotate = [0, -zs, 0, xs, 0, 0];
-                    bottom_rotate = [0, zs, 0, xs, 0, 0];
-                    north_rotate = [0, 0, -ys, -xs, 0, 0];
-                    south_rotate = [0, 0, -ys, xs, 0, 0];
-                    west_rotate = [0, zs, 0, 0, 0, -ys];
-                    east_rotate = [0, -zs, 0, 0, 0, -ys];
-                }
-                break;
-            }
+        if(on_ceil) {
+            bottom_rotate = [-xs, 0, 0, 0, zs, 0];
+            west_rotate = [0, 0, ys, 0, zs, 0];
+            east_rotate = [0, 0, -ys, 0, zs, 0];
+        } else {
+            top_rotate = [-xs, 0, 0, 0, -zs, 0];
+            north_rotate = [-xs, 0, 0, 0, 0, ys];
+            south_rotate = [-xs, 0, 0, 0, 0, -ys];
+            west_rotate = [0, 0,- ys, 0, -zs, 0];
+            east_rotate = [0, 0, ys, 0, -zs, 0];
         }
     } else {
-        switch(cardinal_direction) {
-            // SOUTH
-            case ROTATE.S: {
-                bottom_rotate = [-xs, 0, 0, 0, zs, 0];
-                break;
-            }
-            // NORTH
-            case ROTATE.N: {
-                top_rotate = [-xs, 0, 0, 0, -zs, 0];
-                break;
-            }
-            case ROTATE.E: {
-                top_rotate = [0, zs, 0, -xs, 0, 0];
-                bottom_rotate = [0, -zs, 0, -xs, 0, 0];
-                break;
-            }
-            case ROTATE.W: {
-                top_rotate = [0, -zs, 0, xs, 0, 0];
-                bottom_rotate = [0, zs, 0, xs, 0, 0];
-                break;
-            }
-        }
+        top_rotate = [-xs, 0, 0, 0, -zs, 0];
     }
     // TOP
-    vertices.push(x, z, y + ys,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x, z, y + ys,
         ...top_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b, flags | upFlags);
     // BOTTOM
-    vertices.push(x, z, y,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x, z, y,
         ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b, flags);
     // SOUTH
-    vertices.push(x, z - zs/2, y + ys/2,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x, z - zs/2, y + ys/2,
         ...south_rotate,
         tex_front[0], tex_front[1], tex_front[2], -tex_front[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // NORTH
-    vertices.push(x, z + zs/2, y + ys/2,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x, z + zs/2, y + ys/2,
         ...north_rotate,
         tex_front[0], tex_front[1], -tex_front[2], tex_front[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // WEST
-    vertices.push(x - xs/2, z, y + ys/2,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x - xs/2, z, y + ys/2,
         ...west_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // EAST
-    vertices.push(x + xs/2, z, y + ys/2,
+    pushSym(vertices, cardinal_direction,
+        cx, cz, cy,
+        x + xs/2, z, y + ys/2,
         ...east_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);

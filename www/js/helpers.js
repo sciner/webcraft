@@ -377,9 +377,9 @@ export let QUAD_FLAGS = {}
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
-    ROTATE.W = CubeSym.ROT_Y3; // left
+    ROTATE.W = CubeSym.ROT_Y; // left
     ROTATE.N = CubeSym.ID; // back
-    ROTATE.E = CubeSym.ROT_Y; // right
+    ROTATE.E = CubeSym.ROT_Y3; // right
 
 
 export let NORMALS = {};
@@ -698,7 +698,6 @@ export class Vector4 {
         this.width = width;
         this.height = height;
     }
-
 }
 
 // AverageClockTimer
