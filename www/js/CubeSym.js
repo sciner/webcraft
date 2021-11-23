@@ -32,6 +32,30 @@ export const CubeSym = {
             + ((sy < 0) ? 2 : 0)
             + ((sz < 0) ? 4 : 0)];
     },
+    fromXVec(sx, sy, sz) {
+        if (sx > 0) {
+            return CubeSym.ROT_Y3;
+        }
+        if (sx < 0) {
+            return CubeSym.ROT_Y;
+        }
+        if (sy > 0) {
+            return CubeSym.ROT_X;
+        }
+        if (sy < 0) {
+            return CubeSym.ROT_X3;
+        }
+        if (sz > 0) {
+            return CubeSym.ID;
+        }
+        if (sz < 0) {
+            return CubeSym.ROT_Y2;
+        }
+    },
+    dirAdd(sym, dir) {
+        const mat = this.matrices[this.add(sym, dir)];
+        return this.fromXVec(mat[2], mat[5], mat[8]);
+    },
     add(symSecond, symFirst) {
         return CubeSym._symCayley[symSecond][symFirst];
     },

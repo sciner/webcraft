@@ -1,5 +1,5 @@
 import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
-import {pushSym} from '../CubeSym.js';
+import {CubeSym, pushSym} from '../CubeSym.js';
 
 // Люк
 export default class style {
@@ -38,7 +38,7 @@ export default class style {
         let texture                 = block.material.texture;
 
         // F R B L
-        const cardinal_direction    = block.getCardinalDirection();
+        let cardinal_direction    = block.getCardinalDirection();
         switch(cardinal_direction) {
             case ROTATE.S: {
                 break;
@@ -73,6 +73,10 @@ export default class style {
         }
         let on_ceil = block.extra_data.point.y >= .5;
         let thickness = 3/16; // толщина блока
+        // if (on_ceil) {
+        //     on_ceil = false;
+        //     cardinal_direction = CubeSym.add(CubeSym.ROT_Z2, cardinal_direction);
+        // }
         if(block.extra_data.opened) {
             let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
             let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
