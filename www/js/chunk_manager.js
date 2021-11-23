@@ -8,6 +8,10 @@ export const MAX_Y_MARGIN       = 3;
 
 //
 export class ChunkManager {
+    /**
+     * @type {ChunkManager}
+     */
+    static instance;
 
     constructor(world) {
         let that                    = this;
@@ -97,6 +101,8 @@ export class ChunkManager {
         let world_info = world.info;
         this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
         this.postLightWorkerMessage(['init', null]);
+
+        ChunkManager.instance = this;
     }
 
     //
@@ -229,7 +235,7 @@ export class ChunkManager {
     setChunkState(state) {
         let prepare = this.chunks_prepare.get(state.pos);
         if(prepare) {
-            let chunk = new Chunk(state.pos, state.modify_list);
+            let chunk = new Chunk(state.pos, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.pos, chunk);
             this.rendered_chunks.total++;

@@ -3,6 +3,7 @@ import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers } from "./helpers.js";
 import { getChunkAddr, getChunkWordCoord, getLocalChunkCoord } from "./chunk.js";
+import { ChunkManager } from "./chunk_manager.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -71,7 +72,7 @@ export class MobModel {
         const local = getLocalChunkCoord(this.pos.x, this.pos.y, this.pos.z);
         const addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
 
-        const chunk = Game.world.chunkManager.getChunk(addr);
+        const chunk = ChunkManager.instance.getChunk(addr);
 
         this.lightTex = chunk && chunk.getLightTexture(render.renderBackend);
 

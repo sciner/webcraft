@@ -70,13 +70,10 @@ export function getLocalChunkCoord(x, y, z, target = null) {
 export class Chunk {
 
     getChunkManager() {
-        return Game.world.chunkManager;
+        return this.chunkManager;
     }
 
-    constructor(pos, modify_list) {
-
-        let chunkManager = this.getChunkManager();
-
+    constructor(pos, modify_list, chunkManager) {
         // info
         this.key = chunkManager.getPosChunkKey(pos);
 
@@ -132,6 +129,9 @@ export class Chunk {
         // Frustum
         this.in_frustum                 = false; // в данный момент отрисован на экране
         this.rendered                   = 0;
+        // save ref on chunk manager
+        // strictly after post message, for avoid crash
+        this.chunkManager               = chunkManager;
 
         chunkManager.addToDirty(this);
 
