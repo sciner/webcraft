@@ -1,3 +1,5 @@
+import { CubeSym } from "./CubeSym.js";
+
 export const TX_CNT = 32;
 
 /*Object.defineProperty(String.prototype, 'hashCode', {
@@ -374,10 +376,10 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.MASK_BIOME = 2;
 
 export let ROTATE = {};
-    ROTATE.S = 1; // front
-    ROTATE.W = 2; // left
-    ROTATE.N = 3; // back
-    ROTATE.E = 4; // right
+    ROTATE.S = CubeSym.ROT_Y2; // front
+    ROTATE.W = CubeSym.ROT_Y3; // left
+    ROTATE.N = CubeSym.ID; // back
+    ROTATE.E = CubeSym.ROT_Y; // right
 
 
 export let NORMALS = {};
@@ -390,12 +392,12 @@ export let NORMALS = {};
 
 // Direction enumeration
 export let DIRECTION = {};
-    DIRECTION.UP        = 1;
-    DIRECTION.DOWN      = 2;
-    DIRECTION.LEFT      = 3;
-    DIRECTION.RIGHT     = 4;
-    DIRECTION.FORWARD   = 5;
-    DIRECTION.BACK      = 6;
+    DIRECTION.UP        = CubeSym.ROT_X;
+    DIRECTION.DOWN      = CubeSym.ROT_X3;
+    DIRECTION.LEFT      = CubeSym.ROT_Y;
+    DIRECTION.RIGHT     = CubeSym.ROT_Y3;
+    DIRECTION.FORWARD   = CubeSym.ID;
+    DIRECTION.BACK      = CubeSym.ROT_Y2;
 
 // Direction names
 export let DIRECTION_NAME = {};

@@ -16,7 +16,7 @@ export default class style {
             return;
         }
 
-        const cardinal_direction = block.getCardinalDirection().z;
+        const cardinal_direction = block.getCardinalDirection();
 
         let texture     = block.material.texture;
         let bH          = 1.0;

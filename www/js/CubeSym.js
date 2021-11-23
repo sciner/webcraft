@@ -1,3 +1,5 @@
+import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
+
 const {mat3} = glMatrix;
 
 export const CubeSym = {
@@ -141,8 +143,8 @@ function init() {
     mat3.multiply(matrices[current++], matrices[ROT_Z], matrices[ROT_Z]);
     mat3.multiply(matrices[current++], matrices[ROT_Z], matrices[ROT_Z+1]);
     matrices[ROT_X][0] = 1;
-    matrices[ROT_X][5] = -1;
-    matrices[ROT_X][7] = 1;
+    matrices[ROT_X][5] = 1;
+    matrices[ROT_X][7] = -1;
     current++;
     mat3.multiply(matrices[current++], matrices[ROT_X], matrices[ROT_X]);
     mat3.multiply(matrices[current++], matrices[ROT_X], matrices[ROT_X+1]);

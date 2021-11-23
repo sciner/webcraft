@@ -20,7 +20,7 @@ export default class style {
             return;
         }
 
-        const cardinal_direction    = block.getCardinalDirection().z;
+        const cardinal_direction    = block.getCardinalDirection();
         let flags                   = 0;
         let sideFlags               = 0;
         let upFlags                 = 0;

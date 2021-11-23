@@ -2,6 +2,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.
 import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector, Helpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
+import { CubeSym } from "./CubeSym.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
@@ -424,19 +425,24 @@ export class BLOCK {
 
     //
     static getCardinalDirection(vec3) {
-        let result = new Vector(0, 0, ROTATE.E);
+        if (!vec3) {
+            return 0;
+        }
+        if (vec3.x && !vec3.y && !vec3.z) {
+            return vec3.x;
+        }
         if(vec3) {
             if(vec3.z >= 45 && vec3.z < 135) {
-                // do nothing
+                return ROTATE.E;
             } else if(vec3.z >= 135 && vec3.z < 225) {
-                result.z = ROTATE.S;
+                return ROTATE.S;
             } else if(vec3.z >= 225 && vec3.z < 315) {
-                result.z = ROTATE.W;
+                return ROTATE.W;
             } else {
-                result.z = ROTATE.N;
+                return ROTATE.N;
             }
         }
-        return result;
+        return CubeSym.ID; //was E
     }
 
     static isOnCeil(block) {
@@ -496,7 +502,7 @@ export class BLOCK {
                 }
                 case 'pane': {
                     // F R B L
-                    switch(b.getCardinalDirection().z) {
+                    switch(b.getCardinalDirection()) {
                         case ROTATE.S:
                         case ROTATE.N: {
                             shapes.push([0, 0, .5-1/16, 1, 1, .5+1/16]);
@@ -519,14 +525,14 @@ export class BLOCK {
                             EAST: world.chunkManager.getBlock(pos.x + 1, pos.y, pos.z)
                         }
                     }
-                    let cardinal_direction = b.getCardinalDirection().z;
+                    let cardinal_direction = b.getCardinalDirection();
                     //
                     let checkIfSame = (b) => {
                         return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('stairs') >= 0;
                     };
                     //
                     let compareCD = (b) => {
-                        return checkIfSame(b) && b.getCardinalDirection().z == cardinal_direction;
+                        return checkIfSame(b) && b.getCardinalDirection() == cardinal_direction;
                     };
                     let on_ceil = this.isOnCeil(b);
                     let sz = 0.5;
@@ -556,7 +562,7 @@ export class BLOCK {
                             }
                             // добавление недостающих
                             if(checkIfSame(neighbours.SOUTH)) {
-                                let cd = neighbours.SOUTH.getCardinalDirection().z;
+                                let cd = neighbours.SOUTH.getCardinalDirection();
                                 if(cd == ROTATE.E) {
                                     poses.push(new Vector(0, yt, 0));
                                 } else if(cd == ROTATE.W) {
@@ -580,7 +586,7 @@ export class BLOCK {
                             }
                             // добавление недостающих
                             if(checkIfSame(neighbours.NORTH)) {
-                                let cd = neighbours.NORTH.getCardinalDirection().z;
+                                let cd = neighbours.NORTH.getCardinalDirection();
                                 if(cd == ROTATE.W) {
                                     poses.push(new Vector(.5, yt, .5));
                                 } else if(cd == ROTATE.E || cd == ROTATE.N) {
@@ -604,7 +610,7 @@ export class BLOCK {
                             }
                             // добавление недостающих
                             if(checkIfSame(neighbours.WEST)) {
-                                let cd = neighbours.WEST.getCardinalDirection().z;
+                                let cd = neighbours.WEST.getCardinalDirection();
                                 if(cd == ROTATE.S) {
                                     poses.push(new Vector(0, yt, .5));
                                 } else if(cd == ROTATE.N) {
@@ -628,7 +634,7 @@ export class BLOCK {
                             }
                             // добавление недостающих
                             if(checkIfSame(neighbours.EAST)) {
-                                let cd = neighbours.EAST.getCardinalDirection().z;
+                                let cd = neighbours.EAST.getCardinalDirection();
                                 if(cd == ROTATE.N) {
                                     poses.push(new Vector(.5, yt, 0));
                                 } else if(cd == ROTATE.S) {
@@ -644,7 +650,7 @@ export class BLOCK {
                     break;
                 }
                 case 'trapdoor': {
-                    let cardinal_direction = b.getCardinalDirection().z;
+                    let cardinal_direction = b.getCardinalDirection();
                     let opened = this.isOpenedTrapdoor(b);
                     let on_ceil = this.isOnCeil(b);
                     let sz = 3 / 15.9;
@@ -720,7 +726,7 @@ export class BLOCK {
                         break;
                     }
                     case 'ladder': {
-                        let cardinal_direction = b.getCardinalDirection().z;
+                        let cardinal_direction = b.getCardinalDirection();
                         let width = 1/16;
                         // F R B L
                         switch(cardinal_direction) {

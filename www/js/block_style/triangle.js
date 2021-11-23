@@ -33,7 +33,7 @@ export default class style {
             c[3],// - half,
         ];
 
-        const cardinal_direction = block.getCardinalDirection().z;
+        const cardinal_direction = block.getCardinalDirection();
         let on_ceil = block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
 
         let yt = y + 1;
@@ -82,7 +82,7 @@ export default class style {
         };
         //
         let compareCD = (b) => {
-            return checkIfSame(b) && b.getCardinalDirection().z == cardinal_direction;
+            return checkIfSame(b) && b.getCardinalDirection() == cardinal_direction;
         };
 
         // F R B L
@@ -102,7 +102,7 @@ export default class style {
                 }
                 // добавление недостающих
                 if(checkIfSame(neighbours.SOUTH)) {
-                    let cd = neighbours.SOUTH.getCardinalDirection().z;
+                    let cd = neighbours.SOUTH.getCardinalDirection();
                     if(cd == ROTATE.W) {
                         poses.push(new Vector(0, yt, 0));
                     } else if(cd == ROTATE.E) {
@@ -126,7 +126,7 @@ export default class style {
                 }
                 // добавление недостающих
                 if(checkIfSame(neighbours.WEST)) {
-                    let cd = neighbours.WEST.getCardinalDirection().z;
+                    let cd = neighbours.WEST.getCardinalDirection();
                     if(cd == ROTATE.S) {
                         poses.push(new Vector(-.5, yt, .5));
                     } else if(cd == ROTATE.N) {
@@ -150,7 +150,7 @@ export default class style {
                 }
                 // добавление недостающих
                 if(checkIfSame(neighbours.NORTH)) {
-                    let cd = neighbours.NORTH.getCardinalDirection().z;
+                    let cd = neighbours.NORTH.getCardinalDirection();
                     if(cd == ROTATE.E) {
                         poses.push(new Vector(-.5, yt, .5));
                     } else if(cd == ROTATE.W || cd == ROTATE.N) {
@@ -174,7 +174,7 @@ export default class style {
                 }
                 // добавление недостающих
                 if(checkIfSame(neighbours.EAST)) {
-                    let cd = neighbours.EAST.getCardinalDirection().z;
+                    let cd = neighbours.EAST.getCardinalDirection();
                     if(cd == ROTATE.S) {
                         poses.push(new Vector(0, yt, .5));
                     } else if(cd == ROTATE.N) {
