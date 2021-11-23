@@ -369,7 +369,13 @@ export class Player {
                         }
                     }
                 } else {
-                    let rotateDegree = this.rotateDegree;
+                    let rotateDegree = new Vector(this.rotateDegree);
+
+                    rotateDegree.x = 0;
+                    rotateDegree.y = 0;
+                    rotateDegree.x = BLOCK.getCardinalDirection(rotateDegree);
+                    rotateDegree.z = 0;
+
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
@@ -554,7 +560,7 @@ export class Player {
         if(this.lastUpdate) {
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
-            // 
+            //
             let pc                 = this.getPlayerControl();
             this.posO              = new Vector(this.lerpPos);
             pc.controls.back       = !!(this.keys[KEY.S] && !this.keys[KEY.W]);

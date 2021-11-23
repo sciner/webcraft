@@ -1,4 +1,5 @@
 import {MULTIPLY, ROTATE, DIRECTION, QUAD_FLAGS} from '../helpers.js';
+import {pushSym} from '../CubeSym.js';
 
 // Лестница
 export default class style {
@@ -16,7 +17,7 @@ export default class style {
             return;
         }
 
-        const cardinal_direction = block.getCardinalDirection().z;
+        const cardinal_direction = block.getCardinalDirection();
 
         let texture     = block.material.texture;
         let bH          = 1.0;
@@ -36,49 +37,14 @@ export default class style {
             c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
         }
 
-        switch(cardinal_direction) {
-            case ROTATE.S: {
-                // Front / NORMALS.FORWARD;
-                vertices.push(x + .5, z + 1 - width, y + bH / 2,
-                    1, 0, 0,
-                    0, 0, bH,
-                    c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b,
-                    flags);
-                break;
-            }
-            case ROTATE.W: {
-                // Left / NORMALS.LEFT;
-                vertices.push(x + 1 - width, z + .5, y + bH / 2,
-                    0, 1, 0,
-                    0, 0, -bH,
-                    c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    flags);
-                break;
-            }
-            case ROTATE.N: {
-                // Back / NORMALS.BACK;
-                vertices.push(x + .5, z + width, y + bH / 2,
-                    1, 0, 0,
-                    0, 0, -bH,
-                    c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b,
-                    flags);
-                break;
-            }
-            case ROTATE.E: {
-                // Right / NORMALS.RIGHT;
-                vertices.push(x + width, z + .5, y + bH / 2,
-                    0, 1, 0,
-                    0, 0, bH,
-                    c[0], c[1], c[2], -c[3],
-                    lm.r, lm.g, lm.b,
-                    flags);
-                break;
-            }
-        }
-
+        pushSym(vertices, cardinal_direction,
+            x + .5, z + .5, y + .5,
+            0, width - .5, bH / 2 - .5,
+            1, 0, 0,
+            0, 0, -bH,
+            c[0], c[1], -c[2], c[3],
+            lm.r, lm.g, lm.b,
+            flags);
     }
 
 }
