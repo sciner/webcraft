@@ -1,4 +1,3 @@
-import { BLOCK } from "./blocks.js";
 import "./../vendors/gl-matrix-3.3.min.js";
 import { glTFLoader } from "./../vendors/minimal-gltf-loader.js";
 
@@ -75,10 +74,6 @@ export class Resources {
                 })
         );
 
-        // Resource packs
-        for(let init_file of BLOCK.resource_packs) {
-            all.push(import(init_file).then((module) => {that.resource_packs.add(module.default);}));
-        }
         //
         let d = 0;
         this.progress = {

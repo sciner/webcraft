@@ -1,6 +1,7 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.js";
 import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector, Helpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
+import { Resources } from "./resources.js";
 
 export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
@@ -28,8 +29,6 @@ export class BLOCK {
     static list                 = [];
     static styles               = [];
     static ao_invisible_blocks  = [];
-
-    static resource_packs       = ['/resource_packs/default/init.js', '/resource_packs/lodestone/init.js'/*, '/resource_packs/quake2/init.js'*/];
     static resource_pack_manager = null;
 
     static getLightPower(material) {
@@ -756,19 +755,18 @@ export class BLOCK {
 
 // Init
 BLOCK.init = async function(cb) {
-
     // Init resource packs and other
     let all = [];
     let resource_packs = new Set();
-    for(let init_file of BLOCK.resource_packs) {
-        all.push(import('..' + init_file).then((module) => {resource_packs.add(module.default);}));
-    }
+    await fetch('/data/resource_packs.json').then(response => response.json()).then(json => {
+        for(let init_file of json) {
+            all.push(import(init_file + '/init.js').then((module) => {resource_packs.add(module.default);}));
+        }
+    });
     await Promise.all(all).then(() => { return this; });
     all = [BLOCK.load(resource_packs)]
-
     // After
     await Promise.all(all).then(cb);
-
 }
 
 // Load
