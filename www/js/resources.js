@@ -258,7 +258,7 @@ export class Resources {
     static async loadResourcePacks() {
         let resp = new Set();
         let all = [];
-        await fetch('/data/resource_packs.json').then(response => response.json()).then(json => {
+        await Helpers.fetchJSON('../data/resource_packs.json').then(json => {
             for(let init_file of json) {
                 all.push(import(init_file + '/init.js').then((module) => {resp.add(module.default);}));
             }
