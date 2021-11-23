@@ -6,6 +6,7 @@ import glMatrix from "./../vendors/gl-matrix-3.3.min.js"
 
 const { mat4, vec3, quat } = glMatrix;
 const SCALE_RATIO = 1 / 16;
+const Z_FIGHT_OFFSET = 0.0005;
 
 const computeMatrix = mat4.create();
 const computePos = vec3.create();
@@ -23,10 +24,6 @@ function fillCube({
     mirror = false,
     inflate = 0
 }, target) {
-    // let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
-    // let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
-    // let zX = matrix[8], zY = matrix[9], zZ = matrix[10];
-
 
     let xX = matrix[0], xY = matrix[1], xZ = matrix[2];
     let yX = matrix[4], yY = matrix[5], yZ = matrix[6];
@@ -61,6 +58,8 @@ function fillCube({
     zX += Math.sign(zX) * inflate;
     zY += Math.sign(zY) * inflate;
     zZ += Math.sign(zZ) * inflate;
+
+    // UV
     //                X                                  Y                         w         h
     const topUV =    [itx * (sx + dz + dx / 2)         , ity * (sy + dz / 2)      , dx * itx, dz * ity];
     const bottomUV = [itx * (sx + dz + dx + dx / 2)    , ity * (sy + dz / 2)      , dx * itx, dz * ity];
@@ -68,55 +67,64 @@ function fillCube({
     const southUV =  [itx * (sx + 2 * dz + dx + dx / 2), ity * (sy + dz + dy / 2) , dx * itx, dy * ity];
     const eastUV =   [itx * (sx + dz + dx + dz / 2)    , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
     const westUV =   [itx * (sx + dz / 2)              , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
-    //top
-    let c = topUV;
-    target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
-        xX, xZ, xY,
-        zX, zZ, zY,
-        c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b, flags);
-    //bottom
-    c = bottomUV;
-    target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
-        xX, xZ, xY,
-        -zX, -zZ, -zY,
-        c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b, flags);
+    let c;
 
-    //north
-    c = northUV;
-    target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
-        xX, xZ, xY,
-        yX, yZ, yY,
-        c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b, flags);
+    // when size by any axes is zero we drop quads that based on this axis
+    if (dx * dz > 0) {
+        //top
+        c = topUV;
+        target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
+            xX, xZ, xY,
+            zX, zZ, zY,
+            c[0], c[1], c[2] * flip, -c[3],
+            lm.r, lm.g, lm.b, flags);
+        
+        //bottom
+        c = bottomUV;
+        target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
+            xX, xZ, xY,
+            -zX, -zZ, -zY,
+            c[0], c[1], c[2] * flip, -c[3],
+            lm.r, lm.g, lm.b, flags);
 
-    //south
-    c = southUV;
-    target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
-        xX, xZ, xY,
-        -yX, -yZ, -yY,
-        c[0], c[1], -c[2] * flip, c[3],
-        lm.r, lm.g, lm.b, flags);
+    }
 
-    //west
-    c = mirror ? eastUV : westUV;
-    target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
-        zX, zZ, zY,
-        -yX, -yZ, -yY,
-        c[0], c[1], -c[2] * flip, c[3],
-        lm.r, lm.g, lm.b, flags);
+    if (dx * dz > 0) {
+        //north
+        c = northUV;
+        target.push(cX - inf2 * zX, cZ - inf2 * zZ, cY - inf2 * zY,
+            xX, xZ, xY,
+            yX, yZ, yY,
+            c[0], c[1], c[2] * flip, -c[3],
+            lm.r, lm.g, lm.b, flags);
 
-    //east
-    c = mirror ? westUV : eastUV;
-    target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
-        zX, zZ, zY,
-        yX, yZ, yY,
-        c[0], c[1], c[2] * flip, -c[3],
-        lm.r, lm.g, lm.b, flags);
+        //south
+        c = southUV;
+        target.push(cX + inf2 * zX, cZ + inf2 * zZ, cY + inf2 * zY,
+            xX, xZ, xY,
+            -yX, -yZ, -yY,
+            c[0], c[1], -c[2] * flip, c[3],
+            lm.r, lm.g, lm.b, flags);
+    }
 
-    // target.push(...target2);
+    if (dy * dz > 0) {
+        //west
+        c = mirror ? eastUV : westUV;
+        target.push(cX - inf2 * xX, cZ - inf2 * xZ, cY - inf2 * xY,
+            zX, zZ, zY,
+            -yX, -yZ, -yY,
+            c[0], c[1], -c[2] * flip, c[3],
+            lm.r, lm.g, lm.b, flags);
 
+        //east
+        c = mirror ? westUV : eastUV;
+        target.push(cX + inf2 * xX, cZ + inf2 * xZ, cY + inf2 * xY,
+            zX, zZ, zY,
+            yX, yZ, yY,
+            c[0], c[1], c[2] * flip, -c[3],
+            lm.r, lm.g, lm.b, flags);
+    }
+ 
     return target;
 }
 
@@ -144,10 +152,11 @@ function decodeCubes(bone, description) {
             pivot[2] * SCALE_RATIO
         );
 
+        // set scale by keep offset when scale is 0 to prevent z-fight
         vec3.set(computeScale,
-            size[0] * SCALE_RATIO,
-            size[1] * SCALE_RATIO,
-            size[2] * SCALE_RATIO
+            size[0] * SCALE_RATIO || Z_FIGHT_OFFSET,
+            size[1] * SCALE_RATIO || Z_FIGHT_OFFSET,
+            size[2] * SCALE_RATIO || Z_FIGHT_OFFSET
         );
 
         vec3.set(computePos,
@@ -157,9 +166,9 @@ function decodeCubes(bone, description) {
         );
 
         // interference
-        computePos[0] += (0.5 - Math.random()) * 0.001;
-        computePos[1] += (0.5 - Math.random()) * 0.001;
-        computePos[2] += (0.5 - Math.random()) * 0.001;
+        computePos[0] += (0.5 - Math.random()) * Z_FIGHT_OFFSET;
+        computePos[1] += (0.5 - Math.random()) * Z_FIGHT_OFFSET;
+        computePos[2] += (0.5 - Math.random()) * Z_FIGHT_OFFSET;
 
         const rot = c.rotation || bone.bind_pose_rotation;
         if (rot) {
@@ -264,10 +273,13 @@ export function decodeJsonGeometryTree(json, variant = null) {
         sceneNode.name = node.name;
 
         if (node.cubes) {
-            sceneNode.terrainGeometry = decodeCubes(
+            sceneNode.terrainGeometry = node.terrainGeometry || decodeCubes(
                 node,
                 description,
             );
+
+            // store already parsed geometry for node
+            node.terrainGeometry = sceneNode.terrainGeometry;
         }
 
         if (node.rotation) {
