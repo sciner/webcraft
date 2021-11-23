@@ -67,6 +67,7 @@ export class BaseTexture {
         this.context = context;
 
         this.id = BaseRenderer.ID++;
+        this.usage = 0;
 
         if (source) {
             this.width = Array.isArray(source) ? source[0].width : source.width;
@@ -74,19 +75,41 @@ export class BaseTexture {
         }
 
         this.dirty = true;
+
+        context._textures.push(this);
+    }
+
+    get isUsed() {
+        return this.usage > 1;
     }
 
     upload() {
-        this.context._textures[this.id] = this;
+        this.context._activeTextures[this.id] = this;
         this.dirty = false;
     }
 
     destroy() {
-        delete this.context._textures[this.id];
+        this.usage --;
+
+        if (this.usage > 0) {
+            return;
+        }
+
+        delete this.context._activeTextures[this.id];
+        this.context._textures = this.context._textures.filter((e) => e !== this);
     }
 
     bind() {
 
+    }
+
+    isSimilar({
+        magFilter = 'linear',
+        minFilter = 'linear',
+        style = null,
+        source = null,
+    }) {
+        return magFilter === this.magFilter && this.minFilter === minFilter && this.source === source;
     }
 }
 
@@ -130,6 +153,10 @@ export class BaseTexture3D {
     }
 
     bind() {
+    }
+
+    isSimilar() {
+        return false;
     }
 }
 
@@ -386,7 +413,13 @@ export default class BaseRenderer {
             drawcalls: 0,
             drawquads: 0
         };
-        this._textures = {};
+        this._activeTextures = {};
+
+        /**
+         * @type {BaseTexture[]}
+         */
+        this._textures = [];
+
         this._buffers = {};
         this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(255)
@@ -453,6 +486,11 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
+    /**
+     * 
+     * @param {*} options 
+     * @returns {Promise<any>}
+     */
     async createResourcePackShader(options) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }

@@ -212,12 +212,19 @@ export class WebGLTexture extends BaseTexture {
         if (!this.texture) {
             return;
         }
+
+        super.destroy();
+
+        // not destroy shared texture that used 
+        if(this.isUsed) {
+            return;
+        }
+
         const  { gl } = this.context;
         gl.deleteTexture(this.texture);
         this.texture = null;
         this.source = null;
         this.width = this.height = 0;
-        super.destroy();
     }
 
 }
@@ -231,7 +238,7 @@ export default class WebGLRenderer extends BaseRenderer {
          * @type {WebGL2RenderingContext}
          */
         this.gl = null;
-        this._textures = [];
+        this._activeTextures = {};
         this._shader = null;
     }
 
@@ -267,7 +274,20 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createTexture(options) {
-        return new WebGLTexture(this, options);
+        let texture;
+
+        if (options.shared) {
+            // can use exist texture
+            texture = this._textures.find(t => t.isSimilar(options));
+        }
+
+        if (!texture) {
+            texture = new WebGLTexture(this, options);
+        }
+
+        texture.usage ++;
+
+        return texture;
     }
 
     createTexture3D(options) {

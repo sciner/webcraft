@@ -30,6 +30,17 @@ export function fromGltfNode(gltf) {
     return node;
 }
 
-export function fromJson(json) {
-    return decodeJsonGeometryTree(json);
+export const fromJson = decodeJsonGeometryTree
+
+/**
+ * Load model from any supported type
+ * @param {{type: string}} data 
+ * @returns {SceneNode}
+ */
+export function loadModel(data) {
+    if (data.type === 'json') {
+        return decodeJsonGeometryTree(data);
+    }
+
+    console.log('Model loader not exist for type:', data.type);
 }

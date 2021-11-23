@@ -156,7 +156,8 @@ export class MobModel {
         this.texture = render.renderBackend.createTexture({
             source: image,
             minFilter: 'nearest',
-            magFilter: 'nearest'
+            magFilter: 'nearest',
+            shared: true
         });
 
         this.material =  render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture)
@@ -190,24 +191,28 @@ export class MobModel {
             }
         }
 
-        const asset = Resources.models[this.type.replace('mob_','')] || Resources.models['bee'];
+        const asset = Resources.models[this.type];
 
         if (!asset) {
             console.log("Can't lokate model for:", this.type);
             return null;
         }
 
-        if(asset.type === 'json') {
-            this.sceneTree = ModelBuilder.fromJson(asset);
-            this.skin = this.skin || asset.baseSkin;
+        this.sceneTree = ModelBuilder.loadModel(asset);
 
-            if(!(this.skin in asset.skins)) {
-                console.warn("Can't locate skin: ", this.skin)
-                this.skin = asset.baseSkin;
-            }
-
-            this.loadTextures(render, asset.skins[this.skin]);
+        if (!this.sceneTree) {
+            return null;
         }
+
+        this.skin = this.skin || asset.baseSkin;
+
+        if(!(this.skin in asset.skins)) {
+            console.warn("Can't locate skin: ", this.skin)
+            this.skin = asset.baseSkin;
+        }
+
+        this.loadTextures(render, asset.skins[this.skin]);
+    
 
         return this.postLoad(this.sceneTree);    
     }
