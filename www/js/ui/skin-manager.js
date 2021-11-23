@@ -1,4 +1,5 @@
 import {Helpers} from '../helpers.js';
+import {Resources} from '../resources.js';
 
 export class SkinManager {
 
@@ -47,34 +48,21 @@ export class SkinManager {
         return this.list[0];
     }
 
-    getURLById(skin_id) {
-        return './media/models/player_skins/' + skin_id + '.png';
-    }
-
-    getPreviewByID(skin_id) {
-        return './media/skins/preview/' + skin_id + '.png';
-    }
-
+    // Init
     async init() {
-        let that = this;
-        await Helpers.loadJSON('/data/skins.json', async function(list) {
-            that.loading = false;
-            for(let item of list) {
-                item.file = that.getURLById(item.id)
-            }
-            that.list = list;
-            let s = localStorage.getItem('skin');
-            if(s) {
-                for(let i in list) {
-                    if(list[i].id == s) {
-                        that.index = parseInt(i);
-                        break;
-                    }
+        let list = await Resources.loadSkins();
+        this.list = list;
+        let s = localStorage.getItem('skin');
+        if(s) {
+            for(let i in list) {
+                if(list[i].id == s) {
+                    this.index = parseInt(i);
+                    break;
                 }
             }
-            that.$scope.Game.skins = that;
-            that.$scope.Game.skin = list[that.index];
-        });
+        }
+        this.$scope.Game.skins = this;
+        this.$scope.Game.skin = list[this.index];
     }
 
 }

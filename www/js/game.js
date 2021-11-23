@@ -16,7 +16,6 @@ export class GameClass {
         this.is_server  = false;
         this.hud        = new HUD(0, 0);
         this.hotbar     = new Hotbar(this.hud);
-        this.sounds     = new Sounds();
         this.render     = new Renderer('renderSurface');
     }
 
@@ -34,6 +33,7 @@ export class GameClass {
         await BLOCK.init();
         // Create world
         this.world = new World();
+        this.sounds = new Sounds();
         await this.render.init(this.world, settings);
         // Create player and connect
         this.player = new Player(this.world);

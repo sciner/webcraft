@@ -1,15 +1,12 @@
-import {Helpers} from "./helpers.js";
+import {Resources} from "./resources.js";
 
 export class Sounds {
 
     constructor() {
-        let that = this;
         this.tags = {};
-        Helpers.loadJSON('../data/sounds.json', function(json) {
-            for(let sound of json) {
-                that.add(sound);
-            }
-        });
+        for(let item of Resources.sounds) {
+            this.add(item);
+        }
     }
 
     add(item) {

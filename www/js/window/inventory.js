@@ -82,8 +82,7 @@ export default class InventoryWindow extends BaseCraftWindow {
     addPlayerBox() {
         const ct = this;
         let lblPlayerBox = new Label(52, 16, 98, 140, 'lblPlayerBox', null, null);
-        // lblPlayerBox.setBackground('./media/gui/player.png');
-        lblPlayerBox.setBackground(Game.skins.getPreviewByID(Game.skin.id), 'stretch');
+        lblPlayerBox.setBackground(Game.skin.preview, 'stretch');
         ct.add(lblPlayerBox);
     }
 

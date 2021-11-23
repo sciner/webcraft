@@ -754,46 +754,22 @@ export class BLOCK {
 };
 
 // Init
-BLOCK.init = async function(cb) {
-    // Init resource packs and other
-    let all = [];
-    let resource_packs = new Set();
-    await fetch('/data/resource_packs.json').then(response => response.json()).then(json => {
-        for(let init_file of json) {
-            all.push(import(init_file + '/init.js').then((module) => {resource_packs.add(module.default);}));
-        }
-    });
-    await Promise.all(all).then(() => { return this; });
-    all = [BLOCK.load(resource_packs)]
-    // After
-    await Promise.all(all).then(cb);
-}
+BLOCK.init = async function() {
 
-// Load
-BLOCK.load = async function(resource_packs) {
-
-    // Load supported block styles
-    let json_url = '../data/block_style.json';
-
-    await Helpers.fetchJSON(json_url)
-    .then((json) => {
-        for(let code of json) {
-            // Load module
-            import('./block_style/' + code + '.js').then(module => {
-                BLOCK.registerStyle(module.default);
-            });
-        }
-    });
-
-    //
-    if(BLOCK.list.length == 0) {
-        // Reset slots
-        BLOCK.reset();
-        // Load Resourse packs (blocks)
-        BLOCK.resource_pack_manager = new ResourcePackManager();
-        for(let rp of resource_packs.values()) {
-            await BLOCK.resource_pack_manager.registerResourcePack(rp);
-        }
+    if(BLOCK.list.length > 0) {
+        throw 'Already inited';
     }
+
+    BLOCK.reset();
+
+    // Block styles
+    let block_styles = await Resources.loadBlockStyles();
+    for(let style of block_styles.values()) {
+        BLOCK.registerStyle(style);
+    }
+
+    // Resource packs
+    BLOCK.resource_pack_manager = new ResourcePackManager();
+    await BLOCK.resource_pack_manager.init();
 
 };

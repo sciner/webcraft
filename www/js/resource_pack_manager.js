@@ -1,10 +1,20 @@
 import { BLOCK } from "./blocks.js";
+import { Resources } from "./resources.js";
 
 export class ResourcePackManager {
 
     // constructor
     constructor() {
         this.list = new Map();
+    }
+
+    // init
+    async init() {
+        let resource_packs = await Resources.loadResourcePacks();
+        // Load Resourse packs (blocks)
+        for(let rp of resource_packs.values()) {
+            await this.registerResourcePack(rp);
+        }
     }
 
     get(id) {

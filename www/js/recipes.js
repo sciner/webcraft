@@ -1,5 +1,5 @@
 import {RecipeWindow} from "./window/index.js";
-import {Helpers} from "./helpers.js";
+import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 
 export class RecipeManager {
@@ -165,12 +165,9 @@ export class RecipeManager {
 
     load(callback) {
         let that = this;
-        Helpers.fetchJSON('../data/recipes.json').then(json => {
-            for(let recipe of json) {
-                that.add(recipe);
-            }
-            callback();
-        });
+        for(let item of Resources.recipes) {
+            that.add(item);
+        }callback();
     }
 
 }

@@ -1,5 +1,6 @@
 import "./../vendors/gl-matrix-3.3.min.js";
 import { glTFLoader } from "./../vendors/minimal-gltf-loader.js";
+import { Helpers } from "./helpers.js";
 
 export class Resources {
 
@@ -14,47 +15,50 @@ export class Resources {
      */
     static load(settings) {
 
-        //
-        let that = Resources;
+        this.codeMain       = {};
+        this.codeSky        = {};
+        this.terrain        = {};
+        this.pickat         = {};
+        this.sky            = {};
+        this.clouds         = {};
+        this.inventory      = {};
+        this.physics        = {};
+        this.models         = {};
+        this.sounds         = {};
+        this.recipes        = {};
 
-        that.codeMain = {};
-        that.codeSky = {};
-        that.terrain = {};
-        that.pickat = {};
-        that.sky = {};
-        that.clouds = {};
-        that.inventory = {};
-        that.physics = {
-            features: null
-        };
-        that.models = {};
-        that.resource_packs = new Set();
-        //
+        // Functions
         const loadTextFile = Resources.loadTextFile;
         const loadImage = (url) => Resources.loadImage(url, settings.imageBitmap);
+        
         let all = [];
+
+        // Others
+        all.push(Resources.loadImage('media/inventory2.png', false).then((img) => {this.inventory.image = img}));
+        all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
+        all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
+        all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
+        all.push(fetch('/data/recipes.json').then(response => response.json()).then(json => { this.recipes = json;}));
+
+        // Skybox textures
+        let skiybox_dir = './media/skybox/park';
+        all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));
+        all.push(loadImage(skiybox_dir + '/negx.jpg').then((img) => {this.sky.negx = img}));
+        all.push(loadImage(skiybox_dir + '/posy.jpg').then((img) => {this.sky.posy = img}));
+        all.push(loadImage(skiybox_dir + '/negy.jpg').then((img) => {this.sky.negy = img}));
+        all.push(loadImage(skiybox_dir + '/posz.jpg').then((img) => {this.sky.posz = img}));
+        all.push(loadImage(skiybox_dir + '/negz.jpg').then((img) => {this.sky.negz = img}));
+
+        // Skybox shaders
         if (settings.wgsl) {
-            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { that.codeSky = { vertex: txt, fragment: txt} } ));
+            all.push(loadTextFile('./shaders/skybox_gpu/shader.wgsl').then((txt) => { this.codeSky = { vertex: txt, fragment: txt} } ));
         } else {
-            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { that.codeSky.vertex = txt } ));
-            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { that.codeSky.fragment = txt } ));
+            all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.codeSky.vertex = txt } ));
+            all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
         }
 
-        all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { that.terrain.image = img}));
-        all.push(loadImage('media/pickat_target.png').then((img) => { that.pickat.target = img}));
-        all.push(Resources.loadImage('media/inventory2.png', false).then((img) => {that.inventory.image = img}));
-
-        let skiybox_dir = './media/skybox/park';
-        // let skiybox_dir = './media/skybox/title_background';
-        all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {that.sky.posx = img}));
-        all.push(loadImage(skiybox_dir + '/negx.jpg').then((img) => {that.sky.negx = img}));
-        all.push(loadImage(skiybox_dir + '/posy.jpg').then((img) => {that.sky.posy = img}));
-        all.push(loadImage(skiybox_dir + '/negy.jpg').then((img) => {that.sky.negy = img}));
-        all.push(loadImage(skiybox_dir + '/posz.jpg').then((img) => {that.sky.posz = img}));
-        all.push(loadImage(skiybox_dir + '/negz.jpg').then((img) => {that.sky.negz = img}));
-
         // Physics features
-        all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { that.physics.features = json;}));
+        all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 
         // Clouds texture
         all.push(loadImage('/media/clouds.png').then((image1) => {
@@ -63,25 +67,25 @@ export class Resources {
             canvas.height       = 256;
             let ctx             = canvas.getContext('2d');
             ctx.drawImage(image1, 0, 0, 256, 256, 0, 0, 256, 256);
-            that.clouds.texture = ctx.getImageData(0, 0, 256, 256);
+            this.clouds.texture = ctx.getImageData(0, 0, 256, 256);
         }));
 
+        // Mob & player models
         all.push(
             Resources.loadJsonDatabase('/media/models/database.json', '/media/models/')
-                .then((t) => Object.assign(that.models, t.assets))
+                .then((t) => Object.assign(this.models, t.assets))
                 .then((loaded) => {
                     console.log("Loaded models:", loaded);
                 })
         );
 
-        //
+        // Loading progress calculator
         let d = 0;
         this.progress = {
             loaded:     0,
             total:      all.length,
             percent:    0
         };
-
         for (const p of all) {
             p.then(()=> {    
                 d ++;
@@ -92,7 +96,8 @@ export class Resources {
           }
 
         // TODO: add retry
-        return Promise.all(all); // .then(() => { return this; });
+        return Promise.all(all);
+
     }
 
     //
@@ -247,6 +252,49 @@ export class Resources {
                 return res(model);
             });
         });
+    }
+
+    // loadResourcePacks...
+    static async loadResourcePacks() {
+        let resp = new Set();
+        let all = [];
+        await fetch('/data/resource_packs.json').then(response => response.json()).then(json => {
+            for(let init_file of json) {
+                all.push(import(init_file + '/init.js').then((module) => {resp.add(module.default);}));
+            }
+        });
+        await Promise.all(all).then(() => { return this; });
+        return resp;
+    }
+
+    // Load supported block styles
+    static async loadBlockStyles() {
+        let resp = new Set();
+        let all = [];
+        let json_url = '../data/block_style.json';
+        await Helpers.fetchJSON(json_url).then((json) => {
+            for(let code of json) {
+                // Load module
+                all.push(import('./block_style/' + code + '.js').then(module => {
+                    resp.add(module.default);
+                }));
+            }
+        });
+        await Promise.all(all).then(() => { return this; });
+        return resp;
+    }
+
+    // Load skins
+    static async loadSkins() {
+        let resp = null;
+        await Helpers.fetchJSON('../data/skins.json').then(json => {
+            for(let item of json) {
+                item.file = './media/models/player_skins/' + item.id + '.png';
+                item.preview = './media/skins/preview/' + item.id + '.png';
+            }
+            resp = json;
+        });
+        return resp;
     }
 
 }
