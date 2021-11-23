@@ -2,6 +2,7 @@ import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers } from "./helpers.js";
+import { getChunkAddr, getChunkWordCoord, getLocalChunkCoord } from "./chunk.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -37,6 +38,10 @@ export class MobModel {
         this.initialised = false;
 
         this.targetLook = 0;
+
+        this.drawPos = {x: 0, y: 0, y: 0};
+
+        this.lightTex = null;
     }
 
     lazyInit(render) {
@@ -59,8 +64,26 @@ export class MobModel {
 
         return true;
     }
+    
+    computeLocalPosAndLight(render) {                
+        this.drawPos = getChunkWordCoord(this.pos.x, this.pos.y, this.pos.z, this.drawPos);
 
-    update(camPos, delta) {
+        const local = getLocalChunkCoord(this.pos.x, this.pos.y, this.pos.z);
+        const addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
+
+        const chunk = Game.world.chunkManager.getChunk(addr);
+
+        this.lightTex = chunk && chunk.getLightTexture(render.renderBackend);
+
+        // блять, оси повернуты
+        this.sceneTree.position.set([local.x, local.z, local.y]);
+
+        // root
+        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+        this.sceneTree.updateMatrix();
+    }
+
+    update(render, camPos, delta) {
 
         if (delta > 1000) {
             delta = 1000
@@ -89,9 +112,7 @@ export class MobModel {
             pitch = 0.5;
         }
 
-        // place
-        quat.fromEuler(this.sceneTree.quat,0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-        this.sceneTree.updateMatrix();
+        this.computeLocalPosAndLight(render);
 
         // legs
         for(let i = 0; i < this.legs.length; i ++) {
@@ -135,7 +156,7 @@ export class MobModel {
     // draw
     draw(render, camPos, delta) {
         this.lazyInit(render);
-        this.update(camPos, delta);
+        this.update(render, camPos, delta);
         this.drawLayer(render, camPos, delta, {
             scale:          .25,
             material:       this.material,
@@ -245,10 +266,11 @@ export class MobModel {
             return true;
         }
 
+        material.lightTex = this.lightTex;
         render.renderBackend.drawMesh(
             node.terrainGeometry,
             node.material || material,
-            this.pos,
+            this.drawPos,
             node.matrixWorld
         );
 

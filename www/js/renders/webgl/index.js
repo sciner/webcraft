@@ -278,7 +278,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         if (options.shared) {
             // can use exist texture
-            texture = this._textures.find(t => t.isSimilar(options));
+            texture = this._textures.find(t => t && t.isSimilar && t.isSimilar(options));
         }
 
         if (!texture) {

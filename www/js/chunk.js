@@ -12,23 +12,58 @@ export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
 
 // Возвращает адрес чанка по глобальным абсолютным координатам
-export function getChunkAddr(x, y, z) {
+export function getChunkAddr(x, y, z, v = null) {
     if(x instanceof Vector) {
+        v = y;
+
         y = x.y;
         z = x.z;
         x = x.x;
     }
     //
-    let v = new Vector(
-        Math.floor(x / CHUNK_SIZE_X),
-        Math.floor(y / CHUNK_SIZE_Y),
-        Math.floor(z / CHUNK_SIZE_Z)
-    );
+    v = v || new Vector();
+    
+    v.x = Math.floor(x / CHUNK_SIZE_X);
+    v.y = Math.floor(y / CHUNK_SIZE_Y);
+    v.z = Math.floor(z / CHUNK_SIZE_Z);
+
     // Fix negative zero
     if(v.x == 0) {v.x = 0;}
     if(v.y == 0) {v.y = 0;}
     if(v.z == 0) {v.z = 0;}
     return v;
+}
+
+/**
+ * Возвращает мировые координаты самого чанка
+ */
+export function getChunkWordCoord(x, y, z, v = null) {
+    const out = getChunkAddr(x, y, z, v);
+
+    out.x *= CHUNK_SIZE_X;
+    out.y *= CHUNK_SIZE_Y;
+    out.z *= CHUNK_SIZE_Z;
+
+    return out;
+}
+
+/**
+ * Возвращает локальные координаты относительно чанка
+ */
+export function getLocalChunkCoord(x, y, z, target = null) {
+    const out = getChunkWordCoord(x, y, z, target);
+
+    if(x instanceof Vector) {
+        y = x.y;
+        z = x.z;
+        x = x.x;
+    }
+
+    out.x = x - out.x;
+    out.y = y - out.y;
+    out.z = z - out.z;
+
+    return out;
 }
 
 // Creates a new chunk
@@ -156,6 +191,27 @@ export class Chunk {
             {addr: this.addr, size: this.size, light_buffer}]);
     }
 
+    getLightTexture(render) {
+        if (!this.lightData) {
+            return null;
+        }
+
+        if (!this.lightTex) {
+            const lightTex = this.lightTex = render.createTexture3D({
+                width: this.size.x + 2,
+                height: this.size.z + 2,
+                depth: this.size.y + 2,
+                type: 'rgba8unorm',
+                filter: 'linear',
+                data: this.lightData
+            })
+            this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
+            this.getChunkManager().lightmap_count ++;
+        }
+
+        return this.lightTex;
+    }
+
     drawBufferVertices(render, resource_pack, group, mat, vertices) {
         const v = vertices, key = v.key;
         let texMat = resource_pack.materials.get(key);
@@ -164,21 +220,12 @@ export class Chunk {
             resource_pack.materials.set(key, texMat);
         }
         if (this.lightData) {
-            if (!this.lightTex) {
-                const lightTex = this.lightTex = render.createTexture3D({
-                    width: this.size.x + 2,
-                    height: this.size.z + 2,
-                    depth: this.size.y + 2,
-                    type: 'rgba8unorm',
-                    filter: 'linear',
-                    data: this.lightData
-                })
-                this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
-                this.getChunkManager().lightmap_count ++;
-            }
+            this.getLightTexture(render);
+            
             if (!this.lightMats[key]) {
                 this.lightMats[key] = texMat.getLightMat(this.lightTex)
             }
+
             render.drawMesh(v.buffer, this.lightMats[key], this.coord);
         } else {
             render.drawMesh(v.buffer, texMat, this.coord);

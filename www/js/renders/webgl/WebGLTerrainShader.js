@@ -47,6 +47,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
+        //this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
 
         this.hasModelMatrix = false;
 
