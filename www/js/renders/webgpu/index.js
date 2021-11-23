@@ -74,8 +74,22 @@ export default class WebGPURenderer extends BaseRenderer{
         return new WebGPUMaterial(this, options);
     }
 
-    createTexture(options = {}) {
-        return new WebGPUTexture(this, options);
+    createTexture(options) {
+        let texture;
+
+        if (options.shared) {
+            // can use exist texture
+            texture = this._textures.find(t => t && t.isSimilar && t.isSimilar(options));
+
+        }
+
+        if (!texture) {
+            texture = new WebGPUTexture(this, options);
+        }
+
+        texture.usage ++;
+
+        return texture;
     }
 
     createTexture3D(options) {

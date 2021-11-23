@@ -44,6 +44,7 @@ declare interface IGeoTreeBones {
     bind_pose_rotation?: IVector;
     cubes?: IGeoCube[];
     mirror?: boolean;
+    terrainGeometry?: any;
 }
 
 declare interface IGeoCube {

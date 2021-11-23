@@ -1,6 +1,5 @@
 import GeometryTerrain from "./geometry_terrain.js";
 import { NORMALS, Helpers } from './helpers.js';
-import { Resources } from "./resources.js";
 import { MobModel } from "./mob_model.js";
 import { SceneNode } from "./SceneNode.js";
 
@@ -63,7 +62,7 @@ export class PlayerModel extends MobModel {
         this.rightArm = this.sceneTree.findNode('RightArm');
     }
 
-    update(camPos, delta) {
+    update(render, camPos, delta) {
         if (delta > 1000) {
             delta = 1000;
         }
@@ -89,9 +88,7 @@ export class PlayerModel extends MobModel {
             pitch = 0.5;
         }
 
-        // root
-        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-        this.sceneTree.updateMatrix();
+        this.computeLocalPosAndLight(render);
 
         // head
         quat.fromEuler(this.head.quat, -pitch * 90, 0, 0);
