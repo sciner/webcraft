@@ -473,10 +473,10 @@ export class BLOCK {
         const mat = CubeSym.matrices[cardinal_direction];
         if (!neighbours) {
             return {
-                NORTH: chunkManager.getBlock(pos.x + mat[6], pos.y + mat[7], pos.z + mat[8]),
-                SOUTH: chunkManager.getBlock(pos.x - mat[6], pos.y - mat[7], pos.z - mat[8]),
-                EAST: chunkManager.getBlock(pos.x + mat[0], pos.y + mat[1], pos.z + mat[2]),
-                WEST: chunkManager.getBlock(pos.x - mat[0], pos.y - mat[1], pos.z - mat[2])
+                NORTH: chunkManager.getBlock(pos.x + mat[2], pos.y + mat[5], pos.z + mat[8]),
+                SOUTH: chunkManager.getBlock(pos.x - mat[2], pos.y - mat[5], pos.z - mat[8]),
+                EAST: chunkManager.getBlock(pos.x + mat[0], pos.y + mat[3], pos.z + mat[6]),
+                WEST: chunkManager.getBlock(pos.x - mat[0], pos.y - mat[3], pos.z - mat[6])
             }
         }
         return {
