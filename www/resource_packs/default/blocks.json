@@ -221,6 +221,46 @@
         "max_in_stack": 64
     },
     {
+        "id": 526,
+        "name": "DARK_OAK_LEAVES",
+        "inventory_icon_id": 3403,
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            24,
+            18
+        ],
+        "tags": [
+            "leaves"
+        ],
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 527,
+        "name": "JUNGLE_LEAVES",
+        "inventory_icon_id": 3403,
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            25,
+            18
+        ],
+        "tags": [
+            "leaves"
+        ],
+        "destroy_time": 1,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
         "id": 220,
         "name": "ACACIA_LEAVES",
         "inventory_icon_id": 3403,
@@ -297,6 +337,48 @@
             19
         ],
         "name": "OAK_PLANK",
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 528,
+        "name": "DARK_OAK_PLANK",
+        "inventory_icon_id": 880,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            24,
+            19
+        ],
+        "destroy_time": 4,
+        "power": 1,
+        "light": null,
+        "max_in_stack": 64
+    },
+    {
+        "id": 529,
+        "name": "JUNGLE_PLANK",
+        "inventory_icon_id": 895,
+        "spawnable": true,
+        "selflit": false,
+        "gravity": false,
+        "fluid": false,
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            25,
+            19
+        ],
         "destroy_time": 4,
         "power": 1,
         "light": null,
@@ -1732,6 +1814,7 @@
     },
     {
         "id": 85,
+        "name": "OAK_FENCE",
         "inventory_icon_id": 3283,
         "transparent": true,
         "style": "fence",
@@ -1740,7 +1823,42 @@
             21,
             19
         ],
-        "name": "OAK_FENCE",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 536,
+        "name": "DARK_OAK_FENCE",
+        "inventory_icon_id": 3251,
+        "transparent": true,
+        "style": "fence",
+        "sound": "madcraft:block.wood",
+        "texture": [
+            24,
+            19
+        ],
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 537,
+        "name": "JUNGLE_FENCE",
+        "inventory_icon_id": 3267,
+        "transparent": true,
+        "style": "fence",
+        "sound": "madcraft:block.wood",
+        "texture": [
+            25,
+            19
+        ],
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -2268,6 +2386,7 @@
     },
     {
         "id": 126,
+        "name": "OAK_SLAB",
         "inventory_icon_id": 3284,
         "transparent": true,
         "sound": "madcraft:block.wood",
@@ -2279,7 +2398,48 @@
             21,
             19
         ],
-        "name": "OAK_SLAB",
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 538,
+        "name": "DARK_OAK_SLAB",
+        "inventory_icon_id": 3252,
+        "transparent": true,
+        "sound": "madcraft:block.wood",
+        "style": "slab",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            24,
+            19
+        ],
+        "destroy_time": 4,
+        "power": 1,
+        "selflit": false,
+        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 539,
+        "name": "JUNGLE_SLAB",
+        "inventory_icon_id": 3268,
+        "transparent": true,
+        "sound": "madcraft:block.wood",
+        "style": "slab",
+        "tags": [
+            "slab"
+        ],
+        "texture": [
+            25,
+            19
+        ],
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -2289,6 +2449,7 @@
     },
     {
         "id": 458,
+        "name": "BIRCH_SLAB",
         "inventory_icon_id": 3230,
         "transparent": true,
         "sound": "madcraft:block.wood",
@@ -2300,7 +2461,6 @@
             20,
             19
         ],
-        "name": "BIRCH_SLAB",
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -2310,7 +2470,8 @@
     },
     {
         "id": 459,
-        "inventory_icon_id": 3268,
+        "name": "ACACIA_SLAB",
+        "inventory_icon_id": 3222,
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
@@ -2321,7 +2482,6 @@
             22,
             19
         ],
-        "name": "ACACIA_SLAB",
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -2408,6 +2568,7 @@
     },
     {
         "id": 53,
+        "name": "OAK_STAIRS",
         "inventory_icon_id": 3285,
         "style": "stairs",
         "sound": "madcraft:block.wood",
@@ -2418,11 +2579,48 @@
             21,
             19
         ],
-        "name": "OAK_STAIRS",
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
         "light": null,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 534,
+        "name": "DARK_OAK_STAIRS",
+        "inventory_icon_id": 3253,
+        "style": "stairs",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            24,
+            19
+        ],
+        "destroy_time": 4,
+        "power": 1,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "transparent": true
+    },
+    {
+        "id": 535,
+        "name": "JUNGLE_STAIRS",
+        "inventory_icon_id": 3269,
+        "style": "stairs",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            25,
+            19
+        ],
+        "destroy_time": 4,
+        "power": 1,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2897,10 +3095,8 @@
     },
     {
         "id": 3,
+        "name": "OAK_TRUNK",
         "inventory_icon_id": 3429,
-        "selflit": false,
-        "gravity": false,
-        "fluid": false,
         "sound": "madcraft:block.wood",
         "tags": [
             "wood"
@@ -2919,15 +3115,68 @@
                 16
             ]
         },
-        "name": "OAK_TRUNK",
         "destroy_time": 4,
         "power": 1,
-        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 530,
+        "name": "DARK_OAK_TRUNK",
+        "inventory_icon_id": 3415,
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                24,
+                17
+            ],
+            "down": [
+                24,
+                17
+            ],
+            "side": [
+                24,
+                16
+            ]
+        },
+        "destroy_time": 4,
+        "power": 1,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 531,
+        "name": "JUNGLE_TRUNK",
+        "inventory_icon_id": 2239,
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                25,
+                17
+            ],
+            "down": [
+                25,
+                17
+            ],
+            "side": [
+                25,
+                16
+            ]
+        },
+        "destroy_time": 4,
+        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 165,
+        "name": "ACACIA_TRUNK",
         "inventory_icon_id": 3398,
         "sound": "madcraft:block.wood",
         "tags": [
@@ -2947,7 +3196,6 @@
                 16
             ]
         },
-        "name": "ACACIA_TRUNK",
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -3335,6 +3583,7 @@
     },
     {
         "id": 462,
+        "name": "BIRCH_TRAPDOOR",
         "inventory_icon_id": 1647,
         "transparent": true,
         "style": "trapdoor",
@@ -3368,7 +3617,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "name": "BIRCH_TRAPDOOR",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -3378,6 +3626,7 @@
     },
     {
         "id": 463,
+        "name": "OAK_TRAPDOOR",
         "inventory_icon_id": 957,
         "transparent": true,
         "style": "trapdoor",
@@ -3411,11 +3660,90 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "name": "OAK_TRAPDOOR",
         "destroy_time": 0.4,
         "power": 1,
-        "selflit": false,
-        "light": null,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 532,
+        "name": "DARK_OAK_TRAPDOOR",
+        "inventory_icon_id": 1650,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                24,
+                20
+            ],
+            "down": [
+                24,
+                20
+            ],
+            "west": [
+                24,
+                21
+            ],
+            "east": [
+                24,
+                21
+            ],
+            "side": [
+                24,
+                22
+            ]
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
+        "destroy_time": 0.4,
+        "power": 1,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
+        "id": 533,
+        "name": "JUNGLE_TRAPDOOR",
+        "inventory_icon_id": 1648,
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                25,
+                20
+            ],
+            "down": [
+                25,
+                20
+            ],
+            "west": [
+                25,
+                21
+            ],
+            "east": [
+                25,
+                21
+            ],
+            "side": [
+                25,
+                22
+            ]
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
+        "destroy_time": 0.4,
+        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
