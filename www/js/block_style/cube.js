@@ -146,7 +146,7 @@ export default class style {
             }
             vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
                 ...top_vectors,
-                ...c,
+                c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags | upFlags);
             if(block.material.is_fluid && block.material.transparent) {
                 top_vectors = [
@@ -155,7 +155,7 @@ export default class style {
                 ];
                 vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
                     ...top_vectors,
-                    ...c,
+                    c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b, flags | upFlags);
             }
         }
