@@ -361,7 +361,7 @@ export class BLOCK {
             (c[0] + 0.5) / tx_cnt,
             (c[1] + 0.5) / tx_cnt,
             1 / tx_cnt,
-            1 / tx_cnt,
+            c[2] === 2 ? - 1 / tx_cnt : 1 / tx_cnt
         ];
     }
 
