@@ -552,28 +552,28 @@ export class BLOCK {
                             .rotate(cardinal_direction, shapePivot).toArray());
                         yt = .5;
                     }
-
                     // Верхняя ступенька (либо нижняя, если блок перевернуть вертикально)
                     let poses = [];
-
                     poses = [
                         new Vector(.5, yt, 0),
                         new Vector(0, yt, 0),
                     ];
                     // удаление лишних
                     if(!(checkIfSame(n.WEST) && checkIfSame(n.EAST)) && checkIfSame(n.SOUTH)) {
-                        if(compareCD(n.WEST)) {
+                        let cd = CubeSym.sub(n.SOUTH.getCardinalDirection(), cardinal_direction);
+                        if(cd == ROTATE.E) {
                             poses.shift();
-                        } else if(compareCD(n.EAST)) {
+                        } else if (cd == ROTATE.W) {
                             poses.pop();
                         }
                     }
                     // добавление недостающих
-                    if(checkIfSame(n.NORTH)) {
+                    if(!(checkIfSame(n.WEST) && checkIfSame(n.EAST)) && checkIfSame(n.NORTH)) {
                         let cd = CubeSym.sub(n.NORTH.getCardinalDirection(), cardinal_direction);
-                        if(cd === ROTATE.W) {
+                        if(!checkIfSame(n.EAST) && cd == ROTATE.W) {
                             poses.push(new Vector(.5, yt, .5));
-                        } else if(cd === ROTATE.E || cd === ROTATE.N) {
+                        }
+                        if(!checkIfSame(n.WEST) && cd == ROTATE.E) {
                             poses.push(new Vector(0, yt, .5));
                         }
                     }

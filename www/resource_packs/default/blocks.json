@@ -1530,23 +1530,24 @@
     },
     {
         "id": 43,
+        "name": "DOUBLE_SLAB",
+        "inventory_icon_id": 3379,
         "sound": "madcraft:block.stone",
         "texture": [
             5,
             0
         ],
-        "name": "DOUBLE_SLAB",
         "destroy_time": 7,
         "power": 1,
         "selflit": false,
         "light": null,
         "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3379
+        "max_in_stack": 64
     },
     {
         "id": 44,
-        "inventory_icon_id": 922,
+        "name": "SLAB",
+        "inventory_icon_id": 3287,
         "transparent": true,
         "sound": "madcraft:block.stone",
         "style": "slab",
@@ -1557,7 +1558,6 @@
             6,
             0
         ],
-        "name": "SLAB",
         "destroy_time": 7,
         "power": 1,
         "selflit": false,
@@ -2512,6 +2512,8 @@
     },
     {
         "id": 128,
+        "name": "SANDSTONE_STAIRS",
+        "inventory_icon_id": 3303,
         "style": "stairs",
         "tags": [
             "stairs"
@@ -2520,14 +2522,12 @@
             0,
             12
         ],
-        "name": "SANDSTONE_STAIRS",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
         "light": null,
         "spawnable": true,
         "max_in_stack": 64,
-        "inventory_icon_id": 2261,
         "transparent": true
     },
     {

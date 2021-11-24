@@ -44,6 +44,14 @@ class CreativeInventoryCollection extends Window {
             if(a.style != b.style) {
                 return a.style > b.style ? 1 : -1;
             }
+            if(a.tags && b.tags) {
+                return a.tags[0] > b.tags[0] ? 1 : -1;
+            }
+            if(a.tags && !b.tags) {
+                return -1;
+            } if(b.tags && !a.tags) {
+                return 1;
+            }
             return b.id - a.id;
         });
         // Create slots
