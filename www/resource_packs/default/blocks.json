@@ -2862,8 +2862,9 @@
         "name": "TEST",
         "inventory_icon_id": 445,
         "sound": "madcraft:block.wood",
+        "uvlock": false,
         "texture": {
-            "up": [26, 31],
+            "up": [26, 31, 2],
             "down": [27, 31],
             "south": [28, 31],
             "east": [29, 31],
