@@ -16,7 +16,7 @@ export default class style {
             return;
         }
 
-        const cardinal_direction = block.getCardinalDirection().z;
+        const cardinal_direction = block.getCardinalDirection();
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;

@@ -53,7 +53,7 @@ export class GameServer {
                 conn.sendMixed([cmd]);
             });
             //
-            conn.go_server.postPlayerConnect = (data) => {
+            conn.go_server.playerConnectedToWorld = (data) => {
                 let world = this.worlds.get(data.world.guid);
                 // Set only in first time
                 if(!world.info) {

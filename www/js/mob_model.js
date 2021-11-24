@@ -1,9 +1,10 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Helpers } from "./helpers.js";
+import { Helpers, Vector } from "./helpers.js";
 import { getChunkAddr, getChunkWordCoord, getLocalChunkCoord } from "./chunk.js";
 import { ChunkManager } from "./chunk_manager.js";
+import { Sphere } from "./frustum.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -20,6 +21,7 @@ export class MobModel {
         this.moving                     = false;
         this.aniframe                   = 0;
         this.height                     = 0;
+        this._pos = new Vector(0,0,0);
 
         Object.assign(this, props);
 
@@ -43,6 +45,33 @@ export class MobModel {
         this.drawPos = {x: 0, y: 0, y: 0};
 
         this.lightTex = null;
+
+        this.posDirty = true;
+
+        this.currentChunk = null;
+    }
+
+    get isVisileInChunk() {
+        return this.currentChunk && this.currentChunk.in_frustum || !this.currentChunk;
+    } 
+
+    get pos() {
+        return this._pos;
+    }
+
+    set pos(v) {
+        const {
+            x, y, z
+        } = this._pos;
+
+        this.posDirty = this.posDirty || 
+            Math.abs(v.x - x) > 1e-5 || 
+            Math.abs(v.y - y) > 1e-5 || 
+            Math.abs(v.z - z) > 1e-5;
+
+        this._pos.x = v.x;
+        this._pos.y = v.y;
+        this._pos.z = v.z;
     }
 
     lazyInit(render) {
@@ -66,21 +95,25 @@ export class MobModel {
         return true;
     }
     
-    computeLocalPosAndLight(render) {                
+    computeLocalPosAndLight(render) {
+        if (!this.posDirty && this.currentChunk) {
+            return;
+        }
+
+        this.posDirty = false;
         this.drawPos = getChunkWordCoord(this.pos.x, this.pos.y, this.pos.z, this.drawPos);
 
         const local = getLocalChunkCoord(this.pos.x, this.pos.y, this.pos.z);
         const addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
-
-        const chunk = ChunkManager.instance.getChunk(addr);
+        const chunk = this.currentChunk = ChunkManager.instance.getChunk(addr);
 
         this.lightTex = chunk && chunk.getLightTexture(render.renderBackend);
 
-        // блять, оси повернуты
-        this.sceneTree.position.set([local.x, local.z, local.y]);
-
         // root
         quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+
+        this.sceneTree.position.set([local.x, local.z, local.y]);
+
         this.sceneTree.updateMatrix();
     }
 
@@ -114,6 +147,10 @@ export class MobModel {
         }
 
         this.computeLocalPosAndLight(render);
+
+        if (!this.isVisileInChunk) {
+            return;
+        }
 
         // legs
         for(let i = 0; i < this.legs.length; i ++) {
@@ -282,10 +319,16 @@ export class MobModel {
     drawLayer(render, camPos, delta, options) {
         const { material, scale } = options;
 
+        if (!this.isVisileInChunk) {
+            return;
+        }
+
         // Wait loading texture
         if(!options.material) {
             return;
         }
+
+        this.lightTex = this.currentChunk && this.currentChunk.getLightTexture(render.renderBackend);
 
         this.traverse(this.sceneTree, this.drawTraversed, null, {render, material});
     }

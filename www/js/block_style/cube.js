@@ -2,7 +2,8 @@
 
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK} from "../blocks.js";
+import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
+import {CubeSym} from "../CubeSym.js";
 
 export default class style {
 
@@ -20,7 +21,7 @@ export default class style {
             return;
         }
 
-        const cardinal_direction    = block.getCardinalDirection().z;
+        const cardinal_direction    = block.getCardinalDirection();
         let flags                   = 0;
         let sideFlags               = 0;
         let upFlags                 = 0;
@@ -35,10 +36,10 @@ export default class style {
 
         let DIRECTION_UP            = DIRECTION.UP;
         let DIRECTION_DOWN          = DIRECTION.DOWN;
-        let DIRECTION_BACK          = DIRECTION.BACK;
-        let DIRECTION_RIGHT         = DIRECTION.RIGHT;
-        let DIRECTION_FORWARD       = DIRECTION.FORWARD;
-        let DIRECTION_LEFT          = DIRECTION.LEFT;
+        let DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+        let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+        let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+        let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
 
         if(!block.material) {
             console.error('block', JSON.stringify(block), block.id);
@@ -49,34 +50,6 @@ export default class style {
         let width                   = block.material.width ? block.material.width : 1;
         let height                  = block.material.height ? block.material.height : 1;
         let drawAllSides            = width != 1 || height != 1;
-
-        // F R B L
-        switch(cardinal_direction) {
-            case ROTATE.S: {
-                break;
-            }
-            case ROTATE.W: {
-                DIRECTION_BACK      = DIRECTION.LEFT;
-                DIRECTION_RIGHT     = DIRECTION.BACK;
-                DIRECTION_FORWARD   = DIRECTION.RIGHT;
-                DIRECTION_LEFT      = DIRECTION.FORWARD;
-                break;
-            }
-            case ROTATE.N: {
-                DIRECTION_BACK      = DIRECTION.FORWARD;
-                DIRECTION_RIGHT     = DIRECTION.LEFT;
-                DIRECTION_FORWARD   = DIRECTION.BACK;
-                DIRECTION_LEFT      = DIRECTION.RIGHT;
-                break;
-            }
-            case ROTATE.E: {
-                DIRECTION_BACK      = DIRECTION.RIGHT;
-                DIRECTION_RIGHT     = DIRECTION.FORWARD;
-                DIRECTION_FORWARD   = DIRECTION.LEFT;
-                DIRECTION_LEFT      = DIRECTION.BACK;
-                break;
-            }
-        }
 
         // Can change height
         let bH = 1.0;
@@ -172,7 +145,7 @@ export default class style {
 
         // South | Front/Forward
         if(canDrawFace(neighbours.SOUTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
             vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
                 1, 0, 0,
                 0, 0, bH,
@@ -182,7 +155,7 @@ export default class style {
 
         // North
         if(canDrawFace(neighbours.NORTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
             vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
                 1, 0, 0,
                 0, 0, -bH,
