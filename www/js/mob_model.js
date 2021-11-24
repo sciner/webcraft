@@ -4,10 +4,269 @@ import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers, Vector } from "./helpers.js";
 import { getChunkAddr, getChunkWordCoord, getLocalChunkCoord } from "./chunk.js";
 import { ChunkManager } from "./chunk_manager.js";
-import { Sphere } from "./frustum.js";
 
 const {mat4, vec3, quat} = glMatrix;
 
+export class Traversable {
+    constructor() {
+        
+        /**
+         * @type {SceneNode}
+         */
+        this.sceneTree;
+
+        /**
+         * @type {boolean}
+         */
+        this.isRenderable;
+
+        this.material;
+
+        this.drawPos;
+    }
+}
+
+export class Animable {
+    constructor() {
+        /**
+         * @type {SceneNode}
+         */
+        this.sceneTree;
+        this.aniframe = 0;
+        this.pos;
+        this.parts;
+        this.animationScript;
+    }
+}
+
+export class TraversableRenderer {
+    /**
+     * 
+     * @param {SceneNode} node 
+     * @param {SceneNode} parent 
+     * @param {*} render 
+     * @param {Traversable} traversable 
+     * @returns 
+     */
+    traverse(node, parent = null, render, traversable) {
+        if(!this.drawTraversed(node, parent, render, traversable)) {
+            return false;
+        }
+
+        for(let next of node.children) {
+            if (!this.traverse(next, node, render, traversable)) return false;
+        }
+
+        return true;
+    }
+
+    drawTraversed(node, parent, render, traversable) {
+
+        if (!node.terrainGeometry) {
+            return true;
+        }
+
+        render.renderBackend.drawMesh(
+            node.terrainGeometry,
+            node.material || traversable.material,
+            traversable.drawPos,
+            node.matrixWorld
+        );
+
+        return true;
+    }
+
+    /**
+     * 
+     * @param {Traversable} node 
+     * @returns 
+     */
+    drawLayer(render, traversable) {
+        if (!traversable || !traversable.sceneTree) {
+            return;
+        }
+
+        if (!traversable.isRenderable) {
+            return;
+        }
+
+        // Wait loading texture
+        if(!traversable.material) {
+            return;
+        }
+
+        this.traverse(traversable.sceneTree, null, render, traversable);
+    }
+}
+
+export class Animator {
+    prepare(animable) {
+
+    }
+
+    update(delta, camPos, animable) {
+    }
+}
+
+export class MobAnimator extends Animator {
+    prepare(animable) {
+        const {
+            sceneTree: tree,
+            parts = {}
+        } = animable;
+
+        const legs = [];
+        const heads = [];
+        const arms = [];
+
+        let leg;
+        let arm;
+        let head;
+
+        for(let i = 0; i < 8; i ++) {
+            leg = tree.findNode('leg' + i);
+            leg && legs.push(leg);
+
+            arm = tree.findNode('arm' + i);
+            arm && arms.push(arm);
+        }
+
+        // humanoid case
+        leg = tree.findNode('LeftLeg');
+        leg && legs.push(leg);
+
+        // humanoid case
+        leg = tree.findNode('RightLeg');
+        leg && legs.push(leg);
+
+        // humanoid case
+        arm = tree.findNode('LeftArm');
+        arm && arms.push(arm);
+
+        // humanoid case
+        arm = tree.findNode('RightArm');
+        arm && arms.push(arm);
+        
+        head = tree.findNode('head') || tree.findNode('Head');
+
+        parts['head'] = [head];
+        parts['arm'] = arms;
+        parts['leg'] = legs;
+
+        animable.parts = parts;
+    }
+
+    update(delta, camPos, animable) {
+        if (!animable) {
+            return;
+        }
+
+        if (!animable.parts) {
+            this.prepare(animable);
+        }
+
+        if (!animable.parts) {
+            return;
+        }
+
+        if (delta > 1000) {
+            delta = 1000
+        }
+
+        let aniangle = 0;
+        if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
+            animable.aniframe += (0.1 / 1000 * delta);
+            if(animable.aniframe > Math.PI) {
+                animable.aniframe  = -Math.PI;
+            }
+
+            aniangle = Math.PI / 4 * Math.sin(animable.aniframe);
+            if(!animable.moving && Math.abs(aniangle) < 0.1) {
+                animable.aniframe = 0;
+            }
+        }
+
+        this.applyAnimation(delta, animable.aniframe, aniangle, camPos, animable);
+    }
+
+    applyAnimation(delta, aniframe, aniangle, camPos, animable) {
+        const {
+            animationScript, parts
+        } = animable;
+
+        if (!animationScript) {
+            return;
+        }
+
+        for(const partKey in parts) {
+            if (!animationScript[partKey]) {
+                continue;
+            }
+
+            for(let i = 0; i < parts[partKey].length; i ++) {
+                animationScript[partKey]({
+                    part: parts[partKey][i],
+                    index: i,
+                    delta,
+                    aniframe,
+                    aniangle,
+                    animable,
+                    camPos
+                });
+            }
+        }
+    }
+}
+
+export class MobAnimation {
+    head({
+        part, index, delta, animable, camPos
+    }) {
+        let {
+            yaw, pos, targetLook = 0
+        } = animable;
+ 
+        let angToCam = 0;
+        
+        if (Helpers.distance(pos, camPos) < 5) {
+            angToCam = yaw  -Math.PI/2  + Math.atan2(camPos.z - pos.z, camPos.x - pos.x);
+
+            while(angToCam > Math.PI) angToCam -= Math.PI * 2;
+            while(angToCam < -Math.PI) angToCam += Math.PI * 2;
+
+            if (Math.abs(angToCam) >= Math.PI / 4) {
+                angToCam = 0;
+            } 
+        }
+
+        if (Math.abs(angToCam - targetLook) > 0.05) {
+            targetLook += Math.sign(angToCam - targetLook) * 0.05;
+        }
+
+        quat.fromEuler(part.quat, 0, 0, 180 * targetLook / Math.PI);
+        part.updateMatrix();
+
+        animable.targetLook = targetLook;
+    }
+
+    leg({
+        part, index, aniangle
+    }) {
+        const x = index % 2;
+        const y = index / 2 | 0;
+        const sign = x ^ y ? 1 : -1;
+
+        quat.identity(part.quat);
+        quat.rotateX(part.quat, part.quat, aniangle * sign);
+
+        part.updateMatrix();
+    }
+
+    arm(opts) {
+        opts.index += 2;
+        return this.leg(opts);
+    }
+}
 export class MobModel {
 
     constructor(props) {
@@ -26,7 +285,7 @@ export class MobModel {
         Object.assign(this, props);
 
         this.type = props.type;
-        this.skin = props.skin;
+        this.skin = props.skin_id || props.skin;
 
         /**
          * @type {SceneNode[]}
@@ -49,9 +308,15 @@ export class MobModel {
         this.posDirty = true;
 
         this.currentChunk = null;
+
+        this.renderer = new TraversableRenderer();
+
+        this.animator = new MobAnimator();
+
+        this.animationScript = new MobAnimation();
     }
 
-    get isVisileInChunk() {
+    get isRenderable() {
         return this.currentChunk && this.currentChunk.in_frustum || !this.currentChunk;
     } 
 
@@ -83,19 +348,12 @@ export class MobModel {
         this.initialised = true;
     }
 
-    traverse(node, cb, parent = null, args = {}) {
-        if(!cb.call(this, node, parent, args)) {
-            return false;
-        }
-
-        for(let next of node.children) {
-            if (!this.traverse(next, cb, node, args)) return false;
-        }
-
-        return true;
-    }
-    
     computeLocalPosAndLight(render) {
+        // root rotation
+        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+
+        this.sceneTree.updateMatrix();
+
         if (!this.posDirty && this.currentChunk) {
             return;
         }
@@ -109,97 +367,26 @@ export class MobModel {
 
         this.lightTex = chunk && chunk.getLightTexture(render.renderBackend);
 
-        // root
-        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-
         this.sceneTree.position.set([local.x, local.z, local.y]);
-
-        this.sceneTree.updateMatrix();
     }
 
     update(render, camPos, delta) {
-
-        if (delta > 1000) {
-            delta = 1000
-        }
-
-        let aniangle = 0;
-        if(this.moving || Math.abs(this.aniframe) > 0.1) {
-            this.aniframe += (0.1 / 1000 * delta);
-            if(this.aniframe > Math.PI) {
-                this.aniframe  = -Math.PI;
-            }
-            aniangle = Math.PI / 4 * Math.sin(this.aniframe);
-            if(!this.moving && Math.abs(aniangle) < 0.1) {
-                this.aniframe = 0;
-            }
-        }
-
-        // Draw head
-        let pitch = this.pitch;
-
-        if(pitch < -0.5) {
-            pitch = -0.5;
-        }
-
-        if(pitch > 0.5) {
-            pitch = 0.5;
-        }
-
         this.computeLocalPosAndLight(render);
 
-        if (!this.isVisileInChunk) {
+        if (!this.isRenderable) {
             return;
         }
 
-        // legs
-        for(let i = 0; i < this.legs.length; i ++) {
-            const leg = this.legs[i];
-            const x = i % 2;
-            const y = i / 2 | 0;
-            const sign = x ^ y ? 1 : -1;
-
-            quat.identity(leg.quat);
-            quat.rotateX(leg.quat, leg.quat, aniangle * sign);
-
-            leg.updateMatrix();
-        }
-
-        if (this.head) {
-            // head
-            let angToCam = 0;
-            
-            if ( Helpers.distance(this.pos, camPos) < 5) {
-                angToCam = this.yaw  -Math.PI/2  + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x);
-
-                while(angToCam > Math.PI) angToCam -= Math.PI * 2;
-                while(angToCam < -Math.PI) angToCam += Math.PI * 2;
-
-                if (Math.abs(angToCam) >= Math.PI / 4) {
-                    angToCam = 0;
-                } 
-            }
-
-            if (Math.abs(angToCam - this.targetLook) > 0.05) {
-                this.targetLook += Math.sign(angToCam - this.targetLook) * 0.05;
-            }
-
-            const angZ = 180 * this.targetLook / Math.PI;
-
-            quat.fromEuler(this.head.quat, 0, 0, angZ);
-            this.head.updateMatrix();
-        }
+        this.animator.update(delta, camPos, this);
     }
 
     // draw
     draw(render, camPos, delta) {
         this.lazyInit(render);
         this.update(render, camPos, delta);
-        this.drawLayer(render, camPos, delta, {
-            scale:          .25,
-            material:       this.material,
-            draw_nametag:   false
-        });
+
+        // run render
+        this.renderer.drawLayer(render, this);
     }
 
     /**
@@ -272,7 +459,6 @@ export class MobModel {
 
         this.loadTextures(render, asset.skins[this.skin]);
     
-
         return this.postLoad(this.sceneTree);    
     }
 
@@ -281,56 +467,6 @@ export class MobModel {
      * @param {SceneNode} tree 
      */
     postLoad(tree) {
-        let leg;
-        for(let i = 0; i < 8; i ++) {
-            leg = tree.findNode('leg' + i);
-            leg && this.legs.push(leg);
-        }
-
-        // humanoid case
-        leg = tree.findNode('LeftLeg');
-        leg && this.legs.push(leg);
-
-        // humanoid case
-        leg = tree.findNode('RightLeg');
-        leg && this.legs.push(leg);
-    
-        this.head = tree.findNode('head') || tree.findNode('Head');
+        this.animator.prepare(this);
     }
-
-    drawTraversed(node, parent, {render, material}) {
-
-        if (!node.terrainGeometry) {
-            return true;
-        }
-
-        material.lightTex = this.lightTex;
-        render.renderBackend.drawMesh(
-            node.terrainGeometry,
-            node.material || material,
-            this.drawPos,
-            node.matrixWorld
-        );
-
-        return true;
-    }
-
-    // drawLayer
-    drawLayer(render, camPos, delta, options) {
-        const { material, scale } = options;
-
-        if (!this.isVisileInChunk) {
-            return;
-        }
-
-        // Wait loading texture
-        if(!options.material) {
-            return;
-        }
-
-        this.lightTex = this.currentChunk && this.currentChunk.getLightTexture(render.renderBackend);
-
-        this.traverse(this.sceneTree, this.drawTraversed, null, {render, material});
-    }
-
 }
