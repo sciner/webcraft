@@ -34,8 +34,8 @@ export default class style {
             upFlags = QUAD_FLAGS.MASK_BIOME;
         }
 
-        let DIRECTION_UP            = DIRECTION.UP;
-        let DIRECTION_DOWN          = DIRECTION.DOWN;
+        let DIRECTION_UP        = DIRECTION.UP;
+        let DIRECTION_DOWN      = DIRECTION.DOWN;
         let DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
         let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
         let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);

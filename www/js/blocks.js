@@ -441,7 +441,9 @@ export class BLOCK {
             return 0;
         }
         if (vec3.x && !vec3.y && !vec3.z) {
-            return vec3.x;
+            if(vec3.x >= 0 && vec3.x < 48 && vec3.x == Math.round(vec3.x)) {
+                return vec3.x;
+            }
         }
         if(vec3) {
             if(vec3.z >= 45 && vec3.z < 135) {

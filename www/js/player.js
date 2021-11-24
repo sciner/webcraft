@@ -312,6 +312,7 @@ export class Player {
                 if(world_block.sound) {
                     Game.sounds.play(world_block.sound, 'open');
                 }
+                this.pickAt.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
                 world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_block, true, null, rotate, null, extra_data);
             } else if(createBlock) {
                 let replaceBlock = world_block && BLOCK.canReplace(world_block.id);
