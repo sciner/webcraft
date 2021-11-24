@@ -203,11 +203,14 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 
 // SendConnectedInfo
 func (this *World) SendConnectedInfo(conn *PlayerConn, player_state *Struct.PlayerState, world_state *Struct.WorldProperties) {
-	data := &Struct.ParamWorldState{
-		Player: player_state,
-		World:  world_state,
-	}
-	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: data, ID: nil}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: player_state, ID: nil}
+	packets := []Struct.JSONResponse{packet}
+	conn.WriteJSON(packets)
+}
+
+// SendWorldInfo
+func (this *World) SendWorldInfo(conn *PlayerConn) {
+	packet := Struct.JSONResponse{Name: Struct.CMD_WORLD_INFO, Data: this.Properties, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
 }
@@ -301,7 +304,7 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 		}
 
 	case Struct.CMD_CHAT_SEND_MESSAGE:
-		// Send to users
+		// Send to players
 		out, _ := json.Marshal(cmdIn.Data)
 		var params *Struct.ParamChatSendMessage
 		json.Unmarshal(out, &params)

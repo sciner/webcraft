@@ -4,7 +4,7 @@ import {BLOCK} from "./blocks.js";
 export class ServerClient {
 
     // System
-    static CMD_HELO                     = 1;
+    static CMD_HELLO                    = 1;
     static CMD_PING                     = 3;
     static CMD_PONG                     = 4;
     static CMD_CONNECT                  = 34;
@@ -34,6 +34,8 @@ export class ServerClient {
     static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
     static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
+	static CMD_WORLD_INFO               = 74;
+    
     // Mobs    
 	static CMD_MOB_ADD                  = 70;
 	static CMD_MOB_ADDED                = 71;
@@ -41,8 +43,8 @@ export class ServerClient {
 	static CMD_MOB_DELETED              = 73;
 
     // Constructor
-    constructor(onHello) {
-        this.onHello                    = onHello;
+    constructor(ws) {
+        this.ws                         = ws;
         this.chunks_added               = 0;
         this.ping_time                  = null;
         this.ping_value                 = null;
@@ -50,21 +52,28 @@ export class ServerClient {
             out_packets: {},
             in_packets: {}
         };
+        // Commands listeners
+        this.cmdListeners               = new Map();
+        // Add listeners for server commands
+        this.AddCmdListener([ServerClient.CMD_PONG], (cmd) => {this.ping_value = performance.now() - this.ping_time;});
     }
 
-    SetPlayer(player) {
-        this.player = player;
+    // Add listeners for server commands
+    AddCmdListener(cmd_list, listener) {
+        for(let cmd of cmd_list) {
+            if(!this.cmdListeners.has(cmd)) {
+                this.cmdListeners.set(cmd, new Set());
+            }
+            this.cmdListeners.get(cmd).add(listener);
+        }
     }
-
-    playerConnectedToWorld(connection_info) {}
 
     // 
-    async connect(ws, onOpen, onClose) {
+    async connect(onOpen, onClose) {
 
         let that = this;
 
         return new Promise(res => {
-            that.ws = ws;
             that.ws.onmessage = function(e) {
                 that._onMessage(e);
             };
@@ -108,58 +117,17 @@ export class ServerClient {
             let in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
             in_packets.size += event.data.length;
+            //
+            let listeners = this.cmdListeners.get(cmd.name);
+            if(listeners) {
+                for(let listener of listeners.values()) {
+                    listener(cmd);
+                }
+            }
             // parse command
             switch(cmd.name) {
-                case ServerClient.CMD_HELO: {
-                    this.onHello(cmd);
-                    break;
-                }
-                case ServerClient.CMD_CONNECTED: {
-                    this.playerConnectedToWorld(cmd.data);
-                    break;
-                }
-                case ServerClient.CMD_BLOCK_SET: {
-                    let pos = cmd.data.pos;
-                    let item = cmd.data.item;
-                    let block = BLOCK.fromId(item.id);
-                    let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
-                    this.player.world.chunkManager.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
-                    break;
-                }
-                case ServerClient.CMD_CHUNK_LOADED: {
-                    this.player.world.chunkManager.setChunkState(cmd.data);
-                    break;
-                }
-                case ServerClient.CMD_PONG: {
-                    that.ping_value = performance.now() - that.ping_time;
-                    break;
-                }
-                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    Game.player.chat.messages.add(cmd.data.username, cmd.data.text);
-                    break;
-                }
-                case ServerClient.CMD_CHEST_CONTENT: {
-                    Game.hud.wm.getWindow('frmChest').setData(cmd.data);
-                    break;
-                }
-                case ServerClient.CMD_PLAYER_JOIN: {
-                    this.player.world.players.add(cmd.data);
-                    break;
-                }
-                case ServerClient.CMD_PLAYER_LEAVE: {
-                    this.player.world.players.delete(cmd.data.id);
-                    break;
-                }
-                case ServerClient.CMD_PLAYER_STATE: {
-                    this.player.world.players.setState(cmd.data);
-                    break;
-                }
                 case ServerClient.CMD_TELEPORT: {
                     this.player.setPosition(cmd.data.pos);
-                    break;
-                }
-                case ServerClient.CMD_NEARBY_MODIFIED_CHUNKS: {
-                    this.player.world.chunkManager.setNearbyModified(cmd.data);
                     break;
                 }
                 case ServerClient.CMD_ENTITY_INDICATORS: {
@@ -167,16 +135,12 @@ export class ServerClient {
                     Game.hud.refresh();
                     break;
                 }
-                case ServerClient.CMD_MOB_ADDED: {
-                    for(let mob of cmd.data) {
-                        this.player.world.mobs.add(mob);
-                    }
+                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
+                    this.player.chat.messages.add(cmd.data.username, cmd.data.text);
                     break;
                 }
-                case ServerClient.CMD_MOB_DELETED: {
-                    for(let mob_id of cmd.data) {
-                        this.player.world.mobs.delete(mob_id);
-                    }
+                case ServerClient.CMD_CHEST_CONTENT: {
+                    Game.hud.wm.getWindow('frmChest').setData(cmd.data);
                     break;
                 }
             }
@@ -270,13 +234,5 @@ export class ServerClient {
         }
         this.Send({name: ServerClient.CMD_MODIFY_INDICATOR_REQUEST, data: data});
     }
-
-    /*
-        CMD_UPDATE_INDICATOR
-        let min_damage = .5/20;
-        this.live = Math.max(this.live - damage_value, 0);
-        this.live = Math.round(this.live / min_damage) * min_damage;
-        this.hud.refresh();
-    */
 
 }

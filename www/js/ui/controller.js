@@ -3,6 +3,7 @@ import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
 import {GameClass} from '../game.js';
+import { Player } from '../player.js';
 
 // Mouse event enumeration
 window.MOUSE      = {};
@@ -266,15 +267,20 @@ let gameCtrl = function($scope, $timeout) {
         }
         // Show Loading...
         Game.hud.draw();
-        $timeout(function(){
+        $timeout(async function(){
             $scope.settings.save();
             let server_url = (window.location.protocol == 'https:' ? 'wss:' : 'ws:') +
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
             // server_url = 'ws://localhost:5701/ws';
-            $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
+            let world = await $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
+            });
+            console.log('World started');
+            let player = new Player();
+            player.JoinToWorld(world, () => {
+                Game.Started(player);
             });
         });
     };

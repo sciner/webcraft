@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"mime"
 
 	"madcraft.io/madcraft/Api"
@@ -21,7 +22,7 @@ import (
 )
 
 // User connections manager
-var Users Type.PlayerConnMan
+var Players Type.PlayerConnMan
 
 var DB = Type.GetGameDatabase(getDir() + "/game.sqlite3")
 
@@ -54,7 +55,7 @@ func main() {
 	log.Println("—————————————————————————————————————————————————————————————————————————————————————————————————")
 
 	// User connections manager
-	Users = Type.PlayerConnMan{
+	Players = Type.PlayerConnMan{
 		Connections: make(map[string]*Type.PlayerConn, 0),
 	}
 
@@ -131,6 +132,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Read session token
 		session_id := ""
+		world_guid := ""
 		skin := ""
 		params, _ := url.ParseQuery(r.URL.RawQuery)
 		if len(params["session_id"]) > 0 {
@@ -139,12 +141,27 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		if len(params["skin"]) > 0 {
 			skin = params["skin"][0]
 		}
-		if len(session_id) == 0 || len(skin) == 0 {
+		if len(params["world_guid"]) > 0 {
+			world_guid = params["world_guid"][0]
+		}
+		if len(session_id) == 0 || len(skin) == 0 || len(world_guid) == 0 {
 			packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, "Invalid session")
 			ws.WriteJSON(packets)
 			ws.Close()
 		} else {
-			Users.Connect(DB, session_id, skin, ws)
+			player_conn, err := Players.Connect(DB, session_id, skin, ws)
+			if err == nil {
+				world, err := Type.Worlds.Get(world_guid)
+				if err != nil {
+					packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, fmt.Sprintf("%v", err))
+					ws.WriteJSON(packets)
+					ws.Close()
+				}
+				// Send HELLO
+				player_conn.SendHello(world)
+				world.SendWorldInfo(player_conn)
+				// world.OnPlayer(player_conn)
+			}
 		}
 
 	}

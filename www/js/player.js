@@ -16,37 +16,21 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 // Creates a new local player manager.
 export class Player {
 
-    constructor(world) {
-        this.world = world;
-    }
+    constructor() {}
 
-    // Create server client and connect to world
-    async connect(server_url, session_id, skin_id, world_guid) {
-        return new Promise(async (res) => {
-            let ws = new WebSocket(server_url + '?session_id=' + session_id + '&skin=' + skin_id)
-            const server = new ServerClient((helo_data) => {
-                this.server.SetPlayer(this);
-                this.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world_guid}});
-                res(this.server);
-            });
-            server.playerConnectedToWorld = (connection_info) => {
-                this.playerConnectedToWorld(connection_info);
-            }
-            await server.connect(ws, () => {
-                this.server = server;
-            }, () => {
-                location.reload();
-            });
+    JoinToWorld(world, cb) {
+        this.world = world;
+        this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
+            cb(this.playerConnectedToWorld(cmd.data));
         });
+        this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
 
     // playerConnectedToWorld...
-    playerConnectedToWorld(connection_info) {
-        let that = this;
-        this.world.setInfo(connection_info.world);
-        let info = connection_info.player;
+    playerConnectedToWorld(info) {
+        let that                    = this;
         //
-        this.info                   = connection_info.player;
+        this.info                   = info;
         this.indicators             = info.indicators;
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
@@ -118,8 +102,7 @@ export class Player {
                 player.keys[KEY.SHIFT] = false;
             }
         };
-        //
-        Game.Started();
+        return true;
     }
 
     addRotate(vec3) {
@@ -145,6 +128,11 @@ export class Player {
         this.rotateDegree.x = (this.rotate.x / Math.PI) * 180;
         this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
         this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
+    }
+
+    // saveInventory...
+    saveInventory(items) {
+        this.world.server.SaveInventory(items);
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
@@ -382,7 +370,7 @@ export class Player {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.player.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                             }
                         } else {
                             world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
@@ -396,7 +384,7 @@ export class Player {
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.player.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
                                 let b = BLOCK.fromId(this.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');
@@ -496,12 +484,12 @@ export class Player {
     // changeSpawnpoint
     changeSpawnpoint() {
         let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
-        Game.player.server.SetPosSpawn(pos);
+        Game.player.world.server.SetPosSpawn(pos);
     }
 
     // randomTeleport
     teleport(place_id, pos) {
-        Game.player.server.Teleport(place_id, pos);
+        Game.player.world.server.Teleport(place_id, pos);
     }
 
     // Returns the position of the eyes of the player for rendering.

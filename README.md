@@ -61,8 +61,8 @@ Game.world.game_mode.setMode('creative'); // survival|creative|adventure|spectat
 Game.player.inventory.open();
 
 // Spawn mob
-Game.player.server.Send({name: 70, data: {type: "horse", skin: "creamy", pos: Game.player.pos}});
-Game.player.server.Send({name: 70, data: {type: "bee", skin: "base", pos: Game.player.pos}});
+Game.player.world.server.Send({name: 70, data: {type: "horse", skin: "creamy", pos: Game.player.pos}});
+Game.player.world.server.Send({name: 70, data: {type: "bee", skin: "base", pos: Game.player.pos}});
 
 // Admins
 // 1. admin list managed only by chat commands

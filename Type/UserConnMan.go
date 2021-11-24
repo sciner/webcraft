@@ -21,7 +21,7 @@ type (
 )
 
 // Run in goroutine
-func (this *PlayerConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *websocket.Conn) *PlayerConn {
+func (this *PlayerConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws *websocket.Conn) (*PlayerConn, error) {
 	//
 	if val, ok := this.Connections[session_id]; ok {
 		log.Printf("Used existing PlayerConn")
@@ -30,8 +30,8 @@ func (this *PlayerConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws
 	}
 	//
 	session, err := DB.GetPlayerSession(session_id)
-	if err != nil || session == nil {
-		return nil
+	if err != nil /*|| session == nil*/ {
+		return nil, err
 	}
 	log.Println("Before new PlayerConn", session)
 	//
@@ -51,5 +51,5 @@ func (this *PlayerConnMan) Connect(DB *GameDatabase, session_id, skin string, Ws
 	log.Printf("Create new PlayerConn")
 	//
 	go this.Connections[session_id].Receiver()
-	return this.Connections[session_id]
+	return this.Connections[session_id], nil
 }

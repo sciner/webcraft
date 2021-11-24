@@ -24,18 +24,28 @@ export class ChunkManager {
         this.rendered_chunks        = {fact: 0, total: 0};
         this.renderList             = new Map();
         this.poses                  = [];
-
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
-        this.lightmap_count = 0;
-        this.lightmap_bytes = 0;
+        this.lightmap_count         = 0;
+        this.lightmap_bytes         = 0;
         this.dirty_chunks           = [];
         this.worker_inited          = false;
         this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+        //
         this.clearNerby();
+        // Add listeners for server commands
+        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_MODIFIED_CHUNKS], (cmd) => {this.setNearbyModified(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {this.setChunkState(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
+            let pos = cmd.data.pos;
+            let item = cmd.data.item;
+            let block = BLOCK.fromId(item.id);
+            let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
+            this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
+        });
         //
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
@@ -222,7 +232,7 @@ export class ChunkManager {
             start_time: performance.now()
         });
         if(this.nearby_modified_list.has(item.addr)) {
-            Game.player.server.ChunkAdd(item.addr);
+            this.world.server.ChunkAdd(item.addr);
         } else {
            if(!this.setChunkState({pos: item.addr, modify_list: null})) {
                return false;
@@ -252,7 +262,7 @@ export class ChunkManager {
         chunk.destruct();
         this.chunks.delete(addr)
         this.rendered_chunks.total--;
-        Game.player.server.ChunkRemove(addr);
+        this.world.server.ChunkRemove(addr);
     }
 
     // postWorkerMessage
@@ -424,7 +434,7 @@ export class ChunkManager {
         };
         if(is_modify) {
             // @server Отправляем на сервер инфу об установке блока
-            Game.player.server.Send({
+            this.world.server.Send({
                 name: ServerClient.CMD_BLOCK_SET,
                 data: {
                     pos: pos,

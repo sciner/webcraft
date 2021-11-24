@@ -16,7 +16,7 @@ export class Chat {
             list: [],
             send: function(text) {
                 this.add('YOU', text);
-                Game.player.server.SendMessage(text);
+                Game.player.world.server.SendMessage(text);
                 Game.setupMousePointer(true);
             },
             addSystem: function(text) {

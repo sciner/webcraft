@@ -6,7 +6,6 @@ import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
 import {HUD} from "./hud.js";
 import {Sounds} from "./sounds.js";
-import {Player} from "./player.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 
@@ -35,19 +34,19 @@ export class GameClass {
         this.world = new World();
         this.sounds = new Sounds();
         await this.render.init(this.world, settings);
-        // Create player and connect
-        this.player = new Player(this.world);
-        return this.player.connect(server_url, this.App.session.session_id, this.skin.id, world_guid);
+        return this.world.connect(server_url, this.App.session.session_id, this.skin.id, world_guid);
     }
 
     // Started...
-    Started() {
+    Started(player) {
+        this.player             = player;
         this.averageClockTimer  = new AverageClockTimer();
         this.block_manager      = BLOCK;
         this.prev_player_state  = null;
+        //
+        this.render.setPlayer(player);//
         this.setInputCanvas('renderSurface');
         this.setupMousePointer(false);
-        // this.render.updateViewport();
         this.setupMouseListeners();
         //
         let bodyClassList = document.querySelector('body').classList;
@@ -313,13 +312,13 @@ export class GameClass {
         this.current_player_state = {
             rotate:             player.rotate,
             pos:                player.lerpPos.clone().multiplyScalar(100).round().divScalar(100),
-            ping:               Math.round(this.player.server.ping_value),
+            ping:               Math.round(this.player.world.server.ping_value),
             chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
         };
         let current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {
             this.prev_player_state = current_player_state_json;
-            this.player.server.Send({
+            this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state
             });

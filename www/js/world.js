@@ -1,16 +1,35 @@
-import {GameMode} from "./game_mode.js";
 import {ChunkManager} from "./chunk_manager.js";
-import {PlayerManager} from "./player_manager.js";
+import {GameMode} from "./game_mode.js";
 import {MobManager} from "./mob_manager.js";
 import {Physics} from "./physics.js";
+import {PlayerManager} from "./player_manager.js";
+import {ServerClient} from "./server_client.js";
 
 // World container
 export class World {
 
     constructor() {
-        this.players    = new PlayerManager(this);
-        this.mobs       = new MobManager(this);
-        this.physics    = new Physics(this.world);
+        this.physics = new Physics(this.world);
+    }
+
+    // Create server client and connect to world
+    async connect(server_url, session_id, skin_id, world_guid) {
+        return new Promise(async (res) => {
+            let ws = new WebSocket(server_url + '?session_id=' + session_id + '&skin=' + skin_id + '&world_guid=' + world_guid);
+            this.server = new ServerClient(ws);
+            // Add listeners for server commands
+            this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
+                console.log(cmd.data);
+            });
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
+                this.setInfo(cmd.data);
+                res(this);
+            });
+            // Connect
+            await this.server.connect(() => {}, () => {
+                location.reload();
+            });
+        });
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
@@ -19,6 +38,8 @@ export class World {
         this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
         this.game_mode              = new GameMode(this, info.game_mode);
         this.chunkManager           = new ChunkManager(this);
+        this.mobs                   = new MobManager(this);
+        this.players                = new PlayerManager(this);
     }
 
     // Возвращает игровое время

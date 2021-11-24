@@ -127,7 +127,7 @@ func (this *Chunk) BlockSet(conn *PlayerConn, params *Struct.ParamBlockSet, noti
 	//
 	this.ModifyList[blockKey] = params.Item
 	log.Println("BlockSet", this.Pos, params.Pos, params.Item, conn.ID)
-	// Send to users
+	// Send to players
 	packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	//if notifyAuthor {

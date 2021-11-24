@@ -25,10 +25,10 @@ func (this *WorldMan) Init() {
 	this.Blocks.Init()
 }
 
-//
-func (this *WorldMan) Get(world_guid string) *World {
+// Return loaded world or load and return
+func (this *WorldMan) Get(world_guid string) (*World, error) {
 	if val, ok := this.Worlds[world_guid]; ok {
-		return val
+		return val, nil
 	}
 	//
 	this.Worlds[world_guid] = &World{
@@ -40,5 +40,5 @@ func (this *WorldMan) Get(world_guid string) *World {
 		Mobs:        make(map[string]*Mob, 0),
 	}
 	this.Worlds[world_guid].Load(world_guid)
-	return this.Worlds[world_guid]
+	return this.Worlds[world_guid], nil
 }

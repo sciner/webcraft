@@ -2,12 +2,16 @@ package Type
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"madcraft.io/madcraft/Struct"
+	"madcraft.io/madcraft/utils"
 	"madcraft.io/madcraft/utils/conf"
 )
 
@@ -44,12 +48,6 @@ func (this *PlayerConn) Close() {
 // Run in goroutine
 func (this *PlayerConn) Receiver() {
 
-	this.Mu = &sync.Mutex{}
-	this.Time = time.Now()
-
-	// Send HELO
-	this.SendHelo()
-
 	for {
 		if this.Closed {
 			goto Exit
@@ -73,7 +71,7 @@ func (this *PlayerConn) Receiver() {
 			case Struct.CMD_CONNECT:
 				if this.World != nil {
 					// @todo
-					log.Println("Сперва нужно выйти из предыдущего мира")
+					this.SendError(1, errors.New("error_already_connected_to_another_world"))
 				} else {
 					// разбор входных параметров
 					out, _ := json.Marshal(cmdIn.Data)
@@ -81,8 +79,13 @@ func (this *PlayerConn) Receiver() {
 					json.Unmarshal(out, &param)
 					log.Printf("Connect to world ID: %s", param.WorldGUID)
 					//
-					this.World = Worlds.Get(param.WorldGUID)
-					this.World.OnPlayer(this)
+					world, err := Worlds.Get(param.WorldGUID)
+					if err != nil {
+						this.SendError(1, err)
+					} else {
+						this.World = world
+						this.World.OnPlayer(this)
+					}
 				}
 			case Struct.CMD_PING:
 				this.SendPong()
@@ -108,8 +111,8 @@ Exit:
 	this.Closed = true
 }
 
-func (this *PlayerConn) SendHelo() {
-	packet := Struct.JSONResponse{Name: Struct.CMD_MSG_HELLO, Data: "Welcome to " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
+func (this *PlayerConn) SendHello(world *World) {
+	packet := Struct.JSONResponse{Name: Struct.CMD_HELLO, Data: "Welcome to `" + world.Properties.Title + "`. Game mode is `" + strings.ToLower(world.Properties.GameMode) + "`. World running on server " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	this.WriteJSON(packets)
 }
@@ -117,6 +120,12 @@ func (this *PlayerConn) SendHelo() {
 func (this *PlayerConn) SendPong() {
 	packet := Struct.JSONResponse{Name: Struct.CMD_PONG, Data: nil, ID: nil}
 	packets := []Struct.JSONResponse{packet}
+	this.WriteJSON(packets)
+}
+
+// SendError...
+func (this *PlayerConn) SendError(code int, err error) {
+	packets := utils.GenerateErrorPackets(code, fmt.Sprintf("%v", err))
 	this.WriteJSON(packets)
 }
 
@@ -128,6 +137,10 @@ func (this *PlayerConn) SendChest(chest *Chest) {
 }
 
 func (this *PlayerConn) WriteJSON(packets []Struct.JSONResponse) {
+	if this.Mu == nil {
+		this.Mu = &sync.Mutex{}
+		this.Time = time.Now()
+	}
 	this.Mu.Lock()
 	defer this.Mu.Unlock()
 	this.Ws.WriteJSON(packets)

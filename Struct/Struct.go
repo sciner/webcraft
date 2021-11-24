@@ -10,13 +10,13 @@ const (
 	GAME_DAY_SECONDS int64 = 24000
 
 	// команды
-	CMD_MSG_HELLO                int = 1
+	CMD_HELLO                    int = 1
 	CMD_PING                     int = 3
 	CMD_PONG                     int = 4
 	CMD_ERROR                    int = 7   // какая-то ошибка (ИСХ)
 	CMD_DATA                     int = 200 // custom string data
 	CMD_IS_TYPING                int = 201 //
-	CMD_CONNECT                  int = 34  // в мир вошел новый игрок
+	CMD_CONNECT                  int = 34  // Подключение к миру
 	CMD_BLOCK_DESTROY            int = 35
 	CMD_BLOCK_SET                int = 36
 	CMD_CHUNK_ADD                int = 37
@@ -30,7 +30,7 @@ const (
 	CMD_LOAD_CHEST               int = 45 // Клиент запросил содержимое сундука
 	CMD_CHEST_CONTENT            int = 46 // Отправка клиенту содержимого сундука
 	CMD_SET_CHEST_SLOT_ITEM      int = 47 // Получены новые данные о содержимом слоте сундука
-	CMD_CONNECTED                int = 62
+	CMD_CONNECTED                int = 62 // Игрок успешно подключился к миру
 	CMD_CHANGE_POS_SPAWN         int = 63
 	CMD_TELEPORT_REQUEST         int = 64
 	CMD_TELEPORT                 int = 65
@@ -42,6 +42,7 @@ const (
 	CMD_MOB_ADDED                int = 71
 	CMD_MOB_DELETE               int = 72
 	CMD_MOB_DELETED              int = 73
+	CMD_WORLD_INFO               int = 74
 
 	ERROR_INVALID_SESSION    int = 401
 	ERROR_ROOM_ACCESS_DENIED int = 20
@@ -98,10 +99,6 @@ type (
 	CmdChunkState struct {
 		Pos        Vector3              `json:"pos"`
 		ModifyList map[string]BlockItem `json:"modify_list,omitempty"`
-	}
-	ParamWorldState struct {
-		Player *PlayerState     `json:"player"`
-		World  *WorldProperties `json:"world"`
 	}
 	///////////////////////////////////////////////////////
 	ParamChestSetSlotItem struct {

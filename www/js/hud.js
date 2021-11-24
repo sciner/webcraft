@@ -289,8 +289,8 @@ export class HUD {
             this.text += 'NULL';
         }
         this.text += '\nGame mode: ' + world.game_mode.getCurrent().title;
-        if(player.server.ping_value) {
-            this.text += '\nPING: ' + Math.round(player.server.ping_value) + ' ms';
+        if(player.world.server.ping_value) {
+            this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
         }
         let time = world.getTime();
         if(time) {
@@ -309,8 +309,6 @@ export class HUD {
             //
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
-        //
-        // this.text += '\nChunks update: ' + (world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
         let playerBlockPos = player.getBlockPos();
         let chunk = player.overChunk;

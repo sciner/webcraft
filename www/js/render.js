@@ -3,7 +3,7 @@
 import {Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
-import {Mth, VectorCollector} from "./helpers.js";
+import {Mth} from "./helpers.js";
 import {Vox_Loader} from "./vox/loader.js";
 import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
@@ -168,6 +168,10 @@ export class Renderer {
         this.world = world;
     }
 
+    setPlayer(player) {
+        this.player = player;
+    }
+
     // setBrightness...
     setBrightness(value) {
         this.brightness = value;
@@ -194,7 +198,7 @@ export class Renderer {
         const { gl, shader, renderBackend } = this;
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
-        let player = Game.player;
+        let player = this.player;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
@@ -304,7 +308,7 @@ export class Renderer {
         if(value) {
             if(!this.rainTim) {
                 this.rainTim = setInterval(() => {
-                    let pos = Game.player.pos;
+                    let pos = this.player.pos;
                     this.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
                 }, 25);
             }

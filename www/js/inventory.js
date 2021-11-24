@@ -130,7 +130,7 @@ export class Inventory {
 
     // Refresh
     refresh(changed) {
-        this.player.server.SaveInventory(this.exportItems());
+        this.player.saveInventory(this.exportItems());
         if(this.hud) {
             this.hud.refresh();
             try {
