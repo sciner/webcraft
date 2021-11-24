@@ -165,7 +165,7 @@ export default class style {
 
         // West
         if(canDrawFace(neighbours.WEST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
             vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
                 0, 1, 0,
                 0, 0, -bH,
@@ -175,7 +175,7 @@ export default class style {
 
         // East
         if(canDrawFace(neighbours.EAST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
             vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
                 0, 1, 0,
                 0, 0, bH,
