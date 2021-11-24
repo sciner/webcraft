@@ -978,6 +978,7 @@
     },
     {
         "id": 106,
+        "name": "VINES",
         "transparent": true,
         "width": 0.0625,
         "texture": {
@@ -998,7 +999,6 @@
             "mask_biome"
         ],
         "style": "ladder",
-        "name": "VINES",
         "passable": 0.25,
         "destroy_time": 0.4,
         "power": 1,
@@ -2859,6 +2859,7 @@
     },
     {
         "id": 199,
+        "name": "TEST",
         "inventory_icon_id": 445,
         "sound": "madcraft:block.wood",
         "texture": {
@@ -2869,7 +2870,6 @@
             "north": [30, 31],
             "west": [31, 31]
         },
-        "name": "TEST",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -2879,6 +2879,7 @@
     },
     {
         "id": 58,
+        "name": "CRAFTING_TABLE",
         "inventory_icon_id": 3600,
         "spawnable": true,
         "sound": "madcraft:block.wood",
@@ -2891,24 +2892,23 @@
                 21,
                 19
             ],
-            "east": [
-                12,
-                3
-            ],
-            "west": [
+            "north": [
                 12,
                 3
             ],
             "south": [
+                12,
+                3
+            ],
+            "east": [
                 11,
                 3
             ],
-            "north": [
+            "west": [
                 11,
                 3
             ]
         },
-        "name": "CRAFTING_TABLE",
         "destroy_time": 4,
         "power": 1,
         "selflit": false,
@@ -2917,10 +2917,9 @@
     },
     {
         "id": 2,
+        "name": "DIRT",
         "inventory_icon_id": 980,
         "selflit": false,
-        "gravity": false,
-        "fluid": false,
         "sound": "madcraft:block.grass",
         "tags": [
             "mask_biome",
@@ -2940,10 +2939,8 @@
                 16
             ]
         },
-        "name": "DIRT",
         "destroy_time": 1,
         "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3264,6 +3261,7 @@
     },
     {
         "id": 23,
+        "name": "DISPENSER",
         "texture": {
             "up": [
                 14,
@@ -3273,7 +3271,7 @@
                 14,
                 3
             ],
-            "south": [
+            "north": [
                 14,
                 2
             ],
@@ -3282,7 +3280,6 @@
                 2
             ]
         },
-        "name": "DISPENSER",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -3380,6 +3377,7 @@
     },
     {
         "id": 54,
+        "name": "CHEST",
         "width": 0.875,
         "height": 0.875,
         "inventory_icon_id": 58,
@@ -3395,7 +3393,7 @@
                 17,
                 6
             ],
-            "south": [
+            "north": [
                 19,
                 6
             ],
@@ -3404,7 +3402,6 @@
                 6
             ]
         },
-        "name": "CHEST",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -3414,6 +3411,7 @@
     },
     {
         "id": 61,
+        "name": "FURNACE",
         "inventory_icon_id": 3606,
         "sound": "madcraft:block.stone",
         "texture": {
@@ -3425,7 +3423,7 @@
                 14,
                 3
             ],
-            "south": [
+            "north": [
                 12,
                 2
             ],
@@ -3434,7 +3432,6 @@
                 2
             ]
         },
-        "name": "FURNACE",
         "destroy_time": 7,
         "power": 1,
         "selflit": false,
@@ -3455,7 +3452,7 @@
                 14,
                 3
             ],
-            "south": [
+            "north": [
                 13,
                 3
             ],
@@ -3860,6 +3857,7 @@
     },
     {
         "id": 91,
+        "name": "LIT_PUMPKIN",
         "texture": {
             "up": [
                 6,
@@ -3869,7 +3867,7 @@
                 6,
                 6
             ],
-            "south": [
+            "north": [
                 8,
                 7
             ],
@@ -3878,7 +3876,6 @@
                 7
             ]
         },
-        "name": "LIT_PUMPKIN",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -3941,6 +3938,7 @@
     },
     {
         "id": 158,
+        "name": "DROPPER",
         "texture": {
             "up": [
                 14,
@@ -3950,7 +3948,7 @@
                 14,
                 3
             ],
-            "south": [
+            "north": [
                 15,
                 2
             ],
@@ -3959,7 +3957,6 @@
                 2
             ]
         },
-        "name": "DROPPER",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
