@@ -15,8 +15,9 @@ export class PlayerManager {
             pos:            data.pos,
             pitch:          data.rotate.x,
             yaw:            data.rotate.z,
-            skin_id:        data.skin,
+            skin:           data.skin,
             username:       data.username,
+            type:           data.type || 'player',
         });
 
         this.list.set(data.id, player);
@@ -71,7 +72,7 @@ export class PlayerManager {
             pos:            player.pos.clone(),
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
-            skin_id:        Game.skin.id,
+            skin:           Game.skin.id,
             username:       Game.App.session.username + ' Ghost'
         }));
     };
