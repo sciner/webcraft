@@ -343,8 +343,8 @@ export class BLOCK {
                 case DIRECTION.DOWN: {prop = 'down'; break;}
                 case DIRECTION.LEFT: {prop = 'west'; break;}
                 case DIRECTION.RIGHT: {prop = 'east'; break;}
-                case DIRECTION.FORWARD: {prop = 'south'; break;}
-                case DIRECTION.BACK: {prop = 'north'; break;}
+                case DIRECTION.FORWARD: {prop = 'north'; break;}
+                case DIRECTION.BACK: {prop = 'south'; break;}
             }
             if(c.hasOwnProperty(prop)) {
                 c = c[prop];

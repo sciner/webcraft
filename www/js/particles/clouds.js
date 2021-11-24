@@ -22,7 +22,7 @@ class TBlock {
     }
 
     getCardinalDirection() {
-        return Vector.ZERO;
+        return 0;
     }
 
 }
