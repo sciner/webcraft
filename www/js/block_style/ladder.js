@@ -29,12 +29,12 @@ export default class style {
         // Texture color multiplier
         if(block.id == BLOCK.VINES.id) {
             // c = BLOCK.calcTexture(texture, DIRECTION.UP);
-            c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+            c = BLOCK.calcTexture(texture, DIRECTION.BACK);
             lm = biome.dirt_color;
             // flags = QUAD_FLAGS.NORMAL_UP;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else {
-            c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+            c = BLOCK.calcTexture(texture, DIRECTION.BACK);
         }
 
         pushSym(vertices, cardinal_direction,
