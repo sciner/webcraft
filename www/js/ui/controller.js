@@ -273,11 +273,13 @@ let gameCtrl = function($scope, $timeout) {
                 '//' + location.hostname +
                 (location.port ? ':' + location.port : '') +
                 '/ws';
-            // server_url = 'ws://localhost:5701/ws';
+            server_url = 'ws://localhost:5701/ws';
             let world = await $scope.Game.Start(server_url, world_guid, $scope.settings.form, (resource_loading_state) => {
                 Game.hud.draw(true);
             });
-            console.log('World started');
+            if(!world.info) {
+                debugger;
+            }
             let player = new Player();
             player.JoinToWorld(world, () => {
                 Game.Started(player);

@@ -21,26 +21,27 @@ export class Player {
     JoinToWorld(world, cb) {
         this.world = world;
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
-            cb(this.playerConnectedToWorld(cmd.data));
+            cb(this.playerConnectedToWorld(cmd.data), cmd);
         });
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
 
     // playerConnectedToWorld...
-    playerConnectedToWorld(info) {
+    playerConnectedToWorld(data) {
         let that                    = this;
         //
-        this.info                   = info;
-        this.indicators             = info.indicators;
+        this.session                = data.session;
+        this.state                  = data.state;
+        this.indicators             = data.state.indicators;
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
         // Position
-        this.pos                    = new Vector(info.pos.x, info.pos.y, info.pos.z);
+        this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
         // Rotate
-        this.setRotate(info.rotate);
+        this.setRotate(data.state.rotate);
         // Inventory
         this.inventory              = new Inventory(this, Game.hud);
         this.inventory.onSelect     = (item) => {
@@ -58,10 +59,10 @@ export class Player {
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         // Chat
-        this.chat                   = new Chat();
+        this.chat                   = new Chat(this);
         //
         this.falling                = false; // падает
-        this.flying                 = !!info.flying; // летит
+        this.flying                 = !!data.state.flying; // летит
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
         this.walking                = false; // идёт по земле

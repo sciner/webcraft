@@ -10,17 +10,6 @@ open http://localhost:5700/
 // Run NodeJS server
 cd .\www
 node --experimental-json-modules --no-warnings .\js\node_server\index.js
-
-// Test working NodeJS server from Chrome dev console:
-let ws = new WebSocket('ws://localhost:5701');
-ws.onmessage = function(e) {
-    console.log(e.data);
-};
-ws.onopen = function(event) {
-    let packet = ['ping', null];
-    let json = JSON.stringify(packet);
-    this.send(json);
-};
 ```
 
 # Commands

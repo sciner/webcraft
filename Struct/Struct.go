@@ -254,6 +254,10 @@ type (
 	ParamMobDelete struct {
 		ID string `json:"id"`
 	}
+	ParamPlayerConnected struct {
+		Session *PlayerSession `json:"session"`
+		State   *PlayerState   `json:"state"`
+	}
 )
 
 func (m *SessionError) Error() string {

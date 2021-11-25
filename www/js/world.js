@@ -13,9 +13,8 @@ export class World {
     }
 
     // Create server client and connect to world
-    async connect(server_url, session_id, skin_id, world_guid) {
+    async connect(ws) {
         return new Promise(async (res) => {
-            let ws = new WebSocket(server_url + '?session_id=' + session_id + '&skin=' + skin_id + '&world_guid=' + world_guid);
             this.server = new ServerClient(ws);
             // Add listeners for server commands
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
@@ -23,7 +22,7 @@ export class World {
             });
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
                 this.setInfo(cmd.data);
-                res(this);
+                res(cmd);
             });
             // Connect
             await this.server.connect(() => {}, () => {

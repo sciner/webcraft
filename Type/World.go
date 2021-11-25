@@ -203,7 +203,11 @@ func (this *World) OnPlayer(conn *PlayerConn) {
 
 // SendConnectedInfo
 func (this *World) SendConnectedInfo(conn *PlayerConn, player_state *Struct.PlayerState, world_state *Struct.WorldProperties) {
-	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: player_state, ID: nil}
+	data := &Struct.ParamPlayerConnected{
+		Session: conn.Session,
+		State:   player_state,
+	}
+	packet := Struct.JSONResponse{Name: Struct.CMD_CONNECTED, Data: data, ID: nil}
 	packets := []Struct.JSONResponse{packet}
 	conn.WriteJSON(packets)
 }
@@ -218,7 +222,7 @@ func (this *World) SendWorldInfo(conn *PlayerConn) {
 // SendSystemChatMessage...
 func (this *World) SendSystemChatMessage(message string, except_conn_id_list []string) {
 	chatMessage := &Struct.ParamChatSendMessage{
-		Username: "<SERVER>",
+		Username: "<MadCraft>",
 		Text:     message,
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
@@ -229,7 +233,7 @@ func (this *World) SendSystemChatMessage(message string, except_conn_id_list []s
 // SendSystemChatMessageToSelectedPlayers...
 func (this *World) SendSystemChatMessageToSelectedPlayers(message string, connections map[string]*PlayerConn, exceptIDs []string) {
 	chatMessage := &Struct.ParamChatSendMessage{
-		Username: "<SERVER>",
+		Username: "<MadCraft>",
 		Text:     message,
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}
@@ -513,7 +517,7 @@ func (this *World) PlayerLeave(conn *PlayerConn) {
 	this.SendAll(packets, []string{conn.ID})
 	// Write to chat about new player
 	chatMessage := &Struct.ParamChatSendMessage{
-		Username: "<SERVER>",
+		Username: "<MadCraft>",
 		Text:     conn.Session.Username + " вышел из игры",
 	}
 	packet2 := Struct.JSONResponse{Name: Struct.CMD_CHAT_SEND_MESSAGE, Data: chatMessage, ID: nil}

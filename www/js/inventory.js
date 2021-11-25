@@ -20,9 +20,9 @@ export class Inventory {
             this.items.push(null);
         }
         //
-        this.restoreItems(player.info.inventory);
+        this.restoreItems(player.state.inventory);
         this.onSelect = (item) => {};
-        this.select(player.info.inventory.current.index);
+        this.select(player.state.inventory.current.index);
         // Recipe manager
         this.recipes = new RecipeManager();
     }

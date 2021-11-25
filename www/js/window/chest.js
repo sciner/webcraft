@@ -1,6 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
+import {ServerClient} from "../server_client.js";
 
 export default class ChestWindow extends Window {
 
@@ -54,6 +55,11 @@ export default class ChestWindow extends Window {
         // Add labels to window
         ct.add(this.lbl1 = new Label(15, 12, 80, 30, 'lbl1', null, 'Chest'));
         ct.add(new Label(15, 147, 80, 30, 'lbl2', null, 'Inventory'));
+
+        // Add listeners for server commands
+        inventory.player.world.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
+            this.setData(cmd.data);
+        });
 
     }
 

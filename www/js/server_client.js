@@ -1,5 +1,4 @@
 import {Vector} from "./helpers.js";
-import {BLOCK} from "./blocks.js";
 
 export class ServerClient {
 
@@ -110,6 +109,7 @@ export class ServerClient {
         let that = this;
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
+            console.log('-> ' + cmd.name);
             // stat
             if(!this.stat.in_packets[cmd.name]) {
                 this.stat.in_packets[cmd.name] = {count: 0, size: 0}
@@ -133,14 +133,6 @@ export class ServerClient {
                 case ServerClient.CMD_ENTITY_INDICATORS: {
                     this.player.indicators = cmd.data.indicators;
                     Game.hud.refresh();
-                    break;
-                }
-                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                    this.player.chat.messages.add(cmd.data.username, cmd.data.text);
-                    break;
-                }
-                case ServerClient.CMD_CHEST_CONTENT: {
-                    Game.hud.wm.getWindow('frmChest').setData(cmd.data);
                     break;
                 }
             }

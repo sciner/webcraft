@@ -163,11 +163,14 @@ export class RecipeManager {
         return true;
     }
 
-    load(callback) {
+    // Load
+    async load(callback) {
         let that = this;
-        for(let item of Resources.recipes) {
+        let recipes = await Resources.loadRecipes();
+        for(let item of recipes) {
             that.add(item);
-        }callback();
+        }
+        callback();
     }
 
 }

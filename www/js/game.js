@@ -34,7 +34,9 @@ export class GameClass {
         this.world = new World();
         this.sounds = new Sounds();
         await this.render.init(this.world, settings);
-        return this.world.connect(server_url, this.App.session.session_id, this.skin.id, world_guid);
+        let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+        await this.world.connect(ws);
+        return this.world;
     }
 
     // Started...
