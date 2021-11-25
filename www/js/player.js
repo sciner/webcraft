@@ -103,6 +103,12 @@ export class Player {
                 player.keys[KEY.SHIFT] = false;
             }
         };
+        // Add listeners for server commands
+        this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);}, this.session.user_guid);
+        this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
+            this.indicators = cmd.data.indicators;
+            Game.hud.refresh();
+        }, this.session.user_guid);
         return true;
     }
 

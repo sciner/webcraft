@@ -32,8 +32,9 @@ export class GameServer {
             conn.sendMixed = function(value) {
                 this.send(JSON.stringify(value));
             }
-            // On client close
+            // On player disconnected
             conn.on('close', code => {
+                conn.player.world.server.RemovePlayerListeners(conn.player.session.user_guid);
                 console.log('Player disconnected', conn.player.session.username);
             });
             // Connect to GO server
@@ -50,6 +51,7 @@ export class GameServer {
                 conn.sendMixed([cmd_world_info]);
             }
             let player = new Player();
+            console.log('Before JoinToWorld');
             player.JoinToWorld(world, (ok, cmd) => {
                 conn.player = player;
                 console.log('Player connected to world `' + player.session.username + '` => `' + world.info.guid + "`");

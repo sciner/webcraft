@@ -187,9 +187,10 @@ type (
 	}
 	// JSONResponse ...
 	JSONResponse struct {
-		Name int         `json:"name"`
-		Data interface{} `json:"data"`
-		ID   *string     `json:"id"`
+		Name     int         `json:"name"`
+		Data     interface{} `json:"data"`
+		UserGUID string      `json:"user_guid,omitempty"`
+		ID       *string     `json:"id"`
 	}
 	// JSONResponseRAW ...
 	JSONResponseRAW struct {

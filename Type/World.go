@@ -384,7 +384,12 @@ func (this *World) OnCommand(cmdIn Struct.Command, conn *PlayerConn) {
 			Indicators: conn.Indicators,
 		}
 		json.Unmarshal(out, &conn.Indicators)
-		packet := Struct.JSONResponse{Name: Struct.CMD_ENTITY_INDICATORS, Data: send_params, ID: nil}
+		packet := Struct.JSONResponse{
+			Name:     Struct.CMD_ENTITY_INDICATORS,
+			Data:     send_params,
+			UserGUID: conn.Session.UserGUID,
+			ID:       nil,
+		}
 		packets := []Struct.JSONResponse{packet}
 		connections := map[string]*PlayerConn{
 			conn.ID: conn,
@@ -483,7 +488,12 @@ func (this *World) TeleportPlayer(conn *PlayerConn, params *Struct.ParamTeleport
 			Pos:     new_pos,
 			PlaceID: params.PlaceID,
 		}
-		packet := Struct.JSONResponse{Name: Struct.CMD_TELEPORT, Data: params, ID: nil}
+		packet := Struct.JSONResponse{
+			Name:     Struct.CMD_TELEPORT,
+			UserGUID: conn.Session.UserGUID,
+			Data:     params,
+			ID:       nil,
+		}
 		packets := []Struct.JSONResponse{packet}
 		connections := map[string]*PlayerConn{
 			conn.ID: conn,

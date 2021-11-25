@@ -53,12 +53,35 @@ export class ServerClient {
         };
         // Commands listeners
         this.cmdListeners               = new Map();
+        this.cmdListenersForPlayers     = new Map();
         // Add listeners for server commands
         this.AddCmdListener([ServerClient.CMD_PONG], (cmd) => {this.ping_value = performance.now() - this.ping_time;});
     }
 
+    //
+    RemovePlayerListeners(user_guid) {
+        if(this.cmdListenersForPlayers.has(user_guid)) {
+            this.cmdListenersForPlayers.delete(user_guid);
+            return true;
+        }
+        return false;
+    }
+
     // Add listeners for server commands
-    AddCmdListener(cmd_list, listener) {
+    AddCmdListener(cmd_list, listener, user_guid) {
+        if(user_guid) {
+            if(!this.cmdListenersForPlayers.has(user_guid)) {
+                this.cmdListenersForPlayers.set(user_guid, new Map());
+            }
+            let listeners = this.cmdListenersForPlayers.get(user_guid);
+            for(let cmd of cmd_list) {
+                if(!listeners.has(cmd)) {
+                    listeners.set(cmd, new Set());
+                }
+                listeners.get(cmd).add(listener);
+            }
+            return;
+        }
         for(let cmd of cmd_list) {
             if(!this.cmdListeners.has(cmd)) {
                 this.cmdListeners.set(cmd, new Set());
@@ -106,7 +129,6 @@ export class ServerClient {
 
     // New commands from server
     _onMessage(event) {
-        let that = this;
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
             console.log('-> ' + cmd.name);
@@ -118,22 +140,19 @@ export class ServerClient {
             in_packets.count++;
             in_packets.size += event.data.length;
             //
-            let listeners = this.cmdListeners.get(cmd.name);
+            let listeners = null;
+            if('user_guid' in cmd) {
+                if(this.cmdListenersForPlayers.has(cmd.user_guid)) {
+                    listeners = this.cmdListenersForPlayers
+                        .get(cmd.user_guid)
+                        .get(cmd.name);
+                }
+            } else {
+                listeners = this.cmdListeners.get(cmd.name);
+            }
             if(listeners) {
                 for(let listener of listeners.values()) {
                     listener(cmd);
-                }
-            }
-            // parse command
-            switch(cmd.name) {
-                case ServerClient.CMD_TELEPORT: {
-                    this.player.setPosition(cmd.data.pos);
-                    break;
-                }
-                case ServerClient.CMD_ENTITY_INDICATORS: {
-                    this.player.indicators = cmd.data.indicators;
-                    Game.hud.refresh();
-                    break;
                 }
             }
         }
