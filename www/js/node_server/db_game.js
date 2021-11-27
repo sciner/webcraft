@@ -2,6 +2,7 @@ import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import uuid from 'uuid';
+import { copyFile } from 'fs/promises';
 
 import {Vector} from '../helpers.js';
 
@@ -29,13 +30,7 @@ export class DBGame {
         if (!fs.existsSync(filename)) {
             // create db from template
             let template_db_filename = path.resolve(DBGame.TEMPLATE_DB);
-            await fs.copyFile(template_db_filename, filename, (err) => {
-                if (err) {
-                    console.log("Oops! An Error Occured while copy Template game database file", err);
-                } else {
-                    console.log("Template game database file copied ... OK");
-                }
-            });
+            await copyFile(template_db_filename, filename);
         }
         // Open SQLIte3 fdatabase file
         let dbc = await open({
@@ -234,8 +229,6 @@ export class DBGame {
             await this.db.get('update options set version = 1');
             version++;
         }
-
-        console.log('After game DB migrations');
 
     }
 

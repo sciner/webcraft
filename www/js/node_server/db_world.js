@@ -2,6 +2,7 @@ import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import uuid from 'uuid';
+import { copyFile } from 'fs/promises';
 
 import {Vector} from "../helpers.js";
 
@@ -29,13 +30,7 @@ export class DBWorld {
         if (!fs.existsSync(filename)) {
             // create db from template
             let template_db_filename = path.resolve(DBWorld.TEMPLATE_DB);
-            await fs.copyFile(template_db_filename, filename, async (err) => {
-                if (err) {
-                    console.log("Oops! An Error Occured while copy Template world database file", err);
-                } else {
-                    console.log("Template world database file copied ... OK");
-                }
-            });
+            await copyFile(template_db_filename, filename);
         }
         // Open SQLIte3 fdatabase file
         let dbc = await open({
@@ -171,8 +166,6 @@ export class DBWorld {
             await this.db.get('update options set version = 2');
             version++;
         }
-
-        console.log('After world DB migrations');
 
     }
 
