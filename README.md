@@ -8,7 +8,9 @@ go run .\main.go
 open http://localhost:5700/
 
 // Run NodeJS server
-cd .\www
+cd .\www\js\node_server
+npm install express
+cd ..\..\
 node --experimental-json-modules --no-warnings .\js\node_server\index.js
 ```
 

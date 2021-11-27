@@ -1,27 +1,43 @@
-import {BLOCK} from "../blocks.js";
-import {Resources} from "../resources.js";
-import {GameServer} from "./websocket_server.js";
-import {StaticServer} from "./static_server.js";
-
-import features from "../../vendors/prismarine-physics/lib/features.json";
-
+import path from 'path'
+import express from "express"; 
 import fs from 'fs';
 import {Worker} from "worker_threads";
 
-global.Worker = Worker;
+import {BLOCK} from "../blocks.js";
+import {Resources} from "../resources.js";
+import {ServerGame} from "./server_ws.js";
+import {ServerStatic} from "./server_static.js";
+import {ServerAPI} from "./server_api.js";
 
-StaticServer.init();
+import features from "../../vendors/prismarine-physics/lib/features.json";
+
+// Set global variables
+global.__dirname = path.resolve();
+global.Worker = Worker;
+global.fs = fs;
 
 // Init environment
 await BLOCK.init();
-// worlds = new WorkerWorldManager();
-// await worlds.InitTerrainGenerators();
 
 // Hack ;)
 Resources.physics = {
     features: features // (await import("../../vendors/prismarine-physics/lib/features.json")).default
 }
 
-global.Game = new GameServer();
-global.fs = fs;
+// http://expressjs.com/en/api.html#req.originalUrl
+var app = express();
+ServerStatic.init(app);
+ServerAPI.init(app);
+
+global.Game = new ServerGame();
 Game.startWS();
+
+// Start express
+const server = app.listen(5700);
+
+// Pair with websocket server
+server.on('upgrade', (request, socket, head) => {
+    Game.wsServer.handleUpgrade(request, socket, head, socket => {
+        Game.wsServer.emit('connection', socket, request);
+    });
+});

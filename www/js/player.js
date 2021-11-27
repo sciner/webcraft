@@ -26,11 +26,45 @@ export class Player {
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
     
-    joinToServerWorld(conn, world) {
+    //
+    async joinToServerWorld(session_id, conn, world) {
         this.conn = conn;
         this.world = world;
         conn.player = this;
-        conn.sendMixed([world.hello]);
+        conn.on('message', async (req) => {
+            let cmd = JSON.parse(req);
+            switch(cmd.name) {
+                case ServerClient.CMD_CONNECT: {
+                    let world_guid = cmd.data.world_guid;
+                    this.session = await Game.Db.GetPlayerSession(session_id);
+                    let player_state = await world.Db.RegisterUser(world, this);
+                    let data = {
+                        session: this.session,
+                        state:   player_state,
+                    }
+                    conn.sendMixed([{name: ServerClient.CMD_CONNECTED, data: data}]);
+                    conn.sendMixed([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
+                    // @todo Send to all about new players
+                    /*let player_world_state = Game.Db.
+                    params := &Struct.ParamPlayerJoin{
+                        ID:       c.ID,
+                        Skin:     c.Skin,
+                        Username: c.Session.Username,
+                        Pos:      c.Pos,
+                        Rotate:   c.Rotate,
+                    }
+                    packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_JOIN, Data: params, ID: nil}
+                    */
+                }
+            }
+        });
+        conn.sendMixed = (packets) => {
+            conn.send(JSON.stringify(packets));
+        };
+        conn.sendMixed([{
+            name: ServerClient.CMD_HELLO,
+            data: 'Welcome to madcraft ver. 0.0.1'
+        }]);
         conn.sendMixed([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
     }
 

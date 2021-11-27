@@ -11,7 +11,7 @@ export class World {
     constructor() {}
 
     // Create server client and connect to world
-    async connect(ws) {
+    async connectToServer(ws) {
         return new Promise(async (res) => {
             this.server = new ServerClient(ws);
             // Add listeners for server commands
@@ -28,6 +28,11 @@ export class World {
                 location.reload();
             });
         });
+    }
+
+    async initServer(world_guid, Db) {
+        this.Db = Db;
+        this.info = await this.Db.GetWorld(world_guid);
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
