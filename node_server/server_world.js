@@ -3,10 +3,13 @@ import {GameMode} from "../www/js/game_mode.js";
 import {MobManager} from "../www/js/mob_manager.js";
 import {Physics} from "../www/js/physics.js";
 import {PlayerManager} from "../www/js/player_manager.js";
+import {ServerChat} from "./server_chat.js";
 
 export class ServerWorld {
 
-    constructor() {}
+    constructor() {
+        this.chat = new ServerChat(this);
+    }
 
     async initServer(world_guid, Db) {
         this.Db = Db;
@@ -43,6 +46,10 @@ export class ServerWorld {
             minutes:    minutes,
             string:     hours_string + ':' + minutes_string
         };
+    }
+
+    sendAll(packets, except_players) {
+        
     }
 
 }

@@ -24,8 +24,7 @@ export class ServerGame {
 
     // startWS...
     async startWS() {
-        this.Db = await DBGame.OpenDB('..');
-        await DBWorld.OpenDB('../world/test');
+        this.Db = await DBGame.OpenDB('.');
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
         // New player connection
@@ -36,7 +35,7 @@ export class ServerGame {
             let world       = this.worlds.get(world_guid);
             if(!world) {
                 world = new ServerWorld();
-                let dbc = await DBWorld.OpenDB('../world/' + world_guid);
+                let dbc = await DBWorld.OpenDB('./world/' + world_guid, world);
                 await world.initServer(world_guid, dbc);
                 this.worlds.set(world_guid, world);
                 console.log('World started');

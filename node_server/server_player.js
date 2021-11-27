@@ -15,6 +15,10 @@ export class ServerPlayer extends Player {
         conn.on('message', async (req) => {
             let cmd = JSON.parse(req);
             switch(cmd.name) {
+                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
+                    this.world.chat.sendMessage(this, cmd.data)
+                    break;
+                }
                 case ServerClient.CMD_CONNECT: {
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.Db.GetPlayerSession(session_id);
@@ -27,14 +31,14 @@ export class ServerPlayer extends Player {
                     conn.sendMixed([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
                     // @todo Send to all about new players
                     /*let player_world_state = Game.Db.
-                    params := &Struct.ParamPlayerJoin{
+                    params := &ServerClient.ParamPlayerJoin{
                         ID:       c.ID,
                         Skin:     c.Skin,
                         Username: c.Session.Username,
                         Pos:      c.Pos,
                         Rotate:   c.Rotate,
                     }
-                    packet := Struct.JSONResponse{Name: Struct.CMD_PLAYER_JOIN, Data: params, ID: nil}
+                    packet := ServerClient.JSONResponse{Name: ServerClient.CMD_PLAYER_JOIN, Data: params, ID: nil}
                     */
                 }
             }

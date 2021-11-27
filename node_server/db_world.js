@@ -10,12 +10,13 @@ export class DBWorld {
 
     static TEMPLATE_DB = './world.sqlite3.template';
 
-    constructor(db) {
+    constructor(db, world) {
         this.db = db;
+        this.world = world;
     }
 
     // OpenDB
-    static async OpenDB(dir) {
+    static async OpenDB(dir, world) {
         let filename = dir + '/world.sqlite';
         filename = path.resolve(filename);
         // Check directory exists
@@ -37,7 +38,7 @@ export class DBWorld {
             filename: filename,
             driver: sqlite3.Database
         }).then(async (conn) => {
-            return new DBWorld(conn);
+            return new DBWorld(conn, world);
         });
         await dbc.ApplyMigrations();
         return dbc;
@@ -167,6 +168,19 @@ export class DBWorld {
             version++;
         }
 
+    }
+
+    // Добавление сообщения в чат
+    async insertChatMessage(player, params) {
+        const result = await this.db.run('INSERT INTO chat_message(user_id, dt, text, world_id, user_session_id) VALUES (:user_id, :dt, :text, :world_id, :user_session_id)', {
+            ':user_id':         player.session.user_id,
+            ':dt':              ~~(Date.now() / 1000),
+            ':text':            params.text,
+            ':world_id':        this.world.info.id,
+            ':user_session_id': 0
+        });
+        let chat_message_id = result.lastID;
+        return chat_message_id;
     }
 
 }
