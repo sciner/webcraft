@@ -8,9 +8,7 @@ import {ServerClient} from "./server_client.js";
 // World container
 export class World {
 
-    constructor() {
-        this.physics = new Physics(this.world);
-    }
+    constructor() {}
 
     // Create server client and connect to world
     async connect(ws) {
@@ -18,6 +16,7 @@ export class World {
             this.server = new ServerClient(ws);
             // Add listeners for server commands
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
+                this.hello = cmd; 
                 console.log(cmd.data);
             });
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
@@ -39,7 +38,11 @@ export class World {
         this.chunkManager           = new ChunkManager(this);
         this.mobs                   = new MobManager(this);
         this.players                = new PlayerManager(this);
+        this.physics                = new Physics(this);
+        this.network_players        = new Map();
     }
+
+    joinPlayer(player) {}
 
     // Возвращает игровое время
     getTime() {

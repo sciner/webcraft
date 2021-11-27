@@ -25,6 +25,14 @@ export class Player {
         });
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
+    
+    joinToServerWorld(conn, world) {
+        this.conn = conn;
+        this.world = world;
+        conn.player = this;
+        conn.sendMixed([world.hello]);
+        conn.sendMixed([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
+    }
 
     // playerConnectedToWorld...
     playerConnectedToWorld(data) {

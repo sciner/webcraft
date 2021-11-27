@@ -2,6 +2,8 @@ import {Vector} from "./helpers.js";
 
 export class ServerClient {
 
+    static cmd_titles               = null;
+
     // System
     static CMD_HELLO                    = 1;
     static CMD_PING                     = 3;
@@ -131,7 +133,7 @@ export class ServerClient {
     _onMessage(event) {
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
-            console.log('-> ' + cmd.name);
+            console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
             if(!this.stat.in_packets[cmd.name]) {
                 this.stat.in_packets[cmd.name] = {count: 0, size: 0}
@@ -158,6 +160,24 @@ export class ServerClient {
         }
     }
 
+    //
+    static getCommandTitle(cmd_id) {
+        //
+        if(!this.cmd_titles) {
+            this.cmd_titles = new Map();
+            for(let title in ServerClient) {
+                if(title.indexOf('CMD_') == 0) {
+                    this.cmd_titles.set(ServerClient[title], title);
+                }
+            }
+        }
+        //
+        if(this.cmd_titles.has(cmd_id)) {
+            return this.cmd_titles.get(cmd_id)
+        }
+        return cmd_id;
+    }
+
     Send(packet) {
         setTimeout(() => {
             let json = JSON.stringify(packet);
@@ -167,6 +187,7 @@ export class ServerClient {
             let out_packets = this.stat.out_packets[packet.name];
             out_packets.count++;
             out_packets.size += json.length;
+            console.log('> server ' + ServerClient.getCommandTitle(packet.name));
             this.ws.send(json);
         }, 0);
     }

@@ -130,39 +130,61 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Read session token
-		session_id := ""
-		world_guid := ""
-		skin := ""
+		// Read params
 		params, _ := url.ParseQuery(r.URL.RawQuery)
-		if len(params["session_id"]) > 0 {
-			session_id = params["session_id"][0]
-		}
-		if len(params["skin"]) > 0 {
-			skin = params["skin"][0]
-		}
+
+		world_guid := ""
 		if len(params["world_guid"]) > 0 {
 			world_guid = params["world_guid"][0]
-		}
-		if len(session_id) == 0 || len(skin) == 0 || len(world_guid) == 0 {
-			packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, "Invalid session")
-			ws.WriteJSON(packets)
-			ws.Close()
-		} else {
-			player_conn, err := Players.Connect(DB, session_id, skin, ws)
-			if err == nil {
-				world, err := Type.Worlds.Get(world_guid)
-				if err != nil {
-					packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, fmt.Sprintf("%v", err))
-					ws.WriteJSON(packets)
-					ws.Close()
-				}
-				// Send HELLO
-				player_conn.SendHello(world)
-				world.SendWorldInfo(player_conn)
-				// world.OnPlayer(player_conn)
+			world, err := Type.Worlds.Get(world_guid)
+			if err != nil {
+				packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, fmt.Sprintf("%v", err))
+				ws.WriteJSON(packets)
+				ws.Close()
 			}
+			// Send HELLO
+			packet := Struct.JSONResponse{Name: Struct.CMD_HELLO, Data: "Welcome to `" + world.Properties.Title + "`. Game mode is `" + strings.ToLower(world.Properties.GameMode) + "`. World running on server " + conf.Config.AppCode + " ver. " + conf.Config.AppVersion, ID: nil}
+			packets := []Struct.JSONResponse{packet}
+			ws.WriteJSON(packets)
+			// SendWorldInfo
+			packet2 := Struct.JSONResponse{Name: Struct.CMD_WORLD_INFO, Data: world.Properties, ID: nil}
+			packets2 := []Struct.JSONResponse{packet2}
+			ws.WriteJSON(packets2)
 		}
+
+		/*
+			session_id := ""
+			world_guid := ""
+			skin := ""
+			if len(params["session_id"]) > 0 {
+				session_id = params["session_id"][0]
+			}
+			if len(params["skin"]) > 0 {
+				skin = params["skin"][0]
+			}
+			if len(params["world_guid"]) > 0 {
+				world_guid = params["world_guid"][0]
+			}
+			if len(session_id) == 0 || len(skin) == 0 || len(world_guid) == 0 {
+				packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, "Invalid session")
+				ws.WriteJSON(packets)
+				ws.Close()
+			} else {
+				player_conn, err := Players.Connect(DB, session_id, skin, ws)
+				if err == nil {
+					world, err := Type.Worlds.Get(world_guid)
+					if err != nil {
+						packets := utils.GenerateErrorPackets(Struct.ERROR_INVALID_SESSION, fmt.Sprintf("%v", err))
+						ws.WriteJSON(packets)
+						ws.Close()
+					}
+					// Send HELLO
+					player_conn.SendHello(world)
+					world.SendWorldInfo(player_conn)
+					// world.OnPlayer(player_conn)
+				}
+			}
+		*/
 
 	}
 

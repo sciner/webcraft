@@ -33,19 +33,19 @@ export class Resources {
         let all = [];
 
         // Others
-        all.push(Resources.loadImage('media/inventory2.png', false).then((img) => {this.inventory.image = img}));
+        all.push(Resources.loadImage('media/inventory2.webp', false).then((img) => {this.inventory.image = img}));
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
 
         // Skybox textures
         let skiybox_dir = './media/skybox/park';
-        all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));
-        all.push(loadImage(skiybox_dir + '/negx.jpg').then((img) => {this.sky.negx = img}));
-        all.push(loadImage(skiybox_dir + '/posy.jpg').then((img) => {this.sky.posy = img}));
-        all.push(loadImage(skiybox_dir + '/negy.jpg').then((img) => {this.sky.negy = img}));
-        all.push(loadImage(skiybox_dir + '/posz.jpg').then((img) => {this.sky.posz = img}));
-        all.push(loadImage(skiybox_dir + '/negz.jpg').then((img) => {this.sky.negz = img}));
+        all.push(loadImage(skiybox_dir + '/posx.webp').then((img) => {this.sky.posx = img}));
+        all.push(loadImage(skiybox_dir + '/negx.webp').then((img) => {this.sky.negx = img}));
+        all.push(loadImage(skiybox_dir + '/posy.webp').then((img) => {this.sky.posy = img}));
+        all.push(loadImage(skiybox_dir + '/negy.webp').then((img) => {this.sky.negy = img}));
+        all.push(loadImage(skiybox_dir + '/posz.webp').then((img) => {this.sky.posz = img}));
+        all.push(loadImage(skiybox_dir + '/negz.webp').then((img) => {this.sky.negz = img}));
 
         // Skybox shaders
         if (settings.wgsl) {
