@@ -9,7 +9,7 @@ import {ServerGame} from "./server_ws.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
 
-import features from "../../vendors/prismarine-physics/lib/features.json";
+import features from "../../vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
 // Set global variables
 global.__dirname = path.resolve();
