@@ -1,9 +1,10 @@
-import {World} from "../world.js";
-import {Player} from "../player.js";
+import url from 'url';
 import {WebSocketServer, WebSocket} from "ws";
+
 import {DBGame} from "./db_game.js";
 import {DBWorld} from "./db_world.js";
-import url from 'url';
+import {ServerWorld} from "./server_world.js";
+import {ServerPlayer} from "./server_player.js";
 
 export class ServerGame {
 
@@ -34,13 +35,13 @@ export class ServerGame {
             let world_guid  = query.world_guid;
             let world       = this.worlds.get(world_guid);
             if(!world) {
-                world = new World();
+                world = new ServerWorld();
                 let dbc = await DBWorld.OpenDB('../world/' + world_guid);
                 await world.initServer(world_guid, dbc);
                 this.worlds.set(world_guid, world);
                 console.log('World started');
             }
-            let player = new Player();
+            let player = new ServerPlayer();
             player.joinToServerWorld(query.session_id, conn, world);
         });
     }

@@ -4,7 +4,7 @@ export class ServerStatic {
 
     static init(app) {
         // Serves resources from public folder
-        app.use(express.static('./'));
+        app.use(express.static('./www/'));
     }
 
 }

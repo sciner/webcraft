@@ -1,33 +1,16 @@
-import {ChunkManager} from "./chunk_manager.js";
-import {GameMode} from "./game_mode.js";
-import {MobManager} from "./mob_manager.js";
-import {Physics} from "./physics.js";
-import {PlayerManager} from "./player_manager.js";
-import {ServerClient} from "./server_client.js";
+import {ChunkManager} from "../www/js/chunk_manager.js";
+import {GameMode} from "../www/js/game_mode.js";
+import {MobManager} from "../www/js/mob_manager.js";
+import {Physics} from "../www/js/physics.js";
+import {PlayerManager} from "../www/js/player_manager.js";
 
-// World container
-export class World {
+export class ServerWorld {
 
     constructor() {}
 
-    // Create server client and connect to world
-    async connectToServer(ws) {
-        return new Promise(async (res) => {
-            this.server = new ServerClient(ws);
-            // Add listeners for server commands
-            this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
-                this.hello = cmd; 
-                console.log(cmd.data);
-            });
-            this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
-                this.setInfo(cmd.data);
-                res(cmd);
-            });
-            // Connect
-            await this.server.connect(() => {}, () => {
-                location.reload();
-            });
-        });
+    async initServer(world_guid, Db) {
+        this.Db = Db;
+        this.info = await this.Db.GetWorld(world_guid);
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения

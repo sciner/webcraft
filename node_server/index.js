@@ -3,13 +3,13 @@ import express from "express";
 import fs from 'fs';
 import {Worker} from "worker_threads";
 
-import {BLOCK} from "../blocks.js";
-import {Resources} from "../resources.js";
+import {BLOCK} from "../www/js/blocks.js";
+import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_ws.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
 
-import features from "../../vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
 // Set global variables
 global.__dirname = path.resolve();

@@ -4,11 +4,11 @@ import {open} from 'sqlite'
 import uuid from 'uuid';
 import { copyFile } from 'fs/promises';
 
-import {Vector} from '../helpers.js';
+import {Vector} from '../www/js/helpers.js';
 
 export class DBGame {
 
-    static TEMPLATE_DB = '../game.sqlite3.template';
+    static TEMPLATE_DB = './game.sqlite3.template';
 
     constructor(db) {
         this.db = db;

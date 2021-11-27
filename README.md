@@ -3,15 +3,10 @@ Minecraft clone on JS
 
 # Run and play
 ```
-// Run GO server
-go run .\main.go
-open http://localhost:5700/
-
-// Run NodeJS server
-cd .\www\js\node_server
-npm install express
-cd ..\..\
-node --experimental-json-modules --no-warnings .\js\node_server\index.js
+// Run NodeJS v17.1.0 server
+cd ./node_server
+npm install
+node --experimental-json-modules --no-warnings ./node_server/index.js
 ```
 
 # Commands
