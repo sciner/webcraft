@@ -8,7 +8,7 @@ export class ServerPlayer extends Player {
     }
 
     //
-    async joinToServerWorld(session_id, conn, world) {
+    async joinToServerWorld(session_id, skin, conn, world) {
         this.conn = conn;
         this.world = world;
         conn.player = this;
@@ -22,35 +22,29 @@ export class ServerPlayer extends Player {
                 case ServerClient.CMD_CONNECT: {
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.Db.GetPlayerSession(session_id);
-                    let player_state = await world.Db.RegisterUser(world, this);
-                    let data = {
-                        session: this.session,
-                        state:   player_state,
-                    }
-                    conn.sendMixed([{name: ServerClient.CMD_CONNECTED, data: data}]);
-                    conn.sendMixed([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
-                    // @todo Send to all about new players
-                    /*let player_world_state = Game.Db.
-                    params := &ServerClient.ParamPlayerJoin{
-                        ID:       c.ID,
-                        Skin:     c.Skin,
-                        Username: c.Session.Username,
-                        Pos:      c.Pos,
-                        Rotate:   c.Rotate,
-                    }
-                    packet := ServerClient.JSONResponse{Name: ServerClient.CMD_PLAYER_JOIN, Data: params, ID: nil}
-                    */
+                    world.onPlayer(this, skin);
                 }
             }
         });
-        conn.sendMixed = (packets) => {
-            conn.send(JSON.stringify(packets));
-        };
-        conn.sendMixed([{
+        //
+        conn.on('close', async (e) => {
+            this.world.onLeave(this);
+        });
+        //
+        this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: 'Welcome to madcraft ver. 0.0.1'
+            data: 'Welcome to MadCraft ver. 0.0.1'
         }]);
-        conn.sendMixed([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
+        this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
+    }
+
+    // sendPackets...
+    sendPackets(packets) {
+        this.conn.send(JSON.stringify(packets));
+    }
+
+    // onLeave...
+    onLeave() {
     }
 
 }
