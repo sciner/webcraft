@@ -212,4 +212,95 @@ export class DBWorld {
         });
     }
 
+    // Вычитка списка администраторов
+    async loadAdminList(world_id)  {
+        let resp = [];
+        let rows = await this.db.all('SELECT username FROM user WHERE is_admin = ?', [world_id]);
+        for(let row of rows) {
+            resp.push(row.username);
+        }
+        return resp;
+    }
+
+    // findPlayer...
+    async findPlayer(world_id, username) {
+        let row = await this.db.get("SELECT id, username FROM user WHERE lower(username) = LOWER(?)", [username]);
+        if(!row) {
+            return null;
+        }
+        return row;
+    }
+
+    // setAdmin...
+    async setAdmin(world_id, user_id, is_admin) {
+        let result = await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
+    }
+
+    // Load world chests
+    async loadWorldChests(world) {
+        let resp = {
+            chests: new Map(),
+            blocks: new Map() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
+        };
+        let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest');
+        for(let row of rows) {
+            // EntityBlock
+            let entity_block = {
+                id:   row.entity_id,
+                type: 'chest'
+            };
+            // Block item
+            let bi = JSON.parse(row.item);
+            // slots
+            let slots = JSON.parse(row.slots);
+            // chest
+            let chest = {
+                user_id: row.user_id,                           // Кто автор
+                time:    new Date(row.dt * 1000).toISOString(), // Время создания, time.Now()
+                item:    bi,                                    // Предмет
+                slots:   slots,                                 // Слоты
+            };
+            let pos_string = row.x + ',' + row.y + ',' + row.z;
+            resp.chests.set(row.entity_id, chest);
+            resp.blocks.set(pos_string, entity_block);
+        }
+        return resp;
+
+    }
+
+    // Create chest...
+    createChest(player, pos, chest) {
+        /*
+        query := `INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
+        statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+        if err != nil {
+            log.Printf("SQL_ERROR44: %v", err)
+        }
+        item_json_bytes, _ := json.Marshal(chest.Item)
+        slots_json_bytes, _ := json.Marshal(chest.Slots)
+        _, err = statement.Exec(time.Now().Unix(), conn.Session.UserID, chest.Item.EntityID, string(item_json_bytes), string(slots_json_bytes), pos.X, pos.Y, pos.Z)
+        if err != nil {
+            log.Printf("SQL_ERROR45: %v", err)
+        }
+        return err
+        */
+    }
+
+    // saveChestSlots...
+    saveChestSlots(chest) {
+        /*
+        query := `UPDATE chest SET slots = $1 WHERE entity_id = $2`
+        statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
+        if err != nil {
+            log.Printf("SQL_ERROR46: %v", err)
+        }
+        slots_json_bytes, _ := json.Marshal(chest.Slots)
+        _, err = statement.Exec(string(slots_json_bytes), chest.Item.EntityID)
+        if err != nil {
+            log.Printf("SQL_ERROR47: %v", err)
+        }
+        return err
+        */
+    }
+
 }

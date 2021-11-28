@@ -8,6 +8,7 @@ export class ServerClient {
     static CMD_HELLO                    = 1;
     static CMD_PING                     = 3;
     static CMD_PONG                     = 4;
+	static CMD_ERROR                    = 7; // какая-то ошибка (ИСХ)
     static CMD_CONNECT                  = 34;
     static CMD_CONNECTED                = 62;
     // Cnunks and blocks

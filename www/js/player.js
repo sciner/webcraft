@@ -105,6 +105,7 @@ export class Player {
         };
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
+        this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {vt.error(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
             this.indicators = cmd.data.indicators;
             Game.hud.refresh();

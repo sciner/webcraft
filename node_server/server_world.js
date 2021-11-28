@@ -1,27 +1,18 @@
-import {ChunkManager} from "../www/js/chunk_manager.js";
+import {Vector} from "../www/js/helpers.js";
 import {GameMode} from "../www/js/game_mode.js";
-import {MobManager} from "../www/js/mob_manager.js";
 import {Physics} from "../www/js/physics.js";
+
+import {ChunkManager} from "../www/js/chunk_manager.js";
+import {MobManager} from "../www/js/mob_manager.js";
 import {PlayerManager} from "../www/js/player_manager.js";
 import {ServerChat} from "./server_chat.js";
 import {ServerClient} from "../www/js/server_client.js";
-import { Vector } from "../www/js/helpers.js";
+import {EntityManager} from "./entity_manager.js";
+import {WorldAdminManager} from "./admin_manager.js";
 
 export class ServerWorld {
 
     constructor() {
-        this.chat       = new ServerChat(this);
-        this.players    = new Map(); // new PlayerManager(this);
-        //
-        // this.Entities.Load(this)
-        //
-        this.tickerWorldTimer = setInterval(() => {
-            let pn = performance.now();
-            this.save()
-            this.tick()
-            // time elapsed forcurrent tick
-            console.log("Tick took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
-        }, 5000);
     }
 
     tick() {}
@@ -33,18 +24,24 @@ export class ServerWorld {
     }
 
     async initServer(world_guid, Db) {
-        this.Db = Db;
-        this.info = await this.Db.GetWorld(world_guid);
-    }
-
-    // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
-    setInfo(info) {
-        this.info                   = info;
-        this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
-        this.game_mode              = new GameMode(this, info.game_mode);
-        this.chunkManager           = new ChunkManager(this);
-        this.mobs                   = new MobManager(this);
-        this.physics                = new Physics(this);
+        this.Db         = Db;
+        this.info       = await this.Db.GetWorld(world_guid);
+        this.entities   = new EntityManager(this);
+        this.chat       = new ServerChat(this);
+        this.players    = new Map(); // new PlayerManager(this);
+        //
+        this.restoreModifiedChunks();
+        //
+        this.admins = new WorldAdminManager(this);
+        await this.admins.load();
+        //
+        this.tickerWorldTimer = setInterval(() => {
+            let pn = performance.now();
+            this.save()
+            this.tick()
+            // time elapsed forcurrent tick
+            console.log("Tick took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
+        }, 5000);
     }
 
     // onPlayer
@@ -264,6 +261,10 @@ export class ServerWorld {
             conn.ChunkPosO = conn.ChunkPos
         }
         */
+    }
+
+    // restoreModifiedChunks..
+    async restoreModifiedChunks() {
     }
 
 }
