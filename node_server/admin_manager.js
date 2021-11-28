@@ -37,7 +37,6 @@ export class WorldAdminManager {
         if (!user) {
             return null;
         }
-        console.log('------');
         await this.world.Db.setAdmin(this.world.info.id, user.id, 1);
         return await this.load();
     }
