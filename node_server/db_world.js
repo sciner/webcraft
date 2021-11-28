@@ -99,11 +99,12 @@ export class DBWorld {
         let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             return {
-                pos:        JSON.parse(row.pos),
-                pos_spawn:  JSON.parse(row.pos_spawn),
-                rotate:     JSON.parse(row.rotate),
-                inventory:  JSON.parse(row.inventory),
-                indicators: JSON.parse(row.indicators)
+                pos:                JSON.parse(row.pos),
+                pos_spawn:          JSON.parse(row.pos_spawn),
+                rotate:             JSON.parse(row.rotate),
+                inventory:          JSON.parse(row.inventory),
+                indicators:         JSON.parse(row.indicators),
+                chunk_render_dist:  4
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
@@ -181,6 +182,34 @@ export class DBWorld {
         });
         let chat_message_id = result.lastID;
         return chat_message_id;
+    }
+
+    // savePlayerInventory...
+    async savePlayerInventory(player, params) {
+        const result = await this.db.run('UPDATE user SET inventory = :inventory WHERE id = :id', {
+            ':id':              player.session.user_id,
+            ':inventory':       JSON.stringify(params)
+        });
+    }
+
+    // savePlayerState...
+    async savePlayerState(player) {
+        player.position_changed = false;
+        const result = await this.db.run('UPDATE user SET pos = :pos, rotate = :rotate, dt_moved = :dt_moved, indicators = :indicators WHERE id = :id', {
+            ':id':             player.session.user_id,
+            ':pos':            JSON.stringify(player.state.pos),
+            ':rotate':         JSON.stringify(player.state.rotate),
+            ':indicators':     JSON.stringify(player.state.indicators),
+            ':dt_moved':       ~~(Date.now() / 1000)
+        });
+    }
+
+    // changePosSpawn...
+    async changePosSpawn(player, params) {
+        const result = await this.db.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
+            ':id':             player.session.user_id,
+            ':pos_spawn':      JSON.stringify(params.pos)
+        });
     }
 
 }
