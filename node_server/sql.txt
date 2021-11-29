@@ -1,0 +1,90 @@
+-- World database
+
+CREATE TABLE "user" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "guid" text NOT NULL,
+  "username" TEXT,
+  "dt" integer,
+  "skin" TEXT,
+  "inventory" TEXT
+);
+
+CREATE TABLE "user_session" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "user_id" INTEGER NOT NULL,
+  "dt" integer,
+  "token" TEXT
+);
+
+CREATE TABLE "chat_message" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "user_id" integer NOT NULL,
+  "dt" integer NOT NULL,
+  "text" TEXT,
+  "world_id" INTEGER,
+  "user_session_id" INTEGER
+);
+
+CREATE TABLE "world" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "guid" text NOT NULL,
+  "title" TEXT,
+  "user_id" INTEGER,
+  "dt" integer,
+  "seed" TEXT
+);
+
+CREATE UNIQUE INDEX "idx_world_guid" ON "world" ("guid");
+CREATE UNIQUE INDEX "idx_user_guid" ON "user" ("guid");
+
+CREATE TABLE "world_modify" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "world_id" INTEGER NOT NULL,
+  "dt" integer,
+  "user_id" INTEGER,
+  "params" TEXT,
+  "user_session_id" INTEGER,
+  "x" integer,
+  "y" integer,
+  "z" integer,
+  "entity_id" TEXT NOT NULL,
+  "extra_data" TEXT,
+  "chest_id" INTEGER
+);
+
+CREATE TABLE "chest" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "dt" integer,
+  "user_id" INTEGER NOT NULL,
+  "entity_id" TEXT NOT NULL,
+  "item" TEXT NOT NULL,
+  "slots" TEXT NOT NULL,
+  "x" integer,
+  "y" integer,
+  "z" integer
+);
+
+-- Migrate database
+INSERT INTO "chat_message" (id, "user_id", "dt", "text", "world_id", "user_session_id")
+SELECT rowid, "user_id", "dt", "text", "world_id", "user_session_id" FROM "chat_message_copy1";
+
+INSERT INTO "user" (id,guid,username,dt,skin)
+SELECT rowid, guid,username,dt,skin FROM "user_copy1";
+
+INSERT INTO "user_session" (id,user_id,dt,token)
+SELECT rowid, user_id,dt,token FROM "user_session_copy1";
+
+INSERT INTO "world" (id, guid,title,user_id,dt,seed)
+SELECT rowid, guid,title,user_id,dt,seed FROM "world_copy1";
+
+INSERT INTO "world_modify" (id, world_id,dt,user_id,params,user_session_id,x,y,z)
+SELECT rowid, world_id,dt,user_id,params,user_session_id,x,y,z FROM "world_modify_copy1";
+
+-- Game database
+
+CREATE TABLE "world_player" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "world_id" INTEGER,
+  "user_id" INTEGER,
+  "dt" integer
+);

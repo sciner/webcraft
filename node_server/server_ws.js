@@ -35,7 +35,7 @@ export class ServerGame {
             let world       = this.worlds.get(world_guid);
             if(!world) {
                 world = new ServerWorld();
-                let dbc = await DBWorld.OpenDB('./world/' + world_guid, world);
+                let dbc = await DBWorld.OpenDB('../world/' + world_guid, world);
                 await world.initServer(world_guid, dbc);
                 this.worlds.set(world_guid, world);
                 console.log('World started');
