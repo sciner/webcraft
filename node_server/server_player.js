@@ -1,4 +1,4 @@
-import { Vec3, Vector } from "../www/js/helpers.js";
+import {Vector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {ServerClient} from "../www/js/server_client.js";
 
@@ -7,6 +7,7 @@ export class ServerPlayer extends Player {
     constructor() {
         super();
         this.position_changed = false;
+        this.chunk_addr = new Vector(0, 0, 0);
     }
 
     //
@@ -23,7 +24,7 @@ export class ServerPlayer extends Player {
                     // Connect
                     case ServerClient.CMD_CONNECT: {
                         let world_guid = cmd.data.world_guid;
-                        this.session = await Game.Db.GetPlayerSession(session_id);
+                        this.session = await Game.db.GetPlayerSession(session_id);
                         world.onPlayer(this, skin);
                         break;
                     }
@@ -62,7 +63,7 @@ export class ServerPlayer extends Player {
 
                     // Save inventory
                     case ServerClient.CMD_SAVE_INVENTORY: {
-                        this.world.Db.savePlayerInventory(this, cmd.data);
+                        this.world.db.savePlayerInventory(this, cmd.data);
                         break;
                     }
 
@@ -105,10 +106,23 @@ export class ServerPlayer extends Player {
                         this.world.entities.loadChest(this, cmd.data);
                         break;
                     }
+                        
+                    // Пользователь подгрузил чанк
+                    case ServerClient.CMD_CHUNK_ADD: {
+                        let chunk = await this.world.loadChunkForPlayer(this, new Vector(cmd.data.pos));
+                        chunk.loaded(this);
+                        break;
+                    }
+
+                    case ServerClient.CMD_BLOCK_SET: {
+                        await this.world.setBlock(this, cmd.data);
+                        break;
+                    }
 
                     // Not implemented ////////////////////////////////////////////////////////////////////////
                 
                     case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
+                        throw 'error_not_implemented|' + cmd.name;
                         /*
                         out, _ := json.Marshal(cmdIn.Data)
                         var params *Struct.ParamChestSetSlotItem
@@ -120,6 +134,7 @@ export class ServerPlayer extends Player {
 
                     // Пользователь выгрузил чанк
                     case ServerClient.CMD_CHUNK_REMOVE: {
+                        // throw 'error_not_implemented|' + cmd.name;
                         /*
                         out, _ := json.Marshal(cmdIn.Data)
                         var params *Struct.ParamChunkRemove
@@ -141,6 +156,7 @@ export class ServerPlayer extends Player {
                     }
 
                     case ServerClient.CMD_CREATE_ENTITY: {
+                        throw 'error_not_implemented|' + cmd.name;
                         /*
                         out, _ := json.Marshal(cmdIn.Data)
                         var params *Struct.ParamBlockSet
@@ -148,44 +164,15 @@ export class ServerPlayer extends Player {
                         chunkAddr := this.GetChunkAddr(params.Pos)
                         chunk := this.ChunkGet(chunkAddr)
                         chunk.BlockSet(conn, params, false)
-                        this.Db.BlockSet(conn, this, params)
+                        this.db.BlockSet(conn, this, params)
                         this.ChunkBecameModified(&chunkAddr);
                         */
-                        break;
-                    }
-                        
-                    // Пользователь подгрузил чанк
-                    case ServerClient.CMD_CHUNK_ADD: {
-                        /*
-                        out, _ := json.Marshal(cmdIn.Data)
-                        var params *Struct.ParamChunkAdd
-                        json.Unmarshal(out, &params)
-                        chunk := this.LoadChunkForPlayer(conn, params.Pos)
-                        // отправим ему modify_list
-                        chunk.Loaded(conn);
-                        */
-                        break;
-                    }
-
-                    case ServerClient.CMD_BLOCK_SET: {
-                        /*out, _ := json.Marshal(cmdIn.Data)
-                        var params *Struct.ParamBlockSet
-                        json.Unmarshal(out, &params)
-                        // Ignore bedrock for non admin
-                        err := this.Admins.CheckIsAdmin(conn)
-                        if params.Item.ID != 1 || err == nil {
-                            chunkAddr := this.GetChunkAddr(params.Pos)
-                            chunk := this.ChunkGet(chunkAddr)
-                            if chunk.BlockSet(conn, params, false) {
-                                this.Db.BlockSet(conn, this, params)
-                                this.ChunkBecameModified(&chunkAddr)
-                            }
-                        }*/
                         break;
                     }
                                 
                 }
             } catch(e) {
+                console.log(e);
                 let packets = [{
                     name: ServerClient.CMD_ERROR,
                     data: {
@@ -214,7 +201,7 @@ export class ServerPlayer extends Player {
 
     // changePosSpawn...
     changePosSpawn(params) {
-        this.world.Db.changePosSpawn(this, params);
+        this.world.db.changePosSpawn(this, params);
         this.state.pos_spawn = new Vector(params.pos);
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);

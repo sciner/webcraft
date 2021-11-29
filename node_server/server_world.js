@@ -1,14 +1,19 @@
+import uuid from 'uuid';
+
 import {Vector} from "../www/js/helpers.js";
 import {GameMode} from "../www/js/game_mode.js";
 import {Physics} from "../www/js/physics.js";
-
 import {ChunkManager} from "../www/js/chunk_manager.js";
 import {MobManager} from "../www/js/mob_manager.js";
 import {PlayerManager} from "../www/js/player_manager.js";
-import {ServerChat} from "./server_chat.js";
 import {ServerClient} from "../www/js/server_client.js";
+import {getChunkAddr} from "../www/js/chunk.js";
+
+import {ServerChat} from "./server_chat.js";
+import {ServerChunk} from "./server_chunk.js";
 import {EntityManager} from "./entity_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
+import {ModelManager} from "./model_manager.js";
 
 export class ServerWorld {
 
@@ -19,21 +24,26 @@ export class ServerWorld {
 
     save() {
         for(let player of this.players.values()) {
-            this.Db.savePlayerState(player);
+            this.db.savePlayerState(player);
         }
     }
 
-    async initServer(world_guid, Db) {
-        this.Db         = Db;
-        this.info       = await this.Db.GetWorld(world_guid);
+    async initServer(world_guid, db) {
+        this.db         = db;
+        this.info       = await this.db.GetWorld(world_guid);
         this.entities   = new EntityManager(this);
         this.chat       = new ServerChat(this);
+        this.chunks     = new Map();
         this.players    = new Map(); // new PlayerManager(this);
+        this.mobs       = new MobManager();
         //
-        this.restoreModifiedChunks();
+        this.models     = new ModelManager();
+        this.models.init();
         //
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
+        //
+        this.restoreModifiedChunks();
         //
         this.tickerWorldTimer = setInterval(() => {
             let pn = performance.now();
@@ -47,7 +57,7 @@ export class ServerWorld {
     // onPlayer
     async onPlayer(player, skin) {
         // 1. Insert to DB if new player
-        player.state = await this.Db.RegisterUser(this, player);
+        player.state = await this.db.RegisterUser(this, player);
         player.state.skin = skin;
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
@@ -116,7 +126,7 @@ export class ServerWorld {
     async onLeave(player) {
         if(this.players.has(player.session.user_id)) {
             this.players.delete(player.session.user_id);
-            this.Db.savePlayerState(player);
+            this.db.savePlayerState(player);
             player.onLeave();
             // Notify other players about leave me
             let packets = [{
@@ -220,51 +230,115 @@ export class ServerWorld {
         player.position_changed         = true;
     }
 
+    // Add dmob
+    addMob(player, mob) {
+        if(!this.admins.checkIsAdmin(player)) {
+            throw 'error_not_permitted';
+        }
+        // Find model and skin
+        let model = this.models.list.get(mob.type);
+        if (!model) {
+            throw 'error_model_not_found';
+        }
+        if(!model.skins[mob.skin]) {
+            throw 'error_model_skin_not_found';
+        }
+        mob.id = uuid();
+        this.mobs.add(mob);
+        let packets = [{
+            name: ServerClient.CMD_MOB_ADDED,
+            data: [mob]
+        }];
+        this.sendAll(packets, []);
+        return true;
+    }
+
     // Check player visible chunks
     checkPlayerVisibleChunks(player, chunk_render_dist, force) {
-        player.sendPackets([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
-        /*
-        conn.ChunkPos = this.GetChunkAddr(*&Struct.Vector3{
-            X: int(conn.Pos.X),
-            Y: int(conn.Pos.Y),
-            Z: int(conn.Pos.Z),
-        })
-        if force || !conn.ChunkPosO.Equal(conn.ChunkPos) {
+        // player.sendPackets([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
+        player.chunk_addr = getChunkAddr(player.state.pos);
+        if (force || !player.chunk_addr_o.equal(player.chunk_addr)) {
             // чанки, находящиеся рядом с игроком, у которых есть модификаторы
-            modified_chunks := []*Struct.Vector3{}
-            x_rad := ChunkRenderDist + 5
-            y_rad := 5
-            z_rad := ChunkRenderDist + 5
-            for x := -x_rad; x < x_rad; x++ {
-                for y := -y_rad; y < y_rad; y++ {
-                    for z := -z_rad; z < z_rad; z++ {
-                        vec := &Struct.Vector3{
-                            X: conn.ChunkPos.X + x,
-                            Y: conn.ChunkPos.Y + y,
-                            Z: conn.ChunkPos.Z + z,
-                        }
-                        if this.ChunkHasModifiers(vec) {
-                            modified_chunks = append(modified_chunks, vec)
-                            // this.LoadChunkForPlayer(conn, *vec)
+            let modified_chunks = [];
+            let x_rad = chunk_render_dist + 5;
+            let y_rad = 5
+            let z_rad = chunk_render_dist + 5;
+            for (let x = -x_rad; x < x_rad; x++) {
+                for (let y = -y_rad; y < y_rad; y++) {
+                    for (let z = -z_rad; z < z_rad; z++) {
+                        let vec = player.chunk_addr.add(new Vector(x, y, z));
+                        if (this.chunkHasModifiers(vec)) {
+                            modified_chunks.push(vec);
+                            // this.LoadChunkForPlayer(player, *vec)
                         }
                     }
                 }
             }
             // cnt := len(modified_chunks)
-            // this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", conn.ChunkPos)+" ... "+strconv.Itoa(cnt), []string{})
-            packet := Struct.JSONResponse{Name: Struct.CMD_NEARBY_MODIFIED_CHUNKS, Data: modified_chunks, ID: nil}
-            packets := []Struct.JSONResponse{packet}
-            connections := map[string]*PlayerConn{
-                conn.ID: conn,
-            }
-            this.SendSelected(packets, connections, []string{})
-            conn.ChunkPosO = conn.ChunkPos
+            // this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", player.chunk_addr)+" ... "+strconv.Itoa(cnt), []string{})
+            let packets = [{
+                name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS,
+                data: modified_chunks
+            }];
+            this.sendSelected(packets, [player.session.user_id], []);
+            player.chunk_addr_o = player.chunk_addr;
         }
-        */
     }
 
-    // restoreModifiedChunks..
+    // Restore modified chunks list
     async restoreModifiedChunks() {
+        this.chunkModifieds = new Set();
+        let list = await this.db.chunkBecameModified();
+        for(let addr of list) {
+            this.chunkBecameModified(addr);
+        }
+        return true;
+    }
+
+    // Chunk has modifiers
+    chunkHasModifiers(addr) {
+        return this.chunkModifieds.has(addr.toHash());
+    }
+    
+    // Add chunk to modified
+    chunkBecameModified(addr) {
+        this.chunkModifieds.add(addr.toHash());
+    }
+
+    // LoadChunkForPlayer...
+    async loadChunkForPlayer(player, addr) {
+        // получим чанк
+        let chunk = await this.chunkGet(addr);
+        // запомним, что юзер в этом чанке
+        chunk.addPlayerConn(player);
+        return chunk;
+    }
+
+    //
+    async chunkGet(addr) {
+        let chunk = this.chunks.get(addr.toHash());
+        if(chunk) {
+            return chunk
+        }
+        chunk = new ServerChunk(this, addr);
+        this.chunks.set(addr.toHash(), chunk);
+        await chunk.load();
+        return chunk;
+    }
+
+    //
+    async setBlock(player, params) {
+        // @ParamBlockSet
+        // Ignore bedrock for non admin
+        let is_admin = this.admins.checkIsAdmin(player);
+        if (params.item.id != 1 || is_admin) {
+            let chunkAddr = getChunkAddr(params.pos);
+            let chunk = await this.chunkGet(chunkAddr);
+            if (await chunk.blockSet(player, params, false)) {
+                await this.db.blockSet(this, player, params);
+                this.chunkBecameModified(chunkAddr);
+            }
+        }
     }
 
 }

@@ -32,7 +32,6 @@ export class GameClass {
         await BLOCK.init();
         // Create world
         this.world = new World();
-        this.sounds = new Sounds();
         await this.render.init(this.world, settings);
         let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
         await this.world.connectToServer(ws);
@@ -41,6 +40,7 @@ export class GameClass {
 
     // Started...
     Started(player) {
+        this.sounds             = new Sounds();
         this.player             = player;
         this.averageClockTimer  = new AverageClockTimer();
         this.block_manager      = BLOCK;

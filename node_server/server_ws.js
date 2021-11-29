@@ -24,7 +24,7 @@ export class ServerGame {
 
     // startWS...
     async startWS() {
-        this.Db = await DBGame.OpenDB('.');
+        this.db = await DBGame.OpenDB('.');
         // Create websocket server
         this.wsServer = new WebSocketServer({noServer: true}); // {port: 5701}
         // New player connection

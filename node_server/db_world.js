@@ -4,6 +4,8 @@ import {open} from 'sqlite'
 import uuid from 'uuid';
 import { copyFile } from 'fs/promises';
 
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
+
 import {Vector} from "../www/js/helpers.js";
 
 export class DBWorld {
@@ -62,7 +64,7 @@ export class DBWorld {
             }
         }
         // Insert new world to Db
-        let world = await Game.Db.GetWorld(world_guid);
+        let world = await Game.db.GetWorld(world_guid);
         const result = await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
@@ -301,6 +303,63 @@ export class DBWorld {
         }
         return err
         */
+    }
+
+    // ChunkBecameModified...
+    async chunkBecameModified() {
+        let resp = new Set();
+        let rows = await this.db.all("SELECT DISTINCT CAST(round(x / " + CHUNK_SIZE_X + " - 0.5) AS INT) AS x, CAST(round(y / " + CHUNK_SIZE_Y + " - 0.5) AS INT) AS y, CAST(round(z / " + CHUNK_SIZE_Z + " - 0.5) AS INT) AS z FROM world_modify");
+        for(let row of rows) {
+            let addr = new Vector(row.x, row.y, row.z);
+            resp.add(addr);
+        }
+        return resp
+    }
+
+    // Load chunk modify list
+    async loadChunkModifiers(addr, size) {
+        let resp = new Map();
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max", {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        for(let row of rows) {
+            let params = row.params ? JSON.parse(row.params) : null;
+            // @BlockItem
+            let item = {
+                id:         'id' in params ? params.id : 0,
+                rotate:     'rotate' in params ? params.rotate : 0,
+                power:      row.power,
+                entity_id:  row.entity_id,
+                extra_data: row.extra_data ? JSON.parse(row.extra_data) : null,
+            };
+            //
+            let pos = new Vector(row.x, row.y, row.z);
+            resp.set(pos.toHash(), item);
+        }
+        return resp;
+    }
+
+    // Block set
+    async blockSet(world, player, params) {
+        const result = await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data)', {
+            ':user_id':     player.session.user_id,
+            ':dt':          ~~(Date.now() / 1000),
+            ':world_id':    world.info.id,
+            ':params':      JSON.stringify(params.item),
+            ':x':           params.pos.x,
+            ':y':           params.pos.y,
+            ':z':           params.pos.z,
+            ':entity_id':   params.item.entity_id ? params.item.entity_id : null,
+            ':extra_data':  params.item.extra_data ? JSON.stringify(params.item.extra_data) : null
+        });
+        if (params.item.extra_data) {
+            // @todo Update extra data
+        }
     }
 
 }

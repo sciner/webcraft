@@ -1,4 +1,5 @@
 import {ServerClient} from "../www/js/server_client.js";
+import {Vector} from "../www/js/helpers.js";
 
 export class ServerChat {
 
@@ -19,7 +20,7 @@ export class ServerChat {
                 name: ServerClient.CMD_CHAT_SEND_MESSAGE,
                 data: params
             }];
-            this.world.Db.insertChatMessage(player, params);
+            this.world.db.insertChatMessage(player, params);
             this.world.sendAll(packets, [player.session.user_id]);
         } catch(e) {
             let players = [player.session.user_id];
@@ -29,6 +30,9 @@ export class ServerChat {
 
     // sendSystemChatMessageToSelectedPlayers...
     sendSystemChatMessageToSelectedPlayers(text, selected_players) {
+        if(typeof text == 'object' && 'message' in text) {
+            text = text.message;
+        }
         let packets = [
             {
                 name: ServerClient.CMD_CHAT_SEND_MESSAGE,
@@ -44,32 +48,32 @@ export class ServerChat {
     // runCmd
     async runCmd(player, original_text) {
         let text = original_text.replace(/  +/g, ' ').trim();
-        let tmp = text.split(' ');
-        let cmd = tmp[0].toLowerCase();
+        let args = text.split(' ');
+        let cmd = args[0].toLowerCase();
         switch (cmd) {
             case "/admin": {
-                if (tmp.length < 2) {
+                if (args.length < 2) {
                     throw 'Invalid arguments count';
                 }
-                switch (tmp[1]) {
+                switch (args[1]) {
                     case 'list': {
                         let admin_list = this.world.admins.getList().join(', ');
                         this.sendSystemChatMessageToSelectedPlayers(admin_list, [player.session.user_id]);
                         break;
                     }
                     case 'add': {
-                        if (tmp.length < 3) {
+                        if (args.length < 3) {
                             throw 'Invalid arguments count';
                         }
-                        await this.world.admins.add(player, tmp[2]);
+                        await this.world.admins.add(player, args[2]);
                         this.sendSystemChatMessageToSelectedPlayers('Admin added', [player.session.user_id]);
                         break;
                     }
                     case 'remove': {
-                        if (tmp.length < 3) {
+                        if (args.length < 3) {
                             throw 'Invalid arguments count';
                         }
-                        await this.world.admins.remove(player, tmp[2]);
+                        await this.world.admins.remove(player, args[2]);
                         this.sendSystemChatMessageToSelectedPlayers('Admin removed', [player.session.user_id]);
                         break;
                     }
@@ -79,49 +83,37 @@ export class ServerChat {
                 }
                 break;
             }
-        case "/spawnmob":
-            {
-                /*err := world.Admins.CheckIsAdmin(conn)
-                if err != nil {
-                    return err
+            case '/spawnmob': {
+                args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
+                // @ParamMobAdd
+                let params = {
+                    type:   args[4],
+                    skin:   args[5],
+                    pos:    player.state.pos.clone(),
+                    rotate: new Vector(0, 0, player.state.rotate.z)
+                }; 
+                // x
+                if (args[1] !== null) {
+                    params.pos.x = args[1];
                 }
-                args, err := this.parseCMD(tmp, []string{"string", "?float", "?float", "?float", "string", "string"})
-                if err != nil {
-                    return err
+                // y
+                if (args[2] !== null) {
+                    params.pos.y = args[2];
                 }
-                // Correct format
-                log.Println("Correct format", args)
-                params := &Struct.ParamMobAdd{}
-                // X
-                if args[1] == nil {
-                    params.Pos.X = conn.Pos.X
-                } else {
-                    params.Pos.X, _ = strconv.ParseFloat(fmt.Sprint(args[1]), 64)
+                // z
+                if (args[3] !== null) {
+                    params.pos.z = args[3];
                 }
-                // Y
-                if args[2] == nil {
-                    params.Pos.Y = conn.Pos.Y
-                } else {
-                    params.Pos.Y, _ = strconv.ParseFloat(fmt.Sprint(args[2]), 64)
-                }
-                // Z
-                if args[3] == nil {
-                    params.Pos.Z = conn.Pos.Z
-                } else {
-                    params.Pos.Z, _ = strconv.ParseFloat(fmt.Sprint(args[3]), 64)
-                }
-                //
-                params.Rotate.Z = conn.Rotate.Z
-                params.Type = fmt.Sprint(args[4])
-                params.Skin = fmt.Sprint(args[5])
-                err = world.AddMob(conn, params)
-                if err != nil {
-                    return err
-                }
-                */
+                // add
+                this.world.addMob(player, params);
+               break;
+            }
+            default: {
+                throw 'error_invalid_command';
+                break;
             }
         }
-        return true
+        return true;
     }
 
     // parseCMD...
@@ -186,7 +178,7 @@ export class ServerChat {
                 }
             }
         }
-        return resp, nil
+        return resp;
     }
 
 }

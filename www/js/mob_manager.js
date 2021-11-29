@@ -6,6 +6,10 @@ export class MobManager {
     constructor(world) {
         this.world = world;
         this.list = new Map();
+    }
+
+    // Client side method
+    init() {
         // On server message
         this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADDED, ServerClient.CMD_MOB_DELETED], (cmd) => {
             switch(cmd.name) {

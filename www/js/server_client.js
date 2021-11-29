@@ -188,7 +188,6 @@ export class ServerClient {
             let out_packets = this.stat.out_packets[packet.name];
             out_packets.count++;
             out_packets.size += json.length;
-            console.log('> server ' + ServerClient.getCommandTitle(packet.name));
             this.ws.send(json);
         }, 0);
     }

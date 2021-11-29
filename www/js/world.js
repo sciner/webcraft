@@ -39,6 +39,7 @@ export class World {
         this.mobs                   = new MobManager(this);
         this.players                = new PlayerManager(this);
         this.physics                = new Physics(this);
+        this.mobs.init();
     }
 
     joinPlayer(player) {}

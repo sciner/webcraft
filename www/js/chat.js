@@ -29,6 +29,7 @@ export class Chat {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
             add: function(username, text, timeout) {
+                text = String(text);
                 if(!timeout) {
                     timeout = 0;
                 }

@@ -314,6 +314,10 @@ export class Vector {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
     }
 
+    toHash() {
+        return this.x + ',' + this.y + ',' + this.z;
+    }
+
     norm() {
         return this.length();
     }

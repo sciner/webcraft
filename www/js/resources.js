@@ -289,4 +289,9 @@ export class Resources {
         return  Helpers.fetchJSON('../data/recipes.json');
     }
 
+    // Load models
+    static async loadModels() {
+        return  Helpers.fetchJSON('../media/models/database.json');
+    }
+
 }

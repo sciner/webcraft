@@ -234,7 +234,7 @@ export class ChunkManager {
         if(this.nearby_modified_list.has(item.addr)) {
             this.world.server.ChunkAdd(item.addr);
         } else {
-           if(!this.setChunkState({pos: item.addr, modify_list: null})) {
+           if(!this.setChunkState({addr: item.addr, modify_list: null})) {
                return false;
            }
         }
@@ -243,13 +243,13 @@ export class ChunkManager {
 
     // Установить начальное состояние указанного чанка
     setChunkState(state) {
-        let prepare = this.chunks_prepare.get(state.pos);
+        let prepare = this.chunks_prepare.get(state.addr);
         if(prepare) {
-            let chunk = new Chunk(state.pos, state.modify_list, this);
+            let chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
-            this.chunks.add(state.pos, chunk);
+            this.chunks.add(state.addr, chunk);
             this.rendered_chunks.total++;
-            this.chunks_prepare.delete(state.pos);
+            this.chunks_prepare.delete(state.addr);
             return true;
         }
         return false;

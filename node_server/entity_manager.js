@@ -38,7 +38,7 @@ export class EntityManager {
 
     // Load from DB
     async load() {
-        let resp = await this.world.Db.loadWorldChests(this.world);
+        let resp = await this.world.db.loadWorldChests(this.world);
         this.chests = resp.chests;
         this.blocks = resp.blocks;
     }
@@ -109,7 +109,7 @@ export class EntityManager {
                 Type: "chest",
             }
             // Save to DB
-            world.Db.CreateChest(conn, &params.Pos, entity)
+            world.db.CreateChest(conn, &params.Pos, entity)
             // this.Save()
             return entity.Item.EntityID
         }
@@ -131,7 +131,7 @@ export class EntityManager {
                     }
                 }
                 // Save chest slots to DB
-                world.Db.SaveChestSlots(chest)
+                world.db.SaveChestSlots(chest)
             }
         }
 

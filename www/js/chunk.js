@@ -13,7 +13,7 @@ export const MAX_CAVES_LEVEL                = 256;
 
 // Возвращает адрес чанка по глобальным абсолютным координатам
 export function getChunkAddr(x, y, z, v = null) {
-    if(x instanceof Vector) {
+    if(x instanceof Vector || typeof x == 'object') {
         v = y;
 
         y = x.y;
