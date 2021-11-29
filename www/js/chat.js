@@ -174,10 +174,6 @@ export class Chat {
                     }
                     break;
                 }
-                case '/seed': {
-                    chat.messages.addSystem('Ключ генератора [' + world.info.seed + ']');
-                    break;
-                }
                 case '/gamemode': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();
@@ -199,10 +195,6 @@ export class Chat {
                         '/give <item> [<count>]',
                     ];
                     chat.messages.addSystem('\n' + commands.join('\n'));
-                    break;
-                }
-                case '/spawnpoint': {
-                    player.changeSpawnpoint();
                     break;
                 }
                 case '/weather': {

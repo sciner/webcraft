@@ -83,6 +83,14 @@ export class ServerChat {
                 }
                 break;
             }
+            case '/seed': {
+                this.sendSystemChatMessageToSelectedPlayers('Ключ генератора: ' + this.world.info.seed, [player.session.user_id]);
+                break;
+            }
+            case '/spawnpoint': {
+                player.changePosSpawn({pos: player.state.pos.clone().multiplyScalar(1000).floored().divScalar(1000)});
+                break;
+            }
             case '/spawnmob': {
                 args = this.parseCMD(args, ['string', '?float', '?float', '?float', 'string', 'string']);
                 // @ParamMobAdd
