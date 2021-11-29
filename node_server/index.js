@@ -12,9 +12,12 @@ import {ServerAPI} from "./server_api.js";
 import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
 // Set global variables
-global.__dirname = path.resolve();
-global.Worker = Worker;
-global.fs = fs;
+global.__dirname        = path.resolve();
+global.Worker           = Worker;
+global.fs               = fs;
+global.BLOCK_CHEST      = 54;
+global.GAME_ONE_SECOND  = 72;
+global.GAME_DAY_SECONDS = 24000;
 
 // Init environment
 await BLOCK.init();

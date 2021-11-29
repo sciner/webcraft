@@ -341,4 +341,14 @@ export class ServerWorld {
         }
     }
 
+    // Create entity
+    async createEntity(player, params) {
+        // @ParamBlockSet
+        let chunkAddr = getChunkAddr(params.pos);
+        let chunk = await this.chunkGet(chunkAddr);
+        await chunk.blockSet(player, params, false);
+        await this.db.blockSet(this, player, params);
+        this.chunkBecameModified(chunkAddr);
+    }
+
 }

@@ -46,7 +46,7 @@ export class GameClass {
         this.block_manager      = BLOCK;
         this.prev_player_state  = null;
         //
-        this.render.setPlayer(player);//
+        this.render.setPlayer(player);
         this.setInputCanvas('renderSurface');
         this.setupMousePointer(false);
         this.setupMouseListeners();

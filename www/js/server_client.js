@@ -134,7 +134,7 @@ export class ServerClient {
     _onMessage(event) {
         let cmds = JSON.parse(event.data);
         for(let cmd of cmds) {
-            console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
+            // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
             if(!this.stat.in_packets[cmd.name]) {
                 this.stat.in_packets[cmd.name] = {count: 0, size: 0}

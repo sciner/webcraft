@@ -1,33 +1,8 @@
+import uuid from 'uuid';
+
+import { Vector } from "../www/js/helpers.js";
+
 export class EntityManager {
-
-    /*
-
-        type (
-            ChestSlot struct {
-                ID       int     `json:"id"`
-                Count    int     `json:"count"`
-                Power    float32 `json:"power"`
-                EntityID string  `json:"entity_id,omitempty"`
-            }
-            EntityBlock struct {
-                ID   string `json:"id"`
-                Type string `json:"type"` // chest
-            }
-            // Chest ...
-            Chest struct {
-                UserID int64              `json:"user_id"` // Кто автор
-                Time   time.Time          `json:"time"`    // Время создания, time.Now()
-                Item   Struct.BlockItem   `json:"item"`    // Предмет
-                Slots  map[int]*ChestSlot `json:"slots"`
-            }
-            EntityManager struct {
-                Mu     *sync.Mutex             `json:"-"` // чтобы избежать коллизий
-                Chests map[string]*Chest       `json:"chests"`
-                Blocks map[string]*EntityBlock `json:"blocks"` // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
-                World  *World                  `json:"-"`
-            }
-        )
-    */
 
     constructor(world) {
         this.world = world;
@@ -46,94 +21,93 @@ export class EntityManager {
     // LoadChest...
     async loadChest(player, params) {
         if(this.chests.has(params.entity_id)) {
-            player.sendChest(this.chests.get(params.entity_id));
+            return await player.sendChest(this.chests.get(params.entity_id));
         }
-        console.log("Chest " + params.entity_id + " not found")
+        throw 'Chest ' + params.entity_id + ' not found';
     }
 
-    /*
+    // Return block key
+    getBlockKey(pos) {
+        return new Vector(pos).toHash();
+    }
 
-        // GetBlockKey
-        func (this *EntityManager) GetBlockKey(pos Struct.Vector3) string {
-            return fmt.Sprintf("%d,%d,%d", pos.X, pos.Y, pos.Z)
+    // Generate ID
+    generateID() {
+        const guid = uuid();
+        if(this.chests.has(guid)) {
+            return this.generateID();
         }
+        return guid;
+    }
 
-        // GenerateID...
-        func (this *EntityManager) GenerateID() string {
-            b := make([]byte, 16)
-            _, err := rand.Read(b)
-            if err != nil {
-                log.Fatal(err)
-            }
-            uuid := fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-            if _, ok := this.Chests[uuid]; ok {
-                return this.GenerateID()
-            }
-            return uuid
-        }
-
-        // GetEntityByPos
-        func (this *EntityManager) GetEntityByPos(pos Struct.Vector3) (interface{}, string) {
-            this.Mu.Lock()
-            defer this.Mu.Unlock()
-            blockPosKey := this.GetBlockKey(pos)
-            if be, ok := this.Blocks[blockPosKey]; ok {
-                // log.Println("Block occupied by another entity")
-                switch be.Type {
-                case "chest":
-                    return this.Chests[be.ID], be.Type
+    // Return entity on this block position
+    getEntityByPos(pos) {
+        let blockPosKey = this.getBlockKey(pos);
+        if(this.blocks.has(blockPosKey)) {
+            let be = this.blocks.get(blockPosKey);
+            // Block occupied by another entity
+            switch (be.type) {
+                case 'chest': {
+                    return {
+                        entity: this.chests.get(be.id),
+                        type: be.type
+                    };
+                    break;
                 }
             }
-            return nil, ""
         }
+        return null;
+    }
 
-        // CreateEntity...
-        func (this *EntityManager) CreateChest(world *World, conn *PlayerConn, params *Struct.ParamBlockSet) string {
-            this.Mu.Lock()
-            defer this.Mu.Unlock()
-            blockPosKey := this.GetBlockKey(params.Pos)
-            if _, ok := this.Blocks[blockPosKey]; ok {
-                log.Println("Block occupied by another entity")
-                return ""
-            }
-            entity := &Chest{
-                UserID: conn.Session.UserID,
-                Time:   time.Now(),
-                Item:   params.Item,
-                Slots:  make(map[int]*ChestSlot, 27),
-            }
-            entity.Item.EntityID = this.GenerateID()
-            this.Chests[entity.Item.EntityID] = entity
-            this.Blocks[blockPosKey] = &EntityBlock{
-                ID:   entity.Item.EntityID,
-                Type: "chest",
-            }
-            // Save to DB
-            world.db.CreateChest(conn, &params.Pos, entity)
-            // this.Save()
-            return entity.Item.EntityID
+    /**
+     * Create chest 
+     * @param {*} world 
+     * @param {*} player 
+     * @param {ParamBlockSet} params 
+     */
+    async createChest(world, player, params) {
+        let blockPosKey = this.getBlockKey(params.pos);
+        if(this.blocks.has(blockPosKey)) {
+            throw 'error_block_occupied_by_another_entity';
         }
+        // @Chest
+        let entity = {
+            user_id:    player.session.user_id,
+            time:       ~~(Date.now() / 1000),
+            item:       params.item,
+            slots:      {}, // Array(27) // @ChestSlot
+        }
+        entity.item.entity_id = this.generateID();
+        this.chests.set(entity.item.entity_id, entity);
+        // @EntityBlock
+        this.blocks.set(blockPosKey, {
+            id:   entity.item.entity_id,
+            type: 'chest'
+        });
+        // Save to DB
+        await this.world.db.createChest(player, params.pos, entity);
+        return entity.item.entity_id;
+    }
 
-        // Получены новые данные о содержимом слоте сундука
-        func (this *EntityManager) SetChestSlotItem(world *World, conn *PlayerConn, params *Struct.ParamChestSetSlotItem) {
-            if chest, ok := this.Chests[params.EntityID]; ok {
-                this.Mu.Lock()
-                defer this.Mu.Unlock()
-                if params.Item.Count == 0 {
-                    delete(chest.Slots, params.SlotIndex)
-                } else {
-                    log.Println(4)
-                    chest.Slots[params.SlotIndex] = &ChestSlot{
-                        ID:       params.Item.ID,
-                        Count:    params.Item.Count,
-                        EntityID: params.Item.EntityID,
-                        Power:    params.Item.Power,
-                    }
+    // Получены новые данные о содержимом слоте сундука
+    async setChestSlotItem(player, params) {
+        if(this.chests.has(params.entity_id)) {
+            let chest = this.chests.get(params.entity_id);
+            let new_count = params?.item?.count || 0;
+            if (new_count == 0) {
+                delete(chest.slots[params.slot_index]);
+            } else {
+                // @ChestSlot
+                chest.slots[params.slot_index] = {
+                    id:         params.item.id,
+                    count:      params.item.count,
+                    entity_id:  params.item.entity_id,
+                    power:      params.item.power,
                 }
-                // Save chest slots to DB
-                world.db.SaveChestSlots(chest)
             }
+            // Save chest slots to DB
+            this.world.db.saveChestSlots(chest);
         }
+    }
 
-    */
 }

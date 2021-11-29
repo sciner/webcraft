@@ -115,22 +115,17 @@ export class ServerPlayer extends Player {
                     }
 
                     case ServerClient.CMD_BLOCK_SET: {
-                        await this.world.setBlock(this, cmd.data);
+                        this.world.setBlock(this, cmd.data);
+                        break;
+                    }
+                
+                    case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
+                        // @ParamChestSetSlotItem
+                        this.world.entities.setChestSlotItem(this, cmd.data);
                         break;
                     }
 
                     // Not implemented ////////////////////////////////////////////////////////////////////////
-                
-                    case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
-                        throw 'error_not_implemented|' + cmd.name;
-                        /*
-                        out, _ := json.Marshal(cmdIn.Data)
-                        var params *Struct.ParamChestSetSlotItem
-                        json.Unmarshal(out, &params)
-                        this.Entities.SetChestSlotItem(this, conn, params);
-                        */
-                        break;
-                    }
 
                     // Пользователь выгрузил чанк
                     case ServerClient.CMD_CHUNK_REMOVE: {
@@ -156,17 +151,7 @@ export class ServerPlayer extends Player {
                     }
 
                     case ServerClient.CMD_CREATE_ENTITY: {
-                        throw 'error_not_implemented|' + cmd.name;
-                        /*
-                        out, _ := json.Marshal(cmdIn.Data)
-                        var params *Struct.ParamBlockSet
-                        json.Unmarshal(out, &params)
-                        chunkAddr := this.GetChunkAddr(params.Pos)
-                        chunk := this.ChunkGet(chunkAddr)
-                        chunk.BlockSet(conn, params, false)
-                        this.db.BlockSet(conn, this, params)
-                        this.ChunkBecameModified(&chunkAddr);
-                        */
+                        this.world.createEntity(this, cmd.data);
                         break;
                     }
                                 

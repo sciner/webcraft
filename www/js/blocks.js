@@ -40,6 +40,7 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 export class BLOCK {
 
     static list                 = [];
+    static spawn_eggs           = [];
     static styles               = [];
     static ao_invisible_blocks  = [];
     static resource_pack_manager = null;
@@ -208,6 +209,7 @@ export class BLOCK {
 
     static reset() {
         BLOCK.list                   = [];
+        BLOCK.spawn_eggs             = [];
         BLOCK.BLOCK_BY_ID            = new Map();
         BLOCK.BLOCK_BY_TAGS          = {};
         BLOCK.ao_invisible_blocks    = [];
@@ -277,6 +279,9 @@ export class BLOCK {
         if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power) {
             this.ao_invisible_blocks.push(block.id);
         }
+        if(block.spawn_egg) {
+            BLOCK.spawn_eggs.push(block.id);
+        }
         // Parse tags
         if(block.hasOwnProperty('tags')) {
             for(let tag of block.tags) {
@@ -298,6 +303,10 @@ export class BLOCK {
     // getAll
     static getAll() {
         return this.list;
+    }
+
+    static isEgg(block_id) {
+        return BLOCK.spawn_eggs.indexOf(block_id) >= 0;
     }
 
     /**

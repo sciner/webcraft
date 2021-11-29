@@ -1,6 +1,7 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector} from "../www/js/helpers.js";
+import {BLOCK} from "../www/js/blocks.js";
 
 export class ServerChunk {
 
@@ -45,61 +46,63 @@ export class ServerChunk {
     }
 
     // Set block
-    blockSet(player, params, notify_author) {
+    async blockSet(player, params, notify_author) {
 
-        /*if Worlds.Blocks.IsEgg(params.Item.ID) {
-            material := Worlds.Blocks.List[params.Item.ID]
-            chat_message := &Struct.ParamChatSendMessage{
-                Username: conn.Session.Username,
-                Text:     "/spawnmob " + strconv.Itoa(params.Pos.X) + ".5 " + strconv.Itoa(params.Pos.Y) + " " + strconv.Itoa(params.Pos.Z) + ".5 " + material.SpawnEgg.Type + " " + material.SpawnEgg.Skin,
-            }
-            this.World.Chat.SendMessage(conn, this.World, chat_message)
-            return false
+        if(BLOCK.isEgg(params.item.id)) {
+            let material = BLOCK.fromId(params.item.id);
+            // @ParamChatSendMessage
+            let chat_message = {
+                username: player.session.username,
+                text:     "/spawnmob " + (params.pos.x + ".5 ") + params.pos.y + " " + (params.pos.z + ".5 ") + material.spawn_egg.type + " " + material.spawn_egg.skin
+            };
+            this.world.chat.sendMessage(player, chat_message);
+            return false;
         }
-        */
     
         let blockKey = this.getBlockKey(params.pos);
     
-        /*
         // Если на этом месте есть сущность, тогда запретить ставить что-то на это место
-        entity, entity_type := this.World.Entities.GetEntityByPos(params.Pos)
-        if entity != nil {
-            switch entity_type {
-            case "chest":
-                params.Item = entity.(*Chest).Item // this.ModifyList[blockKey]
-            default:
-                // этот случай ошибочный, такого не должно произойти
-                params.Item = this.ModifyList[blockKey]
+        let item = this.world.entities.getEntityByPos(params.pos);
+        if (item) {
+            switch (item.type) {
+                case 'chest': {
+                    params.item = item.entity.item; // this.ModifyList[blockKey]
+                    break;
+                }
+                default: {
+                    // этот случай ошибочный, такого не должно произойти
+                    params.item = this.modify_list.get(blockKey);
+                }
             }
-            packet := Struct.JSONResponse{Name: Struct.CMD_BLOCK_SET, Data: params, ID: nil}
-            packets := []Struct.JSONResponse{packet}
-            cons := make(map[string]*PlayerConn, 0)
-            cons[conn.ID] = conn
-            this.World.SendSelected(packets, cons, []string{})
-            return false
+            let packets = [{
+                name: ServerClient.CMD_BLOCK_SET,
+                data: params
+            }];
+            this.world.sendSelected(packets, [player.session.user_id], [])
+            return false;
         }
-    
+
         // Create entity
-        switch params.Item.ID {
-        case Struct.BLOCK_CHEST:
-            params.Item.EntityID = this.World.Entities.CreateChest(this.World, conn, params)
-            log.Println("CreateEntity", params.Item.EntityID)
-            if len(params.Item.EntityID) == 0 {
-                return false
+        switch (params.item.id) {
+            case BLOCK_CHEST: {
+                params.item.entity_id = await this.world.entities.createChest(this.world, player, params);
+                if (!params.item.entity_id) {
+                    return false;
+                }
+                break;
             }
         }
-        */
 
         //
         this.modify_list.set(blockKey, params.item);
-        console.log('BlockSet', this.addr, params.pos, params.item, player.session.user_id);
         // Send to users
         let packets = [{
             name: ServerClient.CMD_BLOCK_SET,
             data: params
         }];
         //if notify_author {
-        this.world.sendSelected(packets, this.connections, []);
+        let connections = Array.from(this.connections.keys());
+        this.world.sendSelected(packets, connections, []);
         //} else {
         //	this.World.SendSelected(packets, this.Connections, []string{conn.ID})
         //}

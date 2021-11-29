@@ -1,7 +1,6 @@
 import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
-import uuid from 'uuid';
 import { copyFile } from 'fs/promises';
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
@@ -271,38 +270,26 @@ export class DBWorld {
     }
 
     // Create chest...
-    createChest(player, pos, chest) {
-        /*
-        query := `INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
-        statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
-        if err != nil {
-            log.Printf("SQL_ERROR44: %v", err)
-        }
-        item_json_bytes, _ := json.Marshal(chest.Item)
-        slots_json_bytes, _ := json.Marshal(chest.Slots)
-        _, err = statement.Exec(time.Now().Unix(), conn.Session.UserID, chest.Item.EntityID, string(item_json_bytes), string(slots_json_bytes), pos.X, pos.Y, pos.Z)
-        if err != nil {
-            log.Printf("SQL_ERROR45: %v", err)
-        }
-        return err
-        */
+    async createChest(player, pos, chest) {
+        const result = await this.db.run('INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES(:dt, :user_id, :entity_id, :item, :slots, :x, :y, :z)', {
+            ':user_id':         player.session.user_id,
+            ':dt':              ~~(Date.now() / 1000),
+            ':entity_id':       chest.item.entity_id,
+            ':item':            JSON.stringify(chest.item),
+            ':slots':           JSON.stringify(chest.slots),
+            ':x':               pos.x,
+            ':y':               pos.y,
+            ':z':               pos.z
+        });
+        let chest_id = result.lastID;
     }
 
     // saveChestSlots...
-    saveChestSlots(chest) {
-        /*
-        query := `UPDATE chest SET slots = $1 WHERE entity_id = $2`
-        statement, err := this.Conn.Prepare(query) // Prepare statement. This is good to avoid SQL injections
-        if err != nil {
-            log.Printf("SQL_ERROR46: %v", err)
-        }
-        slots_json_bytes, _ := json.Marshal(chest.Slots)
-        _, err = statement.Exec(string(slots_json_bytes), chest.Item.EntityID)
-        if err != nil {
-            log.Printf("SQL_ERROR47: %v", err)
-        }
-        return err
-        */
+    async saveChestSlots(chest) {
+        const result = await this.db.run('UPDATE chest SET slots = :slots WHERE entity_id = :entity_id', {
+            ':slots':       JSON.stringify(chest.slots),
+            ':entity_id':   chest.item.entity_id
+        });
     }
 
     // ChunkBecameModified...
