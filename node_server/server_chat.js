@@ -113,7 +113,7 @@ export class ServerChat {
                     params.pos.z = args[3];
                 }
                 // add
-                this.world.addMob(player, params);
+                this.world.spawnMob(player, params);
                break;
             }
             default: {

@@ -192,12 +192,12 @@ export class ServerClient {
         }, 0);
     }
 
-    ChunkAdd(addr) {
+    addChunk(addr) {
         this.chunks_added++;
         this.Send({name: ServerClient.CMD_CHUNK_ADD, data: {pos: addr}});
     }
 
-    ChunkRemove(addr) {
+    removeChunk(addr) {
         this.Send({name: ServerClient.CMD_CHUNK_REMOVE, data: {pos: addr}});
     }
 

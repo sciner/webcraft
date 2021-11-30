@@ -134,7 +134,7 @@ export class ServerPlayer extends Player {
                         out, _ := json.Marshal(cmdIn.Data)
                         var params *Struct.ParamChunkRemove
                         json.Unmarshal(out, &params)
-                        // this.ChunkRemove(params, conn)
+                        // this.removeChunk(params, conn)
                         // получим чанк
                         chunk := this.ChunkGet(params.Pos)
                         //

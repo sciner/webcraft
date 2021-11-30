@@ -14,8 +14,8 @@ export class DBGame {
         this.db = db;
     }
 
-    // OpenDB
-    static async OpenDB(dir) {
+    // Open database and return provider
+    static async openDB(dir) {
         let filename = dir + '/game.sqlite3';
         filename = path.resolve(filename);
         // Check directory exists
@@ -39,8 +39,30 @@ export class DBGame {
         }).then(async (conn) => {
             return new DBGame(conn);
         });
-        await dbc.ApplyMigrations();
+        await dbc.applyMigrations();
         return dbc;
+    }
+
+    // Migrations
+    async applyMigrations() {
+        let version = 0;
+        try {
+            // Read options
+            let row = await this.db.get('SELECT version FROM options');
+            version = row.version;
+        } catch(e) {
+            await this.db.get('begin transaction');
+            await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
+            await this.db.get('insert into options(version) values(0)');
+            await this.db.get('commit');
+        }
+        // Version 0 -> 1
+        if (version == 0) {
+            await this.db.get('begin transaction');
+            await this.db.get('update options set version = 1');
+            await this.db.get('commit');
+            version++;
+        }
     }
 
     // Создание нового мира (сервера)
@@ -158,8 +180,8 @@ export class DBGame {
         return result.lastID;
     }
 
-    // GetWorldID... Возвращает ID мира по его GUID
-    async GetWorldID(world_guid) {
+    // getWorldID... Возвращает ID мира по его GUID
+    async getWorldID(world_guid) {
         let row = await this.db.get("SELECT id FROM world WHERE guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
@@ -175,7 +197,7 @@ export class DBGame {
     // Присоединение к миру
     async JoinWorld(user_id, world_guid) {
         // 1. find world
-        let world_id = await this.GetWorldID(world_guid);
+        let world_id = await this.getWorldID(world_guid);
         if(await this.PlayerExistsInWorld(world_id, user_id)) {
             throw 'error_player_exists_in_selected_world';
         }
@@ -191,8 +213,8 @@ export class DBGame {
         throw 'error_world_player_not_found';
     }
 
-    // GetWorld... Возвращает мир по его GUID
-    async GetWorld(world_guid)  {
+    // getWorld... Возвращает мир по его GUID
+    async getWorld(world_guid)  {
         let row = await this.db.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(!row) {
             throw 'error_world_not_found';
@@ -209,27 +231,6 @@ export class DBGame {
             pos_spawn:  JSON.parse(row.pos_spawn),
             state:      null
         };
-    }
-
-    async ApplyMigrations() {
-
-        let version = 0;
-
-        try {
-            // Read options
-            let row = await this.db.get('SELECT version FROM options');
-            version = row.version;
-        } catch(e) {
-            await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
-            await this.db.get('insert into options(version) values(0)');
-        }
-
-        // Version 0 -> 1
-        if (version == 0) {
-            await this.db.get('update options set version = 1');
-            version++;
-        }
-
     }
 
 }

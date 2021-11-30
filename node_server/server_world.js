@@ -1,41 +1,32 @@
 import uuid from 'uuid';
 
-import {Vector} from "../www/js/helpers.js";
-import {GameMode} from "../www/js/game_mode.js";
-import {Physics} from "../www/js/physics.js";
-import {ChunkManager} from "../www/js/chunk_manager.js";
-import {MobManager} from "../www/js/mob_manager.js";
-import {PlayerManager} from "../www/js/player_manager.js";
-import {ServerClient} from "../www/js/server_client.js";
-import {getChunkAddr} from "../www/js/chunk.js";
-
+import {Mob} from "./mob.js";
 import {ServerChat} from "./server_chat.js";
 import {ServerChunk} from "./server_chunk.js";
 import {EntityManager} from "./entity_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
 
+import {Vector} from "../www/js/helpers.js";
+import {GameMode} from "../www/js/game_mode.js";
+import {Physics} from "../www/js/physics.js";
+import {ChunkManager} from "../www/js/chunk_manager.js";
+import {PlayerManager} from "../www/js/player_manager.js";
+import {ServerClient} from "../www/js/server_client.js";
+import {getChunkAddr} from "../www/js/chunk.js";
+
 export class ServerWorld {
 
     constructor() {
     }
 
-    tick() {}
-
-    save() {
-        for(let player of this.players.values()) {
-            this.db.savePlayerState(player);
-        }
-    }
-
     async initServer(world_guid, db) {
         this.db         = db;
-        this.info       = await this.db.GetWorld(world_guid);
+        this.info       = await this.db.getWorld(world_guid);
         this.entities   = new EntityManager(this);
         this.chat       = new ServerChat(this);
         this.chunks     = new Map();
         this.players    = new Map(); // new PlayerManager(this);
-        this.mobs       = new MobManager();
         //
         this.models     = new ModelManager();
         this.models.init();
@@ -46,22 +37,36 @@ export class ServerWorld {
         this.restoreModifiedChunks();
         //
         this.tickerWorldTimer = setInterval(() => {
-            let pn = performance.now();
-            this.save()
-            this.tick()
+            // let pn = performance.now();
+            this.tick();
             // time elapsed forcurrent tick
-            console.log("Tick took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
+            // console.log("Tick took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
+        }, 50);
+        //
+        this.saveWorldTimer = setInterval(() => {
+            // let pn = performance.now();
+            this.save();
+            // calc time elapsed
+            // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+    }
+
+    tick() {}
+
+    save() {
+        for(let player of this.players.values()) {
+            this.db.savePlayerState(player);
+        }
     }
 
     // onPlayer
     async onPlayer(player, skin) {
         // 1. Insert to DB if new player
-        player.state = await this.db.RegisterUser(this, player);
+        player.state = await this.db.registerUser(this, player);
         player.state.skin = skin;
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
-            console.log("OnPlayer delete previous connection for:", player.session.username);
+            console.log('OnPlayer delete previous connection for: ' + player.session.username);
             this.onLeave(this.players.get(player.session.user_id));
         }
         // 3. Insert to array
@@ -96,7 +101,7 @@ export class ServerWorld {
             }
         }], []);
         // 6. Write to chat about new player
-        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + " подключился", this.players.keys());
+        this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
         // 7. Send CMD_CONNECTED
         player.sendPackets([{name: ServerClient.CMD_CONNECTED, data: {
             session: player.session,
@@ -104,22 +109,6 @@ export class ServerWorld {
         }}]);
         // 8. Check player visible chunks
         this.checkPlayerVisibleChunks(player, player.state.chunk_render_dist, true);
-        /*
-        // Fix player position
-        if player_state.Pos.Y < 1 {
-            player_state.Pos = player_state.PosSpawn
-        }
-        // 3.
-        conn.PosSpawn = *player_state.PosSpawn
-        //
-        conn.Indicators = player_state.Indicators
-        // 8. Send all mobs in the world
-        if len(this.Mobs) > 0 {
-            packet_mobs := Struct.JSONResponse{Name: Struct.CMD_MOB_ADDED, Data: this.getMobsAsSlice(), ID: nil}
-            packets_mobs := []Struct.JSONResponse{packet_mobs}
-            this.SendAll(packets_mobs, []string{})
-        }
-        */
     }
 
     // onLeave
@@ -230,26 +219,16 @@ export class ServerWorld {
         player.position_changed         = true;
     }
 
-    // Add dmob
-    addMob(player, mob) {
+    // Spawn new mob
+    async spawnMob(player, params) {
         if(!this.admins.checkIsAdmin(player)) {
             throw 'error_not_permitted';
         }
-        // Find model and skin
-        let model = this.models.list.get(mob.type);
-        if (!model) {
-            throw 'error_model_not_found';
+        let mob = await Mob.create(this, params);
+        let chunk = this.chunks.get(mob.chunk_addr.toHash());
+        if(chunk) {
+            chunk.addMob(mob);
         }
-        if(!model.skins[mob.skin]) {
-            throw 'error_model_skin_not_found';
-        }
-        mob.id = uuid();
-        this.mobs.add(mob);
-        let packets = [{
-            name: ServerClient.CMD_MOB_ADDED,
-            data: [mob]
-        }];
-        this.sendAll(packets, []);
         return true;
     }
 
@@ -269,7 +248,7 @@ export class ServerWorld {
                         let vec = player.chunk_addr.add(new Vector(x, y, z));
                         if (this.chunkHasModifiers(vec)) {
                             modified_chunks.push(vec);
-                            // this.LoadChunkForPlayer(player, *vec)
+                            // this.loadChunkForPlayer(player, *vec)
                         }
                     }
                 }
@@ -305,12 +284,12 @@ export class ServerWorld {
         this.chunkModifieds.add(addr.toHash());
     }
 
-    // LoadChunkForPlayer...
+    // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
         // получим чанк
         let chunk = await this.chunkGet(addr);
         // запомним, что юзер в этом чанке
-        chunk.addPlayerConn(player);
+        chunk.addPlayer(player);
         return chunk;
     }
 

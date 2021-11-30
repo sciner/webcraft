@@ -1,10 +1,10 @@
+import uuid from 'uuid';
 import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
-
 import {Vector} from "../www/js/helpers.js";
 
 export class DBWorld {
@@ -16,8 +16,8 @@ export class DBWorld {
         this.world = world;
     }
 
-    // OpenDB
-    static async OpenDB(dir, world) {
+    // Open database and return provider
+    static async openDB(dir, world) {
         let filename = dir + '/world.sqlite';
         filename = path.resolve(filename);
         // Check directory exists
@@ -41,12 +41,12 @@ export class DBWorld {
         }).then(async (conn) => {
             return new DBWorld(conn, world);
         });
-        await dbc.ApplyMigrations();
+        await dbc.applyMigrations();
         return dbc;
     }
 
     // Возвращает мир по его GUID либо создает и возвращает его
-    async GetWorld(world_guid) {
+    async getWorld(world_guid) {
         let row = await this.db.get("SELECT * FROM world WHERE guid = ?", [world_guid]);
         if(row) {
             return {
@@ -63,7 +63,7 @@ export class DBWorld {
             }
         }
         // Insert new world to Db
-        let world = await Game.db.GetWorld(world_guid);
+        let world = await Game.db.getWorld(world_guid);
         const result = await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
@@ -74,7 +74,59 @@ export class DBWorld {
             ':pos_spawn':   JSON.stringify(world.pos_spawn)
         });
         // let world_id = result.lastID;
-        return this.GetWorld(world_guid);
+        return this.getWorld(world_guid);
+    }
+
+    // Migrations
+    async applyMigrations() {
+        let version = 0;
+        try {
+            // Read options
+            let row = await this.db.get('SELECT version FROM options');
+            version = row.version;
+        } catch(e) {
+            await this.db.get('begin transaction');
+            await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
+            await this.db.get('insert into options(version) values(0)');
+            await this.db.get('commit');
+        }
+        // Version 0 -> 1
+        if (version == 0) {
+            await this.db.get('begin transaction');
+            await this.db.get('alter table user add column indicators text');
+            await this.db.run('UPDATE user SET indicators = :indicators', {
+                ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+            });
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
+        // Version 1 -> 2
+        if (version == 1) {
+            await this.db.get('begin transaction');
+            await this.db.get('alter table user add column is_admin integer default 0');
+            await this.db.get('update user set is_admin = 1 where id in (select user_id from world)');
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
+        // Version 2 -> 3
+        if (version == 2) {
+            await this.db.get('begin transaction');
+            await this.db.get(`CREATE TABLE "entity" (
+                "id" INTEGER NOT NULL,
+                "dt" integer,
+                "entity_id" TEXT,
+                "type" TEXT,
+                "skin" TEXT,
+                "indicators" TEXT,
+                "rotate" TEXT,
+                "x" real,
+                "y" real,
+                "z" real,
+                PRIMARY KEY ("id")
+              )`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
     }
 
     // getDefaultPlayerIndicators...
@@ -95,8 +147,17 @@ export class DBWorld {
         };
     }
 
-    async RegisterUser(world, player) {
-        // Find existing world record
+    // Return default inventory for user
+    getDefaultInventory() {
+        return {
+            items:   [],
+            current: {index: 0}
+        };
+    }
+
+    // Register new user or return existed
+    async registerUser(world, player) {
+        // Find existing user record
         let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             return {
@@ -109,67 +170,20 @@ export class DBWorld {
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
-        let rotate = new Vector(0, 0, Math.PI);
-        // Inventory
-        let default_inventory = {
-            items:   [],
-            current: {index: 0}
-        }
-        // Indicators
-        let default_indicators = this.getDefaultPlayerIndicators()
-        //
-        let is_admin = 0;
-        if (world.info.user_id == player.session.user_id) {
-            is_admin = 1;
-        }
         // Insert to DB
         const result = await this.db.run('INSERT INTO user(id, guid, username, dt, pos, pos_spawn, rotate, inventory, indicators, is_admin) VALUES(:id, :guid, :username, :dt, :pos, :pos_spawn, :rotate, :inventory, :indicators, :is_admin)', {
             ':id':          player.session.user_id,
+            ':dt':          ~~(Date.now() / 1000),
             ':guid':        player.session.user_guid,
             ':username':    player.session.username,
-            ':dt':          ~~(Date.now() / 1000),
             ':pos':         JSON.stringify(default_pos_spawn),
             ':pos_spawn':   JSON.stringify(default_pos_spawn),
-            ':rotate':      JSON.stringify(rotate),
-            ':inventory':   JSON.stringify(default_inventory),
-            ':indicators':  JSON.stringify(default_indicators),
-            ':is_admin':    is_admin,
+            ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
+            ':inventory':   JSON.stringify(this.getDefaultInventory()),
+            ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+            ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
         });
         return await this.RegisterUser(world, player);
-    }
-
-    async ApplyMigrations() {
-        
-        let version = 0;
-
-        try {
-            // Read options
-            let row = await this.db.get('SELECT version FROM options');
-            version = row.version;
-        } catch(e) {
-            await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
-            await this.db.get('insert into options(version) values(0)');
-        }
-
-        // Version 0 -> 1
-        if (version == 0) {
-            let default_indicators = this.getDefaultPlayerIndicators();
-            await this.db.get('alter table user add column indicators text');
-            await this.db.run('UPDATE user SET indicators = :indicators', {
-                ':indicators':  JSON.stringify(default_indicators),
-            });
-            await this.db.get('update options set version = 1');
-            version++;
-        }
-        
-        // Version 1 -> 2
-        if (version == 1) {
-            await this.db.get('alter table user add column is_admin integer default 0');
-            await this.db.get('update user set is_admin = 1 where id in (select user_id from world)');
-            await this.db.get('update options set version = 2');
-            version++;
-        }
-
     }
 
     // Добавление сообщения в чат
@@ -301,6 +315,52 @@ export class DBWorld {
             resp.add(addr);
         }
         return resp
+    }
+
+    // Create entity (mob)
+    async createMob(params) {
+        const entity_id = uuid();
+        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z)', {
+            ':dt':              ~~(Date.now() / 1000),
+            ':entity_id':       entity_id,
+            ':type':            params.type,
+            ':skin':            params.skin,
+            ':indicators':      JSON.stringify(params.indicators),
+            ':rotate':          JSON.stringify(params.rotate),
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z
+        });
+        return {
+            id: result.lastID,
+            entity_id: entity_id
+        };
+    }
+
+    // Load mobs
+    async loadMobs(addr, size) {
+        let rows = await this.db.all('SELECT * FROM entity WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = {
+                id:         row.id,
+                rotate:     JSON.parse(row.rotate),
+                pos:        new Vector(row.x, row.y, row.z),
+                entity_id:  row.entity_id,
+                type:       row.type,
+                skin:       row.skin,
+                indicators: JSON.parse(row.indicators)
+            };
+            resp.set(item.pos.toHash(), item);
+        }
+        return resp;
     }
 
     // Load chunk modify list

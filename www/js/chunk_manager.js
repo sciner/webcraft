@@ -232,7 +232,7 @@ export class ChunkManager {
             start_time: performance.now()
         });
         if(this.nearby_modified_list.has(item.addr)) {
-            this.world.server.ChunkAdd(item.addr);
+            this.world.server.addChunk(item.addr);
         } else {
            if(!this.setChunkState({addr: item.addr, modify_list: null})) {
                return false;
@@ -262,7 +262,7 @@ export class ChunkManager {
         chunk.destruct();
         this.chunks.delete(addr)
         this.rendered_chunks.total--;
-        this.world.server.ChunkRemove(addr);
+        this.world.server.removeChunk(addr);
     }
 
     // postWorkerMessage
