@@ -224,7 +224,7 @@ export class ServerWorld {
             throw 'error_not_permitted';
         }
         let mob = await Mob.create(this, params);
-        let chunk = this.chunks.get(mob.chunk_addr, false);
+        let chunk = await this.chunks.get(mob.chunk_addr, false);
         if(chunk) {
             chunk.addMob(mob);
         }
