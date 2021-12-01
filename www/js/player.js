@@ -41,6 +41,9 @@ export class Player {
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
+        this.chunkAddr              = getChunkAddr(this.pos);
+        this.blockPos               = this.getBlockPos();
+        this.blockPosO              = this.blockPos.clone();
         // Rotate
         this.setRotate(data.state.rotate);
         // Inventory
@@ -80,9 +83,6 @@ export class Player {
         this.walkDistO              = 0;
         this.bob                    = 0;
         this.oBob                   = 0;
-        this.blockPos               = new Vector(0, 0, 0);
-        this.blockPosO              = new Vector(0, 0, 0);
-        this.chunkAddr              = new Vector(0, 0, 0);
         this.overChunk              = null;
         this.step_count             = 0;
         // Controls
@@ -555,6 +555,12 @@ export class Player {
     update() {
         // View
         if(this.lastUpdate) {
+            if(!this.overChunk) {
+                this.overChunk = Game.world.chunkManager.getChunk(this.chunkAddr);
+            }
+            if(!this.overChunk?.inited) {
+                return;
+            }
             let isSpectator = this.world.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //

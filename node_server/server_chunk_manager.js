@@ -74,21 +74,20 @@ export class ServerChunkManager {
             // Check deleted
             for(let addr of player.nearby_chunk_addrs) {
                 if(!added_vecs.has(addr)) {
-                    // if(addr.distance(player.chunk_addr) > chunk_render_dist * 2) {
-                        player.nearby_chunk_addrs.delete(addr);
-                        nearby.deleted.push(addr);
-                    //}
+                    player.nearby_chunk_addrs.delete(addr);
+                    nearby.deleted.push(addr);
                 }
             }
 
-            console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
-
             // Send new chunks
-            let packets = [{
-                name: ServerClient.CMD_NEARBY_CHUNKS,
-                data: nearby
-            }];
-            this.world.sendSelected(packets, [player.session.user_id], []);
+            if(nearby.added.length + nearby.deleted.length > 0) {
+                // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
+                let packets = [{
+                    name: ServerClient.CMD_NEARBY_CHUNKS,
+                    data: nearby
+                }];
+                this.world.sendSelected(packets, [player.session.user_id], []);
+            }
 
             player.chunk_addr_o = player.chunk_addr;
 
