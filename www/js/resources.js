@@ -25,7 +25,6 @@ export class Resources {
         this.physics        = {};
         this.models         = {};
         this.sounds         = {};
-        this.recipes        = {};
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -34,20 +33,19 @@ export class Resources {
         let all = [];
 
         // Others
-        all.push(Resources.loadImage('media/inventory2.png', false).then((img) => {this.inventory.image = img}));
+        all.push(Resources.loadImage('media/inventory2.webp', false).then((img) => {this.inventory.image = img}));
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
-        all.push(fetch('/data/recipes.json').then(response => response.json()).then(json => { this.recipes = json;}));
 
         // Skybox textures
         let skiybox_dir = './media/skybox/park';
-        all.push(loadImage(skiybox_dir + '/posx.jpg').then((img) => {this.sky.posx = img}));
-        all.push(loadImage(skiybox_dir + '/negx.jpg').then((img) => {this.sky.negx = img}));
-        all.push(loadImage(skiybox_dir + '/posy.jpg').then((img) => {this.sky.posy = img}));
-        all.push(loadImage(skiybox_dir + '/negy.jpg').then((img) => {this.sky.negy = img}));
-        all.push(loadImage(skiybox_dir + '/posz.jpg').then((img) => {this.sky.posz = img}));
-        all.push(loadImage(skiybox_dir + '/negz.jpg').then((img) => {this.sky.negz = img}));
+        all.push(loadImage(skiybox_dir + '/posx.webp').then((img) => {this.sky.posx = img}));
+        all.push(loadImage(skiybox_dir + '/negx.webp').then((img) => {this.sky.negx = img}));
+        all.push(loadImage(skiybox_dir + '/posy.webp').then((img) => {this.sky.posy = img}));
+        all.push(loadImage(skiybox_dir + '/negy.webp').then((img) => {this.sky.negy = img}));
+        all.push(loadImage(skiybox_dir + '/posz.webp').then((img) => {this.sky.posz = img}));
+        all.push(loadImage(skiybox_dir + '/negz.webp').then((img) => {this.sky.negz = img}));
 
         // Skybox shaders
         if (settings.wgsl) {
@@ -156,15 +154,12 @@ export class Resources {
         const {
             NORMAL, POSITION, TEXCOORD_0
         } = primitive.attributes;
-    
         const posData = new Float32Array(POSITION.bufferView.data);
         const normData = new Float32Array(NORMAL.bufferView.data);
         const uvData = new Float32Array(TEXCOORD_0.bufferView.data);
-        
         if (typeof primitive.indices === 'number') {
                 const indices = gltf.accessors[primitive.indices];
                 const i16 = new Uint16Array(indices.bufferView.data, primitive.indicesOffset, primitive.indicesLength);
-    
                 for(let i = 0; i < i16.length; i ++) {
                     let index = i16[i];
                     data.push(
@@ -180,7 +175,6 @@ export class Resources {
                     )
                 }
         }
-    
         return data;
     }
 
@@ -188,12 +182,10 @@ export class Resources {
         const json = await Resources.loadTextFile(baseUrl + '/' + entry.geom, true);
         const keys = Object.keys(entry.skins);
         const skins = [];
-        
         json.type = entry.type;
         json.source = entry;
         json.key = key;
         json.skins = {};
-
         for(let key of keys) {
             skins.push(
                 Resources
@@ -203,16 +195,13 @@ export class Resources {
                 })
             )
         }
-        
         await Promise.all(skins);
-
         return json;
     }
 
     static async loadJsonDatabase(url, baseUrl) {
         const base = await Resources.loadTextFile(url, true);
         const process = [];
-
         for(let key in base.assets) {
             const entry = base.assets[key];
             if (entry.type == 'json') {
@@ -224,9 +213,7 @@ export class Resources {
                 )
             }
         }
-
         await Promise.all(process);
-
         return base;
     }
 
@@ -295,6 +282,16 @@ export class Resources {
             resp = json;
         });
         return resp;
+    }
+
+    // Load recipes
+    static async loadRecipes() {
+        return  Helpers.fetchJSON('../data/recipes.json');
+    }
+
+    // Load models
+    static async loadModels() {
+        return  Helpers.fetchJSON('../media/models/database.json');
     }
 
 }

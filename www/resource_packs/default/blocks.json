@@ -50,6 +50,35 @@
         "max_in_stack": 64
     },
     {
+        "id": 2,
+        "name": "DIRT",
+        "inventory_icon_id": 980,
+        "selflit": false,
+        "sound": "madcraft:block.grass",
+        "tags": [
+            "mask_biome",
+            "dirt"
+        ],
+        "texture": {
+            "up": [
+                0,
+                16
+            ],
+            "down": [
+                2,
+                0
+            ],
+            "side": [
+                2,
+                16
+            ]
+        },
+        "destroy_time": 1,
+        "power": 1,
+        "spawnable": true,
+        "max_in_stack": 64
+    },
+    {
         "id": 8,
         "inventory_icon_id": 3358,
         "selflit": false,
@@ -2914,35 +2943,6 @@
         "power": 1,
         "selflit": false,
         "light": null,
-        "max_in_stack": 64
-    },
-    {
-        "id": 2,
-        "name": "DIRT",
-        "inventory_icon_id": 980,
-        "selflit": false,
-        "sound": "madcraft:block.grass",
-        "tags": [
-            "mask_biome",
-            "dirt"
-        ],
-        "texture": {
-            "up": [
-                0,
-                16
-            ],
-            "down": [
-                2,
-                0
-            ],
-            "side": [
-                2,
-                16
-            ]
-        },
-        "destroy_time": 1,
-        "power": 1,
-        "spawnable": true,
         "max_in_stack": 64
     },
     {

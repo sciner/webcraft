@@ -58,6 +58,7 @@ export class VectorCollector {
     }
 
     set(vec, value) {
+        let size = this.size;
         if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
         if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
         if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
@@ -67,6 +68,7 @@ export class VectorCollector {
             value = value(vec);
         }
         this.list.get(vec.x).get(vec.y).set(vec.z, value);
+        return this.size > size;
     }
 
     add(vec, value) {
@@ -312,6 +314,10 @@ export class Vector {
 
     toChunkKey() {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
+    }
+
+    toHash() {
+        return this.x + ',' + this.y + ',' + this.z;
     }
 
     norm() {
@@ -590,7 +596,7 @@ export class Helpers {
 // Make fetch functions
 if(typeof fetch === 'undefined') {
     Helpers.fetch = async (url) => import(url);
-    Helpers.fetchJSON = async (url) => import(url).then(response => response.default);
+    Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
         let binary = fs.readFileSync(url);
         return binary.buffer;

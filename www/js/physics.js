@@ -3,11 +3,7 @@ export class Physics {
 	
     constructor(world) {
         this.lastStep = -1;
-        this.setWorld(world);
-    }
-
-    // Assigns a world to simulate to this physics simulator.
-    setWorld(world) {
+        // Assigns a world to simulate to this physics simulator.
         this.world = world;
     }
 

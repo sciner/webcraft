@@ -1,0 +1,13 @@
+{
+    "AppVersion": "0.0.2",
+    "AppCode": "madcraft",
+    "ServerIP": "127.0.0.1",
+    "Port": 5705,
+    "Addr": ":5705",
+    "JSONRPCEndpoint": "/api/",
+    "ApiKey": "eeb5694b9bb20fc43ff234438ad26e34",
+    "APIDomain": "http://api.madcraft.loc/",
+    "UseSecureProtocol": false,
+    "SSLCertFile": "/var/ssl/auth/fullchain.pem",
+    "SSLKeyFile": "/var/ssl/auth/privkey.pem"
+}

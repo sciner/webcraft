@@ -25,7 +25,7 @@ export class Hotbar {
     //
     damage(damage_value, reason_text) {
         if(damage_value > 0) {
-            Game.player.server.ModifyIndicator('live', -damage_value, reason_text);
+            Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
             this.sounds.hit3.play();
         }

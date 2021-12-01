@@ -1,10 +1,32 @@
 import {MobModel} from "./mob_model.js";
+import {ServerClient} from "./server_client.js";
 
 export class MobManager {
 	
     constructor(world) {
         this.world = world;
         this.list = new Map();
+    }
+
+    // Client side method
+    init() {
+        // On server message
+        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADDED, ServerClient.CMD_MOB_DELETED], (cmd) => {
+            switch(cmd.name) {
+                case ServerClient.CMD_MOB_ADDED: {
+                    for(let mob of cmd.data) {
+                        this.add(mob);
+                    }
+                    break;
+                }
+                case ServerClient.CMD_MOB_DELETED: {
+                    for(let mob_id of cmd.data) {
+                        this.delete(mob_id);
+                    }
+                    break;
+                }
+            }
+        });
     }
 
     // add

@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "ws": "^8.2.3"
-  },
-  "type": "module",
-  "optionalDependencies": {
-    "utf-8-validate": "^5.0.7"
-  }
-}

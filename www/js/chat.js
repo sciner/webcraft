@@ -1,6 +1,7 @@
 import { Vector } from "./helpers.js";
 import { BLOCK } from "./blocks.js";
 import {Mesh_Default} from "./mesh/default.js";
+import {ServerClient} from "./server_client.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -8,7 +9,9 @@ const SYSTEM_NAME               = '<MadCraft>';
 
 export class Chat {
 
-    constructor() {
+    constructor(player) {
+        let that                    = this;
+        this.player                 = player;
         this.active                 = false;
         this.buffer                 = [];
         this.history_max_messages   = 64;
@@ -16,7 +19,7 @@ export class Chat {
             list: [],
             send: function(text) {
                 this.add('YOU', text);
-                Game.player.server.SendMessage(text);
+                that.player.world.server.SendMessage(text);
                 Game.setupMousePointer(true);
             },
             addSystem: function(text) {
@@ -26,6 +29,7 @@ export class Chat {
                 this.add(SYSTEM_NAME, text, SYSTEM_MESSAGE_SHOW_TIME);
             },
             add: function(username, text, timeout) {
+                text = String(text);
                 if(!timeout) {
                     timeout = 0;
                 }
@@ -83,6 +87,10 @@ export class Chat {
         };
         //
         Game.hud.add(this, 1);
+        // Add listeners for server commands
+        this.player.world.server.AddCmdListener([ServerClient.CMD_CHAT_SEND_MESSAGE], (cmd) => {
+            this.messages.add(cmd.data.username, cmd.data.text);
+        });
     }
 
     //
@@ -166,10 +174,6 @@ export class Chat {
                     }
                     break;
                 }
-                case '/seed': {
-                    chat.messages.addSystem('Ключ генератора [' + world.info.seed + ']');
-                    break;
-                }
                 case '/gamemode': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();
@@ -191,10 +195,6 @@ export class Chat {
                         '/give <item> [<count>]',
                     ];
                     chat.messages.addSystem('\n' + commands.join('\n'));
-                    break;
-                }
-                case '/spawnpoint': {
-                    player.changeSpawnpoint();
                     break;
                 }
                 case '/weather': {

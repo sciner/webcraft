@@ -50,7 +50,7 @@ export class HUD {
             },
             draw: function() {
                 let cl = 0;
-                let nc = 45;
+                let nc = 100;
                 if(Game.world && Game.world.chunkManager) {
                     for(let chunk of Game.world.chunkManager.chunks) {
                         if(chunk.inited) {
@@ -289,8 +289,8 @@ export class HUD {
             this.text += 'NULL';
         }
         this.text += '\nGame mode: ' + world.game_mode.getCurrent().title;
-        if(player.server.ping_value) {
-            this.text += '\nPING: ' + Math.round(player.server.ping_value) + ' ms';
+        if(player.world.server.ping_value) {
+            this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
         }
         let time = world.getTime();
         if(time) {
@@ -299,7 +299,7 @@ export class HUD {
         // If render inited
         if(Game.render) {
             // Chunks inited
-            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + world.chunkManager.CHUNK_RENDER_DIST + ')';
+            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +
@@ -309,8 +309,6 @@ export class HUD {
             //
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
-        //
-        // this.text += '\nChunks update: ' + (world.chunkManager.update_chunks ? 'ON' : 'OFF');
         // Console =)
         let playerBlockPos = player.getBlockPos();
         let chunk = player.overChunk;

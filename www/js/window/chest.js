@@ -1,6 +1,7 @@
 import {BLOCK} from "../blocks.js";
 import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {CraftTableInventorySlot} from "./base_craft_window.js";
+import {ServerClient} from "../server_client.js";
 
 export default class ChestWindow extends Window {
 
@@ -55,6 +56,11 @@ export default class ChestWindow extends Window {
         ct.add(this.lbl1 = new Label(15, 12, 80, 30, 'lbl1', null, 'Chest'));
         ct.add(new Label(15, 147, 80, 30, 'lbl2', null, 'Inventory'));
 
+        // Add listeners for server commands
+        inventory.player.world.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
+            this.setData(cmd.data);
+        });
+
     }
 
     draw(ctx, ax, ay) {
@@ -79,7 +85,7 @@ export default class ChestWindow extends Window {
         this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.player.server.LoadChest(this.entity_id);
+        Game.player.world.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);
@@ -103,7 +109,7 @@ export default class ChestWindow extends Window {
     
     // Отправка на сервер новых данных слота текущего сундука
     SendChestSlotItem(slot_index, item) {
-        Game.player.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
+        Game.player.world.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
     }
 
     // Очистка слотов сундука от предметов
