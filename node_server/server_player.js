@@ -203,9 +203,10 @@ export class ServerPlayer extends Player {
     // onLeave...
     onLeave() {
         for(let chunk of this.chunks) {
-            if(chunk.removePlayer(this) == 0) {
-                this.world.chunks.remove(chunk.addr);
-            }
+            // @toto fix it
+            //if(chunk.removePlayer(this) == 0) {
+            //    this.world.chunks.remove(chunk.addr);
+            //}
         }
     }
 

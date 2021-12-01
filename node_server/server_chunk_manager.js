@@ -46,39 +46,47 @@ export class ServerChunkManager {
 
             let margin              = Math.max(chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+
             let nearby = {
                 chunk_render_dist:  chunk_render_dist,
                 added:              [], // чанки, которые надо подгрузить
                 deleted:            [] // чанки, которые надо выгрузить
             };
 
+            if(!player.nearby_chunk_addrs) {
+                player.nearby_chunk_addrs = new VectorCollector();
+            }
             let added_vecs = new VectorCollector();
 
+            // Find new chunks
             for(let sm of spiral_moves_3d) {
                 let addr = player.chunk_addr.add(sm.pos);
                 if(addr.y >= 0) {
                     added_vecs.set(addr, true);
-                    let new_info = {
-                        addr: addr,
-                        has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
-                    };
-                    if(!player.chunks.has(addr)) {
-                        nearby.added.push(new_info);
+                    if(!player.nearby_chunk_addrs.has(addr)) {
+                        let item = {
+                            addr: addr,
+                            has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
+                        };
+                        nearby.added.push(item);
+                        player.nearby_chunk_addrs.set(addr, addr);
                     }
                 }
             }
 
-            if(player.nearby && player.nearby.added.length > 0) {
-                for(let added of player.nearby.added) {
-                    if(!added_vecs.has(added.addr)) {
-                        nearby.deleted.push(added.addr);
-                    }
+            // Check deleted
+            for(let addr of player.nearby_chunk_addrs) {
+                if(!added_vecs.has(addr)) {
+                    // if(addr.distance(player.chunk_addr) > chunk_render_dist * 2) {
+                        player.nearby_chunk_addrs.delete(addr);
+                        nearby.deleted.push(addr);
+                    //}
                 }
             }
 
-            console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length);
-            player.nearby = nearby;
+            console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
 
+            // Send new chunks
             let packets = [{
                 name: ServerClient.CMD_NEARBY_CHUNKS,
                 data: nearby

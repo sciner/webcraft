@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {Chunk, getChunkAddr} from "./chunk.js";
+import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
@@ -33,9 +33,8 @@ export class ChunkManager {
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         //
-        this.clearNerby();
         // Add listeners for server commands
-        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.setNearby(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {this.setChunkState(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
             let pos = cmd.data.pos;
@@ -287,8 +286,12 @@ export class ChunkManager {
         }
 
         // Delete chunks
-        for(let addr of this.nearby.deleted) {
-            // this.removeChunk(addr);
+        if(this.nearby.deleted.size > 0) {
+            for(let addr of this.nearby.deleted) {
+                this.nearby.deleted.delete(addr);
+                this.removeChunk(addr);
+            }
+            this.nearby.deleted.clear();
         }
 
         // Build dirty chunks
@@ -433,21 +436,21 @@ export class ChunkManager {
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
     }
 
-    //
-    clearNerby() {
-        this.nearby = null;
-    }
-
     // Set nearby chunks
-    setNearby(data) {
-        this.nearby = {
-            added:      data.added,
-            deleted:    new VectorCollector()
-        };
-        Game.player.state.chunk_render_dist = data.chunk_render_dist;
-        for(let addr of data.deleted) {
-            this.nearby.deleted.add(addr, addr);
+    updateNearby(data) {
+        if(!this.nearby) {
+            this.nearby = {
+                added:      [],
+                deleted:    new VectorCollector()
+            };
         }
+        for(let item of data.added) {
+            this.nearby.added.push(item);
+        }
+        for(let addr of data.deleted) {
+            this.nearby.deleted.add(addr, new Vector(addr));
+        }
+        Game.player.state.chunk_render_dist = data.chunk_render_dist;
     }
 
     //
