@@ -60,7 +60,7 @@ export class Map {
                             neighbour_map = generator.maps_cache.get(neighbour_addr);
                         }
                         if(!neighbour_map) {
-                            console.error('Neighbor not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
+                            console.error('Neighbour not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
                             debugger;
                         }
                         //

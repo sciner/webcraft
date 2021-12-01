@@ -50,7 +50,7 @@ export class HUD {
             },
             draw: function() {
                 let cl = 0;
-                let nc = 45;
+                let nc = 100;
                 if(Game.world && Game.world.chunkManager) {
                     for(let chunk of Game.world.chunkManager.chunks) {
                         if(chunk.inited) {
@@ -299,7 +299,7 @@ export class HUD {
         // If render inited
         if(Game.render) {
             // Chunks inited
-            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + world.chunkManager.CHUNK_RENDER_DIST + ')';
+            this.text += '\nChunks drawed: ' + Math.round(world.chunkManager.rendered_chunks.fact) + ' / ' + world.chunkManager.rendered_chunks.total + ' (' + player.state.chunk_render_dist + ')';
             //
             let quads_length_total = world.chunkManager.vertices_length_total;
             this.text += '\nQuads: ' + Math.round(Game.render.renderBackend.stat.drawquads) + ' / ' + quads_length_total // .toLocaleString(undefined, {minimumFractionDigits: 0}) +

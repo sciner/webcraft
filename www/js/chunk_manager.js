@@ -1,5 +1,5 @@
-import {Vector, SpiralGenerator, VectorCollector} from "./helpers.js";
-import {Chunk, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "./chunk.js";
+import {Vector, VectorCollector} from "./helpers.js";
+import {Chunk, getChunkAddr} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
@@ -8,6 +8,7 @@ export const MAX_Y_MARGIN       = 3;
 
 //
 export class ChunkManager {
+
     /**
      * @type {ChunkManager}
      */
@@ -15,15 +16,12 @@ export class ChunkManager {
 
     constructor(world) {
         let that                    = this;
-        this.CHUNK_RENDER_DIST      = 4; // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
-        this.chunks                 = new VectorCollector(), // Map();
-        this.chunks_prepare         = new VectorCollector();
-        this.modify_list            = {};
         this.world                  = world;
-        this.margin                 = Math.max(this.CHUNK_RENDER_DIST + 1, 1);
+        this.chunks                 = new VectorCollector();
+        this.chunks_prepare         = new VectorCollector();
+        this.poses                  = new VectorCollector();
         this.rendered_chunks        = {fact: 0, total: 0};
         this.renderList             = new Map();
-        this.poses                  = [];
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
         this.lightmap_count         = 0;
@@ -37,7 +35,7 @@ export class ChunkManager {
         //
         this.clearNerby();
         // Add listeners for server commands
-        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_MODIFIED_CHUNKS], (cmd) => {this.setNearbyModified(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.setNearby(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {this.setChunkState(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
             let pos = cmd.data.pos;
@@ -89,6 +87,7 @@ export class ChunkManager {
                 }
             }
         }
+        // Light worker messages receiver
         this.lightWorker.onmessage = function(e) {
             let cmd = e.data[0];
             let args = e.data[1];
@@ -117,10 +116,7 @@ export class ChunkManager {
 
     //
     setRenderDist(value) {
-        value = Math.max(value, 2);
-        value = Math.min(value, 16);
-        this.CHUNK_RENDER_DIST = value;
-        this.margin = Math.max(this.CHUNK_RENDER_DIST + 1, 1)
+        this.world.server.setRenderDist(value);
     }
 
     // toggleUpdateChunks
@@ -139,7 +135,6 @@ export class ChunkManager {
                 v2.length = 0;
             }
         }
-
         let applyVerticesCan = 10;
         for(let item of this.poses) {
             const {chunk} = item;
@@ -181,20 +176,15 @@ export class ChunkManager {
 
     // Draw level chunks
     draw(render, resource_pack, transparent) {
-        if(!this.worker_inited || !this.nearby_modified_list) {
+        if(!this.worker_inited || !this.nearby) {
             return;
         }
-        let applyVerticesCan = 10;
         let groups = [];
         if(transparent) {
             groups = ['transparent', 'doubleface_transparent'];
         } else {
             groups = ['regular', 'doubleface'];
         }
-        // let show = new VectorCollector();
-        // let hide = new VectorCollector();
-        let pn = performance.now() / 1000;
-
         const rpList = this.renderList.get(resource_pack.id);
         if (!rpList) {
             return true;
@@ -205,7 +195,7 @@ export class ChunkManager {
             if (!list) {
                 continue;
             }
-            for (let i=0; i<list.length; i += 2) {
+            for (let i = 0; i < list.length; i += 2) {
                 const chunk = list[i];
                 const vertices = list[i + 1];
                 chunk.drawBufferVertices(render.renderBackend, resource_pack, group, mat, vertices);
@@ -224,15 +214,15 @@ export class ChunkManager {
     }
 
     // Add
-    addChunk(item) {
+    loadChunk(item) {
         if(this.chunks.has(item.addr) || this.chunks_prepare.has(item.addr)) {
             return false;
         }
         this.chunks_prepare.add(item.addr, {
             start_time: performance.now()
         });
-        if(this.nearby_modified_list.has(item.addr)) {
-            this.world.server.addChunk(item.addr);
+        if(item.has_modifiers) {
+            this.world.server.loadChunk(item.addr);
         } else {
            if(!this.setChunkState({addr: item.addr, modify_list: null})) {
                return false;
@@ -255,117 +245,74 @@ export class ChunkManager {
         return false;
     }
 
-    // Remove
-    removeChunk(addr) {
-        let chunk = this.chunks.get(addr);
-        this.vertices_length_total -= chunk.vertices_length;
-        chunk.destruct();
-        this.chunks.delete(addr)
-        this.rendered_chunks.total--;
-        this.world.server.removeChunk(addr);
-    }
-
     // postWorkerMessage
     postWorkerMessage(data) {
         this.worker.postMessage(data);
-    };
+    }
 
     // postLightWorkerMessage
     postLightWorkerMessage(data) {
         this.lightWorker.postMessage(data);
-    };
+    }
+
+    // Remove chunk
+    removeChunk(addr) {
+        let chunk = this.chunks.get(addr);
+        if(chunk) {
+            this.vertices_length_total -= chunk.vertices_length;
+            chunk.destruct();
+            this.chunks.delete(addr)
+            this.rendered_chunks.total--;
+        }
+    }
 
     // Update
     update(player_pos) {
-        if(!this.update_chunks || !this.worker_inited || !this.nearby_modified_list) {
+
+        if(!this.update_chunks || !this.worker_inited || !this.nearby) {
             return false;
         }
-        let frustum = Game.render.frustum;
-        let chunk_size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        let div2 = new Vector(2, 2, 2);
-        var spiral_moves_3d = SpiralGenerator.generate3D(new Vector(this.margin, MAX_Y_MARGIN, this.margin));
-        let chunkAddr = getChunkAddr(player_pos.x, player_pos.y, player_pos.z);
-        if(!this.chunkAddr || this.chunkAddr.distance(chunkAddr) > 0 || !this.prev_margin || this.prev_margin != this.margin) {
-            this.poses = [];
-            this.prev_margin = this.margin;
-            this.chunkAddr = chunkAddr;
-            for(let sm of spiral_moves_3d) {
-                let addr = chunkAddr.add(sm.pos);
-                if(addr.y >= 0) {
-                    let coord = addr.mul(chunk_size);
-                    let coord_center = coord.add(chunk_size.div(div2));
-                    this.poses.push({
-                        addr:               addr,
-                        coord:              coord,
-                        coord_center:       coord_center,
-                        frustum_geometry:   Chunk.createFrustumGeometry(coord, chunk_size),
-                        chunk:              null
-                    });
+
+        // Load chunks
+        let can_add = CHUNKS_ADD_PER_UPDATE;
+
+        for(let item of this.nearby.added) {
+            if(this.poses.set(item.addr, {chunk: this.chunks.get(item.addr)})) {
+                if(this.loadChunk(item)) {
+                    if(--can_add <= 0) {
+                        break;
+                    }
                 }
             }
         }
-        if(this.chunks.size != this.poses.length || (this.prevchunkAddr && this.prevchunkAddr.distance(chunkAddr) > 0)) {
-            this.prevchunkAddr = chunkAddr;
-            let can_add = CHUNKS_ADD_PER_UPDATE;
-            // Помечаем часть чанков неживымии и запрещаем в этом Update добавление чанков
-            for(let chunk of this.chunks) {
-                if(!chunk.inited) {
-                    can_add = 0;
-                    break;
-                }
-                chunk.isLive = false;
-            }
-            //
-            let frustum_sort_func = function(a, b) {
-                if(a.in_frustrum && b.in_frustrum) {
-                    return a.coord_center.horizontalDistance(frustum.camPos) - b.coord_center.horizontalDistance(frustum.camPos);
-                }
-                if(b.in_frustrum) return 1;
-                return -1;
-            };
-            // Check for add
-            let possible_add_chunks = []; // Кандидаты на загрузку
-            for(let item of this.poses) {
-                if(item.addr.y >= 0 && !item.chunk) {
-                    item.in_frustrum = frustum ? frustum.intersectsGeometryArray(item.frustum_geometry) : false;
-                    possible_add_chunks.push(item);
-                }
-                if(!item.chunk) {
-                    item.chunk = this.chunks.get(item.addr);
-                }
-                if(item.chunk) {
-                    item.chunk.isLive = true;
-                }
-            }
-            // Frustum sorting for add | Сортировка чанков(кандидатов на загрузку) по тому, видимый он в камере или нет
-            if(frustum && this.sort_chunk_by_frustum) {
-                possible_add_chunks.sort(frustum_sort_func);
-            }
-            // Add chunks
-            for(let item of possible_add_chunks) {
-                if(can_add < 1) {
-                    break;
-                }
-                if(this.addChunk(item)) {
-                    can_add--;
-                }
-            }
-            // Check for remove chunks
-            for(let chunk of this.chunks) {
-                if(!chunk.isLive) {
-                    this.removeChunk(chunk.addr);
-                }
-            }
+
+        // Delete chunks
+        for(let addr of this.nearby.deleted) {
+            // this.removeChunk(addr);
         }
+
         // Build dirty chunks
+        let cc = [
+            {x:  0, y:  1, z:  0},
+            {x:  0, y: -1, z:  0},
+            {x:  0, y:  0, z: -1},
+            {x:  0, y:  0, z:  1},
+            {x: -1, y:  0, z:  0},
+            {x:  1, y:  0, z:  0}
+        ];
         for(let chunk of this.dirty_chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
-                if(
-                    this.getChunk(new Vector(chunk.addr.x - 1, chunk.addr.y, chunk.addr.z)) &&
-                    this.getChunk(new Vector(chunk.addr.x + 1, chunk.addr.y, chunk.addr.z)) &&
-                    this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z - 1)) &&
-                    this.getChunk(new Vector(chunk.addr.x, chunk.addr.y, chunk.addr.z + 1))
-                ) {
+                let ok = true;
+                for(let c of cc) {
+                    let addr = chunk.addr.add(c);
+                    if(addr.y >= 0) {
+                        if(!this.getChunk(addr)) {
+                            ok = false;
+                            break;
+                        }
+                    }
+                }
+                if(ok) {
                     chunk.buildVertices();
                 }
             }
@@ -488,21 +435,18 @@ export class ChunkManager {
 
     //
     clearNerby() {
-        if(!this.nearby_modified_list) {
-            return;
-        }
-        this.nearby_modified_list.clear();
-        this.nearby_modified_list = null;
+        this.nearby = null;
     }
 
-    // setNearbyModified...
-    setNearbyModified(vec_list) {
-        if(!this.nearby_modified_list) {
-            this.nearby_modified_list = new VectorCollector();
-        }
-        this.nearby_modified_list.clear();
-        for(let vec of vec_list) {
-            this.nearby_modified_list.add(vec, true);
+    // Set nearby chunks
+    setNearby(data) {
+        this.nearby = {
+            added:      data.added,
+            deleted:    new VectorCollector()
+        };
+        Game.player.state.chunk_render_dist = data.chunk_render_dist;
+        for(let addr of data.deleted) {
+            this.nearby.deleted.add(addr, addr);
         }
     }
 

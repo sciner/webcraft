@@ -9,13 +9,13 @@ export class ServerClient {
     static CMD_PING                     = 3;
     static CMD_PONG                     = 4;
 	static CMD_ERROR                    = 7; // какая-то ошибка (ИСХ)
+    static CMD_CHANGE_RENDER_DIST       = 10;
     static CMD_CONNECT                  = 34;
     static CMD_CONNECTED                = 62;
     // Cnunks and blocks
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
-    static CMD_CHUNK_ADD                = 37;
-    static CMD_CHUNK_REMOVE             = 38;
+    static CMD_CHUNK_LOAD               = 37;
     static CMD_CHUNK_LOADED             = 39;
     // Chat
     static CMD_CHAT_SEND_MESSAGE        = 40;
@@ -33,7 +33,7 @@ export class ServerClient {
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
     static CMD_SAVE_INVENTORY           = 66;
-    static CMD_NEARBY_MODIFIED_CHUNKS   = 67 // Чанки, находящиеся рядом с игроком, у которых есть модификаторы
+    static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
     static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
 	static CMD_WORLD_INFO               = 74;
@@ -192,13 +192,13 @@ export class ServerClient {
         }, 0);
     }
 
-    addChunk(addr) {
+    loadChunk(addr) {
         this.chunks_added++;
-        this.Send({name: ServerClient.CMD_CHUNK_ADD, data: {pos: addr}});
+        this.Send({name: ServerClient.CMD_CHUNK_LOAD, data: {pos: addr}});
     }
 
-    removeChunk(addr) {
-        this.Send({name: ServerClient.CMD_CHUNK_REMOVE, data: {pos: addr}});
+    setRenderDist(value) {
+        this.Send({name: ServerClient.CMD_CHANGE_RENDER_DIST, data: value});
     }
 
     SendMessage(text) {

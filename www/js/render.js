@@ -244,7 +244,7 @@ export class Renderer {
             gu.brightness       = this.brightness;
         } else {
             gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = this.world.chunkManager.CHUNK_RENDER_DIST * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+            gu.chunkBlockDist   = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
             gu.fogAddColor      = currentRenderState.fogAddColor;
             gu.brightness       = this.brightness;
         }

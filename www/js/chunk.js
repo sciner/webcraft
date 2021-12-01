@@ -421,14 +421,14 @@ export class Chunk {
             if(x == this.size.x - 1 && z == this.size.z - 1) update_neighbours.push(new Vector(1, 0, 1));
             // Добавляем выше и ниже
             let update_neighbours2 = [];
-            for(var update_neighbor of update_neighbours) {
-                update_neighbours2.push(update_neighbor.add(new Vector(0, -1, 0)));
-                update_neighbours2.push(update_neighbor.add(new Vector(0, 1, 0)));
+            for(var update_neighbour of update_neighbours) {
+                update_neighbours2.push(update_neighbour.add(new Vector(0, -1, 0)));
+                update_neighbours2.push(update_neighbour.add(new Vector(0, 1, 0)));
             }
             update_neighbours.push(...update_neighbours2);
             let updated_chunks = [this.key];
-            for(var update_neighbor of update_neighbours) {
-                let pos = new Vector(x, y, z).add(this.coord).add(update_neighbor);
+            for(var update_neighbour of update_neighbours) {
+                let pos = new Vector(x, y, z).add(this.coord).add(update_neighbour);
                 let chunk_addr = getChunkAddr(pos);
                 let key = chunkManager.getPosChunkKey(chunk_addr);
                 // чтобы не обновлять один и тот же чанк дважды

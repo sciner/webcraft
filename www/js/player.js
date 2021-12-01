@@ -35,6 +35,7 @@ export class Player {
         this.indicators             = data.state.indicators;
         this.previousForwardDown    = performance.now();
         this.previousForwardUp      = performance.now();
+        this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         // Position
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
@@ -62,7 +63,7 @@ export class Player {
         this.chat                   = new Chat(this);
         //
         this.falling                = false; // падает
-        this.flying                 = !!data.state.flying; // летит
+        this.flying                 = this.world.game_mode.getCurrent().can_fly; // летит
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
         this.walking                = false; // идёт по земле

@@ -1,4 +1,4 @@
-import {Vector} from "../www/js/helpers.js";
+import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {ServerClient} from "../www/js/server_client.js";
 
@@ -6,8 +6,10 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
-        this.position_changed = false;
-        this.chunk_addr = new Vector(0, 0, 0);
+        this.position_changed   = false;
+        this.chunk_addr         = new Vector(0, 0, 0);
+        this.chunk_addr_o       = new Vector(0, 0, 0);
+        this.chunks             = new VectorCollector();
     }
 
     //
@@ -108,9 +110,9 @@ export class ServerPlayer extends Player {
                     }
                         
                     // Пользователь подгрузил чанк
-                    case ServerClient.CMD_CHUNK_ADD: {
+                    case ServerClient.CMD_CHUNK_LOAD: {
                         let chunk = await this.world.loadChunkForPlayer(this, new Vector(cmd.data.pos));
-                        chunk.loaded(this);
+                        chunk.sendToPlayer(this);
                         break;
                     }
 
@@ -125,33 +127,13 @@ export class ServerPlayer extends Player {
                         break;
                     }
 
-                    // Not implemented ////////////////////////////////////////////////////////////////////////
-
-                    // Пользователь выгрузил чанк
-                    case ServerClient.CMD_CHUNK_REMOVE: {
-                        // throw 'error_not_implemented|' + cmd.name;
-                        /*
-                        out, _ := json.Marshal(cmdIn.Data)
-                        var params *Struct.ParamChunkRemove
-                        json.Unmarshal(out, &params)
-                        // this.removeChunk(params, conn)
-                        // получим чанк
-                        chunk := this.ChunkGet(params.Pos)
-                        //
-                        this.Mu.Lock()
-                        defer this.Mu.Unlock()
-                        // забудем, что юзер в этом чанке
-                        chunk.RemovePlayerConn(conn)
-                        // если в чанке больше нет юзеров, до удалим чанк
-                        if len(chunk.Connections) < 1 {
-                            delete(this.Chunks, params.Pos)
-                        }
-                        */
+                    case ServerClient.CMD_CREATE_ENTITY: {
+                        this.world.createEntity(this, cmd.data);
                         break;
                     }
 
-                    case ServerClient.CMD_CREATE_ENTITY: {
-                        this.world.createEntity(this, cmd.data);
+                    case ServerClient.CMD_CHANGE_RENDER_DIST: {
+                        this.changeRenderDist(parseInt(cmd.data));
                         break;
                     }
                                 
@@ -191,6 +173,19 @@ export class ServerPlayer extends Player {
         let message = 'Установлена точка возрождения ' + params.pos.x + ", " + params.pos.y + ", " + params.pos.z;
         this.world.chat.sendSystemChatMessageToSelectedPlayers(message, [this.session.user_id]);
     }
+    
+    // Change render dist
+    // 0(1chunk), 1(9), 2(25chunks), 3(45), 4(69), 5(109), 6(145), 7(193), 8(249) 9(305) 10(373) 11(437) 12(517)
+    changeRenderDist(value) {
+        if(Number.isNaN(value)) {
+            value = 4;
+        }
+        value = Math.max(value, 2);
+        value = Math.min(value, 16);
+        this.state.chunk_render_dist = value;
+        this.world.chunks.checkPlayerVisibleChunks(this, true);
+        this.world.db.changeRenderDist(this, value);
+    }
 
     // Отправка содержимого сундука
     sendChest(chest) {
@@ -201,8 +196,17 @@ export class ServerPlayer extends Player {
         this.sendPackets(packets);
     }
 
+    addChunk(chunk) {
+        this.chunks.set(chunk.addr, chunk.addr);
+    }
+
     // onLeave...
     onLeave() {
+        for(let chunk of this.chunks) {
+            if(chunk.removePlayer(this) == 0) {
+                this.world.chunks.remove(chunk.addr);
+            }
+        }
     }
 
 }

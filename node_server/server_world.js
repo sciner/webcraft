@@ -1,31 +1,26 @@
-import uuid from 'uuid';
-
 import {Mob} from "./mob.js";
 import {ServerChat} from "./server_chat.js";
-import {ServerChunk} from "./server_chunk.js";
 import {EntityManager} from "./entity_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
 
-import {Vector} from "../www/js/helpers.js";
-import {GameMode} from "../www/js/game_mode.js";
-import {Physics} from "../www/js/physics.js";
-import {ChunkManager} from "../www/js/chunk_manager.js";
-import {PlayerManager} from "../www/js/player_manager.js";
+import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 
+import {ServerChunkManager} from "./server_chunk_manager.js";
+// import {GameMode} from "../www/js/game_mode.js";
+
 export class ServerWorld {
 
-    constructor() {
-    }
+    constructor() {}
 
     async initServer(world_guid, db) {
         this.db         = db;
         this.info       = await this.db.getWorld(world_guid);
         this.entities   = new EntityManager(this);
         this.chat       = new ServerChat(this);
-        this.chunks     = new Map();
+        this.chunks     = new ServerChunkManager(this);
         this.players    = new Map(); // new PlayerManager(this);
         //
         this.models     = new ModelManager();
@@ -34,7 +29,7 @@ export class ServerWorld {
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
         //
-        this.restoreModifiedChunks();
+        await this.restoreModifiedChunks();
         //
         this.tickerWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -51,7 +46,12 @@ export class ServerWorld {
         }, 5000);
     }
 
-    tick() {}
+    // World tick
+    tick() {
+        for(let player of this.players.values()) {
+            this.chunks.checkPlayerVisibleChunks(player, false);
+        }
+    }
 
     save() {
         for(let player of this.players.values()) {
@@ -108,7 +108,7 @@ export class ServerWorld {
             state:   player.state,
         }}]);
         // 8. Check player visible chunks
-        this.checkPlayerVisibleChunks(player, player.state.chunk_render_dist, true);
+        this.chunks.checkPlayerVisibleChunks(player, true);
     }
 
     // onLeave
@@ -201,7 +201,7 @@ export class ServerWorld {
             }];
             this.sendSelected(packets, [player.session.user_id], []);
             player.state.pos = new_pos;
-            this.checkPlayerVisibleChunks(player, player.state.chunk_render_dist, true)
+            this.chunks.checkPlayerVisibleChunks(player, true);
         }
     }
 
@@ -215,7 +215,6 @@ export class ServerWorld {
         }
         player.state.pos                = new Vector(params.pos);
         player.state.rotate             = new Vector(params.rotate);
-        player.state.chunk_render_dist  = params.chunk_render_dist;
         player.position_changed         = true;
     }
 
@@ -225,48 +224,16 @@ export class ServerWorld {
             throw 'error_not_permitted';
         }
         let mob = await Mob.create(this, params);
-        let chunk = this.chunks.get(mob.chunk_addr.toHash());
+        let chunk = this.chunks.get(mob.chunk_addr, false);
         if(chunk) {
             chunk.addMob(mob);
         }
         return true;
     }
 
-    // Check player visible chunks
-    checkPlayerVisibleChunks(player, chunk_render_dist, force) {
-        // player.sendPackets([{name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS, data: []}]);
-        player.chunk_addr = getChunkAddr(player.state.pos);
-        if (force || !player.chunk_addr_o.equal(player.chunk_addr)) {
-            // чанки, находящиеся рядом с игроком, у которых есть модификаторы
-            let modified_chunks = [];
-            let x_rad = chunk_render_dist + 5;
-            let y_rad = 5
-            let z_rad = chunk_render_dist + 5;
-            for (let x = -x_rad; x < x_rad; x++) {
-                for (let y = -y_rad; y < y_rad; y++) {
-                    for (let z = -z_rad; z < z_rad; z++) {
-                        let vec = player.chunk_addr.add(new Vector(x, y, z));
-                        if (this.chunkHasModifiers(vec)) {
-                            modified_chunks.push(vec);
-                            // this.loadChunkForPlayer(player, *vec)
-                        }
-                    }
-                }
-            }
-            // cnt := len(modified_chunks)
-            // this.SendSystemChatMessage("Chunk changed to "+fmt.Sprintf("%v", player.chunk_addr)+" ... "+strconv.Itoa(cnt), []string{})
-            let packets = [{
-                name: ServerClient.CMD_NEARBY_MODIFIED_CHUNKS,
-                data: modified_chunks
-            }];
-            this.sendSelected(packets, [player.session.user_id], []);
-            player.chunk_addr_o = player.chunk_addr;
-        }
-    }
-
     // Restore modified chunks list
     async restoreModifiedChunks() {
-        this.chunkModifieds = new Set();
+        this.chunkModifieds = new VectorCollector();
         let list = await this.db.chunkBecameModified();
         for(let addr of list) {
             this.chunkBecameModified(addr);
@@ -276,12 +243,12 @@ export class ServerWorld {
 
     // Chunk has modifiers
     chunkHasModifiers(addr) {
-        return this.chunkModifieds.has(addr.toHash());
+        return this.chunkModifieds.has(addr);
     }
     
     // Add chunk to modified
     chunkBecameModified(addr) {
-        this.chunkModifieds.add(addr.toHash());
+        this.chunkModifieds.set(addr, addr);
     }
 
     // Юзер начал видеть этот чанк
@@ -295,14 +262,7 @@ export class ServerWorld {
 
     //
     async chunkGet(addr) {
-        let chunk = this.chunks.get(addr.toHash());
-        if(chunk) {
-            return chunk
-        }
-        chunk = new ServerChunk(this, addr);
-        this.chunks.set(addr.toHash(), chunk);
-        await chunk.load();
-        return chunk;
+        return await this.chunks.get(addr, true);
     }
 
     //

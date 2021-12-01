@@ -127,6 +127,15 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
+        // Version 3 -> 4
+        if (version == 3) {
+            await this.db.get('begin transaction');
+            await this.db.get(`alter table world add column "game_mode" TEXT DEFAULT 'survival'`);
+            await this.db.get(`alter table user add column "chunk_render_dist" integer DEFAULT 4`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
+        
     }
 
     // getDefaultPlayerIndicators...
@@ -158,7 +167,7 @@ export class DBWorld {
     // Register new user or return existed
     async registerUser(world, player) {
         // Find existing user record
-        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators FROM user WHERE guid = ?", [player.session.user_guid]);
+        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             return {
                 pos:                JSON.parse(row.pos),
@@ -166,7 +175,7 @@ export class DBWorld {
                 rotate:             JSON.parse(row.rotate),
                 inventory:          JSON.parse(row.inventory),
                 indicators:         JSON.parse(row.indicators),
-                chunk_render_dist:  4
+                chunk_render_dist:  row.chunk_render_dist
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
@@ -183,7 +192,7 @@ export class DBWorld {
             ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
         });
-        return await this.RegisterUser(world, player);
+        return await this.registerUser(world, player);
     }
 
     // Добавление сообщения в чат
@@ -221,9 +230,17 @@ export class DBWorld {
 
     // changePosSpawn...
     async changePosSpawn(player, params) {
-        const result = await this.db.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
+        await this.db.run('UPDATE user SET pos_spawn = :pos_spawn WHERE id = :id', {
             ':id':             player.session.user_id,
             ':pos_spawn':      JSON.stringify(params.pos)
+        });
+    }
+
+    // changeRenderDist...
+    async changeRenderDist(player, value) {
+        await this.db.run('UPDATE user SET chunk_render_dist = :chunk_render_dist WHERE id = :id', {
+            ':id':                  player.session.user_id,
+            ':chunk_render_dist':   value
         });
     }
 
@@ -365,8 +382,9 @@ export class DBWorld {
 
     // Load chunk modify list
     async loadChunkModifiers(addr, size) {
+        const mul = new Vector(10, 10, 10); // 116584
         let resp = new Map();
-        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max", {
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max ORDER BY id ASC", {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -378,12 +396,22 @@ export class DBWorld {
             let params = row.params ? JSON.parse(row.params) : null;
             // @BlockItem
             let item = {
-                id:         'id' in params ? params.id : 0,
-                rotate:     'rotate' in params ? params.rotate : 0,
-                power:      row.power,
-                entity_id:  row.entity_id,
-                extra_data: row.extra_data ? JSON.parse(row.extra_data) : null,
+                id: 'id' in params ? params.id : 0
             };
+            if(item.id > 2) {
+                if('rotate' in params) {
+                    item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
+                }
+                if('power' in params) {
+                    item.power = params.power;
+                }
+                if('entity_id' in params && params.entity_id) {
+                    item.entity_id = params.entity_id;
+                }
+                if('extra_data' in params && params.extra_data) {
+                    item.extra_data = JSON.parse(row.extra_data);
+                }
+            }
             //
             let pos = new Vector(row.x, row.y, row.z);
             resp.set(pos.toHash(), item);

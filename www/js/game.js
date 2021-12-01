@@ -122,14 +122,14 @@ export class GameClass {
                     // Page Up
                     case KEY.PAGE_UP: {
                         if(down) {
-                            this.world.chunkManager.setRenderDist(this.world.chunkManager.CHUNK_RENDER_DIST + 1);
+                            this.world.chunkManager.setRenderDist(player.state.chunk_render_dist + 1);
                         }
                         break;
                     }
                     // Set render distance [Page Down]
                     case KEY.PAGE_DOWN: {
                         if(down) {
-                            this.world.chunkManager.setRenderDist(this.world.chunkManager.CHUNK_RENDER_DIST - 1);
+                            this.world.chunkManager.setRenderDist(player.state.chunk_render_dist - 1);
                         }
                         break;
                     }
@@ -314,8 +314,7 @@ export class GameClass {
         this.current_player_state = {
             rotate:             player.rotate,
             pos:                player.lerpPos.clone().multiplyScalar(100).round().divScalar(100),
-            ping:               Math.round(this.player.world.server.ping_value),
-            chunk_render_dist:  this.world.chunkManager.CHUNK_RENDER_DIST
+            ping:               Math.round(this.player.world.server.ping_value)
         };
         let current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {

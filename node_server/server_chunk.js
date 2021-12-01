@@ -23,6 +23,15 @@ export class ServerChunk {
     // Add player connection
     addPlayer(player) {
         this.connections.set(player.session.user_id, player);
+        player.addChunk(this);
+    }
+
+    // Remove player from chunk
+    removePlayer(player) {
+        if(this.connections.has(player.session.user_id)) {
+            this.connections.delete(player.session.user_id);
+        }
+        return this.connections.size;
     }
 
     // Add mob
@@ -35,8 +44,8 @@ export class ServerChunk {
         this.sendAll(packets);
     }
 
-    // Chunk loaded
-    loaded(player) {
+    // Send chunk for player
+    sendToPlayer(player) {
         // @CmdChunkState
         let packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
