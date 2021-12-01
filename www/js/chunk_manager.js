@@ -1,4 +1,4 @@
-import {Vector, VectorCollector} from "./helpers.js";
+import {SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
 import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
@@ -19,9 +19,14 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
-        this.poses                  = new VectorCollector();
+
+        // rendering
+        this.poses                  = [];
+        this.poses_need_update      = false;
+        this.poses_chunkPos         = new Vector();
         this.rendered_chunks        = {fact: 0, total: 0};
         this.renderList             = new Map();
+
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
         this.lightmap_count         = 0;
@@ -35,7 +40,9 @@ export class ChunkManager {
         //
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
-        this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {this.setChunkState(cmd.data)});
+        this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
+            this.setChunkState(cmd.data);
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_BLOCK_SET], (cmd) => {
             let pos = cmd.data.pos;
             let item = cmd.data.item;
@@ -128,6 +135,21 @@ export class ChunkManager {
     }
 
     prepareRenderList(render) {
+        if (this.poses_need_update || !Game.player.chunkAddr.equal(this.poses_chunkPos)) {
+            this.poses_need_update = false;
+            const pos               = this.poses_chunkPos = Game.player.chunkAddr;
+            let margin              = Math.max(Game.player.state.chunk_render_dist + 1, 1);
+            let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
+            this.poses.length = 0;
+            for (let i = 0; i<spiral_moves_3d.length;i++) {
+                const item = spiral_moves_3d[i];
+                const chunk = this.chunks.get(pos.add(item.pos));
+                if (chunk) {
+                    this.poses.push(chunk);
+                }
+            }
+        }
+
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
@@ -135,14 +157,10 @@ export class ChunkManager {
             }
         }
         let applyVerticesCan = 10;
-        for(let item of this.poses) {
-            const {chunk} = item;
-            if (!chunk) {
-                continue;
-            }
+        for(let chunk of this.poses) {
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {
-                    item.chunk.applyVertices();
+                    chunk.applyVertices();
                 }
             }
             if(chunk.vertices_length === 0) {
@@ -239,6 +257,7 @@ export class ChunkManager {
             this.chunks.add(state.addr, chunk);
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
+            this.poses_need_update = true;
             return true;
         }
         return false;
@@ -276,16 +295,21 @@ export class ChunkManager {
         // Load chunks
         let can_add = CHUNKS_ADD_PER_UPDATE;
 
-        while (this.nearby.added.length > 0) {
-            let item = this.nearby.added.shift();
-            if (this.poses.set(item.addr, {chunk: this.chunks.get(item.addr)})) {
-                if (this.loadChunk(item)) {
-                    if (--can_add <= 0) {
-                        break;
+        let j = 0;
+        for (let i=0;i<this.nearby.added.length;i++) {
+            const item = this.nearby.added[i];
+            if (!this.nearby.deleted.has(item.addr)) {
+                if (can_add > 0) {
+                    if (this.loadChunk(item)) {
+                        can_add--;
                     }
+                } else {
+                    // save for next time
+                    this.nearby.added[j++] = item;
                 }
             }
         }
+        this.nearby.added.length = j;
 
         // Delete chunks
         if(this.nearby.deleted.size > 0) {
