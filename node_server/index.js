@@ -36,7 +36,7 @@ global.Game = new ServerGame();
 Game.startWS();
 
 // Start express
-const server = app.listen(5705);
+const server = app.listen(5700);
 
 // Pair with websocket server
 server.on('upgrade', (request, socket, head) => {
