@@ -276,10 +276,11 @@ export class ChunkManager {
         // Load chunks
         let can_add = CHUNKS_ADD_PER_UPDATE;
 
-        for(let item of this.nearby.added) {
-            if(this.poses.set(item.addr, {chunk: this.chunks.get(item.addr)})) {
-                if(this.loadChunk(item)) {
-                    if(--can_add <= 0) {
+        while (this.nearby.added.length > 0) {
+            let item = this.nearby.added.shift();
+            if (this.poses.set(item.addr, {chunk: this.chunks.get(item.addr)})) {
+                if (this.loadChunk(item)) {
+                    if (--can_add <= 0) {
                         break;
                     }
                 }
