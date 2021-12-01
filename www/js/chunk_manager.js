@@ -256,6 +256,7 @@ export class ChunkManager {
 
     // Remove chunk
     removeChunk(addr) {
+        this.chunks_prepare.delete(addr);
         let chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;

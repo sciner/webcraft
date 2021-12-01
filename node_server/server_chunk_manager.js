@@ -53,9 +53,6 @@ export class ServerChunkManager {
                 deleted:            [] // чанки, которые надо выгрузить
             };
 
-            if(!player.nearby_chunk_addrs) {
-                player.nearby_chunk_addrs = new VectorCollector();
-            }
             let added_vecs = new VectorCollector();
 
             // Find new chunks

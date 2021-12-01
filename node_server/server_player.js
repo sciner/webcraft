@@ -10,6 +10,7 @@ export class ServerPlayer extends Player {
         this.chunk_addr         = new Vector(0, 0, 0);
         this.chunk_addr_o       = new Vector(0, 0, 0);
         this.chunks             = new VectorCollector();
+        this.nearby_chunk_addrs = new VectorCollector();
     }
 
     //
@@ -111,8 +112,11 @@ export class ServerPlayer extends Player {
                         
                     // Пользователь подгрузил чанк
                     case ServerClient.CMD_CHUNK_LOAD: {
-                        let chunk = await this.world.loadChunkForPlayer(this, new Vector(cmd.data.pos));
-                        chunk.sendToPlayer(this);
+                        let addr = new Vector(cmd.data.pos);
+                        if(this.nearby_chunk_addrs.has(addr)) {
+                            let chunk = await this.world.loadChunkForPlayer(this, addr);
+                            chunk.sendToPlayer(this);
+                        }
                         break;
                     }
 
