@@ -314,7 +314,6 @@ export class ChunkManager {
         // Delete chunks
         if(this.nearby.deleted.size > 0) {
             for(let addr of this.nearby.deleted) {
-                this.nearby.deleted.delete(addr);
                 this.removeChunk(addr);
             }
             this.nearby.deleted.clear();
