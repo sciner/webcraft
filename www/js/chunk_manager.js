@@ -469,6 +469,9 @@ export class ChunkManager {
                 deleted:    new VectorCollector()
             };
         }
+        if (this.nearby.deleted.length > 0) {
+            this.update();
+        }
         for(let item of data.added) {
             this.nearby.added.push(item);
         }

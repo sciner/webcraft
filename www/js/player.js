@@ -558,6 +558,12 @@ export class Player {
             if(!this.overChunk) {
                 this.overChunk = Game.world.chunkManager.getChunk(this.chunkAddr);
             }
+            if (!this.overChunk) {
+                // some kind of race F8+R
+                const blockPos = this.getBlockPos();
+                this.chunkAddr          = getChunkAddr(blockPos.x, blockPos.y, blockPos.z);
+                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
+            }
             if(!this.overChunk?.inited) {
                 return;
             }
