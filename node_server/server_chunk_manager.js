@@ -57,7 +57,7 @@ export class ServerChunkManager {
     }
 
     // Check player visible chunks
-    checkPlayerVisibleChunks(player, force) {
+    async checkPlayerVisibleChunks(player, force) {
 
         player.chunk_addr = getChunkAddr(player.state.pos);
 
@@ -87,7 +87,7 @@ export class ServerChunkManager {
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };
                         nearby.added.push(item);
-                        // this.world.loadChunkForPlayer(player, addr);
+                        // await this.world.loadChunkForPlayer(player, addr);
                         player.nearby_chunk_addrs.set(addr, addr);
                     }
                 }
@@ -106,7 +106,7 @@ export class ServerChunkManager {
 
             // Send new chunks
             if(nearby.added.length + nearby.deleted.length > 0) {
-                console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
+                // console.log('new: ' + nearby.added.length + '; delete: ' + nearby.deleted.length + '; current: ' + player.nearby_chunk_addrs.size);
                 let packets = [{
                     name: ServerClient.CMD_NEARBY_CHUNKS,
                     data: nearby

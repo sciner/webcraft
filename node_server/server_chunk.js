@@ -89,6 +89,9 @@ export class ServerChunk {
 
     // Set block
     async blockSet(player, params, notify_author) {
+        if(!this.connections.has(player.session.user_id)) {
+            this.addPlayer(player);
+        }
         if(BLOCK.isEgg(params.item.id)) {
             let material = BLOCK.fromId(params.item.id);
             // @ParamChatSendMessage
