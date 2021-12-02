@@ -79,6 +79,7 @@ let gameCtrl = function($scope, $timeout) {
         error_user_already_registered: 'User already registered',
         error_invalid_login_or_password: 'Invalid login or password',
         error_player_exists_in_selected_world: 'You already exists in this world',
+        error_not_permitted: 'Not permitted',
         share_game_with_friends: 'Share world with friends',
         error_not_logged: 'Login before open invite link',
         copied: 'Copied',
