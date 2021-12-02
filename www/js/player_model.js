@@ -1,18 +1,35 @@
 import GeometryTerrain from "./geometry_terrain.js";
 import { NORMALS, Helpers } from './helpers.js';
-import { MobModel } from "./mob_model.js";
+import { MobAnimation, MobModel } from "./mob_model.js";
 import { SceneNode } from "./SceneNode.js";
 
 const {mat4, quat} = glMatrix;
 
+export class PlayerAnimation extends MobAnimation {
+    head({
+        part, animable
+    }) {
+        let pitch = animable.pitch; 
+
+        if(pitch < -0.5) { 
+            pitch = -0.5; 
+        } 
+
+        if(pitch > 0.5) { 
+            pitch = 0.5; 
+        }
+
+        quat.fromEuler(part.quat, -pitch * 90, 0, 0);
+
+        part.updateMatrix();
+    }
+}
 export class PlayerModel extends MobModel {
 
     constructor(props) {
-        super({ ...props, type : 'player' });
+        super({type: 'player', skin: '1', ...props});
 
         this.height = 1.7;
-
-        this.skin = this.skin_id;
 
         /**
          * @type {HTMLCanvasElement}
@@ -23,6 +40,8 @@ export class PlayerModel extends MobModel {
         this.username = props.username;
 
         this.head = null;
+
+        this.animationScript = new PlayerAnimation()
     }
 
     itsMe() {
@@ -50,65 +69,25 @@ export class PlayerModel extends MobModel {
 
         this.sceneTree.addChild(this.nametag);
         this.nametag.scale.set([0.005, 1, 0.005]);
-        this.nametag.position[2] = this.height + 0.35;
+        this.nametag.position[2] = 
+            (this.sceneTree.findNode('Head') || this.sceneTree.findNode('head'))
+            .pivot[2] + 0.5;
+        
         this.nametag.updateMatrix();
     }
 
     postLoad(tree) {
         super.postLoad(tree);
         tree.scale.set([0.9, 0.9, 0.9]);
-
-        this.leftArm = this.sceneTree.findNode('LeftArm');
-        this.rightArm = this.sceneTree.findNode('RightArm');
     }
 
     update(render, camPos, delta) {
-        if (delta > 1000) {
-            delta = 1000;
+        super.update(render, camPos, delta);
+
+        if (!this.isRenderable) {
+            return;
         }
 
-        let aniangle = 0;
-        if(this.moving || Math.abs(this.aniframe) > 0.1) {
-            this.aniframe += (0.1 / 1000 * delta);
-            if(this.aniframe > Math.PI) {
-                this.aniframe  = -Math.PI;
-            }
-            aniangle = Math.PI / 2 * Math.sin(this.aniframe);
-            if(!this.moving && Math.abs(aniangle) < 0.1) {
-                this.aniframe = 0;
-            }
-        }
-
-        // Draw head
-        let pitch = this.pitch;
-        if(pitch < -0.5) {
-            pitch = -0.5;
-        }
-        if(pitch > 0.5) {
-            pitch = 0.5;
-        }
-
-        this.computeLocalPosAndLight(render);
-
-        // head
-        quat.fromEuler(this.head.quat, -pitch * 90, 0, 0);
-        this.head.updateMatrix();
-
-        //arm
-        quat.fromEuler(this.leftArm.quat, 0.75 * aniangle * 90, 0, 0);
-        this.leftArm.updateMatrix();
-
-        quat.fromEuler(this.rightArm.quat, -0.75 * aniangle * 90, 0, 0);
-        this.rightArm.updateMatrix();
-        
-        //leg
-        quat.fromEuler(this.legs[0].quat, -0.5 * aniangle * 90, 0, 0);
-        this.legs[0].updateMatrix();
-
-        quat.fromEuler(this.legs[1].quat, 0.5 * aniangle * 90, 0, 0);
-        this.legs[1].updateMatrix();
-        
-        // tag
         const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
         const angX = 0; // @todo
         
