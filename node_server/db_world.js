@@ -137,6 +137,13 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
+        // Version 4 -> 5
+        if (version == 4) {
+            await this.db.get('begin transaction');
+            await this.db.get(`CREATE INDEX "world_modify_xyz" ON "world_modify" ("x", "y", "z")`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
         
     }
 

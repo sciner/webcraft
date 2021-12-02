@@ -8,12 +8,13 @@ export class WorkerWorldManager {
         this.list = new Map();
     }
 
-    async InitTerrainGenerators() {
+    async InitTerrainGenerators(generator_codes) {
+        // generator_codes = ['biome2', 'city', 'city2', 'flat'];
         let that = this;
         that.terrainGenerators = new Map();
         let all = [];
         // Load terrain generators
-        for(let tg_code of ['biome2', 'city', 'city2', 'flat']) {
+        for(let tg_code of generator_codes) {
             all.push(import('../terrain_generator/' + tg_code + '/index.js').then((module) => {
                 that.terrainGenerators.set(tg_code, module.default);
             }));
