@@ -9,12 +9,33 @@ export const MAX_Y_MARGIN = 3;
 export class ServerChunkManager {
 
     constructor(world) {
-        this.world = world;
-        this.all = new VectorCollector();
+        this.world                  = world;
+        this.all                    = new VectorCollector();
+        this.invalid_chunks_queue   = [];
     }
 
     add(chunk) {
         this.all.set(chunk.addr, chunk);
+    }
+
+    // Add to invalid queue
+    // помещает чанк в список невалидных, т.к. его больше не видит ни один из игроков
+    // в следующем тике мира, он будет выгружен методом unloadInvalidChunks()
+    invalidate(chunk) {
+        this.invalid_chunks_queue.push(chunk);
+    }
+
+    unloadInvalidChunks() {
+        if(this.invalid_chunks_queue.length > 0) {
+            console.log('Unload invalid chunks: ' + this.invalid_chunks_queue.length);
+        }
+        while(this.invalid_chunks_queue.length > 0) {
+            let chunk = this.invalid_chunks_queue.pop();
+            if(chunk.connections.size == 0) {
+                this.all.delete(chunk.addr);
+                chunk.onUnload();
+            }
+        }
     }
 
     async get(addr, add_if_not_exists) {
@@ -36,7 +57,7 @@ export class ServerChunkManager {
     }
 
     // Check player visible chunks
-    checkPlayerVisibleChunks(player, force) {
+    async checkPlayerVisibleChunks(player, force) {
 
         player.chunk_addr = getChunkAddr(player.state.pos);
 
@@ -66,6 +87,7 @@ export class ServerChunkManager {
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };
                         nearby.added.push(item);
+                        await this.world.loadChunkForPlayer(player, addr);
                         player.nearby_chunk_addrs.set(addr, addr);
                     }
                 }
@@ -75,6 +97,7 @@ export class ServerChunkManager {
             for(let addr of player.nearby_chunk_addrs) {
                 if(!added_vecs.has(addr)) {
                     player.nearby_chunk_addrs.delete(addr);
+                    (await this.get(addr, false))?.removePlayer(player);
                     nearby.deleted.push(addr);
                 }
             }

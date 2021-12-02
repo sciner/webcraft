@@ -4,6 +4,8 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
+import {Mob} from "./mob.js";
+
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector} from "../www/js/helpers.js";
 
@@ -366,7 +368,7 @@ export class DBWorld {
         });
         let resp = new Map();
         for(let row of rows) {
-            let item = {
+            let item = new Mob(this.world, {
                 id:         row.id,
                 rotate:     JSON.parse(row.rotate),
                 pos:        new Vector(row.x, row.y, row.z),
@@ -374,8 +376,8 @@ export class DBWorld {
                 type:       row.type,
                 skin:       row.skin,
                 indicators: JSON.parse(row.indicators)
-            };
-            resp.set(item.pos.toHash(), item);
+            });
+            resp.set(item.entity_id, item);
         }
         return resp;
     }

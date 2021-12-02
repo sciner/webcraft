@@ -149,6 +149,17 @@ export class DBGame {
     async InsertNewWorld(user_id, generator, seed, title, game_mode) {
         const guid = uuid();
         let default_pos_spawn = new Vector(2895.7, 120, 2783.06);
+        switch(generator?.id) {
+            case 'city':
+            case 'flat': {
+                default_pos_spawn = new Vector(0, 2, 0);
+                break;
+            }
+            case 'city2': {
+                default_pos_spawn = new Vector(3000, 8, 3000);
+                break;
+            }
+        }
         const result = await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        guid,

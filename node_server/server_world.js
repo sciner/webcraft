@@ -25,6 +25,15 @@ export class ServerWorld {
         //
         this.models     = new ModelManager();
         this.models.init();
+        // Store refs to all loaded mobs in the world
+        this.mobs       = new Map();
+        this.ticks_stat = {
+            last: 0,
+            total: 0,
+            count: 0,
+            min: Number.MAX_SAFE_INTEGER,
+            max: 0
+        };
         //
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
@@ -32,10 +41,14 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         //
         this.tickerWorldTimer = setInterval(() => {
-            // let pn = performance.now();
+            let pn = performance.now();
             this.tick();
-            // time elapsed forcurrent tick
-            // console.log("Tick took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
+            // Calculate stats of elapsed time for ticks
+            this.ticks_stat.total += this.ticks_stat.last = performance.now() - pn;
+            this.ticks_stat.count++;
+            if(this.ticks_stat.last < this.ticks_stat.min) this.ticks_stat.min = this.ticks_stat.last;
+            if(this.ticks_stat.last > this.ticks_stat.max) this.ticks_stat.max = this.ticks_stat.last;
+            // console.log('Tick took %sms', Math.round((performance.now() - pn) * 1000) / 1000);
         }, 50);
         //
         this.saveWorldTimer = setInterval(() => {
@@ -48,8 +61,15 @@ export class ServerWorld {
 
     // World tick
     tick() {
+        // 1.
+        this.chunks.unloadInvalidChunks();
+        // 2.
         for(let player of this.players.values()) {
             this.chunks.checkPlayerVisibleChunks(player, false);
+        }
+        // 3.
+        for(let [entity_id, mob] of this.mobs) {
+            mob.tick();
         }
     }
 

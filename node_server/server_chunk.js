@@ -30,8 +30,21 @@ export class ServerChunk {
     removePlayer(player) {
         if(this.connections.has(player.session.user_id)) {
             this.connections.delete(player.session.user_id);
+            // Unload mobs for player
+            // @todo перенести выгрузку мобов на сторону игрока, пусть сам их выгружает, в момент выгрузки чанков
+            if(this.mobs.size > 0) {
+                let packets = [{
+                    name: ServerClient.CMD_MOB_DELETED,
+                    data: Array.from(this.mobs.keys())
+                }];
+                this.world.sendSelected(packets, [player.session.user_id], []);
+            }
         }
-        return this.connections.size;
+        if(this.connections.size < 1) {
+            // помечает чанк невалидным, т.к. его больше не видит ни один из игроков
+            // в следующем тике мира, он будет выгружен
+            this.world.chunks.invalidate(this);
+        }
     }
 
     // Add mob
@@ -132,6 +145,15 @@ export class ServerChunk {
     sendAll(packets) {
         let connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, []);
+    }
+
+    // Before unload chunk
+    async onUnload() {
+        if(this.mobs.size > 0) {
+            for(let [entity_id, mob] of this.mobs) {
+                mob.onUnload();
+            }
+        }
     }
 
 }

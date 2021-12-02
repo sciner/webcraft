@@ -14,7 +14,7 @@ export class ServerPlayer extends Player {
     }
 
     //
-    async joinToServerWorld(session_id, skin, conn, world) {
+    async onJoin(session_id, skin, conn, world) {
         this.conn = conn;
         this.world = world;
         conn.player = this;
@@ -165,6 +165,13 @@ export class ServerPlayer extends Player {
         this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
     }
 
+    // onLeave...
+    async onLeave() {
+        for(let addr of this.chunks) {
+            (await this.world.chunks.get(addr, false))?.removePlayer(this);
+        }
+    }
+
     // sendPackets...
     sendPackets(packets) {
         this.conn.send(JSON.stringify(packets));
@@ -202,16 +209,6 @@ export class ServerPlayer extends Player {
 
     addChunk(chunk) {
         this.chunks.set(chunk.addr, chunk.addr);
-    }
-
-    // onLeave...
-    onLeave() {
-        for(let chunk of this.chunks) {
-            // @toto fix it
-            //if(chunk.removePlayer(this) == 0) {
-            //    this.world.chunks.remove(chunk.addr);
-            //}
-        }
     }
 
 }

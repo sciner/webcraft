@@ -50,7 +50,7 @@ export class HUD {
             },
             draw: function() {
                 let cl = 0;
-                let nc = 100;
+                let nc = 45;
                 if(Game.world && Game.world.chunkManager) {
                     for(let chunk of Game.world.chunkManager.chunks) {
                         if(chunk.inited) {

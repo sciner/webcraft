@@ -41,7 +41,7 @@ export class ServerGame {
                 console.log('World started');
             }
             let player = new ServerPlayer();
-            player.joinToServerWorld(query.session_id, query.skin, conn, world);
+            player.onJoin(query.session_id, query.skin, conn, world);
         });
     }
 

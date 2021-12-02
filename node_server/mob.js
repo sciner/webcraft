@@ -16,6 +16,8 @@ export class Mob {
         this.pos            = params.pos;
         this.rotate         = params.rotate;
         this.#chunk_addr    = getChunkAddr(this.pos);
+        // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
+        world.mobs.set(this.entity_id, this);
     }
 
     get chunk_addr() {
@@ -31,6 +33,13 @@ export class Mob {
         return new Mob(world, params);
     }
 
-    tick() {}
+    tick() {
+        // console.log('mobtick: ' + this.entity_id);
+    }
+
+    onUnload() {
+        console.log('Mob unloaded: ' + this.entity_id);
+        this.#world.mobs.delete(this.entity_id);
+    }
 
 }

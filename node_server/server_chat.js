@@ -87,6 +87,18 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers('Ключ генератора: ' + this.world.info.seed, [player.session.user_id]);
                 break;
             }
+            case '/tp': {
+                // @todo Команда пока выполняется на клиенте
+                break;
+            }
+            case '/tps': {
+                let temp = [];
+                for(let [k, v] of Object.entries(this.world.ticks_stat)) {
+                    temp.push(k + ': ' + Math.round(v*1000)/1000);
+                }
+                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                break;
+            }
             case '/spawnpoint': {
                 player.changePosSpawn({pos: player.state.pos.clone().multiplyScalar(1000).floored().divScalar(1000)});
                 break;
