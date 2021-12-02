@@ -57,7 +57,7 @@ export class ServerChunkManager {
     }
 
     // Check player visible chunks
-    async checkPlayerVisibleChunks(player, force) {
+    checkPlayerVisibleChunks(player, force) {
 
         player.chunk_addr = getChunkAddr(player.state.pos);
 
@@ -87,7 +87,7 @@ export class ServerChunkManager {
                             has_modifiers: this.world.chunkHasModifiers(addr) // у чанка есть модификации?
                         };
                         nearby.added.push(item);
-                        await this.world.loadChunkForPlayer(player, addr);
+                        // this.world.loadChunkForPlayer(player, addr);
                         player.nearby_chunk_addrs.set(addr, addr);
                     }
                 }
@@ -97,7 +97,9 @@ export class ServerChunkManager {
             for(let addr of player.nearby_chunk_addrs) {
                 if(!added_vecs.has(addr)) {
                     player.nearby_chunk_addrs.delete(addr);
-                    (await this.get(addr, false))?.removePlayer(player);
+                    this.get(addr, false).then((chunk) => {
+                        // chunk.removePlayer(player);
+                    })
                     nearby.deleted.push(addr);
                 }
             }
