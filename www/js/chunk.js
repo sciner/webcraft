@@ -37,7 +37,7 @@ export function getChunkAddr(x, y, z, v = null) {
 /**
  * Возвращает мировые координаты самого чанка
  */
-export function getChunkWordCoord(x, y, z, v = null) {
+export function getChunkWorldCoord(x, y, z, v = null) {
     const out = getChunkAddr(x, y, z, v);
 
     out.x *= CHUNK_SIZE_X;
@@ -51,7 +51,7 @@ export function getChunkWordCoord(x, y, z, v = null) {
  * Возвращает локальные координаты относительно чанка
  */
 export function getLocalChunkCoord(x, y, z, target = null) {
-    const out = getChunkWordCoord(x, y, z, target);
+    const out = getChunkWorldCoord(x, y, z, target);
 
     if(x instanceof Vector) {
         y = x.y;
@@ -126,7 +126,6 @@ export class Chunk {
         this.vertices                   = new Map();
         this.fluid_blocks               = [];
         this.gravity_blocks             = [];
-        // Frustum
         this.in_frustum                 = false; // в данный момент отрисован на экране
         this.rendered                   = 0;
         // save ref on chunk manager

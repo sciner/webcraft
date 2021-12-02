@@ -163,10 +163,10 @@ export class ChunkManager {
                     chunk.applyVertices();
                 }
             }
+            chunk.updateInFrustum(render);
             if(chunk.vertices_length === 0) {
                 continue;
             }
-            chunk.updateInFrustum(render);
             if(!chunk.in_frustum) {
                 continue;
             }

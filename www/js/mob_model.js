@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers, Vector } from "./helpers.js";
-import { getChunkAddr, getChunkWordCoord, getLocalChunkCoord } from "./chunk.js";
+import { getChunkAddr, getChunkWorldCoord, getLocalChunkCoord } from "./chunk.js";
 import { ChunkManager } from "./chunk_manager.js";
 
 const {mat4, vec3, quat} = glMatrix;
@@ -359,7 +359,7 @@ export class MobModel {
         }
 
         this.posDirty = false;
-        this.drawPos = getChunkWordCoord(this.pos.x, this.pos.y, this.pos.z, this.drawPos);
+        this.drawPos = getChunkWorldCoord(this.pos.x, this.pos.y, this.pos.z, this.drawPos);
 
         const local = getLocalChunkCoord(this.pos.x, this.pos.y, this.pos.z);
         const addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
