@@ -240,15 +240,25 @@ export class ServerWorld {
 
     // Spawn new mob
     async spawnMob(player, params) {
-        if(!this.admins.checkIsAdmin(player)) {
-            throw 'error_not_permitted';
+        try {
+            if(!this.admins.checkIsAdmin(player)) {
+                throw 'error_not_permitted';
+            }
+            let mob = await Mob.create(this, params);
+            let chunk = await this.chunks.get(mob.chunk_addr, false);
+            if(chunk) {
+                chunk.addMob(mob);
+            }
+            return true;
+        } catch(e) {
+            let packets = [{
+                name: ServerClient.CMD_ERROR,
+                data: {
+                    message: e
+                }
+            }];
+            this.sendSelected(packets, [player.session.user_id], []);
         }
-        let mob = await Mob.create(this, params);
-        let chunk = await this.chunks.get(mob.chunk_addr, false);
-        if(chunk) {
-            chunk.addMob(mob);
-        }
-        return true;
     }
 
     // Restore modified chunks list
