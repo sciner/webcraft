@@ -8,6 +8,7 @@ import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector} from "../www/js/helpers.js";
+import {BLOCK} from "../www/js/blocks.js";
 
 export class DBWorld {
 
@@ -409,7 +410,9 @@ export class DBWorld {
             };
             if(item.id > 2) {
                 if('rotate' in params) {
-                    item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
+                    if(BLOCK.fromId(item.id)?.can_rotate) {
+                        item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
+                    }
                 }
                 if('power' in params) {
                     item.power = params.power;
@@ -417,7 +420,7 @@ export class DBWorld {
                 if('entity_id' in params && params.entity_id) {
                     item.entity_id = params.entity_id;
                 }
-                if('extra_data' in params && params.extra_data) {
+                if(row.extra_data !== null) {
                     item.extra_data = JSON.parse(row.extra_data);
                 }
             }
