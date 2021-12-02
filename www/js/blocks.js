@@ -2,7 +2,7 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.
 import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector, Helpers } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
-import { CubeSym } from "./CubeSym.js";
+import { CubeSym } from "./core/CubeSym.js";
 import { AABB } from './core/AABB.js';
 
 export const TRANS_TEX                      = [4, 12];

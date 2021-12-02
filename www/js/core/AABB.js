@@ -1,4 +1,4 @@
-import {CubeSym} from "../CubeSym";
+import {CubeSym} from "./CubeSym.js";
 
 export class AABB {
     cosntructor() {

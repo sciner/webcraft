@@ -31,7 +31,7 @@ export class ChunkManager {
         this.vertices_length_total  = 0;
         this.lightmap_count         = 0;
         this.lightmap_bytes         = 0;
-        this.dirty_chunks           = [];
+        // this.dirty_chunks           = [];
         this.worker_inited          = false;
         this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
@@ -328,7 +328,7 @@ export class ChunkManager {
             {x: -1, y:  0, z:  0},
             {x:  1, y:  0, z:  0}
         ];
-        for(let chunk of this.dirty_chunks) {
+        for(let chunk of this.chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 let ok = true;
                 for(let c of cc) {
@@ -348,18 +348,18 @@ export class ChunkManager {
     }
 
     addToDirty(chunk) {
-        this.dirty_chunks.push(chunk);
+    //     this.dirty_chunks.push(chunk);
     }
 
     deleteFromDirty(chunk_key) {
-        for(let i in this.dirty_chunks) {
-            let chunk = this.dirty_chunks[i];
-            if(chunk.key == chunk_key) {
-                this.dirty_chunks.splice(i, 1);
-                return true;
-            }
-        }
-        return false;
+    //     for(let i in this.dirty_chunks) {
+    //         let chunk = this.dirty_chunks[i];
+    //         if(chunk.key == chunk_key) {
+    //             this.dirty_chunks.splice(i, 1);
+    //             return true;
+    //         }
+    //     }
+    //     return false;
     }
 
     /**

@@ -3,7 +3,7 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
-import {CubeSym} from "../CubeSym.js";
+import {CubeSym} from "../core/CubeSym.js";
 
 export default class style {
 

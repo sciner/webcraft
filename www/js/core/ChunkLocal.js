@@ -1,4 +1,4 @@
-import { CubeSym } from '../CubeSym.js';
+import { CubeSym } from './CubeSym.js';
 import { Vector } from '../helpers.js';
 import { AABB } from './AABB.js';
 

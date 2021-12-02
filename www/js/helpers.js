@@ -1,4 +1,4 @@
-import { CubeSym } from "./CubeSym.js";
+import { CubeSym } from "./core/CubeSym.js";
 
 export const TX_CNT = 32;
 
