@@ -29,10 +29,15 @@ export default class style {
         }
         let sz = 1 / 1.41;
         let index = x * CHUNK_SIZE_Z + z;
-        if(!randoms[index]) {
-            randoms[index] = Math.random();
+        let r = 0;
+        if([block.material.style].indexOf('sign') < 0) {
+            if(!randoms[index]) {
+                randoms[index] = Math.random();
+            }
+            r = randoms[index] * 4/16 - 2/16;
+        } else {
+            console.log('4567');
         }
-        let r = randoms[index] * 4/16 - 2/16;
         x += 0.5 - 0.5 / 1.41 + r;
         z += 0.5 - 0.5 / 1.41 + r;
         push_plane(vertices, x, y, z, c, lm, true, true, sz, undefined, sz, flags);

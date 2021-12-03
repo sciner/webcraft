@@ -1741,6 +1741,7 @@
     },
     {
         "id": 75,
+        "name": "REDSTONE_TORCH_ON",
         "passable": 1,
         "transparent": true,
         "style": "sign",
@@ -1754,7 +1755,6 @@
             3,
             6
         ],
-        "name": "REDSTONE_TORCH_ON",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -1765,6 +1765,7 @@
     },
     {
         "id": 76,
+        "name": "REDSTONE_TORCH_OFF",
         "passable": 1,
         "transparent": true,
         "style": "sign",
@@ -1772,7 +1773,6 @@
             3,
             7
         ],
-        "name": "REDSTONE_TORCH_OFF",
         "destroy_time": 0.4,
         "power": 1,
         "selflit": false,
@@ -2917,6 +2917,7 @@
         },
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,

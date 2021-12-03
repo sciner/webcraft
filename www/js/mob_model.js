@@ -350,18 +350,18 @@ export class MobModel {
 
     computeLocalPosAndLight(render) {
 
-        // root rotation
-        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-        this.sceneTree.updateMatrix();
-
-        if (!this.posDirty && this.currentChunk) {
-            return;
-        }
-
         const newChunk = ChunkManager.instance.getChunkAtWorld(this.pos);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
         this.material.lightTex = this.lightTex;
+
+        // root rotation
+        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
+        this.sceneTree.updateMatrix();
+
+        if (!this.posDirty && this.currentChunk == newChunk || !newChunk) {
+            return;
+        }
 
         this.posDirty = false;
         this.currentChunk = newChunk;
