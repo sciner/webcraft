@@ -349,29 +349,32 @@ export class MobModel {
     }
 
     computeLocalPosAndLight(render) {
+        this.posDirty = false;
 
         const newChunk = ChunkManager.instance.getChunkAtWorld(this.pos);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
         this.material.lightTex = this.lightTex;
 
-        // root rotation
-        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-        this.sceneTree.updateMatrix();
-
-        if (!this.posDirty && this.currentChunk == newChunk || !newChunk) {
+        
+        // invalid state, chunk always should be presented
+        if (!newChunk) {
             return;
         }
 
-        this.posDirty = false;
         this.currentChunk = newChunk;
         this.drawPos = newChunk.coord;
+
+        // root rotation
+        quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
 
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
             this.pos.y - this.drawPos.y,
         ]);
+
+        this.sceneTree.updateMatrix();
     }
 
     update(render, camPos, delta) {
