@@ -653,16 +653,28 @@ export class Player {
 
     // Emulate user keyboard control
     walk(direction, duration) {
-        let key = null;
+        let keyCode = null;
         switch(direction) {
-            case 'forward': key = KEY.W; break;
-            case 'back': key = KEY.S; break;
-            case 'left': key = KEY.A; break;
-            case 'right': key = KEY.D; break;
+            case 'forward': keyCode = KEY.W; break;
+            case 'back': keyCode = KEY.S; break;
+            case 'left': keyCode = KEY.A; break;
+            case 'right': keyCode = KEY.D; break;
             default: throw 'Invalid direction';
         }
-        this.onKeyEvent({ctrlKey: false}, key, true, true);
-        setTimeout(() => {this.onKeyEvent({ctrlKey: false}, key, false, true);}, duration);
+        this.onKeyEvent({
+            keyCode: keyCode,
+            down: true,
+            first: true,
+            shiftKey: false,
+            ctrlKey: false
+        });
+        setTimeout(() => {this.onKeyEvent({
+            keyCode: keyCode,
+            down: false,
+            first: true,
+            shiftKey: false,
+            ctrlKey: false
+        });}, duration);
     }
 
     // Проверка падения (урон)

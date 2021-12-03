@@ -87,6 +87,11 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers('Ключ генератора: ' + this.world.info.seed, [player.session.user_id]);
                 break;
             }
+            case '/give':
+            case '/help':
+            case '/obj':
+            case '/weather':
+            case '/gamemode':
             case '/tp': {
                 // @todo Команда пока выполняется на клиенте
                 break;
