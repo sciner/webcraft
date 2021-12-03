@@ -155,7 +155,14 @@ export class DBWorld {
             await this.db.get('commit');
             await this.db.get('VACUUM');
         }
-
+        // Version 6 -> 7
+        if(version == 6) {
+            await this.db.get('begin transaction');
+            await this.db.get(`update world_modify set params = '{"id":50,"rotate":{"x":0,"y":1,"z":0}}' where params is not null and params like '{"id":50,%'`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+            await this.db.get('VACUUM');
+        }
     }
 
     // getDefaultPlayerIndicators...
