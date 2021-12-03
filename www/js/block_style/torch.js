@@ -2,9 +2,8 @@ import { default as cube_style } from './cube.js';
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
-import { ROTATE } from '../helpers.js';
 
-const {mat3, mat4, quat, vec3} = glMatrix;
+const { mat3 } = glMatrix;
 
 const cube_func = cube_style.getRegInfo().func;
 const rotateTorch = mat3.create();
@@ -41,9 +40,9 @@ export default class style {
             block,
             vertices,
             chunk, 
-            x + cubeSymAxis[rotate.x][0] * 0.5,
+            x + cubeSymAxis[rotate.x][0] * 0.55,
             y + 0.25,
-            z + cubeSymAxis[rotate.x][1] * 0.5,
+            z + cubeSymAxis[rotate.x][1] * 0.55,
             neighbours,
             biome,
             false,
