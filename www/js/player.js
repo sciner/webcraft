@@ -367,19 +367,29 @@ export class Player {
                         }
                     }
                 } else {
-                    let rotateDegree = new Vector(this.rotateDegree);
+                    const orientation = new Vector(this.rotateDegree);
+                    orientation.x = 0;
+                    orientation.y = 0;
 
-                    rotateDegree.x = 0;
-                    rotateDegree.y = 0;
-                    rotateDegree.x = BLOCK.getCardinalDirection(rotateDegree);
-                    rotateDegree.z = 0;
+                    // top normal
+                    if (Math.abs(pos.n.y) === 1) {                        
+                        orientation.x = BLOCK.getCardinalDirection(orientation);
+                        orientation.z = 0;
+                    } else {
+                        orientation.z = 0;
+                        if (pos.n.x !== 0) {
+                            orientation.x = pos.n.x > 0 ? ROTATE.E : ROTATE.W;
+                        } else {
+                            orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
+                        }
+                    }
 
                     let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                     if(replaceBlock) {
                         // Replace block
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                             }
                         } else {
                             world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
@@ -412,7 +422,7 @@ export class Player {
                                         // x
                                     }
                                 } else {
-                                    let cardinal_direction = BLOCK.getCardinalDirection(rotateDegree).z;
+                                    let cardinal_direction = orientation.x;//BLOCK.getCardinalDirection(rotateDegree).z;
                                     let ok = false;
                                     for(let i = 0; i < 4; i++) {
                                         let pos2 = new Vector(pos.x, pos.y, pos.z);
@@ -450,7 +460,7 @@ export class Player {
                                     }
                                 }
                             }
-                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
+                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                         }
                     }
                     this.inventory.decrement();
