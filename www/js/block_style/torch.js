@@ -15,6 +15,7 @@ const cubeSymAxis = [
     [-1, 0]
 ];
 
+const rotTorch = Math.PI / 5;
 const pivotArr = [0.5, 0, 0.5];
 const pivotObj = {x: 0.5, y: 0, z: 0.5};
 
@@ -35,19 +36,19 @@ export default class style {
             rotate
         } = block;
 
-        
+        const h = 1 / 16;
         let torch_height = 10/16;
         aabb.set(
-            .5-1/16, 0, .5-1/16,
-            .5+1/16, torch_height, .5+1/16
+            .5-h, 0, .5-h,
+            .5+h, torch_height, .5+h
         )
 
         if (!rotate || rotate.y) {
-            return aabb;;
+            return aabb;
         }
 
         const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
-        mat3.fromRotation(tmpMat, Math.PI / 5);
+        mat3.fromRotation(tmpMat, rotTorch);
         mat3.multiply(tmpMat, tmpMat, symRot);
 
         aabb.applyMatrix(tmpMat, pivotObj)
@@ -56,6 +57,9 @@ export default class style {
             0.25,
             cubeSymAxis[rotate.x][1] * 0.55
         );
+
+        aabb.y_min -= Math.sin(rotTorch) * h * 2;
+        aabb.y_max += Math.sin(rotTorch) * h * 2;
          
         return aabb;
     }
@@ -70,7 +74,7 @@ export default class style {
         }
 
         const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
-        mat3.fromRotation(tmpMat, Math.PI / 5);
+        mat3.fromRotation(tmpMat, rotTorch);
         mat3.multiply(tmpMat, tmpMat, symRot);
 
         return cube_func(
