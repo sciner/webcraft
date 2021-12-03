@@ -20,6 +20,13 @@ export function pushTransformed(
     r, g, b,
     flags
 ) {
+    cx += 0.5;
+    cy += 0.5;
+    cz += 0.5;
+    x0 -= 0.5;
+    y0 -= 0.5;
+    z0 -= 0.5;
+
     mat = mat || defaultMatrix,
     vertices.push(
         cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2],

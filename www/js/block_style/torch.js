@@ -27,37 +27,8 @@ export default class style {
             return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null);
         }
 
-        const a = 45;
-        const sinA = Math.sin(Math.PI * a / 180)
-
-        let xrot = 0;
-        let yrot = 0;
-        let px = 0;
-        let py = 0;
-        let pz = 0;
-
-        switch(rotate.x) {
-            case ROTATE.S:
-                xrot = a;
-                pz = sinA;
-                break;
-            case ROTATE.N:
-                xrot = -a;
-                py = sinA;
-                pz = -0.5;
-                break;
-            case ROTATE.E:
-                yrot = a;
-                py = sinA;
-                px = -0.5;
-                break;
-            case ROTATE.W:
-                yrot = -a;
-                px = sinA;
-                break;
-        }
-
-        mat3.fromQuat(rotateTorch, quat.fromEuler([0,0,0,0], xrot , 0 , yrot))
+        mat3.fromRotation(rotateTorch, Math.PI / 4);
+        mat3.multiply(rotateTorch, rotateTorch, CubeSym.matrices[(rotate.x + 1) % 4]);
 
         return cube_func(
             block,
