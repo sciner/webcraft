@@ -17,15 +17,13 @@ export class BaseChunk {
         this.size = size;
         const outerSize = this.outerSize = new Vector(size.x + padding * 2, size.y + padding * 2, size.z + padding * 2);
         this.aabb = new AABB();
-        this.aabb.x_max = size.x - 1;
-        this.aabb.y_max = size.y - 1;
-        this.aabb.z_max = size.z - 1;
+        this.aabb.x_max = size.x;
+        this.aabb.y_max = size.y;
+        this.aabb.z_max = size.z;
         this.outerLen = outerSize.x * outerSize.y * outerSize.z;
         this.innerLen = size.x * size.y * size.z;
         this.outerAABB = new AABB();
-        this.outerAABB.x_max = outerSize.x - 1;
-        this.outerAABB.y_max = outerSize.y - 1;
-        this.outerAABB.z_max = outerSize.z - 1;
+        this.outerAABB.set(-1, -1, -1, outerSize.x - 1, outerSize.y - 1, outerSize.z - 1);
     }
 
     /**
@@ -36,9 +34,9 @@ export class BaseChunk {
     setPos(pos) {
         const {size, padding} = this;
         this.pos.copyFrom(pos);
-        this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x - 1, pos.y + size.y - 1, pos.z + size.z - 1);
+        this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
         this.outerAABB.set(pos.x - padding, pos.y - padding, pos.z - padding,
-            pos.x + size.x + padding * 2 - 1, pos.y + size.y + padding * 2 - 1, pos.z + size.z + padding * 2 - 1);
+            pos.x + size.x + padding, pos.y + size.y + padding, pos.z + size.z + padding);
         return this;
     }
 
@@ -54,6 +52,8 @@ export class BaseChunk {
             subRegions[j + 1] = subRegions[j];
         }
         subRegions[i] = sub;
+
+        this.subMaxWidth = Math.max(this.subMaxWidth, sub.aabb.x_max - sub.aabb.x_min);
     }
 
     subByWorld(worldCoord) {
