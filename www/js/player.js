@@ -375,6 +375,7 @@ export class Player {
                     if (Math.abs(pos.n.y) === 1) {                        
                         orientation.x = BLOCK.getCardinalDirection(orientation);
                         orientation.z = 0;
+                        orientation.y = pos.n.y; // mark that is up
                     } else {
                         orientation.z = 0;
                         if (pos.n.x !== 0) {
@@ -392,7 +393,7 @@ export class Player {
                                 Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                             }
                         } else {
-                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, rotateDegree, null, extra_data);
+                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                         }
                     } else {
                         // Create block
@@ -403,7 +404,7 @@ export class Player {
                         }
                         if(matBlock.is_item || matBlock.is_entity) {
                             if(matBlock.is_entity) {
-                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), rotateDegree);
+                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                                 let b = BLOCK.fromId(this.buildMaterial.id);
                                 if(b.sound) {
                                     Game.sounds.play(b.sound, 'place');

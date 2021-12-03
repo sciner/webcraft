@@ -4,18 +4,51 @@ import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
 import {CubeSym} from "../core/CubeSym.js";
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat3} = glMatrix;
+
+const defaultMatrix = mat3.create();
+
+export function pushTransformed(
+    vertices, mat,
+    cx, cz, cy,
+    x0, z0, y0,
+    ux, uz, uy,
+    vx, vz, vy,
+    c0, c1, c2, c3,
+    r, g, b,
+    flags
+) {
+    mat = mat || defaultMatrix,
+    vertices.push(
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2],
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8],
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5],
+
+        ux * mat[0] + uy * mat[1] + uz * mat[2],
+        ux * mat[6] + uy * mat[7] + uz * mat[8],
+        ux * mat[3] + uy * mat[4] + uz * mat[5],
+
+        vx * mat[0] + vy * mat[1] + vz * mat[2],
+        vx * mat[6] + vy * mat[7] + vz * mat[8],
+        vx * mat[3] + vy * mat[4] + vz * mat[5],
+
+        c0, c1, c2, c3, r, g, b, flags
+    );
+}
 
 export default class style {
 
     static getRegInfo() {
         return {
-            styles: ['cube', 'torch', 'default'],
+            styles: ['cube', 'default'],
             func: this.func
         };
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -117,18 +150,27 @@ export default class style {
                     }
                 }
             }
-            vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+            
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                .5, 0.5, bH - 1 + height,
                 ...top_vectors,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | upFlags);
+                lm.r, lm.g, lm.b, flags | upFlags
+            );
+
             if(block.material.is_fluid && block.material.transparent) {
                 top_vectors = [
                     1, 0, 0,
                     0, -1, 0
                 ];
-                vertices.push(x + 0.5, z + 0.5, y + bH - 1 + height,
+                pushTransformed(
+                    vertices, matrix,
+                    x, z, y,
+                    .5, 0.5, bH - 1 + height,
                     ...top_vectors,
-                    c[0], c[1], -c[2], c[3],
+                        c[0], c[1], -c[2], c[3],
                     lm.r, lm.g, lm.b, flags | upFlags);
             }
         }
@@ -136,7 +178,10 @@ export default class style {
         // Bottom
         if(canDrawFace(neighbours.DOWN)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
-            vertices.push(x + 0.5, z + 0.5, y,
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                0.5, 0.5, 0,
                 1, 0, 0,
                 0, -1, 0,
                 c[0], c[1], -c[2], c[3],
@@ -146,7 +191,10 @@ export default class style {
         // South | Front/Forward
         if(canDrawFace(neighbours.SOUTH)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
-            vertices.push(x + .5, z + .5 - width / 2, y + bH / 2,
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                .5, .5 - width / 2, bH / 2,
                 1, 0, 0,
                 0, 0, bH,
                 c[0], c[1], c[2], -c[3],
@@ -156,7 +204,10 @@ export default class style {
         // North
         if(canDrawFace(neighbours.NORTH)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
-            vertices.push(x + .5, z + .5 + width / 2, y + bH / 2,
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                .5, .5 + width / 2, bH / 2,
                 1, 0, 0,
                 0, 0, -bH,
                 c[0], c[1], -c[2], c[3],
@@ -166,7 +217,10 @@ export default class style {
         // West
         if(canDrawFace(neighbours.WEST)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
-            vertices.push(x + .5 - width / 2, z + .5, y + bH / 2,
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                .5 - width / 2, .5, bH / 2,
                 0, 1, 0,
                 0, 0, -bH,
                 c[0], c[1], -c[2], c[3],
@@ -176,7 +230,10 @@ export default class style {
         // East
         if(canDrawFace(neighbours.EAST)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
-            vertices.push(x + .5 + width / 2, z + .5, y + bH / 2,
+            pushTransformed(
+                vertices, matrix,
+                x, z, y,
+                .5 + width / 2, .5, bH / 2,
                 0, 1, 0,
                 0, 0, bH,
                 c[0], c[1], c[2], -c[3],
