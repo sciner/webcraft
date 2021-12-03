@@ -1,5 +1,5 @@
 import {SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
-import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
+import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
@@ -223,6 +223,11 @@ export class ChunkManager {
             }
         }
         return true;
+    }
+
+    getChunkAtWorld({x, y, z}) {
+        const local = getChunkAddr(x, y, z);
+        return this.getChunk(local);
     }
 
     // Get

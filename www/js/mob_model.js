@@ -77,8 +77,8 @@ export class TraversableRenderer {
     }
 
     /**
-     * 
-     * @param {Traversable} node 
+     * @param {} render
+     * @param {Traversable} traversable 
      * @returns 
      */
     drawLayer(render, traversable) {
@@ -349,25 +349,29 @@ export class MobModel {
     }
 
     computeLocalPosAndLight(render) {
+
         // root rotation
         quat.fromEuler(this.sceneTree.quat, 0, 0, 180 * (Math.PI - this.yaw) / Math.PI);
-
         this.sceneTree.updateMatrix();
 
         if (!this.posDirty && this.currentChunk) {
             return;
         }
 
+        const newChunk = ChunkManager.instance.getChunkAtWorld(this.pos);
+
+        this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
+        this.material.lightTex = this.lightTex;
+
         this.posDirty = false;
-        this.drawPos = getChunkWorldCoord(this.pos.x, this.pos.y, this.pos.z, this.drawPos);
+        this.currentChunk = newChunk;
+        this.drawPos = newChunk.coord;
 
-        const local = getLocalChunkCoord(this.pos.x, this.pos.y, this.pos.z);
-        const addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
-        const chunk = this.currentChunk = ChunkManager.instance.getChunk(addr);
-
-        this.lightTex = chunk && chunk.getLightTexture(render.renderBackend);
-
-        this.sceneTree.position.set([local.x, local.z, local.y]);
+        this.sceneTree.position.set([
+            this.pos.x - this.drawPos.x,
+            this.pos.z - this.drawPos.z,
+            this.pos.y - this.drawPos.y,
+        ]);
     }
 
     update(render, camPos, delta) {
