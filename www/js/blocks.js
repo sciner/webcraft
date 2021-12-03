@@ -548,9 +548,6 @@ export class BLOCK {
                         return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('stairs') >= 0;
                     };
                     //
-                    let compareCD = (b) => {
-                        return checkIfSame(b) && b.getCardinalDirection() === cardinal_direction;
-                    };
                     let on_ceil = this.isOnCeil(b);
                     let sz = 0.5;
                     let yt = 0;
@@ -633,18 +630,20 @@ export class BLOCK {
         } else {
             if(!for_physic) {
                 switch(b.properties.style) {
+                    case 'sign':
                     case 'torch': {
+                        let hw = (4/16) / 2;
                         let torch_height = 10/16;
                         shapes.push([
-                            .5-1/16, 0, .5-1/16,
-                            .5+1/16, torch_height, .5+1/16
+                            .5-hw, 0, .5-hw,
+                            .5+hw, torch_height, .5+hw
                         ]);
                         break;
                     }
-                    case 'sign': {
+                    /*case 'sign': {
                         shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
                         break;
-                    }
+                    }*/
                     case 'planting': {
                         let hw = (12/16) / 2;
                         let h = 12/16;

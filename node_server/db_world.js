@@ -145,7 +145,17 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
-        
+        // Version 5 -> 6
+        if(version == 5) {
+            await this.db.get('begin transaction');
+            await this.db.get(`update world_modify set params = replace(replace(replace(replace(replace(replace(replace(params,',"rotate":{"x":0,"y":0,"z":0}', ''), ',"entity_id":""', ''), ',"entity_id":null', ''), ',"extra_data":null', ''), ',"power":1', ''), '{"id":0}', ''), '{}', '') where params is not null`);
+            await this.db.get(`update world_modify set params = null where params is not null and params = ''`);
+            await this.db.get(`update world_modify set params = '{"id":2}' where params is not null and params like '{"id":2,%'`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+            await this.db.get('VACUUM');
+        }
+
     }
 
     // getDefaultPlayerIndicators...
@@ -406,7 +416,7 @@ export class DBWorld {
             let params = row.params ? JSON.parse(row.params) : null;
             // @BlockItem
             let item = {
-                id: 'id' in params ? params.id : 0
+                id: params && ('id' in params) ? params.id : 0
             };
             if(item.id > 2) {
                 if('rotate' in params) {
@@ -433,18 +443,39 @@ export class DBWorld {
 
     // Block set
     async blockSet(world, player, params) {
+        let item = params.item;
+        if(item.id == 0) {
+            item = null;
+        } else {
+            let material = BLOCK.fromId(item.id);
+            if(!material) {
+                throw 'error_block_not_found';
+            }
+            if(!material?.can_rotate && 'rotate' in item) {
+                delete(item.rotate);
+            }
+            if('entity_id' in item && !item.entity_id) {
+                delete(item.entity_id);
+            }
+            if('extra_data' in item && !item.extra_data) {
+                delete(item.extra_data);
+            }
+            if('power' in item && item.power === 1) {
+                delete(item.power);
+            }
+        }
         const result = await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data)', {
             ':user_id':     player.session.user_id,
             ':dt':          ~~(Date.now() / 1000),
             ':world_id':    world.info.id,
-            ':params':      JSON.stringify(params.item),
+            ':params':      item ? JSON.stringify(item) : null,
             ':x':           params.pos.x,
             ':y':           params.pos.y,
             ':z':           params.pos.z,
-            ':entity_id':   params.item.entity_id ? params.item.entity_id : null,
-            ':extra_data':  params.item.extra_data ? JSON.stringify(params.item.extra_data) : null
+            ':entity_id':   item?.entity_id ? item.entity_id : null,
+            ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null
         });
-        if (params.item.extra_data) {
+        if (item && 'extra_data' in item) {
             // @todo Update extra data
         }
     }
