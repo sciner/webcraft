@@ -8,10 +8,11 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3} = glMatrix;
 
+const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
 
 export function pushTransformed(
-    vertices, mat,
+    vertices, mat, pivot,
     cx, cz, cy,
     x0, z0, y0,
     ux, uz, uy,
@@ -20,12 +21,13 @@ export function pushTransformed(
     r, g, b,
     flags
 ) {
-    cx += 0.5;
-    cy += 0.5;
-    cz += 0.5;
-    x0 -= 0.5;
-    y0 -= 0.5;
-    z0 -= 0.5;
+    pivot = pivot || defaultPivot; 
+    cx += pivot[0];
+    cy += pivot[1];
+    cz += pivot[2];
+    x0 -= pivot[0];
+    y0 -= pivot[1];
+    z0 -= pivot[2];
 
     mat = mat || defaultMatrix,
     vertices.push(
@@ -55,7 +57,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -159,7 +161,7 @@ export default class style {
             }
             
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 .5, 0.5, bH - 1 + height,
                 ...top_vectors,
@@ -173,7 +175,7 @@ export default class style {
                     0, -1, 0
                 ];
                 pushTransformed(
-                    vertices, matrix,
+                    vertices, matrix, pivot,
                     x, z, y,
                     .5, 0.5, bH - 1 + height,
                     ...top_vectors,
@@ -186,7 +188,7 @@ export default class style {
         if(canDrawFace(neighbours.DOWN)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 0.5, 0.5, 0,
                 1, 0, 0,
@@ -199,7 +201,7 @@ export default class style {
         if(canDrawFace(neighbours.SOUTH)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 .5, .5 - width / 2, bH / 2,
                 1, 0, 0,
@@ -212,7 +214,7 @@ export default class style {
         if(canDrawFace(neighbours.NORTH)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 .5, .5 + width / 2, bH / 2,
                 1, 0, 0,
@@ -225,7 +227,7 @@ export default class style {
         if(canDrawFace(neighbours.WEST)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 .5 - width / 2, .5, bH / 2,
                 0, 1, 0,
@@ -238,7 +240,7 @@ export default class style {
         if(canDrawFace(neighbours.EAST)) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
             pushTransformed(
-                vertices, matrix,
+                vertices, matrix, pivot,
                 x, z, y,
                 .5 + width / 2, .5, bH / 2,
                 0, 1, 0,

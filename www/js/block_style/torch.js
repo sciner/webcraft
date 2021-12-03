@@ -8,6 +8,12 @@ const {mat3, mat4, quat, vec3} = glMatrix;
 
 const cube_func = cube_style.getRegInfo().func;
 const rotateTorch = mat3.create();
+const cubeSymAxis = [
+    [0, -1],
+    [1, 0],
+    [0, 1],
+    [-1, 0]
+];
 
 export default class style {
 
@@ -24,23 +30,25 @@ export default class style {
         } = block;
 
         if (!rotate || rotate.y) {
-            return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null);
+            return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null, null);
         }
 
-        mat3.fromRotation(rotateTorch, Math.PI / 4);
-        mat3.multiply(rotateTorch, rotateTorch, CubeSym.matrices[(rotate.x + 1) % 4]);
+        const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
+        mat3.fromRotation(rotateTorch, Math.PI / 5);
+        mat3.multiply(rotateTorch, rotateTorch, symRot);
 
         return cube_func(
             block,
             vertices,
             chunk, 
-            x + px,
-            y + py,
-            z + pz,
+            x + cubeSymAxis[rotate.x][0] * 0.5,
+            y + 0.25,
+            z + cubeSymAxis[rotate.x][1] * 0.5,
             neighbours,
             biome,
             false,
-            rotateTorch
+            rotateTorch,
+            [0.5, 0, 0.5]
         );
     }
 }
