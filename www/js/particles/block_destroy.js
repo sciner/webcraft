@@ -13,10 +13,12 @@ export default class Particles_Block_Destroy {
     constructor(render, block, pos, small) {
         let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
+
         if(!chunk.map) {
             debugger;
             return false;
         }
+
         let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
         this.yaw        = -Game.player.rotate.z;
         this.life       = .5;
@@ -43,6 +45,7 @@ export default class Particles_Block_Destroy {
         this.particles  = [];
         //
         let count = small ? 5 : 30;
+        
         for(let i = 0; i < count; i++) {
             const max_sz    = small ? .25 / 16 : 3 / 16;
             const sz        = Math.random() * max_sz + 1 / 16; // случайный размер текстуры
@@ -74,15 +77,27 @@ export default class Particles_Block_Destroy {
             p.z = p.z / d * p.speed;
             this.particles.push(p);
         }
+
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
         this.modelMatrix = mat4.create();
+        // for lighting
+        mat4.translate(this.modelMatrix,this.modelMatrix, 
+            [
+                (this.pos.x - chunk.coord.x),
+                (this.pos.z - chunk.coord.z),
+                (this.pos.y - chunk.coord.y)
+            ]
+        )
+
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
+        this.chunk = chunk;
     }
 
     // Draw
     draw(render, delta) {
         //
-        this.life -= delta / 100000;
+        this.life -= delta / 100000; 
+
         //
         let idx = 0;
         for(let p of this.particles) {
@@ -96,7 +111,20 @@ export default class Particles_Block_Destroy {
             p.gravity -= delta / 250000;
         }
         this.buffer.updateInternal(this.vertices);
-        render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.doubleface, this.pos, this.modelMatrix);
+        
+        const light = this.chunk.getLightTexture(render.renderBackend);
+        const mat = render.defaultShader.materials.doubleface;
+        const l = mat.lightTex;
+        mat.lightTex = light;
+
+        render.renderBackend.drawMesh(
+            this.buffer,
+            render.defaultShader.materials.doubleface,
+            this.chunk.coord,
+            this.modelMatrix
+        );
+
+        mat.lightTex = l;
     }
 
     destroy(render) {
