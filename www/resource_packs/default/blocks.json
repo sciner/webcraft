@@ -3385,6 +3385,7 @@
                 5
             ]
         },
+        "can_rotate": true,
         "name": "TORCH",
         "destroy_time": 0,
         "power": 1,
