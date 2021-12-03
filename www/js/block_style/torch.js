@@ -2,11 +2,12 @@ import { default as cube_style } from './cube.js';
 
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
+import { AABB } from '../core/AABB.js';
 
 const { mat3 } = glMatrix;
 
 const cube_func = cube_style.getRegInfo().func;
-const rotateTorch = mat3.create();
+const tmpMat = mat3.create();
 const cubeSymAxis = [
     [0, -1],
     [1, 0],
@@ -14,13 +15,49 @@ const cubeSymAxis = [
     [-1, 0]
 ];
 
+const pivotArr = [0.5, 0, 0.5];
+const pivotObj = {x: 0.5, y: 0, z: 0.5};
+
+const aabb = new AABB();
+
 export default class style {
 
     static getRegInfo() {
         return {
             styles: ['torch'],
-            func: this.func
+            func: this.func,
+            aabb: this.computeAABB
         };
+    }
+
+    static computeAABB(block) {
+        const {
+            rotate
+        } = block;
+
+        
+        let torch_height = 10/16;
+        aabb.set(
+            .5-1/16, 0, .5-1/16,
+            .5+1/16, torch_height, .5+1/16
+        )
+
+        if (!rotate || rotate.y) {
+            return aabb;;
+        }
+
+        const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
+        mat3.fromRotation(tmpMat, Math.PI / 5);
+        mat3.multiply(tmpMat, tmpMat, symRot);
+
+        aabb.applyMatrix(tmpMat, pivotObj)
+        aabb.translate(
+            cubeSymAxis[rotate.x][0] * 0.55,
+            0.25,
+            cubeSymAxis[rotate.x][1] * 0.55
+        );
+         
+        return aabb;
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
@@ -33,8 +70,8 @@ export default class style {
         }
 
         const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
-        mat3.fromRotation(rotateTorch, Math.PI / 5);
-        mat3.multiply(rotateTorch, rotateTorch, symRot);
+        mat3.fromRotation(tmpMat, Math.PI / 5);
+        mat3.multiply(tmpMat, tmpMat, symRot);
 
         return cube_func(
             block,
@@ -46,8 +83,8 @@ export default class style {
             neighbours,
             biome,
             false,
-            rotateTorch,
-            [0.5, 0, 0.5]
+            tmpMat,
+            pivotArr
         );
     }
 }

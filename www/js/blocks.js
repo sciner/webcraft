@@ -632,32 +632,42 @@ export class BLOCK {
             }
         } else {
             if(!for_physic) {
-                switch(b.properties.style) {
-                    case 'torch': {
-                        let torch_height = 10/16;
-                        shapes.push([
-                            .5-1/16, 0, .5-1/16,
-                            .5+1/16, torch_height, .5+1/16
-                        ]);
-                        break;
+                const styleVariant = BLOCK.styles[b.properties.style];
+
+                if (styleVariant && styleVariant.aabb) {
+                    shapes.push(
+                        styleVariant.aabb(b).toArray()
+                    );
+                } else {
+                    switch(b.properties.style) {
+                        case 'torch': {
+                            let torch_height = 10/16;
+                            shapes.push(
+                                aabb.set(
+                                    .5-1/16 + px, 0 + py, .5-1/16 + pz,
+                                    .5+1/16, torch_height, .5+1/16
+                                ).toArray()
+                            );
+                            break;
+                        }
+                        case 'sign': {
+                            shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
+                            break;
+                        }
+                        case 'planting': {
+                            let hw = (12/16) / 2;
+                            let h = 12/16;
+                            shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
+                            break;
+                        }
+                        case 'ladder': {
+                            let cardinal_direction = b.getCardinalDirection();
+                            let width = 1/16;
+                            shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
+                            break;
+                        }
                     }
-                    case 'sign': {
-                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
-                        break;
-                    }
-                    case 'planting': {
-                        let hw = (12/16) / 2;
-                        let h = 12/16;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
-                        break;
-                    }
-                    case 'ladder': {
-                        let cardinal_direction = b.getCardinalDirection();
-                        let width = 1/16;
-                        shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
-                        break;
-                    }
-                }
+                }                
             }
         }
         return shapes;
