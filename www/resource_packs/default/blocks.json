@@ -725,6 +725,7 @@
     },
     {
         "id": 17,
+        "name": "GLASS",
         "inventory_icon_id": 3262,
         "spawnable": true,
         "transparent": true,
@@ -736,9 +737,9 @@
             1,
             3
         ],
-        "name": "GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "light": null,
         "max_in_stack": 64
     },
@@ -1992,6 +1993,7 @@
         "name": "STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2046,6 +2048,7 @@
     },
     {
         "id": 102,
+        "name": "GLASS_PANE",
         "inventory_icon_id": 3261,
         "transparent": true,
         "style": "pane",
@@ -2057,9 +2060,9 @@
             1,
             3
         ],
-        "name": "GLASS_PANE",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2102,6 +2105,7 @@
         "name": "BLUE_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2109,6 +2113,7 @@
     },
     {
         "id": 471,
+        "name": "BLACK_STAINED_GLASS",
         "inventory_icon_id": 731,
         "transparent": true,
         "style": "pane",
@@ -2120,9 +2125,9 @@
             0,
             20
         ],
-        "name": "BLACK_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2130,6 +2135,7 @@
     },
     {
         "id": 472,
+        "name": "PINK_STAINED_GLASS",
         "inventory_icon_id": 773,
         "transparent": true,
         "style": "pane",
@@ -2141,9 +2147,9 @@
             2,
             20
         ],
-        "name": "PINK_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2151,6 +2157,7 @@
     },
     {
         "id": 473,
+        "name": "RED_STAINED_GLASS",
         "inventory_icon_id": 785,
         "transparent": true,
         "style": "pane",
@@ -2162,9 +2169,9 @@
             3,
             20
         ],
-        "name": "RED_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2172,6 +2179,7 @@
     },
     {
         "id": 474,
+        "name": "WHITE_STAINED_GLASS",
         "inventory_icon_id": 791,
         "transparent": true,
         "style": "pane",
@@ -2183,9 +2191,9 @@
             4,
             20
         ],
-        "name": "WHITE_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2193,6 +2201,7 @@
     },
     {
         "id": 475,
+        "name": "YELLOW_STAINED_GLASS",
         "inventory_icon_id": 797,
         "transparent": true,
         "style": "pane",
@@ -2204,9 +2213,9 @@
             5,
             20
         ],
-        "name": "YELLOW_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -2214,6 +2223,7 @@
     },
     {
         "id": 476,
+        "name": "GREEN_STAINED_GLASS",
         "inventory_icon_id": 737,
         "transparent": true,
         "style": "pane",
@@ -2225,9 +2235,9 @@
             6,
             20
         ],
-        "name": "GREEN_STAINED_GLASS",
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -3422,6 +3432,7 @@
         },
         "destroy_time": 0.4,
         "power": 1,
+        "can_rotate": true,
         "selflit": false,
         "light": null,
         "spawnable": true,
@@ -3454,6 +3465,12 @@
         "power": 1,
         "selflit": false,
         "light": null,
+        "light_power": {
+            "r": 253,
+            "g": 241,
+            "b": 131,
+            "a": 224
+        },
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3904,6 +3921,12 @@
         "power": 1,
         "selflit": false,
         "light": null,
+        "light_power": {
+            "r": 253,
+            "g": 241,
+            "b": 131,
+            "a": 224
+        },
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3265
