@@ -196,7 +196,7 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if([200, 202].indexOf(block.id) >= 0) {
+        if([200, 202].indexOf(block.id) >= 0 || block.style == 'pane') {
             // если это блок воды или облако
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
@@ -511,9 +511,7 @@ export class BLOCK {
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canFenceConnect(n.SOUTH)) {
-                        shapes.push([
-                            .5-2/16, 5/16, 0,
-                            .5+2/16, fence_height, .5+2/16]);
+                        shapes.push([.5-2/16, 5/16, 0, .5+2/16, fence_height, .5+2/16]);
                     }
                     // North z++
                     if(this.canFenceConnect(n.NORTH)) {
@@ -535,9 +533,33 @@ export class BLOCK {
                     break;
                 }
                 case 'pane': {
-                    // F R B L
-                    let cardinal_direction = b.getCardinalDirection();
-                    shapes.push(aabb.set(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot).toArray());
+                    let fence_height = 1;
+                    let canConnect = (block) => {
+                        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
+                    };
+                    let w = 2/16;
+                    let w2 = w/2;
+                    //
+                    let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
+                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // South z--
+                    if(canConnect(n.SOUTH)) {
+                        shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+w2]);
+                    }
+                    // North z++
+                    if(canConnect(n.NORTH)) {
+                        shapes.push([.5-w2,0, .5-w2, .5+w2, fence_height, 1]);
+                    }
+                    // West x--
+                    if(canConnect(n.WEST)) {
+                        shapes.push([0, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                    }
+                    // East x++
+                    if(canConnect(n.EAST)) {
+                        shapes.push([.5-w2, 0, .5-w2, 1, fence_height, .5+w2]);
+                    }
+                    // Central
+                    shapes.push([.5-w2, 0, .5-w2, .5+w2, fence_height, .5+w2]);
                     break;
                 }
                 case 'stairs': {

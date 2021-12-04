@@ -739,7 +739,6 @@
         ],
         "destroy_time": 0.4,
         "power": 1,
-        "can_rotate": true,
         "light": null,
         "max_in_stack": 64
     },
@@ -2189,8 +2188,8 @@
             "glass"
         ],
         "texture": [
-            4,
-            20
+            6,
+            0
         ],
         "destroy_time": 0.4,
         "power": 1,
