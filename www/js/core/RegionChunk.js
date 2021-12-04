@@ -29,6 +29,34 @@ export class RegionChunk extends BaseChunk {
         return uint32View[offset + stride32 * (localX  + outerSize.x * (localZ + localY * outerSize.z))];
     }
 
+    _addPortal(portal) {
+        this.portals.push(portal);
+
+        const inner = this.innerAABB;
+        const aabb = portal.aabb;
+        if (aabb.x_min < inner.x_max && inner.x_min < aabb.x_max) {
+            if (inner.x_min < aabb.x_min) {
+                inner.x_max = aabb.x_min;
+            } else {
+                inner.x_min = aabb.x_max;
+            }
+        }
+        if (aabb.y_min < inner.y_max && inner.y_min < aabb.y_max) {
+            if (inner.y_min < aabb.y_min) {
+                inner.y_max = aabb.y_min;
+            } else {
+                inner.y_min = aabb.y_max;
+            }
+        }
+        if (aabb.z_min < inner.z_max && inner.z_min < aabb.z_max) {
+            if (inner.z_min < aabb.z_min) {
+                inner.z_max = aabb.z_min;
+            } else {
+                inner.z_min = aabb.z_max;
+            }
+        }
+    }
+
     _addPortals() {
         const {subRegions, subMaxWidth} = this.dataChunk;
         let left = 0, right = subRegions.length;
@@ -78,8 +106,8 @@ export class RegionChunk extends BaseChunk {
                 })
                 portal1.rev = portal2;
                 portal2.rev = portal1;
-                this.portals.push(portal1);
-                second.portals.push(portal2);
+                this._addPortal(portal1);
+                second._addPortal(portal2);
             }
         }
     }

@@ -8,6 +8,7 @@ export class BaseChunk {
     constructor({size}) {
         this.initSize(size);
         this.outerAABB = new AABB();
+        this.innerAABB = new AABB();
         this.pos = new Vector();
         this.subRegions = [];
         this.subMaxWidth = 0;
@@ -25,6 +26,8 @@ export class BaseChunk {
         this.innerLen = size.x * size.y * size.z;
         this.outerAABB = new AABB();
         this.outerAABB.set(-1, -1, -1, outerSize.x - 1, outerSize.y - 1, outerSize.z - 1);
+        this.innerAABB = new AABB();
+        this.innerAABB.copyFrom(this.aabb);
     }
 
     /**
@@ -38,6 +41,7 @@ export class BaseChunk {
         this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
         this.outerAABB.set(pos.x - padding, pos.y - padding, pos.z - padding,
             pos.x + size.x + padding, pos.y + size.y + padding, pos.z + size.z + padding);
+        this.innerAABB.copyFrom(this.aabb);
         return this;
     }
 

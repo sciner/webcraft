@@ -23,7 +23,17 @@ export class AABB {
     }
 
     clone() {
-        return new AABB().set(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max);
+        return new AABB().copyFrom(this);
+    }
+
+    copyFrom(aabb) {
+        this.x_min = aabb.x_min;
+        this.x_max = aabb.x_max;
+        this.y_min = aabb.y_min;
+        this.y_max = aabb.y_max;
+        this.z_min = aabb.z_min;
+        this.z_max = aabb.z_max;
+        return this;
     }
 
     set(xMin, yMin, zMin, xMax, yMax, zMax) {
