@@ -51,16 +51,7 @@ export class AABB {
         return this.x_min <= this.x_max && this.y_min <= this.y_max && this.z_min <= this.z_max;
     }
 
-    /**
-     * rotated around 0
-     * @param sym
-     */
-    rotate(sym, pivot) {
-        if (sym === 0) {
-            return this;
-        }
-        const symMat = CubeSym.matrices[sym];
-
+    applyMatrix(matrix, pivot) {
         if (pivot) {
             this.x_min -= pivot.x;
             this.y_min -= pivot.y;
@@ -70,12 +61,12 @@ export class AABB {
             this.z_max -= pivot.z;
         }
 
-        const x0 = this.x_min * symMat[0] + this.y_min * symMat[1] + this.z_min * symMat[2];
-        const x1 = this.x_max * symMat[0] + this.y_max * symMat[1] + this.z_max * symMat[2];
-        const y0 = this.x_min * symMat[3] + this.y_min * symMat[4] + this.z_min * symMat[5];
-        const y1 = this.x_max * symMat[3] + this.y_max * symMat[4] + this.z_max * symMat[5];
-        const z0 = this.x_min * symMat[6] + this.y_min * symMat[7] + this.z_min * symMat[8];
-        const z1 = this.x_max * symMat[6] + this.y_max * symMat[7] + this.z_max * symMat[8];
+        const x0 = this.x_min * matrix[0] + this.y_min * matrix[1] + this.z_min * matrix[2];
+        const x1 = this.x_max * matrix[0] + this.y_max * matrix[1] + this.z_max * matrix[2];
+        const y0 = this.x_min * matrix[3] + this.y_min * matrix[4] + this.z_min * matrix[5];
+        const y1 = this.x_max * matrix[3] + this.y_max * matrix[4] + this.z_max * matrix[5];
+        const z0 = this.x_min * matrix[6] + this.y_min * matrix[7] + this.z_min * matrix[8];
+        const z1 = this.x_max * matrix[6] + this.y_max * matrix[7] + this.z_max * matrix[8];
 
         this.x_min = Math.min(x0, x1);
         this.x_max = Math.max(x0, x1);
@@ -94,6 +85,17 @@ export class AABB {
         }
 
         return this;
+    }
+    /**
+     * rotated around 0
+     * @param sym
+     */
+    rotate(sym, pivot) {
+        if (sym === 0) {
+            return this;
+        }
+
+        return this.applyMatrix(CubeSym.matrices[sym], pivot);
     }
 
     toArray() {

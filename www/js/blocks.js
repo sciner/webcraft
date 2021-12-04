@@ -449,7 +449,7 @@ export class BLOCK {
         if (!vec3) {
             return 0;
         }
-        if (vec3.x && !vec3.y && !vec3.z) {
+        if (vec3.x && !(vec3.y * vec3.z)) {
             if(vec3.x >= 0 && vec3.x < 48 && vec3.x == Math.round(vec3.x)) {
                 return vec3.x;
             }
@@ -629,34 +629,47 @@ export class BLOCK {
             }
         } else {
             if(!for_physic) {
-                switch(b.properties.style) {
-                    case 'sign':
-                    case 'torch': {
-                        let hw = (4/16) / 2;
-                        let torch_height = 10/16;
-                        shapes.push([
-                            .5-hw, 0, .5-hw,
-                            .5+hw, torch_height, .5+hw
-                        ]);
-                        break;
+                const styleVariant = BLOCK.styles[b.properties.style];
+
+                if (styleVariant && styleVariant.aabb) {
+                    shapes.push(
+                        styleVariant.aabb(b).toArray()
+                    );
+                } else {
+                    switch(b.properties.style) {
+                        case 'torch': {
+                            let torch_height = 10/16;
+                            shapes.push(
+                                aabb.set(
+                                    .5-1/16 + px, 0 + py, .5-1/16 + pz,
+                                    .5+1/16, torch_height, .5+1/16
+                                ).toArray()
+                            );
+                            break;
+                        }
+                        case 'sign': {
+                            let hw = (4/16) / 2;
+                            let sign_height = 10/16;
+                            shapes.push([
+                                .5-hw, 0, .5-hw,
+                                .5+hw, sign_height, .5+hw
+                            ]);
+                            break;
+                        }
+                        case 'planting': {
+                            let hw = (12/16) / 2;
+                            let h = 12/16;
+                            shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
+                            break;
+                        }
+                        case 'ladder': {
+                            let cardinal_direction = b.getCardinalDirection();
+                            let width = 1/16;
+                            shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
+                            break;
+                        }
                     }
-                    /*case 'sign': {
-                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height : 1, 1]);
-                        break;
-                    }*/
-                    case 'planting': {
-                        let hw = (12/16) / 2;
-                        let h = 12/16;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, h, .5+hw]);
-                        break;
-                    }
-                    case 'ladder': {
-                        let cardinal_direction = b.getCardinalDirection();
-                        let width = 1/16;
-                        shapes.push(aabb.set(0, 0, 0, 1, 1, width).rotate(cardinal_direction, shapePivot).toArray());
-                        break;
-                    }
-                }
+                }                
             }
         }
         return shapes;

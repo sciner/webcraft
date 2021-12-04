@@ -35,8 +35,6 @@ export default class style {
                 randoms[index] = Math.random();
             }
             r = randoms[index] * 4/16 - 2/16;
-        } else {
-            console.log('4567');
         }
         x += 0.5 - 0.5 / 1.41 + r;
         z += 0.5 - 0.5 / 1.41 + r;
