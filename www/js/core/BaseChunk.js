@@ -1,5 +1,6 @@
 import {AABB} from './AABB.js'
 import {Vector} from "../helpers";
+import {Portal} from "./RegionChunk";
 
 const tempPos = new Vector();
 
@@ -57,13 +58,13 @@ export class BaseChunk {
     }
 
     subByWorld(worldCoord) {
-        const {subRegions} = this;
-        const {x, y, z, subMaxWidth} = worldCoord;
-        // find left good
+        const {subRegions, subMaxWidth} = this;
+        const {x, y, z} = worldCoord;
+        // easy binary search part 1
         let left = 0, right = subRegions.length;
         while (left + 1 < right) {
             let mid = (left + right) >> 1;
-            if (subRegions[mid].x_min + subMaxWidth < x) {
+            if (subRegions[mid].aabb.x_min + subMaxWidth < x) {
                 left = mid;
             } else {
                 right = mid;
@@ -74,7 +75,7 @@ export class BaseChunk {
         right = subRegions.length;
         while (left + 1 < right) {
             let mid = (left + right) >> 1;
-            if (subRegions[mid].x_min <= x) {
+            if (subRegions[mid].aabb.x_min <= x) {
                 left = mid;
             } else {
                 right = mid;
@@ -83,10 +84,10 @@ export class BaseChunk {
         let R = right;
 
         for (let i = L; i < R; i++) {
-            const sub = subRegions[i];
+            const sub = subRegions[i].aabb;
             if (sub.x_min <= x && x <= sub.x_max
                 && sub.y_min <= y && y <= sub.y_max
-                && sub.z_min <= y && y <= sub.z_max) {
+                && sub.z_min <= z && z <= sub.z_max) {
                 return sub;
             }
         }

@@ -1,7 +1,7 @@
 import {CubeSym} from "./CubeSym.js";
 
 export class AABB {
-    cosntructor() {
+    constructor() {
         this.x_min = 0;
         this.y_min = 0;
         this.z_min = 0;
@@ -20,6 +20,10 @@ export class AABB {
 
     get depth() {
         return this.z_max - this.z_min;
+    }
+
+    clone() {
+        return new AABB().set(this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max);
     }
 
     set(xMin, yMin, zMin, xMax, yMax, zMax) {
@@ -45,10 +49,11 @@ export class AABB {
         this.y_max = Math.min(aabb1.y_max, aabb2.y_max);
         this.z_min = Math.max(aabb1.z_min, aabb2.z_min);
         this.z_max = Math.min(aabb1.z_max, aabb2.z_max);
+        return this;
     }
 
     isEmpty() {
-        return this.x_min <= this.x_max && this.y_min <= this.y_max && this.z_min <= this.z_max;
+        return this.x_min >= this.x_max && this.y_min >= this.y_max && this.z_min >= this.z_max;
     }
 
     applyMatrix(matrix, pivot) {
