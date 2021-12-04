@@ -2051,7 +2051,7 @@
         "name": "GLASS_PANE",
         "inventory_icon_id": 3261,
         "transparent": true,
-        "style": "pane",
+        "style": "thin",
         "sound": "madcraft:block.glass",
         "tags": [
             "glass"
@@ -2188,8 +2188,8 @@
             "glass"
         ],
         "texture": [
-            6,
-            0
+            4,
+            20
         ],
         "destroy_time": 0.4,
         "power": 1,

@@ -532,6 +532,12 @@ export class BLOCK {
                     ]);
                     break;
                 }
+                case 'thin': {
+                    // F R B L
+                    let cardinal_direction = b.getCardinalDirection();
+                    shapes.push(aabb.set(0, 0, .5-1/16, 1, 1, .5+1/16).rotate(cardinal_direction, shapePivot).toArray());
+                    break;
+                }
                 case 'pane': {
                     let fence_height = 1;
                     let canConnect = (block) => {
