@@ -101,6 +101,12 @@ export class AABB {
 
         return this;
     }
+
+    contains(x, y, z) {
+        return x >= this.x_min && x < this.x_max
+            && y >= this.y_min && y < this.y_max
+            && z >= this.z_min && z < this.z_max;
+    }
     /**
      * rotated around 0
      * @param sym

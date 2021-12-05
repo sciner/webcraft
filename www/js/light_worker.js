@@ -5,6 +5,10 @@
 /**
  * settings
  */
+import {AABB} from "./core/AABB";
+import {BaseChunk} from "./core/BaseChunk";
+import {DataChunk} from "./core/DataChunk";
+
 /**
  * max time spent in light loop
  */
@@ -25,6 +29,12 @@ const world = {
 const maxLight = 15;
 const MASK_BLOCK = 127;
 const MASK_AO = 128;
+
+const OFFSET_SOURCE = 0;
+const OFFSET_LIGHT = 1;
+const OFFSET_PREV = 2;
+const OFFSET_AO = 3;
+
 const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
@@ -63,83 +73,91 @@ class LightQueue {
                     break;
                 }
                 let chunk = wavesChunk[wn].pop();
+                let { lightChunk } = chunk;
+                const { uint8View, outerSize, size, strideBytes, innerAABB, outerAABB, portals } = lightChunk;
                 const coord = wavesCoord[wn].pop();
+                const coordBytes = coord * strideBytes;
                 chunk.waveCounter--;
                 if (chunk.removed) {
                     continue;
                 }
 
-                const {outerSize, size} = chunk;
                 const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
-                const iy = size.x * size.z, ix = 1, iz = size.x;
 
                 let tmp = coord;
-                const x = tmp % outerSize.x;
+                const x = tmp % outerSize.x + outerAABB.x_min;
                 tmp -= x;
                 tmp /= outerSize.x;
-                const z = tmp % outerSize.z;
+                const z = tmp % outerSize.z + outerAABB.z_min;
                 tmp -= z;
                 tmp /= outerSize.z;
-                const y = tmp;
+                const y = tmp + outerAABB.y_min;
 
-                let val = chunk.lightSource[ix * (x - 1) + iy * (y - 1) + iz * (z - 1)];
-                let ao = val & MASK_AO;
-                val &= MASK_BLOCK;
+                let val = uint8View[coordBytes + OFFSET_SOURCE];
+                let ao = uint8View[coordBytes + OFFSET_AO];
                 if (val === MASK_BLOCK) {
                     val = 0;
                 } else {
                     for (let d = 0; d < 6; d++) {
-                        let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
-                        let coord2 = sx * x2 + sy * y2 + sz * z2;
-                        val = Math.max(val, (chunk.lightMap[coord2] & MASK_BLOCK) - 1);
+                        let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                        val = Math.max(val, uint8View[coord2 * strideBytes + OFFSET_LIGHT]);
                     }
                 }
-                const old = chunk.lightMap[coord];
-                const prev = chunk.lightPrev[coord];
-                const valAo = val + ao;
-                if (old === valAo && prev === val) {
+                const old = uint8View[coordBytes + OFFSET_LIGHT];
+                const prev = uint8View[coordBytes + OFFSET_PREV]
+                if (old === val && prev === val) {
                     continue;
                 }
-                chunk.lightMap[coord] = valAo;
-                chunk.lightPrev[coord] = val;
+                uint8View[coordBytes + OFFSET_LIGHT] = val;
+                uint8View[coordBytes + OFFSET_PREV] = val;
                 chunk.lastID++;
 
                 //TODO: copy to neib chunks
-                const waveNum = Math.max(Math.max(old & MASK_BLOCK, val) - 1, 0);
-                for (let d = 0; d < 6; d++) {
-                    let x2 = x + dx[d], y2 = y + dy[d], z2 = z + dz[d];
-                    let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                    if (x2 === 0 || x2 === size.x + 1
-                        || y2 === 0 || y2 === size.y + 1
-                        || z2 === 0 || z2 === size.z + 1) {
-                        // different chunk!
-                        chunkAddr.copyFrom(chunk.addr);
-                        chunkAddr.x += dx[d];
-                        chunkAddr.y += dy[d];
-                        chunkAddr.z += dz[d];
-                        let chunk2 = world.chunkManager.getChunk(chunkAddr);
-                        if (chunk2 !== null) {
-                            const shift = dx[d] * sx * size.x
-                                + dy[d] * sy * size.y
-                                + dz[d] * sz * size.z;
 
-                            coord2 = coord2 - shift;
-                            wavesChunk[waveNum].push(chunk2);
-                            wavesCoord[waveNum].push(coord2);
-                            chunk2.waveCounter++;
-
-                            chunk2.lightMap[coord - shift] = valAo;
-                            chunk2.lastID++;
-                        } else {
-                            chunk.lightMap[coord2] = Math.max(val - 1, 0);
-                            wavesChunk[waveNum].push(chunk);
-                            wavesCoord[waveNum].push(coord);
-                            chunk.waveCounter++;
-                        }
-                    } else {
+                const waveNum = Math.max(Math.max(old, val) - 1, 0);
+                if (innerAABB.contains(x, y, z)) {
+                    // super fast case - we are inside data chunk
+                    for (let d = 0; d < 6; d++) {
+                        let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
                         wavesChunk[waveNum].push(chunk);
                         wavesCoord[waveNum].push(coord2);
                         chunk.waveCounter++;
+                    }
+                } else {
+                    // one of neighbours is inside another chunk
+                    for (let d = 0; d < 6; d++) {
+                        //might be portals!
+                        let x2 = x + dx[d],
+                            y2 = y + dy[d],
+                            z2 = z + dz[d];
+                        let flag = true;
+                        for (let p = 0; p < portals.length; p++) {
+                            if (p.aabb.contains(x2, y2, z2)) {
+                                const chunk2 = p.aabb.toRegion;
+                                chunk2.setUint32ByCoord(x, y, z, OFFSET_LIGHT, val);
+                                chunk2.lastID++;
+
+                                if (chunk2.aabb.contains(x, y, z)) {
+                                    wavesChunk[waveNum].push(chunk2.rev);
+                                    wavesCoord[waveNum].push(chunk2.indexByWorld(x2, y2, z2));
+                                    chunk2.waveCounter++;
+                                    flag = false;
+                                }
+                            }
+                        }
+                        if (flag) {
+                            let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                            if (lightChunk.aabb.contains(x2, y2, z2)) {
+                                wavesChunk[waveNum].push(chunk);
+                                wavesCoord[waveNum].push(coord2);
+                                chunk.waveCounter++;
+                            } else {
+                                uint8View[coord2 * strideBytes + OFFSET_LIGHT] = Math.max(val - 1, 0);
+                                wavesChunk[waveNum].push(chunk);
+                                wavesCoord[waveNum].push(coord);
+                                chunk.waveCounter++;
+                            }
+                        }
                     }
                 }
             }
@@ -258,6 +276,9 @@ class ChunkManager {
     constructor() {
         this.chunks = new VectorCollector();
         this.list = [];
+
+        const INF = 1000000000;
+        this.lightBase = new BaseChunk({ size: new Vector(INF, INF, INF) }).setPos(new Vector(-INF/2, -INF/2, -INF/2));
     }
 
     // Get
@@ -268,6 +289,7 @@ class ChunkManager {
     add(chunk) {
         this.list.push(chunk);
         this.chunks.add(chunk.addr, chunk);
+        this.lightBase.addSub(chunk);
     }
 
     delete(chunk) {
@@ -281,28 +303,44 @@ class Chunk {
     constructor(args) {
         this.addr = new Vector(args.addr.x, args.addr.y, args.addr.z);
         this.size = new Vector(args.size.x, args.size.y, args.size.z);
-        this.outerSize = new Vector(args.size.x + 2, args.size.y + 2, args.size.z + 2);
-        this.lightSource = args.light_buffer ? new Uint8Array(args.light_buffer) : null;
-
         this.lastID = 0;
         this.sentID = 0;
         this.removed = false;
         this.waveCounter = 0;
+
+        this.lightChunk = new DataChunk({ size: args.size , strideBytes: 4 }).setPos(args.addr.mul(args.size));
+        this.lightChunk.rev = this;
+        if (args.light_buffer) {
+            this.setLightFromBuffer(args.light_buffer);
+        }
+
+        this.outerSize = this.lightChunk.outerSize;
+        this.len = this.lightChunk.insideLen;
+        this.outerLen = this.lightChunk.outerLen;
     }
 
     get chunkManager() {
         return world.chunkManager;
     }
 
-    init() {
-        this.len = this.size.x * this.size.y * this.size.z;
-        this.outerLen = (this.size.x + 2) * (this.size.y + 2) * (this.size.z + 2);
-        this.resultLen = this.outerLen;
-        if (!this.lightSource) {
-            this.lightSource = new Uint8Array(this.len);
+    setLightFromBuffer(buf) {
+        const { uint8View, padding, outerSize, strideBytes } = this.lightChunk;
+        const src = new Uint8Array(buf);
+        for (let y = 0; y < size.y; y++) {
+            for (let z = 0; z < size.z; z++) {
+                const indFrom = (y * size.z + z) * size.x;
+                let indTo = (((y + padding) * outerSize.z + (z + padding)) * outerSize.x + padding) * strideBytes;
+                for (let x = 0; x < size.x; x++) {
+                    uint8View[indTo + OFFSET_SOURCE] = src[indFrom + x] & MASK_BLOCK;
+                    uint8View[indTo + OFFSET_AO] = (src[indFrom + x] & MASK_AO) > 0 ? 1 : 0;
+                    indTo += strideBytes;
+                }
+            }
         }
-        this.lightMap = new Uint8Array(this.outerLen);
-        this.lightPrev = new Uint8Array(this.outerLen);
+    }
+
+    init() {
+        this.resultLen = this.outerLen;
         this.lightResult = new Uint8Array(this.resultLen * 4);
     }
 
@@ -565,8 +603,8 @@ async function onMessageFunc(e) {
             if (!world.chunkManager.getChunk(args.addr)) {
                 let chunk = new Chunk(args);
                 chunk.init();
-                chunk.fillOuter();
                 world.chunkManager.add(chunk);
+                chunk.fillOuter();
             }
             break;
         }
