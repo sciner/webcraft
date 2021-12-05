@@ -224,10 +224,11 @@ class LightQueue {
     }
 
     calcResult(chunk) {
-        const { size, outerSize, lightMap } = chunk;
+        const { size, lightChunk } = chunk;
+        const { outerSize, uint8View, strideBytes } = lightChunk;
         const result = chunk.lightResult;
 
-        const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+        const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;
 
         //TODO: separate multiple cycle
 
@@ -242,26 +243,26 @@ class LightQueue {
                     const boundY = (y === outerSize.y - 1) ? sy : 0;
                     const boundZ = (z === outerSize.z - 1) ? sz : 0;
 
-                    let coord = coord0 - boundX - boundY - boundZ;
-                    let A = Math.max(Math.max(Math.max(lightMap[coord] & MASK_BLOCK, lightMap[coord + sx] & MASK_BLOCK)),
-                            Math.max(lightMap[coord + sy] & MASK_BLOCK, lightMap[coord + sx + sy] & MASK_BLOCK),
-                        Math.max(Math.max(lightMap[coord + sz] & MASK_BLOCK, lightMap[coord + sx + sz] & MASK_BLOCK),
-                            Math.max(lightMap[coord + sy + sz] & MASK_BLOCK, lightMap[coord + sx + sy + sz] & MASK_BLOCK)));
+                    let coord = coord0 - boundX - boundY - boundZ + OFFSET_LIGHT;
+                    let A = Math.max(Math.max(Math.max(uint8View[coord], uint8View[coord + sx])),
+                            Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
+                        Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
+                            Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A = Math.max(A, 0);
 
-                    coord = coord0 - boundY - boundZ;
-                    const R1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sy + sz] >= MASK_AO);
-                    const R2 = (lightMap[coord + sy] >= MASK_AO) + (lightMap[coord + sz] >= MASK_AO);
+                    coord = coord0 - boundY - boundZ + OFFSET_AO;
+                    const R1 = uint8View[coord] + uint8View[coord + sy + sz];
+                    const R2 = uint8View[coord + sy] + uint8View[coord + sz];
                     const R = R1 + R2 + (R1 === 0 && R2 === 2) + (R1 === 2 && R2 === 0);
 
-                    coord = coord0 - boundX - boundY;
-                    const G1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sy + sx] >= MASK_AO);
-                    const G2 = (lightMap[coord + sy] >= MASK_AO) + (lightMap[coord + sx] >= MASK_AO);
+                    coord = coord0 - boundX - boundY + OFFSET_AO;
+                    const G1 = uint8View[coord] + uint8View[coord + sy + sx];
+                    const G2 = uint8View[coord + sy] + uint8View[coord + sx];
                     const G = G1 + G2 + (G1 === 0 && G2 === 2) + (G1 === 2 && G2 === 0);
 
-                    coord = coord0 - boundX - boundZ;
-                    const B1 = (lightMap[coord] >= MASK_AO) + (lightMap[coord + sx + sz] >= MASK_AO);
-                    const B2 = (lightMap[coord + sx] >= MASK_AO) + (lightMap[coord + sz] >= MASK_AO);
+                    coord = coord0 - boundX - boundZ + OFFSET_AO;
+                    const B1 = uint8View[coord] + uint8View[coord + sx + sz];
+                    const B2 = uint8View[coord + sx] + uint8View[coord + sz];
                     const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
                     result[ind++] = R * 16.0;
