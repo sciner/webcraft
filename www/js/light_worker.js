@@ -158,7 +158,6 @@ class LightQueue {
                             } else {
                                 uint8View[coord2 * strideBytes + OFFSET_LIGHT] = Math.max(val - 1, 0);
                                 selfRef = true;
-
                             }
                         }
                     }
@@ -213,6 +212,7 @@ class LightQueue {
                             Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
                         Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
+                    // let A =  uint8View[coord + sx]; // case for a bug
                     A = Math.max(A, 0);
 
                     coord = coord0 - boundY - boundZ + OFFSET_AO;
