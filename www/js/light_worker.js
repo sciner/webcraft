@@ -37,6 +37,7 @@ const OFFSET_AO = 3;
 const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
+let tmpRef = [0, 0, 0, 0, 0, 0];
 
 class LightQueue {
     constructor() {
@@ -119,43 +120,51 @@ class LightQueue {
                         chunk.waveCounter++;
                     }
                 } else {
-                    let selfRef = false;
-                    // one of neighbours is inside another chunk
                     for (let d = 0; d < 6; d++) {
-                        //might be portals!
-                        let x2 = x + dx[d],
-                            y2 = y + dy[d],
-                            z2 = z + dz[d];
-                        let flag = true;
-                        for (let p = 0; p < portals.length; p++) {
-                            const portal = portals[p]
-                            if (!portal.aabb.contains(x2, y2, z2)) {
+                        tmpRef[d] = 0;
+                    }
+                    for (let p = 0; p < portals.length; p++) {
+                        const chunk2 = portals[p].toRegion;
+                        if (!portals[p].aabb.contains(x, y, z)) {
+                            continue;
+                        }
+                        chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), OFFSET_LIGHT, val);
+                        chunk2.lastID++;
+                        for (let d = 0; d < 6; d++) {
+                            if (tmpRef[d]) {
                                 continue;
                             }
-                            const chunk2 = portal.toRegion;
-                            chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), OFFSET_LIGHT, val);
-                            chunk2.lastID++;
-
+                            let x2 = x + dx[d],
+                                y2 = y + dy[d],
+                                z2 = z + dz[d];
                             if (chunk2.aabb.contains(x2, y2, z2)) {
                                 wavesChunk[waveNum].push(chunk2.rev);
                                 wavesCoord[waveNum].push(chunk2.indexByWorld(x2, y2, z2));
                                 chunk2.rev.waveCounter++;
-                                flag = false;
-                            }
-                        }
-                        if (flag) {
-                            let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                            if (lightChunk.aabb.contains(x2, y2, z2)) {
-                                wavesChunk[waveNum].push(chunk);
-                                wavesCoord[waveNum].push(coord2);
-                                chunk.waveCounter++;
-                            } else {
-                                uint8View[coord2 * strideBytes + OFFSET_LIGHT] = Math.max(val - 1, 0);
-                                selfRef = true;
+                                tmpRef[d]++;
                             }
                         }
                     }
-                    if (selfRef) {
+                    let hitEdge = false;
+                    for (let d = 0; d < 6; d++) {
+                        if (tmpRef[d] > 0) {
+                            continue;
+                        }
+                        let x2 = x + dx[d],
+                            y2 = y + dy[d],
+                            z2 = z + dz[d];
+                        let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                        if (lightChunk.aabb.contains(x2, y2, z2)) {
+                            wavesChunk[waveNum].push(chunk);
+                            wavesCoord[waveNum].push(coord2);
+                            chunk.waveCounter++;
+                        } else {
+                            uint8View[coord2 * strideBytes + OFFSET_LIGHT] = Math.max(val - 1, 0);
+                            hitEdge = true;
+                        }
+                    }
+                    if (hitEdge) {
+                        //TODO: do this only if light decreased
                         wavesChunk[waveNum].push(chunk);
                         wavesCoord[waveNum].push(coord);
                         chunk.waveCounter++;
@@ -489,7 +498,7 @@ async function onMessageFunc(e) {
                     for (let portal of portals) {
                         if (portal.aabb.contains(x, y, z)) {
                             const other = portal.toRegion;
-                            other.uint8View[other.indexByWorld(x, y, z) * strideBytes + OFFSET_AO] = ao
+                            other.setUint8ByInd(other.indexByWorld(x, y, z), OFFSET_AO, ao)
                             other.lastID++;
                         }
                     }
