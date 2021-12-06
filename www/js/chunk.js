@@ -22,7 +22,7 @@ export function getChunkAddr(x, y, z, v = null) {
     }
     //
     v = v || new Vector();
-    
+
     v.x = Math.floor(x / CHUNK_SIZE_X);
     v.y = Math.floor(y / CHUNK_SIZE_Y);
     v.z = Math.floor(z / CHUNK_SIZE_Z);
@@ -220,7 +220,7 @@ export class Chunk {
         }
         if (this.lightData) {
             this.getLightTexture(render);
-            
+
             if (!this.lightMats[key]) {
                 this.lightMats[key] = texMat.getLightMat(this.lightTex)
             }
@@ -386,7 +386,10 @@ export class Chunk {
                 const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
                 const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
                 const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
-                chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr, innerCoord, outerCoord,
+                chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
+                    x:          x + this.coord.x,
+                    y:          y + this.coord.y,
+                    z:          z + this.coord.z,
                     light_source: light}]);
             }
         }

@@ -1,6 +1,5 @@
 import { CubeSym } from './CubeSym.js';
 import { Vector } from '../helpers.js';
-import { AABB } from './AABB.js';
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;

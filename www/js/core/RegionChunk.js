@@ -1,6 +1,5 @@
-import { AABB } from './AABB.js'
-import {Vector} from "../helpers";
-import {BaseChunk} from "./BaseChunk";
+import {Vector} from "../helpers.js";
+import {BaseChunk} from "./BaseChunk.js";
 
 export class RegionChunk extends BaseChunk {
     constructor({size, dataChunk}) {
@@ -8,7 +7,6 @@ export class RegionChunk extends BaseChunk {
         this.dataChunk = dataChunk;
         this.pos = new Vector();
         this.dataPos = new Vector();
-        this.portals = [];
     }
 
     setPos(pos) {
@@ -27,12 +25,5 @@ export class RegionChunk extends BaseChunk {
         localY += dataPos.y
         localZ += dataPos.z
         return uint32View[offset + stride32 * (localX  + outerSize.x * (localZ + localY * outerSize.z))];
-    }
-}
-
-export class Portal {
-    constructor({ aabb, toRegion }) {
-        this.aabb = aabb;
-        this.toRegion = toRegion;
     }
 }
