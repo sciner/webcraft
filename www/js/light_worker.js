@@ -38,12 +38,6 @@ const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
 
-const edge = [
-    [1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0],
-    [1, 1, -1, -1, 0, 0, 0, 0, 1, 1, 1, -1],
-    [0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1],
-]
-
 class LightQueue {
     constructor() {
         this.wavesChunk = [];
@@ -62,7 +56,6 @@ class LightQueue {
         let endTime = performance.now();
         const {wavesChunk, wavesCoord} = this;
         let wn = maxLight;
-        let chunkAddr = new Vector();
         do {
             for (let tries = 0; tries < 1000; tries++) {
                 while (wn >= 0 && wavesChunk[wn].length === 0) {
@@ -73,7 +66,7 @@ class LightQueue {
                 }
                 let chunk = wavesChunk[wn].pop();
                 let { lightChunk } = chunk;
-                const { uint8View, outerSize, size, strideBytes, safeAABB, outerAABB, portals } = lightChunk;
+                const { uint8View, outerSize, strideBytes, safeAABB, outerAABB, portals } = lightChunk;
                 const coord = wavesCoord[wn].pop();
                 const coordBytes = coord * strideBytes;
                 chunk.waveCounter--;
@@ -119,6 +112,7 @@ class LightQueue {
                 if (safeAABB.contains(x, y, z)) {
                     // super fast case - we are inside data chunk
                     for (let d = 0; d < 6; d++) {
+                        //TODO: better condition: dont add if there's a block
                         let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
                         wavesChunk[waveNum].push(chunk);
                         wavesCoord[waveNum].push(coord2);
@@ -358,12 +352,12 @@ class Chunk {
         for (let x = aabb.x_min; x < aabb.x_max; x++)
             for (let y = aabb.y_min; y < aabb.y_max; y++)
                 for (let z = aabb.z_min; z < aabb.z_max; z++) {
-                    const coord = x * sx + y * sy + z * sz + shiftCoord;
-                    const m = Math.max(uint8View[coord + OFFSET_LIGHT], uint8View[coord + OFFSET_SOURCE]);
+                    const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
+                    const m = Math.max(uint8View[coordBytes + OFFSET_LIGHT], uint8View[coordBytes + OFFSET_SOURCE]);
                     if (m > 0) {
                         world.light.add(this, coord, m);
                     }
-                    found = found || uint8View[coord + OFFSET_AO] > 0;
+                    found = found || uint8View[coordBytes + OFFSET_AO] > 0;
                 }
         if (found) {
             this.lastID++;
