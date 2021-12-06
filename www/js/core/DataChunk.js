@@ -1,8 +1,8 @@
-import {BaseChunk} from "./BaseChunk";
+import {BaseChunk} from "./BaseChunk.js";
 
 export class DataChunk extends BaseChunk {
     constructor({size, strideBytes}) {
-        super(size);
+        super({size});
         this.initData(strideBytes);
     }
 
@@ -11,7 +11,7 @@ export class DataChunk extends BaseChunk {
         this.stride32 = strideBytes >> 2;
         this.stride16 = strideBytes >> 1;
         this.dataBuf = new ArrayBuffer(this.outerLen * strideBytes);
-        this.uint8View = new Uint16Array(this.dataBuf);
+        this.uint8View = new Uint8Array(this.dataBuf);
         if ((strideBytes & 1) === 0) {
             this.uint16View = new Uint16Array(this.dataBuf);
         }
@@ -63,11 +63,7 @@ export class DataChunk extends BaseChunk {
 
     indexByWorld(worldX, worldY, worldZ) {
         const { outerSize } = this;
-        //to local
-        worldX -= outerSize.x_min;
-        worldY -= outerSize.y_min;
-        worldZ -= outerSize.z_min;
-        return worldX + outerSize.x * (worldZ + outerSize.z * worldY);
+        return worldX + outerSize.x * (worldZ + outerSize.z * worldY) + this.shiftCoord;
     }
     setUint32ByCoord(localX, localY, localZ, offset, value) {
         const { outerSize, padding, stride32, uint32View } = this;

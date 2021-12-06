@@ -1,15 +1,18 @@
 import {AABB} from './AABB.js'
-import {Vector} from "../helpers";
+import {Vector} from "../helpers.js";
+
+const tempAABB = new AABB();
 
 export class BaseChunk {
     constructor({size}) {
-        this.initSize(size);
         this.outerAABB = new AABB();
-        this.innerAABB = new AABB();
+        this.safeAABB = new AABB();
         this.pos = new Vector();
         this.subRegions = [];
         this.subMaxWidth = 0;
         this.portals = [];
+        this.initSize(size);
+        this.setPos(Vector.ZERO);
     }
 
     initSize(size) {
@@ -20,9 +23,8 @@ export class BaseChunk {
         this.outerLen = outerSize.x * outerSize.y * outerSize.z;
         this.insideLen = size.x * size.y * size.z;
         this.outerAABB = new AABB();
-        this.innerAABB = new AABB();
+        this.safeAABB = new AABB();
         this.shiftCoord = 0;
-        this.setPos(Vector.ZERO);
     }
 
     /**
@@ -34,10 +36,9 @@ export class BaseChunk {
         const {size, padding, outerSize} = this;
         this.pos.copyFrom(pos);
         this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
-        const outer = this.outerAABB.set(pos.x - padding, pos.y - padding, pos.z - padding,
-            pos.x + size.x + padding, pos.y + size.y + padding, pos.z + size.z + padding);
-        this.innerAABB.copyFrom(this.aabb);
-        this.shiftCoord = - (outer.x_min + outerSize.x * (outer.z_min + outerSize.z * outer.y_min));
+        const outer = this.outerAABB.copyFrom(this.aabb).pad(padding);
+        this.safeAABB.copyFrom(this.aabb).pad(-1);
+        this.shiftCoord = -(outer.x_min + outerSize.x * (outer.z_min + outerSize.z * outer.y_min));
         return this;
     }
 
@@ -114,23 +115,25 @@ export class BaseChunk {
     _addPortal(portal) {
         this.portals.push(portal);
 
-        const inner = this.innerAABB;
+        const inner = this.safeAABB;
         const aabb = portal.aabb;
-        if (aabb.x_min < inner.x_max && inner.x_min < aabb.x_max) {
-            if (inner.x_min < aabb.x_min) {
+        tempAABB.setIntersect(inner, aabb);
+        if (tempAABB.isEmpty()) {
+            return;
+        }
+        if (tempAABB.width <= tempAABB.height && tempAABB.width <= tempAABB.depth) {
+            if (inner.x_min < aabb.x_min && inner.x_max <= aabb.x_max) {
                 inner.x_max = aabb.x_min;
             } else {
                 inner.x_min = aabb.x_max;
             }
-        }
-        if (aabb.y_min < inner.y_max && inner.y_min < aabb.y_max) {
+        } else if (tempAABB.height <= tempAABB.width && tempAABB.height <= tempAABB.depth) {
             if (inner.y_min < aabb.y_min) {
                 inner.y_max = aabb.y_min;
             } else {
                 inner.y_min = aabb.y_max;
             }
-        }
-        if (aabb.z_min < inner.z_max && inner.z_min < aabb.z_max) {
+        } else {
             if (inner.z_min < aabb.z_min) {
                 inner.z_max = aabb.z_min;
             } else {
@@ -196,7 +199,7 @@ export class BaseChunk {
 
     _removeAllPortals() {
         for (let portal of this.portals) {
-            const { rev } = portal;
+            const {rev} = portal;
             const ind = rev.fromRegion.portals.indexOf(rev);
             if (ind >= 0) {
                 rev.fromRegion.portals.splice(ind, 1);
@@ -209,7 +212,7 @@ export class BaseChunk {
 }
 
 export class Portal {
-    constructor({ aabb, fromRegion, toRegion }) {
+    constructor({aabb, fromRegion, toRegion}) {
         this.aabb = aabb;
         this.fromRegion = fromRegion;
         this.toRegion = toRegion;

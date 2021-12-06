@@ -36,6 +36,16 @@ export class AABB {
         return this;
     }
 
+    pad(padding) {
+        this.x_min -= padding;
+        this.x_max += padding;
+        this.y_min -= padding;
+        this.y_max += padding;
+        this.z_min -= padding;
+        this.z_max += padding;
+        return this;
+    }
+
     set(xMin, yMin, zMin, xMax, yMax, zMax) {
         // this.x_min = cx - w / 2;
         // this.x_max = cx + w / 2;

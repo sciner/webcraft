@@ -1,5 +1,5 @@
-import {Vector} from "../helpers";
-import {BaseChunk} from "./BaseChunk";
+import {Vector} from "../helpers.js";
+import {BaseChunk} from "./BaseChunk.js";
 
 export class RegionChunk extends BaseChunk {
     constructor({size, dataChunk}) {
