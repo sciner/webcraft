@@ -151,7 +151,7 @@ export class BaseChunk {
         // easy binary search part 2
         while (left + 1 < right) {
             let mid = (left + right) >> 1;
-            if (subRegions[mid].aabb.x_min + subMaxWidth <= x_min) {
+            if (subRegions[mid].aabb.x_min + subMaxWidth < x_min) {
                 left = mid;
             } else {
                 right = mid;

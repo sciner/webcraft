@@ -320,15 +320,16 @@ class Chunk {
 
         for (let portal of portals) {
             const other = portal.toRegion;
+            const p = portal.aabb;
             const outer2 = other.outerSize;
             const inside2 = other.aabb;
             const shift2 = other.shiftCoord;
             const bytes2 = other.uint8View;
             const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
 
-            for (let x = portal.x_min; x < portal.x_max; x++)
-                for (let y = portal.y_min; y < portal.y_max; y++)
-                    for (let z = portal.z_min; z < portal.z_max; z++) {
+            for (let x = p.x_min; x < p.x_max; x++)
+                for (let y = p.y_min; y < p.y_max; y++)
+                    for (let z = p.z_min; z < p.z_max; z++) {
                         const coord1 = (sx * x + sy * y + sz * z + shiftCoord) * strideBytes;
                         const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes;
                         //TODO: optimize contains here?
@@ -339,13 +340,13 @@ class Chunk {
                         uint8View[coord1 + OFFSET_LIGHT] = bytes2[coord2 + OFFSET_LIGHT];
 
                         // copy AO through border
-                        if (f1 && !f2) {
+                        if (f1) {
                             if (bytes2[coord2 + OFFSET_AO] !== uint8View[coord1 + OFFSET_AO]) {
                                 other.rev.lastID++;
                                 bytes2[coord2 + OFFSET_AO] = uint8View[coord1 + OFFSET_AO]
                             }
                         }
-                        if (!f1 && f2) {
+                        if (f2) {
                             if (uint8View[coord1 + OFFSET_AO] !== bytes2[coord2 + OFFSET_AO]) {
                                 found = true;
                                 uint8View[coord1 + OFFSET_AO] = bytes2[coord2 + OFFSET_AO]
