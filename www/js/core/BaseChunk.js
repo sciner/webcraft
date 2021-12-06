@@ -19,15 +19,12 @@ export class BaseChunk {
         this.size = size;
         const outerSize = this.outerSize = new Vector(size.x + padding * 2, size.y + padding * 2, size.z + padding * 2);
         this.aabb = new AABB();
-        this.aabb.x_max = size.x;
-        this.aabb.y_max = size.y;
-        this.aabb.z_max = size.z;
         this.outerLen = outerSize.x * outerSize.y * outerSize.z;
         this.insideLen = size.x * size.y * size.z;
         this.outerAABB = new AABB();
-        this.outerAABB.set(-padding, -padding, -padding, size.x + padding, size.y + padding, size.z + padding);
         this.innerAABB = new AABB();
-        this.innerAABB.copyFrom(this.aabb);
+        this.shiftCoord = 0;
+        this.setPos(Vector.ZERO);
     }
 
     /**
@@ -36,12 +33,13 @@ export class BaseChunk {
      * @returns {BaseChunk}
      */
     setPos(pos) {
-        const {size, padding} = this;
+        const {size, padding, outerSize} = this;
         this.pos.copyFrom(pos);
         this.aabb.set(pos.x, pos.y, pos.z, pos.x + size.x, pos.y + size.y, pos.z + size.z);
-        this.outerAABB.set(pos.x - padding, pos.y - padding, pos.z - padding,
+        const outer = this.outerAABB.set(pos.x - padding, pos.y - padding, pos.z - padding,
             pos.x + size.x + padding, pos.y + size.y + padding, pos.z + size.z + padding);
         this.innerAABB.copyFrom(this.aabb);
+        this.shiftCoord = - (outer.x_min + outerSize.x * (outer.z_min + outerSize.z * outer.y_min));
         return this;
     }
 

@@ -224,7 +224,7 @@ class LightQueue {
     }
 
     calcResult(chunk) {
-        const { size, lightChunk } = chunk;
+        const { lightChunk } = chunk;
         const { outerSize, uint8View, strideBytes } = lightChunk;
         const result = chunk.lightResult;
 
@@ -296,6 +296,7 @@ class ChunkManager {
     delete(chunk) {
         if (this.chunks.delete(chunk.addr)) {
             this.list.splice(this.list.indexOf(chunk), 1);
+            this.lightBase.removeSub(chunk.lightChunk);
         }
     }
 }
@@ -347,171 +348,55 @@ class Chunk {
 
     fillOuter() {
         //checks neighbour chunks
-        const {size, outerSize, lightSource} = this;
+        const {lightChunk} = this;
+        const {outerSize, portals, shiftCoord, aabb, uint8View, strideBytes} = lightChunk;
         const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
-        const iy = size.x * size.z, ix = 1, iz = size.x;
-        let neibAddr = new Vector();
-        let dest = this.lightMap;
-        let neib;
 
-        neibAddr.copyFrom(this.addr).x--;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sx * size.x, shift2 = sx;
-            for (let i = 0; i < outerSize.y; i++)
-                for (let j = 0; j < outerSize.z; j++) {
-                    let ind = sy * i + sz * j;
-                    dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
-                }
-            for (let i = 1; i + 1 < outerSize.y; i++)
-                for (let j = 1; j + 1 < outerSize.z; j++) {
-                    let ind = sy * i + sz * j;
-                    let inner = iy * (i - 1) + iz * (j - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        //TODO: check if its different from src (stored old value?)
-                        dest[ind + shift2] |= MASK_AO;
-                        src[ind + shift + shift2] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
-        neibAddr.copyFrom(this.addr).x++;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sx * size.x, shift2 = sx;
-            for (let i = 0; i < outerSize.y; i++)
-                for (let j = 0; j < outerSize.z; j++) {
-                    let ind = sy * i + sz * j;
-                    dest[ind + shift] = src[ind] & MASK_BLOCK;
-                    dest[ind + shift + shift2] = src[ind + shift2];
-                }
-            for (let i = 1; i + 1 < outerSize.y; i++)
-                for (let j = 1; j + 1 < outerSize.z; j++) {
-                    let ind = sy * i + sz * j;
-                    let inner = iy * (i - 1) + iz * (j - 1) + ix * (size.x - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        dest[ind + shift] |= MASK_AO;
-                        src[ind] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
-        neibAddr.copyFrom(this.addr).y--;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sy * size.y, shift2 = sy;
-            for (let i = 0; i < outerSize.x; i++)
-                for (let j = 0; j < outerSize.z; j++) {
-                    let ind = sx * i + sz * j;
-                    dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
-                }
-            for (let i = 1; i + 1 < outerSize.x; i++)
-                for (let j = 1; j + 1 < outerSize.z; j++) {
-                    let ind = sx * i + sz * j;
-                    let inner = ix * (i - 1) + iz * (j - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        dest[ind + shift2] |= MASK_AO;
-                        src[ind + shift + shift2] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
-        neibAddr.copyFrom(this.addr).y++;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sy * size.y, shift2 = sy;
-            for (let i = 0; i < outerSize.x; i++)
-                for (let j = 0; j < outerSize.z; j++) {
-                    let ind = sx * i + sz * j;
-                    dest[ind + shift] = src[ind] & MASK_BLOCK;
-                    dest[ind + shift + shift2] = src[ind + shift2];
-                }
-            for (let i = 1; i + 1 < outerSize.x; i++)
-                for (let j = 1; j + 1 < outerSize.z; j++) {
-                    let ind = sx * i + sz * j;
-                    let inner = ix * (i - 1) + iz * (j - 1) + iy * (size.y - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        dest[ind + shift] |= MASK_AO;
-                        src[ind] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
-        neibAddr.copyFrom(this.addr).z--;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sz * size.z, shift2 = sz;
-            for (let i = 0; i < outerSize.x; i++)
-                for (let j = 0; j < outerSize.y; j++) {
-                    let ind = sx * i + sy * j;
-                    dest[ind] = src[ind + shift];
-                    dest[ind + shift2] = src[ind + shift + shift2] & MASK_BLOCK;
-                }
-            for (let i = 1; i + 1 < outerSize.x; i++)
-                for (let j = 1; j + 1 < outerSize.y; j++) {
-                    let ind = sx * i + sy * j;
-                    let inner = ix * (i - 1) + iy * (j - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        dest[ind + shift2] |= MASK_AO;
-                        src[ind + shift + shift2] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
-        neibAddr.copyFrom(this.addr).z++;
-        neib = this.chunkManager.getChunk(neibAddr);
-        if (neib) {
-            let src = neib.lightMap;
-            let shift = sz * size.z, shift2 = sz;
-            for (let i = 0; i < outerSize.x; i++)
-                for (let j = 0; j < outerSize.y; j++) {
-                    let ind = sx * i + sy * j;
-                    dest[ind + shift] = src[ind] & MASK_BLOCK;
-                    dest[ind + shift + shift2] = src[ind + shift2];
-                }
-            for (let i = 1; i + 1 < outerSize.x; i++)
-                for (let j = 1; j + 1 < outerSize.y; j++) {
-                    let ind = sx * i + sy * j;
-                    let inner = ix * (i - 1) + iy * (j - 1) + iz * (size.z - 1);
-                    if (lightSource[inner] & MASK_AO) {
-                        dest[ind + shift] |= MASK_AO;
-                        src[ind] |= MASK_AO;
-                        neib.lastID++;
-                    }
-                }
-        }
+        for (let portal of portals) {
+            const other = portal.toRegion;
+            const outer2 = other.outerSize;
+            const inside2 = other.aabb;
+            const shift2 = other.shiftCoord;
+            const bytes2 = other.uint8View;
+            const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
 
-        let found = false;
-        for (let y = 0; y < size.y; y++)
-            for (let z = 0; z < size.z; z++)
-                for (let x=0; x < size.x; x++) {
-                    const inner = x * ix + y * iy + z * iz;
-                    const outer = (x + 1) * sx + (y + 1) * sy + (z + 1) * sz;
-                    const ao = lightSource[inner] & MASK_AO;
-                    let val = lightSource[inner] & MASK_BLOCK;
-                    if (val === MASK_BLOCK) {
-                        val = 0;
-                    }
-                    const m = Math.max(val, dest[outer] & MASK_BLOCK);
-                    if (m > 0) {
-                        world.light.add(this, outer, m);
-                    } else {
-                        if (ao || dest[outer]) {
-                            dest[outer] = ao;
-                            found = true;
+            for (let x = portal.x_min; x < portal.x_max; x++)
+                for (let y = portal.y_min; y < portal.y_max; y++)
+                    for (let z = portal.z_min; z < portal.z_max; z++) {
+                        const coord1 = (sx * x + sy * y + sz * z + shiftCoord) * strideBytes;
+                        const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes;
+                        //TODO: optimize contains here?
+                        const f1 = aabb.contains(x, y, z);
+                        const f2 = inside2.contains(x, y, z);
+
+                        // copy light
+                        uint8View[coord1 + OFFSET_LIGHT] = bytes2[coord2 + OFFSET_LIGHT];
+
+                        // copy AO through border
+                        if (f1 && !f2) {
+                            if (bytes2[coord2 + OFFSET_AO] !== uint8View[coord1 + OFFSET_AO]) {
+                                other.rev.lastID++;
+                                bytes2[coord2 + OFFSET_AO] = uint8View[coord1 + OFFSET_AO]
+                            }
+                        }
+                        if (!f1 && f2) {
+                            if (uint8View[coord1 + OFFSET_AO] !== bytes2[coord2 + OFFSET_AO]) {
+                                this.lastID++;
+                                uint8View[coord1 + OFFSET_AO] = bytes2[coord2 + OFFSET_AO]
+                            }
                         }
                     }
-                }
-        if (found) {
-            this.lastID++;
         }
+        // add light to queue
+        for (let x = aabb.x_min; x < aabb.x_max; x++)
+            for (let y = aabb.y_min; y < aabb.y_max; y++)
+                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+                    const coord = x * sx + y * sy + z * sz + shiftCoord;
+                    const m = Math.max(uint8View[coord + OFFSET_LIGHT], uint8View[coord + OFFSET_SOURCE]);
+                    if (m > 0) {
+                        world.light.add(this, coord, m);
+                    }
+                }
     }
 }
 
@@ -620,9 +505,25 @@ async function onMessageFunc(e) {
         case 'setBlock': {
             let chunk = world.chunkManager.getChunk(args.addr);
             if (chunk) {
-                const { innerCoord, outerCoord, light_source } = args;
-                chunk.lightSource[innerCoord] = light_source;
-                world.light.add(chunk, outerCoord, Math.max(chunk.lightMap[outerCoord] & MASK_BLOCK, light_source & MASK_BLOCK));
+                const { light_source, x, y, z } = args;
+                const { lightChunk } = chunk;
+                const { portals, uint8View, strideBytes } = lightChunk;
+                const ind = lightChunk.indexByWorld(x, y, z);
+                const light = uint8View[ind * strideBytes + OFFSET_LIGHT];
+                uint8View[ind * strideBytes + OFFSET_SOURCE] = light_source & MASK_BLOCK;
+                world.light.add(chunk, ind, Math.max(light, light_source & MASK_BLOCK));
+                // push ao
+                const ao = (light_source & MASK_AO) > 0 ? 1 : 0;
+                if (uint8View[ind * strideBytes + OFFSET_AO] !== ao) {
+                    uint8View[ind * strideBytes + OFFSET_AO] = ao;
+                    for (let portal of portals) {
+                        if (portal.aabb.contains(x, y, z)) {
+                            const other = portal.toRegion;
+                            other.uint8View[other.indexByWorld(x, y, z) * strideBytes + OFFSET_AO] = ao
+                            other.lastID++;
+                        }
+                    }
+                }
             }
         }
     }
