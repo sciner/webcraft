@@ -44,9 +44,10 @@ export class BaseChunk {
 
     addSub(sub) {
         const {subRegions} = this;
+        const x = sub.aabb.x_min;
         let i = 0, len = subRegions.length;
         for (; i < len; i++) {
-            if (subRegions[i].x > sub.x) {
+            if (subRegions[i].aabb.x_min > x) {
                 break;
             }
         }
@@ -144,13 +145,13 @@ export class BaseChunk {
 
     _addPortalsForBase(baseChunk) {
         const {subRegions, subMaxWidth} = baseChunk;
-        let left = 0, right = subRegions.length;
-        const {x_min, x_max, y_min, y_max, z_min, z_max} = this.outerAABB;
+        let left = -1, right = subRegions.length;
+        const {x_min, x_max, y_min, y_max, z_min, z_max} = this.aabb;
 
         // easy binary search part 2
         while (left + 1 < right) {
             let mid = (left + right) >> 1;
-            if (subRegions[mid].x_min + subMaxWidth <= x_min) {
+            if (subRegions[mid].aabb.x_min + subMaxWidth <= x_min) {
                 left = mid;
             } else {
                 right = mid;
@@ -161,7 +162,7 @@ export class BaseChunk {
         right = subRegions.length;
         while (left + 1 < right) {
             let mid = (left + right) >> 1;
-            if (subRegions[mid].x_min <= x_max) {
+            if (subRegions[mid].aabb.x_min <= x_max) {
                 left = mid;
             } else {
                 right = mid;
@@ -174,10 +175,10 @@ export class BaseChunk {
             if (second === this) {
                 continue;
             }
-            const aabb = subRegions[i].aabb;
-            if (aabb.x_min <= x_max && x_min <= aabb.x_max
-                && aabb.y_min <= y_max && y_min <= aabb.y_max
-                && aabb.z_min <= z_max && z_min <= aabb.z_max) {
+            const neib = subRegions[i].aabb;
+            if (neib.x_min <= x_max && x_min <= neib.x_max
+                && neib.y_min <= y_max && y_min <= neib.y_max
+                && neib.z_min <= z_max && z_min <= neib.z_max) {
                 const aabb = new AABB().setIntersect(this.outerAABB, second.outerAABB);
                 const portal1 = new Portal({
                     aabb,

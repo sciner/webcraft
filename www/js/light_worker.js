@@ -125,6 +125,7 @@ class LightQueue {
                         chunk.waveCounter++;
                     }
                 } else {
+                    let selfRef = false;
                     // one of neighbours is inside another chunk
                     for (let d = 0; d < 6; d++) {
                         //might be portals!
@@ -137,14 +138,14 @@ class LightQueue {
                             if (!portal.aabb.contains(x2, y2, z2)) {
                                 continue;
                             }
-                            const chunk2 = portal.aabb.toRegion;
-                            chunk2.setUint32ByCoord(x, y, z, OFFSET_LIGHT, val);
+                            const chunk2 = portal.toRegion;
+                            chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), OFFSET_LIGHT, val);
                             chunk2.lastID++;
 
                             if (chunk2.aabb.contains(x2, y2, z2)) {
                                 wavesChunk[waveNum].push(chunk2.rev);
                                 wavesCoord[waveNum].push(chunk2.indexByWorld(x2, y2, z2));
-                                chunk2.waveCounter++;
+                                chunk2.rev.waveCounter++;
                                 flag = false;
                             }
                         }
@@ -156,11 +157,15 @@ class LightQueue {
                                 chunk.waveCounter++;
                             } else {
                                 uint8View[coord2 * strideBytes + OFFSET_LIGHT] = Math.max(val - 1, 0);
-                                wavesChunk[waveNum].push(chunk);
-                                wavesCoord[waveNum].push(coord);
-                                chunk.waveCounter++;
+                                selfRef = true;
+
                             }
                         }
+                    }
+                    if (selfRef) {
+                        wavesChunk[waveNum].push(chunk);
+                        wavesCoord[waveNum].push(coord);
+                        chunk.waveCounter++;
                     }
                 }
             }
