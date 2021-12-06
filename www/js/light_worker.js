@@ -37,7 +37,7 @@ const OFFSET_AO = 3;
 const dx = [1, -1, 0, 0, 0, 0];
 const dy = [0, 0, 1, -1, 0, 0];
 const dz = [0, 0, 0, 0, 1, -1];
-let tmpRef = [0, 0, 0, 0, 0, 0];
+const tmpRef = [0, 0, 0, 0, 0, 0];
 
 class LightQueue {
     constructor() {
@@ -177,8 +177,8 @@ class LightQueue {
 
     /**
      * @param chunk
-     * @param ind
      * @param coord
+     * @param waveNum
      */
     add(chunk, coord, waveNum) {
         const {wavesChunk, wavesCoord} = this;
