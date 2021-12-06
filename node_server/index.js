@@ -8,6 +8,7 @@ import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_ws.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
+import config from "./conf.json" assert { type: "json" };
 
 import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
@@ -36,7 +37,7 @@ global.Game = new ServerGame();
 Game.startWS();
 
 // Start express
-const server = app.listen(5700);
+const server = app.listen(config.Port);
 
 // Pair with websocket server
 server.on('upgrade', (request, socket, head) => {
@@ -44,3 +45,5 @@ server.on('upgrade', (request, socket, head) => {
         Game.wsServer.emit('connection', socket, request);
     });
 });
+
+console.log(`Game listening at http://${config.ServerIP}:${config.Port}`);

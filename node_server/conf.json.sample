@@ -1,5 +1,5 @@
 {
-    "AppVersion": "0.0.3",
+    "AppVersion": "0.0.1",
     "AppCode": "madcraft",
     "ServerIP": "127.0.0.1",
     "Port": 5700,
@@ -9,5 +9,6 @@
     "APIDomain": "http://api.madcraft.loc/",
     "UseSecureProtocol": false,
     "SSLCertFile": "/var/ssl/auth/fullchain.pem",
-    "SSLKeyFile": "/var/ssl/auth/privkey.pem"
+    "SSLKeyFile": "/var/ssl/auth/privkey.pem",
+    "RedisServer": "127.0.0.1:6379"
 }
