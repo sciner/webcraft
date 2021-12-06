@@ -1,8 +1,6 @@
 import {AABB} from './AABB.js'
 import {Vector} from "../helpers";
 
-const tempPos = new Vector();
-
 export class BaseChunk {
     constructor({size}) {
         this.initSize(size);

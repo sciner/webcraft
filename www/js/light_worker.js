@@ -5,9 +5,6 @@
 /**
  * settings
  */
-import {AABB} from "./core/AABB";
-import {BaseChunk} from "./core/BaseChunk";
-import {DataChunk} from "./core/DataChunk";
 
 /**
  * max time spent in light loop
@@ -21,6 +18,8 @@ let globalStepMs = 1000.0 / 120.0;
 let modulesReady = false;
 let VectorCollector = null;
 let Vector = null;
+let DataChunk = null;
+let BaseChunk = null;
 const world = {
     chunkManager: null,
     queue: null
@@ -453,6 +452,12 @@ async function importModules() {
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
         VectorCollector = module.VectorCollector;
+    });
+    await import('./core/BaseChunk.js').then(module => {
+        BaseChunk = module.BaseChunk;
+    });
+    await import('./core/DataChunk.js').then(module => {
+        DataChunk = module.DataChunk;
     });
     modulesReady = true;
     //for now , its nothing

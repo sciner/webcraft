@@ -1,5 +1,3 @@
-import { AABB } from './AABB.js'
-import {Vector} from "../helpers";
 import {BaseChunk} from "./BaseChunk";
 
 export class DataChunk extends BaseChunk {
