@@ -548,24 +548,42 @@ export class BLOCK {
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    // South z--
-                    if(canConnect(n.SOUTH)) {
-                        shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+w2]);
+                    let con_s = canConnect(n.SOUTH);
+                    let con_n = canConnect(n.NORTH);
+                    let con_w = canConnect(n.WEST);
+                    let con_e = canConnect(n.EAST);
+                    let remove_center = con_s || con_n || con_w || con_e;
+                    //
+                    if(con_s && con_n) {
+                        // remove_center = true;
+                        shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+.5]);
+                    } else {
+                        // South z--
+                        if(con_s) {
+                            shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+w2]);
+                        }
+                        // North z++
+                        if(con_n) {
+                            shapes.push([.5-w2,0, .5-w2, .5+w2, fence_height, 1]);
+                        }
                     }
-                    // North z++
-                    if(canConnect(n.NORTH)) {
-                        shapes.push([.5-w2,0, .5-w2, .5+w2, fence_height, 1]);
-                    }
-                    // West x--
-                    if(canConnect(n.WEST)) {
-                        shapes.push([0, 0, .5-w2, .5+w2, fence_height, .5+w2]);
-                    }
-                    // East x++
-                    if(canConnect(n.EAST)) {
-                        shapes.push([.5-w2, 0, .5-w2, 1, fence_height, .5+w2]);
+                    if(con_w && con_e) {
+                        // remove_center = true;
+                        shapes.push([0, 0, .5-w2, 1, fence_height, .5+w2]);
+                    } else {
+                        // West x--
+                        if(con_w) {
+                            shapes.push([0, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                        }
+                        // East x++
+                        if(con_e) {
+                            shapes.push([.5-w2, 0, .5-w2, 1, fence_height, .5+w2]);
+                        }
                     }
                     // Central
-                    shapes.push([.5-w2, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                    if(!remove_center) {
+                        shapes.push([.5-w2, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                    }
                     break;
                 }
                 case 'stairs': {

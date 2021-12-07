@@ -10,7 +10,7 @@ export class ServerChunk {
         this.addr           = new Vector(addr);
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.connections    = new Map();
-        this.preq           = new Set();
+        this.preq           = new Map();
         this.modify_list    = new Map();
         this.mobs           = new Map();
         this.load_state     = 0;
@@ -32,9 +32,7 @@ export class ServerChunk {
             console.log('preq size: ' + this.preq.size);
         }
         // Разошлем чанк игрокам, которые его запросили
-        for(let player of this.preq.values()) {
-            this.sendToPlayer(player);
-        }
+        this.sendToPlayers(Array.from(this.preq.keys()));
         this.preq.clear();
         if(this.connections.size > 0 && this.mobs.size > 0) {
             this.sendMobs(Array.from(this.connections.keys()));
@@ -50,9 +48,10 @@ export class ServerChunk {
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
     addPlayerLoadRequest(player) {
         if(this.load_state > 1) {
-            this.sendToPlayer(player);
+            this.sendToPlayers([player.session.user_id]);
+            this.sendMobs(Array.from(this.connections.keys()));
         } else {
-            this.preq.add(player);
+            this.preq.set(player.session.user_id, player);
         }
     }
 
@@ -87,9 +86,8 @@ export class ServerChunk {
         this.sendAll(packets);
     }
 
-    // Send chunk for player
-    sendToPlayer(player) {
-        console.log(`send chunk ${this.addr.toHash()} to player -> ${player.session.username}`);
+    // Send chunk for players
+    sendToPlayers(player_ids) {
         // @CmdChunkState
         let packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
@@ -98,8 +96,7 @@ export class ServerChunk {
                 modify_list: Object.fromEntries(this.modify_list),
             }
         }];
-        this.world.sendSelected(packets, [player.session.user_id], []);
-        this.sendMobs([player.session.user_id]);
+        this.world.sendSelected(packets, player_ids, []);
         return true
     }
 
