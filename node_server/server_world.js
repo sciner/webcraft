@@ -55,6 +55,11 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        //
+        import('../www/js/terrain_generator/' + this.info.generator.id + '/index.js').then(async (module) => {
+            this.generator = new (module.default)(this.info.seed, this.info.guid);
+            await this.generator.init('../www');
+        });
     }
 
     // World tick

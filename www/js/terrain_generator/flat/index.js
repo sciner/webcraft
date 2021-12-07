@@ -9,6 +9,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(0);
     }
 
+    async init(root_dir) {}
+
     generate(chunk) {
 
         let b = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK : BLOCK.SAND;

@@ -16,6 +16,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
     }
 
+    async init(root_dir) {}
+
     /**
      * setSeed
      * @param { string } seed 

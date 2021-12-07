@@ -9,55 +9,17 @@ import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 
-// Костыль для NodeJS
-let root_dir = '.';
-if(typeof process === 'undefined') {
-    root_dir = '';
-}
-
 //
 let vox_templates = {};
-await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
-    let palette = {
-        81: BLOCK.CONCRETE,
-        97: BLOCK.OAK_PLANK,
-        121: BLOCK.STONE_BRICK,
-        122: BLOCK.SMOOTH_STONE,
-        123: BLOCK.GRAVEL,
-    };
-    vox_templates.monu10 = {chunk: chunks[0], palette: palette};
-});
-await Vox_Loader.load(root_dir + '/data/vox/small_castle.vox', (chunks) => {
-    vox_templates.small_castle = {chunk: chunks[0], palette: {}};
-});
-await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
-    let palette = {
-        93: BLOCK.GRAVEL,
-        106: BLOCK.STONE_BRICK,
-        114: BLOCK.CONCRETE,
-        72: BLOCK.DIRT,
-        235: BLOCK.SNOW_BLOCK,
-        54: BLOCK.SPRUCE_PLANK,
-        150: BLOCK.OAK_LEAVES,
-        139: BLOCK.OAK_LEAVES,
-        58: BLOCK.OAK_TRUNK,
-        107: BLOCK.DIRT,
-        144: BLOCK.OAK_LEAVES,
-        143: BLOCK.DIRT,
-        253: BLOCK.OAK_PLANK,
-        238: BLOCK.SPRUCE_PLANK,
-        79: BLOCK.BIRCH_PLANK,
-        184: BLOCK.DIRT,
-        174: BLOCK.DIRT,
-    };
-    vox_templates.castle = {chunk: chunks[0], palette: palette};
-});
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
         super(seed, world_id);
+    }
+
+    async init(root_dir) {
         const scale                 = .5;
         // Настройки
         this.options = {
@@ -71,11 +33,50 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.noisefn                = noise.perlin2;
         this.maps_cache             = new VectorCollector();
         // Сaves manager
-        this.caveManager            = new CaveGenerator(seed);
+        this.caveManager            = new CaveGenerator(this.seed);
         this.islands                = [];
         this.extruders              = [];
         // Map specific
         if(this.world_id == 'demo') {
+            // Костыль для NodeJS
+            if(typeof root_dir === 'undefined') {
+                root_dir = '';
+            }
+            await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
+                let palette = {
+                    81: BLOCK.CONCRETE,
+                    97: BLOCK.OAK_PLANK,
+                    121: BLOCK.STONE_BRICK,
+                    122: BLOCK.SMOOTH_STONE,
+                    123: BLOCK.GRAVEL,
+                };
+                vox_templates.monu10 = {chunk: chunks[0], palette: palette};
+            });
+            await Vox_Loader.load(root_dir + '/data/vox/small_castle.vox', (chunks) => {
+                vox_templates.small_castle = {chunk: chunks[0], palette: {}};
+            });
+            await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
+                let palette = {
+                    93: BLOCK.GRAVEL,
+                    106: BLOCK.STONE_BRICK,
+                    114: BLOCK.CONCRETE,
+                    72: BLOCK.DIRT,
+                    235: BLOCK.SNOW_BLOCK,
+                    54: BLOCK.SPRUCE_PLANK,
+                    150: BLOCK.OAK_LEAVES,
+                    139: BLOCK.OAK_LEAVES,
+                    58: BLOCK.OAK_TRUNK,
+                    107: BLOCK.DIRT,
+                    144: BLOCK.OAK_LEAVES,
+                    143: BLOCK.DIRT,
+                    253: BLOCK.OAK_PLANK,
+                    238: BLOCK.SPRUCE_PLANK,
+                    79: BLOCK.BIRCH_PLANK,
+                    184: BLOCK.DIRT,
+                    174: BLOCK.DIRT,
+                };
+                vox_templates.castle = {chunk: chunks[0], palette: palette};
+            });
             this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
             this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
             this.islands.push({

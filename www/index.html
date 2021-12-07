@@ -134,8 +134,7 @@
 
                 <form>
                     <div>
-                        <div ng-if="mygames.list.length > 0">
-                            <!-- <h4 class="text-center">My Games:</h4> -->
+                        <div class="my-worlds" ng-if="mygames.list.length > 0">
                             <div ng-repeat="item in mygames.list track by item.id">
                                 <button class="btn" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
                             </div>

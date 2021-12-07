@@ -51,7 +51,7 @@ async function importModules(terrain_type, seed, world_id) {
     //
     worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators([terrain_type]);
-    world = worlds.add(terrain_type, seed, world_id);
+    world = await worlds.add(terrain_type, seed, world_id);
     // Worker inited
     worker.postMessage(['world_inited', null]);
 }

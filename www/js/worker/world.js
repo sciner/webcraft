@@ -22,13 +22,15 @@ export class WorkerWorldManager {
         await Promise.all(all);
     }
 
-    add(generator_code, seed, world_id) {
+    async add(generator_code, seed, world_id) {
         let key = generator_code + '/' + seed;
         if(this.list.has(key)) {
             return this.list.get(key);
         }
         let generator = this.terrainGenerators.get(generator_code);
-        let world = new WorkerWorld(new generator(seed, world_id));
+        generator = new generator(seed, world_id);
+        await generator.init();
+        let world = new WorkerWorld(generator);
         this.list.set(key, world);
         return world;
     }

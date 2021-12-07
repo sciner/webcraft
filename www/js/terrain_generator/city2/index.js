@@ -42,26 +42,26 @@ let palette = {
     // 123: BLOCK.GRAVEL,
 };
 
-// Костыль для NodeJS
-let root_dir = '.';
-if(typeof process === 'undefined') {
-    root_dir = '';
-}
-
 let vox_templates = {};
-await Vox_Loader.load(root_dir + '/data/vox/city/City_1.vox', (chunks) => {
-    vox_templates.city1 = {chunk: chunks[0], palette: palette};
-});
-await Vox_Loader.load(root_dir + '/data/vox/city/City_2.vox', (chunks) => {
-    vox_templates.city2 = {chunk: chunks[0], palette: palette};
-});
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
         super();
         this.setSeed(0);
-        //
+    }
+
+    async init(root_dir) {
+        // Костыль для NodeJS
+        if(typeof root_dir === 'undefined') {
+            root_dir = '';
+        }
+        await Vox_Loader.load(root_dir + '/data/vox/city/City_1.vox', (chunks) => {
+            vox_templates.city1 = {chunk: chunks[0], palette: palette};
+        });
+        await Vox_Loader.load(root_dir + '/data/vox/city/City_2.vox', (chunks) => {
+            vox_templates.city2 = {chunk: chunks[0], palette: palette};
+        });
         // Voxel buildings
         this.voxel_buildings = [
             new Vox_Mesh(vox_templates.city1, new Vector(0, 0, 0), new Vector(0, 0, 0), null, null),
