@@ -27,13 +27,12 @@ export class ServerChunk {
         }
         this.mobs           = await this.world.db.loadMobs(this.addr, this.size);
         this.load_state     = 2;
-        //
-        if(this.preq.size > 0) {
-            console.log('preq size: ' + this.preq.size);
-        }
         // Разошлем чанк игрокам, которые его запросили
-        this.sendToPlayers(Array.from(this.preq.keys()));
-        this.preq.clear();
+        if(this.preq.size > 0) {
+            this.sendToPlayers(Array.from(this.preq.keys()));
+            this.preq.clear();
+        }
+        // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0 && this.mobs.size > 0) {
             this.sendMobs(Array.from(this.connections.keys()));
         }
@@ -112,7 +111,6 @@ export class ServerChunk {
         for(const [_, mob] of this.mobs) {
             packets_mobs[0].data.push(mob);
         }
-        console.log(player_user_ids.join('; '));
         this.world.sendSelected(packets_mobs, player_user_ids, []);
     }
 

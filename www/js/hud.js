@@ -326,15 +326,15 @@ export class HUD {
         }
         // Players list
         this.text += '\nOnline:\n';
-        for(let [id, player] of world.players.list) {
+        for(let [id, p] of world.players.list) {
             if(id == 'itsme') {
                 continue;
             }
-            this.text += '🙎‍♂️' + player.username;
-            if(player.itsMe()) {
+            this.text += '🙎‍♂️' + p.username;
+            if(p.itsMe()) {
                 this.text += ' <- YOU';
             } else {
-                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, player.pos)) + 'm';
+                this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
             }
             this.text += '\n';
         }

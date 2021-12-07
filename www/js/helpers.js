@@ -595,12 +595,12 @@ export class Helpers {
 
 // Make fetch functions
 if(typeof fetch === 'undefined') {
-    Helpers.fetch = async (url) => import(url);
+    eval(`Helpers.fetch = async (url) => import(url);
     Helpers.fetchJSON = async (url) => import(url, {assert: {type: 'json'}}).then(response => response.default);
     Helpers.fetchBinary = async (url) => {
         let binary = fs.readFileSync(url);
         return binary.buffer;
-    };
+    };`);
 } else {
     Helpers.fetch = async (url) => fetch(url);
     Helpers.fetchJSON = async (url) => fetch(url).then(response => response.json());
