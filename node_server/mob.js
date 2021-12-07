@@ -34,7 +34,11 @@ export class Mob {
     }
 
     tick() {
-        // console.log('mobtick: ' + this.entity_id);
+        let chunk_over = this.#world.chunks.get(this.#chunk_addr);
+        if(chunk_over.load_state > 2) {
+            // loaded and terrain created
+        }
+        // console.log('mobtick: ' + this.entity_id + '; load_state: ' + chunk_over?.addr.toHash());
     }
 
     onUnload() {

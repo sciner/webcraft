@@ -18,6 +18,16 @@ export class ServerChunkManager {
         this.all.set(chunk.addr, chunk);
     }
 
+    tick() {
+        this.unloadInvalidChunks();
+        //
+        for(let chunk of this.all) {
+            if(chunk.load_state == 0) {
+                chunk.load();
+            }
+        }
+    }
+
     // Add to invalid queue
     // помещает чанк в список невалидных, т.к. его больше не видит ни один из игроков
     // в следующем тике мира, он будет выгружен методом unloadInvalidChunks()
@@ -38,18 +48,8 @@ export class ServerChunkManager {
         }
     }
 
-    async get(addr, add_if_not_exists) {
-        let chunk = this.all.get(addr);
-        if(chunk) {
-            return chunk;
-        }
-        if(!add_if_not_exists) {
-            return null;
-        }
-        chunk = new ServerChunk(this.world, addr);
-        this.add(chunk);
-        await chunk.load();
-        return chunk;
+    get(addr) {
+        return this.all.get(addr) || null;
     }
 
     remove(addr) {
@@ -89,6 +89,12 @@ export class ServerChunkManager {
                         nearby.added.push(item);
                         // await this.world.loadChunkForPlayer(player, addr);
                         player.nearby_chunk_addrs.set(addr, addr);
+                        let chunk = this.get(addr);
+                        if(!chunk) {
+                            chunk = new ServerChunk(this.world, addr);
+                            this.add(chunk);
+                        }
+                        chunk.addPlayer(player);
                     }
                 }
             }
@@ -97,9 +103,8 @@ export class ServerChunkManager {
             for(let addr of player.nearby_chunk_addrs) {
                 if(!added_vecs.has(addr)) {
                     player.nearby_chunk_addrs.delete(addr);
-                    this.get(addr, false).then((chunk) => {
-                        // chunk.removePlayer(player);
-                    })
+                    // @todo Это надо делать, но пока не работает =(
+                    // this.get(addr, false)?.removePlayer(player);
                     nearby.deleted.push(addr);
                 }
             }

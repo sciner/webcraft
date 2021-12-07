@@ -16,18 +16,16 @@ export class ServerWorld {
     constructor() {}
 
     async initServer(world_guid, db) {
-        this.db         = db;
-        this.info       = await this.db.getWorld(world_guid);
-        this.entities   = new EntityManager(this);
-        this.chat       = new ServerChat(this);
-        this.chunks     = new ServerChunkManager(this);
-        this.players    = new Map(); // new PlayerManager(this);
-        //
-        this.models     = new ModelManager();
+        this.db             = db;
+        this.info           = await this.db.getWorld(world_guid);
+        this.entities       = new EntityManager(this);
+        this.chat           = new ServerChat(this);
+        this.chunks         = new ServerChunkManager(this);
+        this.players        = new Map(); // new PlayerManager(this);
+        this.mobs           = new Map(); // Store refs to all loaded mobs in the world
+        this.models         = new ModelManager();
         this.models.init();
-        // Store refs to all loaded mobs in the world
-        this.mobs       = new Map();
-        this.ticks_stat = {
+        this.ticks_stat     = {
             last: 0,
             total: 0,
             count: 0,
@@ -62,7 +60,7 @@ export class ServerWorld {
     // World tick
     tick() {
         // 1.
-        this.chunks.unloadInvalidChunks();
+        this.chunks.tick();
         // 2.
         for(let player of this.players.values()) {
             this.chunks.checkPlayerVisibleChunks(player, false);
@@ -245,12 +243,10 @@ export class ServerWorld {
                 throw 'error_not_permitted';
             }
             let mob = await Mob.create(this, params);
-            let chunk = await this.chunks.get(mob.chunk_addr, false);
-            if(chunk) {
-                chunk.addMob(mob);
-            }
+            this.chunks.get(mob.chunk_addr)?.addMob(mob);
             return true;
         } catch(e) {
+            console.log('e', e);
             let packets = [{
                 name: ServerClient.CMD_ERROR,
                 data: {
@@ -283,16 +279,11 @@ export class ServerWorld {
 
     // Юзер начал видеть этот чанк
     async loadChunkForPlayer(player, addr) {
-        // получим чанк
-        let chunk = await this.chunkGet(addr);
-        // запомним, что юзер в этом чанке
-        chunk.addPlayer(player);
-        return chunk;
-    }
-
-    //
-    async chunkGet(addr) {
-        return await this.chunks.get(addr, true);
+        let chunk = this.chunks.get(addr);
+        if(!chunk) {
+            throw 'Chunk not found';
+        }
+        chunk.addPlayerLoadRequest(player);
     }
 
     //
@@ -301,11 +292,15 @@ export class ServerWorld {
         // Ignore bedrock for non admin
         let is_admin = this.admins.checkIsAdmin(player);
         if (params.item.id != 1 || is_admin) {
-            let chunkAddr = getChunkAddr(params.pos);
-            let chunk = await this.chunkGet(chunkAddr);
-            if (await chunk.blockSet(player, params, false)) {
-                await this.db.blockSet(this, player, params);
-                this.chunkBecameModified(chunkAddr);
+            let addr = getChunkAddr(params.pos);
+            let chunk = this.chunks.get(addr);
+            if(chunk) {
+                if (await chunk.blockSet(player, params, false)) {
+                    await this.db.blockSet(this, player, params);
+                    this.chunkBecameModified(addr);
+                }
+            } else {
+                console.log('setBlock: Chunk not found', addr);
             }
         }
     }
@@ -313,11 +308,15 @@ export class ServerWorld {
     // Create entity
     async createEntity(player, params) {
         // @ParamBlockSet
-        let chunkAddr = getChunkAddr(params.pos);
-        let chunk = await this.chunkGet(chunkAddr);
-        await chunk.blockSet(player, params, false);
-        await this.db.blockSet(this, player, params);
-        this.chunkBecameModified(chunkAddr);
+        let addr = getChunkAddr(params.pos);
+        let chunk = this.chunks.get(addr);
+        if(chunk) {
+            await chunk.blockSet(player, params, false);
+            await this.db.blockSet(this, player, params);
+            this.chunkBecameModified(addr);
+        } else {
+            console.log('createEntity: Chunk not found', addr);
+        }
     }
 
 }

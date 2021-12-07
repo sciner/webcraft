@@ -10,20 +10,50 @@ export class ServerChunk {
         this.addr           = new Vector(addr);
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.connections    = new Map();
+        this.preq           = new Set();
         this.modify_list    = new Map();
         this.mobs           = new Map();
+        this.load_state     = 0;
     }
 
     // Load state from DB
     async load() {
-        this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
-        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        if(this.load_state > 0) {
+            return;
+        }
+        this.load_state     = 1;
+        if(this.world.chunkHasModifiers(this.addr)) {
+            this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
+        }
+        this.mobs           = await this.world.db.loadMobs(this.addr, this.size);
+        this.load_state     = 2;
+        //
+        if(this.preq.size > 0) {
+            console.log('preq size: ' + this.preq.size);
+        }
+        // Разошлем чанк игрокам, которые его запросили
+        for(let player of this.preq.values()) {
+            this.sendToPlayer(player);
+        }
+        this.preq.clear();
+        if(this.connections.size > 0 && this.mobs.size > 0) {
+            this.sendMobs(Array.from(this.connections.keys()));
+        }
     }
 
     // Add player connection
     addPlayer(player) {
         this.connections.set(player.session.user_id, player);
         player.addChunk(this);
+    }
+
+    // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
+    addPlayerLoadRequest(player) {
+        if(this.load_state > 1) {
+            this.sendToPlayer(player);
+        } else {
+            this.preq.add(player);
+        }
     }
 
     // Remove player from chunk
@@ -59,6 +89,7 @@ export class ServerChunk {
 
     // Send chunk for player
     sendToPlayer(player) {
+        console.log(`send chunk ${this.addr.toHash()} to player -> ${player.session.username}`);
         // @CmdChunkState
         let packets = [{
             name: ServerClient.CMD_CHUNK_LOADED,
@@ -68,18 +99,24 @@ export class ServerChunk {
             }
         }];
         this.world.sendSelected(packets, [player.session.user_id], []);
-        // Send all mobs in this chunk
-        if (this.mobs.size > 0) {
-            let packets_mobs = [{
-                name: ServerClient.CMD_MOB_ADDED,
-                data: []
-            }];
-            for(const [_, mob] of this.mobs) {
-                packets_mobs[0].data.push(mob);
-            }
-            this.world.sendSelected(packets_mobs, [player.session.user_id], []);
-        }
+        this.sendMobs([player.session.user_id]);
         return true
+    }
+
+    sendMobs(player_user_ids) {
+        // Send all mobs in this chunk
+        if (this.mobs.size < 1) {
+            return;
+        }
+        let packets_mobs = [{
+            name: ServerClient.CMD_MOB_ADDED,
+            data: []
+        }];
+        for(const [_, mob] of this.mobs) {
+            packets_mobs[0].data.push(mob);
+        }
+        console.log(player_user_ids.join('; '));
+        this.world.sendSelected(packets_mobs, player_user_ids, []);
     }
 
     // Return block key

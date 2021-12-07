@@ -114,8 +114,7 @@ export class ServerPlayer extends Player {
                     case ServerClient.CMD_CHUNK_LOAD: {
                         let addr = new Vector(cmd.data.pos);
                         if(this.nearby_chunk_addrs.has(addr)) {
-                            let chunk = await this.world.loadChunkForPlayer(this, addr);
-                            chunk.sendToPlayer(this);
+                            this.world.loadChunkForPlayer(this, addr);
                         }
                         break;
                     }
@@ -168,7 +167,7 @@ export class ServerPlayer extends Player {
     // onLeave...
     async onLeave() {
         for(let addr of this.chunks) {
-            (await this.world.chunks.get(addr, false))?.removePlayer(this);
+            this.world.chunks.get(addr)?.removePlayer(this);
         }
     }
 
