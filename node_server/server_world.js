@@ -59,6 +59,7 @@ export class ServerWorld {
         import('../www/js/terrain_generator/' + this.info.generator.id + '/index.js').then(async (module) => {
             this.generator = new (module.default)(this.info.seed, this.info.guid);
             await this.generator.init('../www');
+            console.log(`Generator inited`); // voxel_buildings: ${this.generator.voxel_buildings.length}, islands: ${this.generator.islands.length}, extruders: ${this.generator.extruders.length}`)
         });
     }
 

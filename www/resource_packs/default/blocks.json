@@ -11,9 +11,6 @@
         ],
         "name": "DUMMY",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -23,9 +20,6 @@
         "transparent": true,
         "name": "AIR",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64,
         "inventory_icon_id": 0
     },
@@ -44,16 +38,12 @@
         ],
         "name": "BEDROCK",
         "destroy_time": -1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 2,
         "name": "DIRT",
         "inventory_icon_id": 980,
-        "selflit": false,
         "sound": "madcraft:block.grass",
         "tags": [
             "mask_biome",
@@ -74,14 +64,12 @@
             ]
         },
         "destroy_time": 1,
-        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 8,
         "inventory_icon_id": 3358,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -94,8 +82,6 @@
         ],
         "name": "COBBLESTONE",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -103,7 +89,6 @@
         "id": 131,
         "inventory_icon_id": 3589,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
@@ -118,15 +103,12 @@
         ],
         "name": "WOODEN_PICKAXE",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true
     },
     {
         "id": 500,
         "inventory_icon_id": 3585,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
@@ -141,15 +123,12 @@
         ],
         "name": "STONE_PICKAXE",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true
     },
     {
         "id": 132,
         "inventory_icon_id": 3587,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
@@ -164,8 +143,6 @@
         ],
         "name": "WOODEN_AXE",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true
     },
     {
@@ -173,7 +150,6 @@
         "inventory_icon_id": 3590,
         "spawnable": true,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
@@ -188,13 +164,11 @@
         ],
         "name": "WOODEN_SHOVEL",
         "destroy_time": 0.4,
-        "power": 1,
         "light": null
     },
     {
         "id": 467,
         "inventory_icon_id": 462,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.gravel",
@@ -204,8 +178,6 @@
         ],
         "name": "COARSE_DIRT",
         "destroy_time": 2,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -224,9 +196,6 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -243,9 +212,6 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -263,9 +229,6 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -283,9 +246,6 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -303,9 +263,6 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -324,16 +281,12 @@
             "leaves"
         ],
         "destroy_time": 1,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 456,
         "inventory_icon_id": 858,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -346,15 +299,12 @@
         ],
         "name": "BIRCH_PLANK",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 7,
         "inventory_icon_id": 902,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -367,8 +317,6 @@
         ],
         "name": "OAK_PLANK",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -376,7 +324,6 @@
         "name": "DARK_OAK_PLANK",
         "inventory_icon_id": 880,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -388,8 +335,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -397,7 +342,6 @@
         "name": "JUNGLE_PLANK",
         "inventory_icon_id": 895,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -409,15 +353,12 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 457,
         "inventory_icon_id": 895,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -430,15 +371,12 @@
         ],
         "name": "ACACIA_PLANK",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 460,
         "inventory_icon_id": 928,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -451,14 +389,12 @@
         ],
         "name": "SPRUCE_PLANK",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 89,
+        "name": "GLOWSTONE",
         "inventory_icon_id": 3381,
-        "transparent": true,
         "light_power": {
             "r": 255,
             "g": 235,
@@ -473,18 +409,13 @@
             9,
             6
         ],
-        "name": "GLOWSTONE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 9,
         "inventory_icon_id": 232,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -497,15 +428,12 @@
         ],
         "name": "CONCRETE",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 504,
         "inventory_icon_id": 1483,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -518,15 +446,12 @@
         ],
         "name": "CONCRETE_CYAN",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 505,
         "inventory_icon_id": 1519,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -539,8 +464,6 @@
         ],
         "name": "CONCRETE_YELLOW",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -548,7 +471,6 @@
         "id": 70,
         "inventory_icon_id": 906,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -561,15 +483,12 @@
         ],
         "name": "SMOOTH_STONE",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 10,
         "inventory_icon_id": 869,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.stone",
@@ -579,15 +498,12 @@
         ],
         "name": "BRICK",
         "destroy_time": 7,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 11,
         "inventory_icon_id": 3375,
         "spawnable": true,
-        "selflit": false,
         "gravity": true,
         "fluid": false,
         "sound": "madcraft:block.sand",
@@ -597,15 +513,12 @@
         ],
         "name": "SAND",
         "destroy_time": 2,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 12,
         "inventory_icon_id": 3364,
         "spawnable": true,
-        "selflit": false,
         "gravity": true,
         "fluid": false,
         "sound": "madcraft:block.gravel",
@@ -615,12 +528,11 @@
         ],
         "name": "GRAVEL",
         "destroy_time": 2,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 6,
+        "name": "OAK_SAPLING",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -629,11 +541,7 @@
             15,
             0
         ],
-        "name": "OAK_SAPLING",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3430,
@@ -642,7 +550,6 @@
     {
         "id": 13,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "texture": [
@@ -651,8 +558,6 @@
         ],
         "name": "IRON",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64,
         "inventory_icon_id": 3237
     },
@@ -660,7 +565,6 @@
         "id": 69,
         "inventory_icon_id": 3236,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "texture": [
@@ -669,8 +573,6 @@
         ],
         "name": "GOLD",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -683,9 +585,6 @@
         ],
         "name": "GOLD_ORE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -693,7 +592,6 @@
         "id": 150,
         "inventory_icon_id": 3391,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "texture": [
@@ -702,15 +600,12 @@
         ],
         "name": "DIAMOND",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 90,
         "inventory_icon_id": 3369,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "texture": [
@@ -719,8 +614,6 @@
         ],
         "name": "OBSIDIAN",
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -729,7 +622,6 @@
         "inventory_icon_id": 3262,
         "spawnable": true,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.glass",
@@ -738,8 +630,6 @@
             3
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -747,7 +637,6 @@
         "name": "SPONGE",
         "inventory_icon_id": 3612,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "texture": [
@@ -755,9 +644,7 @@
             3
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -779,8 +666,6 @@
             14
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 98
@@ -798,8 +683,6 @@
             12
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -819,8 +702,6 @@
             12
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3148
@@ -848,8 +729,6 @@
             14
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3146
@@ -864,9 +743,6 @@
         ],
         "name": "IRON_ORE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -880,9 +756,6 @@
             2
         ],
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -896,9 +769,6 @@
         ],
         "name": "LAPIS_LAZULI_ORE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -910,9 +780,6 @@
         ],
         "name": "LAPIS_LAZULI",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3272
@@ -926,9 +793,6 @@
         ],
         "name": "SANDSTONE",
         "destroy_time": 2,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3376
@@ -942,49 +806,41 @@
             4
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 130,
+        "name": "STICK",
         "inventory_icon_id": 1139,
         "is_item": true,
         "texture": [
             0,
             0
         ],
-        "name": "STICK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 30,
+        "name": "COBWEB",
         "inventory_icon_id": 3359,
         "passable": 0.1,
         "transparent": true,
-        "style": "sign",
+        "style": "planting",
         "sound": "madcraft:block.stone",
         "texture": [
             11,
             0
         ],
-        "name": "COBWEB",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 31,
+        "name": "GRASS",
         "inventory_icon_id": 3419,
         "passable": 1,
         "transparent": true,
@@ -997,11 +853,7 @@
         "tags": [
             "mask_biome"
         ],
-        "name": "GRASS",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
@@ -1031,16 +883,14 @@
         "style": "ladder",
         "passable": 0.25,
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3447
     },
     {
         "id": 32,
+        "name": "DEAD_BUSH",
         "inventory_icon_id": 1038,
         "passable": 1,
         "transparent": true,
@@ -1050,27 +900,20 @@
             7,
             3
         ],
-        "name": "DEAD_BUSH",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 350,
+        "name": "WOOL_BLACK",
         "inventory_icon_id": 708,
         "texture": [
             0,
             18
         ],
-        "name": "WOOL_BLACK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1083,9 +926,6 @@
         ],
         "name": "WOOL_BLUE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1098,9 +938,6 @@
         ],
         "name": "WOOL_BROWN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1113,9 +950,6 @@
         ],
         "name": "WOOL_CYAN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1128,9 +962,6 @@
         ],
         "name": "WOOL_GRAY",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1143,9 +974,6 @@
         ],
         "name": "WOOL_GREEN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1158,9 +986,6 @@
         ],
         "name": "WOOL_RED",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1173,9 +998,6 @@
         ],
         "name": "WOOL_YELLOW",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1188,9 +1010,6 @@
         ],
         "name": "TERRACOTTA_BLACK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1203,9 +1022,6 @@
         ],
         "name": "TERRACOTTA_BLUE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1218,9 +1034,6 @@
         ],
         "name": "TERRACOTTA_BROWN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1233,9 +1046,6 @@
         ],
         "name": "TERRACOTTA_CYAN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1248,9 +1058,6 @@
         ],
         "name": "TERRACOTTA_GRAY",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1263,9 +1070,6 @@
         ],
         "name": "TERRACOTTA_GREEN",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1278,9 +1082,6 @@
         ],
         "name": "TERRACOTTA_RED",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1293,14 +1094,12 @@
         ],
         "name": "TERRACOTTA_YELLOW",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 36,
+        "name": "DANDELION",
         "inventory_icon_id": 3413,
         "passable": 1,
         "transparent": true,
@@ -1310,17 +1109,14 @@
             13,
             0
         ],
-        "name": "DANDELION",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 38,
+        "name": "TULIP",
         "inventory_icon_id": 3435,
         "passable": 1,
         "transparent": true,
@@ -1330,17 +1126,14 @@
             12,
             0
         ],
-        "name": "TULIP",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 509,
+        "name": "FLOWER_ALLIUM",
         "inventory_icon_id": 3400,
         "passable": 1,
         "transparent": true,
@@ -1350,17 +1143,14 @@
             0,
             22
         ],
-        "name": "FLOWER_ALLIUM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 510,
+        "name": "FLOWER_BLUE_ORCHID",
         "inventory_icon_id": 3406,
         "passable": 1,
         "transparent": true,
@@ -1370,17 +1160,14 @@
             1,
             22
         ],
-        "name": "FLOWER_BLUE_ORCHID",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 511,
+        "name": "FLOWER_OXEYE_DAISY",
         "inventory_icon_id": 3432,
         "passable": 1,
         "transparent": true,
@@ -1390,17 +1177,14 @@
             2,
             22
         ],
-        "name": "FLOWER_OXEYE_DAISY",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 512,
+        "name": "FLOWER_LILY_OF_THE_VALLEY",
         "inventory_icon_id": 3401,
         "passable": 1,
         "transparent": true,
@@ -1410,17 +1194,14 @@
             3,
             22
         ],
-        "name": "FLOWER_LILY_OF_THE_VALLEY",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 513,
+        "name": "FLOWER_CORNFLOWER",
         "inventory_icon_id": 2388,
         "passable": 1,
         "transparent": true,
@@ -1430,17 +1211,14 @@
             4,
             22
         ],
-        "name": "FLOWER_CORNFLOWER",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 514,
+        "name": "FLOWER_PEONY_BOTTOM",
         "inventory_icon_id": 3435,
         "passable": 1,
         "transparent": true,
@@ -1450,17 +1228,14 @@
             5,
             22
         ],
-        "name": "FLOWER_PEONY_BOTTOM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 515,
+        "name": "FLOWER_PEONY_TOP",
         "inventory_icon_id": 3435,
         "passable": 1,
         "transparent": true,
@@ -1470,17 +1245,14 @@
             6,
             22
         ],
-        "name": "FLOWER_PEONY_TOP",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 516,
+        "name": "FLOWER_LILAC_BOTTOM",
         "inventory_icon_id": 3435,
         "passable": 1,
         "transparent": true,
@@ -1490,17 +1262,14 @@
             7,
             22
         ],
-        "name": "FLOWER_LILAC_BOTTOM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 517,
+        "name": "FLOWER_LILAC_TOP",
         "inventory_icon_id": 3435,
         "passable": 1,
         "transparent": true,
@@ -1510,17 +1279,14 @@
             8,
             22
         ],
-        "name": "FLOWER_LILAC_TOP",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 39,
+        "name": "BROWN_MUSHROOM",
         "inventory_icon_id": 3408,
         "transparent": true,
         "passable": 1,
@@ -1530,17 +1296,14 @@
             13,
             1
         ],
-        "name": "BROWN_MUSHROOM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
     },
     {
         "id": 40,
+        "name": "RED_MUSHROOM",
         "inventory_icon_id": 3438,
         "transparent": true,
         "passable": 1,
@@ -1550,11 +1313,7 @@
             12,
             1
         ],
-        "name": "RED_MUSHROOM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "planting": true
@@ -1569,9 +1328,6 @@
             0
         ],
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1590,9 +1346,6 @@
             0
         ],
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1608,9 +1361,6 @@
         ],
         "name": "MOSS_STONE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3366
@@ -1628,10 +1378,7 @@
         ],
         "name": "MOSS_COBBLESTONE_STAIRS",
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3274
@@ -1646,14 +1393,12 @@
         ],
         "name": "DIAMOND_ORE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 59,
+        "name": "WHEAT",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -1661,11 +1406,7 @@
             15,
             5
         ],
-        "name": "WHEAT",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -1680,9 +1421,6 @@
         ],
         "name": "FARMLAND",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1699,10 +1437,7 @@
         ],
         "name": "COBBLESTONE_STAIRS",
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 2257,
@@ -1717,9 +1452,6 @@
         ],
         "name": "OAK_PLATE",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 2085
@@ -1733,9 +1465,6 @@
         ],
         "name": "REDSTONE_ORE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3396
@@ -1757,9 +1486,6 @@
             6
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3347
@@ -1775,9 +1501,6 @@
             7
         ],
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3337
@@ -1790,9 +1513,6 @@
         ],
         "name": "ICE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 983
@@ -1806,9 +1526,6 @@
         ],
         "name": "SNOW_BLOCK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1820,9 +1537,6 @@
         ],
         "name": "CLAY",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3357
@@ -1839,9 +1553,6 @@
         ],
         "name": "BIRCH_FENCE",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1857,9 +1568,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1875,9 +1583,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1893,9 +1598,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1911,9 +1613,6 @@
         ],
         "name": "ACACIA_FENCE",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1929,9 +1628,6 @@
         ],
         "name": "SPRUCE_FENCE",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -1945,9 +1641,6 @@
         ],
         "name": "NETHER_BRICK_FENCE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3382
@@ -1960,9 +1653,6 @@
         ],
         "name": "NETHERRACK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3386
@@ -1976,9 +1666,6 @@
         ],
         "name": "SOUL_SAND",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3387
@@ -1992,10 +1679,7 @@
         ],
         "name": "STAINED_GLASS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2010,9 +1694,6 @@
         ],
         "name": "STONE_BRICK",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2024,9 +1705,6 @@
         ],
         "name": "BROWN_MUSHROOM_BLOCK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2039,9 +1717,6 @@
         ],
         "name": "RED_MUSHROOM_BLOCK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3437
@@ -2061,10 +1736,7 @@
             3
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2084,8 +1756,6 @@
         ],
         "name": "CLOUD",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2104,10 +1774,7 @@
         ],
         "name": "BLUE_STAINED_GLASS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2126,10 +1793,7 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2148,10 +1812,7 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2170,10 +1831,7 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2192,10 +1850,7 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2214,10 +1869,7 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2236,15 +1888,13 @@
             20
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 104,
+        "name": "PUMPKIN_STEM",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -2252,11 +1902,7 @@
             15,
             6
         ],
-        "name": "PUMPKIN_STEM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2264,6 +1910,7 @@
     },
     {
         "id": 105,
+        "name": "MELON_STEM",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -2271,11 +1918,7 @@
             15,
             6
         ],
-        "name": "MELON_STEM",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2283,6 +1926,7 @@
     },
     {
         "id": 108,
+        "name": "BRICK_STAIRS",
         "inventory_icon_id": 3241,
         "style": "stairs",
         "sound": "madcraft:block.stone",
@@ -2293,12 +1937,8 @@
             7,
             0
         ],
-        "name": "BRICK_STAIRS",
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2317,10 +1957,7 @@
         ],
         "name": "STONE_STAIRS",
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2333,9 +1970,6 @@
         ],
         "name": "NETHER_BRICK",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2352,10 +1986,7 @@
         ],
         "name": "NETHER_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2371,9 +2002,6 @@
         ],
         "name": "BREWING_STAND",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2386,9 +2014,6 @@
         ],
         "name": "END_STONE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3190
@@ -2401,9 +2026,6 @@
         ],
         "name": "DOUBLE_SLAB2",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2423,9 +2045,6 @@
         ],
         "name": "BRICK_SLAB",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2444,9 +2063,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2465,9 +2081,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2486,9 +2099,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2507,9 +2117,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2528,9 +2135,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2549,9 +2153,6 @@
         ],
         "name": "SPRUCE_SLAB",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2568,10 +2169,7 @@
             12
         ],
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2584,9 +2182,6 @@
         ],
         "name": "EMERALD_ORE",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2605,10 +2200,7 @@
         ],
         "name": "BIRCH_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2627,10 +2219,7 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2649,7 +2238,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
         "can_rotate": true,
         "spawnable": true,
         "max_in_stack": 64,
@@ -2669,7 +2257,6 @@
             19
         ],
         "destroy_time": 4,
-        "power": 1,
         "can_rotate": true,
         "spawnable": true,
         "max_in_stack": 64,
@@ -2689,10 +2276,7 @@
         ],
         "name": "ACACIA_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2711,10 +2295,7 @@
         ],
         "name": "SPRUCE_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "transparent": true
@@ -2731,10 +2312,7 @@
         ],
         "name": "JUNGLE_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2749,9 +2327,6 @@
         ],
         "name": "COBBLESTONE_WALL",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2767,9 +2342,6 @@
         ],
         "name": "CARROTS",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2777,6 +2349,7 @@
     },
     {
         "id": 142,
+        "name": "POTATOS",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -2784,11 +2357,7 @@
             11,
             5
         ],
-        "name": "POTATOS",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0,
@@ -2796,21 +2365,19 @@
     },
     {
         "id": 155,
+        "name": "QUARTZ",
         "texture": [
             10,
             14
         ],
-        "name": "QUARTZ",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3238
     },
     {
         "id": 156,
+        "name": "QUARTZ_STAIRS",
         "style": "stairs",
         "tags": [
             "stairs"
@@ -2819,12 +2386,8 @@
             10,
             14
         ],
-        "name": "QUARTZ_STAIRS",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3306,
@@ -2832,67 +2395,56 @@
     },
     {
         "id": 161,
+        "name": "LEAVES2",
         "transparent": true,
         "texture": [
             5,
             3
         ],
-        "name": "LEAVES2",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3397
     },
     {
         "id": 173,
+        "name": "COAL",
         "inventory_icon_id": 1118,
         "texture": [
             5,
             2
         ],
-        "name": "COAL",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 174,
+        "name": "ICE2",
         "texture": [
             3,
             4
         ],
-        "name": "ICE2",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
     },
     {
         "id": 212,
+        "name": "ICE3",
         "texture": [
             3,
             4
         ],
-        "name": "ICE3",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
     },
     {
         "id": 519,
+        "name": "BRICK_TRIANGLE",
         "style": "triangle",
         "sound": "madcraft:block.stone",
         "tags": [
@@ -2902,11 +2454,7 @@
             7,
             0
         ],
-        "name": "BRICK_TRIANGLE",
         "destroy_time": 7,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -2926,10 +2474,7 @@
             "west": [31, 31]
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2966,15 +2511,12 @@
             ]
         },
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
+        "can_rotate": true,
         "max_in_stack": 64
     },
     {
         "id": 466,
         "inventory_icon_id": 3371,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.gravel",
@@ -2994,8 +2536,6 @@
         },
         "name": "PODZOL",
         "destroy_time": 2,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3003,7 +2543,6 @@
         "id": 468,
         "inventory_icon_id": 1347,
         "transparent": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "height": 0.9375,
@@ -3027,8 +2566,6 @@
         },
         "name": "DIRT_PATH",
         "destroy_time": 1,
-        "power": 1,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3036,7 +2573,6 @@
         "id": 145,
         "inventory_icon_id": 2244,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.grass",
@@ -3056,15 +2592,12 @@
         },
         "name": "SNOW_DIRT",
         "destroy_time": 1,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 4,
         "inventory_icon_id": 3614,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.grass",
@@ -3084,8 +2617,6 @@
         },
         "name": "TNT",
         "destroy_time": 1,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -3111,9 +2642,6 @@
         },
         "name": "BIRCH_TRUNK",
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3140,7 +2668,6 @@
             ]
         },
         "destroy_time": 4,
-        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3167,7 +2694,6 @@
             ]
         },
         "destroy_time": 4,
-        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3194,7 +2720,6 @@
             ]
         },
         "destroy_time": 4,
-        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3221,9 +2746,6 @@
             ]
         },
         "destroy_time": 4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3231,7 +2753,6 @@
         "id": 138,
         "inventory_icon_id": 3442,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -3254,15 +2775,12 @@
         },
         "name": "SPRUCE_TRUNK",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
         "id": 5,
         "inventory_icon_id": 3239,
         "spawnable": true,
-        "selflit": false,
         "gravity": false,
         "fluid": false,
         "sound": "madcraft:block.wood",
@@ -3282,8 +2800,6 @@
         },
         "name": "BOOKCASE",
         "destroy_time": 4,
-        "power": 1,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -3308,9 +2824,6 @@
             ]
         },
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3602
@@ -3333,9 +2846,6 @@
         },
         "name": "STICKY_PISTON",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 0
@@ -3358,9 +2868,6 @@
         },
         "name": "PISTON",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3341
@@ -3398,9 +2905,6 @@
         "can_rotate": true,
         "name": "TORCH",
         "destroy_time": 0,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "max_in_stack": 64
     },
     {
@@ -3431,10 +2935,7 @@
             ]
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3462,10 +2963,7 @@
             ]
         },
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "light_power": {
             "r": 253,
             "g": 241,
@@ -3499,10 +2997,7 @@
             ]
         },
         "destroy_time": 7,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3532,10 +3027,7 @@
             "ladder"
         ],
         "destroy_time": 4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3561,9 +3053,6 @@
         },
         "name": "SNOW",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3589,9 +3078,6 @@
         },
         "name": "CACTUS",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3610,9 +3096,6 @@
         },
         "name": "JUKEBOX",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3653,10 +3136,7 @@
             "point": {"x":0, "y":0, "z":0}
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3697,7 +3177,6 @@
             "point": {"x":0, "y":0, "z":0}
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
         "spawnable": true,
         "max_in_stack": 64
@@ -3739,7 +3218,6 @@
             "point": {"x":0, "y":0, "z":0}
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
         "spawnable": true,
         "max_in_stack": 64
@@ -3781,7 +3259,6 @@
             "point": {"x":0, "y":0, "z":0}
         },
         "destroy_time": 0.4,
-        "power": 1,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3822,10 +3299,7 @@
         },
         "name": "ACACIA_TRAPDOOR",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3866,10 +3340,7 @@
         },
         "name": "SPRUCE_TRAPDOOR",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3892,10 +3363,7 @@
         "inventory_icon_id": 3436,
         "name": "PUMPKIN",
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -3921,10 +3389,7 @@
             ]
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "light_power": {
             "r": 253,
             "g": 241,
@@ -3953,9 +3418,6 @@
         },
         "name": "MYCELIUM",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3368
@@ -3979,9 +3441,6 @@
         },
         "name": "END_PORTAL_FRAME",
         "destroy_time": 0.4,
-        "power": 1,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "transparent": true,
         "max_in_stack": 64,
@@ -4009,10 +3468,7 @@
             ]
         },
         "destroy_time": 0.4,
-        "power": 1,
         "can_rotate": true,
-        "selflit": false,
-        "light": null,
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3603
