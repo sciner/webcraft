@@ -25,7 +25,7 @@ const world = {
     queue: null
 }
 
-const maxLight = 15;
+const maxLight = 31;
 const MASK_BLOCK = 127;
 const MASK_AO = 128;
 
@@ -34,10 +34,41 @@ const OFFSET_LIGHT = 1;
 const OFFSET_PREV = 2;
 const OFFSET_AO = 3;
 
-const dx = [1, -1, 0, 0, 0, 0];
-const dy = [0, 0, 1, -1, 0, 0];
-const dz = [0, 0, 0, 0, 1, -1];
-const tmpRef = [0, 0, 0, 0, 0, 0];
+const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
+const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
+const dz = [0, 0, 0, 0, 1, -1, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
+const dlen = [];
+const dmask = [];
+const DIR_COUNT = 26;
+
+function adjustSrc(srcLight) {
+    srcLight = srcLight & MASK_BLOCK;
+    if (srcLight * 2 < MASK_BLOCK && srcLight > 0) {
+        srcLight = srcLight * 2 + 2;
+    }
+    return srcLight;
+}
+
+function adjustLight(dstLight) {
+    return Math.max((dstLight - 2) / 2, 0);
+}
+
+function initMasks() {
+    for (let i = 0; i < DIR_COUNT; i++) {
+        let mask = 1 << i;
+        for (let j = i + 1; j < DIR_COUNT; j++) {
+            if ((dx[i] === 0 || dx[i] === dx[j])
+                && (dy[i] === 0 || dy[i] === dy[j])
+                && (dz[i] === 0 || dz[i] === dz[j])) {
+                mask |= 1 << j;
+            }
+        }
+        dlen.push(1 + Math.abs(dx[i]) + Math.abs(dy[i]) + Math.abs(dz[i]));
+        dmask.push(mask);
+    }
+}
+
+initMasks();
 
 class LightQueue {
     constructor() {
@@ -89,13 +120,22 @@ class LightQueue {
                 y += outerAABB.y_min;
                 z += outerAABB.z_min;
 
+                let mask = 0;
                 let val = uint8View[coordBytes + OFFSET_SOURCE];
                 if (val === MASK_BLOCK) {
                     val = 0;
                 } else {
-                    for (let d = 0; d < 6; d++) {
+                    for (let d = 0; d < DIR_COUNT; d++) {
+                        if ((mask & (1<<d)) !== 0) {
+                            continue;
+                        }
                         let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                        val = Math.max(val, uint8View[coord2 * strideBytes + OFFSET_LIGHT] - 1);
+                        const src = uint8View[coord2 * strideBytes + OFFSET_SOURCE];
+                        const light = uint8View[coord2 * strideBytes + OFFSET_LIGHT];
+                        val = Math.max(val, light - dlen[d]);
+                        if (src === MASK_BLOCK) {
+                            mask |= dmask[d];
+                        }
                     }
                 }
                 const old = uint8View[coordBytes + OFFSET_LIGHT];
@@ -112,7 +152,7 @@ class LightQueue {
                 const waveNum = Math.max(Math.max(old, val) - 1, 0);
                 if (safeAABB.contains(x, y, z)) {
                     // super fast case - we are inside data chunk
-                    for (let d = 0; d < 6; d++) {
+                    for (let d = 0; d < DIR_COUNT; d++) {
                         //TODO: better condition: dont add if there's a block
                         let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
                         wavesChunk[waveNum].push(chunk);
@@ -120,9 +160,6 @@ class LightQueue {
                         chunk.waveCounter++;
                     }
                 } else {
-                    for (let d = 0; d < 6; d++) {
-                        tmpRef[d] = 0;
-                    }
                     for (let p = 0; p < portals.length; p++) {
                         const chunk2 = portals[p].toRegion;
                         if (!portals[p].aabb.contains(x, y, z)) {
@@ -130,8 +167,8 @@ class LightQueue {
                         }
                         chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), OFFSET_LIGHT, val);
                         chunk2.lastID++;
-                        for (let d = 0; d < 6; d++) {
-                            if (tmpRef[d]) {
+                        for (let d = 0; d < DIR_COUNT; d++) {
+                            if ((mask & (1<<d)) !== 0) {
                                 continue;
                             }
                             let x2 = x + dx[d],
@@ -141,13 +178,13 @@ class LightQueue {
                                 wavesChunk[waveNum].push(chunk2.rev);
                                 wavesCoord[waveNum].push(chunk2.indexByWorld(x2, y2, z2));
                                 chunk2.rev.waveCounter++;
-                                tmpRef[d]++;
+                                mask |= 1 << d;
                             }
                         }
                     }
                     let hitEdge = false;
-                    for (let d = 0; d < 6; d++) {
-                        if (tmpRef[d] > 0) {
+                    for (let d = 0; d < DIR_COUNT; d++) {
+                        if ((mask & (1<<d)) !== 0) {
                             continue;
                         }
                         let x2 = x + dx[d],
@@ -215,8 +252,7 @@ class LightQueue {
                             Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
                         Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
-                    // let A =  uint8View[coord + sx]; // case for a bug
-                    A = Math.max(A, 0);
+                    A = adjustLight(A);
 
                     coord = coord0 - boundY - boundZ + OFFSET_AO;
                     const R1 = uint8View[coord] + uint8View[coord + sy + sz];
@@ -301,7 +337,7 @@ class Chunk {
                 const indFrom = (y * size.z + z) * size.x;
                 let indTo = (((y + padding) * outerSize.z + (z + padding)) * outerSize.x + padding) * strideBytes;
                 for (let x = 0; x < size.x; x++) {
-                    uint8View[indTo + OFFSET_SOURCE] = src[indFrom + x] & MASK_BLOCK;
+                    uint8View[indTo + OFFSET_SOURCE] = adjustSrc(src[indFrom + x]);
                     uint8View[indTo + OFFSET_AO] = (src[indFrom + x] & MASK_AO) > 0 ? 1 : 0;
                     indTo += strideBytes;
                 }
@@ -350,6 +386,7 @@ class Chunk {
                             }
                         }
                         if (f2) {
+                            uint8View[coord1 + OFFSET_SOURCE] = bytes2[coord2 + OFFSET_SOURCE]
                             if (uint8View[coord1 + OFFSET_AO] !== bytes2[coord2 + OFFSET_AO]) {
                                 found = true;
                                 uint8View[coord1 + OFFSET_AO] = bytes2[coord2 + OFFSET_AO]
@@ -489,16 +526,22 @@ async function onMessageFunc(e) {
                 const { portals, uint8View, strideBytes } = lightChunk;
                 const ind = lightChunk.indexByWorld(x, y, z);
                 const light = uint8View[ind * strideBytes + OFFSET_LIGHT];
-                uint8View[ind * strideBytes + OFFSET_SOURCE] = light_source & MASK_BLOCK;
-                world.light.add(chunk, ind, Math.max(light, light_source & MASK_BLOCK));
+                const src = adjustSrc(light_source);
+                uint8View[ind * strideBytes + OFFSET_SOURCE] = src;
+                world.light.add(chunk, ind, Math.max(light, src));
                 // push ao
                 const ao = (light_source & MASK_AO) > 0 ? 1 : 0;
-                if (uint8View[ind * strideBytes + OFFSET_AO] !== ao) {
+                let setAo = uint8View[ind * strideBytes + OFFSET_AO] !== ao;
+                if (setAo) {
                     uint8View[ind * strideBytes + OFFSET_AO] = ao;
-                    for (let portal of portals) {
-                        if (portal.aabb.contains(x, y, z)) {
-                            const other = portal.toRegion;
-                            other.setUint8ByInd(other.indexByWorld(x, y, z), OFFSET_AO, ao)
+                }
+                for (let portal of portals) {
+                    if (portal.aabb.contains(x, y, z)) {
+                        const other = portal.toRegion;
+                        const ind = other.indexByWorld(x, y, z);
+                        other.setUint8ByInd(ind, OFFSET_SOURCE, src)
+                        if (setAo) {
+                            other.setUint8ByInd(ind, OFFSET_AO, ao)
                             other.lastID++;
                         }
                     }
