@@ -1,4 +1,5 @@
-import {Color, Helpers} from '../helpers.js';
+import {BLOCK} from '../blocks.js';
+import {Color, Helpers, Vector} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 

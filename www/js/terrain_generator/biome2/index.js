@@ -19,7 +19,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         super(seed, world_id);
     }
 
-    async init(root_dir) {
+    async init() {
         const scale                 = .5;
         // Настройки
         this.options = {
@@ -39,7 +39,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Map specific
         if(this.world_id == 'demo') {
             // Костыль для NodeJS
-            if(typeof root_dir === 'undefined') {
+            let root_dir = '../www';
+            if(typeof process === 'undefined') {
                 root_dir = '';
             }
             await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {

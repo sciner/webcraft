@@ -4,6 +4,8 @@ import {getChunkAddr} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 
+// import {ChunkManager} from "../www/js/chunk_manager.js";
+
 export const MAX_Y_MARGIN = 3;
 
 export class ServerChunkManager {
@@ -12,6 +14,46 @@ export class ServerChunkManager {
         this.world                  = world;
         this.all                    = new VectorCollector();
         this.invalid_chunks_queue   = [];
+    }
+
+    // Init worker
+    async initWorker() {
+        this.worker_inited = false;
+        this.worker = new Worker('../www/js/chunk_worker.js');
+        this.worker.on('message', (data) => {
+            let cmd = data[0];
+            let args = data[1];
+            // console.log(`worker: ${cmd}`);
+            switch(cmd) {
+                case 'world_inited': {
+                    this.worker_inited = true;
+                    this.resolve_worker();
+                    break;
+                }
+                case 'blocks_generated': {
+                    let chunk = this.get(args.addr);
+                    if(chunk) {
+                        chunk.onBlocksGenerated(args);
+                    }
+                    break;
+                }
+                default: {
+                    console.log(`Invalid worker command: ${cmd}`);
+                }
+            }
+        });
+        let promise = new Promise((resolve, reject) => {
+            this.resolve_worker = resolve;
+        });
+        // Init webworkers
+        let world_info = this.world.info;
+        this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
+        return promise;
+    }
+
+    // postWorkerMessage
+    postWorkerMessage(data) {
+        this.worker.postMessage(data);
     }
 
     add(chunk) {

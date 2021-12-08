@@ -3,13 +3,14 @@ let Vector              = null;
 let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
-let world               = null;
+// let world               = null;
 
 const worker = {
 
     init: function() {
         if(typeof process !== 'undefined') {
             import('fs').then(fs => global.fs = fs);
+            import('path').then(module => global.path = module);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
                 this.parentPort.on('message', onMessageFunc);    
@@ -51,7 +52,7 @@ async function importModules(terrain_type, seed, world_id) {
     //
     worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators([terrain_type]);
-    world = await worlds.add(terrain_type, seed, world_id);
+    globalThis.world = await worlds.add(terrain_type, seed, world_id);
     // Worker inited
     worker.postMessage(['world_inited', null]);
 }

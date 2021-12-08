@@ -51,9 +51,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(0);
     }
 
-    async init(root_dir) {
+    async init() {
         // Костыль для NodeJS
-        if(typeof root_dir === 'undefined') {
+        let root_dir = '../www';
+        if(typeof process === 'undefined') {
             root_dir = '';
         }
         await Vox_Loader.load(root_dir + '/data/vox/city/City_1.vox', (chunks) => {

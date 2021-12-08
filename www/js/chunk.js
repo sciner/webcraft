@@ -73,50 +73,25 @@ export class Chunk {
         return this.chunkManager;
     }
 
-    constructor(pos, modify_list, chunkManager) {
-        // info
-        this.key = chunkManager.getPosChunkKey(pos);
+    constructor(addr, modify_list, chunkManager) {
 
-        // размеры чанка
-        this.size = new Vector(
-            CHUNK_SIZE_X,
-            CHUNK_SIZE_Y,
-            CHUNK_SIZE_Z
-        );
-
-        this.lightTex = null;
-        this.lightData = null;
-        this.lightMats = {};
-
-        // относительные координаты чанка
-        this.addr = new Vector(
-            pos.x,
-            pos.y,
-            pos.z
-        );
-        this.coord = new Vector(
-            this.addr.x * CHUNK_SIZE_X,
-            this.addr.y * CHUNK_SIZE_Y,
-            this.addr.z * CHUNK_SIZE_Z
-        );
-
-        this.seed = chunkManager.world.info.seed;
-        this.tblocks = null;
-        this.isLive = true;
-
-        this.id = [
-            this.addr.x,
-            this.addr.y,
-            this.addr.z,
-            this.size.x,
-            this.size.y,
-            this.size.z
-        ].join('_');
+        this.key        = chunkManager.getPosChunkKey(addr);
+        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
+        this.addr       = new Vector(addr); // относительные координаты чанка
+        this.coord      = this.addr.mul(this.size);
+        this.seed       = chunkManager.world.info.seed;
+        this.tblocks    = null;
+        this.id         = this.addr.toHash();
 
         // Run webworker method
         this.modify_list = modify_list || [];
         chunkManager.postWorkerMessage(['createChunk', this]);
         this.modify_list = [];
+
+        // Light
+        this.lightTex = null;
+        this.lightData = null;
+        this.lightMats = {};
 
         // Objects & variables
         this.inited                     = false;
@@ -131,8 +106,6 @@ export class Chunk {
         // save ref on chunk manager
         // strictly after post message, for avoid crash
         this.chunkManager               = chunkManager;
-
-        chunkManager.addToDirty(this);
 
     }
 
@@ -151,7 +124,6 @@ export class Chunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.inited = true;
-
         this.initLights();
     }
 
@@ -252,7 +224,6 @@ export class Chunk {
         const args = this.vertices_args;
         delete(this['vertices_args']);
         this.need_apply_vertices = false;
-        chunkManager.deleteFromDirty(this.key);
         this.buildVerticesInProgress            = false;
         chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length                    = 0;

@@ -1,32 +1,52 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
-import {Vector} from "../www/js/helpers.js";
+import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
+import {TypedBlocks} from "../www/js/typed_blocks.js";
+
+const CHUNK_STATE_NEW               = 0;
+const CHUNK_STATE_LOADING           = 1;
+const CHUNK_STATE_LOADED            = 2;
+const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 
 export class ServerChunk {
 
     constructor(world, addr) {
         this.world          = world;
-        this.addr           = new Vector(addr);
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        this.addr           = new Vector(addr);
+        this.coord          = this.addr.mul(this.size);
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = new Map();
         this.mobs           = new Map();
-        this.load_state     = 0;
+        this.setState(CHUNK_STATE_NEW);
+    }
+
+    // Set chunk init state
+    setState(state_id) {
+        this.load_state = state_id;
     }
 
     // Load state from DB
     async load() {
-        if(this.load_state > 0) {
+        if(this.load_state > CHUNK_STATE_NEW) {
             return;
         }
-        this.load_state     = 1;
+        this.setState(CHUNK_STATE_LOADING);
         if(this.world.chunkHasModifiers(this.addr)) {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
         }
+        //
+        this.world.chunks.postWorkerMessage(['createChunk', {
+            size:           this.size,
+            coord:          this.coord,
+            addr:           this.addr,
+            modify_list:    this.modify_list
+        }]);
+        //
         this.mobs           = await this.world.db.loadMobs(this.addr, this.size);
-        this.load_state     = 2;
+        this.setState(CHUNK_STATE_LOADED);
         // Разошлем чанк игрокам, которые его запросили
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
@@ -46,7 +66,7 @@ export class ServerChunk {
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
     addPlayerLoadRequest(player) {
-        if(this.load_state > 1) {
+        if(this.load_state > CHUNK_STATE_LOADING) {
             this.sendToPlayers([player.session.user_id]);
             this.sendMobs(Array.from(this.connections.keys()));
         } else {
@@ -180,6 +200,23 @@ export class ServerChunk {
     sendAll(packets) {
         let connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, []);
+    }
+
+    // onBlocksGenerated ... Webworker callback method
+    onBlocksGenerated(args) {
+        this.tblocks            = new TypedBlocks();
+        this.tblocks.count      = CHUNK_BLOCKS;
+        this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
+        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
+        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
+        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
+        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
+        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
+        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
+        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
+        this.setState(CHUNK_STATE_BLOCKS_GENERATED);
     }
 
     // Before unload chunk

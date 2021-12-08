@@ -9,7 +9,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(0);
     }
 
-    async init(root_dir) {}
+    async init() {}
 
     generate(chunk) {
 

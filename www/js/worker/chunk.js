@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import { Vector } from "../helpers.js";
+import {Vector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 

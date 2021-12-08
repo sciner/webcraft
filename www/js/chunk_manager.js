@@ -352,21 +352,6 @@ export class ChunkManager {
         }
     }
 
-    addToDirty(chunk) {
-    //     this.dirty_chunks.push(chunk);
-    }
-
-    deleteFromDirty(chunk_key) {
-    //     for(let i in this.dirty_chunks) {
-    //         let chunk = this.dirty_chunks[i];
-    //         if(chunk.key == chunk_key) {
-    //             this.dirty_chunks.splice(i, 1);
-    //             return true;
-    //         }
-    //     }
-    //     return false;
-    }
-
     /**
      * getPosChunkKey...
      * @param {Vector} pos
