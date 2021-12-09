@@ -1,5 +1,6 @@
 import {ServerChunk} from "./server_chunk.js";
 
+import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -14,6 +15,17 @@ export class ServerChunkManager {
         this.world                  = world;
         this.all                    = new VectorCollector();
         this.invalid_chunks_queue   = [];
+        //
+        this.DUMMY = {
+            id:         BLOCK.DUMMY.id,
+            name:       BLOCK.DUMMY.name,
+            shapes:     [],
+            properties: BLOCK.DUMMY,
+            material:   BLOCK.DUMMY,
+            getProperties: function() {
+                return this.properties;
+            }
+        };
     }
 
     // Init worker

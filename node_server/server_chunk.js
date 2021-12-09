@@ -4,10 +4,10 @@ import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {TypedBlocks} from "../www/js/typed_blocks.js";
 
-const CHUNK_STATE_NEW               = 0;
-const CHUNK_STATE_LOADING           = 1;
-const CHUNK_STATE_LOADED            = 2;
-const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+export const CHUNK_STATE_NEW               = 0;
+export const CHUNK_STATE_LOADING           = 1;
+export const CHUNK_STATE_LOADED            = 2;
+export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 
 export class ServerChunk {
 
@@ -42,7 +42,7 @@ export class ServerChunk {
             size:           this.size,
             coord:          this.coord,
             addr:           this.addr,
-            modify_list:    this.modify_list
+            modify_list:    Object.fromEntries(this.modify_list)
         }]);
         //
         this.mobs           = await this.world.db.loadMobs(this.addr, this.size);
@@ -217,6 +217,25 @@ export class ServerChunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
+    }
+
+    getChunkManager() {
+        return this.world.chunks;
+    }
+
+    // Get the type of the block at the specified position.
+    // Mostly for neatness, since accessing the array
+    // directly is easier and faster.
+    getBlock(pos) {
+        if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
+            return this.getChunkManager().DUMMY;
+        }
+        pos = pos.floored().sub(this.coord);
+        if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
+            return this.getChunkManager().DUMMY;
+        }
+        let block = this.tblocks.get(pos);
+        return block;
     }
 
     // Before unload chunk

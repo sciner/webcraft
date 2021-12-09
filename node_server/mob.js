@@ -1,4 +1,8 @@
 import {getChunkAddr} from "../www/js/chunk.js";
+import {BLOCK} from "../www/js/blocks.js";
+
+import {CHUNK_STATE_NEW, CHUNK_STATE_LOADING, CHUNK_STATE_LOADED, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
+import { Vector } from "../www/js/helpers.js";
 // import {MobModel} from "../www/js/mob_model.js";
 
 export class Mob {
@@ -35,8 +39,10 @@ export class Mob {
 
     tick() {
         let chunk_over = this.#world.chunks.get(this.#chunk_addr);
-        if(chunk_over.load_state > 2) {
-            // loaded and terrain created
+        if(chunk_over.load_state == CHUNK_STATE_BLOCKS_GENERATED && this.type == 'chicken') {
+            let pos = this.pos.sub(new Vector(0, 1, 0));
+            let block = chunk_over.getBlock(pos);
+            // console.log('Mob at block', block?.material.name, pos);
         }
         // console.log('mobtick: ' + this.entity_id + '; load_state: ' + chunk_over?.addr.toHash());
     }
