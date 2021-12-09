@@ -43,6 +43,7 @@ export class ServerClient {
 	static CMD_MOB_ADDED                = 71;
 	static CMD_MOB_DELETE               = 72;
 	static CMD_MOB_DELETED              = 73;
+    static CMD_MOB_UPDATE               = 75;
 
     // Constructor
     constructor(ws) {

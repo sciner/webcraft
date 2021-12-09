@@ -60,15 +60,20 @@ export class ServerWorld {
 
     // World tick
     tick() {
+        let delta = 0;
+        if(this.pn) {
+            delta = (performance.now() - this.pn) / 1000;
+        }
+        this.pn = performance.now();
         // 1.
-        this.chunks.tick();
+        this.chunks.tick(delta);
         // 2.
         for(let player of this.players.values()) {
             this.chunks.checkPlayerVisibleChunks(player, false);
         }
         // 3.
         for(let [entity_id, mob] of this.mobs) {
-            mob.tick();
+            mob.tick(delta);
         }
     }
 
