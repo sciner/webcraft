@@ -11,11 +11,23 @@ export class MobManager {
     // Client side method
     init() {
         // On server message
-        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADDED, ServerClient.CMD_MOB_DELETED], (cmd) => {
+        this.world.server.AddCmdListener([ServerClient.CMD_MOB_ADDED, ServerClient.CMD_MOB_DELETED, ServerClient.CMD_MOB_UPDATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_MOB_ADDED: {
                     for(let mob of cmd.data) {
+                        console.log('mob added');
                         this.add(mob);
+                    }
+                    break;
+                }
+                case ServerClient.CMD_MOB_UPDATE: {
+                    let mob = this.list.get(cmd.data.id);
+                    if(mob) {
+                        mob._pos.copyFrom(cmd.data.pos);
+                        mob.yaw = cmd.data.rotate.z;
+                        mob.moving = true;
+                    } else {
+                        console.error('Mob not found', cmd.data.id);
                     }
                     break;
                 }

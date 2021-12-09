@@ -280,7 +280,7 @@ export class MobModel {
         this.moving                     = false;
         this.aniframe                   = 0;
         this.height                     = 0;
-        this._pos = new Vector(0,0,0);
+        this._pos                       = new Vector(0, 0, 0);
 
         Object.assign(this, props);
 
