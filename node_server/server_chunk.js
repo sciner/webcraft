@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS, getChunkAddr} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -38,15 +38,15 @@ export class ServerChunk {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
         }
         //
+        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        this.setState(CHUNK_STATE_LOADED);
+        // Send requet to worker for create blocks structure
         this.world.chunks.postWorkerMessage(['createChunk', {
             size:           this.size,
             coord:          this.coord,
             addr:           this.addr,
             modify_list:    Object.fromEntries(this.modify_list)
         }]);
-        //
-        this.mobs           = await this.world.db.loadMobs(this.addr, this.size);
-        this.setState(CHUNK_STATE_LOADED);
         // Разошлем чанк игрокам, которые его запросили
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
@@ -144,6 +144,7 @@ export class ServerChunk {
         if(!this.connections.has(player.session.user_id)) {
             this.addPlayer(player);
         }
+        // If is egg
         if(BLOCK.isEgg(params.item.id)) {
             let material = BLOCK.fromId(params.item.id);
             // @ParamChatSendMessage
@@ -172,7 +173,7 @@ export class ServerChunk {
                 name: ServerClient.CMD_BLOCK_SET,
                 data: params
             }];
-            this.world.sendSelected(packets, [player.session.user_id], [])
+            this.world.sendSelected(packets, [player.session.user_id], []);
             return false;
         }
         // Create entity
@@ -193,6 +194,27 @@ export class ServerChunk {
             data: params
         }];
         this.sendAll(packets);
+        // 
+        let pos = new Vector(params.pos).floored().sub(this.coord);
+        let block = {
+            addr:       getChunkAddr(params.pos),
+            x:          params.pos.x,
+            y:          params.pos.y,
+            z:          params.pos.z,
+            type:       {id: params.item.id},
+            is_modify:  true,
+            power:      params.item?.power,
+            rotate:     params.item?.rotate
+        };
+        this.tblocks.delete(pos);
+        let tblock           = this.tblocks.get(pos);
+        tblock.id            = block.type.id;
+        tblock.extra_data    = params.item.extra_data;
+        tblock.entity_id     = params.item.entity_id;
+        tblock.power         = block.power;
+        tblock.rotate        = block.rotate;
+        // do not need send to worker
+        // this.world.chunks.postWorkerMessage(['setBlock', [block]]);
         return true;
     }
 
