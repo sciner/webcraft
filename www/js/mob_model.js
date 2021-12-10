@@ -281,6 +281,7 @@ export class MobModel {
         this.aniframe                   = 0;
         this.height                     = 0;
         this._pos                       = new Vector(0, 0, 0);
+        this._prevPos                   = new Vector(0, 0, 0);
 
         Object.assign(this, props);
 
@@ -337,9 +338,12 @@ export class MobModel {
             Math.abs(v.y - y) > 1e-5 || 
             Math.abs(v.z - z) > 1e-5;
 
-        this._pos.x = v.x;
-        this._pos.y = v.y;
-        this._pos.z = v.z;
+        this._prevPos.copyFrom(this._pos);
+        this._pos.copyFrom(v);
+        // chicken fix
+        this._pos.y += 0.001;
+
+        this.moving = !this._prevPos.equal(this._pos);
     }
 
     lazyInit(render) {

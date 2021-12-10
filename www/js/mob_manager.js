@@ -22,15 +22,11 @@ export class MobManager {
                 }
                 case ServerClient.CMD_MOB_UPDATE: {
                     let mob = this.list.get(cmd.data.id);
+
+                    console.log(cmd)
                     if(mob) {
-                        mob._pos.copyFrom(cmd.data.pos);
-                        mob._pos.y += 1/1000; // чтобы лапки цыпочек не z-fight-ились с землей
+                        mob.pos = cmd.data.pos;
                         mob.yaw = cmd.data.rotate.z;
-                        if(!mob._pos_o) {
-                            mob._pos_o = mob._pos.clone();
-                        }
-                        mob.moving = !mob._pos_o.equal(mob._pos);
-                        mob._pos_o.copyFrom(mob._pos);
                     } else {
                         console.error('Mob not found', cmd.data.id);
                     }
