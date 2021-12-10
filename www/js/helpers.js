@@ -276,6 +276,15 @@ export class Vector {
         return new Vector(this.x / l, this.y / l, this.z / l);
     }
 
+    normSelf() {
+        const l = this.length();
+        this.x /= l;
+        this.y /= l;
+        this.z /= l;
+
+        return this;
+    }
+
     dot(vec) {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
@@ -344,12 +353,14 @@ export class Vector {
         this.x += x;
         this.y += y;
         this.z += z;
+        return this;
     }
 
     set(x, y, z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        return this;
     }
 
     multiplyScalar(scalar) {
