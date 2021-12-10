@@ -4,10 +4,10 @@ export class FSMStack {
         this.list = [];
     }
     
-    tick(delta) {
+    tick(delta, context) {
         let currentStateFunction = this.getCurrentState();
         if (currentStateFunction != null) {
-            currentStateFunction(delta);
+            currentStateFunction.call(context, delta);
         }
     }
     
@@ -17,6 +17,13 @@ export class FSMStack {
     
     pushState(state) {
         if (this.getCurrentState() !== state) {
+            this.list.push(state);
+        }
+    }
+
+    replaceState(state) {
+        if (this.getCurrentState() !== state) {
+            this.list.pop();
             this.list.push(state);
         }
     }

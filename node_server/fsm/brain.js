@@ -14,7 +14,7 @@ export class FSMBrain {
     }
 
     tick(delta) {
-        this.stack.tick(delta);
+        this.stack.tick(delta, this);
     }
 
     createPlayerControl(brain, base_speed, playerHeight, stepHeight) {
@@ -91,13 +91,12 @@ export class FSMBrain {
 
         let r = Math.random() * 5000;
         if(r < 200) {
-            this.stack.popState(); // removes current state from the stack.
             if(r < 100) {
                 // Random rotate
-                this.stack.pushState((delta) => {this.doRotate(delta)}); // push new state, making it the active state.
+                this.stack.replaceState(this.doRotate); // push new state, making it the active state.
             } else {
                 // Go forward
-                this.stack.pushState((delta) => {this.goForward(delta)}); // push new state, making it the active state.
+                this.stack.replaceState(this.goForward);
             }
         }
     }
@@ -146,8 +145,7 @@ export class FSMBrain {
         this.sendState();
 
         if(Math.random() * 5000 < 300) {
-            this.stack.popState();
-            this.stack.pushState((delta) => {this.standStill(delta)});
+            this.stack.replaceState(this.standStill);
             return;
         }
     }
@@ -171,8 +169,7 @@ export class FSMBrain {
         this.updateControl({yaw: mob.rotate.z, forward: true});
 
         if(Math.random() * 5000 < 200) {
-            this.stack.popState(); // removes current state from the stack.
-            this.stack.pushState((delta) => {this.standStill(delta)}); // push new state, making it the active state.
+            this.stack.replaceState(this.standStill); // push new state, making it the active state.
             this.sendState(chunk_over);
             return;
         }
