@@ -9,7 +9,7 @@ function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
 
-export function Physics(mcData, fake_world) {
+export function Physics(mcData, fake_world, playerHeight, stepHeight) {
 
     const supportFeature = makeSupportFeature(mcData, Resources.physics.features);
 
@@ -33,7 +33,7 @@ export function Physics(mcData, fake_world) {
     const soulsandId    = blocksByName.soul_sand.id
     const honeyblockId  = blocksByName.honey_block ? blocksByName.honey_block.id : BLOCK_NOT_EXISTS // 1.15+
     const webId         = blocksByName.cobweb ? blocksByName.cobweb.id : blocksByName.web.id
-    const waterId       = blocksByName.water.id
+    // const waterId       = blocksByName.water.id
     const lavaId        = blocksByName.lava.id
     const ladderId      = blocksByName.ladder.id
     const vineId        = blocksByName.vine.id
@@ -51,7 +51,7 @@ export function Physics(mcData, fake_world) {
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        stepHeight: 0.6, // how much height can the bot step on without jump
+        stepHeight: typeof stepHeight === 'undefined' ? 0.6 : stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
         honeyblockSpeed: 0.4,
@@ -59,7 +59,7 @@ export function Physics(mcData, fake_world) {
         ladderMaxSpeed: 0.15,
         ladderClimbSpeed: 0.2,
         playerHalfWidth: 0.3,
-        playerHeight: 1.8,
+        playerHeight: typeof playerHeight === 'undefined' ? 1.8 : playerHeight,
         waterInertia: 0.8,
         lavaInertia: 0.5,
         liquidAcceleration: 0.02,
@@ -469,7 +469,7 @@ export function Physics(mcData, fake_world) {
         if (!block) return -1
         if (waterLike.has(block.type)) return 0
         if (block.getProperties().waterlogged) return 0
-        if (block.type !== waterId) return -1
+        if (block.material.is_water) return -1
         const meta = block.metadata
         return meta >= 8 ? 0 : meta
     }
@@ -516,7 +516,7 @@ export function Physics(mcData, fake_world) {
             for (cursor.z = Math.floor(bb.minZ); cursor.z <= Math.floor(bb.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(bb.minX); cursor.x <= Math.floor(bb.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && (block.type === waterId || waterLike.has(block.type) || block.getProperties().waterlogged)) {
+                    if (block && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
                         const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
                         if (Math.ceil(bb.maxY) >= waterLevel) waterBlocks.push(block)
                     }
@@ -586,6 +586,9 @@ export function Physics(mcData, fake_world) {
         let strafe = (entity.control.left - entity.control.right) * 0.98
         let forward = (entity.control.back - entity.control.forward) * 0.98
 
+        strafe *= entity.base_speed;
+        forward *= entity.base_speed;
+
         if (entity.control.sneak) {
             strafe *= physics.sneakSpeed
             forward *= physics.sneakSpeed
@@ -653,7 +656,7 @@ function getStatusEffectNamesForVersion(supportFeature) {
 
 export class PlayerState {
 
-    constructor(bot, control, mcData, features) {
+    constructor(bot, control, mcData, features, base_speed) {
         // const mcData = require('minecraft-data')(bot.version)
         // const nbt = require('prismarine-nbt')
         const supportFeature        = makeSupportFeature(mcData, features);
@@ -682,6 +685,9 @@ export class PlayerState {
         this.jumpBoost              = getEffectLevel(mcData, statusEffectNames.jumpBoostEffectName, effects)
         this.speed                  = getEffectLevel(mcData, statusEffectNames.speedEffectName, effects)
         this.slowness               = getEffectLevel(mcData, statusEffectNames.slownessEffectName, effects)
+
+        // Базовая скорость (1 для игрока, для мобов меньше или наоборот больше)
+        this.base_speed             = typeof base_speed == 'number' ? base_speed : 1;
 
         this.dolphinsGrace          = getEffectLevel(mcData, statusEffectNames.dolphinsGraceEffectName, effects)
         this.slowFalling            = getEffectLevel(mcData, statusEffectNames.slowFallingEffectName, effects)

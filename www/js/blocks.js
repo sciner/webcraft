@@ -163,7 +163,7 @@ export class BLOCK {
         if(block_id == 0) {
             return true;
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.FLOWING_WATER.id, BLOCK.CLOUD.id].indexOf(block_id) >= 0) {
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id].indexOf(block_id) >= 0) {
             return true;
         }
         let block = BLOCK.BLOCK_BY_ID.get(block_id);
@@ -268,6 +268,7 @@ export class BLOCK {
         block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && block.selflit;
         block.transparent       = block.hasOwnProperty('transparent') && block.transparent;
+        block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
         // Fix properties
         if(!block.hasOwnProperty('light')) block.light = null;
         if(!block.hasOwnProperty('passable')) block.passable = 0;

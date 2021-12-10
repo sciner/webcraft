@@ -1,6 +1,6 @@
 // Modules
 let Vector              = null;
-let BLOCK               = null;
+// let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
 // let world               = null;
@@ -46,7 +46,7 @@ async function importModules(terrain_type, seed, world_id) {
     });
     // load module
     await import('./blocks.js').then(module => {
-        BLOCK = module.BLOCK;
+        globalThis.BLOCK = module.BLOCK;
         return BLOCK.init();
     });
     //
@@ -73,7 +73,15 @@ async function onMessageFunc(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            if(!world.chunks.has(args.addr)) {
+            if(world.chunks.has(args.addr)) {
+                let chunk = world.chunks.get(args.addr);
+                worker.postMessage(['blocks_generated', {
+                    key:        chunk.key,
+                    addr:       chunk.addr,
+                    tblocks:    chunk.tblocks,
+                    map:        chunk.map
+                }]);
+            } else {
                 let ci = world.createChunk(args);
                 worker.postMessage(['blocks_generated', ci]);
             }
@@ -112,6 +120,8 @@ async function onMessageFunc(e) {
                     // 4. Rebuild vertices list
                     result.push(buildVertices(chunk, false));
                     chunk.vertices = null;
+                } else {
+                    console.error('worker.setBlock: chunk not found at addr: ', m.addr);
                 }
             }
             // 5. Send result to chunk manager

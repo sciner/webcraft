@@ -50,7 +50,7 @@ export class ServerChunkManager {
                     break;
                 }
                 default: {
-                    console.log(`Invalid worker command: ${cmd}`);
+                    console.log(`Ignore worker command: ${cmd}`);
                 }
             }
         });
@@ -64,8 +64,8 @@ export class ServerChunkManager {
     }
 
     // postWorkerMessage
-    postWorkerMessage(data) {
-        this.worker.postMessage(data);
+    postWorkerMessage(cmd) {
+        this.worker.postMessage(cmd);
     }
 
     add(chunk) {

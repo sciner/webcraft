@@ -163,6 +163,14 @@ export class DBWorld {
             await this.db.get('commit');
             await this.db.get('VACUUM');
         }
+        // Version 7 -> 8
+        if(version == 7) {
+            await this.db.get('begin transaction');
+            await this.db.get(`alter table entity add column "pos_spawn" TEXT NOT NULL DEFAULT ''`);
+            await this.db.get(`update entity set pos_spawn = '{"x":' || x || ',"y":' || y || ',"z":' || z || '}' where pos_spawn = '';`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
     }
 
     // getDefaultPlayerIndicators...
@@ -364,13 +372,14 @@ export class DBWorld {
     // Create entity (mob)
     async createMob(params) {
         const entity_id = uuid();
-        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z)', {
+        const result = await this.db.run('INSERT INTO entity(dt, entity_id, type, skin, indicators, rotate, x, y, z, pos_spawn) VALUES(:dt, :entity_id, :type, :skin, :indicators, :rotate, :x, :y, :z, :pos_spawn)', {
             ':dt':              ~~(Date.now() / 1000),
             ':entity_id':       entity_id,
             ':type':            params.type,
             ':skin':            params.skin,
             ':indicators':      JSON.stringify(params.indicators),
             ':rotate':          JSON.stringify(params.rotate),
+            ':pos_spawn':       JSON.stringify(params.pos),
             ':x':               params.pos.x,
             ':y':               params.pos.y,
             ':z':               params.pos.z
@@ -396,6 +405,7 @@ export class DBWorld {
             let item = new Mob(this.world, {
                 id:         row.id,
                 rotate:     JSON.parse(row.rotate),
+                pos_spawn:  JSON.parse(row.pos_spawn),
                 pos:        new Vector(row.x, row.y, row.z),
                 entity_id:  row.entity_id,
                 type:       row.type,
