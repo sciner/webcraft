@@ -317,7 +317,10 @@ export class MobModel {
     }
 
     get isRenderable() {
-        return this.currentChunk && this.currentChunk.in_frustum || !this.currentChunk;
+        return this.sceneTree && (
+             this.currentChunk &&
+             this.currentChunk.in_frustum || 
+             !this.currentChunk);
     } 
 
     get pos() {
@@ -345,16 +348,23 @@ export class MobModel {
         }
 
         this.loadModel(render);
-        this.initialised = true;
+        this.initialised = !!this.sceneTree;
     }
 
     computeLocalPosAndLight(render) {
+        if (!this.initialised) {
+            return;
+        }
+
         this.posDirty = false;
 
         const newChunk = ChunkManager.instance.getChunkAtWorld(this.pos);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
-        this.material.lightTex = this.lightTex;
+        
+        if (this.material) {
+            this.material.lightTex = this.lightTex;
+        }
 
         
         // invalid state, chunk always should be presented
