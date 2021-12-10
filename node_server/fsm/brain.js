@@ -90,13 +90,13 @@ export class FSMBrain {
     // Stand still
     standStill(delta) {
 
-        if(this.checkInWater()) {
-            this.updateControl({jump: true});
-            this.applyControl(delta);
-            this.sendState();
-        }
+        this.updateControl({
+            jump: this.checkInWater(),
+            forward: false
+        });
 
-        this.updateControl({jump: false, forward: false});
+        this.applyControl(delta);
+        this.sendState();
 
         let r = Math.random() * 5000;
         if(r < 200) {
@@ -116,7 +116,7 @@ export class FSMBrain {
         let world = mob.getWorld();
         let chunk_over = world.chunks.get(mob.chunk_addr);
         if(!chunk_over) {
-            return;
+            return false;
         }
         let block = chunk_over.getBlock(mob.pos.floored());
         return block.material.is_fluid;
@@ -125,10 +125,7 @@ export class FSMBrain {
     // Rotate
     doRotate(delta) {
 
-        if(this.checkInWater()) {
-            this.updateControl({jump: true});
-        }
-        this.updateControl({jump: false, forward: false});
+        this.updateControl({forward: false, jump: this.checkInWater()});
 
         let mob = this.mob;
         let world = mob.getWorld();
@@ -174,16 +171,19 @@ export class FSMBrain {
             return;
         }
 
-        this.checkInWater();
-        this.updateControl({yaw: mob.rotate.z, forward: true});
+        this.updateControl({
+            yaw: mob.rotate.z,
+            forward: true,
+            jump: this.checkInWater()
+        });
 
         // Picking
-        this.#pickAt.get(mob.pos, (pos) => {
+        /*this.#pickAt.get(mob.pos, (pos) => {
             if(pos === false) {
                 return;
             }
             console.log('mob pick at: ' + pos.toHash());
-        });
+        });*/
 
         if(Math.random() * 5000 < 200) {
             this.stack.replaceState(this.standStill); // push new state, making it the active state.
