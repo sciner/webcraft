@@ -1,5 +1,4 @@
-import uuid from 'uuid';
-
+import { v4 as uuid } from 'uuid';
 import { Vector } from "../www/js/helpers.js";
 
 export class EntityManager {
@@ -60,10 +59,10 @@ export class EntityManager {
     }
 
     /**
-     * Create chest 
-     * @param {*} world 
-     * @param {*} player 
-     * @param {ParamBlockSet} params 
+     * Create chest
+     * @param {*} world
+     * @param {*} player
+     * @param {ParamBlockSet} params
      */
     async createChest(world, player, params) {
         let blockPosKey = this.getBlockKey(params.pos);

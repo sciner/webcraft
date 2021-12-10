@@ -8,9 +8,9 @@ import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_ws.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
-import config from "./conf.json" assert { type: "json" };
+import config from "./conf.json";
 
-import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
+import features from "../www/vendors/prismarine-physics/lib/features.json";
 
 // Set global variables
 global.__dirname        = path.resolve();
