@@ -33,7 +33,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
     const soulsandId    = blocksByName.soul_sand.id
     const honeyblockId  = blocksByName.honey_block ? blocksByName.honey_block.id : BLOCK_NOT_EXISTS // 1.15+
     const webId         = blocksByName.cobweb ? blocksByName.cobweb.id : blocksByName.web.id
-    const waterId       = blocksByName.water.id
+    // const waterId       = blocksByName.water.id
     const lavaId        = blocksByName.lava.id
     const ladderId      = blocksByName.ladder.id
     const vineId        = blocksByName.vine.id
@@ -469,7 +469,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
         if (!block) return -1
         if (waterLike.has(block.type)) return 0
         if (block.getProperties().waterlogged) return 0
-        if (block.type !== waterId) return -1
+        if (block.material.is_water) return -1
         const meta = block.metadata
         return meta >= 8 ? 0 : meta
     }
@@ -516,7 +516,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
             for (cursor.z = Math.floor(bb.minZ); cursor.z <= Math.floor(bb.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(bb.minX); cursor.x <= Math.floor(bb.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && (block.type === waterId || waterLike.has(block.type) || block.getProperties().waterlogged)) {
+                    if (block && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
                         const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
                         if (Math.ceil(bb.maxY) >= waterLevel) waterBlocks.push(block)
                     }

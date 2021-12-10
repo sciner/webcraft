@@ -37,8 +37,6 @@ export class ServerChunk {
         if(this.world.chunkHasModifiers(this.addr)) {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
         }
-        //
-        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.setState(CHUNK_STATE_LOADED);
         // Send requet to worker for create blocks structure
         this.world.chunks.postWorkerMessage(['createChunk', {
@@ -51,10 +49,6 @@ export class ServerChunk {
         if(this.preq.size > 0) {
             this.sendToPlayers(Array.from(this.preq.keys()));
             this.preq.clear();
-        }
-        // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
-        if(this.connections.size > 0 && this.mobs.size > 0) {
-            this.sendMobs(Array.from(this.connections.keys()));
         }
     }
 
@@ -225,7 +219,7 @@ export class ServerChunk {
     }
 
     // onBlocksGenerated ... Webworker callback method
-    onBlocksGenerated(args) {
+    async onBlocksGenerated(args) {
         this.tblocks            = new TypedBlocks();
         this.tblocks.count      = CHUNK_BLOCKS;
         this.tblocks.buffer     = args.tblocks.buffer;
@@ -239,6 +233,12 @@ export class ServerChunk {
         this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
+        //
+        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
+        if(this.connections.size > 0 && this.mobs.size > 0) {
+            this.sendMobs(Array.from(this.connections.keys()));
+        }
     }
 
     getChunkManager() {

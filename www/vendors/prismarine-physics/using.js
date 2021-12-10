@@ -30,7 +30,7 @@ class FakeWorld {
                 blue_ice:       BLOCK.ICE3,
                 soul_sand:      BLOCK.SOUL_SAND,
                 cobweb:         BLOCK.COBWEB,
-                water:          BLOCK.STILL_WATER,
+                water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
                 lava:           BLOCK.STILL_LAVA,
                 ladder:         BLOCK.LADDER,
                 vine:           BLOCK.VINES,
