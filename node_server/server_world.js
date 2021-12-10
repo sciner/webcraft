@@ -325,4 +325,8 @@ export class ServerWorld {
         }
     }
 
+    get chunkManager() {
+        return this.chunks;
+    }
+
 }

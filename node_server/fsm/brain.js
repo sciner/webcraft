@@ -2,15 +2,24 @@ import {CHUNK_STATE_NEW, CHUNK_STATE_LOADING, CHUNK_STATE_LOADED, CHUNK_STATE_BL
 import {FSMStack} from "./stack.js";
 
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
+import {PickAt} from "../../www/js/pickat.js";
 import {Vector} from "../../www/js/helpers.js";
 import {getChunkAddr} from "../../www/js/chunk.js";
 import {ServerClient} from "../../www/js/server_client.js";
 
 export class FSMBrain {
 
+    #pickAt;
+
     constructor(mob) {
         this.mob = mob;
         this.stack = new FSMStack();
+        // pickAt
+        this.#pickAt = new PickAt(mob.getWorld(), null, (...args) => {
+            console.log(args);
+            // return this.onPickAtTarget(...args);
+        });
+
     }
 
     tick(delta) {
@@ -169,6 +178,14 @@ export class FSMBrain {
 
         this.checkInWater();
         this.updateControl({yaw: mob.rotate.z, forward: true});
+
+        // Picking
+        this.#pickAt.get(mob.pos, (pos) => {
+            if(pos === false) {
+                return;
+            }
+            console.log('mob pick at: ' + pos.toHash());
+        });
 
         if(Math.random() * 5000 < 200) {
             this.stack.popState(); // removes current state from the stack.

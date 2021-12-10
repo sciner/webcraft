@@ -7,7 +7,7 @@ export class Brains {
             return;
         }
         console.log('Load brains...');
-        for(let type of ['chicken', 'creeper']) {
+        for(let type of ['chicken', 'creeper', 'horse', 'pig']) {
             await import(`./brain/${type}.js`).then(module => {
                 this.list.set(type, module.Brain);
             });
