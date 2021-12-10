@@ -1,25 +1,33 @@
 import {CHUNK_STATE_NEW, CHUNK_STATE_LOADING, CHUNK_STATE_LOADED, CHUNK_STATE_BLOCKS_GENERATED} from "../server_chunk.js";
 import {FSMStack} from "./stack.js";
 
-import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
-import {PickAt} from "../../www/js/pickat.js";
-import {Vector} from "../../www/js/helpers.js";
-import {getChunkAddr} from "../../www/js/chunk.js";
-import {ServerClient} from "../../www/js/server_client.js";
+import { PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
+import { PickAt } from "../../www/js/pickat.js";
+import { Vector } from "../../www/js/helpers.js";
+import { getChunkAddr } from "../../www/js/chunk.js";
+import { ServerClient } from "../../www/js/server_client.js";
+import { Raycaster } from "../../www/js/Raycaster.js";
 
 export class FSMBrain {
-
-    #pickAt;
 
     constructor(mob) {
         this.mob = mob;
         this.stack = new FSMStack();
-        // pickAt
-        this.#pickAt = new PickAt(mob.getWorld(), null, (...args) => {
-            console.log(args);
-            // return this.onPickAtTarget(...args);
-        });
+        this.raycaster = new Raycaster(mob.getWorld());
 
+        this._forward = new Vector(0,1,0);
+    }
+
+    raycastFromHead() {
+        const mob = this.mob;
+
+        this._forward.set(
+            Math.cos(mob.rotate.z),
+            Math.sin(mob.rotate.z),
+            0
+        );
+
+        return this.raycaster.get(mob.pos, this._forward, 100);
     }
 
     tick(delta) {
@@ -177,13 +185,11 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
-        // Picking
-        /*this.#pickAt.get(mob.pos, (pos) => {
-            if(pos === false) {
-                return;
-            }
-            console.log('mob pick at: ' + pos.toHash());
-        });*/
+        const pick = this.raycastFromHead();
+        
+        if (pick) {
+           // console.log('mob pick at: ', pick);
+        }
 
         if(Math.random() * 5000 < 200) {
             this.stack.replaceState(this.standStill); // push new state, making it the active state.

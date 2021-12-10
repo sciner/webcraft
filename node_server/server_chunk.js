@@ -248,10 +248,15 @@ export class ServerChunk {
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(pos) {
+    getBlock(pos, y, z) {
         if(this.load_state != CHUNK_STATE_BLOCKS_GENERATED) {
             return this.getChunkManager().DUMMY;
         }
+
+        if (typeof pos == 'number') {
+            pos = new Vector(pos, y, z);
+        }
+
         pos = pos.floored().sub(this.coord);
         if(pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= this.size.x || pos.y >= this.size.y || pos.z >= this.size.z) {
             return this.getChunkManager().DUMMY;
