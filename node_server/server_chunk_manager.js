@@ -178,4 +178,19 @@ export class ServerChunkManager {
         }
     }
 
+    // Возвращает блок по абслютным координатам
+    getBlock(x, y, z) {
+        if(x instanceof Vector || typeof x == 'object') {
+            y = x.y;
+            z = x.z;
+            x = x.x;
+        }
+        let addr = getChunkAddr(x, y, z);
+        let chunk = this.all.get(addr);
+        if(chunk) {
+            return chunk.getBlock(x, y, z);
+        }
+        return this.DUMMY;
+    }
+
 }

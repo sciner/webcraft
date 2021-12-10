@@ -8,8 +8,8 @@ await Brains.init();
 
 export class Mob {
 
-    #world      = null;
-    #brain      = null;
+    #world;
+    #brain;
 
     constructor(world, params) {
 
