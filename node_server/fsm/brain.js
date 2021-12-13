@@ -15,6 +15,7 @@ export class FSMBrain {
         this.stack = new FSMStack();
         this.raycaster = new Raycaster(mob.getWorld());
         this._forward = new Vector(0,1,0);
+        this.rotateSign = 1;
     }
 
     /**
@@ -23,11 +24,12 @@ export class FSMBrain {
     raycastFromHead() {
         const mob = this.mob;
         this._forward.set(
-            Math.cos(mob.rotate.z),
             Math.sin(mob.rotate.z),
-            0
+            0,
+            Math.cos(mob.rotate.z),
         );
-        return this.raycaster.get(mob.pos, this._forward, 100);
+        const eye_height = this.pc.physics.playerHeight * 0.8;
+        return this.raycaster.get(mob.pos.add(new Vector(0, eye_height, 0)), this._forward, 100);
     }
 
     tick(delta) {
@@ -117,6 +119,7 @@ export class FSMBrain {
         if(r < 200) {
             if(r < 100) {
                 // Random rotate
+                this.rotateSign = Math.sign(Math.random() - Math.random());
                 this.stack.replaceState(this.doRotate); // push new state, making it the active state.
             } else {
                 // Go forward
@@ -143,8 +146,9 @@ export class FSMBrain {
         this.updateControl({forward: false, jump: this.checkInWater()});
 
         let mob = this.mob;
-        let world = mob.getWorld();
 
+        /*
+        let world = mob.getWorld();
         let camPos = null;
         for(let player of world.players.values()) {
             if(player.state.pos.distance(mob.pos) < 5) {
@@ -152,30 +156,21 @@ export class FSMBrain {
                 break;
             }
         }
-
         if(camPos) {
             // @todo angle to cam
             // let angToCam = -Math.PI/2 - Math.atan2(camPos.z - mob.pos.z, camPos.x - mob.pos.x) + Math.PI;
             // mob.rotate.z = angToCam;
             mob.rotate.z += delta;
-        } else {
-            mob.rotate.z += delta;
         }
+        */
+
+        mob.rotate.z += delta * this.rotateSign;
 
         this.applyControl(delta);
         this.sendState();
 
-        const pick = this.raycastFromHead();
-        if (pick) {
-            let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
-            if(block) {
-                console.log('Mob pick at block: ', block.material.name);
-            }
-            // console.log('Mob pick at: ', pick);
-        }
-
         if(Math.random() * 5000 < 300) {
-            // this.stack.replaceState(this.standStill);
+            this.stack.replaceState(this.standStill);
             return;
         }
     }
@@ -204,15 +199,21 @@ export class FSMBrain {
         const pick = this.raycastFromHead();
         if (pick) {
             let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
-            if(block) {
-                console.log('Mob pick at block: ', block.material.name);
+            if(block && !block.material.planting) {
+                let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
+                if(dist < 1.0) {
+                    // console.log('Mob pick at block: ', block.material.name, dist);
+                    this.rotateSign = Math.sign(Math.random() - Math.random());
+                    this.stack.replaceState(this.doRotate); // push new state, making it the active state.
+                    this.sendState();
+                    return;
+                }
             }
-            // console.log('Mob pick at: ', pick);
         }
 
         if(Math.random() * 5000 < 200) {
             this.stack.replaceState(this.standStill); // push new state, making it the active state.
-            this.sendState(chunk_over);
+            this.sendState();
             return;
         }
 
