@@ -171,7 +171,10 @@ export class ServerPlayer extends Player {
         }
     }
 
-    // sendPackets...
+    /**
+     * sendPackets
+     * @param {Object[]} packets 
+     */
     sendPackets(packets) {
         this.conn.send(JSON.stringify(packets));
     }
@@ -206,6 +209,9 @@ export class ServerPlayer extends Player {
         this.sendPackets(packets);
     }
 
+    /**
+     * @param {ServerChunk} chunk 
+     */
     addChunk(chunk) {
         this.chunks.set(chunk.addr, chunk.addr);
     }

@@ -6,7 +6,7 @@ import { PickAt } from "../../www/js/pickat.js";
 import { Vector } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
 import { ServerClient } from "../../www/js/server_client.js";
-import { Raycaster } from "../../www/js/Raycaster.js";
+import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
 export class FSMBrain {
 
@@ -14,19 +14,19 @@ export class FSMBrain {
         this.mob = mob;
         this.stack = new FSMStack();
         this.raycaster = new Raycaster(mob.getWorld());
-
         this._forward = new Vector(0,1,0);
     }
 
+    /**
+     * @returns {null | RaycasterResult}
+     */
     raycastFromHead() {
         const mob = this.mob;
-
         this._forward.set(
             Math.cos(mob.rotate.z),
             Math.sin(mob.rotate.z),
             0
         );
-
         return this.raycaster.get(mob.pos, this._forward, 100);
     }
 
@@ -34,6 +34,13 @@ export class FSMBrain {
         this.stack.tick(delta, this);
     }
 
+    /**
+     * @param {FSMBrain} brain 
+     * @param {number} base_speed 
+     * @param {number} playerHeight 
+     * @param {number} stepHeight 
+     * @return {PrismarinePlayerControl}
+     */
     createPlayerControl(brain, base_speed, playerHeight, stepHeight) {
         let mob = brain.mob;
         let world = mob.getWorld();
@@ -158,8 +165,17 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
+        const pick = this.raycastFromHead();
+        if (pick) {
+            let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
+            if(block) {
+                console.log('Mob pick at block: ', block.material.name);
+            }
+            // console.log('Mob pick at: ', pick);
+        }
+
         if(Math.random() * 5000 < 300) {
-            this.stack.replaceState(this.standStill);
+            // this.stack.replaceState(this.standStill);
             return;
         }
     }
@@ -186,9 +202,12 @@ export class FSMBrain {
         });
 
         const pick = this.raycastFromHead();
-        
         if (pick) {
-           // console.log('mob pick at: ', pick);
+            let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
+            if(block) {
+                console.log('Mob pick at block: ', block.material.name);
+            }
+            // console.log('Mob pick at: ', pick);
         }
 
         if(Math.random() * 5000 < 200) {

@@ -4,6 +4,7 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
+import {Chest} from "./chest.js";
 import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
@@ -321,12 +322,12 @@ export class DBWorld {
             // slots
             let slots = JSON.parse(row.slots);
             // chest
-            let chest = {
-                user_id: row.user_id,                           // Кто автор
-                time:    new Date(row.dt * 1000).toISOString(), // Время создания, time.Now()
-                item:    bi,                                    // Предмет
-                slots:   slots,                                 // Слоты
-            };
+            let chest = new Chest(
+                row.user_id,
+                new Date(row.dt * 1000).toISOString(),
+                bi,
+                slots
+            );
             let pos_string = row.x + ',' + row.y + ',' + row.z;
             resp.chests.set(row.entity_id, chest);
             resp.blocks.set(pos_string, entity_block);
@@ -335,19 +336,25 @@ export class DBWorld {
 
     }
 
-    // Create chest...
-    async createChest(player, pos, chest) {
+    /**
+     * Create chest
+     * @param {ServerPlayer} player 
+     * @param {Vector} pos 
+     * @param {Object} params
+     * @return {number}
+     */
+    async createChest(player, pos, params) {
         const result = await this.db.run('INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES(:dt, :user_id, :entity_id, :item, :slots, :x, :y, :z)', {
             ':user_id':         player.session.user_id,
             ':dt':              ~~(Date.now() / 1000),
-            ':entity_id':       chest.item.entity_id,
-            ':item':            JSON.stringify(chest.item),
-            ':slots':           JSON.stringify(chest.slots),
+            ':entity_id':       params.item.entity_id,
+            ':item':            JSON.stringify(params.item),
+            ':slots':           JSON.stringify(params.slots),
             ':x':               pos.x,
             ':y':               pos.y,
             ':z':               pos.z
         });
-        let chest_id = result.lastID;
+        return result.lastID;
     }
 
     // saveChestSlots...

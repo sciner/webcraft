@@ -9,29 +9,57 @@ const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
 const startBlock = new Vector(0,0,0);
 
-export class Raycaster {
-    constructor (world) {
-        this.world = world;
+export class RaycasterResult {
 
+    /**
+     * @param {Vector} pos
+     * @param {Vector} leftTop
+     * @param {Vector} side
+     */
+    constructor(pos, leftTop, side) {
+        this.x = leftTop.x;
+        this.y = leftTop.y;
+        this.z = leftTop.z;
+        this.n = side;
+        this.point = new Vector(pos.x, pos.y, pos.z).sub(leftTop);
+    }
+
+}
+
+export class Raycaster {
+
+    constructor(world) {
+        this.world = world;
         this._dir = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
     }
 
+    /**
+     * @param {Vector} pos 
+     * @param {number[]} invViewMatrix 
+     * @param {number} distance 
+     * @param {*} callback 
+     * @returns {null | RaycasterResult}
+     */
     getFromView(pos, invViewMatrix, distance, callback ) {
         this._dir.x = -invViewMatrix[8];
         this._dir.y = -invViewMatrix[10];
         this._dir.z = -invViewMatrix[9];
-
         if(this._dir.length() < 0.01) {
             callback && callback(null);
             return null;
         }
-
         this._dir.normSelf();
-
         return this.get(pos, this._dir, distance, callback);
     }
 
+    /**
+     * @param {Vector} pos 
+     * @param {*} dir 
+     * @param {number} pickat_distance 
+     * @param {*} callback
+     * @returns {null | RaycasterResult}
+     */
     get(pos, dir, pickat_distance, callback) {
         pos = this._pos.copyFrom(pos);
         startBlock.set(
@@ -130,19 +158,10 @@ export class Raycaster {
                 side.x = -side.x;
                 side.y = -side.y;
                 side.z = -side.z;
-                
-                res = {
-                    x: leftTop.x,
-                    y: leftTop.y,
-                    z: leftTop.z,
-                    n: side,
-                    point: new Vector(pos.x, pos.y, pos.z).sub(leftTop)
-                };
-                
+                res = new RaycasterResult(pos, leftTop, side);
                 if(res.point.y == 1) {
                     res.point.y = 0;
                 }
-                
                 break;
             }
 

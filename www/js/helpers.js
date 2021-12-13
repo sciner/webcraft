@@ -174,10 +174,16 @@ export class Color {
         return this;
     }
 
+    /**
+     * @return {Color}
+     */
     toFloat()  {
         return new Color(this.r / 255, this.g / 255, this.b / 255, this.a / 255);
     }
 
+    /**
+     * @return {string}
+     */
     toCSS()  {
         return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
     }
@@ -211,6 +217,9 @@ export class Vector {
         this.z = z || 0;
     }
 
+    /**
+     * @param {Vector} vec
+     */
     copyFrom(vec) {
         this.x = vec.x;
         this.y = vec.y;
@@ -218,28 +227,54 @@ export class Vector {
         return this;
     }
 
+    /**
+     * @param {Vector} vec
+     * @return {boolean}
+     */
     equal(vec) {
         return this.x === vec.x && this.y === vec.y && this.z === vec.z;
     }
 
+    /**
+     * @param {Vector} vec1
+     * @param {Vector} vec2
+     * @param {number} delta
+     * @return {void}
+     */
     lerpFrom(vec1, vec2, delta) {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {Vector}
+     */
     add(vec) {
         return new Vector(this.x + vec.x, this.y + vec.y, this.z + vec.z);
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {Vector}
+     */
     sub(vec) {
         return new Vector(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {Vector}
+     */
     mul(vec) {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {Vector}
+     */
     div(vec) {
         return new Vector(this.x / vec.x, this.y / vec.y, this.z / vec.z);
     }
@@ -251,25 +286,41 @@ export class Vector {
         return this;
     }
 
+    /**
+     * @return {Vector}
+     */
     swapYZ() {
         return new Vector(this.x, this.z, this.y);
     }
 
+    /**
+     * @return {number}
+     */
     length() {
         return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {number}
+     */
     distance(vec) {
         return this.sub(vec).length();
     }
 
-    //
+    /**
+     * @param {Vector} vec 
+     * @return {number}
+     */
     horizontalDistance(vec) {
         let vec1 = new Vector(this.x, 0, this.z);
         let vec2 = new Vector(vec.x, 0, vec.z);
         return vec1.sub(vec2).length();
     }
 
+    /**
+     * @return {Vector}
+     */
     normal() {
         if(this.x == 0 && this.y == 0 && this.z == 0) return new Vector(0, 0, 0);
         let l = this.length();
@@ -281,14 +332,20 @@ export class Vector {
         this.x /= l;
         this.y /= l;
         this.z /= l;
-
         return this;
     }
 
+    /**
+     * @param {Vector} vec 
+     * @return {number}
+     */
     dot(vec) {
         return this.x * vec.x + this.y * vec.y + this.z * vec.z;
     }
 
+    /**
+     * @return {Vector}
+     */
     round() {
         return new Vector(
             Math.round(this.x),
@@ -297,6 +354,9 @@ export class Vector {
         );
     }
 
+    /**
+     * @return {Vector}
+     */
     toInt() {
         return new Vector(
             this.x | 0,
@@ -305,6 +365,9 @@ export class Vector {
         );
     }
 
+    /**
+     * @return {Vector}
+     */
     clone() {
         return new Vector(
             this.x,
@@ -313,26 +376,44 @@ export class Vector {
         );
     }
 
+    /**
+     * @return {number[]}
+     */
     toArray() {
         return [this.x, this.y, this.z];
     }
 
+    /**
+     * @return {string}
+     */
     toString() {
         return '(' + this.x + ',' + this.y + ',' + this.z + ')';
     }
 
+    /**
+     * @return {string}
+     */
     toChunkKey() {
         return 'c_' + this.x + '_' + this.y + '_' + this.z;
     }
 
+    /**
+     * @return {string}
+     */
     toHash() {
         return this.x + ',' + this.y + ',' + this.z;
     }
 
+    /**
+     * @return {number}
+     */
     norm() {
         return this.length();
     }
 
+    /**
+     * @return {Vector}
+     */
     normalize() {
         return this.normal();
     }
@@ -341,6 +422,9 @@ export class Vector {
         return this.add(new Vector(x, y, z));
     }
 
+    /**
+     * @return {Vector}
+     */
     floored() {
         return new Vector(
             Math.floor(this.x),

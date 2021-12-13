@@ -152,7 +152,10 @@ export class ServerWorld {
         }
     }
 
-    // Возвращает игровое время
+    /**
+     * Возвращает игровое время
+     * @return {Object}
+     */
     getTime() {
         if(!this.world_state) {
             return null;
@@ -171,7 +174,12 @@ export class ServerWorld {
         };
     }
 
-    // Send commands for all except player id list
+    /**
+     * Send commands for all except player id list
+     * @param {Object[]} packets
+     * @param {number[]} except_players  ID of players
+     * @return {void}
+     */
     sendAll(packets, except_players) {
         for(let player of this.players.values()) {
             if(except_players && except_players.indexOf(player.session.user_id) >= 0) {
@@ -181,7 +189,13 @@ export class ServerWorld {
         }
     }
 
-    // Отправить только указанным
+    /**
+     * Отправить только указанным
+     * @param {Object[]} packets
+     * @param {number[]} selected_players ID of players
+     * @param {number[]} except_players  ID of players
+     * @return {void}
+     */
     sendSelected(packets, selected_players, except_players) {
         for(let user_id of selected_players) {
             if(except_players && except_players.indexOf(user_id) >= 0) {
@@ -194,7 +208,12 @@ export class ServerWorld {
         }
     }
 
-    // teleportPlayer...
+    /**
+     * Teleport player
+     * @param {ServerPlayer} player 
+     * @param {Object} params 
+     * @return {void}
+     */
     teleportPlayer(player, params) {
         var new_pos = null;
         if (params.pos) {
@@ -263,7 +282,10 @@ export class ServerWorld {
         }
     }
 
-    // Restore modified chunks list
+    /**
+     * Restore modified chunks list
+     * @return {boolean}
+     */
     async restoreModifiedChunks() {
         this.chunkModifieds = new VectorCollector();
         let list = await this.db.chunkBecameModified();
@@ -325,6 +347,9 @@ export class ServerWorld {
         }
     }
 
+    /**
+     * @return {ServerChunkManager}
+     */
     get chunkManager() {
         return this.chunks;
     }
