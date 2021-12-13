@@ -22,7 +22,8 @@ let DataChunk = null;
 let BaseChunk = null;
 const world = {
     chunkManager: null,
-    queue: null
+    queue: null,
+    dayLight: 0,
 }
 
 const maxLight = 31;
@@ -33,6 +34,8 @@ const OFFSET_SOURCE = 0;
 const OFFSET_LIGHT = 1;
 const OFFSET_PREV = 2;
 const OFFSET_AO = 3;
+const OFFSET_DAY_SOURCE = 4;
+const OFFSET_DAY_LIGHT = 5;
 
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
@@ -48,6 +51,8 @@ function adjustSrc(srcLight) {
     }
     return srcLight;
 }
+
+world.dayLight = adjustSrc(15);
 
 function adjustLight(dstLight) {
     return Math.max((dstLight - 2) / 2, 0);
@@ -314,7 +319,7 @@ class Chunk {
         this.removed = false;
         this.waveCounter = 0;
 
-        this.lightChunk = new DataChunk({ size: args.size , strideBytes: 4 }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
+        this.lightChunk = new DataChunk({ size: args.size , strideBytes: 8 }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
         this.lightChunk.rev = this;
         if (args.light_buffer) {
             this.setLightFromBuffer(args.light_buffer);
@@ -353,9 +358,19 @@ class Chunk {
     fillOuter() {
         //checks neighbour chunks
         const {lightChunk} = this;
-        const {outerSize, portals, shiftCoord, aabb, uint8View, strideBytes} = lightChunk;
+        const {outerSize, portals, shiftCoord, aabb, uint8View, strideBytes, outerLen} = lightChunk;
         const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
         let found = false;
+
+        // default value for daylight
+        const defLight = world.dayLight;
+        if (defLight > 0) {
+            for (let coord = 0; coord < outerLen; coord++) {
+                // max daylight everywhere
+                uint8View[coord * shiftCoord + OFFSET_DAY_LIGHT] = defLight;
+                uint8View[coord * shiftCoord + OFFSET_DAY_SOURCE] = defLight;
+            }
+        }
 
         for (let portal of portals) {
             const other = portal.toRegion;
@@ -392,18 +407,34 @@ class Chunk {
                                 uint8View[coord1 + OFFSET_AO] = bytes2[coord2 + OFFSET_AO]
                             }
                         }
+
+                        // daylight
+                        const dayLight = bytes2[coord2 + OFFSET_DAY_LIGHT];
+                        uint8View[coord1 + OFFSET_DAY_LIGHT] = dayLight;
+                        if (f1) {
+                            if (dayLight !== defLight) {
+                                // add to special daylight queue calc
+                            }
+                        }
+                        if (f2) {
+                            uint8View[coord1 + OFFSET_DAY_SOURCE] = bytes2[coord2 + OFFSET_DAY_SOURCE];
+                            // if source is different, it wont affect us - we already handled it in previous condition
+                        }
                     }
         }
         // add light to queue
-        for (let x = aabb.x_min; x < aabb.x_max; x++)
-            for (let y = aabb.y_min; y < aabb.y_max; y++)
-                for (let z = aabb.z_min; z < aabb.z_max; z++) {
+        for (let y = aabb.y_min; y < aabb.y_max; y++)
+            for (let z = aabb.z_min; z < aabb.z_max; z++)
+                for (let x = aabb.x_min; x < aabb.x_max; x++) {
                     const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
+
                     const m = Math.max(uint8View[coordBytes + OFFSET_LIGHT], uint8View[coordBytes + OFFSET_SOURCE]);
                     if (m > 0) {
                         world.light.add(this, coord, m);
                     }
                     found = found || uint8View[coordBytes + OFFSET_AO] > 0;
+
+                    // filling daylight
                 }
         if (found) {
             this.lastID++;
