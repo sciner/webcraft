@@ -127,7 +127,7 @@ class LightQueue {
 
             let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE];
-            if (val === MASK_BLOCK) {
+            if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
                 val = 0;
             } else {
                 for (let d = 0; d < DIR_COUNT; d++) {
@@ -373,7 +373,7 @@ class DirLightQueue {
                 uint8View[coord * strideBytes + OFFSET_AO] !== 0) {
                 val = 0;
             } else {
-                val = uint8View[coordBytes - sy * strideBytes + OFFSET_SOURCE];
+                val = uint8View[coordBytes + sy * strideBytes + OFFSET_SOURCE];
             }
             const prev = uint8View[coordBytes + OFFSET_SOURCE_PREV];
             if (old === val && prev === val) {

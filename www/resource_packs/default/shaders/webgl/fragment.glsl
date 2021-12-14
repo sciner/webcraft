@@ -148,12 +148,14 @@ void main() {
 
         float caveSample = texture(u_lightTex, lightCoord).a;
         float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
-        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 0.4;
+        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample *= 0.5;
 
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-        float light = max(min(caveSample + daySample, 1.0 - aoSample), 0.2 * (1.0 - aoSample));
+        float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
         // Apply light
         color.rgb *= light;
 
