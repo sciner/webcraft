@@ -861,6 +861,7 @@ async function onMessageFunc(e) {
                 //TODO: move it to adjust func
                 if (setAo || ((src === MASK_BLOCK) !== (old_src === MASK_BLOCK))) {
                     world.dayLightSrc.add(chunk, ind);
+                    world.dayLight.add(chunk, ind, maxLight);
                 }
                 for (let portal of portals) {
                     if (portal.aabb.contains(x, y, z)) {
