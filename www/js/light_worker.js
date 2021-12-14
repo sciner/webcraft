@@ -76,6 +76,14 @@ function initMasks() {
     }
 }
 
+function calcDif26(size, out) {
+    //TODO: move to BaseChunk
+    const sx = 1, sz = size.x, sy = size.x * size.z;
+    for (let i=0;i<DIR_COUNT;i++) {
+        out.push(sx * dx[i] + sy * dy[i] + sz * dz[i]);
+    }
+}
+
 initMasks();
 
 class LightQueue {
@@ -103,7 +111,7 @@ class LightQueue {
             }
             let chunk = wavesChunk[wn].pop();
             let {lightChunk} = chunk;
-            const {uint8View, outerSize, strideBytes, safeAABB, outerAABB, portals} = lightChunk;
+            const {uint8View, outerSize, strideBytes, safeAABB, outerAABB, portals, dif26} = lightChunk;
             const coord = wavesCoord[wn].pop();
             const coordBytes = coord * strideBytes + qOffset;
             chunk.waveCounter--;
@@ -140,7 +148,7 @@ class LightQueue {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
                     }
-                    let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                    let coord2 = coord + dif26[d];
                     let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
                     if (uint8View[coord2 * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
                         light = 0;
@@ -165,7 +173,7 @@ class LightQueue {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
                     }
-                    let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                    let coord2 = coord + dif26[d];
                     const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
                     // a4fa-12 , not obvious optimization
                     if (light >= prev && light >= val && light >= old) {
@@ -213,7 +221,7 @@ class LightQueue {
                     let x2 = x + dx[d],
                         y2 = y + dy[d],
                         z2 = z + dz[d];
-                    let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                    let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
                         wavesChunk[waveNum].push(chunk);
                         wavesCoord[waveNum].push(coord2);
@@ -505,6 +513,9 @@ class Chunk {
             size: args.size,
             strideBytes: 8
         }).setPos(new Vector().copyFrom(args.addr).mul(args.size));
+
+        calcDif26(this.lightChunk.outerSize, this.lightChunk.dif26);
+
         this.lightChunk.rev = this;
         if (args.light_buffer) {
             this.setLightFromBuffer(args.light_buffer);
