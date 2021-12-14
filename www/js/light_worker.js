@@ -102,6 +102,18 @@ class LightQueue {
     doIter(times) {
         const {wavesChunk, wavesCoord, qOffset} = this;
         let wn = maxLight;
+
+        let chunk = null;
+        let lightChunk = null;
+        let uint8View = null;
+        let outerSize = null;
+        let strideBytes = 0;
+        let outerAABB = null;
+        let safeAABB = null;
+        let portals = null;
+        let dif26 = null;
+        let sx = 0, sy = 0, sz = 0;
+
         for (let tries = 0; tries < times; tries++) {
             while (wn >= 0 && wavesChunk[wn].length === 0) {
                 wn--;
@@ -109,17 +121,28 @@ class LightQueue {
             if (wn < 0) {
                 return true;
             }
-            let chunk = wavesChunk[wn].pop();
-            let {lightChunk} = chunk;
-            const {uint8View, outerSize, strideBytes, safeAABB, outerAABB, portals, dif26} = lightChunk;
+            let newChunk = wavesChunk[wn].pop();
             const coord = wavesCoord[wn].pop();
-            const coordBytes = coord * strideBytes + qOffset;
-            chunk.waveCounter--;
-            if (chunk.removed) {
+            newChunk.waveCounter--;
+            if (newChunk.removed) {
                 continue;
             }
+            if (chunk !== newChunk) {
+                chunk = newChunk;
+                lightChunk = chunk.lightChunk;
+                uint8View = lightChunk.uint8View;
+                outerSize = lightChunk.outerSize;
+                strideBytes = lightChunk.strideBytes;
+                outerAABB = lightChunk.outerAABB;
+                safeAABB = lightChunk.safeAABB;
+                portals = lightChunk.portals;
+                dif26 = lightChunk.dif26;
+                sx = 1;
+                sz = outerSize.x;
+                sy = outerSize.x * outerSize.z;
+            }
 
-            const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
+            const coordBytes = coord * strideBytes + qOffset;
 
             let tmp = coord;
             let x = tmp % outerSize.x;
