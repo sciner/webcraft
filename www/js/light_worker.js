@@ -29,7 +29,7 @@ const world = {
     dayLightSrc: null,
 }
 
-const maxLight = 31;
+const maxLight = 32;
 const MASK_BLOCK = 127;
 const MASK_AO = 128;
 
@@ -126,7 +126,7 @@ class LightQueue {
             z += outerAABB.z_min;
 
             let mask = 0;
-            let val = uint8View[coordBytes + OFFSET_SOURCE] & maxLight;
+            let val = uint8View[coordBytes + OFFSET_SOURCE];
             if (val === MASK_BLOCK) {
                 val = 0;
             } else {
@@ -135,7 +135,7 @@ class LightQueue {
                         continue;
                     }
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                    const src = uint8View[coord2 * strideBytes + qOffset + OFFSET_SOURCE] & maxLight;
+                    const src = uint8View[coord2 * strideBytes + qOffset + OFFSET_SOURCE];
                     const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
                     val = Math.max(val, light - dlen[d]);
                     if (src === MASK_BLOCK) {
@@ -220,7 +220,6 @@ class LightQueue {
         msLimit = msLimit || globalStepMs;
         const startTime = performance.now();
         let endTime = performance.now();
-        let wn = maxLight;
         do {
             this.doIter(1000);
             endTime = performance.now();
@@ -280,7 +279,7 @@ class DirLightQueue {
         }
 
         for (let i = len; i > R; i--) {
-            waveLevels[j] = waveLevels[j - 1];
+            waveLevels[i] = waveLevels[i - 1];
         }
         waveLevels[R] = new WaveLevel(level);
         return waveLevels[R];
@@ -288,8 +287,8 @@ class DirLightQueue {
 
     add(chunk, coord) {
         const { outerSize } = chunk;
-        let lvl = chunk.outerAABB.y + Math.floor(coord / outerSize.x / outerSize.z); // get Y
-        const wave = getWave(lvl);
+        let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
+        const wave = this.getWave(lvl);
         wave.chunks.push(chunk);
         wave.coords.push(coord);
         chunk.waveCounter++;
@@ -313,13 +312,17 @@ class DirLightQueue {
         let sx = 0, sy = 0, sz = 0;
 
         for (let tries = 0; tries < times; tries++) {
-            if (!curWave) {
+            while (!curWave) {
                 if (waveLevels.length === 0) {
                     return;
                 }
                 curWave = waveLevels.pop();
+                if (curWave.coords.length === 0) {
+                    curWave = null;
+                    continue;
+                }
                 nextWave = waveLevels[waveLevels.length - 1];
-                if (nextWave.level + 1 !== curWave.level) {
+                if (!nextWave || nextWave.level + 1 !== curWave.level) {
                     nextWave = new WaveLevel(curWave.level - 1);
                     waveLevels.push(nextWave);
                 }
@@ -618,7 +621,7 @@ class Chunk {
         //TODO: separate multiple cycle
 
         // Light + AO
-        let ind = 0;
+        let ind = 0, ind2 = lightChunk.outerLen * 4;
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
@@ -650,9 +653,9 @@ class Chunk {
                     const B2 = uint8View[coord + sx] + uint8View[coord + sz];
                     const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
-                    result[ind++] = R * 16.0;
-                    result[ind++] = G * 16.0;
-                    result[ind++] = B * 16.0;
+                    result[ind++] = Math.round(R * 255.0 / 4.0);
+                    result[ind++] = Math.round(G * 255.0 / 4.0);
+                    result[ind++] = Math.round(B * 255.0 / 4.0);
                     result[ind++] = Math.round(A * 255.0 / 15.0);
 
                     // add day light
@@ -663,10 +666,10 @@ class Chunk {
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A2 = adjustLight(A2);
 
-                    result[ind++] = Math.round(A2 * 255.0 / 15.0);
-                    result[ind++] = 0;
-                    result[ind++] = 0;
-                    result[ind++] = 0;
+                    result[ind2++] = 0;
+                    result[ind2++] = 0;
+                    result[ind2++] = 0;
+                    result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
                 }
     }
 }

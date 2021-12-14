@@ -199,7 +199,7 @@ export class Chunk {
             const lightTex = this.lightTex = render.createTexture3D({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
-                depth: this.size.y + 2,
+                depth: (this.size.y + 2) * 2,
                 type: 'rgba8unorm',
                 filter: 'linear',
                 data: this.lightData
