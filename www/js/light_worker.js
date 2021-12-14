@@ -135,12 +135,12 @@ class LightQueue {
                         continue;
                     }
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
-                    const src = uint8View[coord2 * strideBytes + qOffset + OFFSET_SOURCE];
-                    const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
-                    val = Math.max(val, light - dlen[d]);
-                    if (src === MASK_BLOCK) {
+                    let light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                    if (uint8View[coord2 * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
+                        light = 0;
                         mask |= dmask[d];
                     }
+                    val = Math.max(val, light - dlen[d]);
                 }
             }
             const old = uint8View[coordBytes + OFFSET_LIGHT];
