@@ -158,8 +158,15 @@ class LightQueue {
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
                 for (let d = 0; d < DIR_COUNT; d++) {
-                    //TODO: better condition: dont add if there's a block
+                    if ((mask & (1 << d)) !== 0) {
+                        continue;
+                    }
                     let coord2 = coord + dx[d] * sx + dy[d] * sy + dz[d] * sz;
+                    const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
+                    // a4fa-12 , not obvious optimization
+                    if (light >= prev && light >= val && light >= old) {
+                        continue;
+                    }
                     wavesChunk[waveNum].push(chunk);
                     wavesCoord[waveNum].push(coord2);
                     chunk.waveCounter++;
@@ -180,10 +187,17 @@ class LightQueue {
                             y2 = y + dy[d],
                             z2 = z + dz[d];
                         if (chunk2.aabb.contains(x2, y2, z2)) {
-                            wavesChunk[waveNum].push(chunk2.rev);
-                            wavesCoord[waveNum].push(chunk2.indexByWorld(x2, y2, z2));
-                            chunk2.rev.waveCounter++;
+                            const coord2 = chunk2.indexByWorld(x2, y2, z2);
+                            const light = chunk2.uint8ByInd(coord2, qOffset + OFFSET_LIGHT);
                             mask |= 1 << d;
+                            // a4fa-12 , not obvious optimization
+                            if (light >= prev && light >= val && light >= old) {
+                                continue;
+                            }
+                            wavesChunk[waveNum].push(chunk2.rev);
+                            wavesCoord[waveNum].push(coord2);
+
+                            chunk2.rev.waveCounter++;
                         }
                     }
                 }
@@ -206,10 +220,12 @@ class LightQueue {
                     }
                 }
                 if (hitEdge) {
-                    //TODO: do this only if light decreased
-                    wavesChunk[waveNum].push(chunk);
-                    wavesCoord[waveNum].push(coord);
-                    chunk.waveCounter++;
+                    // a4fa-12
+                    if (val <= prev) {
+                        wavesChunk[waveNum].push(chunk);
+                        wavesCoord[waveNum].push(coord);
+                        chunk.waveCounter++;
+                    }
                 }
             }
         }
@@ -383,8 +399,11 @@ class DirLightQueue {
             uint8View[coordBytes + OFFSET_SOURCE_PREV] = val;
 
             // add to queue for light calc
-            world.dayLight.add(chunk, coord, Math.max(val, uint8View[coordBytes + OFFSET_LIGHT]));
 
+            const maxVal = Math.max(val, uint8View[coordBytes + OFFSET_LIGHT]);
+            world.dayLight.add(chunk, coord, maxVal);
+            // mxdl-13 not obvious, good for big amount of lights
+            uint8View[coordBytes + OFFSET_LIGHT] = maxVal;
             chunk.lastID++;
 
             //TODO: copy to neib chunks
