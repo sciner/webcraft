@@ -127,9 +127,15 @@ class LightQueue {
 
             let mask = 0;
             let val = uint8View[coordBytes + OFFSET_SOURCE];
+            const old = uint8View[coordBytes + OFFSET_LIGHT];
+            const prev = uint8View[coordBytes + OFFSET_PREV];
             if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK) {
                 val = 0;
             } else {
+                if (val === maxLight && val === old && val === prev)
+                {
+                    continue;
+                }
                 for (let d = 0; d < DIR_COUNT; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
@@ -143,8 +149,6 @@ class LightQueue {
                     val = Math.max(val, light - dlen[d]);
                 }
             }
-            const old = uint8View[coordBytes + OFFSET_LIGHT];
-            const prev = uint8View[coordBytes + OFFSET_PREV]
             if (old === val && prev === val) {
                 continue;
             }
