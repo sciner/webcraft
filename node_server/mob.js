@@ -1,5 +1,6 @@
 import {getChunkAddr} from "../www/js/chunk.js";
 import {Brains} from "./fsm/index.js";
+import { Vector } from "../www/js/helpers.js";
 
 // import {BLOCK} from "../www/js/blocks.js";
 // import {MobModel} from "../www/js/mob_model.js";
@@ -10,6 +11,8 @@ export class Mob {
 
     #world;
     #brain;
+    #chunk_addr;
+    #forward;
 
     constructor(world, params) {
 
@@ -22,15 +25,24 @@ export class Mob {
         this.pos            = params.pos;
         this.pos_spawn      = params.pos_spawn;
         this.rotate         = params.rotate;
-
+        // Private properties
+        this.#chunk_addr    = new Vector();
+        this.#forward       = new Vector(0, 1, 0);
         this.#brain         = Brains.get(this.type, this);
-
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
         world.mobs.set(this.entity_id, this);
     }
 
     get chunk_addr() {
-        return getChunkAddr(this.pos);
+        return getChunkAddr(this.pos, this.#chunk_addr);
+    }
+
+    get forward() {
+        return this.#forward.set(
+            Math.sin(this.rotate.z),
+            0,
+            Math.cos(this.rotate.z),
+        );
     }
 
     getWorld() {

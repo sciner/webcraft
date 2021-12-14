@@ -1,8 +1,7 @@
-import {CHUNK_STATE_NEW, CHUNK_STATE_LOADING, CHUNK_STATE_LOADED, CHUNK_STATE_BLOCKS_GENERATED} from "../server_chunk.js";
+import {CHUNK_STATE_BLOCKS_GENERATED} from "../server_chunk.js";
 import {FSMStack} from "./stack.js";
 
 import { PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../../www/vendors/prismarine-physics/using.js";
-import { PickAt } from "../../www/js/pickat.js";
 import { Vector } from "../../www/js/helpers.js";
 import { getChunkAddr } from "../../www/js/chunk.js";
 import { ServerClient } from "../../www/js/server_client.js";
@@ -10,12 +9,14 @@ import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 
 export class FSMBrain {
 
+    #pos;
+
     constructor(mob) {
-        this.mob = mob;
-        this.stack = new FSMStack();
-        this.raycaster = new Raycaster(mob.getWorld());
-        this._forward = new Vector(0,1,0);
-        this.rotateSign = 1;
+        this.mob            = mob;
+        this.stack          = new FSMStack();
+        this.raycaster      = new Raycaster(mob.getWorld());
+        this.rotateSign     = 1;
+        this.#pos           = new Vector(0, 0, 0);
     }
 
     /**
@@ -23,13 +24,12 @@ export class FSMBrain {
      */
     raycastFromHead() {
         const mob = this.mob;
-        this._forward.set(
-            Math.sin(mob.rotate.z),
-            0,
-            Math.cos(mob.rotate.z),
+        this.#pos.set(
+            mob.pos.x,
+            mob.pos.y + this.pc.physics.playerHeight * 0.8,
+            mob.pos.z
         );
-        const eye_height = this.pc.physics.playerHeight * 0.8;
-        return this.raycaster.get(mob.pos.add(new Vector(0, eye_height, 0)), this._forward, 100);
+        return this.raycaster.get(this.#pos, mob.forward, 100);
     }
 
     tick(delta) {
