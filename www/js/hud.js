@@ -2,7 +2,7 @@ import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import {Helpers} from './helpers.js';
+import {Helpers, Vector} from './helpers.js';
 import {Resources} from "./resources.js";
 
 export class HUD {

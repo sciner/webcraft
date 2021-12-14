@@ -62,7 +62,7 @@ export class GameClass {
     setInputCanvas(element_id) {
         let player = this.player;
         let canvas = document.getElementById(element_id);
-        this.kb = new Kb(canvas, {
+        let kb = this.kb = new Kb(canvas, {
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 let visibleWindows = this.hud.wm.getVisibleWindows();
                 if(type == MOUSE.DOWN && visibleWindows.length > 0) {
@@ -87,14 +87,7 @@ export class GameClass {
                 player.chat.typeChar(charCode, typedChar);
             },
             // Hook for keyboard input
-            onKeyEvent: (e, keyCode, down, first) => {
-                e = {
-                    keyCode: keyCode,
-                    down: down,
-                    first: first,
-                    shiftKey: e.shiftKey,
-                    ctrlKey: e.ctrlKey
-                }
+            onKeyEvent: (e) => {
                 // Chat
                 if(player.chat.active) {
                     player.chat.onKeyEvent(e);
@@ -103,11 +96,11 @@ export class GameClass {
                 // Windows
                 let vw = this.hud.wm.getVisibleWindows();
                 if(vw.length > 0) {
-                    switch(keyCode) {
+                    switch(e.keyCode) {
                         // E (Inventory)
                         case KEY.ESC:
                         case KEY.E: {
-                            if(!down) {
+                            if(!e.down) {
                                 this.hud.wm.closeAll();
                                 this.setupMousePointer(false);
                                 return true;
@@ -118,33 +111,36 @@ export class GameClass {
                     return;
                 }
                 //
-                switch(keyCode) {
+                switch(e.keyCode) {
                     // Page Up
                     case KEY.PAGE_UP: {
-                        if(down) {
+                        if(e.down) {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist + 1);
                         }
+                        return true;
                         break;
                     }
                     // Set render distance [Page Down]
                     case KEY.PAGE_DOWN: {
-                        if(down) {
+                        if(e.down) {
                             this.world.chunkManager.setRenderDist(player.state.chunk_render_dist - 1);
                         }
+                        return true;
                         break;
                     }
                     case KEY.SLASH: {
-                        if(!down) {
+                        if(!e.down) {
                             if(!player.chat.active) {
                                 player.chat.open(['/']);
                             }
                         }
+                        return true;
                         break;
                     }
                     // Flying [Space]
                     case KEY.SPACE: {
                         if(this.world.game_mode.canFly() && !player.in_water && !player.onGround) {
-                            if(down && first) {
+                            if(e.down && e.first) {
                                 if(!player.getFlying()) {
                                     // this.setFlying(true);
                                     console.log('flying');
@@ -155,7 +151,7 @@ export class GameClass {
                     }
                     // [F1]
                     case KEY.F1: {
-                        if(!down) {
+                        if(!e.down) {
                             this.hud.toggleActive();
                         }
                         return true;
@@ -163,7 +159,7 @@ export class GameClass {
                     }
                     // [F3] Toggle info
                     case KEY.F3: {
-                        if(!down) {
+                        if(!e.down) {
                             this.hud.toggleInfo();
                         }
                         return true;
@@ -171,7 +167,7 @@ export class GameClass {
                     }
                     // [F4] Draw all blocks
                     case KEY.F4: {
-                        if(!down) {
+                        if(!e.down) {
                             if(e.shiftKey) {
                                 this.world.chunkManager.setTestBlocks(new Vector((player.pos.x | 0) - 11, player.pos.y | 0, (player.pos.z | 0) - 13));
                             } else {
@@ -183,7 +179,7 @@ export class GameClass {
                     }
                     // [F6] (Test light)
                     case KEY.F6: {
-                        if(!down) {
+                        if(!e.down) {
                             this.render.testLightOn = !this.render.testLightOn;
                         }
                         return true;
@@ -191,7 +187,7 @@ export class GameClass {
                     }
                     // [F7] Ddraw player "ghost"
                     case KEY.F7: {
-                        if(!down) {
+                        if(!e.down) {
                             this.world.players.drawGhost(this.player);
                         }
                         return true;
@@ -199,7 +195,7 @@ export class GameClass {
                     }
                     // [F8] Random teleport
                     case KEY.F8: {
-                        if(!down) {
+                        if(!e.down) {
                             if(e.shiftKey) {
                                 player.pickAt.get(player.pos, (pos) => {
                                     if(pos !== false) {
@@ -221,7 +217,7 @@ export class GameClass {
                     }
                     // F9 (toggleNight | Under rain)
                     case KEY.F9: {
-                        if(!down) {
+                        if(!e.down) {
                             this.render.toggleNight();
                         }
                         return true;
@@ -229,7 +225,7 @@ export class GameClass {
                     }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
-                        if(!down) {
+                        if(!e.down) {
                             player.nextGameMode();
                         }
                         return true;
@@ -237,7 +233,7 @@ export class GameClass {
                     }
                     // R (Respawn)
                     case KEY.R: {
-                        if(!down) {
+                        if(!e.down) {
                             this.player.world.server.Teleport('spawn');
                         }
                         return true;
@@ -245,7 +241,7 @@ export class GameClass {
                     }
                     // E (Inventory)
                     case KEY.E: {
-                        if(!down) {
+                        if(!e.down) {
                             if(this.hud.wm.getVisibleWindows().length == 0) {
                                 player.inventory.open();
                                 return true;
@@ -255,7 +251,7 @@ export class GameClass {
                     }
                     // T (Open chat)
                     case KEY.T: {
-                        if(!down) {
+                        if(!e.down) {
                             if(!player.chat.active) {
                                 player.chat.open([]);
                             }
@@ -263,8 +259,42 @@ export class GameClass {
                         return true;
                         break;
                     }
-                }        
-                return player.onKeyEvent(e);
+                }
+                // Player controls
+                if(kb.keys[e.keyCode] && e.down) {
+                    // do nothing
+                } else {
+                    kb.keys[e.keyCode] = e.down ? performance.now() : false;
+                }
+                player.controls.back    = !!(kb.keys[KEY.S] && !kb.keys[KEY.W]);
+                player.controls.forward = !!(kb.keys[KEY.W] && !kb.keys[KEY.S]);
+                player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
+                player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
+                player.controls.jump    = !!(kb.keys[KEY.SPACE]);
+                // 0...9 (Select material)
+                if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
+                    if(e.keyCode == 48) {
+                        e.keyCode = 58;
+                    }
+                    player.inventory.select(e.keyCode - 49);
+                    return true;
+                }
+                player.zoom = !!kb.keys[KEY.C];
+                if(e.ctrlKey) {
+                    player.controls.sprint = !!kb.keys[KEY.W];
+                } else {
+                    if(!e.down) {
+                        if(e.keyCode == KEY.W) {
+                            player.controls.sprint = false;
+                        }
+                    }
+                }
+                return false;
+            },
+            onDoubleKeyDown: function(e) {
+                if(e.keyCode == KEY.W) {
+                    player.controls.sprint = true;
+                }
             }
         });
 
@@ -361,7 +391,7 @@ export class GameClass {
                 if(that.hud.wm.getVisibleWindows().length == 0 && !that.player.chat.active) {
                     that.hud.frmMainMenu.show();
                 }
-                that.player.controls.clearStates();
+                that.kb.clearStates();
             }
         }
         let pointerlockerror = function(event) {

@@ -2,22 +2,26 @@ export class Kb {
 
     constructor(canvas, options) {
         
-        let that = this;
-
+        let that            = this;
         this.canvas         = canvas;
         this.options        = options;
         this.keys_fired     = {down: {}, up: {}};
+        this.keys           = {};
+        this.dbl_press      = new Map();
 
-        /*window.onbeforeunload = function (e) {
-            // Cancel the event
-            e.preventDefault();
-            // Chrome requires returnValue to be set
-            e.returnValue = 'Really want to quit the game?';
-        };*/
+        let makeEvent = function(e, down, first) {
+            return {
+                keyCode: e.keyCode,
+                down: down,
+                first: first,
+                shiftKey: e.shiftKey,
+                ctrlKey: e.ctrlKey
+            };
+        };
 
         document.onkeydown = function(e) {
             if (e.target.tagName != 'INPUT') {
-                if(that._onKeyEvent(e, e.keyCode, true)) {
+                if(that._onKeyEvent(makeEvent(e, true, false))) {
                     return false;
                 }
             }
@@ -30,7 +34,7 @@ export class Kb {
 
         document.onkeyup = function(e) {
             if (e.target.tagName != 'INPUT') {
-                if(that._onKeyEvent(e, e.keyCode, false)) {
+                if(that._onKeyEvent(makeEvent(e, false, false))) {
                     return false;
                 }
             }
@@ -49,23 +53,57 @@ export class Kb {
 
     }
 
+    clearStates() {
+        this.keys[KEY.W] = false;
+        this.keys[KEY.A] = false;
+        this.keys[KEY.S] = false;
+        this.keys[KEY.D] = false;
+        this.keys[KEY.SPACE] = false;
+        this.keys[KEY.SHIFT] = false;
+    }
+
     // Hook for keyboard input
-    _onKeyEvent(e, keyCode, down) {
-        let resp = null;
-        if(down) {
-            if(this.keys_fired.up[keyCode]) {
-                this.keys_fired.up[keyCode] = false;
+    _onKeyEvent(e) {
+
+        // Detect double key press
+        if(!this.dbl_press.has(e.keyCode)) {
+            this.dbl_press.set(e.keyCode, {count: 0, t: -1000});
+        }
+        let dp = this.dbl_press.get(e.keyCode);
+        if(e.down) {
+            if(dp.count == 0 && performance.now() - dp.t < 250) {
+                // Fire double keypress callback
+                this.options.onDoubleKeyDown(e);
+                dp.t = -1000;
+                dp.count = 0;
+            } else {
+                dp.count++;
             }
-            let first_press = this.keys_fired.down[keyCode];
-            resp = this.options.onKeyEvent(e, keyCode, down, !first_press);
-            this.keys_fired.down[keyCode] = true;
         } else {
-            if(this.keys_fired.down[keyCode]) {
-                this.keys_fired.down[keyCode] = false;
+            if(dp.count == 1) {
+                dp.t = performance.now();
+            } else {
+                dp.t = -1000;
             }
-            let first_press = this.keys_fired.up[keyCode];
-            resp = this.options.onKeyEvent(e, keyCode, down, !first_press);
-            this.keys_fired.up[keyCode] = true;
+            dp.count = 0;
+        }
+
+        // Fire keypress callback
+        let resp = null;
+        if(e.down) {
+            if(this.keys_fired.up[e.keyCode]) {
+                this.keys_fired.up[e.keyCode] = false;
+            }
+            e.first = this.keys_fired.down[e.keyCode];
+            resp = this.options.onKeyEvent(e);
+            this.keys_fired.down[e.keyCode] = true;
+        } else {
+            if(this.keys_fired.down[e.keyCode]) {
+                this.keys_fired.down[e.keyCode] = false;
+            }
+            e.first = this.keys_fired.up[e.keyCode];
+            resp = this.options.onKeyEvent(e);
+            this.keys_fired.up[e.keyCode] = true;
         }
         return resp;
     }

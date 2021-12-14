@@ -46,10 +46,8 @@ export class PickAt {
     get (pos, callback, pickat_distance) {
         const render = this.render;
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
-
         pos = new Vector(pos);
         pos.y = render.camPos.y;
-
         return this.raycaster.getFromView(pos, m, pickat_distance, callback);
     }
 

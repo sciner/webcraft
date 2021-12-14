@@ -224,6 +224,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         let maps                    = this.generateMaps(chunk);
         let map                     = maps[4];
+        let xyz                     = new Vector(0, 0, 0);
+        let temp_vec                = new Vector(0, 0, 0);
+        let temp_vec2               = new Vector(0, 0, 0);
 
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
@@ -239,9 +242,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         //
         let setBlock = (x, y, z, block_id) => {
-            let vec = new Vector(x, y, z);
-            chunk.tblocks.delete(vec);
-            let block = chunk.tblocks.get(vec);
+            temp_vec2.set(x, y, z);
+            // let vec = new Vector(x, y, z);
+            chunk.tblocks.delete(temp_vec2);
+            let block = chunk.tblocks.get(temp_vec2);
             block.id = block_id;
         };
 
@@ -291,7 +295,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                 for(let y = min_y; y < chunk.size.y; y++) {
 
-                    let xyz = new Vector(x, y, z).add(chunk.coord);
+                    xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
                     // Draw voxel buildings
                     let vb = this.getVoxelBuilding(xyz);
@@ -388,7 +392,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         } else if(r < 0.01) {
                             setBlock(x, y, z, BLOCK.COAL_ORE.id);
                         } else {
-                            let norm = !map.info.plants.has(new Vector(x, y + 1, z))
+                            temp_vec.set(x, y + 1, z);
+                            let norm = !map.info.plants.has(temp_vec)
                             /*
                             for(let plant of map.info.plants) {
                                 if(plant.pos.x == x && y == plant.pos.y - 1 && plant.pos.z == z) {
@@ -408,7 +413,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
                             // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
-                            if(!chunk.tblocks.has(new Vector(x, y - chunk.coord.y, z))) {
+                            temp_vec.set(x, y - chunk.coord.y, z);
+                            if(!chunk.tblocks.has(temp_vec)) {
                                 setBlock(x, y - chunk.coord.y, z, BLOCK.STILL_WATER.id);
                             }
                         }
