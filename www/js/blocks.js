@@ -83,11 +83,17 @@ export class BLOCK {
             if(v < 0) v *= -1;
             return v;
         };
-        v = v || new Vector(
-            f(x, CHUNK_SIZE_X),
-            f(y, CHUNK_SIZE_Y),
-            f(z, CHUNK_SIZE_Z),
-        );
+        if(v) {
+            v.x = f(x, CHUNK_SIZE_X);
+            v.y = f(y, CHUNK_SIZE_Y);
+            v.z = f(z, CHUNK_SIZE_Z);
+        } else {
+            v = new Vector(
+                f(x, CHUNK_SIZE_X),
+                f(y, CHUNK_SIZE_Y),
+                f(z, CHUNK_SIZE_Z),
+            );
+        }
         if(x < 0) v.x = CHUNK_SIZE_X - 1 - v.x;
         if(y < 0) v.y = CHUNK_SIZE_Y - 1 - v.y;
         if(z < 0) v.z = CHUNK_SIZE_Z - 1 - v.z;
