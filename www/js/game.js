@@ -271,6 +271,7 @@ export class GameClass {
                 player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
                 player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
                 player.controls.jump    = !!(kb.keys[KEY.SPACE]);
+                player.controls.sneak   = e.shiftKey;
                 // 0...9 (Select material)
                 if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
                     if(e.keyCode == 48) {
