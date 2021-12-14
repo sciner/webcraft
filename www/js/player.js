@@ -8,6 +8,7 @@ import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-p
 import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
+import {PlayerControl} from "./player_control.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -28,13 +29,10 @@ export class Player {
 
     // playerConnectedToWorld...
     playerConnectedToWorld(data) {
-        let that                    = this;
         //
         this.session                = data.session;
         this.state                  = data.state;
         this.indicators             = data.state.indicators;
-        this.previousForwardDown    = performance.now();
-        this.previousForwardUp      = performance.now();
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         // Position
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
@@ -86,24 +84,7 @@ export class Player {
         this.overChunk              = null;
         this.step_count             = 0;
         // Controls
-        this.keys                   = {};
-        this.controls = {
-            mouseX: 0,
-            mouseY: 0,
-            mouse_sensitivity: 1.0,
-            inited: false,
-            enabled: false,
-            clearStates: function() {
-                let player = that;
-                player.keys[KEY.W] = false;
-                player.keys[KEY.A] = false;
-                player.keys[KEY.S] = false;
-                player.keys[KEY.D] = false;
-                player.keys[KEY.J] = false;
-                player.keys[KEY.SPACE] = false;
-                player.keys[KEY.SHIFT] = false;
-            }
-        };
+        this.controls               = new PlayerControl();
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
@@ -223,54 +204,6 @@ export class Player {
         } else if (type == MOUSE.UP) {
             this.pickAt.clearEvent();
         }
-    }
-
-    // Hook for keyboard input
-    onKeyEvent(e) {
-        let {keyCode, down, first, shiftKey, ctrlKey} = e;
-        //
-        if(this.keys[keyCode] && down) {
-            // do nothing
-        } else {
-            this.keys[keyCode] = down ? performance.now(): false;
-        }
-        // 0...9 (Select material)
-        if(!down && (keyCode >= 48 && keyCode <= 57)) {
-            if(keyCode == 48) {
-                keyCode = 58;
-            }
-            this.inventory.select(keyCode - 49);
-            return true;
-        }
-        this.zoom = !!this.keys[KEY.C];
-        // Running
-        if(keyCode == KEY.S) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
-        if(keyCode == KEY.D) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
-        if(keyCode == KEY.A) {this.moving = down || this.keys[KEY.A] || this.keys[KEY.D] || this.keys[KEY.S] || this.keys[KEY.W];}
-        if(keyCode == KEY.W) {
-            const n = performance.now();
-            if(down) {
-                this.moving = true;
-                if(n - this.previousForwardDown < 250 && n - this.previousForwardUp < 250) {
-                    this.running = true;
-                }
-                this.previousForwardDown = n;
-            } else {
-                this.moving = false;
-                this.running = false;
-                this.previousForwardUp = n;
-            }
-        }
-        if(ctrlKey) {
-            this.running = !!this.keys[KEY.W];
-        } else {
-            if(!down) {
-                if(keyCode == KEY.W) {
-                    this.running = false;
-                }
-            }
-        }
-        return false;
     }
 
     // Called to perform an action based on the player's block selection and input.
@@ -582,14 +515,14 @@ export class Player {
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
             let pc                 = this.getPlayerControl();
-            this.posO              = new Vector(this.lerpPos);
-            pc.controls.back       = !!(this.keys[KEY.S] && !this.keys[KEY.W]);
-            pc.controls.forward    = !!(this.keys[KEY.W] && !this.keys[KEY.S]);
-            pc.controls.right      = !!(this.keys[KEY.D] && !this.keys[KEY.A]);
-            pc.controls.left       = !!(this.keys[KEY.A] && !this.keys[KEY.D]);
-            pc.controls.jump       = !!this.keys[KEY.SPACE];
-            pc.controls.sneak      = !!this.keys[KEY.SHIFT];
-            pc.controls.sprint     = this.running;
+            this.posO.set(this.lerpPos.x, this.lerpPos.y, this.lerpPos.z);
+            pc.controls.back       = this.controls.back;
+            pc.controls.forward    = this.controls.forward;
+            pc.controls.right      = this.controls.right;
+            pc.controls.left       = this.controls.left;
+            pc.controls.jump       = this.controls.jump;
+            pc.controls.sneak      = this.controls.sneak;
+            pc.controls.sprint     = this.controls.sprint;
             pc.player_state.yaw    = this.rotate.z;
             // Physics tick
             let ticks = pc.tick(delta);
@@ -609,11 +542,13 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
+            this.moving     = !this.lerpPos.equal(this.posO);
+            this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
-            let velocity    = pc.player_state.vel;
             this.onGroundO  = this.onGround;
             this.onGround   = pc.player_state.onGround;
             this.in_water   = pc.player_state.isInWater;
+            let velocity    = pc.player_state.vel;
             // Check falling
             this.checkFalling();
             // Walking

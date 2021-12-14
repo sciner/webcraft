@@ -85,7 +85,7 @@ export class PickAt {
             leftTop.x = Math.floor(block.x);
             leftTop.y = Math.floor(block.y);
             leftTop.z = Math.floor(block.z);
-            let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
+            let b = this.world.chunkManager.getBlock(leftTop);
 
             let hitShape = b.id > BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
@@ -151,7 +151,10 @@ export class PickAt {
                 break;
             }
 
-            block = block.add(side);
+            // block = block.add(side);
+            block.x += side.x;
+            block.y += side.y;
+            block.z += side.z;
             if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
                 break;
             }

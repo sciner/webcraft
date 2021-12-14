@@ -280,7 +280,8 @@ export class MobModel {
         this.moving                     = false;
         this.aniframe                   = 0;
         this.height                     = 0;
-        this._pos = new Vector(0,0,0);
+        this._pos                       = new Vector(0, 0, 0);
+        this._chunk_addr                = new Vector(0, 0, 0);
 
         Object.assign(this, props);
 
@@ -324,6 +325,10 @@ export class MobModel {
         return this._pos;
     }
 
+    get chunk_addr() {
+        return getChunkAddr(this.pos, this._chunk_addr);
+    }
+
     set pos(v) {
         const {
             x, y, z
@@ -351,7 +356,7 @@ export class MobModel {
     computeLocalPosAndLight(render) {
         this.posDirty = false;
 
-        const newChunk = ChunkManager.instance.getChunkAtWorld(this.pos);
+        const newChunk = ChunkManager.instance.getChunk(this.chunk_addr);
 
         this.lightTex = newChunk && newChunk.getLightTexture(render.renderBackend);
         this.material.lightTex = this.lightTex;

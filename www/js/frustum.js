@@ -254,11 +254,14 @@ export class FrustumProxy extends Frustum {
 
 	//
 	intersectsSphere(sphere) {
-		sphere = new Sphere(
-			sphere.center.sub(this.camPos).swapYZ(),
-			sphere.radius
-		);
-		return super.intersectsSphere(sphere);
+		if(!sphere._temp) {
+			sphere._temp = new Sphere(new Vector(0, 0, 0), sphere.radius);
+		}
+		sphere._temp.center.x = sphere.center.x - this.camPos.x;
+		// !!!swapYZ
+		sphere._temp.center.y = sphere.center.z - this.camPos.z;
+		sphere._temp.center.z = sphere.center.y - this.camPos.y;
+		return super.intersectsSphere(sphere._temp);
 	}
 
 	//

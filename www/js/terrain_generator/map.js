@@ -25,6 +25,8 @@ export class Map {
         let neighbour_map   = null;
         let map             = null;
         let chunk_coord     = this.chunk.coord;
+        let neighbour_addr  = new Vector(0, 0, 0);
+        let temp_vec        = new Vector(0, 0, 0);
         // Smoothing | Сглаживание
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
             for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
@@ -51,7 +53,7 @@ export class Map {
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
                         // calc chunk addr for this cell
-                        let neighbour_addr = getChunkAddr(px + i, 0, pz + j);
+                        neighbour_addr = getChunkAddr(px + i, 0, pz + j, neighbour_addr);
                         let addr_ok = neighbour_map &&
                                       (neighbour_map.chunk.addr.x == neighbour_addr.x) &&
                                       (neighbour_map.chunk.addr.z == neighbour_addr.z);
@@ -64,8 +66,8 @@ export class Map {
                             debugger;
                         }
                         //
-                        let bi = BLOCK.getBlockIndex(px + i, 0, pz + j);
-                        let neighbour_cell = neighbour_map.cells[bi.x][bi.z];
+                        temp_vec = BLOCK.getBlockIndex(px + i, 0, pz + j, temp_vec);
+                        let neighbour_cell = neighbour_map.cells[temp_vec.x][temp_vec.z];
                         if(neighbour_cell) {
                             height_sum += neighbour_cell.value;
                             dirt_color.add(neighbour_cell.biome.dirt_color);

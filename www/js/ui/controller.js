@@ -29,7 +29,6 @@ window.KEY          = {};
     KEY.C           = 67;
     KEY.D           = 68;
     KEY.E           = 69;
-    KEY.J           = 74;
     KEY.R           = 82;
     KEY.S           = 83;
     KEY.T           = 84;

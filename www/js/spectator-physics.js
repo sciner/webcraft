@@ -85,11 +85,18 @@ export class SpectatorPlayerControl {
         //
         let passable = 1;
         let mul = (this.controls.sprint ? this.player_state.flying ? 1.15 : 1.5 : 1) * passable / 2.8;
-        this.player.entity.position = this.player.entity.position.add(this.player_state.vel.mul(new Vector(delta * mul, delta, delta * mul)));
+        this.player.entity.position.set(
+            Math.round(((this.player.entity.position.x + this.player_state.vel.x * delta * mul)) * 1000) / 1000,
+            Math.round(((this.player.entity.position.y + this.player_state.vel.y * delta)) * 1000) / 1000,
+            Math.round(((this.player.entity.position.z + this.player_state.vel.z * delta * mul)) * 1000) / 1000
+        );
+        /*
         this.player.entity.position = this.player.entity.position
+            .add(this.player_state.vel.mul(new Vector(delta * mul, delta, delta * mul)))
             .mul(new Vector(1000, 1000, 1000))
             .round()
             .div(new Vector(1000, 1000, 1000));
+        */
     }
 
     //

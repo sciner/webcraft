@@ -186,6 +186,9 @@ export class Color {
 
 export class Vector {
 
+    // static cnt = 0;
+    // static traces = new Map();
+
     static XN = new Vector(-1.0, 0.0, 0.0);
     static XP = new Vector(1.0, 0.0, 0.0);
     static YN = new Vector(0.0, -1.0, 0.0);
@@ -195,6 +198,17 @@ export class Vector {
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
     constructor(x, y, z) {
+
+        /*Vector.cnt++;
+        if(typeof window !== 'undefined') {
+            var err = new Error();
+            let stack = err.stack + '';
+            if(!Vector.traces.has(stack)) {
+                Vector.traces.set(stack, {count: 0});
+            }
+            Vector.traces.get(stack).count++;
+        }*/
+
         if(x instanceof Vector) {
             this.x = x.x;
             this.y = x.y;
@@ -260,7 +274,12 @@ export class Vector {
     }
 
     distance(vec) {
-        return this.sub(vec).length();
+        // return this.sub(vec).length();
+        // Fast method
+        let x = this.x - vec.x;
+        let y = this.y - vec.y;
+        let z = this.z - vec.z;
+        return Math.sqrt(x * x + y * y + z * z);
     }
 
     //

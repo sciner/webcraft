@@ -138,12 +138,14 @@ export class ChunkManager {
         if (this.poses_need_update || !Game.player.chunkAddr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
             const pos               = this.poses_chunkPos = Game.player.chunkAddr;
+            const pos_temp          = pos.clone();
             let margin              = Math.max(Game.player.state.chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
             this.poses.length = 0;
             for (let i = 0; i<spiral_moves_3d.length;i++) {
                 const item = spiral_moves_3d[i];
-                const chunk = this.chunks.get(pos.add(item.pos));
+                pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z); // pos.add(item.pos)
+                const chunk = this.chunks.get(pos_temp);
                 if (chunk) {
                     this.poses.push(chunk);
                 }
@@ -223,11 +225,6 @@ export class ChunkManager {
             }
         }
         return true;
-    }
-
-    getChunkAtWorld({x, y, z}) {
-        const local = getChunkAddr(x, y, z);
-        return this.getChunk(local);
     }
 
     // Get
@@ -336,8 +333,13 @@ export class ChunkManager {
         for(let chunk of this.chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 let ok = true;
-                for(let c of cc) {
-                    let addr = chunk.addr.add(c);
+                if(!chunk.addr_neighbors) {
+                    chunk.addr_neighbors = [];
+                    for(let c of cc) {
+                        chunk.addr_neighbors.push(chunk.addr.add(c));
+                    }
+                }
+                for(let addr of chunk.addr_neighbors) {
                     if(addr.y >= 0) {
                         if(!this.getChunk(addr)) {
                             ok = false;

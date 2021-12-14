@@ -70,7 +70,7 @@ export class BLOCK {
     }
 
     //
-    static getBlockIndex(x, y, z) {
+    static getBlockIndex(x, y, z, v = null) {
         if(x instanceof Vector) {
             y = x.y;
             z = x.z;
@@ -83,7 +83,7 @@ export class BLOCK {
             if(v < 0) v *= -1;
             return v;
         };
-        let v = new Vector(
+        v = v || new Vector(
             f(x, CHUNK_SIZE_X),
             f(y, CHUNK_SIZE_Y),
             f(z, CHUNK_SIZE_Z),
