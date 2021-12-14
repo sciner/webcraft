@@ -88,7 +88,7 @@ class LightQueue {
         for (let i = 0; i <= maxLight; i++) {
             this.wavesCoord.push([]);
         }
-        this.qOffset = offset || 4;
+        this.qOffset = offset || 0;
     }
 
     doIter(times) {
@@ -288,6 +288,7 @@ class DirLightQueue {
     add(chunk, coord) {
         const { outerSize } = chunk;
         let lvl = chunk.lightChunk.outerAABB.y_min + Math.floor(coord / outerSize.x / outerSize.z); // get Y
+
         const wave = this.getWave(lvl);
         wave.chunks.push(chunk);
         wave.coords.push(coord);
@@ -378,8 +379,8 @@ class DirLightQueue {
             if (old === val && prev === val) {
                 continue;
             }
-            uint8View[coordBytes + qOffset + OFFSET_SOURCE] = val;
-            uint8View[coordBytes + qOffset + OFFSET_SOURCE_PREV] = val;
+            uint8View[coordBytes + OFFSET_SOURCE] = val;
+            uint8View[coordBytes + OFFSET_SOURCE_PREV] = val;
 
             // add to queue for light calc
             world.dayLight.add(chunk, coord, Math.max(val, uint8View[coordBytes + OFFSET_LIGHT]));
@@ -418,7 +419,7 @@ class DirLightQueue {
                 }
                 if (!mask) {
                     let x2 = x,
-                        y2 = y + 1,
+                        y2 = y - 1,
                         z2 = z;
                     let coord2 = coord - sy;
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
@@ -526,6 +527,11 @@ class Chunk {
 
         // default value for daylight
         const defLight = world.defDayLight;
+        if (defLight > 0) {
+            for (let coord = outerLen - 2 * sy; coord < outerLen; coord++) {
+                uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
+            }
+        }
 
         for (let portal of portals) {
             const other = portal.toRegion;
@@ -568,29 +574,12 @@ class Chunk {
                         const dayLightSrc = bytes2[coord2 + OFFSET_DAY + OFFSET_SOURCE];
                         uint8View[coord1 + OFFSET_DAY + OFFSET_LIGHT] = dayLight;
                         uint8View[coord1 + OFFSET_DAY + OFFSET_SOURCE] = dayLightSrc;
-                        if (f1) {
-                            if (dayLightSrc !== defLight) {
-                                foundDay = true;
-                                world.dayLightSrc.add(this, coord1 / strideBytes);
-                            }
-                            if (dayLight > defLight) {
-                                world.dayLight.add(this, coord1 / strideBytes, dayLight);
-                            }
-                        }
-                        if (f2) {
-                            uint8View[coord1 + OFFSET_DAY + OFFSET_SOURCE] = dayLightSrc;
+                        if (dayLightSrc !== defLight) {
+                            foundDay = true;
                         }
                     }
         }
 
-        if (defLight > 0 && !foundDay) {
-            for (let coord = 0; coord < outerLen; coord++) {
-                // max daylight everywhere
-                uint8View[coord * shiftCoord + OFFSET_DAY + OFFSET_LIGHT] = defLight;
-                uint8View[coord * shiftCoord + OFFSET_DAY + OFFSET_SOURCE] = defLight;
-                uint8View[coord * shiftCoord + OFFSET_DAY + OFFSET_PREV] = defLight;
-            }
-        }
 
         // add light to queue
         for (let y = aabb.y_min; y < aabb.y_max; y++)
@@ -604,8 +593,33 @@ class Chunk {
                     }
                     found = found || uint8View[coordBytes + OFFSET_AO] > 0;
 
-                    // filling daylight
+                    foundDay = foundDay || uint8View[coordBytes + OFFSET_AO] > 0
+                        || uint8View[coordBytes + OFFSET_SOURCE] === MASK_BLOCK
                 }
+
+        if (foundDay) {
+            for (let y = aabb.y_min; y < aabb.y_max; y++)
+                for (let z = aabb.z_min; z < aabb.z_max; z++)
+                    for (let x = aabb.x_min; x < aabb.x_max; x++) {
+                        const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
+                        if (uint8View[coordBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
+                            world.dayLightSrc.add(this, coord);
+                        }
+                        const dayLight = uint8View[coordBytes + OFFSET_DAY + OFFSET_LIGHT];
+                        if (dayLight > 0) {
+                            world.dayLight.add(this, coord, dayLight);
+                        }
+                    }
+        } else {
+            if (defLight > 0) {
+                for (let coord = 0; coord < outerLen; coord++) {
+                    // max daylight everywhere
+                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] = defLight;
+                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
+                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_PREV] = defLight;
+                }
+            }
+        }
         if (found || foundDay) {
             this.lastID++;
         }
@@ -685,15 +699,15 @@ function run() {
             ready--;
         }
         endTime = performance.now();
-        if (endTime < startTime + msLimit) {
-            continue;
-        }
+        // if (endTime > startTime + msLimit) {
+        //     break;
+        // }
         if (world.dayLightSrc.doIter(20000)) {
             ready--;
         }
-        if (endTime < startTime + msLimit) {
-            continue;
-        }
+        // if (endTime > startTime + msLimit) {
+        //     break;
+        // }
         endTime = performance.now();
         if (world.dayLight.doIter(10000)) {
             ready--;
