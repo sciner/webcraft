@@ -192,11 +192,16 @@ export class TypedBlocks {
 
         return (function* () {
             for(let index = 0; index < contex.count; index++) {
+                if (!contex.id[index]) {
+                    continue;
+                }
+
                 // let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
                 let x = index % CHUNK_SIZE_X;
                 let y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
                 let z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
                 let vec = b.vec.set(x, y, z);
+
 
                 yield b.init(contex, vec);//new TBlock(this, vec);
             }
