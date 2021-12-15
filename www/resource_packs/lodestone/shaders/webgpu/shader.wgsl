@@ -170,15 +170,20 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
 
         var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
 
-        var lightCoord: vec3<f32> = (v.chunk_pos + 0.5) / vec3<f32>(18.0, 18.0, 42.0);
+        var lightCoord: vec3<f32> = (v.chunk_pos + 0.5) / vec3<f32>(18.0, 18.0, 84.0);
         var absNormal: vec3<f32> = abs(v.normal);
-        var aoCoord: vec3<f32> = (v.chunk_pos + (v.normal + absNormal + 1.0) * 0.5) / vec3<f32>(18.0, 18.0, 42.0);
-        var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).a * 255.0 / 240.0;
-        var aoSample: f32 = dot(textureSampleLevel(lightTex, lightTexSampler, aoCoord, 0.0).rgb, absNormal) * 255.0 / 48.0 * 0.4;
-        var dayLight: f32 = max(.3, max(.7, dot(v.normal.xzy, sun_dir)) - aoSample);
-        var nightLight: f32 = lightSample * (1.0 - aoSample);
-        var light: f32 = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
+        var aoCoord: vec3<f32> = (v.chunk_pos + (v.normal + absNormal + 1.0) * 0.5) / vec3<f32>(18.0, 18.0, 84.0);
 
+        var caveSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).a;
+        var daySample: f32 = 1.0 - textureSampleLevel(lightTex, lightTexSampler, lightCoord + vec3<f32>(0.0, 0.0, 0.5), 0.0).a;
+        var aoSample: f32 = dot(textureSampleLevel(lightTex, lightTexSampler, aoCoord, 0.0).rgb, absNormal)  ;
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample = aoSample * 0.5;
+
+        caveSample = caveSample * (1.0 - aoSample);
+        daySample = daySample * (1.0 - aoSample - max(-v.normal.z, 0.0) * 0.2);
+
+        var light: f32 = max(min(caveSample + daySample * u.brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
         // Apply light
         color = vec4<f32>(
             color.rgb * light,
