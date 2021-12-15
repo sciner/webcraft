@@ -142,18 +142,20 @@ void main() {
         */
 
 
-        vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 42.0);
+        vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
-        vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 42.0);
-        float lightSample = texture(u_lightTex, lightCoord).a * 255.0 / 240.0;
-        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal) * 255.0 / 48.0;
-        // darken ceiling
-        aoSample = (aoSample + max(0.5 - aoSample, 0.0) * max(-v_normal.z, 0.0));
+        vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
+
+        float caveSample = texture(u_lightTex, lightCoord).a;
+        float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
+        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
         aoSample *= 0.5;
-        float dayLight = max(.2, max(.7, dot(v_normal.xzy, u_SunDir)) - aoSample);
-        float nightLight = lightSample * (1.0 - aoSample);
-        float light = dayLight * u_brightness + nightLight * (1.0 - u_brightness);
+
+        caveSample = caveSample * (1.0 - aoSample);
+        daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
+
+        float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
         // Apply light
         color.rgb *= light;
 

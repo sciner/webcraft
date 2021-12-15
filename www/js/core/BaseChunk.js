@@ -13,6 +13,7 @@ export class BaseChunk {
         this.portals = [];
         this.initSize(size);
         this.setPos(Vector.ZERO);
+        this.dif26 = [];
     }
 
     initSize(size) {

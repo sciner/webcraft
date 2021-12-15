@@ -187,7 +187,7 @@ export class Renderer {
     // toggleNight...
     toggleNight() {
         if(this.brightness == 1) {
-            this.setBrightness(.15);
+            this.setBrightness(0);
         } else {
             this.setBrightness(1);
         }
