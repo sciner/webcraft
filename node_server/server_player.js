@@ -1,22 +1,31 @@
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {ServerClient} from "../www/js/server_client.js";
+import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
+
+const PLAYER_HEIGHT = 1.7;
 
 export class ServerPlayer extends Player {
+
+    #forward;
 
     constructor() {
         super();
         this.position_changed   = false;
         this.chunk_addr         = new Vector(0, 0, 0);
         this.chunk_addr_o       = new Vector(0, 0, 0);
+        this._eye_pos           = new Vector(0, 0, 0);
         this.chunks             = new VectorCollector();
         this.nearby_chunk_addrs = new VectorCollector();
+        this.height             = PLAYER_HEIGHT;
+        this.#forward           = new Vector(0, 1, 0);
     }
 
     //
     async onJoin(session_id, skin, conn, world) {
-        this.conn = conn;
-        this.world = world;
+        this.conn               = conn;
+        this.world              = world;
+        this.raycaster          = new Raycaster(world);
         conn.player = this;
         conn.on('message', async (req) => {
             let cmd = JSON.parse(req);
@@ -61,6 +70,14 @@ export class ServerPlayer extends Player {
                             data: cmd.data
                         }];
                         this.world.sendAll(packets, [this.session.user_id]);
+                        const pick = this.raycastFromHead();
+                        if (pick) {
+                            let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
+                            // let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
+                            if(block) {
+                                console.log('Player pick at block: ', block.material.name);
+                            }
+                        }
                         break;
                     }
 
@@ -214,6 +231,26 @@ export class ServerPlayer extends Player {
      */
     addChunk(chunk) {
         this.chunks.set(chunk.addr, chunk.addr);
+    }
+
+    get forward() {
+        return this.#forward.set(
+            Math.sin(this.state.rotate.z),
+            Math.sin(this.state.rotate.x),
+            Math.cos(this.state.rotate.z),
+        );
+    }
+
+    // Returns the position of the eyes of the player for rendering.
+    getEyePos() {
+        return this._eye_pos.set(this.state.pos.x, this.state.pos.y + this.height, this.state.pos.z);
+    }
+
+    /**
+     * @returns {null | RaycasterResult}
+     */
+    raycastFromHead() {
+        return this.raycaster.get(this.getEyePos(), this.forward, 100);
     }
 
 }

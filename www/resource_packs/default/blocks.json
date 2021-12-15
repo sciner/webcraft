@@ -2874,6 +2874,7 @@
     },
     {
         "id": 50,
+        "name": "TORCH",
         "width": 0.125,
         "height": 0.625,
         "inventory_icon_id": 3389,
@@ -2903,7 +2904,6 @@
             ]
         },
         "can_rotate": true,
-        "name": "TORCH",
         "destroy_time": 0,
         "max_in_stack": 64
     },

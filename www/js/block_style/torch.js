@@ -36,7 +36,7 @@ export default class style {
             rotate
         } = block;
 
-        const h = 1 / 16;
+        const h = 2 / 16;
         let torch_height = 10/16;
         aabb.set(
             .5-h, 0, .5-h,
