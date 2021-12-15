@@ -213,7 +213,7 @@ class LightQueue {
                         continue;
                     }
                     chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
-                    chunk2.lastID++;
+                    chunk2.rev.lastID++;
                     for (let d = 0; d < DIR_COUNT; d++) {
                         if ((mask & (1 << d)) !== 0) {
                             continue;
@@ -908,7 +908,7 @@ async function onMessageFunc(e) {
                         other.setUint8ByInd(ind, OFFSET_SOURCE, src)
                         if (setAo) {
                             other.setUint8ByInd(ind, OFFSET_AO, ao)
-                            other.lastID++;
+                            other.rev.lastID++;
                         }
                     }
                 }
