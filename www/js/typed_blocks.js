@@ -5,9 +5,15 @@ import {BLOCK} from "./blocks.js";
 export class TBlock {
 
     constructor(tb, vec) {
+        this.init(tb, vec);
+    }
+
+    init(tb = this.tb, vec = this.vec) {
         this.tb = tb;
         this.vec = vec;
-        this.index = BLOCK.getIndex(vec);
+        this.index = this.vec ? BLOCK.getIndex(this.vec) : NaN;
+
+        return this;
     }
 
     //
@@ -174,6 +180,28 @@ export class TypedBlocks {
         this.metadata   = new VectorCollector();
         this.position   = new VectorCollector();
     }
+    /**
+     * Creating iterator that fill target block to reduce allocations 
+     * NOTE! This unsafe because returned block will be re-filled in iteration process
+     * @param {TBlock} target 
+     * @returns 
+     */
+    createUnsafeIterator(target = null) {
+        const b = target || new TBlock(this, new Vector());
+        const contex = this;
+
+        return (function* () {
+            for(let index = 0; index < contex.count; index++) {
+                // let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+                let x = index % CHUNK_SIZE_X;
+                let y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
+                let z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
+                let vec = b.vec.set(x, y, z);
+
+                yield b.init(contex, vec);//new TBlock(this, vec);
+            }
+        })()
+    }
 
     *[Symbol.iterator]() {
         for(let index = 0; index < this.count; index++) {
@@ -200,8 +228,16 @@ export class TypedBlocks {
         block.position      = null;
     }
 
-    get(vec) {
-        return new TBlock(this, vec);
+    /**
+     * Get or fill block by it pos
+     * @param {Vector} vec 
+     * @param {TBlock} block 
+     * @returns 
+     */
+    get(vec, block = null) {
+        return block 
+            ? block.init(this, vec) 
+            : new TBlock(this, vec);
     }
 
     has(vec) {
