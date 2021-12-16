@@ -2,7 +2,7 @@ import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers, Vector } from "./helpers.js";
-import { getChunkAddr, getChunkWorldCoord, getLocalChunkCoord } from "./chunk.js";
+import { getChunkAddr } from "./chunk.js";
 import { ChunkManager } from "./chunk_manager.js";
 
 const {mat4, vec3, quat} = glMatrix;
@@ -267,6 +267,7 @@ export class MobAnimation {
         return this.leg(opts);
     }
 }
+
 export class MobModel {
 
     constructor(props) {
@@ -316,6 +317,13 @@ export class MobModel {
         this.animator = new MobAnimator();
 
         this.animationScript = new MobAnimation();
+
+        this.netBuffer = [];
+
+        this.latency = 100;
+
+        this.tPos = new Vector();
+        this.tRot = new Vector();
     }
 
     get isRenderable() {
@@ -337,18 +345,78 @@ export class MobModel {
         const {
             x, y, z
         } = this._pos;
-
-        this.posDirty = this.posDirty || 
-            Math.abs(v.x - x) > 1e-5 || 
-            Math.abs(v.y - y) > 1e-5 || 
-            Math.abs(v.z - z) > 1e-5;
+        
+        const dx = v.x - x;
+        const dy = v.y - y;
+        const dz = v.z - z;
 
         this._prevPos.copyFrom(this._pos);
         this._pos.copyFrom(v);
         // chicken fix
         this._pos.y += 0.001;
 
-        this.moving = !this._prevPos.equal(this._pos);
+        this.moving = Math.abs(dx) + Math.abs(dz) > 0.01;
+    }
+
+    get clientTime() {
+        return Date.now()
+    }
+
+    applyNetState(data = {pos: null, time: 0, rotate: null}) {
+        this.netBuffer.push(data);
+    }
+
+    processNetState() {
+        if (this.netBuffer.length === 0) {
+            return;
+        }
+
+        const correctedTime = this.clientTime - this.latency;
+
+        while (this.netBuffer.length > 2 && correctedTime > this.netBuffer[1].time) {
+            this.netBuffer.shift()
+        }
+
+        if (this.netBuffer.length === 1) {
+            return this.applyState(
+                this.netBuffer[0].pos,
+                this.netBuffer[0].rotate
+            );
+        }
+
+        const tPos = this.tPos;
+        const tRot = this.tRot;
+
+        const {
+            pos: prevPos,
+            rotate: prevRot,
+            time: prevTime,
+        } = this.netBuffer[0];
+
+        const {
+            pos: nextPos,
+            rotate: nextRot,
+            time: nextTime,
+        } = this.netBuffer[1];
+
+        let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
+
+        // prevent extrapolation.
+        // it should be processed by another way
+        // or will be bug with jump
+        if(iterp > 1)
+            iterp = 1;
+
+        tPos.lerpFrom(prevPos, nextPos, iterp);
+        tRot.lerpFrom(prevRot, nextRot, iterp);
+
+        return this.applyState(tPos, tRot);
+    }
+
+    applyState(nextPos, nextRot) {
+        this.pos = nextPos;
+        this.yaw = nextRot.z;
+        this.pitch = nextRot.x;
     }
 
     lazyInit(render) {
@@ -364,8 +432,6 @@ export class MobModel {
         if (!this.initialised) {
             return;
         }
-
-        this.posDirty = false;
 
         const newChunk = ChunkManager.instance.getChunk(this.chunk_addr);
 
@@ -397,6 +463,7 @@ export class MobModel {
     }
 
     update(render, camPos, delta) {
+        this.processNetState();
         this.computeLocalPosAndLight(render);
 
         if (!this.isRenderable) {

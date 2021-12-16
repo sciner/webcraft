@@ -11,7 +11,7 @@ export class PlayerManager {
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
             switch(cmd.name) {
                 case ServerClient.CMD_PLAYER_JOIN: {
-                    this.add(cmd.data);
+                    this.add(cmd);
                     break;
                 }
                 case ServerClient.CMD_PLAYER_LEAVE: {
@@ -19,7 +19,7 @@ export class PlayerManager {
                     break;
                 }
                 case ServerClient.CMD_PLAYER_STATE: {
-                    this.setState(cmd.data);
+                    this.setState(cmd);
                     break;
                 }
             }
@@ -27,7 +27,8 @@ export class PlayerManager {
     }
 
     // addPlayer
-    add(data) {
+    add(cmd) {
+        const data = cmd.data;
         let player = new PlayerModel({
             id:             data.id,
             pos:            data.pos,
@@ -39,7 +40,7 @@ export class PlayerManager {
         });
 
         this.list.set(data.id, player);
-        this.setState(data);
+        this.setState(cmd);
     }
 
     // getPlayer
@@ -56,13 +57,23 @@ export class PlayerManager {
     }
 
     // setPlayerState
-    setState(data) {
+    setState(cmd) {
+        const {
+            data, time, 
+        } = cmd;
+
         let player = this.get(data.id);
 
         if(!player) { 
             return;
         }
         
+        player.applyNetState({
+            pos: data.pos,
+            rotate: data.rotate,
+            time: time
+        });
+        /*
         player.moving = Helpers.distance(data.pos, player.pos) > 0.001;
         player.pos      = data.pos;
         player.pitch    = data.rotate.x;
@@ -78,6 +89,7 @@ export class PlayerManager {
                 player.moving = false
             }, 100);
         }
+        */
     
     }
 

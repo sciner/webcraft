@@ -29,6 +29,7 @@ const FOV_CHANGE_SPEED      = 150;
 const FOV_NORMAL            = 75;
 const FOV_WIDE              = FOV_NORMAL * 1.15;
 const FOV_ZOOM              = FOV_NORMAL * ZOOM_FACTOR;
+const NEAR_DISTANCE         = 2 / 16;
 const RENDER_DISTANCE       = 800;
 
 let settings = {
@@ -91,7 +92,7 @@ export class Renderer {
 
         this.skyBox             = null;
         this.videoCardInfoCache = null;
-        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, RENDER_DISTANCE};
+        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE};
 
         this.brightness         = 1;
         this.viewportWidth      = this.canvas.width;
@@ -124,7 +125,7 @@ export class Renderer {
         this.viewMatrix         = this.globalUniforms.viewMatrix;
         this.camPos             = this.globalUniforms.camPos;
 
-        this.setPerspective(FOV_NORMAL, 0.01, RENDER_DISTANCE);
+        this.setPerspective(FOV_NORMAL, NEAR_DISTANCE, RENDER_DISTANCE);
 
         if (renderBackend) {
             // SkyBox
@@ -461,25 +462,25 @@ export class Renderer {
 
     // updateFOV...
     updateFOV(delta, zoom, running) {
-        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, RENDER_DISTANCE} = this.options;
+        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE} = this.options;
         if(zoom) {
             if(this.fov > FOV_ZOOM) {
                 let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
-                this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
             }
         } else {
             if(running) {
                 if(this.fov < FOV_WIDE) {
                     let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
-                    this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                    this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
                 }
             } else if(this.fov < FOV_NORMAL) {
                 let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
             } else {
                 if(this.fov > FOV_NORMAL) {
                     let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                    this.setPerspective(fov, 0.01, RENDER_DISTANCE);
+                    this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
                 }
             }
         }

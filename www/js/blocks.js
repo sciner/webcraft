@@ -683,23 +683,23 @@ export class BLOCK {
         } else {
             if(!for_physic) {
                 const styleVariant = BLOCK.styles[b.properties.style];
-
                 if (styleVariant && styleVariant.aabb) {
                     shapes.push(
                         styleVariant.aabb(b).toArray()
                     );
                 } else {
                     switch(b.properties.style) {
-                        case 'torch': {
+                        /*case 'column': {
                             let torch_height = 10/16;
+                            let hw = (2/16) / 2;
                             shapes.push(
                                 aabb.set(
-                                    .5-1/16 + px, 0 + py, .5-1/16 + pz,
-                                    .5+1/16, torch_height, .5+1/16
+                                    .5-hw + px, 0 + py, .5-hw + pz,
+                                    .5+hw, torch_height, .5+hw
                                 ).toArray()
                             );
                             break;
-                        }
+                        }*/
                         case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 10/16;

@@ -34,6 +34,7 @@ export class Player {
         this.state                  = data.state;
         this.indicators             = data.state.indicators;
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
+        this._eye_pos               = new Vector(0, 0, 0);
         // Position
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
@@ -447,7 +448,7 @@ export class Player {
 
     // Returns the position of the eyes of the player for rendering.
     getEyePos() {
-        return this.lerpPos.add(new Vector(0.0, this.height, 0.0));
+        return this._eye_pos.set(this.lerpPos.x, this.lerpPos.y + this.height, this.lerpPos.z);
     }
 
     // getBlockPos

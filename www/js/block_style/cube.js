@@ -132,7 +132,7 @@ export default class style {
         };
 
         // Top
-        if(canDrawFace(neighbours.UP)) {
+        if(canDrawFace(neighbours.UP) || bH < 1) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)

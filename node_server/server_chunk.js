@@ -187,7 +187,7 @@ export class ServerChunk {
             name: ServerClient.CMD_BLOCK_SET,
             data: params
         }];
-        this.sendAll(packets);
+        this.sendAll(packets, [player.session.user_id]);
         // 
         let pos = new Vector(params.pos).floored().sub(this.coord);
         let block = {
@@ -213,9 +213,9 @@ export class ServerChunk {
     }
 
     //
-    sendAll(packets) {
+    sendAll(packets, except_players) {
         let connections = Array.from(this.connections.keys());
-        this.world.sendSelected(packets, connections, []);
+        this.world.sendSelected(packets, connections, except_players);
     }
 
     // onBlocksGenerated ... Webworker callback method
