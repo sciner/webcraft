@@ -437,6 +437,7 @@ export class GameClass {
             }
         });
         // Mouse move
+        let add_mouse_rotate = new Vector();
         document.addEventListener('mousemove', function(e) {
             let controls = that.player.controls;
             let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
@@ -462,14 +463,14 @@ export class GameClass {
                     offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
                 });
             } else {
-                x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
-                z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
+                x *= -1;
+                add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
+                add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
                 if(that.player.zoom) {
-                    x *= ZOOM_FACTOR * 0.5;
-                    z *= ZOOM_FACTOR * 0.5;
+                    add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
+                    add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
                 }
-                //
-                that.player.addRotate(new Vector(x, 0, z));
+                that.player.addRotate(add_mouse_rotate.divScalar(900));
             }
         }, false);
     }

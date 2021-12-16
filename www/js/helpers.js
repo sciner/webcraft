@@ -273,6 +273,17 @@ export class Vector {
      * @param {Vector} vec 
      * @return {Vector}
      */
+    addSelf(vec) {
+        this.x += vec.x;
+        this.y += vec.y;
+        this.z += vec.z;
+        return this;
+    }
+
+    /**
+     * @param {Vector} vec 
+     * @return {Vector}
+     */
     sub(vec) {
         return new Vector(this.x - vec.x, this.y - vec.y, this.z - vec.z);
     }
