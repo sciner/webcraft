@@ -45,7 +45,7 @@ const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|
 const dz = [0, 0, 0, 0, 1, -1, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 const dlen = [];
 const dmask = [];
-const DIR_COUNT = 6; //26 // 26 is full 3d light approx
+const DIR_COUNT = 26; //26 // 26 is full 3d light approx
 const DIR_MAX_MASK = (1<<26) - (1<<6);
 
 function adjustSrc(srcLight) {
@@ -88,7 +88,7 @@ function calcDif26(size, out) {
 initMasks();
 
 class LightQueue {
-    constructor({offset}) {
+    constructor({offset, dirCount}) {
         this.wavesChunk = [];
         for (let i = 0; i <= maxLight; i++) {
             this.wavesChunk.push([]);
@@ -98,10 +98,11 @@ class LightQueue {
             this.wavesCoord.push([]);
         }
         this.qOffset = offset || 0;
+        this.dirCount = dirCount || DIR_COUNT;
     }
 
     doIter(times) {
-        const {wavesChunk, wavesCoord, qOffset} = this;
+        const {wavesChunk, wavesCoord, qOffset, dirCount} = this;
         let wn = maxLight;
 
         let chunk = null;
@@ -168,7 +169,7 @@ class LightQueue {
                 {
                     continue;
                 }
-                for (let d = 0; d < DIR_COUNT; d++) {
+                for (let d = 0; d < dirCount; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         // if (d >= 6 && mask >= DIR_MAX_MASK) {
                         //     break;
@@ -196,7 +197,7 @@ class LightQueue {
             const waveNum = Math.max(Math.max(old, val) - 1, 0);
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
-                for (let d = 0; d < DIR_COUNT; d++) {
+                for (let d = 0; d < dirCount; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
                     }
@@ -242,7 +243,7 @@ class LightQueue {
                         }
                     }
                 }
-                for (let d = 0; d < DIR_COUNT; d++) {
+                for (let d = 0; d < dirCount; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
                     }
@@ -850,7 +851,7 @@ async function importModules() {
     //for now , its nothing
     world.chunkManager = new ChunkManager();
     world.light = new LightQueue({offset: 0});
-    world.dayLight = new LightQueue({offset: OFFSET_DAY});
+    world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY})
     for (let item of msgQueue) {
         await onmessage(item);
