@@ -45,7 +45,8 @@ const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|
 const dz = [0, 0, 0, 0, 1, -1, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 const dlen = [];
 const dmask = [];
-const DIR_COUNT = 26;
+const DIR_COUNT = 6; //26 // 26 is full 3d light approx
+const DIR_MAX_MASK = (1<<26) - (1<<6);
 
 function adjustSrc(srcLight) {
     srcLight = srcLight & MASK_BLOCK;
@@ -169,6 +170,9 @@ class LightQueue {
                 }
                 for (let d = 0; d < DIR_COUNT; d++) {
                     if ((mask & (1 << d)) !== 0) {
+                        // if (d >= 6 && mask >= DIR_MAX_MASK) {
+                        //     break;
+                        // }
                         continue;
                     }
                     let coord2 = coord + dif26[d];
