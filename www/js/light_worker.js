@@ -577,9 +577,12 @@ class Chunk {
         // default value for daylight
         const defLight = world.defDayLight;
         if (defLight > 0) {
-            for (let coord = outerLen - 2 * sy; coord < outerLen; coord++) {
-                uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
-            }
+            for (let y = aabb.y_max - 1; y < aabb.y_max + 1; y++)
+                for (let z = aabb.z_min; z < aabb.z_max; z++)
+                    for (let x = aabb.x_min; x < aabb.x_max; x++) {
+                        const coord = x * sx + y * sy + z * sz + shiftCoord;
+                        uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
+                    }
         }
 
         for (let portal of portals) {
@@ -625,7 +628,9 @@ class Chunk {
                         const dayLight = bytes2[coord2 + OFFSET_DAY + OFFSET_LIGHT];
                         const dayLightSrc = bytes2[coord2 + OFFSET_DAY + OFFSET_SOURCE];
                         uint8View[coord1 + OFFSET_DAY + OFFSET_LIGHT] = dayLight;
-                        uint8View[coord1 + OFFSET_DAY + OFFSET_SOURCE] = dayLightSrc;
+                        if (f2 || dayLightSrc > 0) {
+                            uint8View[coord1 + OFFSET_DAY + OFFSET_SOURCE] = dayLightSrc;
+                        }
                         if (f2 && dayLightSrc !== defLight) {
                             foundDay = true;
                         }
