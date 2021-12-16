@@ -195,6 +195,7 @@ class LightQueue {
 
             //TODO: copy to neib chunks
 
+            // TODO: swap -1 to real -dlen
             const waveNum = Math.max(Math.max(old, val) - 1, 0);
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
@@ -478,7 +479,9 @@ class DirLightQueue {
                     if (!portals[p].aabb.contains(x, y, z)) {
                         continue;
                     }
-                    chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_SOURCE, val);
+                    const coord2 = chunk2.indexByWorld(x, y, z);
+                    chunk2.setUint8ByInd(coord2, qOffset + OFFSET_SOURCE, val);
+                    chunk2.setUint8ByInd(coord2, qOffset + OFFSET_LIGHT, maxVal);
                     //TODO: dispersion
                     //
                     // for (let d = 0; d < DIR_COUNT; d++) {
@@ -631,13 +634,14 @@ class Chunk {
     fillOuter() {
         //checks neighbour chunks
         const {lightChunk} = this;
-        const {outerSize, portals, shiftCoord, aabb, uint8View, strideBytes, outerLen, dif26} = lightChunk;
+        const {outerSize, portals, shiftCoord, aabb, uint8View, strideBytes, safeAABB, dif26} = lightChunk;
         const sy = outerSize.x * outerSize.z, sx = 1, sz = outerSize.x;
         let found = false;
         let foundDay = false;
 
         // default value for daylight
         const defLight = world.defDayLight;
+        const disperse = world.dayLightSrc.disperse;
         if (defLight > 0) {
             for (let y = aabb.y_max - 1; y < aabb.y_max + 1; y++)
                 for (let z = aabb.z_min; z < aabb.z_max; z++)
@@ -726,15 +730,24 @@ class Chunk {
             for (let y = aabb.y_min; y < aabb.y_max; y++)
                 for (let z = aabb.z_min; z < aabb.z_max; z++)
                     for (let x = aabb.x_min; x < aabb.x_max; x++) {
+                        if (safeAABB.contains(x, y, z)) {
+                            continue;
+                        }
                         const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
                         if (uint8View[coordBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
                             world.dayLightSrc.add(this, coord);
+                        } else if (disperse > 0) {
+                            for (let d=0;d<4;d++) {
+                                if (uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_SOURCE] === maxLight) {
+                                    world.dayLightSrc.add(this, coord);
+                                    break;
+                                }
+                            }
                         }
-                        let m = 0;
+                        let m = uint8View[coordBytes + OFFSET_LIGHT];
                         for (let d=0;d<6;d++) {
                             m = Math.max(m, uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_LIGHT]);
                         }
-                        m = Math.max(m, uint8View[coordBytes + OFFSET_LIGHT]);
                         if (m > 0) {
                             world.dayLight.add(this, coord, m);
                         }
@@ -751,7 +764,7 @@ class Chunk {
                             uint8View[coordBytes + OFFSET_PREV] = defLight
                         }
                 // copy found dayLight to portals
-                if (world.dayLightSrc.disperse > 0) {
+                if (disperse > 0) {
                     for (let portal of portals) {
                         const other = portal.toRegion;
                         const p = portal.aabb;
