@@ -33,6 +33,7 @@ const RENDER_DISTANCE       = 800;
 
 let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
+    // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
     fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
     fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],

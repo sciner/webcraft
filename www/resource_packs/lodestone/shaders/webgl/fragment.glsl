@@ -152,10 +152,14 @@ void main() {
        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
        aoSample *= 0.5;
 
+        float gamma = 0.5;
+        caveSample = pow(vec3(caveSample, caveSample, caveSample), vec3(1.0/gamma)).r;
+        // caveSample = round(caveSample * 16.) / 16.;
+
        caveSample = caveSample * (1.0 - aoSample);
        daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-       float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
+        float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.075 * (1.0 - aoSample));
         // Apply light
         color.rgb *= light;
 
