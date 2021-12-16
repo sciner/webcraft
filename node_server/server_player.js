@@ -119,7 +119,7 @@ export class ServerPlayer extends Player {
                         data: cmd.data
                     }];
                     this.world.sendAll(packets, [this.session.user_id]);
-                    const pick = this.raycastFromHead();
+                    /*const pick = this.raycastFromHead();
                     if (pick) {
                         let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
                         // let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
@@ -127,6 +127,7 @@ export class ServerPlayer extends Player {
                             console.log('Player pick at block: ', block.material.name);
                         }
                     }
+                    */
                     break;
                 }
 
