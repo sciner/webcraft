@@ -23,8 +23,13 @@ export class MobManager {
                 case ServerClient.CMD_MOB_UPDATE: {
                     let mob = this.list.get(cmd.data.id);
                     if(mob) {
-                        mob.pos = cmd.data.pos;
-                        mob.yaw = cmd.data.rotate.z;
+                        //mob.pos = cmd.data.pos;
+                        //mob.yaw = cmd.data.rotate.z;
+                        mob.applyNetState({
+                            pos: cmd.data.pos,
+                            rotate: cmd.data.rotate,
+                            time: cmd.time
+                        });
                     } else {
                         console.error('Mob not found', cmd.data.id);
                     }
