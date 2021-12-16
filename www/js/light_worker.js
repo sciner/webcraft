@@ -41,11 +41,12 @@ const OFFSET_SOURCE_PREV = 3;
 const OFFSET_DAY = 4;
 
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
-const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
-const dz = [0, 0, 0, 0, 1, -1, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
+const dy = [0, 0, 0, 0, 1, -1, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
+const dz = [0, 0, 1, -1, 0, 0, /*|*/ 0, 0, 0, 0, 1, 1, -1, -1, 1, -1, 1, -1, /*|*/ 1, 1, 1, 1, -1, -1, -1, -1];
 const dlen = [];
 const dmask = [];
 const DIR_COUNT = 26; //26 // 26 is full 3d light approx
+const DIR_DOWN = 5;
 const DIR_MAX_MASK = (1<<26) - (1<<6);
 
 function adjustSrc(srcLight) {
@@ -302,9 +303,10 @@ class WaveLevel {
 }
 
 class DirLightQueue {
-    constructor({offset}) {
+    constructor({offset, disperse}) {
         this.waveLevels = [];
         this.qOffset = offset || 4;
+        this.disperse = disperse || 0;
     }
 
     getWave(level) {
@@ -342,7 +344,7 @@ class DirLightQueue {
     }
 
     doIter(times) {
-        const {waveLevels, qOffset} = this;
+        const {waveLevels, qOffset, disperse} = this;
         let wn = maxLight;
 
         let curWave = null;
@@ -356,9 +358,13 @@ class DirLightQueue {
         let outerAABB = null;
         let safeAABB = null;
         let portals = null;
+        let dif26 = null;
         let sx = 0, sy = 0, sz = 0;
 
         for (let tries = 0; tries < times; tries++) {
+            if (curWave && curWave.coords.length === 0) {
+                curWave = null;
+            }
             while (!curWave) {
                 if (waveLevels.length === 0) {
                     return;
@@ -377,9 +383,6 @@ class DirLightQueue {
 
             let newChunk = curWave.chunks.pop();
             const coord = curWave.coords.pop();
-            if (curWave.coords.length === 0) {
-                curWave = null;
-            }
             if (newChunk.removed) {
                 continue;
             }
@@ -392,6 +395,7 @@ class DirLightQueue {
                 outerAABB = lightChunk.outerAABB;
                 safeAABB = lightChunk.safeAABB;
                 portals = lightChunk.portals;
+                dif26 = lightChunk.dif26;
                 sx = 1;
                 sz = outerSize.x;
                 sy = outerSize.x * outerSize.z;
@@ -414,12 +418,32 @@ class DirLightQueue {
             let mask = 0;
             const coordBytes = coord * strideBytes + qOffset;
             const old = uint8View[coordBytes + OFFSET_SOURCE];
+            let readyToDisperse = false;
             let val;
             if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK ||
                 uint8View[coord * strideBytes + OFFSET_AO] !== 0) {
                 val = 0;
             } else {
                 val = uint8View[coordBytes + sy * strideBytes + OFFSET_SOURCE];
+                if (disperse > 0) {
+                    let cnt = 0;
+                    for (let d = 0; d < 4; d++) {
+                        if (uint8View[coordBytes + dif26[d] * strideBytes + OFFSET_SOURCE] === maxLight) {
+                            mask |= 1 << d;
+                            cnt++;
+                        }
+                    }
+                    if (val < maxLight) {
+                        if (cnt > 0) {
+                            val = Math.min(val + disperse, maxLight);
+                        } else {
+                            val = 0;
+                        }
+                    }
+                    if (val === maxLight) {
+                        readyToDisperse = true;
+                    }
+                }
             }
             const prev = uint8View[coordBytes + OFFSET_SOURCE_PREV];
             if (old === val && prev === val) {
@@ -462,11 +486,26 @@ class DirLightQueue {
                         nextWave.chunks.push(chunk2.rev);
                         nextWave.coords.push(chunk2.indexByWorld(x2, y2, z2));
                         chunk2.rev.waveCounter++;
-                        mask = 1;
+                        mask |= (1 << DIR_DOWN); //down
                     }
-                    // }
+                    if (readyToDisperse) {
+                        for (let d = 0; d < 4; d++) {
+                            if ((mask & (1 << d)) !== 0) {
+                                continue;
+                            }
+                            x2 = x + dx[d];
+                            y2 = y;
+                            z2 = z + dz[d];
+                            if (chunk2.aabb.contains(x2, y2, z2)) {
+                                mask |= 1 << d;
+                                curWave.chunks.push(chunk2.rev);
+                                curWave.coords.push(chunk2.indexByWorld(x2, y2, z2));
+                                chunk2.rev.waveCounter++;
+                            }
+                        }
+                    }
                 }
-                if (!mask) {
+                if ((mask & (1 << DIR_DOWN)) === 0) {
                     let x2 = x,
                         y2 = y - 1,
                         z2 = z;
@@ -477,9 +516,25 @@ class DirLightQueue {
                         chunk.waveCounter++;
                     }
                 }
+                if (readyToDisperse) {
+                    for (let d = 0; d < 4; d++) {
+                        if ((mask & (1 << d)) !== 0) {
+                            continue;
+                        }
+                        let x2 = x + dx[d],
+                            y2 = y,
+                            z2 = z + dz[d];
+                        let coord2 = coord + dif26[d];
+                        if (lightChunk.aabb.contains(x2, y2, z2)) {
+                            curWave.chunks.push(chunk);
+                            curWave.coords.push(coord2);
+                            chunk.waveCounter++;
+                        }
+                    }
+                }
             }
         }
-        if (curWave) {
+        if (curWave && curWave.coords.length > 0) {
             //its still alive, push it
             waveLevels.push(curWave);
         }
@@ -689,6 +744,26 @@ class Chunk {
                             uint8View[coordBytes + OFFSET_LIGHT] = defLight
                             uint8View[coordBytes + OFFSET_PREV] = defLight
                         }
+                // copy found dayLight to portals
+                for (let portal of portals) {
+                    const other = portal.toRegion;
+                    const p = portal.aabb;
+                    const outer2 = other.outerSize;
+                    const shift2 = other.shiftCoord;
+                    const bytes2 = other.uint8View;
+                    const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
+
+                    for (let x = p.x_min; x < p.x_max; x++)
+                        for (let y = p.y_min; y < p.y_max; y++)
+                            for (let z = p.z_min; z < p.z_max; z++) {
+                                const f1 = aabb.contains(x, y, z);
+                                if (f1) {
+                                    const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes + OFFSET_DAY;
+                                    bytes2[coord2 + OFFSET_SOURCE] = defLight;
+                                    bytes2[coord2 + OFFSET_LIGHT] = defLight;
+                                }
+                            }
+                }
             }
         }
         if (found || foundDay) {
@@ -852,7 +927,7 @@ async function importModules() {
     world.chunkManager = new ChunkManager();
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
-    world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY})
+    world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY, disperse: Math.ceil(maxLight / 20)})
     for (let item of msgQueue) {
         await onmessage(item);
     }
