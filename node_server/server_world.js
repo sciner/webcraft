@@ -15,6 +15,10 @@ export class ServerWorld {
 
     constructor() {}
 
+    get serverTime() {
+        return Date.now()
+    }
+
     async initServer(world_guid, db) {
         this.db             = db;
         this.info           = await this.db.getWorld(world_guid);

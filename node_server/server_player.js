@@ -2,8 +2,20 @@ import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
+import { ServerWorld } from "./server_world.js";
 
 const PLAYER_HEIGHT = 1.7;
+export class NetworkMessage {
+    constructor({
+        time = Date.now(),
+        name = '',
+        data = {}
+    }) {
+        this.time = time;
+        this.name = name;
+        this.data = data;
+    }
+}
 
 export class ServerPlayer extends Player {
 
@@ -19,156 +31,33 @@ export class ServerPlayer extends Player {
         this.nearby_chunk_addrs = new VectorCollector();
         this.height             = PLAYER_HEIGHT;
         this.#forward           = new Vector(0, 1, 0);
+
+        /**
+         * @type {ServerWorld}
+         */
+        this.world;
+
+        this.session_id = '';
+
+        this.skin = '';
     }
 
-    //
+    /**
+     * 
+     * @param {string} session_id 
+     * @param {string} skin 
+     * @param {WebSocket} conn 
+     * @param {ServerWorld} world 
+     */
     async onJoin(session_id, skin, conn, world) {
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
+        this.session_id = session_id;
+        this.skin = skin;
+
         conn.player = this;
-        conn.on('message', async (req) => {
-            let cmd = JSON.parse(req);
-
-            try {
-                switch(cmd.name) {
-                
-                    // Connect
-                    case ServerClient.CMD_CONNECT: {
-                        let world_guid = cmd.data.world_guid;
-                        this.session = await Game.db.GetPlayerSession(session_id);
-                        world.onPlayer(this, skin);
-                        break;
-                    }
-
-                    // Send message to chat
-                    case ServerClient.CMD_CHAT_SEND_MESSAGE: {
-                        this.world.chat.sendMessage(this, cmd.data);
-                        break;
-                    }
-
-                    // Change spawn position
-                    case ServerClient.CMD_CHANGE_POS_SPAWN: {
-                        this.changePosSpawn(cmd.data);
-                        break;
-                    }
-
-                    case ServerClient.CMD_TELEPORT_REQUEST: {
-                        this.world.teleportPlayer(this, cmd.data);
-                        break;
-                    }
-
-                    // Player state
-                    case ServerClient.CMD_PLAYER_STATE: {
-                        // Update local position
-                        this.world.changePlayerPosition(this, cmd.data);
-                        // Send new position to other players
-                        cmd.data.id = this.session.user_id;
-                        cmd.data.username = this.session.username
-                        let packets = [{
-                            name: ServerClient.CMD_PLAYER_STATE,
-                            data: cmd.data
-                        }];
-                        this.world.sendAll(packets, [this.session.user_id]);
-                        const pick = this.raycastFromHead();
-                        if (pick) {
-                            let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
-                            // let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
-                            if(block) {
-                                console.log('Player pick at block: ', block.material.name);
-                            }
-                        }
-                        break;
-                    }
-
-                    // Save inventory
-                    case ServerClient.CMD_SAVE_INVENTORY: {
-                        this.world.db.savePlayerInventory(this, cmd.data);
-                        break;
-                    }
-
-                    // Modify indicator request
-                    case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
-                        switch (cmd.data.indicator) {
-                            case 'live': {
-                                this.state.indicators.live.value += cmd.data.value;
-                                break;
-                            }
-                            case 'food': {
-                                this.state.indicators.food.value += cmd.data.value;
-                                break;
-                            }
-                            case 'oxygen': {
-                                this.state.indicators.oxygen.value += cmd.data.value;
-                                break;
-                            }
-                        }
-                        if (cmd.data.indicator == 'live' && this.state.indicators.live.value <= 0) {
-                            this.state.indicators.live.value = 20;
-                            this.world.teleportPlayer(this, {
-                                place_id: 'spawn',
-                            })
-                        }
-                        // notify player about his new indicators
-                        let packets = [{
-                            name: ServerClient.CMD_ENTITY_INDICATORS,
-                            data: {
-                                indicators: this.state.indicators
-                            }
-                        }];
-                        this.world.sendSelected(packets, [this.session.user_id], []);
-                        // @todo notify all about change?
-                        break;
-                    }
-
-                    // Request chest content
-                    case ServerClient.CMD_LOAD_CHEST: {
-                        this.world.entities.loadChest(this, cmd.data);
-                        break;
-                    }
-                        
-                    // Пользователь подгрузил чанк
-                    case ServerClient.CMD_CHUNK_LOAD: {
-                        let addr = new Vector(cmd.data.pos);
-                        if(this.nearby_chunk_addrs.has(addr)) {
-                            this.world.loadChunkForPlayer(this, addr);
-                        }
-                        break;
-                    }
-
-                    case ServerClient.CMD_BLOCK_SET: {
-                        this.world.setBlock(this, cmd.data);
-                        break;
-                    }
-                
-                    case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
-                        // @ParamChestSetSlotItem
-                        this.world.entities.setChestSlotItem(this, cmd.data);
-                        break;
-                    }
-
-                    case ServerClient.CMD_CREATE_ENTITY: {
-                        this.world.createEntity(this, cmd.data);
-                        break;
-                    }
-
-                    case ServerClient.CMD_CHANGE_RENDER_DIST: {
-                        this.changeRenderDist(parseInt(cmd.data));
-                        break;
-                    }
-                                
-                }
-            } catch(e) {
-                console.log(e);
-                let packets = [{
-                    name: ServerClient.CMD_ERROR,
-                    data: {
-                        message: e
-                    }
-                }];
-                this.world.sendSelected(packets, [this.session.user_id], []);
-            }
-        });
+        conn.on('message', this.onMessage.bind(this));
         //
         conn.on('close', async (e) => {
             this.world.onLeave(this);
@@ -181,6 +70,155 @@ export class ServerPlayer extends Player {
         this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
     }
 
+    async onMessage(response) {
+        const {
+            skin,
+            session_id,
+            world
+        } = this;
+
+        const cmd = JSON.parse(response);
+
+        try {
+            switch(cmd.name) {
+            
+                // Connect
+                case ServerClient.CMD_CONNECT: {
+                    let world_guid = cmd.data.world_guid;
+                    this.session = await Game.db.GetPlayerSession(session_id);
+                    world.onPlayer(this, skin);
+                    break;
+                }
+
+                // Send message to chat
+                case ServerClient.CMD_CHAT_SEND_MESSAGE: {
+                    this.world.chat.sendMessage(this, cmd.data);
+                    break;
+                }
+
+                // Change spawn position
+                case ServerClient.CMD_CHANGE_POS_SPAWN: {
+                    this.changePosSpawn(cmd.data);
+                    break;
+                }
+
+                case ServerClient.CMD_TELEPORT_REQUEST: {
+                    this.world.teleportPlayer(this, cmd.data);
+                    break;
+                }
+
+                // Player state
+                case ServerClient.CMD_PLAYER_STATE: {
+                    // Update local position
+                    this.world.changePlayerPosition(this, cmd.data);
+                    // Send new position to other players
+                    cmd.data.id = this.session.user_id;
+                    cmd.data.username = this.session.username
+                    let packets = [{
+                        name: ServerClient.CMD_PLAYER_STATE,
+                        data: cmd.data
+                    }];
+                    this.world.sendAll(packets, [this.session.user_id]);
+                    const pick = this.raycastFromHead();
+                    if (pick) {
+                        let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
+                        // let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
+                        if(block) {
+                            console.log('Player pick at block: ', block.material.name);
+                        }
+                    }
+                    break;
+                }
+
+                // Save inventory
+                case ServerClient.CMD_SAVE_INVENTORY: {
+                    this.world.db.savePlayerInventory(this, cmd.data);
+                    break;
+                }
+
+                // Modify indicator request
+                case ServerClient.CMD_MODIFY_INDICATOR_REQUEST: {
+                    switch (cmd.data.indicator) {
+                        case 'live': {
+                            this.state.indicators.live.value += cmd.data.value;
+                            break;
+                        }
+                        case 'food': {
+                            this.state.indicators.food.value += cmd.data.value;
+                            break;
+                        }
+                        case 'oxygen': {
+                            this.state.indicators.oxygen.value += cmd.data.value;
+                            break;
+                        }
+                    }
+                    if (cmd.data.indicator == 'live' && this.state.indicators.live.value <= 0) {
+                        this.state.indicators.live.value = 20;
+                        this.world.teleportPlayer(this, {
+                            place_id: 'spawn',
+                        })
+                    }
+                    // notify player about his new indicators
+                    let packets = [{
+                        name: ServerClient.CMD_ENTITY_INDICATORS,
+                        data: {
+                            indicators: this.state.indicators
+                        }
+                    }];
+                    this.world.sendSelected(packets, [this.session.user_id], []);
+                    // @todo notify all about change?
+                    break;
+                }
+
+                // Request chest content
+                case ServerClient.CMD_LOAD_CHEST: {
+                    this.world.entities.loadChest(this, cmd.data);
+                    break;
+                }
+                    
+                // Пользователь подгрузил чанк
+                case ServerClient.CMD_CHUNK_LOAD: {
+                    let addr = new Vector(cmd.data.pos);
+                    if(this.nearby_chunk_addrs.has(addr)) {
+                        this.world.loadChunkForPlayer(this, addr);
+                    }
+                    break;
+                }
+
+                case ServerClient.CMD_BLOCK_SET: {
+                    this.world.setBlock(this, cmd.data);
+                    break;
+                }
+            
+                case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
+                    // @ParamChestSetSlotItem
+                    this.world.entities.setChestSlotItem(this, cmd.data);
+                    break;
+                }
+
+                case ServerClient.CMD_CREATE_ENTITY: {
+                    this.world.createEntity(this, cmd.data);
+                    break;
+                }
+
+                case ServerClient.CMD_CHANGE_RENDER_DIST: {
+                    this.changeRenderDist(parseInt(cmd.data));
+                    break;
+                }
+                            
+            }
+        } catch(e) {
+            console.log(e);
+            let packets = [{
+                name: ServerClient.CMD_ERROR,
+                data: {
+                    message: e
+                }
+            }];
+            this.world.sendSelected(packets, [this.session.user_id], []);
+        }
+    }
+
     // onLeave...
     async onLeave() {
         for(let addr of this.chunks) {
@@ -190,9 +228,13 @@ export class ServerPlayer extends Player {
 
     /**
      * sendPackets
-     * @param {Object[]} packets 
+     * @param {NetworkMessage[]} packets 
      */
     sendPackets(packets) {
+        packets.forEach(e => {
+            e.time = this.world.serverTime;
+        });
+
         this.conn.send(JSON.stringify(packets));
     }
 
