@@ -39,7 +39,6 @@ const OFFSET_PREV = 2;
 const OFFSET_AO = 3;
 const OFFSET_SOURCE_PREV = 3;
 const OFFSET_DAY = 4;
-const TEMP_LIGHT_VALUE = 1;
 
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
@@ -208,11 +207,13 @@ class LightQueue {
                     chunk.waveCounter++;
                 }
             } else {
+                let mask2 = 0;
                 for (let p = 0; p < portals.length; p++) {
                     const chunk2 = portals[p].toRegion;
                     if (!portals[p].aabb.contains(x, y, z)) {
                         continue;
                     }
+                    mask2 |= 1 << p;
                     chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
                     chunk2.rev.lastID++;
                     for (let d = 0; d < DIR_COUNT; d++) {
@@ -237,6 +238,7 @@ class LightQueue {
                         }
                     }
                 }
+                let hitEdge = false;
                 for (let d = 0; d < DIR_COUNT; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
@@ -250,9 +252,31 @@ class LightQueue {
                         wavesCoord[waveNum].push(coord2);
                         chunk.waveCounter++;
                     } else {
-                        if (val >= dlen[d]) {
-                            uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT] = TEMP_LIGHT_VALUE;
+                        if (d < 6) {
+                            // bnig-16 cave light problem
+                            // hit edge, need to propagate it to other chunks
+                            const val2 = Math.max(val - dlen[d], 0);
+                            if (uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT] !== val2) {
+                                uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT] = val2;
+                                for (let p = 0; p < portals.length; p++) {
+                                    if ((mask2 & (1 << p)) === 0) continue;
+                                    const chunk2 = portals[p].toRegion;
+                                    if (chunk2.outerAABB.contains(x2, y2, z2)) {
+                                        chunk2.setUint8ByInd(chunk2.indexByWorld(x2, y2, z2),
+                                            qOffset + OFFSET_LIGHT, val2);
+                                    }
+                                }
+                                hitEdge = true;
+                            }
                         }
+                    }
+                }
+                if (hitEdge) {
+                    // a4fa-12
+                    if (val <= prev) {
+                        wavesChunk[waveNum].push(chunk);
+                        wavesCoord[waveNum].push(coord);
+                        chunk.waveCounter++;
                     }
                 }
             }
@@ -666,11 +690,16 @@ class Chunk {
         } else {
             if (defLight > 0) {
                 for (let coord = 0; coord < outerLen; coord++) {
-                    // max daylight everywhere
-                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] = defLight;
+                    // max daylight sources everywhere
                     uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
-                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_PREV] = defLight;
                 }
+                for (let y = aabb.y_min; y < aabb.y_max; y++)
+                    for (let z = aabb.z_min; z < aabb.z_max; z++)
+                        for (let x = aabb.x_min; x < aabb.x_max; x++) {
+                            const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
+                            uint8View[coordBytes + OFFSET_DAY + OFFSET_LIGHT] = defLight
+                            uint8View[coordBytes + OFFSET_DAY + OFFSET_PREV] = defLight
+                        }
             }
         }
         if (found || foundDay) {
@@ -958,12 +987,12 @@ function testDayLight() {
     for (let cc of centerChunk) {
         let {uint8View, outerLen, strideBytes} = cc.lightChunk;
         for (let coord = 0; coord < outerLen; coord++) {
-            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] > TEMP_LIGHT_VALUE) {
+            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] > 0) {
                 return false;
             }
-            // if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
-            //     return false;
-            // }
+            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
+                return false;
+            }
         }
     }
     return true;
