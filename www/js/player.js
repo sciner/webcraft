@@ -44,6 +44,8 @@ export class Player {
         this.blockPos               = this.getBlockPos();
         this.blockPosO              = this.blockPos.clone();
         // Rotate
+        this.rotate                 = new Vector(0, 0, 0);
+        this.rotateDegree           = new Vector(0, 0, 0);
         this.setRotate(data.state.rotate);
         // Inventory
         this.inventory              = new Inventory(this, Game.hud);
@@ -97,28 +99,26 @@ export class Player {
     }
 
     addRotate(vec3) {
-        vec3.divScalar(900);
-        this.rotate.x   -= vec3.x; // взгляд вверх/вниз (pitch)
-        this.rotate.z   += vec3.z; // Z поворот в стороны (yaw)
-        this.setRotate(this.rotate);
+        this.setRotate(
+            this.rotate.addSelf(vec3)
+        );
     }
 
     // setRotate
     // @var vec3 (0 ... PI)
     setRotate(vec3) {
-        this.rotate = new Vector(vec3);
+        this.rotate.set(vec3.x, vec3.y, vec3.z);
         if(this.rotate.z < 0) {
             this.rotate.z = (Math.PI * 2) + this.rotate.z;
         }
         this.rotate.x = Helpers.clamp(this.rotate.x, -Math.PI / 2, Math.PI / 2);
         this.rotate.z = this.rotate.z % (Math.PI * 2);
         // Rad to degree
-        if(!this.rotateDegree) {
-            this.rotateDegree = Vector.ZERO.clone();
-        }
-        this.rotateDegree.x = (this.rotate.x / Math.PI) * 180;
-        this.rotateDegree.y = (this.rotate.y - Math.PI) * 180 % 360;
-        this.rotateDegree.z = (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360;
+        this.rotateDegree.set(
+            (this.rotate.x / Math.PI) * 180,
+            (this.rotate.y - Math.PI) * 180 % 360,
+            (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360
+        );
     }
 
     // saveInventory...
