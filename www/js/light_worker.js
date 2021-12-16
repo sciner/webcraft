@@ -39,6 +39,7 @@ const OFFSET_PREV = 2;
 const OFFSET_AO = 3;
 const OFFSET_SOURCE_PREV = 3;
 const OFFSET_DAY = 4;
+const TEMP_LIGHT_VALUE = 1;
 
 const dx = [1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1, 0, 0, 0, 0, /*|*/ 1, -1, 1, -1, 1, -1, 1, -1];
 const dy = [0, 0, 1, -1, 0, 0, /*|*/ 1, 1, -1, -1, 0, 0, 0, 0, 1, 1, -1, -1, /*|*/ 1, 1, -1, -1, 1, 1, -1, -1];
@@ -236,7 +237,6 @@ class LightQueue {
                         }
                     }
                 }
-                let hitEdge = false;
                 for (let d = 0; d < DIR_COUNT; d++) {
                     if ((mask & (1 << d)) !== 0) {
                         continue;
@@ -250,16 +250,9 @@ class LightQueue {
                         wavesCoord[waveNum].push(coord2);
                         chunk.waveCounter++;
                     } else {
-                        uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT] = Math.max(val - 1, 0);
-                        hitEdge = true;
-                    }
-                }
-                if (hitEdge) {
-                    // a4fa-12
-                    if (val <= prev) {
-                        wavesChunk[waveNum].push(chunk);
-                        wavesCoord[waveNum].push(coord);
-                        chunk.waveCounter++;
+                        if (val >= dlen[d]) {
+                            uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT] = TEMP_LIGHT_VALUE;
+                        }
                     }
                 }
             }
@@ -609,7 +602,10 @@ class Chunk {
                         const f2 = inside2.contains(x, y, z);
 
                         // copy light
-                        uint8View[coord1 + OFFSET_LIGHT] = bytes2[coord2 + OFFSET_LIGHT];
+                        const light = bytes2[coord2 + OFFSET_LIGHT];
+                        if (light > 0) {
+                            uint8View[coord1 + OFFSET_LIGHT] = light;
+                        }
 
                         // copy AO through border
                         if (f1) {
@@ -829,6 +825,11 @@ async function importModules() {
         DataChunk = module.DataChunk;
     });
     modulesReady = true;
+
+    if (!testDayLight()) {
+        console.log("day test failed");
+    }
+
     //for now , its nothing
     world.chunkManager = new ChunkManager();
     world.light = new LightQueue({offset: 0});
@@ -921,4 +922,49 @@ if (typeof process !== 'undefined') {
     import('worker_threads').then(module => module.parentPort.on('message', onMessageFunc));
 } else {
     onmessage = onMessageFunc
+}
+
+function testDayLight() {
+    world.chunkManager = new ChunkManager();
+    world.light = new LightQueue({offset: 0});
+    world.dayLight = new LightQueue({offset: OFFSET_DAY});
+    world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY});
+
+    let innerDataEmpty = new Uint8Array([0]);
+    let innerDataSolid = new Uint8Array([MASK_BLOCK + MASK_AO]);
+    let w = 1;
+
+    let centerChunk = [];
+
+    for (let y=0;y<3;y++) {
+        for (let x=0;x<3;x++) {
+            for (let z=0;z<3;z++) {
+                const light_buffer = (y < 2) ? innerDataEmpty.buffer : innerDataSolid.buffer;
+                let chunk = new Chunk({addr: new Vector(x, y, z), size: new Vector(w, w, w), light_buffer});
+                chunk.init();
+                world.chunkManager.add(chunk);
+                chunk.fillOuter();
+
+                if (x===1 && z===1 && y<=1) {
+                    centerChunk.push(chunk);
+                }
+            }
+        }
+    }
+
+    world.dayLightSrc.doIter(10000);
+    world.dayLight.doIter(10000);
+
+    for (let cc of centerChunk) {
+        let {uint8View, outerLen, strideBytes} = cc.lightChunk;
+        for (let coord = 0; coord < outerLen; coord++) {
+            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] > TEMP_LIGHT_VALUE) {
+                return false;
+            }
+            // if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
+            //     return false;
+            // }
+        }
+    }
+    return true;
 }
