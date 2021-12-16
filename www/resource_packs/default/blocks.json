@@ -1479,7 +1479,7 @@
             "r": 253,
             "g": 200,
             "b": 131,
-            "a": 192
+            "a": 92
         },
         "texture": [
             3,
@@ -2964,12 +2964,6 @@
         },
         "destroy_time": 7,
         "can_rotate": true,
-        "light_power": {
-            "r": 253,
-            "g": 241,
-            "b": 131,
-            "a": 224
-        },
         "spawnable": true,
         "max_in_stack": 64
     },
@@ -2995,6 +2989,12 @@
                 13,
                 2
             ]
+        },
+        "light_power": {
+            "r": 253,
+            "g": 241,
+            "b": 131,
+            "a": 224
         },
         "destroy_time": 7,
         "can_rotate": true,
