@@ -4,6 +4,7 @@ export class Sounds {
 
     constructor() {
         this.tags = {};
+        this.prev_index = new Map();
         for(let item of Resources.sounds) {
             this.add(item);
         }
@@ -30,8 +31,20 @@ export class Sounds {
             return;
         }
         const list = this.tags[tag][action];
-        let i = Math.floor(Math.random() * list.length);
-        list[i].play();
+        // Remove repeats item play
+        let index_key = tag + '/' + action;
+        let prev_index = -1;
+        if(this.prev_index.has(index_key)) {
+            prev_index = this.prev_index.get(index_key);
+        }
+        let index = -1;
+        do {
+            // select random item from list
+            index = Math.floor(Math.random() * list.length) | 0;
+        } while (prev_index == index && list.length > 1);
+        this.prev_index.set(index_key, index);
+        // Play
+        list[index].play();
         return true;
     }
 
