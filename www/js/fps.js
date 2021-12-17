@@ -22,7 +22,7 @@ export class FPSCounter {
             this.avg    = 1000 / Game.averageClockTimer.avg;
             this.t      = now;
             if(this.walkDistO > 0) {
-                this.speed = Math.round((player.walkDist - this.walkDistO) * 3600 / 1000 * 100) / 100;
+                this.speed = Math.round(player.lerpPos.distance(player.posO) * 20 * 3.6 * 100) / 100;
             }
             this.walkDistO = player.walkDist;
             // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.averageClockTimer.avg * 1000) / 1000);

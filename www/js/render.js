@@ -273,7 +273,9 @@ export class Renderer {
                     shader.bind(true);
                     this.meshes.draw(this, delta);
                     // this.world.draw(this, delta);
-                    player.pickAt.draw();
+                    if(this.world.game_mode.isSurvival() || this.world.game_mode.isCreative()) {
+                        player.pickAt.draw();
+                    }
                     // 3. Draw players and rain
                     this.drawPlayers(delta);
                     // 4. Draw mobs

@@ -38,6 +38,9 @@ export class Hotbar {
     };
     
     drawHUD(hud) {
+        if(this.inventory.player.world.game_mode.isSpectator()) {
+            return false;
+        }
         const scale = 1;
         let w = 546; // this.image.width;
         let h = 147; // this.image.height;

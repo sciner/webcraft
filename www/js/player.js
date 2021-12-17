@@ -463,11 +463,14 @@ export class Player {
     }
 
     getFlying() {
-        return this.flying;
+        let pc = this.getPlayerControl();
+        return pc.player_state.flying;
     }
 
     setFlying(value) {
-        this.flying = value;
+        let pc = this.getPlayerControl();
+        pc.player_state.flying = value;
+        console.log(pc.player_state.flying);
     }
 
     //

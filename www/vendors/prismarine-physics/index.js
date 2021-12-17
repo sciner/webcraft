@@ -46,6 +46,11 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
 
     const physics = {
         gravity: 0.08, // blocks/tick^2 https://minecraft.gamepedia.com/Entity#Motion_of_entities
+        // Flying
+        flyinGravity: 0.06,
+        flyingYSpeed: Math.fround(0.42 / 2),
+        flyingInertiaMultiplyer: 1.5,
+        //
         airdrag: Math.fround(1 - 0.02), // actually (1 - drag)
         yawSpeed: 3.0,
         pitchSpeed: 3.0,
@@ -374,7 +379,10 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
         const vel = entity.vel
         const pos = entity.pos
 
-        const gravityMultiplier = (vel.y <= 0 && entity.slowFalling > 0) ? physics.slowFalling : 1
+        let gravityMultiplier = (vel.y <= 0 && entity.slowFalling > 0) ? physics.slowFalling : 1;
+        if(entity.flying) {
+            gravityMultiplier = 0;
+        }
 
         if (!entity.isInWater && !entity.isInLava) {
             // Normal movement
@@ -410,7 +418,13 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
             if (entity.levitation > 0) {
                 vel.y += (0.05 * entity.levitation - vel.y) * 0.2
             } else {
-                vel.y -= physics.gravity * gravityMultiplier
+                if(entity.flying) {
+                    vel.y -= (physics.flyinGravity);
+                    vel.y = Math.max(vel.y, 0);
+                    inertia *= physics.flyingInertiaMultiplyer;
+                } else {
+                    vel.y -= physics.gravity * gravityMultiplier
+                }
             }
             vel.y *= physics.airdrag
             vel.x *= inertia
@@ -553,6 +567,9 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
 
         entity.isInWater = isInWaterApplyCurrent(world, waterBB, vel)
         entity.isInLava = isMaterialInBB(world, lavaBB, lavaId)
+        if(entity.onGround) {
+            entity.flying = false;
+        }
 
         // Reset velocity component if it falls under the threshold
         if (Math.abs(vel.x) < physics.negligeableVelocity) vel.x = 0
@@ -577,6 +594,10 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
                     vel.z += Math.cos(yaw) * 0.2
                 }
                 entity.jumpTicks = physics.autojumpCooldown
+            } else if(entity.flying) {
+                if(!entity.control.sneak) {
+                    vel.y = physics.flyingYSpeed;
+                }
             }
         } else {
             entity.jumpTicks = 0 // reset autojump cooldown
@@ -590,8 +611,14 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
         forward *= entity.base_speed;
 
         if (entity.control.sneak) {
-            strafe *= physics.sneakSpeed
-            forward *= physics.sneakSpeed
+            if(entity.flying) {
+                if(!entity.control.jump) {
+                    vel.y = -physics.flyingYSpeed;
+                }
+            } else {
+                strafe *= physics.sneakSpeed
+                forward *= physics.sneakSpeed
+            }
         }
 
         moveEntityWithHeading(entity, world, strafe, forward)

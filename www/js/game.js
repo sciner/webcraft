@@ -142,18 +142,6 @@ export class GameClass {
                         return true;
                         break;
                     }
-                    // Flying [Space]
-                    case KEY.SPACE: {
-                        if(this.world.game_mode.canFly() && !player.in_water && !player.onGround) {
-                            if(e.down && e.first) {
-                                if(!player.getFlying()) {
-                                    // this.setFlying(true);
-                                    console.log('flying');
-                                }
-                            }
-                        }
-                        break;
-                    }
                     // [F1]
                     case KEY.F1: {
                         if(!e.down) {
@@ -297,9 +285,15 @@ export class GameClass {
                 }
                 return false;
             },
-            onDoubleKeyDown: function(e) {
+            onDoubleKeyDown: (e) => {
                 if(e.keyCode == KEY.W) {
                     player.controls.sprint = true;
+                } else if (e.keyCode == KEY.SPACE) {
+                    if(this.world.game_mode.canFly() && !player.in_water && !player.onGround) {
+                        if(!player.getFlying()) {
+                            player.setFlying(true);
+                        }
+                    }
                 }
             }
         });
