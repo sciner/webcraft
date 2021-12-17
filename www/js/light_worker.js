@@ -947,12 +947,12 @@ async function importModules() {
     });
     modulesReady = true;
 
-    if (!testDayLight()) {
-        console.log("day test failed");
-    }
-    if (!testDisperse()) {
-        console.log("disperse test failed");
-    }
+    // if (!testDayLight()) {
+    //     console.log("day test failed");
+    // }
+    // if (!testDisperse()) {
+    //     console.log("disperse test failed");
+    // }
 
     //for now , its nothing
     world.chunkManager = new ChunkManager();
@@ -1107,23 +1107,28 @@ function testDisperse() {
 
     let centerChunk = [];
 
-    for (let y=0;y<3;y++) {
+    const maxY = 3;
+    for (let y=0;y<maxY;y++) {
         for (let x=0;x<3;x++) {
             for (let z=0;z<3;z++) {
-                const light_buffer = (y < 2) ? innerDataEmpty.buffer : innerDataSolid.buffer;
+                const light_buffer = (y < maxY - 1) ? innerDataEmpty.buffer : innerDataSolid.buffer;
                 let chunk = new Chunk({addr: new Vector(x, y, z), size: new Vector(w, w, w), light_buffer});
                 chunk.init();
                 world.chunkManager.add(chunk);
                 chunk.fillOuter();
 
-                if (x===1 && z===1 && y<=1) {
+                if (x===1 && z===1 && y < maxY - 1) {
                     centerChunk.push(chunk);
                 }
+                // if (y < maxY - 1) {
+                //     centerChunk.push(chunk);
+                // }
                 world.dayLightSrc.doIter(100);
+                world.dayLight.doIter(2000);
             }
         }
     }
-    world.dayLight.doIter(100);
+    // world.dayLight.doIter(10000);
     for (let cc of centerChunk) {
         let {uint8View, outerLen, strideBytes} = cc.lightChunk;
         for (let coord = 0; coord < outerLen; coord++) {
