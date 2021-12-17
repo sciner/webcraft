@@ -764,33 +764,24 @@ class Chunk {
                             uint8View[coordBytes + OFFSET_PREV] = defLight
                         }
                 // copy found dayLight to portals
-                if (disperse > 0) {
-                    for (let portal of portals) {
-                        const other = portal.toRegion;
-                        const p = portal.aabb;
-                        const outer2 = other.outerSize;
-                        const inside2 = other.aabb;
-                        const shift2 = other.shiftCoord;
-                        const bytes2 = other.uint8View;
-                        const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
+                for (let portal of portals) {
+                    const other = portal.toRegion;
+                    const p = portal.aabb;
+                    const outer2 = other.outerSize;
+                    const inside2 = other.aabb;
+                    const shift2 = other.shiftCoord;
+                    const bytes2 = other.uint8View;
+                    const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
 
-                        for (let x = p.x_min; x < p.x_max; x++)
-                            for (let y = p.y_min; y < p.y_max; y++)
-                                for (let z = p.z_min; z < p.z_max; z++) {
-                                    if (aabb.contains(x, y, z)) {
-                                        const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes + OFFSET_DAY;
-                                        bytes2[coord2 + OFFSET_SOURCE] = defLight;
-                                        bytes2[coord2 + OFFSET_LIGHT] = defLight;
-                                        // need something for dispersion
-                                    } else
-                                    if (inside2.contains(x, y, z)) {
-                                        const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes + OFFSET_DAY;
-                                        if (bytes2[coord2 + OFFSET_SOURCE] !== defLight) {
-                                            world.dayLightSrc.add(other.rev, coord2);
-                                        }
-                                    }
+                    for (let x = p.x_min; x < p.x_max; x++)
+                        for (let y = p.y_min; y < p.y_max; y++)
+                            for (let z = p.z_min; z < p.z_max; z++) {
+                                if (aabb.contains(x, y, z)) {
+                                    const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes + OFFSET_DAY;
+                                    bytes2[coord2 + OFFSET_SOURCE] = defLight;
+                                    bytes2[coord2 + OFFSET_LIGHT] = defLight;
                                 }
-                    }
+                            }
                 }
             }
         }
@@ -959,7 +950,7 @@ async function importModules() {
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
-        disperse: Math.ceil(maxLight / 20)
+        disperse: 0//Math.ceil(maxLight / 20)
     })
     for (let item of msgQueue) {
         await onmessage(item);
