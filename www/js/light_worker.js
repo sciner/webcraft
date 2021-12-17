@@ -419,7 +419,6 @@ class DirLightQueue {
             let mask = 0;
             const coordBytes = coord * strideBytes + qOffset;
             const old = uint8View[coordBytes + OFFSET_SOURCE];
-            let readyToDisperse = false;
             let val;
             const prev = uint8View[coordBytes + OFFSET_SOURCE_PREV];
             if (uint8View[coord * strideBytes + OFFSET_SOURCE] === MASK_BLOCK ||
@@ -428,8 +427,7 @@ class DirLightQueue {
             } else {
                 val = uint8View[coordBytes + sy * strideBytes + OFFSET_SOURCE];
                 if (disperse > 0) {
-                    if (val === maxLight && val === old && val === prev)
-                    {
+                    if (val === maxLight && val === old && val === prev) {
                         continue;
                     }
                     let cnt = 0;
@@ -448,14 +446,12 @@ class DirLightQueue {
                             val = 0;
                         }
                     }
-                    if (val === maxLight) {
-                        readyToDisperse = true;
-                    }
                 }
             }
             if (old === val && prev === val) {
                 continue;
             }
+            let changedDisperse = (disperse > 0) && (((val === maxLight) ^ (prev === maxLight)) || (old !== prev));
             uint8View[coordBytes + OFFSET_SOURCE] = val;
             uint8View[coordBytes + OFFSET_SOURCE_PREV] = val;
 
@@ -473,7 +469,7 @@ class DirLightQueue {
                 nextWave.chunks.push(chunk);
                 nextWave.coords.push(coord - sy);
                 chunk.waveCounter++;
-                if (disperse > 0) {
+                if (changedDisperse) {
                     for (let d = 0; d < 4; d++) {
                         if ((mask & (1 << d)) !== 0) {
                             continue;
@@ -501,7 +497,7 @@ class DirLightQueue {
                         chunk2.rev.waveCounter++;
                         mask |= (1 << DIR_DOWN); //down
                     }
-                    if (readyToDisperse) {
+                    if (changedDisperse) {
                         for (let d = 0; d < 4; d++) {
                             if ((mask & (1 << d)) !== 0) {
                                 continue;
@@ -529,7 +525,7 @@ class DirLightQueue {
                         chunk.waveCounter++;
                     }
                 }
-                if (readyToDisperse) {
+                if (changedDisperse) {
                     for (let d = 0; d < 4; d++) {
                         if ((mask & (1 << d)) !== 0) {
                             continue;
@@ -954,6 +950,9 @@ async function importModules() {
     if (!testDayLight()) {
         console.log("day test failed");
     }
+    if (!testDisperse()) {
+        console.log("disperse test failed");
+    }
 
     //for now , its nothing
     world.chunkManager = new ChunkManager();
@@ -1082,6 +1081,49 @@ function testDayLight() {
     world.dayLightSrc.doIter(10000);
     world.dayLight.doIter(10000);
 
+    for (let cc of centerChunk) {
+        let {uint8View, outerLen, strideBytes} = cc.lightChunk;
+        for (let coord = 0; coord < outerLen; coord++) {
+            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_LIGHT] > 0) {
+                return false;
+            }
+            if (uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function testDisperse() {
+    world.chunkManager = new ChunkManager();
+    world.light = new LightQueue({offset: 0});
+    world.dayLight = new LightQueue({offset: OFFSET_DAY});
+    world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY, disperse: Math.ceil(maxLight / 2)});
+
+    let innerDataEmpty = new Uint8Array([0]);
+    let innerDataSolid = new Uint8Array([MASK_BLOCK + MASK_AO]);
+    let w = 1;
+
+    let centerChunk = [];
+
+    for (let y=0;y<3;y++) {
+        for (let x=0;x<3;x++) {
+            for (let z=0;z<3;z++) {
+                const light_buffer = (y < 2) ? innerDataEmpty.buffer : innerDataSolid.buffer;
+                let chunk = new Chunk({addr: new Vector(x, y, z), size: new Vector(w, w, w), light_buffer});
+                chunk.init();
+                world.chunkManager.add(chunk);
+                chunk.fillOuter();
+
+                if (x===1 && z===1 && y<=1) {
+                    centerChunk.push(chunk);
+                }
+                world.dayLightSrc.doIter(100);
+            }
+        }
+    }
+    world.dayLight.doIter(100);
     for (let cc of centerChunk) {
         let {uint8View, outerLen, strideBytes} = cc.lightChunk;
         for (let coord = 0; coord < outerLen; coord++) {
