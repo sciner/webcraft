@@ -473,6 +473,16 @@ class DirLightQueue {
                 nextWave.chunks.push(chunk);
                 nextWave.coords.push(coord - sy);
                 chunk.waveCounter++;
+                if (disperse > 0) {
+                    for (let d = 0; d < 4; d++) {
+                        if ((mask & (1 << d)) !== 0) {
+                            continue;
+                        }
+                        curWave.chunks.push(chunk);
+                        curWave.coords.push(coord + dif26[d]);
+                        chunk.waveCounter++;
+                    }
+                }
             } else {
                 for (let p = 0; p < portals.length; p++) {
                     const chunk2 = portals[p].toRegion;
@@ -482,12 +492,6 @@ class DirLightQueue {
                     const coord2 = chunk2.indexByWorld(x, y, z);
                     chunk2.setUint8ByInd(coord2, qOffset + OFFSET_SOURCE, val);
                     chunk2.setUint8ByInd(coord2, qOffset + OFFSET_LIGHT, maxVal);
-                    //TODO: dispersion
-                    //
-                    // for (let d = 0; d < DIR_COUNT; d++) {
-                    //     if ((mask & (1 << d)) !== 0) {
-                    //         continue;
-                    //     }
                     let x2 = x,
                         y2 = y - 1,
                         z2 = z;
@@ -643,12 +647,12 @@ class Chunk {
         const defLight = world.defDayLight;
         const disperse = world.dayLightSrc.disperse;
         if (defLight > 0) {
-            for (let y = aabb.y_max - 1; y < aabb.y_max + 1; y++)
-                for (let z = aabb.z_min; z < aabb.z_max; z++)
-                    for (let x = aabb.x_min; x < aabb.x_max; x++) {
-                        const coord = x * sx + y * sy + z * sz + shiftCoord;
-                        uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
-                    }
+            let y = aabb.y_max;
+            for (let z = aabb.z_min; z < aabb.z_max; z++)
+                for (let x = aabb.x_min; x < aabb.x_max; x++) {
+                    const coord = x * sx + y * sy + z * sz + shiftCoord;
+                    uint8View[coord * strideBytes + OFFSET_DAY + OFFSET_SOURCE] = defLight;
+                }
         }
 
         for (let portal of portals) {
@@ -694,7 +698,7 @@ class Chunk {
                         const dayLight = bytes2[coord2 + OFFSET_DAY + OFFSET_LIGHT];
                         const dayLightSrc = bytes2[coord2 + OFFSET_DAY + OFFSET_SOURCE];
                         uint8View[coord1 + OFFSET_DAY + OFFSET_LIGHT] = dayLight;
-                        if (f2 || dayLightSrc > 0) {
+                        if (f2 || f1 && dayLightSrc > 0) {
                             uint8View[coord1 + OFFSET_DAY + OFFSET_SOURCE] = dayLightSrc;
                         }
                         if (f2 && dayLightSrc !== defLight) {
@@ -734,7 +738,7 @@ class Chunk {
                             continue;
                         }
                         const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
-                        if (uint8View[coordBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
+                        if (uint8View[coordBytes + sy * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
                             world.dayLightSrc.add(this, coord);
                         } else if (disperse > 0) {
                             for (let d=0;d<4;d++) {
@@ -782,7 +786,7 @@ class Chunk {
                                         bytes2[coord2 + OFFSET_SOURCE] = defLight;
                                         bytes2[coord2 + OFFSET_LIGHT] = defLight;
                                         // need something for dispersion
-                                    }
+                                    } else
                                     if (inside2.contains(x, y, z)) {
                                         const coord2 = (sx2 * x + sy2 * y + sz2 * z + shift2) * strideBytes + OFFSET_DAY;
                                         if (bytes2[coord2 + OFFSET_SOURCE] !== defLight) {
