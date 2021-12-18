@@ -262,8 +262,8 @@ export class Player {
             if(this._createBlockAABB.intersect({
                 x_min: playerPos.x - .5,
                 x_max: playerPos.x - .5 + 1,
-                y_min: playerPos.y - .2,
-                y_max: playerPos.y + this.height + .2,
+                y_min: playerPos.y,
+                y_max: playerPos.y + this.height,
                 z_min: playerPos.z - .5,
                 z_max: playerPos.z - .5 + 1
             })) {
