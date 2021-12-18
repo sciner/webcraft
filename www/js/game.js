@@ -469,4 +469,32 @@ export class GameClass {
         }, false);
     }
 
+    // drawPerf
+    drawPerf() {
+        var timers = [
+            {name: 'init', min: 99999, max: 0, avg: 0, total: 0},
+            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0},
+            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0},
+            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0}
+        ];
+        var cnt = 0;
+        for(let chunk of this.world.chunkManager.chunks.values()) {
+            if(chunk.timers) {
+                cnt++;
+                for(var tim of timers) {
+                    var t = chunk.timers[tim.name];
+                    if(t < tim.min) tim.min = t;
+                    if(t > tim.max) tim.max = t;
+                    tim.total += t;
+                }
+            }
+        }
+        for(var tim of timers) {
+            tim.avg = Math.round(tim.total / cnt * 100) / 100;
+            tim.total = Math.round(tim.total * 100) / 100;
+            tim.cnt = cnt;
+        }
+        console.table(timers);
+    }
+
 }
