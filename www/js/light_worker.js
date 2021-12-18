@@ -49,6 +49,8 @@ const DIR_COUNT = 26; //26 // 26 is full 3d light approx
 const DIR_DOWN = 5;
 const DIR_MAX_MASK = (1<<26) - (1<<6);
 
+const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 6);
+
 function adjustSrc(srcLight) {
     srcLight = srcLight & MASK_BLOCK;
     if (srcLight * 2 < MASK_BLOCK && srcLight > 0) {
@@ -958,7 +960,7 @@ async function importModules() {
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
-        disperse: Math.ceil(maxLight / 15)
+        disperse: DEFAULT_LIGHT_DAY_DISPERSE
     })
     for (let item of msgQueue) {
         await onmessage(item);
