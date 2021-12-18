@@ -11,7 +11,7 @@ import {getChunkAddr} from "../www/js/chunk.js";
 import {ServerChunkManager} from "./server_chunk_manager.js";
 // import {GameMode} from "../www/js/game_mode.js";
 
-export const MAX_BLOCK_PLACE_DIST = 11;
+export const MAX_BLOCK_PLACE_DIST = 12.5;
 
 export class ServerWorld {
 
@@ -326,7 +326,9 @@ export class ServerWorld {
         // Ignore bedrock for non admin
         let is_admin = this.admins.checkIsAdmin(player);
         if (params.item.id != 1 || is_admin) {
-            if(player.state.pos.distance(params.pos) > MAX_BLOCK_PLACE_DIST) {
+            let dist = player.state.pos.distance(params.pos);
+            if(dist > MAX_BLOCK_PLACE_DIST) {
+                console.log('dist', dist);
                 throw 'error_unreachable_coordinate';
             }
             let addr = getChunkAddr(params.pos);
