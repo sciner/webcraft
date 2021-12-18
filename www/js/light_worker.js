@@ -49,7 +49,7 @@ const DIR_COUNT = 26; //26 // 26 is full 3d light approx
 const DIR_DOWN = 5;
 const DIR_MAX_MASK = (1<<26) - (1<<6);
 
-const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 6);
+const DEFAULT_LIGHT_DAY_DISPERSE = Math.ceil(maxLight / 11);
 
 function adjustSrc(srcLight) {
     srcLight = srcLight & MASK_BLOCK;
