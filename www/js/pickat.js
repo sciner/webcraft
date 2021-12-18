@@ -7,7 +7,6 @@ import { Raycaster } from "./Raycaster.js";
 
 const {mat4} = glMatrix;
 
-export const DEFAULT_PICKAT_DIST = 5;
 const TARGET_TEXTURES = [.5, .5, 1, 1];
 
 const half = new Vector(0.5, 0.5, 0.5);
@@ -43,7 +42,7 @@ export class PickAt {
         this.raycaster = new Raycaster(this.world);
     }
 
-    get (pos, callback, pickat_distance) {
+    get(pos, callback, pickat_distance) {
         const render = this.render;
         const m = mat4.invert(this.empty_matrix, render.viewMatrix);
         pos = new Vector(pos);
@@ -122,7 +121,7 @@ export class PickAt {
         if(bPos) {
             // Check if pick-at block changed
             let tbp = target_block.pos;
-            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z /*|| tbp.n.x != bPos.n.x || tbp.n.y != bPos.n.y || tbp.n.z != bPos.n.z*/)) {
+            if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
                 // 1. Target block
                 if(target_block.mesh) {
                     target_block.mesh.destroy();
@@ -139,19 +138,17 @@ export class PickAt {
         } else {
             damage_block.prev_time = null;
         }
-        this.calcDamage();
-        // draw
-        // this.draw();
+        this.checkTargets();
     }
 
-    // calcDamage...
-    calcDamage() {
+    // checkTargets...
+    checkTargets() {
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         if(!target_block.visible) {
             return false;
         }
-        if(!damage_block.event || !damage_block.mesh) {
+        if(!damage_block.event) {
             return false;
         }
         damage_block.number++;
@@ -162,7 +159,12 @@ export class PickAt {
         }
         damage_block.prev_time = pn;
         if(this.onTarget instanceof Function) {
-            if(this.onTarget({...damage_block.pos}, {...damage_block.event}, damage_block.times / 1000, damage_block.number)) {
+            // полное копирование, во избежания модификации
+            let event = {...damage_block.event};
+            event.pos = {...damage_block.pos};
+            event.pos.n = event.pos.n.clone();
+            event.pos.point = event.pos.point.clone();
+            if(this.onTarget(event, damage_block.times / 1000, damage_block.number)) {
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
                     damage_block.mesh.destroy();

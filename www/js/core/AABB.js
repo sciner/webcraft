@@ -117,6 +117,13 @@ export class AABB {
             && y >= this.y_min && y < this.y_max
             && z >= this.z_min && z < this.z_max;
     }
+
+    intersect(box) {
+        return (box.x_min < this.x_max && this.x_min < box.x_max
+            && box.y_min < this.y_max && this.y_min < box.y_max
+            && box.z_min < this.z_max && this.z_min < box.z_max);
+    }
+
     /**
      * rotated around 0
      * @param sym

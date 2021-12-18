@@ -9,9 +9,11 @@ import {SpectatorPlayerControl} from "./spectator-physics.js";
 import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {PlayerControl} from "./player_control.js";
+import { AABB } from './core/AABB.js';
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
+const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
 
 // Creates a new local player manager.
@@ -33,6 +35,8 @@ export class Player {
         this.session                = data.session;
         this.state                  = data.state;
         this.indicators             = data.state.indicators;
+        this._createBlockAABB       = new AABB();
+        this._prevActionTime        = performance.now();
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         this._eye_pos               = new Vector(0, 0, 0);
         // Position
@@ -67,7 +71,7 @@ export class Player {
         this.chat                   = new Chat(this);
         //
         this.falling                = false; // падает
-        this.flying                 = this.world.game_mode.getCurrent().can_fly; // летит
+        // this.flying                 = this.world.game_mode.getCurrent().can_fly; // летит
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
         this.walking                = false; // идёт по земле
@@ -152,10 +156,11 @@ export class Player {
     }
 
     // onPickAtTarget
-    onPickAtTarget(bPos, e, times, number) {
+    onPickAtTarget(e, times, number) {
+        let bPos = e.pos;
         // createBlock
         if(e.createBlock) {
-            if(e.number > 1 && times < .2) {
+            if(e.number > 1 && times < .02) {
                 return false;
             }
         // cloneBlock
@@ -209,208 +214,220 @@ export class Player {
 
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(e) {
-        if(!this.world.game_mode.canBlockAction() || !this.pickAt) {
+        if(e.pos == false || !this.world.game_mode.canBlockAction()) {
             return;
         }
+        //
         let destroyBlock    = e.destroyBlock;
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
+        //
+        let pos             = e.pos;
         let world           = this.world;
-        let pickat_dist     = this.world.game_mode.getPickatDistance();
-        // Picking
-        this.pickAt.get(this.pos, (pos) => {
-            if(pos === false) {
+        let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let extra_data      = world_block.extra_data;
+        let rotate          = world_block.rotate;
+        let entity_id       = world_block.entity_id;
+        let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
+        let playerPos       = this.lerpPos; // this.getBlockPos();
+        let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags && world_material.tags.indexOf('trapdoor') >= 0;
+        if(isTrapdoor) {
+            // Trapdoor
+            // Ограничение частоты выолнения данного действия
+            if(e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED) {
                 return;
             }
-            let world_block = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            let extra_data  = world_block.extra_data;
-            let rotate      = world_block.rotate;
-            let entity_id   = world_block.entity_id;
-            if(world_block && world_block.id > 0) {
-                world_block = world_block.material;
+            this._prevActionTime = performance.now();
+            if(!extra_data) {
+                extra_data = {
+                    opened: false,
+                    point: new Vector(0, 0, 0)
+                };
             }
-            let playerPos       = this.getBlockPos();
-            let isTrapdoor      = !e.shiftKey && createBlock && world_block && world_block.tags && world_block.tags.indexOf('trapdoor') >= 0;
-            if(isTrapdoor) {
-                // Trapdoor
-                if(!extra_data) {
-                    extra_data = {
-                        opened: false,
-                        point: new Vector(0, 0, 0)
-                    };
-                }
-                extra_data.opened = extra_data && !extra_data.opened;
-                if(world_block.sound) {
-                    Game.sounds.play(world_block.sound, 'open');
-                }
-                this.pickAt.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
-                world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_block, true, null, rotate, null, extra_data);
-            } else if(createBlock) {
-                let replaceBlock = world_block && BLOCK.canReplace(world_block.id);
-                if(!replaceBlock) {
-                    pos.x += pos.n.x;
-                    pos.y += pos.n.y;
-                    pos.z += pos.n.z;
-                }
-                // Запрет установки блока на блоки, которые занимает игрок
-                if(playerPos.x == pos.x && playerPos.z == pos.z && (pos.y >= playerPos.y && pos.y <= playerPos.y + 1)) {
+            extra_data.opened = extra_data && !extra_data.opened;
+            if(world_material.sound) {
+                Game.sounds.play(world_material.sound, 'open');
+            }
+            this.pickAt.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
+            world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
+        } else if(createBlock) {
+            let replaceBlock = world_material && BLOCK.canReplace(world_material.id);
+            if(!replaceBlock) {
+                pos.x += pos.n.x;
+                pos.y += pos.n.y;
+                pos.z += pos.n.z;
+            }
+            // Запрет установки блока на блоки, которые занимает игрок
+            this._createBlockAABB.copyFrom({x_min: pos.x, x_max: pos.x + 1, y_min: pos.y, y_max: pos.y + 1, z_min: pos.z, z_max: pos.z + 1});
+            if(this._createBlockAABB.intersect({
+                x_min: playerPos.x - .5,
+                x_max: playerPos.x - .5 + 1,
+                y_min: playerPos.y - .2,
+                y_max: playerPos.y + this.height + .2,
+                z_min: playerPos.z - .5,
+                z_max: playerPos.z - .5 + 1
+            })) {
+                return;
+            }
+            // Запрет установки блока, если на позиции уже есть другой блок
+            if(!replaceBlock) {
+                let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                if(!existingBlock.canReplace()) {
                     return;
                 }
-                // Запрет установки блока, если на позиции уже есть другой блок
-                if(!replaceBlock) {
-                    let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    if(!existingBlock.canReplace()) {
-                        return;
+            }
+            // Ограничение частоты выолнения данного действия
+            if(e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED) {
+                return;
+            }
+            this._prevActionTime = performance.now();
+            // Если ткнули на предмет с собственным окном
+            if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
+                if(!e.shiftKey) {
+                    switch(world_material.id) {
+                        case BLOCK.CRAFTING_TABLE.id: {
+                            Game.hud.wm.getWindow('frmCraft').toggleVisibility();
+                            break;
+                        }
+                        case BLOCK.CHEST.id: {
+                            Game.hud.wm.getWindow('frmChest').load(entity_id);
+                            break;
+                        }
+                    }
+                    this.pickAt.clearEvent();
+                    return;
+                }
+            }
+            // Эта проверка обязательно должна быть тут, а не выше!
+            // Иначе не будут открываться сундуки и прочее
+            if(!this.buildMaterial || this.inventory.getCurrent().count < 1) {
+                return;
+            }
+            if(replaceBlock && this.buildMaterial.style == 'ladder') {
+                return;
+            }
+            let matBlock = BLOCK.fromId(this.buildMaterial.id);
+            // Запрет на списание инструментов как блоков
+            if(matBlock.instrument_id) {
+                if(matBlock.instrument_id == 'shovel') {
+                    if(world_material.id == BLOCK.DIRT.id) {
+                        let extra_data = null;
+                        pos.x -= pos.n.x;
+                        pos.y -= pos.n.y;
+                        pos.z -= pos.n.z;
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data);
                     }
                 }
-                // Если ткнули на предмет с собственным окном
-                if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_block.id) >= 0) {
-                    if(!e.shiftKey) {
-                        switch(world_block.id) {
-                            case BLOCK.CRAFTING_TABLE.id: {
-                                Game.hud.wm.getWindow('frmCraft').toggleVisibility();
-                                break;
-                            }
-                            case BLOCK.CHEST.id: {
-                                Game.hud.wm.getWindow('frmChest').load(entity_id);
-                                break;
-                            }
-                        }
-                        this.pickAt.clearEvent();
-                        return;
+            } else {
+                const orientation = new Vector(this.rotateDegree);
+                orientation.x = 0;
+                orientation.y = 0;
+
+                // top normal
+                if (Math.abs(pos.n.y) === 1) {                        
+                    orientation.x = BLOCK.getCardinalDirection(orientation);
+                    orientation.z = 0;
+                    orientation.y = pos.n.y; // mark that is up
+                } else {
+                    orientation.z = 0;
+                    if (pos.n.x !== 0) {
+                        orientation.x = pos.n.x > 0 ? ROTATE.E : ROTATE.W;
+                    } else {
+                        orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
                     }
                 }
-                // Эта проверка обязательно должна быть тут, а не выше!
-                // Иначе не будут открываться сундуки и прочее
-                if(!this.buildMaterial || this.inventory.getCurrent().count < 1) {
-                    return;
-                }
-                if(replaceBlock && this.buildMaterial.style == 'ladder') {
-                    return;
-                }
-                let matBlock = BLOCK.fromId(this.buildMaterial.id);
-                // Запрет на списание инструментов как блоков
-                if(matBlock.instrument_id) {
-                    if(matBlock.instrument_id == 'shovel') {
-                        if(world_block.id == BLOCK.DIRT.id) {
-                            let extra_data = null;
-                            pos.x -= pos.n.x;
-                            pos.y -= pos.n.y;
-                            pos.z -= pos.n.z;
-                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data);
+
+                let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
+                if(replaceBlock) {
+                    // Replace block
+                    if(matBlock.is_item || matBlock.is_entity) {
+                        if(matBlock.is_entity) {
+                            Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                         }
+                    } else {
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                     }
                 } else {
-                    const orientation = new Vector(this.rotateDegree);
-                    orientation.x = 0;
-                    orientation.y = 0;
-
-                    // top normal
-                    if (Math.abs(pos.n.y) === 1) {                        
-                        orientation.x = BLOCK.getCardinalDirection(orientation);
-                        orientation.z = 0;
-                        orientation.y = pos.n.y; // mark that is up
-                    } else {
-                        orientation.z = 0;
-                        if (pos.n.x !== 0) {
-                            orientation.x = pos.n.x > 0 ? ROTATE.E : ROTATE.W;
-                        } else {
-                            orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
-                        }
+                    // Create block
+                    // Посадить растения можно только на блок земли
+                    let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+                    if(BLOCK.isPlants(this.buildMaterial.id) && underBlock.id != BLOCK.DIRT.id) {
+                        return;
                     }
-
-                    let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
-                    if(replaceBlock) {
-                        // Replace block
-                        if(matBlock.is_item || matBlock.is_entity) {
-                            if(matBlock.is_entity) {
-                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
+                    if(matBlock.is_item || matBlock.is_entity) {
+                        if(matBlock.is_entity) {
+                            Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
+                            let b = BLOCK.fromId(this.buildMaterial.id);
+                            if(b.sound) {
+                                Game.sounds.play(b.sound, 'place');
                             }
-                        } else {
-                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                         }
                     } else {
-                        // Create block
-                        // Посадить растения можно только на блок земли
-                        let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-                        if(BLOCK.isPlants(this.buildMaterial.id) && underBlock.id != BLOCK.DIRT.id) {
-                            return;
-                        }
-                        if(matBlock.is_item || matBlock.is_entity) {
-                            if(matBlock.is_entity) {
-                                Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
-                                let b = BLOCK.fromId(this.buildMaterial.id);
-                                if(b.sound) {
-                                    Game.sounds.play(b.sound, 'place');
-                                }
+                        if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
+                            // Лианы можно ставить на блоки с прозрачностью
+                            if(world_material.transparent && world_material.style != 'default') {
+                                return;
                             }
-                        } else {
-                            if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
-                                // Лианы можно ставить на блоки с прозрачностью
-                                if(world_block.transparent && world_block.style != 'default') {
-                                    return;
-                                }
-                                if(pos.n.y == 0) {
-                                    if(pos.n.z != 0) {
-                                        // z
-                                    } else {
-                                        // x
-                                    }
+                            if(pos.n.y == 0) {
+                                if(pos.n.z != 0) {
+                                    // z
                                 } else {
-                                    let cardinal_direction = orientation.x;//BLOCK.getCardinalDirection(rotateDegree).z;
-                                    let ok = false;
-                                    for(let i = 0; i < 4; i++) {
-                                        let pos2 = new Vector(pos.x, pos.y, pos.z);
-                                        let cd = cardinal_direction + i;
-                                        if(cd > 4) cd -= 4;
-                                        // F R B L
-                                        switch(cd) {
-                                            case ROTATE.S: {
-                                                pos2 = pos2.add(new Vector(0, 0, 1));
-                                                break;
-                                            }
-                                            case ROTATE.W: {
-                                                pos2 = pos2.add(new Vector(1, 0, 0));
-                                                break;
-                                            }
-                                            case ROTATE.N: {
-                                                pos2 = pos2.add(new Vector(0, 0, -1));
-                                                break;
-                                            }
-                                            case ROTATE.E: {
-                                                pos2 = pos2.add(new Vector(-1, 0, 0));
-                                                break;
-                                            }
+                                    // x
+                                }
+                            } else {
+                                let cardinal_direction = orientation.x;
+                                let ok = false;
+                                for(let i = 0; i < 4; i++) {
+                                    let pos2 = new Vector(pos.x, pos.y, pos.z);
+                                    let cd = cardinal_direction + i;
+                                    if(cd > 4) cd -= 4;
+                                    // F R B L
+                                    switch(cd) {
+                                        case ROTATE.S: {
+                                            pos2 = pos2.add(new Vector(0, 0, 1));
+                                            break;
                                         }
-                                        let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
-                                        if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
-                                            cardinal_direction = cd;
-                                            rotateDegree.z = (rotateDegree.z + i * 90) % 360;
-                                            ok = true;
+                                        case ROTATE.W: {
+                                            pos2 = pos2.add(new Vector(1, 0, 0));
+                                            break;
+                                        }
+                                        case ROTATE.N: {
+                                            pos2 = pos2.add(new Vector(0, 0, -1));
+                                            break;
+                                        }
+                                        case ROTATE.E: {
+                                            pos2 = pos2.add(new Vector(-1, 0, 0));
                                             break;
                                         }
                                     }
-                                    if(!ok) {
-                                        return;
+                                    let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
+                                    if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
+                                        cardinal_direction = cd;
+                                        rotateDegree.z = (rotateDegree.z + i * 90) % 360;
+                                        ok = true;
+                                        break;
                                     }
                                 }
+                                if(!ok) {
+                                    return;
+                                }
                             }
-                            world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                         }
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
                     }
-                    this.inventory.decrement();
                 }
-            } else if(destroyBlock) {
-                // Destroy block
-                if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_block.id) < 0) {
-                    this.destroyBlock(world_block, pos, this.getCurrentInstrument());
-                }
-            } else if(cloneBlock) {
-                if(world_block && world.game_mode.canBlockClone()) {
-                    this.inventory.cloneMaterial(world_block);
-                }
+                this.inventory.decrement();
             }
-        }, pickat_dist);
+        } else if(destroyBlock) {
+            // Destroy block
+            if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
+                this.destroyBlock(world_material, pos, this.getCurrentInstrument());
+            }
+        } else if(cloneBlock) {
+            if(world_material && world.game_mode.canBlockClone()) {
+                this.inventory.cloneMaterial(world_material);
+            }
+        }
     }
 
     // Удалить блок используя инструмент

@@ -1,5 +1,3 @@
-import {DEFAULT_PICKAT_DIST} from "./pickat.js";
-
 export const GAME_MODE = {};
     GAME_MODE.CREATIVE = 'creative';
     GAME_MODE.SURVIVAL = 'survival';
@@ -11,10 +9,10 @@ export class GameMode {
     constructor(world, game_mode_id) {
         this.world = world;
         this.modes = [];
-        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false});
-        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true});
-        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false});
-        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false});
+        this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5});
+        this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10});
+        this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5});
+        this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5});
         if(game_mode_id) {
             this.setMode(game_mode_id);
         }
@@ -94,7 +92,7 @@ export class GameMode {
 
     // getPickatDistance...
     getPickatDistance() {
-        return (DEFAULT_PICKAT_DIST * (this.isCreative() ? 2 : 1)) | 0;
+        return this.getCurrent().pickat_distance;
     }
 
 }
