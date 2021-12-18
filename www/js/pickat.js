@@ -278,4 +278,9 @@ export class PickAt {
         }));
     }
 
+    // resetTargetPos...
+    resetTargetPos() {
+        this.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
+    }
+
 }

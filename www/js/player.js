@@ -212,6 +212,15 @@ export class Player {
         }
     }
 
+    // Ограничение частоты выолнения данного действия
+    limitBlockActionFrequency(e) {
+        let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
+        if(!resp) {
+            this._prevActionTime = performance.now();
+        }
+        return resp;
+    }
+
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(e) {
         if(e.pos == false || !this.world.game_mode.canBlockAction()) {
@@ -233,8 +242,7 @@ export class Player {
         let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
         if(isTrapdoor) {
             // Trapdoor
-            // Ограничение частоты выолнения данного действия
-            if(e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED) {
+            if(this.limitBlockActionFrequency(e)) {
                 return;
             }
             this._prevActionTime = performance.now();
@@ -248,11 +256,29 @@ export class Player {
             if(world_material.sound) {
                 Game.sounds.play(world_material.sound, 'open');
             }
-            this.pickAt.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
+            this.pickAt.resetTargetPos();
             world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
         } else if(createBlock) {
             // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-            let isLayering = world_material.id == this.buildMaterial.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
+            let isLayering = this.buildMaterial && world_material.id == this.buildMaterial.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
+            if(isLayering) {
+                let new_extra_data = null;
+                if(extra_data) {
+                    new_extra_data = JSON.parse(JSON.stringify(extra_data));
+                } else {
+                    new_extra_data = {height: world_material.height};
+                }
+                new_extra_data.height += world_material.height;
+                if(new_extra_data.height <= 1) {
+                    if(this.limitBlockActionFrequency(e)) {
+                        return;
+                    }
+                    this.pickAt.resetTargetPos();
+                    world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
+                    return;
+                }
+            }
+            //
             let replaceBlock = world_material && BLOCK.canReplace(world_material.id);
             if(!replaceBlock) {
                 pos.x += pos.n.x;
@@ -278,11 +304,9 @@ export class Player {
                     return;
                 }
             }
-            // Ограничение частоты выолнения данного действия
-            if(e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED) {
+            if(this.limitBlockActionFrequency(e)) {
                 return;
             }
-            this._prevActionTime = performance.now();
             // Если ткнули на предмет с собственным окном
             if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
                 if(!e.shiftKey) {
@@ -489,7 +513,6 @@ export class Player {
     setFlying(value) {
         let pc = this.getPlayerControl();
         pc.player_state.flying = value;
-        console.log(pc.player_state.flying);
     }
 
     //

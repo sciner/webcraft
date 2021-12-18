@@ -332,7 +332,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir) {
+    static calcMaterialTexture(material, dir, width, height) {
         let tx_cnt = TX_CNT;
         // Get tx_cnt from resource pack texture
         if (typeof material.texture === 'object' && 'id' in material.texture) {
@@ -341,7 +341,12 @@ export class BLOCK {
                 tx_cnt = tex.tx_cnt;
             }
         }
-        return this.calcTexture(material.texture, dir, tx_cnt);
+        let c = this.calcTexture(material.texture, dir, tx_cnt);
+        if(height && height < 1) {
+            c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
+            c[3] *= height;
+        }
+        return c;
     }
 
     // Возвращает координаты текстуры
@@ -672,11 +677,18 @@ export class BLOCK {
                     break;
                 }
                 default: {
+                    let height = b.properties.height ? b.properties.height : 1;
+                    // Высота наслаеваемых блоков хранится в extra_data
+                    if(b.properties.tags.indexOf('layering') >= 0) {
+                        if(b.extra_data) {
+                            height = b.extra_data?.height || height;
+                        }
+                    }
                     if(b.properties.width) {
                         let hw = b.properties.width / 2;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, b.properties.height ? b.properties.height: 1, .5+hw]);
+                        shapes.push([.5-hw, 0, .5-hw, .5+hw, height, .5+hw]);
                     } else {
-                        shapes.push([0, 0, 0, 1, b.properties.height ? b.properties.height + .001: 1, 1]);
+                        shapes.push([0, 0, 0, 1, height + .001, 1]);
                     }
                     break;
                 }

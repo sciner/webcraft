@@ -3042,24 +3042,11 @@
     {
         "id": 469,
         "name": "SNOW",
-        "height": 0.0625,
-        "inventory_icon_id": 3314,
+        "height": 0.125,
+        "inventory_icon_id": 998,
         "transparent": true,
         "passable": 0,
-        "texture": {
-            "up": [
-                2,
-                4
-            ],
-            "down": [
-                2,
-                4
-            ],
-            "side": [
-                4,
-                7
-            ]
-        },
+        "texture": [2, 4],
         "tags": [
             "layering",
             "no_drop_ao"

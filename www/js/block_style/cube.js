@@ -93,6 +93,12 @@ export default class style {
         let height                  = block.material.height ? block.material.height : 1;
         let drawAllSides            = width != 1 || height != 1;
 
+        if(block.material.tags.indexOf('layering') >= 0) {
+            if(block.extra_data) {
+                height = block.extra_data?.height || height;
+            }
+        }
+
         // Can change height
         let bH = 1.0;
         if(block.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
@@ -199,52 +205,52 @@ export default class style {
 
         // South | Front/Forward
         if(canDrawFace(neighbours.SOUTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5, .5 - width / 2, bH / 2,
+                .5, .5 - width / 2, height / 2,
                 1, 0, 0,
-                0, 0, bH,
+                0, 0, height,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // North
         if(canDrawFace(neighbours.NORTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5, .5 + width / 2, bH / 2,
+                .5, .5 + width / 2, height / 2,
                 1, 0, 0,
-                0, 0, -bH,
+                0, 0, -height,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // West
         if(canDrawFace(neighbours.WEST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5 - width / 2, .5, bH / 2,
+                .5 - width / 2, .5, height / 2,
                 0, 1, 0,
-                0, 0, -bH,
+                0, 0, -height,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // East
         if(canDrawFace(neighbours.EAST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT);
+            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5 + width / 2, .5, bH / 2,
+                .5 + width / 2, .5, height / 2,
                 0, 1, 0,
-                0, 0, bH,
+                0, 0, height,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
