@@ -3041,6 +3041,7 @@
     },
     {
         "id": 469,
+        "name": "SNOW",
         "height": 0.0625,
         "inventory_icon_id": 3314,
         "transparent": true,
@@ -3059,7 +3060,10 @@
                 7
             ]
         },
-        "name": "SNOW",
+        "tags": [
+            "layering",
+            "no_drop_ao"
+        ],
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64

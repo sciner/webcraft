@@ -230,7 +230,7 @@ export class Player {
         let entity_id       = world_block.entity_id;
         let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
         let playerPos       = this.lerpPos; // this.getBlockPos();
-        let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags && world_material.tags.indexOf('trapdoor') >= 0;
+        let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
         if(isTrapdoor) {
             // Trapdoor
             // Ограничение частоты выолнения данного действия
@@ -251,6 +251,8 @@ export class Player {
             this.pickAt.target_block.pos = new Vector(0, -Number.MAX_SAFE_INTEGER, 0);
             world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
         } else if(createBlock) {
+            // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
+            let isLayering = world_material.id == this.buildMaterial.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
             let replaceBlock = world_material && BLOCK.canReplace(world_material.id);
             if(!replaceBlock) {
                 pos.x += pos.n.x;

@@ -276,20 +276,6 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = block.hasOwnProperty('transparent') && !!block.transparent;
         block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
-        // Fix properties
-        if(!block.hasOwnProperty('light')) block.light = null;
-        if(!block.hasOwnProperty('passable')) block.passable = 0;
-        if(!block.hasOwnProperty('spawnable')) block.spawnable = true;
-        if(!block.hasOwnProperty('max_in_stack')) block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
-        if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;
-        if(block.style && block.style == 'planting') block.planting = true;
-        if(block.style && block.style == 'stairs') block.transparent = true;
-        if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power) {
-            this.ao_invisible_blocks.push(block.id);
-        }
-        if(block.spawn_egg) {
-            BLOCK.spawn_eggs.push(block.id);
-        }
         // Parse tags
         if(block.hasOwnProperty('tags')) {
             for(let tag of block.tags) {
@@ -300,6 +286,20 @@ export class BLOCK {
             }
         } else {
             block.tags = [];
+        }
+        // Fix properties
+        if(!block.hasOwnProperty('light')) block.light = null;
+        if(!block.hasOwnProperty('passable')) block.passable = 0;
+        if(!block.hasOwnProperty('spawnable')) block.spawnable = true;
+        if(!block.hasOwnProperty('max_in_stack')) block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
+        if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;
+        if(block.style && block.style == 'planting') block.planting = true;
+        if(block.style && block.style == 'stairs') block.transparent = true;
+        if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
+            this.ao_invisible_blocks.push(block.id);
+        }
+        if(block.spawn_egg) {
+            BLOCK.spawn_eggs.push(block.id);
         }
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
