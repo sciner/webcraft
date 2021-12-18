@@ -736,7 +736,8 @@ class Chunk {
                         const coord = x * sx + y * sy + z * sz + shiftCoord, coordBytes = coord * strideBytes;
                         if (uint8View[coordBytes + sy * strideBytes + OFFSET_DAY + OFFSET_SOURCE] > 0) {
                             world.dayLightSrc.add(this, coord);
-                        } else if (disperse > 0) {
+                        } else /* if (disperse > 0) */ // somehow there's a bug with this thing
+                        {
                             for (let d=0;d<4;d++) {
                                 if (uint8View[(coord + dif26[d]) * strideBytes + OFFSET_DAY + OFFSET_SOURCE] === maxLight) {
                                     world.dayLightSrc.add(this, coord);
@@ -855,8 +856,10 @@ class Chunk {
 
 function run() {
     const msLimit = 16;
+    const resultLimit = 5;
     const startTime = performance.now();
     let endTime = performance.now();
+    let endChunks = 0;
     let ready;
     do {
         ready = 2;
@@ -894,6 +897,11 @@ function run() {
             lightmap_buffer: chunk.lightResult.buffer,
             lightID: chunk.lastID
         }]);
+
+        endChunks++;
+        if (endChunks >= resultLimit) {
+            return;
+        }
     })
 }
 
@@ -950,7 +958,7 @@ async function importModules() {
     world.light = new LightQueue({offset: 0});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
-        disperse: 0//Math.ceil(maxLight / 20)
+        disperse: Math.ceil(maxLight / 15)
     })
     for (let item of msgQueue) {
         await onmessage(item);
