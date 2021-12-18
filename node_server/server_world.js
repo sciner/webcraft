@@ -11,7 +11,7 @@ import {getChunkAddr} from "../www/js/chunk.js";
 import {ServerChunkManager} from "./server_chunk_manager.js";
 // import {GameMode} from "../www/js/game_mode.js";
 
-export const MAX_BLOCK_PLACE_DIST = 12.5;
+export const MAX_BLOCK_PLACE_DIST = 14;
 
 export class ServerWorld {
 
