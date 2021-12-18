@@ -8,7 +8,7 @@ import {Chest} from "./chest.js";
 import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
-import {Vector} from "../www/js/helpers.js";
+import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 
 export class DBWorld {
@@ -172,6 +172,13 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
+        // Version 8 -> 9
+        if(version == 8) {
+            await this.db.get('begin transaction');
+            await this.db.get(`alter table chest add column "is_deleted" integer DEFAULT 0`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
     }
 
     // getDefaultPlayerIndicators...
@@ -308,9 +315,9 @@ export class DBWorld {
     async loadWorldChests(world) {
         let resp = {
             chests: new Map(),
-            blocks: new Map() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
+            blocks: new VectorCollector() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
         };
-        let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest');
+        let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest WHERE is_deleted = 0');
         for(let row of rows) {
             // EntityBlock
             let entity_block = {
@@ -328,12 +335,17 @@ export class DBWorld {
                 bi,
                 slots
             );
-            let pos_string = row.x + ',' + row.y + ',' + row.z;
             resp.chests.set(row.entity_id, chest);
-            resp.blocks.set(pos_string, entity_block);
+            resp.blocks.set(new Vector(row.x, row.y, row.z), entity_block);
         }
         return resp;
+    }
 
+    // Delete chest
+    async deleteChest(entity_id) {
+        const result = await this.db.run('UPDATE chest SET is_deleted = 1 WHERE entity_id = :entity_id', {
+            ':entity_id': entity_id
+        });
     }
 
     /**

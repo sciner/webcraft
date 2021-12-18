@@ -11,6 +11,8 @@ import {getChunkAddr} from "../www/js/chunk.js";
 import {ServerChunkManager} from "./server_chunk_manager.js";
 // import {GameMode} from "../www/js/game_mode.js";
 
+export const MAX_BLOCK_PLACE_DIST = 10;
+
 export class ServerWorld {
 
     constructor() {}
@@ -324,6 +326,9 @@ export class ServerWorld {
         // Ignore bedrock for non admin
         let is_admin = this.admins.checkIsAdmin(player);
         if (params.item.id != 1 || is_admin) {
+            if(player.state.pos.distance(params.pos) > MAX_BLOCK_PLACE_DIST) {
+                throw 'error_unreachable_coordinate';
+            }
             let addr = getChunkAddr(params.pos);
             let chunk = this.chunks.get(addr);
             if(chunk) {
@@ -332,7 +337,7 @@ export class ServerWorld {
                     this.chunkBecameModified(addr);
                 }
             } else {
-                console.log('setBlock: Chunk not found', addr);
+                throw 'error_chunk_not_loaded';
             }
         }
     }
@@ -343,7 +348,7 @@ export class ServerWorld {
         let addr = getChunkAddr(params.pos);
         let chunk = this.chunks.get(addr);
         if(chunk) {
-            await chunk.blockSet(player, params, false);
+            await chunk.blockSet(player, params, true);
             await this.db.blockSet(this, player, params);
             this.chunkBecameModified(addr);
         } else {

@@ -272,8 +272,9 @@ export class BLOCK {
         block.destroy_time      = calcDestroyTime(block);
         block.power             = 1;
         block.group             = this.getBlockStyleGroup(block);
-        block.selflit           = block.hasOwnProperty('selflit') && block.selflit;
-        block.transparent       = block.hasOwnProperty('transparent') && block.transparent;
+        block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
+        block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
+        block.transparent       = block.hasOwnProperty('transparent') && !!block.transparent;
         block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
         // Fix properties
         if(!block.hasOwnProperty('light')) block.light = null;

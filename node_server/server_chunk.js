@@ -138,9 +138,12 @@ export class ServerChunk {
         if(!this.connections.has(player.session.user_id)) {
             this.addPlayer(player);
         }
+        let material = BLOCK.fromId(params.item.id);
+        if(material.deprecated) {
+            throw 'error_deprecated_block';
+        }
         // If is egg
         if(BLOCK.isEgg(params.item.id)) {
-            let material = BLOCK.fromId(params.item.id);
             // @ParamChatSendMessage
             let chat_message = {
                 username: player.session.username,
@@ -153,9 +156,16 @@ export class ServerChunk {
         // Если на этом месте есть сущность, тогда запретить ставить что-то на это место
         let item = this.world.entities.getEntityByPos(params.pos);
         if (item) {
+            let restore_item = true;
             switch (item.type) {
                 case 'chest': {
-                    params.item = item.entity.item; // this.ModifyList[blockKey]
+                    let slots = item.entity.slots;
+                    if(slots && Object.keys(slots).length > 0) {
+                        params.item = item.entity.item; // this.ModifyList[blockKey]
+                    } else {
+                        restore_item = false;
+                        this.world.entities.delete(item.entity.item.entity_id, params.pos);
+                    }
                     break;
                 }
                 default: {
@@ -163,12 +173,14 @@ export class ServerChunk {
                     params.item = this.modify_list.get(blockKey);
                 }
             }
-            let packets = [{
-                name: ServerClient.CMD_BLOCK_SET,
-                data: params
-            }];
-            this.world.sendSelected(packets, [player.session.user_id], []);
-            return false;
+            if(restore_item) {
+                let packets = [{
+                    name: ServerClient.CMD_BLOCK_SET,
+                    data: params
+                }];
+                this.world.sendSelected(packets, [player.session.user_id], []);
+                return false;
+            }
         }
         // Create entity
         switch (params.item.id) {
@@ -187,7 +199,11 @@ export class ServerChunk {
             name: ServerClient.CMD_BLOCK_SET,
             data: params
         }];
-        this.sendAll(packets, [player.session.user_id]);
+        let except_players = [];
+        if(!notify_author) {
+            except_players.push(player.session.user_id);
+        }
+        this.sendAll(packets, except_players);
         // 
         let pos = new Vector(params.pos).floored().sub(this.coord);
         let block = {

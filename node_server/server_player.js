@@ -187,7 +187,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_BLOCK_SET: {
-                    this.world.setBlock(this, cmd.data);
+                    await this.world.setBlock(this, cmd.data);
                     break;
                 }
             

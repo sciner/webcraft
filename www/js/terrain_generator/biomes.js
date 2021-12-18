@@ -232,7 +232,7 @@ BIOMES.GRASSLAND = {
             {percent: .025, block: BLOCK.FLOWER_LILY_OF_THE_VALLEY.id},
             {percent: .025, block: BLOCK.FLOWER_CORNFLOWER.id},
             {percent: .025, block: BLOCK.DANDELION.id},
-            {percent: .025, trunk: BLOCK.FLOWER_LILAC_BOTTOM.id, leaves: BLOCK.FLOWER_LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
+            {percent: .025, trunk: BLOCK.FLOWER_LILAC.id, leaves: BLOCK.FLOWER_LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
         ]
     },
     trees:      {

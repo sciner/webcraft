@@ -1,13 +1,13 @@
 import uuid from 'uuid';
 
-import { Vector } from "../www/js/helpers.js";
+import { Vector, VectorCollector } from "../www/js/helpers.js";
 
 export class EntityManager {
 
     constructor(world) {
         this.world = world;
         this.chests = new Map();
-        this.blocks = new Map(); // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
+        this.blocks = new VectorCollector(); // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
         this.load();
     }
 
@@ -26,9 +26,10 @@ export class EntityManager {
         throw 'Chest ' + params.entity_id + ' not found';
     }
 
-    // Return block key
-    getBlockKey(pos) {
-        return new Vector(pos).toHash();
+    async delete(entity_id, pos) {
+        await this.world.db.deleteChest(entity_id);
+        this.chests.delete(entity_id);
+        this.blocks.delete(pos);
     }
 
     // Generate ID
@@ -42,9 +43,8 @@ export class EntityManager {
 
     // Return entity on this block position
     getEntityByPos(pos) {
-        let blockPosKey = this.getBlockKey(pos);
-        if(this.blocks.has(blockPosKey)) {
-            let be = this.blocks.get(blockPosKey);
+        if(this.blocks.has(pos)) {
+            let be = this.blocks.get(pos);
             // Block occupied by another entity
             switch (be.type) {
                 case 'chest': {
@@ -66,8 +66,7 @@ export class EntityManager {
      * @param {ParamBlockSet} params 
      */
     async createChest(world, player, params) {
-        let blockPosKey = this.getBlockKey(params.pos);
-        if(this.blocks.has(blockPosKey)) {
+        if(this.blocks.has(params.pos)) {
             throw 'error_block_occupied_by_another_entity';
         }
         // @Chest
@@ -80,7 +79,7 @@ export class EntityManager {
         entity.item.entity_id = this.generateID();
         this.chests.set(entity.item.entity_id, entity);
         // @EntityBlock
-        this.blocks.set(blockPosKey, {
+        this.blocks.set(params.pos, {
             id:   entity.item.entity_id,
             type: 'chest'
         });
