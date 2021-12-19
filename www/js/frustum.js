@@ -239,7 +239,7 @@ export class FrustumProxy extends Frustum {
 
 	constructor() {
 		super();
-		this.camPos = new Vector();
+		this.camPos = new Vector(0, 0, 0);
 	}
 
 	//

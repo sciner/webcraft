@@ -158,7 +158,7 @@ export class ChunkManager {
                 v2.length = 0;
             }
         }
-        let applyVerticesCan = 10;
+        let applyVerticesCan = 20;
         for(let chunk of this.poses) {
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {

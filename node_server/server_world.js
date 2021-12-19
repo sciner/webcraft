@@ -308,7 +308,10 @@ export class ServerWorld {
     
     // Add chunk to modified
     chunkBecameModified(addr) {
-        this.chunkModifieds.set(addr, addr);
+        if(this.chunkModifieds.has(addr)) {
+            return false;
+        }
+        return this.chunkModifieds.set(addr, addr);
     }
 
     // Юзер начал видеть этот чанк

@@ -35,11 +35,10 @@ export class Mth {
 // VectorCollector...
 export class VectorCollector {
 
+    static sets = 0;
+
     constructor(list) {
-        this.clear();
-        if(list) {
-            this.list = list;
-        }
+        this.clear(list);
     }
 
     *[Symbol.iterator]() {
@@ -52,8 +51,8 @@ export class VectorCollector {
         }
     }
 
-    clear() {
-        this.list = new Map();
+    clear(list) {
+        this.list = list ? list : new Map();
         this.size = 0;
     }
 
@@ -94,6 +93,7 @@ export class VectorCollector {
     }
 
     has(vec) {
+        // return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
         if(!this.list.has(vec.x)) return false;
         if(!this.list.get(vec.x).has(vec.y)) return false;
         if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;

@@ -629,6 +629,9 @@
             1,
             3
         ],
+        "tags": [
+            "no_drop_ao"
+        ],
         "destroy_time": 0.4,
         "max_in_stack": 64
     },

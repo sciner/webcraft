@@ -48,10 +48,11 @@ export class FSMBrain {
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
             chunkManager: {
+                chunk_addr: new Vector(),
                 getBlock: (x, y, z) => {
                     let pos = new Vector(x, y, z).floored();
-                    let chunk_addr = getChunkAddr(pos);
-                    let chunk = world.chunks.get(chunk_addr);
+                    this.chunk_addr = getChunkAddr(pos, this.chunk_addr);
+                    let chunk = world.chunks.get(this.chunk_addr);
                     if(chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
                         return chunk.getBlock(pos);
                     } else {

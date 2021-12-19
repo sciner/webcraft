@@ -157,8 +157,8 @@ export class ServerChunkManager {
             for(let addr of player.nearby_chunk_addrs) {
                 if(!added_vecs.has(addr)) {
                     player.nearby_chunk_addrs.delete(addr);
-                    // @todo Это надо делать, но пока не работает =(
-                    // this.get(addr, false)?.removePlayer(player);
+                    // @todo Возможно после выгрузки чанков что-то идёт не так (но это не точно)
+                    this.get(addr, false)?.removePlayer(player);
                     nearby.deleted.push(addr);
                 }
             }

@@ -588,6 +588,9 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
+            this.lerpPos.x = Math.round(this.lerpPos.x * 1000) / 1000;
+            this.lerpPos.y = Math.round(this.lerpPos.y * 1000) / 1000;
+            this.lerpPos.z = Math.round(this.lerpPos.z * 1000) / 1000;
             this.moving     = !this.lerpPos.equal(this.posO);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;

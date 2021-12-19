@@ -160,6 +160,11 @@ void main() {
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
         float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.075 * (1.0 - aoSample));
+
+        if(v_normal.x != 0.) {
+            light = light * .8;
+        }
+
         // Apply light
         color.rgb *= light;
 

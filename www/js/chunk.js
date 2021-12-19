@@ -37,11 +37,9 @@ export function getChunkAddr(x, y, z, v = null) {
  */
 export function getChunkWorldCoord(x, y, z, v = null) {
     const out = getChunkAddr(x, y, z, v);
-
     out.x *= CHUNK_SIZE_X;
     out.y *= CHUNK_SIZE_Y;
     out.z *= CHUNK_SIZE_Z;
-
     return out;
 }
 
@@ -299,9 +297,6 @@ export class Chunk {
             return this.getChunkManager().DUMMY;
         }
         let block = this.tblocks.get(new Vector(x, y, z));
-        /*if(!block) {
-            return this.getChunkManager().AIR;
-        }*/
         return block;
     }
 
@@ -348,7 +343,6 @@ export class Chunk {
             const oldLight = this.light_source[tblock.index];
             const light = this.light_source[tblock.index] = BLOCK.getLightPower(material);
             update_vertices         = true;
-
             if (oldLight !== light) {
                 // updating light here
                 const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;

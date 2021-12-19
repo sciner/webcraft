@@ -60,6 +60,10 @@ export class Renderer {
         this.step_side          = 0;
         this.clouds             = null;
         this.rainTim            = null;
+        this.prevCamPos         = new Vector(0, 0, 0);
+        this.prevCamRotate      = new Vector(0, 0, 0);
+        this.camMoved           = false;
+        this.frame              = 0;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -197,6 +201,7 @@ export class Renderer {
 
     // Render one frame of the world to the canvas.
     draw(delta) {
+        this.frame++;
         const { gl, shader, renderBackend } = this;
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
@@ -233,8 +238,10 @@ export class Renderer {
             this.clouds = this.createClouds(pos);
         }
         //
-        this.world.chunkManager.rendered_chunks.fact = 0;
-        this.world.chunkManager.prepareRenderList(this);
+        if(this.frame % 3 == 0) {
+            this.world.chunkManager.rendered_chunks.fact = 0;
+            this.world.chunkManager.prepareRenderList(this);
+        }
 
         //updating global uniforms
         let gu                  = this.globalUniforms;
@@ -382,6 +389,12 @@ export class Renderer {
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
+        this.camMoved = !this.prevCamRotate.equal(rotate) || !this.prevCamPos.equal(pos);
+        if(this.camMoved) {
+            // return;
+        }
+        this.prevCamRotate.set(rotate.x, rotate.y, rotate.z);
+        this.prevCamPos.set(pos.x, pos.y, pos.z);
         // @todo Возможно тут надо поменять Z и Y местами
         let pitch           = rotate.x; // X
         let roll            = rotate.y; // Z
@@ -394,18 +407,10 @@ export class Renderer {
         mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
         mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
         mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
-
         // Setup frustum
         let matrix = new Float32Array(this.projMatrix);
         mat4.multiply(matrix, matrix, this.viewMatrix);
         this.frustum.setFromProjectionMatrix(matrix, this.camPos);
-
-        // Test frustum
-        // let radius = 1;
-        // let sphere = new Sphere(new Vector(2896.5, 67.5, 2790.5), Math.sqrt(3) * radius / 2);
-        // console.log(this.frustum.intersectsSphere(sphere));
-        // console.log(this.frustum.containsPoint(sphere.center));
-
     }
 
     // Original bobView
