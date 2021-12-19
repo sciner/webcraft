@@ -31,15 +31,12 @@ export class ServerPlayer extends Player {
         this.nearby_chunk_addrs = new VectorCollector();
         this.height             = PLAYER_HEIGHT;
         this.#forward           = new Vector(0, 1, 0);
-
         /**
          * @type {ServerWorld}
          */
         this.world;
-
-        this.session_id = '';
-
-        this.skin = '';
+        this.session_id         = '';
+        this.skin               = '';
     }
 
     /**
@@ -53,9 +50,9 @@ export class ServerPlayer extends Player {
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
-        this.session_id = session_id;
-        this.skin = skin;
-
+        this.session_id         = session_id;
+        this.skin               = skin;
+        //
         conn.player = this;
         conn.on('message', this.onMessage.bind(this));
         //

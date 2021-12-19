@@ -59,10 +59,13 @@ let gameCtrl = function($scope, $timeout) {
     $scope.skin                     = new SkinManager($scope);
 
     //
-    $scope.App.onLogin = (e) => {
-
-    };
-    $scope.App.onLogout = () => $scope.current_window.show('hello');
+    $scope.App.onLogin = (e) => {};
+    $scope.App.onLogout = (result) => {
+        $timeout(function(){
+            $scope.current_window.show('hello');
+            location.reload();
+        });
+    }
     $scope.App.onError = (message) => {
         // Multilingual messages
         if(message in $scope.lang) {
@@ -294,6 +297,7 @@ let gameCtrl = function($scope, $timeout) {
     // My games
     $scope.mygames = {
         list: [],
+        loading: false,
         load: function() {
             let session = $scope.App.getSession();
             if(!session) {

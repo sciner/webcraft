@@ -42,7 +42,7 @@ export class API_Client {
                         callback_error(result);
                     } else {
                         if (result.code == 401 || result.message == 'error_invalid_session') {
-                            App.logout();
+                            App.logout(result);
                         } else {
                             App.showError(result.message, 4000);
                         }

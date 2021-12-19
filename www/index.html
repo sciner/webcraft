@@ -59,17 +59,14 @@
             </a>
         </div>
 
-        <!-- <h3 ng-if="current_window.id != 'loading'">{{current_window.getTitle()}}</h3> -->
-
         <div id="main-pictures" class="flex0">
             <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello'">
             <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello'">
             <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello'">
         </div>
 
-        <!-- Hello -->
+        <!-- Hello -->1
         <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'hello'">
-
             <!-- <img src="/media/design/art.webp" style="margin: auto; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);"> -->
             <div class="flex0 flex-column">
                 <button class="btn btn-main" ng-click="current_window.show('login')">
@@ -79,7 +76,7 @@
                     <span>{{lang.registration}}</span>
                 </button>
             </div>
-        </div>
+        </div>2
 
         <!-- Login -->
         <div id="form-login" class="form-styled animate__animated animate__fadeIn" ng-if="Game && current_window.id == 'login'">
@@ -267,9 +264,7 @@
     <script src="/vendors/vanilla-toast.min.js"></script>
     <div style="font-family: Ubuntu; position: fixed; opacity: 0;">1</div>
 
-    <div id="loading" style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 2; background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);">
-
-    </div>
+    <div id="loading" style="position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 2; background: linear-gradient(180deg, #1C1149 0%, #322D6F 53.65%, #66408D 100%);"></div>
 
 </body>
 </html>

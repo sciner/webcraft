@@ -43,8 +43,12 @@ export class ServerAPI {
             } catch(e) {
                 console.log('> API: ' + e);
                 let message = e.code || e;
+                let code = 950;
+                if(message == 'error_invalid_session') {
+                    code = 401;
+                }
                 res.status(200).json(
-                    {"status":"error","code": 950, "message": message}
+                    {"status":"error","code": code, "message": message}
                 );
             }
         });

@@ -143,7 +143,7 @@ export class ServerWorld {
 
     // onLeave
     async onLeave(player) {
-        if(this.players.has(player.session.user_id)) {
+        if(this.players.has(player?.session?.user_id)) {
             this.players.delete(player.session.user_id);
             this.db.savePlayerState(player);
             player.onLeave();

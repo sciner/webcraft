@@ -45,10 +45,10 @@ export class UIApp {
         }
     }
 
-    logout() {
+    logout(result) {
         this.session = null;
         localStorage.removeItem('session');
-        this.onLogout();
+        this.onLogout(result);
     }
 
     showError(message) {
