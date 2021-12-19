@@ -236,7 +236,7 @@ export class ServerChunk {
 
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
-        this.tblocks            = new TypedBlocks();
+        this.tblocks            = new TypedBlocks(this.coord);
         this.tblocks.count      = CHUNK_BLOCKS;
         this.tblocks.buffer     = args.tblocks.buffer;
         this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);

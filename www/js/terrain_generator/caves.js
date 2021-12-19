@@ -1,30 +1,35 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE_Y_MAX, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
 
 // Cave...
 export class Cave {
 
     // Constructor
     constructor(seed, addr) {
-        let csy             = MAX_CAVES_LEVEL; // CHUNK_SIZE_Y_MAX | CHUNK_SIZE_Y
+        let csy             = MAX_CAVES_LEVEL; // | CHUNK_SIZE_Y
         this.alea           = new alea(seed + addr.toString());
         this.head_pos       = null;
         this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z));
         this.points         = [];
-        this.chunks         = {};
+        this.chunks         = new VectorCollector();
         //
         let r               = this.alea.double();
         let index           = r;
+        let divider         = new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z);
+        let chunk_addr      = new Vector(0, 0, 0);
         // проверяем нужно или нет начало пещеры в этом чанке
         if(index < .99) {
             let addPoint = (point) => {
                 point.pos = point.pos.toInt();
-                let chunk_addr = point.pos.div(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z)).toInt();
-                if(!(chunk_addr in this.chunks)) {
-                    this.chunks[chunk_addr] = {points: []};
+                // chunk_addr = point.pos.div(divider).toInt();
+                chunk_addr.set((point.pos.x / divider.x) | 0, (point.pos.y / divider.y) | 0, (point.pos.z / divider.z) | 0);
+                let chunk = this.chunks.get(chunk_addr);
+                if(!chunk) {
+                    chunk = {points: []};
+                    this.chunks.set(chunk_addr, chunk);
                 }
-                this.chunks[chunk_addr].points.push(point);
+                chunk.points.push(point);
             };
             // Общее количество блоков в чанке
             let block_count = CHUNK_SIZE_X * csy * CHUNK_SIZE_Z;
@@ -110,12 +115,15 @@ export class CaveGenerator {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
         let NEIGHBOURS_CAVES_RADIUS = 5;
         let neighbours_caves        = [];
+        let temp_addr               = new Vector(0, 0, 0);
         for(let cx = -NEIGHBOURS_CAVES_RADIUS; cx < NEIGHBOURS_CAVES_RADIUS; cx++) {
             for(let cz = -NEIGHBOURS_CAVES_RADIUS; cz < NEIGHBOURS_CAVES_RADIUS; cz++) {
-                let map_cave = this.get(chunk_addr.add(new Vector(cx, 0, cz)));
+                temp_addr.set(chunk_addr.x + cx, chunk_addr.y, chunk_addr.z + cz);
+                let map_cave = this.get(temp_addr);
                 if(map_cave && map_cave.head_pos) {
-                    if(map_cave.chunks.hasOwnProperty(chunk_addr)) {
-                        neighbours_caves.push(map_cave.chunks[chunk_addr]);
+                    let chunk = map_cave.chunks.get(chunk_addr);
+                    if(chunk) {
+                        neighbours_caves.push(chunk);
                     }
                 }
             }

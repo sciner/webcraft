@@ -27,43 +27,54 @@ export class Map {
         let chunk_coord     = this.chunk.coord;
         let neighbour_addr  = new Vector(0, 0, 0);
         let temp_vec        = new Vector(0, 0, 0);
+        let addr            = new Vector(0, 0, 0);
+        let colorComputer   = new Color();
+        let bi              = new Vector(0, 0, 0);
+        let addr_offset     = new Vector(100, 0, 100);
+        let ignore_biomes   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
         // Smoothing | Сглаживание
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
             for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
                 // absolute cell coord
                 let px          = chunk_coord.x + x;
                 let pz          = chunk_coord.z + z;
-                let addr        = getChunkAddr(px, 0, pz); // calc chunk addr for this cell
-                let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z); // get chunk map from cache
-                if(!map || !map_addr_ok) {
-                    map = generator.maps_cache.get(addr);
+                addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
+                let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z);
+                if(!map_addr_ok) {
+                    map = generator.maps_cache.get(addr); // get chunk map from cache
                 }
-                let bi = BLOCK.getBlockIndex(px, 0, pz);
+                bi = BLOCK.getBlockIndex(px, 0, pz, bi);
                 let cell = map.cells[bi.x][bi.z];
                 if(!cell) {
                     continue;
                 }
                 // Не сглаживаем блоки пляжа и океана
-                if(cell.value > this.options.WATER_LINE - 2 && [BIOMES.OCEAN.code, BIOMES.BEACH.code].indexOf(cell.biome.code) >= 0) {
+                if(cell.value > this.options.WATER_LINE - 2 && ignore_biomes.indexOf(cell.biome.code) >= 0) {
                     continue;
                 }
                 let height_sum  = 0;
                 let cnt         = 0;
                 let dirt_color  = new Color(0, 0, 0, 0);
+                let ox          = 0;
+                let oz          = 0;
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        // calc chunk addr for this cell
-                        neighbour_addr = getChunkAddr(px + i, 0, pz + j, neighbour_addr);
-                        let addr_ok = neighbour_map &&
-                                      (neighbour_map.chunk.addr.x == neighbour_addr.x) &&
-                                      (neighbour_map.chunk.addr.z == neighbour_addr.z);
-                        // хак оптимизации скорости (т.к. toString() очень дорогой)
-                        if(!neighbour_map || !addr_ok) {
+                        // оптимизация скорости
+                        ox = 0;
+                        oz = 0;
+                        if(x + i < 0) ox = -1;
+                        if(z + j < 0) oz = -1;
+                        if(x + i >= CHUNK_SIZE_X) ox = 1;
+                        if(z + j >= CHUNK_SIZE_Z) oz = 1;
+                        if(addr_offset.x != ox || addr_offset.z != oz) {
+                            addr_offset.set(ox, 0, oz);
+                            // calc chunk addr for this cell
+                            neighbour_addr = getChunkAddr(px + i, 0, pz + j, neighbour_addr);
                             neighbour_map = generator.maps_cache.get(neighbour_addr);
-                        }
-                        if(!neighbour_map) {
-                            console.error('Neighbour not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
-                            debugger;
+                            if(!neighbour_map) {
+                                console.error('Neighbour not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
+                                debugger;
+                            }
                         }
                         //
                         temp_vec = BLOCK.getBlockIndex(px + i, 0, pz + j, temp_vec);
@@ -75,8 +86,9 @@ export class Map {
                         }
                     }
                 }
+                colorComputer.set(cnt, cnt, cnt, cnt);
                 cell.value2           = parseInt(height_sum / cnt);
-                cell.biome.dirt_color = dirt_color.divide(new Color(cnt, cnt, cnt, cnt));
+                cell.biome.dirt_color = dirt_color.divide(colorComputer);
             }
         }
     }

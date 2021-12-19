@@ -93,7 +93,7 @@ export class Chunk {
         };
         // 1. Initialise world array
         this.timers.init = performance.now();
-        this.tblocks = new TypedBlocks();
+        this.tblocks = new TypedBlocks(this.coord);
         //
         this.timers.init = Math.round((performance.now() - this.timers.init) * 1000) / 1000;
         // 2. Generate terrain

@@ -12,7 +12,6 @@ export class TBlock {
         this.tb = tb;
         this.vec = vec;
         this.index = this.vec ? BLOCK.getIndex(this.vec) : NaN;
-
         return this;
     }
 
@@ -128,6 +127,7 @@ export class TBlock {
     }
     // position
     get position() {
+        // return new Vector(this.vec.x + this.tb.coord.x, this.vec.y + this.tb.coord.y, this.vec.z + this.tb.coord.z);
         return this.tb.position.get(this.vec);
     }
     set position(value) {
@@ -165,7 +165,8 @@ export class TBlock {
 // TypedBlocks
 export class TypedBlocks {
 
-    constructor() {
+    constructor(coord) {
+        this.coord      = coord;
         this.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
         this.buffer     = new ArrayBuffer(this.count * 2);
         this.id         = new Uint16Array(this.buffer, 0, this.count);

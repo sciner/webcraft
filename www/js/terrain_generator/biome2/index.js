@@ -227,6 +227,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let xyz                     = new Vector(0, 0, 0);
         let temp_vec                = new Vector(0, 0, 0);
         let temp_vec2               = new Vector(0, 0, 0);
+        let ppos                    = new Vector(0, 0, 0);
 
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
@@ -367,7 +368,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // Чтобы не удалять землю из под деревьев
                             let near_tree = false;
                             for(let m of maps) {
-                                let ppos = xyz.sub(m.chunk.coord);
+                                ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
                                 for(let tree of m.info.trees) {
                                     if(tree.pos.distance(ppos) < 5) {
                                         near_tree = true;
@@ -415,7 +416,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
                             temp_vec.set(x, y - chunk.coord.y, z);
                             if(!chunk.tblocks.has(temp_vec)) {
-                                setBlock(x, y - chunk.coord.y, z, BLOCK.STILL_WATER.id);
+                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.STILL_WATER.id);
                             }
                         }
                     }
@@ -443,8 +444,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
                 let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
                 if(b.id === BLOCK.DIRT.id || b.id == 516) {
-                    if(!chunk.tblocks.has(new Vector(pos.x, pos.y - chunk.coord.y, pos.z))) {
-                        setBlock(pos.x, pos.y - chunk.coord.y, pos.z, block_id);
+                    temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
+                    if(!chunk.tblocks.has(temp_vec)) {
+                        setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
                     }
                 }
             }

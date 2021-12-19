@@ -174,6 +174,14 @@ export class Color {
         return this;
     }
 
+    set(r, g, b, a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+        return this;
+    }
+
     /**
      * @return {Color}
      */

@@ -90,13 +90,6 @@ export class SpectatorPlayerControl {
             Math.round(((this.player.entity.position.y + this.player_state.vel.y * delta)) * 1000) / 1000,
             Math.round(((this.player.entity.position.z + this.player_state.vel.z * delta * mul)) * 1000) / 1000
         );
-        /*
-        this.player.entity.position = this.player.entity.position
-            .add(this.player_state.vel.mul(new Vector(delta * mul, delta, delta * mul)))
-            .mul(new Vector(1000, 1000, 1000))
-            .round()
-            .div(new Vector(1000, 1000, 1000));
-        */
     }
 
     //
