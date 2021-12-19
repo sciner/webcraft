@@ -4,7 +4,12 @@ import {Vector, Helpers, Color, VectorCollector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {BIOMES} from "./biomes.js";
 
+export const SMOOTH_RAD         = 3;
+export const NO_SMOOTH_BIOMES   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
+
 export class Map {
+
+    static _cells;
 
     // Constructor
     constructor(chunk, options) {
@@ -19,75 +24,57 @@ export class Map {
         };
     }
 
+    static initCells() {
+        Map._cells = [];
+        for(let x = -SMOOTH_RAD * 2; x < CHUNK_SIZE_X + SMOOTH_RAD * 2; x++) {
+            Map._cells[x] = [];
+            for(let z = -SMOOTH_RAD * 2; z < CHUNK_SIZE_Z + SMOOTH_RAD * 2; z++) {
+                Map._cells[x][z] = null;
+            }
+        }
+    }
+
     // Сглаживание карты высот
     smooth(generator) {
-        const SMOOTH_RAD    = 3;
-        let neighbour_map   = null;
+        // 1. Кеширование ячеек
         let map             = null;
-        let chunk_coord     = this.chunk.coord;
-        let neighbour_addr  = new Vector(0, 0, 0);
-        let temp_vec        = new Vector(0, 0, 0);
         let addr            = new Vector(0, 0, 0);
-        let colorComputer   = new Color();
         let bi              = new Vector(0, 0, 0);
-        let addr_offset     = new Vector(100, 0, 100);
-        let ignore_biomes   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
-        // Smoothing | Сглаживание
-        for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-            for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
+        for(let x = -SMOOTH_RAD * 2; x < CHUNK_SIZE_X + SMOOTH_RAD * 2; x++) {
+            for(let z = -SMOOTH_RAD * 2; z < CHUNK_SIZE_Z + SMOOTH_RAD * 2; z++) {
                 // absolute cell coord
-                let px          = chunk_coord.x + x;
-                let pz          = chunk_coord.z + z;
+                let px          = this.chunk.coord.x + x;
+                let pz          = this.chunk.coord.z + z;
                 addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
-                let map_addr_ok = map && (map.chunk.addr.x == addr.x) && (map.chunk.addr.z == addr.z);
-                if(!map_addr_ok) {
+                if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                let cell = map.cells[bi.x][bi.z];
-                if(!cell) {
-                    continue;
-                }
-                // Не сглаживаем блоки пляжа и океана
-                if(cell.value > this.options.WATER_LINE - 2 && ignore_biomes.indexOf(cell.biome.code) >= 0) {
-                    continue;
-                }
-                let height_sum  = 0;
+                Map._cells[x][z] = map.cells[bi.x][bi.z];
+            }
+        }
+        // 2. Smoothing | Сглаживание
+        let colorComputer   = new Color();
+        for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
+            for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
+                let cell = Map._cells[x][z];
                 let cnt         = 0;
+                let height_sum  = 0;
                 let dirt_color  = new Color(0, 0, 0, 0);
-                let ox          = 0;
-                let oz          = 0;
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        // оптимизация скорости
-                        ox = 0;
-                        oz = 0;
-                        if(x + i < 0) ox = -1;
-                        if(z + j < 0) oz = -1;
-                        if(x + i >= CHUNK_SIZE_X) ox = 1;
-                        if(z + j >= CHUNK_SIZE_Z) oz = 1;
-                        if(addr_offset.x != ox || addr_offset.z != oz) {
-                            addr_offset.set(ox, 0, oz);
-                            // calc chunk addr for this cell
-                            neighbour_addr = getChunkAddr(px + i, 0, pz + j, neighbour_addr);
-                            neighbour_map = generator.maps_cache.get(neighbour_addr);
-                            if(!neighbour_map) {
-                                console.error('Neighbour not found in generator.maps_cache for key ' + neighbour_addr.toString(), chunk_coord, px, pz);
-                                debugger;
-                            }
-                        }
-                        //
-                        temp_vec = BLOCK.getBlockIndex(px + i, 0, pz + j, temp_vec);
-                        let neighbour_cell = neighbour_map.cells[temp_vec.x][temp_vec.z];
-                        if(neighbour_cell) {
-                            height_sum += neighbour_cell.value;
-                            dirt_color.add(neighbour_cell.biome.dirt_color);
-                            cnt++;
-                        }
+                        let neighbour_cell = Map._cells[x + i][z + j];
+                        height_sum += neighbour_cell.value;
+                        dirt_color.add(neighbour_cell.biome.dirt_color);
+                        cnt++;
                     }
                 }
+                // Не сглаживаем блоки пляжа и океана
+                let smooth = !(cell.value > this.options.WATER_LINE - 2 && NO_SMOOTH_BIOMES.indexOf(cell.biome.code) >= 0);
+                if(smooth) {
+                    cell.value2 = parseInt(height_sum / cnt);
+                }
                 colorComputer.set(cnt, cnt, cnt, cnt);
-                cell.value2           = parseInt(height_sum / cnt);
                 cell.biome.dirt_color = dirt_color.divide(colorComputer);
             }
         }
@@ -160,3 +147,5 @@ export class Map {
     }
 
 }
+
+Map.initCells();
