@@ -455,7 +455,7 @@ export class DBWorld {
                 id: params && ('id' in params) ? params.id : 0
             };
             if(item.id > 2) {
-                if('rotate' in params) {
+                if('rotate' in params && params.rotate) {
                     if(BLOCK.fromId(item.id)?.can_rotate) {
                         item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
                     }
