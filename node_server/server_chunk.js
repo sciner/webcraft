@@ -60,11 +60,12 @@ export class ServerChunk {
 
     // Добавление игрока, которому после прогрузки чанка нужно будет его отправить
     addPlayerLoadRequest(player) {
-        if(this.load_state > CHUNK_STATE_LOADING) {
-            this.sendToPlayers([player.session.user_id]);
-            this.sendMobs(Array.from(this.connections.keys()));
-        } else {
-            this.preq.set(player.session.user_id, player);
+        if(this.load_state < CHUNK_STATE_LOADED) {
+            return this.preq.set(player.session.user_id, player);
+        }
+        this.sendToPlayers([player.session.user_id]);
+        if(this.load_state > CHUNK_STATE_LOADED) {
+            this.sendMobs([player.session.user_id]);
         }
     }
 
@@ -126,6 +127,29 @@ export class ServerChunk {
             packets_mobs[0].data.push(mob);
         }
         this.world.sendSelected(packets_mobs, player_user_ids, []);
+    }
+
+    // onBlocksGenerated ... Webworker callback method
+    async onBlocksGenerated(args) {
+        this.tblocks            = new TypedBlocks(this.coord);
+        this.tblocks.count      = CHUNK_BLOCKS;
+        this.tblocks.buffer     = args.tblocks.buffer;
+        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
+        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
+        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
+        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
+        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
+        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
+        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
+        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
+        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
+        //
+        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        this.setState(CHUNK_STATE_BLOCKS_GENERATED);
+        // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
+        if(this.connections.size > 0 && this.mobs.size > 0) {
+            this.sendMobs(Array.from(this.connections.keys()));
+        }
     }
 
     // Return block key
@@ -232,29 +256,6 @@ export class ServerChunk {
     sendAll(packets, except_players) {
         let connections = Array.from(this.connections.keys());
         this.world.sendSelected(packets, connections, except_players);
-    }
-
-    // onBlocksGenerated ... Webworker callback method
-    async onBlocksGenerated(args) {
-        this.tblocks            = new TypedBlocks(this.coord);
-        this.tblocks.count      = CHUNK_BLOCKS;
-        this.tblocks.buffer     = args.tblocks.buffer;
-        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
-        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
-        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
-        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
-        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
-        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
-        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
-        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
-        this.setState(CHUNK_STATE_BLOCKS_GENERATED);
-        //
-        this.mobs = await this.world.db.loadMobs(this.addr, this.size);
-        // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
-        if(this.connections.size > 0 && this.mobs.size > 0) {
-            this.sendMobs(Array.from(this.connections.keys()));
-        }
     }
 
     getChunkManager() {
