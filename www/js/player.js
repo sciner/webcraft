@@ -259,24 +259,38 @@ export class Player {
             this.pickAt.resetTargetPos();
             world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
         } else if(createBlock) {
+            // Некоторые блоки можно ставить только на что-то сверху
+            let setOnlyToTop = this.buildMaterial && this.buildMaterial.tags.indexOf('layering') >= 0;
+            if(setOnlyToTop && pos.n.y != 1) {
+                return;
+            }
+            let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
+            if(noSetOnTop && pos.n.y == 1) {
+                return;
+            }
             // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
             let isLayering = this.buildMaterial && world_material.id == this.buildMaterial.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
             if(isLayering) {
-                let new_extra_data = null;
-                if(extra_data) {
-                    new_extra_data = JSON.parse(JSON.stringify(extra_data));
-                } else {
-                    new_extra_data = {height: world_material.height};
-                }
-                new_extra_data.height += world_material.height;
-                if(new_extra_data.height <= 1) {
-                    if(this.limitBlockActionFrequency(e)) {
-                        return;
+                if(e.number == 1) {
+                    let new_extra_data = null;
+                    if(extra_data) {
+                        new_extra_data = JSON.parse(JSON.stringify(extra_data));
+                    } else {
+                        new_extra_data = {height: world_material.height};
                     }
-                    this.pickAt.resetTargetPos();
-                    world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
-                    return;
+                    new_extra_data.height += world_material.height;
+                    if(new_extra_data.height < 1) {
+                        if(this.limitBlockActionFrequency(e)) {
+                            return;
+                        }
+                        this.pickAt.resetTargetPos();
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
+                    } else {
+                        this.pickAt.resetTargetPos();
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null);
+                    }
                 }
+                return;
             }
             //
             let replaceBlock = world_material && BLOCK.canReplace(world_material.id);

@@ -1523,12 +1523,12 @@
     },
     {
         "id": 80,
+        "name": "SNOW_BLOCK",
         "inventory_icon_id": 3314,
         "texture": [
             2,
             4
         ],
-        "name": "SNOW_BLOCK",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
@@ -2914,6 +2914,9 @@
                 5
             ]
         },
+        "tags": [
+            "no_set_on_top"
+        ],
         "can_rotate": true,
         "destroy_time": 0,
         "max_in_stack": 64
