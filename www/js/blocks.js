@@ -688,7 +688,7 @@ export class BLOCK {
                         let hw = b.properties.width / 2;
                         shapes.push([.5-hw, 0, .5-hw, .5+hw, height, .5+hw]);
                     } else {
-                        shapes.push([0, 0, 0, 1, height + .001, 1]);
+                        shapes.push([0, 0, 0, 1, height, 1]);
                     }
                     break;
                 }
