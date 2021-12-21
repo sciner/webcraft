@@ -122,14 +122,15 @@ let gameCtrl = function($scope, $timeout) {
         }
     };
 
+    $scope.isSupportedBrowser = window.chrome;
+
     // Current window
     $scope.current_window = {
         id: 'main',
         show: function(id) {
-            if(!window.chrome) {
+            if(!$scope.isSupportedBrowser) {
                 id = 'not_supported_browser';
             }
-            console.log(id);
             this.id = id;
         },
         getTitle: function() {

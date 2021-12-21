@@ -259,55 +259,30 @@ export class Player {
             this.pickAt.resetTargetPos();
             world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
         } else if(createBlock) {
-            // Некоторые блоки можно ставить только на что-то сверху
-            let setOnlyToTop = this.buildMaterial && this.buildMaterial.tags.indexOf('layering') >= 0;
-            if(setOnlyToTop && pos.n.y != 1) {
-                return;
-            }
+            // Нельзя ничего ставить поверх этого блока
             let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
             if(noSetOnTop && pos.n.y == 1) {
                 return;
             }
-            // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-            let isLayering = this.buildMaterial && world_material.id == this.buildMaterial.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
-            if(isLayering) {
-                if(e.number == 1) {
-                    let new_extra_data = null;
-                    if(extra_data) {
-                        new_extra_data = JSON.parse(JSON.stringify(extra_data));
-                    } else {
-                        new_extra_data = {height: world_material.height};
-                    }
-                    new_extra_data.height += world_material.height;
-                    if(new_extra_data.height < 1) {
-                        if(this.limitBlockActionFrequency(e)) {
-                            return;
-                        }
-                        this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
-                    } else {
-                        this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null);
-                    }
-                }
-                return;
-            }
             //
-            let replaceBlock = world_material && BLOCK.canReplace(world_material.id);
-            if(!replaceBlock) {
+            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data);
+            if(replaceBlock) {
+                pos.n.y = 1;
+            } else {
                 pos.x += pos.n.x;
                 pos.y += pos.n.y;
                 pos.z += pos.n.z;
             }
             // Запрет установки блока на блоки, которые занимает игрок
             this._createBlockAABB.copyFrom({x_min: pos.x, x_max: pos.x + 1, y_min: pos.y, y_max: pos.y + 1, z_min: pos.z, z_max: pos.z + 1});
+            let player_radius = 0.7;
             if(this._createBlockAABB.intersect({
-                x_min: playerPos.x - .5,
-                x_max: playerPos.x - .5 + 1,
+                x_min: playerPos.x - player_radius / 2,
+                x_max: playerPos.x - player_radius / 2 + player_radius,
                 y_min: playerPos.y,
                 y_max: playerPos.y + this.height,
-                z_min: playerPos.z - .5,
-                z_max: playerPos.z - .5 + 1
+                z_min: playerPos.z - player_radius / 2,
+                z_max: playerPos.z - player_radius / 2 + player_radius
             })) {
                 return;
             }
@@ -347,6 +322,52 @@ export class Player {
                 return;
             }
             let matBlock = BLOCK.fromId(this.buildMaterial.id);
+            // Некоторые блоки можно ставить только на что-то сверху
+            let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
+            if(setOnlyToTop && pos.n.y != 1) {
+                return;
+            }
+            // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
+            let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
+            if(isLayering) {
+                if(e.number == 1) {
+                    let new_extra_data = null;
+                    pos.y--;
+                    if(extra_data) {
+                        new_extra_data = JSON.parse(JSON.stringify(extra_data));
+                    } else {
+                        new_extra_data = {height: world_material.height};
+                    }
+                    new_extra_data.height += world_material.height;
+                    if(new_extra_data.height < 1) {
+                        if(this.limitBlockActionFrequency(e)) {
+                            return;
+                        }
+                        this.pickAt.resetTargetPos();
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
+                    } else {
+                        this.pickAt.resetTargetPos();
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null);
+                    }
+                }
+                return;
+            }
+            // Факелы можно ставить только на определенные виды блоков!
+            let isTorch = matBlock.style == 'torch';
+            if(isTorch) {
+                console.log(world_material.style);
+                if(
+                        !replaceBlock && (
+                            ['default', 'fence'].indexOf(world_material.style) < 0 ||
+                            (world_material.style == 'fence' && pos.n.y != 1) ||
+                            (pos.n.y < 0) ||
+                            (world_material.width && world_material.width != 1) ||
+                            (world_material.height && world_material.height != 1)
+                        )
+                    ) {
+                    return;
+                }
+            }
             // Запрет на списание инструментов как блоков
             if(matBlock.instrument_id) {
                 if(matBlock.instrument_id == 'shovel') {
@@ -362,7 +383,6 @@ export class Player {
                 const orientation = new Vector(this.rotateDegree);
                 orientation.x = 0;
                 orientation.y = 0;
-
                 // top normal
                 if (Math.abs(pos.n.y) === 1) {                        
                     orientation.x = BLOCK.getCardinalDirection(orientation);
@@ -376,7 +396,6 @@ export class Player {
                         orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
                     }
                 }
-
                 let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
                 if(replaceBlock) {
                     // Replace block

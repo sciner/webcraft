@@ -2892,14 +2892,14 @@
         "spawnable": true,
         "passable": 1,
         "transparent": true,
+        "style": "torch",
+        "sound": "madcraft:block.wood",
         "light_power": {
             "r": 253,
             "g": 241,
             "b": 131,
             "a": 224
         },
-        "style": "torch",
-        "sound": "madcraft:block.wood",
         "texture": {
             "up": [
                 0,

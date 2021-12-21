@@ -1,5 +1,3 @@
-import { BLOCK } from "../../js/blocks.js";
-import { Helpers } from '../../js/helpers.js';
 import {BaseResourcePack} from '../../js/base_resource_pack.js';
 
 const getRunningScript = () => {

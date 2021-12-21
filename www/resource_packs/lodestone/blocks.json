@@ -4,7 +4,7 @@
         "name": "LODESTONE",
         "inventory_icon_id": 221,
         "sound": "madcraft:block.stone",
-        "style": "cube",
+        "style": "default",
         "texture": {
             "id": "lodestone",
             "side": [0, 0]

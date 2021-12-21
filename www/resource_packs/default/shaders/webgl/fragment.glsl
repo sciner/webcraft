@@ -159,7 +159,7 @@ void main() {
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-        float light = max(min(caveSample + daySample * u_brightness, 0.8 - aoSample), 0.075 * (1.0 - aoSample));
+        float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 
         if(v_normal.x != 0.) {
             light = light * .8;

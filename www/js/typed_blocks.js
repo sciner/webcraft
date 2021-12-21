@@ -152,7 +152,7 @@ export class TBlock {
     }
 
     canReplace() {
-        return BLOCK.canReplace(this.id);
+        return BLOCK.canReplace(this.id, this.extra_data);
     }
 
     hasTag(tag) {

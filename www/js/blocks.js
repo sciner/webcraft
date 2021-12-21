@@ -165,7 +165,7 @@ export class BLOCK {
     }
 
     // Can replace
-    static canReplace(block_id) {
+    static canReplace(block_id, extra_data) {
         if(block_id == 0) {
             return true;
         }
@@ -173,7 +173,14 @@ export class BLOCK {
             return true;
         }
         let block = BLOCK.BLOCK_BY_ID.get(block_id);
-        return !!block.fluid;
+        if(block.fluid) {
+            return true;
+        }
+        if(block.tags.indexOf('layering') >= 0) {
+            let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
+            return !isNaN(height) && height == block.height;
+        }
+        return false;
     }
 
     // Блок может быть уничтожен водой
