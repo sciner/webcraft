@@ -399,6 +399,19 @@ export class Window {
             this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
         }
     }
+    loadCloseButtonImage(callback) {
+        if(this._loadCloseButtonImage) {
+            callback(this._loadCloseButtonImage);
+        }
+        // Load buttons background image
+        let image = new Image();
+        let that = this;
+        image.onload = function() {
+            this._loadCloseButtonImage = this;
+            callback(this._loadCloseButtonImage);
+        }
+        image.src = '../../media/gui/close.png';
+    }
 }
 
 // Button

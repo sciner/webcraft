@@ -32,7 +32,6 @@ export default class InventoryWindow extends BaseCraftWindow {
         this.dragItem = null;
 
         // Add buttons
-        this.addCloseButton();
         this.addRecipesButton();
 
         // Ширина / высота слота
@@ -77,6 +76,21 @@ export default class InventoryWindow extends BaseCraftWindow {
         let lbl1 = new Label(194, 12, 80, 30, 'lbl1', null, 'Create');
         ct.add(lbl1);
 
+        // Add close button
+        this.loadCloseButtonImage((image) => {
+            // Add buttons
+            const ct = this;
+            // Close button
+            let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '');
+            btnClose.style.font.family = 'Arial';
+            btnClose.style.background.image = image;
+            btnClose.style.background.image_size_mode = 'stretch';
+            btnClose.onDrop = btnClose.onMouseDown = function(e) {
+                ct.hide();
+            }
+            ct.add(btnClose);
+        });
+
     }
 
     addPlayerBox() {
@@ -84,16 +98,6 @@ export default class InventoryWindow extends BaseCraftWindow {
         let lblPlayerBox = new Label(52, 16, 98, 140, 'lblPlayerBox', null, null);
         lblPlayerBox.setBackground(Game.skin.preview, 'stretch');
         ct.add(lblPlayerBox);
-    }
-
-    addCloseButton() {
-        const ct = this;
-        // Close button
-        let btnClose = new Button(ct.width - 40, 20, 20, 20, 'btnClose', '×');
-        btnClose.onDrop = btnClose.onMouseDown = function(e) {
-            ct.hide();
-        }
-        ct.add(btnClose);
     }
 
     // Recipes button

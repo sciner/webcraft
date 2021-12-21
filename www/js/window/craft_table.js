@@ -28,7 +28,6 @@ export class CraftTable extends BaseCraftWindow {
         ct.setBackground('./media/gui/form-crafting-table.png');
 
         // Add buttons
-        this.addCloseButton();
         this.addRecipesButton();
 
         // onShow
@@ -61,17 +60,21 @@ export class CraftTable extends BaseCraftWindow {
         ct.add(lbl1);
         ct.add(lbl2);
 
-    }
+        // Add close button
+        this.loadCloseButtonImage((image) => {
+            // Add buttons
+            const ct = this;
+            // Close button
+            let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '');
+            btnClose.style.font.family = 'Arial';
+            btnClose.style.background.image = image;
+            btnClose.style.background.image_size_mode = 'stretch';
+            btnClose.onDrop = btnClose.onMouseDown = function(e) {
+                ct.hide();
+            }
+            ct.add(btnClose);
+        });
 
-    //
-    addCloseButton() {
-        const ct = this;
-        // Close button
-        let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '×');
-        btnClose.onDrop = btnClose.onMouseDown = function(e) {
-            ct.hide();
-        }
-        ct.add(btnClose);
     }
 
     // Recipes button

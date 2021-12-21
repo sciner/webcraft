@@ -21,10 +21,6 @@ export default class ChestWindow extends Window {
 
         this.dragItem = null;
 
-        // Add buttons
-        this.addCloseButton();
-        // this.addRecipesButton();
-
         // Ширина / высота слота
         this.cell_size = 36;
 
@@ -61,21 +57,26 @@ export default class ChestWindow extends Window {
             this.setData(cmd.data);
         });
 
+        // Add close button
+        this.loadCloseButtonImage((image) => {
+            // Add buttons
+            const ct = this;
+            // Close button
+            let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '');
+            btnClose.style.font.family = 'Arial';
+            btnClose.style.background.image = image;
+            btnClose.style.background.image_size_mode = 'stretch';
+            btnClose.onDrop = btnClose.onMouseDown = function(e) {
+                ct.hide();
+            }
+            ct.add(btnClose);
+        });
+
     }
 
     draw(ctx, ax, ay) {
         this.parent.center(this);
         super.draw(ctx, ax, ay);
-    }
-
-    addCloseButton() {
-        const ct = this;
-        // Close button
-        let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '×');
-        btnClose.onDrop = btnClose.onMouseDown = function(e) {
-            ct.hide();
-        }
-        ct.add(btnClose);
     }
 
     // Запрос содержимого сундука

@@ -177,9 +177,6 @@ export class CreativeInventoryWindow extends Window {
         // Ширина / высота слота
         this.cell_size = 36;
 
-        // Add buttons
-        this.addCloseButton();
-
         // Add labels to window
         let lbl1 = new Label(17, 12, 230, 30, 'lbl1', null, 'Creative inventory');
         ct.add(lbl1);
@@ -206,16 +203,21 @@ export class CreativeInventoryWindow extends Window {
             this.getRoot().drag.clear();
         }
 
-    }
+        // Add close button
+        this.loadCloseButtonImage((image) => {
+            // Add buttons
+            const ct = this;
+            // Close button
+            let btnClose = new Button(ct.width - this.cell_size, 9, 20, 20, 'btnClose', '');
+            btnClose.style.font.family = 'Arial';
+            btnClose.style.background.image = image;
+            btnClose.style.background.image_size_mode = 'stretch';
+            btnClose.onDrop = btnClose.onMouseDown = function(e) {
+                ct.hide();
+            }
+            ct.add(btnClose);
+        });
 
-    addCloseButton() {
-        const ct = this;
-        // Close button
-        let btnClose = new Button(ct.width - this.cell_size, 10, 20, 20, 'btnClose', '×');
-        btnClose.onDrop = btnClose.onMouseDown = function(e) {
-            ct.hide();
-        }
-        ct.add(btnClose);
     }
 
     /**
