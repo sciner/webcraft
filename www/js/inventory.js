@@ -186,6 +186,7 @@ export class Inventory {
         mat = Object.assign({
             count:              1,
             name:               block.name,
+            tags:               block.tags,
             inventory_icon_id:  block.inventory_icon_id,
             max_in_stack:       block.max_in_stack,
         }, mat);
