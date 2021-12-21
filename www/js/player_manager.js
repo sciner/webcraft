@@ -67,11 +67,12 @@ export class PlayerManager {
         if(!player) { 
             return;
         }
-        
+
         player.applyNetState({
             pos: data.pos,
             rotate: data.rotate,
-            time: time
+            time: time,
+            hands: data.hands
         });
         /*
         player.moving = Helpers.distance(data.pos, player.pos) > 0.001;

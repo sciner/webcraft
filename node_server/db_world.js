@@ -202,8 +202,11 @@ export class DBWorld {
     // Return default inventory for user
     getDefaultInventory() {
         return {
-            items:   [],
-            current: {index: 0}
+            items: [],
+            current: {
+                index: 0, // right hand
+                index2: -1 // left hand
+            }
         };
     }
 
@@ -212,11 +215,16 @@ export class DBWorld {
         // Find existing user record
         let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
+            let inventory = JSON.parse(row.inventory);
+            // Added new property
+            if(inventory.current.index2 === undefined) {
+                inventory.current.index2 = -1;
+            }
             return {
                 pos:                JSON.parse(row.pos),
                 pos_spawn:          JSON.parse(row.pos_spawn),
                 rotate:             JSON.parse(row.rotate),
-                inventory:          JSON.parse(row.inventory),
+                inventory:          inventory,
                 indicators:         JSON.parse(row.indicators),
                 chunk_render_dist:  row.chunk_render_dist
             };

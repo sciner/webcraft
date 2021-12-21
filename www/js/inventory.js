@@ -10,8 +10,7 @@ export class Inventory {
     constructor(player, hud, cb_onSelect) {
         this.player         = player;
         this.hud            = hud;
-        this.current        = null;
-        this.index          = 0;
+        this.current_item   = null;
         this.max_count      = 36;
         this.hotbar_count   = 9;
         this.items          = [];
@@ -22,7 +21,7 @@ export class Inventory {
         //
         this.restoreItems(player.state.inventory);
         this.onSelect = (item) => {};
-        this.select(player.state.inventory.current.index);
+        this.select(this.player.state.inventory.current.index);
         // Recipe manager
         this.recipes = new RecipeManager();
     }
@@ -40,7 +39,8 @@ export class Inventory {
     exportItems() {
         let resp = {
             current: {
-                index: this.index
+                index: this.player.state.inventory.current.index,
+                index2: this.player.state.inventory.current.index2
             },
             items: []
         }
@@ -103,7 +103,7 @@ export class Inventory {
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-        this.index = 0;
+        this.player.state.inventory.current.index = 0;
         for(let k in items) {
             if(k >= this.items.length) {
                 console.error('Limit reach of inventory');
@@ -125,7 +125,15 @@ export class Inventory {
 
     // Return current active item in hotbar
     getCurrent() {
-        return this.current;
+        return this.current_item;
+    }
+
+    getLeftIndex() {
+        return this.player.state.inventory.current.index2;
+    }
+
+    getRightIndex() {
+        return this.player.state.inventory.current.index;
     }
 
     // Refresh
@@ -216,7 +224,7 @@ export class Inventory {
                     mat.count = 0;
                 }
                 delete(this.items[i].texture);
-                if(i == this.index) {
+                if(i == this.player.state.inventory.current.index) {
                     this.select(i);
                 }
                 if(mat.count > 0) {
@@ -230,12 +238,12 @@ export class Inventory {
     
     // Decrement
     decrement() {
-        if(!this.current || this.player.world.game_mode.isCreative()) {
+        if(!this.current_item || this.player.world.game_mode.isCreative()) {
             return;
         }
-        this.current.count = Math.max(this.current.count - 1, 0);
-        if(this.current.count < 1) {
-            this.current = this.player.buildMaterial = this.items[this.index] = null;
+        this.current_item.count = Math.max(this.current_item.count - 1, 0);
+        if(this.current_item.count < 1) {
+            this.current_item = this.player.buildMaterial = this.items[this.player.state.inventory.current.index] = null;
         }
         this.refresh(true);
     }
@@ -244,7 +252,7 @@ export class Inventory {
     setItem(index, item) {
         this.items[index] = item;
         // Обновить текущий инструмент у игрока
-        this.select(this.index);
+        this.select(this.player.state.inventory.current.index);
     }
 
     //
@@ -255,18 +263,18 @@ export class Inventory {
         if(index >= this.hotbar_count) {
             index = 0;
         }
-        this.index = index;
-        this.current = this.player.buildMaterial = this.items[index];
+        this.player.state.inventory.current.index = index;
+        this.current_item = this.player.buildMaterial = this.items[index];
         this.refresh(false);
-        this.onSelect(this.current);
+        this.onSelect(this.current_item);
     }
 
     next() {
-        this.select(++this.index);
+        this.select(++this.player.state.inventory.current.index);
     }
     
     prev() {
-        this.select(--this.index);
+        this.select(--this.player.state.inventory.current.index);
     }
     
     // Клонирование материала в инвентарь
@@ -289,8 +297,8 @@ export class Inventory {
             }
         }
         // Create in current cell if this empty
-        if(this.index < this.hotbar_count) {
-            let k = this.index;
+        if(this.player.state.inventory.current.index < this.hotbar_count) {
+            let k = this.player.state.inventory.current.index;
             if(!this.items[k]) {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
@@ -311,8 +319,8 @@ export class Inventory {
             }
         }
         // Replace current cell
-        if(this.index < this.hotbar_count) {
-            let k = this.index;
+        if(this.player.state.inventory.current.index < this.hotbar_count) {
+            let k = this.player.state.inventory.current.index;
             this.items[k] = Object.assign({count: 1}, mat);
             delete(this.items[k].texture);
             this.select(parseInt(k));
@@ -325,8 +333,8 @@ export class Inventory {
         if(!this.inventory_image) {
             return this.initUI();
         }
-        if(!this.index) {
-            this.index = 0;
+        if(!this.player.state.inventory.current.index) {
+            this.player.state.inventory.current.index = 0;
         }
         hud.wm.centerChild();
     }

@@ -109,11 +109,9 @@ export class ServerPlayer extends Player {
                     // Update local position
                     this.world.changePlayerPosition(this, cmd.data);
                     // Send new position to other players
-                    cmd.data.id = this.session.user_id;
-                    cmd.data.username = this.session.username
                     let packets = [{
                         name: ServerClient.CMD_PLAYER_STATE,
-                        data: cmd.data
+                        data: this.exportState()
                     }];
                     this.world.sendAll(packets, [this.session.user_id]);
                     /*const pick = this.raycastFromHead();
@@ -130,7 +128,7 @@ export class ServerPlayer extends Player {
 
                 // Save inventory
                 case ServerClient.CMD_SAVE_INVENTORY: {
-                    this.world.db.savePlayerInventory(this, cmd.data);
+                    this.updateInventory(cmd.data);
                     break;
                 }
 
@@ -257,6 +255,25 @@ export class ServerPlayer extends Player {
         this.world.db.changeRenderDist(this, value);
     }
 
+    // Update hands material
+    updateHands() {
+        let inventory = this.state.inventory;
+        if(!this.state.hands) {
+            this.state.hands = {};
+        }
+        //
+        let makeHand = (material) => {
+            return {
+                id: material ? material.id : null
+            };
+        };
+        // Get materials
+        let left_hand_material = inventory.current.index2 >= 0 ? inventory.items[inventory.current.index2] : null;
+        let right_hand_material = inventory.items[inventory.current.index];
+        this.state.hands.left = makeHand(left_hand_material);
+        this.state.hands.right = makeHand(right_hand_material);
+    }
+
     // Отправка содержимого сундука
     sendChest(chest) {
         let packets = [{
@@ -291,6 +308,31 @@ export class ServerPlayer extends Player {
      */
     raycastFromHead() {
         return this.raycaster.get(this.getEyePos(), this.forward, 100);
+    }
+
+    //
+    updateInventory(data) {
+        this.state.inventory.current.index = isNaN(data.current.index) ? 0 : data.current.index;
+        this.state.inventory.current.index2 = isNaN(data.current.index2) ? 0 : data.current.index2;
+        this.updateHands();
+        this.world.db.savePlayerInventory(this, data);
+        let packets = [{
+            name: ServerClient.CMD_PLAYER_STATE,
+            data: this.exportState()
+        }];
+        this.world.sendAll(packets, [this.session.user_id]);
+    }
+
+    //
+    exportState()  {
+        return {
+            id:       this.session.user_id,
+            username: this.session.username,
+            pos:      this.state.pos,
+            rotate:   this.state.rotate,
+            skin:     this.state.skin,
+            hands:    this.state.hands
+        };
     }
 
 }

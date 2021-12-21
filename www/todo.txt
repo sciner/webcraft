@@ -60,4 +60,6 @@ trapdoor: Это люк
 stairs: Это ступеньки
 no_drop_ao: Этот блок не отбрасывает AO
 leaves: Это листва
-slab: Это полубок
+slab: Это полублок
+anycardinal
+alpha

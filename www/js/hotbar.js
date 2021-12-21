@@ -127,7 +127,7 @@ export class Hotbar {
             150,
             72,
             69,
-            hud_pos.x - 3 + this.inventory.index * cell_size,
+            hud_pos.x - 3 + this.inventory.getRightIndex() * cell_size,
             hud_pos.y + 48 + 30,
             72,
             69

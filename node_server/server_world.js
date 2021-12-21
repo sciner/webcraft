@@ -94,6 +94,7 @@ export class ServerWorld {
         // 1. Insert to DB if new player
         player.state = await this.db.registerUser(this, player);
         player.state.skin = skin;
+        player.updateHands();
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
@@ -105,30 +106,17 @@ export class ServerWorld {
         let all_players_packets = [];
         for(let c of this.players.values()) {
             if (c.session.user_id != player.session.user_id) {
-                let params = {
-                    id:       c.session.user_id,
-                    username: c.session.username,
-                    pos:      c.state.pos,
-                    rotate:   c.state.rotate,
-                    skin:     c.state.skin
-                }
                 all_players_packets.push({
                     name: ServerClient.CMD_PLAYER_JOIN,
-                    data: params
+                    data: c.exportState()
                 });
             }
         }
         player.sendPackets(all_players_packets);
-        // 5. Send to all about new players
+        // 5. Send to all about new player
         this.sendAll([{
             name: ServerClient.CMD_PLAYER_JOIN,
-            data: {
-                id:       player.session.user_id,
-                username: player.session.username,
-                pos:      player.state.pos,
-                rotate:   player.state.rotate,
-                skin:     player.state.skin
-            }
+            data: player.exportState()
         }], []);
         // 6. Write to chat about new player
         this.chat.sendSystemChatMessageToSelectedPlayers(player.session.username + ' подключился', this.players.keys());
