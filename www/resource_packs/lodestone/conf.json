@@ -11,6 +11,10 @@
             "image": "/textures/lodestone_top.png",
             "image_n": "/textures/lodestone_top_n.png",
             "tx_cnt": 1
+        },
+        "water_still": {
+            "image": "/textures/water_still.png",
+            "tx_cnt": 32
         }
     }
 }

@@ -295,11 +295,19 @@ export class BLOCK {
             block.tags = [];
         }
         // Fix properties
-        if(!block.hasOwnProperty('light')) block.light = null;
-        if(!block.hasOwnProperty('passable')) block.passable = 0;
-        if(!block.hasOwnProperty('spawnable')) block.spawnable = true;
-        if(!block.hasOwnProperty('max_in_stack')) block.max_in_stack = INVENTORY_STACK_DEFAULT_SIZE;
-        if(!block.hasOwnProperty('inventory_icon_id')) block.inventory_icon_id = 0;
+        let default_properties = {
+            light:              null,
+            texture_animations: null,
+            passable:           0,
+            spawnable:          true,
+            max_in_stack:       INVENTORY_STACK_DEFAULT_SIZE,
+            inventory_icon_id:  0
+        };
+        for(let [k, v] of Object.entries(default_properties)) {
+            if(!block.hasOwnProperty(k)) {
+                block[k] = v;
+            }
+        }
         if(block.style && block.style == 'planting') block.planting = true;
         if(block.style && block.style == 'stairs') block.transparent = true;
         if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {

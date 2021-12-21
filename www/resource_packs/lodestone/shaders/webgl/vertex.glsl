@@ -15,6 +15,7 @@ uniform mat4 u_worldView;
 uniform mat4 uModelMatrix;
 uniform bool u_fogOn;
 uniform float u_brightness;
+uniform float u_time;
 uniform vec3 u_add_pos;
 uniform float u_pixelSize;
 uniform vec2 u_resolution;
@@ -29,9 +30,16 @@ out vec4 v_texClamp;
 out vec3 v_normal;
 out vec4 v_color;
 out vec4 crosshair;
+out vec2 u_uvCenter;
 
 void main() {
+
     v_color         = vec4(a_color, 1.0);
+
+    u_uvCenter = a_uvCenter;
+    if(v_color.b > 1.) {
+        u_uvCenter.y += (floor(mod((u_time * v_color.b / 3.) / 1000., v_color.b))) / 32.;
+    }
 
     // find flags
     float flagBiome = step(1.5, a_flags);
@@ -56,9 +64,9 @@ void main() {
 
     vec3 pos = a_position + (a_axisX * a_quad.x) + (a_axisY * a_quad.y);
 
-    v_texcoord = a_uvCenter + (a_uvSize * a_quad);
+    v_texcoord = u_uvCenter + (a_uvSize * a_quad);
 
-    v_texClamp = vec4(a_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, a_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
+    v_texClamp = vec4(u_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, u_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     if(u_fogOn) {
         if (flagBiome < 0.5) {

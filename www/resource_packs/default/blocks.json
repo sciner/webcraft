@@ -674,42 +674,6 @@
         "inventory_icon_id": 98
     },
     {
-        "id": 202,
-        "name": "STILL_WATER",
-        "inventory_icon_id": 1295,
-        "transparent": true,
-        "passable": 0.4,
-        "selflit": true,
-        "is_fluid": true,
-        "texture": [
-            13,
-            12
-        ],
-        "destroy_time": 0.4,
-        "spawnable": true,
-        "max_in_stack": 64
-    },
-    {
-        "id": 200,
-        "name": "FLOWING_WATER",
-        "passable": 0.4,
-        "transparent": true,
-        "selflit": true,
-        "is_fluid": true,
-        "fluid": {
-            "max_power": 1,
-            "still_block_id": 202
-        },
-        "texture": [
-            13,
-            12
-        ],
-        "destroy_time": 0.4,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3148
-    },
-    {
         "id": 170,
         "name": "FLOWING_LAVA",
         "passable": 0.25,

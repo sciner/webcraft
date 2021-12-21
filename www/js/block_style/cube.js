@@ -137,6 +137,19 @@ export default class style {
             return resp;
         };
 
+        // getAnimations...
+        let getAnimations = (side) => {
+            if(!block.material.texture_animations) {
+                return 1;
+            }
+            if(side in block.material.texture_animations) {
+                return block.material.texture_animations[side];
+            } else if('side' in block.material.texture_animations) {
+                return block.material.texture_animations['side'];
+            }
+            return 1;
+        };
+
         // Top
         if(canDrawFace(neighbours.UP) || bH < 1) {
             c = BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
@@ -165,6 +178,8 @@ export default class style {
                     }
                 }
             }
+
+            let animations_up = getAnimations('up');
             
             pushTransformed(
                 vertices, matrix, pivot,
@@ -172,7 +187,7 @@ export default class style {
                 .5, 0.5, bH - 1 + height,
                 ...top_vectors,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | upFlags
+                lm.r, lm.g, animations_up, flags | upFlags
             );
 
             if(block.material.is_fluid && block.material.transparent) {
@@ -186,7 +201,7 @@ export default class style {
                     .5, 0.5, bH - 1 + height,
                     ...top_vectors,
                         c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, lm.b, flags | upFlags);
+                    lm.r, lm.g, animations_up, flags | upFlags);
             }
         }
 

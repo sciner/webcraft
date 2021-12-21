@@ -21,6 +21,7 @@ uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
+uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
@@ -35,6 +36,7 @@ in float v_fogDepth;
 in vec4 crosshair;
 in vec3 world_pos;
 in vec3 chunk_pos;
+in vec4 u_uvCenter;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
@@ -141,23 +143,22 @@ void main() {
         }
         */
 
+        vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
+        vec3 absNormal = abs(v_normal);
+        vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
 
-       vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
-       vec3 absNormal = abs(v_normal);
-       vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
-
-       float caveSample = texture(u_lightTex, lightCoord).a;
-       float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
-       float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
-       if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
-       aoSample *= 0.5;
+        float caveSample = texture(u_lightTex, lightCoord).a;
+        float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
+        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample *= 0.5;
 
         float gamma = 0.5;
         caveSample = pow(vec3(caveSample, caveSample, caveSample), vec3(1.0/gamma)).r;
         // caveSample = round(caveSample * 16.) / 16.;
 
-       caveSample = caveSample * (1.0 - aoSample);
-       daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
+        caveSample = caveSample * (1.0 - aoSample);
+        daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
         float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 

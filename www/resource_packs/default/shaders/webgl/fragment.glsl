@@ -21,6 +21,7 @@ uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
+uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
@@ -35,6 +36,7 @@ in float v_fogDepth;
 in vec4 crosshair;
 in vec3 world_pos;
 in vec3 chunk_pos;
+in vec4 u_uvCenter;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
@@ -140,7 +142,6 @@ void main() {
             }
         }
         */
-
 
         vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
