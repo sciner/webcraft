@@ -60,14 +60,13 @@
         </div>
 
         <div id="main-pictures" class="flex0">
-            <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello'">
-            <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello'">
-            <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello'">
+            <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'">
+            <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'">
+            <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'">
         </div>
 
         <!-- Hello -->
         <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'hello'">
-            <!-- <img src="/media/design/art.webp" style="margin: auto; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);"> -->
             <div class="flex0 flex-column">
                 <button class="btn btn-main" ng-click="current_window.show('login')">
                     <span>{{lang.login}}</span>
@@ -75,6 +74,16 @@
                 <button class="btn btn-warning" ng-click="current_window.show('registration')">
                     <span>{{lang.registration}}</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- Not supported browser -->
+        <div id="form-hello" class="form-styled" ng-if="Game && current_window.id == 'not_supported_browser'">
+            <div class="flex0 flex-column flex-center" style="background: rgb(254, 84, 115); padding: 1em; height: 130px; max-width: 80%; border-radius: 5px; text-align: center; font-size: 1.1em; justify-content: center;">
+                <div>
+                    The browser you are using is not supported.
+                    <br/>Please use <a target="_blank" href="https://www.google.com/chrome/" style="color: white;">Chrome</a>
+                </div>
             </div>
         </div>
 

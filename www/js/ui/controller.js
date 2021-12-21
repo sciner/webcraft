@@ -126,6 +126,10 @@ let gameCtrl = function($scope, $timeout) {
     $scope.current_window = {
         id: 'main',
         show: function(id) {
+            if(!window.chrome) {
+                id = 'not_supported_browser';
+            }
+            console.log(id);
             this.id = id;
         },
         getTitle: function() {
@@ -144,6 +148,7 @@ let gameCtrl = function($scope, $timeout) {
             }
         }
     };
+    $scope.current_window.show('main');
 
     // Login
     $scope.login = {
