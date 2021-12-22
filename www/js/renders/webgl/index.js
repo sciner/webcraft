@@ -6,7 +6,7 @@ import {WebGLBuffer} from "./WebGLBuffer.js";
 import {Helpers} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
-import { WebGLRenderTarget } from "./WebGLRenderTarget.js";
+import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -241,6 +241,12 @@ export default class WebGLRenderer extends BaseRenderer {
         this.gl = null;
         this._activeTextures = {};
         this._shader = null;
+
+        // test only
+        /**
+         * @type {WebGLRenderTarget}
+         */
+        this._mainFrame = null;
     }
 
     async init() {
@@ -265,9 +271,21 @@ export default class WebGLRenderer extends BaseRenderer {
 
     _configure() {
         super._configure();
+     
         const {gl} = this;
+     
         gl.viewportWidth        = this.view.width;
         gl.viewportHeight       = this.view.height;
+
+        if (this._mainFrame) {
+            this._mainFrame.destroy();
+        }
+
+        this._mainFrame = this.createRenderTarget({
+            width: this.size.width,
+            height: this.size.height,
+            depth: true,
+        });
     }
 
     /**
@@ -350,6 +368,10 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     beginFrame(fogColor) {
+        // debug only
+
+        this.setTarget(this._mainFrame);
+
         const { gl } = this;
         const {
             width, height
@@ -361,6 +383,7 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     endFrame() {
+        this.blitRenderTarget();
         // reset framebufer
         this.setTarget(null);
     }

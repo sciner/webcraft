@@ -31,7 +31,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
             gl.FRAMEBUFFER,
             gl.COLOR_ATTACHMENT0,
             gl.TEXTURE_2D,
-            this.texture,
+            this.texture.texture,
             0
         );
         

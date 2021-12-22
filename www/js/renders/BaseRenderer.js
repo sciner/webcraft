@@ -32,7 +32,7 @@ export class BaseRenderTarget {
     }
 
     init() {
-        this.texture = context.createTexture(options);
+        this.texture = this.context.createTexture(this.options);
         this.valid = true;
     }
 
