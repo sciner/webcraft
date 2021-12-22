@@ -12,7 +12,6 @@ export class BaseRenderTarget {
          */
         this.texture = null;
         this.valid = false;        
-        this.init();
     }
 
     get width() {

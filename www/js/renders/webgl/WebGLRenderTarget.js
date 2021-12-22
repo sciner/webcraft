@@ -13,6 +13,8 @@ export class WebGLRenderTarget extends BaseRenderTarget {
          * @type {WebGLRenderbuffer}
          */
         this.depthBuffer = null;
+
+        this.init();
     }
 
     init() {
@@ -63,7 +65,7 @@ export class WebGLRenderTarget extends BaseRenderTarget {
 
         super.destroy();
 
-        this.framebuffer && this.context.gl.deleteFramebufer(this.framebuffer);
+        this.framebuffer && this.context.gl.deleteFramebuffer(this.framebuffer);
         this.depthBuffer && this.context.gl.deleteRenderbuffer(this.depthBuffer);
         this.framebuffer = null;
         this.depthBuffer = null;
