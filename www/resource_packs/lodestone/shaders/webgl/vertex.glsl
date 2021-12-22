@@ -34,11 +34,13 @@ out vec2 u_uvCenter;
 
 void main() {
 
-    v_color         = vec4(a_color, 1.0);
+    v_color = vec4(a_color, 1.0);
 
     u_uvCenter = a_uvCenter;
     if(v_color.b > 1.) {
-        u_uvCenter.y += (floor(mod((u_time * v_color.b / 3.) / 1000., v_color.b))) / 32.;
+        float disc = v_color.b - 1.;
+        float i = floor((u_time * v_color.b / 3.) / 1000.);
+        u_uvCenter.y += (abs(mod(i, disc * 2.) - disc)) / 32.;
     }
 
     // find flags

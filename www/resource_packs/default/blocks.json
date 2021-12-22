@@ -651,56 +651,6 @@
         "max_in_stack": 64
     },
     {
-        "id": 171,
-        "name": "STILL_LAVA",
-        "transparent": true,
-        "passable": 0.25,
-        "selflit": true,
-        "gravity": true,
-        "is_fluid": true,
-        "light_power": {
-            "r": 253,
-            "g": 200,
-            "b": 80,
-            "a": 255
-        },
-        "texture": [
-            13,
-            14
-        ],
-        "destroy_time": 0.4,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 98
-    },
-    {
-        "id": 170,
-        "name": "FLOWING_LAVA",
-        "passable": 0.25,
-        "transparent": true,
-        "selflit": true,
-        "gravity": false,
-        "is_fluid": true,
-        "fluid": {
-            "max_power": 1,
-            "still_block_id": 171
-        },
-        "light_power": {
-            "r": 253,
-            "g": 200,
-            "b": 80,
-            "a": 255
-        },
-        "texture": [
-            13,
-            14
-        ],
-        "destroy_time": 0.4,
-        "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3146
-    },
-    {
         "id": 15,
         "inventory_icon_id": 3394,
         "sound": "madcraft:block.stone",

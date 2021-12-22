@@ -55,5 +55,63 @@
         "spawnable": true,
         "max_in_stack": 64,
         "inventory_icon_id": 3148
+    },
+    {
+        "id": 171,
+        "name": "STILL_LAVA",
+        "transparent": true,
+        "passable": 0.25,
+        "selflit": true,
+        "gravity": true,
+        "is_fluid": true,
+        "light_power": {
+            "r": 253,
+            "g": 200,
+            "b": 80,
+            "a": 255
+        },
+        "texture": {
+            "id": "lava_still",
+            "side": [0, 0]
+        },
+        "texture_animations": {
+            "up": 20,
+            "side": null
+        },
+        "destroy_time": 0.4,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "inventory_icon_id": 98
+    },
+    {
+        "id": 170,
+        "name": "FLOWING_LAVA",
+        "inventory_icon_id": 3146,
+        "passable": 0.25,
+        "transparent": true,
+        "selflit": true,
+        "gravity": false,
+        "is_fluid": true,
+        "fluid": {
+            "max_power": 1,
+            "still_block_id": 171
+        },
+        "light_power": {
+            "r": 253,
+            "g": 200,
+            "b": 80,
+            "a": 255
+        },
+        "texture": {
+            "id": "lava_still",
+            "side": [0, 0]
+        },
+        "texture_animations": {
+            "up": 20,
+            "side": null
+        },
+        "destroy_time": 0.4,
+        "spawnable": true,
+        "max_in_stack": 64
     }
 ]

@@ -15,6 +15,10 @@
         "water_still": {
             "image": "/textures/water_still.png",
             "tx_cnt": 32
+        },
+        "lava_still": {
+            "image": "/textures/lava_still.png",
+            "tx_cnt": 32
         }
     }
 }
