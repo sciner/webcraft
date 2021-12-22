@@ -73,8 +73,11 @@ export default class Particles_Block_Drop {
         const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
         const biome = chunk.map.cells[0][0].biome;
 
+        this.resource_pack = b.material.resource_pack;
+        this.material = this.resource_pack.materials.get(b.material.material_key);
+
         let x = -.5, y = -.5, z = -.5;
-        b.material.resource_pack.pushVertices(
+        this.resource_pack.pushVertices(
             this.vertices,
             b, // UNSAFE! If you need unique block, use clone
             FakeCloudWorld,
@@ -97,7 +100,7 @@ export default class Particles_Block_Drop {
         this.addY += delta;
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, delta / 60);
-        render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.doubleface_transparent, this.posFact, this.modelMatrix);
+        render.renderBackend.drawMesh(this.buffer, this.material, this.posFact, this.modelMatrix);
     }
 
     destroy() {

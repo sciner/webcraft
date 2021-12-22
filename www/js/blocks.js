@@ -287,6 +287,7 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = block.hasOwnProperty('transparent') && !!block.transparent;
         block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
+        block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         // Parse tags
         if(block.hasOwnProperty('tags')) {
             for(let tag of block.tags) {
@@ -325,6 +326,16 @@ export class BLOCK {
         this[block.name] = block;
         BLOCK.BLOCK_BY_ID.set(block.id, block);
         this.list.push(block);
+    }
+
+    // Make material key
+    static makeBlockMaterialKey(resource_pack, material) {
+        let mat_group = material.group;
+        let texture_id = 'default';
+        if(typeof material.texture == 'object' && 'id' in material.texture) {
+            texture_id = material.texture.id;
+        }
+        return `${resource_pack.id}/${mat_group}/${texture_id}`;
     }
 
     // getAll
