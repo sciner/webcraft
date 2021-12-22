@@ -1,5 +1,6 @@
 import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
+import {BLOCK} from "../blocks.js";
 
 // Люк
 export default class style {

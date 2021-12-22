@@ -154,6 +154,7 @@
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
+        "style": "planting",
         "is_item": true,
         "instrument_id": "shovel",
         "tags": [

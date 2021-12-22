@@ -1,4 +1,5 @@
 import {DIRECTION, MULTIPLY, NORMALS, ROTATE} from '../helpers.js';
+import {BLOCK} from "../blocks.js";
 
 // Панель
 export default class style {

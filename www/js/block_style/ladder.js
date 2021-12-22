@@ -1,5 +1,6 @@
 import {MULTIPLY, ROTATE, DIRECTION, QUAD_FLAGS} from '../helpers.js';
 import {pushSym} from '../core/CubeSym.js';
+import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
 
 // Лестница
 export default class style {

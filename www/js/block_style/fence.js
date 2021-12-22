@@ -1,4 +1,5 @@
 import {DIRECTION, MULTIPLY, ROTATE} from '../helpers.js';
+import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
 
 // Забор
 export default class style {

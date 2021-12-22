@@ -10,6 +10,7 @@ import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
+import Particles_Block_Drop from "./particles/block_drop.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
 import Particles_Clouds from "./particles/clouds.js";
@@ -301,6 +302,11 @@ export class Renderer {
     // destroyBlock
     destroyBlock(block, pos, small) {
         this.meshes.add(new Particles_Block_Destroy(this.gl, block, pos, small));
+    }
+
+    // dropBlock
+    dropBlock(block, pos) {
+        this.meshes.add(new Particles_Block_Drop(this.gl, block, pos));
     }
 
     // rainDrop

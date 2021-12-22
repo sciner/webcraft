@@ -232,6 +232,14 @@ export class GameClass {
                         return true;
                         break;
                     }
+                    // Q (Drop item)
+                    case KEY.Q: {
+                        if(!e.down) {
+                            this.player.dropItem();
+                        }
+                        return true;
+                        break;
+                    }
                     // E (Inventory)
                     case KEY.E: {
                         if(!e.down) {

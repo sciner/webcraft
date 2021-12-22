@@ -1,4 +1,5 @@
 import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
+import {BLOCK} from "../blocks.js";
 
 // Ступеньки
 export default class style {

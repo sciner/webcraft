@@ -1,5 +1,6 @@
 import {DIRECTION, MULTIPLY, NORMALS, ROTATE, TX_CNT} from '../helpers.js';
 import { default as push_plane_style } from './plane.js';
+import {BLOCK} from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 
