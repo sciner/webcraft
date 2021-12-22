@@ -36,7 +36,7 @@ in float v_fogDepth;
 in vec4 crosshair;
 in vec3 world_pos;
 in vec3 chunk_pos;
-in vec4 u_uvCenter;
+in vec2 u_uvCenter;
 
 uniform float u_mipmap;
 uniform float u_blockSize;
