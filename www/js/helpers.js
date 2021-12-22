@@ -175,6 +175,12 @@ export class Color {
     }
 
     set(r, g, b, a) {
+        if(r instanceof Color) {
+            g = r.g;
+            b = r.b;
+            a = r.a;
+            r = r.r;
+        }
         this.r = r;
         this.g = g;
         this.b = b;

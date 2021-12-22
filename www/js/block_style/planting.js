@@ -32,13 +32,11 @@ export default class style {
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
         let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
-        style.lm.set(MULTIPLY.COLOR.WHITE.r, MULTIPLY.COLOR.WHITE.g, MULTIPLY.COLOR.WHITE.b, MULTIPLY.COLOR.WHITE.a);
-        // let lm = MULTIPLY.COLOR.WHITE;
+        style.lm.set(MULTIPLY.COLOR.WHITE);
         let flags = QUAD_FLAGS.NORMAL_UP;
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
-            // lm = biome.dirt_color;
-            style.lm.set(biome.dirt_color.r, biome.dirt_color.g, biome.dirt_color.b, biome.dirt_color.a);
+            style.lm.set(biome.dirt_color);
             flags |= QUAD_FLAGS.MASK_BIOME;
         }
         if(block.id == BLOCK.GRASS.id) {

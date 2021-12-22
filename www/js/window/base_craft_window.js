@@ -103,13 +103,17 @@ export class CraftTableResultSlot extends CraftTableSlot {
         super(x, y, w, h, id, title, text, ct, null);
 
         this.onDrop = function(e) {
-            let that = this;
             let dragItem = this.getItem();
             let dropItem = e.drag.getItem().item;
             if(!dragItem || !dropItem) {
                 return;
             }
             if(dragItem.id != dropItem.id) {
+                return;
+            }
+            //
+            let item_max_count = dropItem.max_in_stack;
+            if(dropItem.count + dragItem.count > item_max_count) {
                 return;
             }
             // decrement craft slots
@@ -123,14 +127,13 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 }
             }
             //
-            const MAX_COUNT = 64;
-            if(dropItem.count + dragItem.count < MAX_COUNT) {
+            if(dropItem.count + dragItem.count < item_max_count) {
                 dropItem.count += dragItem.count;
                 // clear result slot
                 this.setItem(null);
             } else {
-                let remains = (dropItem.count + dragItem.count) - MAX_COUNT;
-                dropItem.count = MAX_COUNT;
+                let remains = (dropItem.count + dragItem.count) - item_max_count;
+                dropItem.count = item_max_count;
                 dragItem.count = remains;
             }
             this.parent.checkRecipe();
