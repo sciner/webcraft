@@ -39,11 +39,12 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 
 export class BLOCK {
 
-    static list                 = [];
-    static spawn_eggs           = [];
-    static styles               = [];
-    static ao_invisible_blocks  = [];
-    static resource_pack_manager = null;
+    static list                     = [];
+    static spawn_eggs               = [];
+    static styles                   = [];
+    static ao_invisible_blocks      = [];
+    static resource_pack_manager    = null;
+    static max_id                   = 0;
 
     static getLightPower(material) {
         if (!material) {
@@ -232,6 +233,9 @@ export class BLOCK {
         // Check duplicate ID
         if(this.BLOCK_BY_ID.has(block.id))  {
             console.error('Duplicate block id ', block.id, block);
+        }
+        if(block.id > this.max_id) {
+            this.max_id = block.id;
         }
         // Function calc and return destroy time for specific block
         let calcDestroyTime = (block) => {

@@ -113,5 +113,25 @@
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
+    },
+    {
+        "id": 540,
+        "name": "SEAGRASS",
+        "inventory_icon_id": 3419,
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "texture": {
+            "id": "seagrass",
+            "side": [0, 0]
+        },
+        "texture_animations": {
+            "side": 18
+        },
+        "destroy_time": 0,
+        "spawnable": true,
+        "max_in_stack": 64,
+        "planting": true
     }
 ]

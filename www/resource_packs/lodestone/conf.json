@@ -19,6 +19,10 @@
         "lava_still": {
             "image": "/textures/lava_still.png",
             "tx_cnt": 32
+        },
+        "seagrass": {
+            "image": "/textures/seagrass.png",
+            "tx_cnt": 32
         }
     }
 }
