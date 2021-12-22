@@ -6,6 +6,7 @@ import {WebGLBuffer} from "./WebGLBuffer.js";
 import {Helpers} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
+import { WebGLRenderTarget } from "./WebGLRenderTarget.js";
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -269,6 +270,20 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.viewportHeight       = this.view.height;
     }
 
+    /**
+     * 
+     * @param {WebGLRenderTarget} target 
+     */
+    setTarget(target) {
+        super.setTarget(target);
+
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target ?  target.framebuffer : null);
+    }
+
+    createRenderTarget(options) {
+        return new WebGLRenderTarget(this, options);
+    }
+
     createMaterial(options) {
         return new WebGLMaterial(this, options);
     }
@@ -335,13 +350,46 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     beginFrame(fogColor) {
-        const {gl} = this;
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.clearColor(...fogColor);
+        const { gl } = this;
+        const {
+            width, height
+        } = this._target ? this._target : this.size;
+
+        gl.viewport(0, 0, width, height);
+        gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
     endFrame() {
+        // reset framebufer
+        this.setTarget(null);
+    }
+
+    // flisth active buffer onto canvas
+    blitRenderTarget() {
+        /**
+         * @type {WebGLRenderTarget}
+         */
+        const target = this._target;
+        if (!target) {
+            return;
+        }
+
+        const gl = this.gl;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, target.framebuffer);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        gl.blitFramebuffer(
+            0, 0, target.width, target.height,
+            0, 0, this.size.width, this.size.height,
+            gl.COLOR_BUFFER_BIT, gl.LINEAR
+        );
+        
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
     }
 
     createCubeMap(options) {

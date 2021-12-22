@@ -3,6 +3,53 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 
 const {mat4} = glMatrix;
 
+export class BaseRenderTarget {
+    constructor (context, options = {width: 1, height: 1, depth: true}) {
+        this.context = context;
+        this.options = options;
+        /**
+         * @type {BaseTexture}
+         */
+        this.texture = null;
+        this.valid = false;        
+        this.init();
+    }
+
+    get width() {
+        return this.options.width;
+    }
+
+    get height() {
+        return this.options.height;
+    }
+
+    resize(w, h) {
+        this.destroy();
+        this.options.width = w;
+        this.options.height = h;
+
+        this.init();
+    }
+
+    init() {
+        this.texture = context.createTexture(options);
+        this.valid = true;
+    }
+
+    flush() {
+
+    }
+
+    destroy() {
+        this.valid = false;
+        if (this.texture) {
+            this.texture.destroy();
+        }
+
+        this.texture = null;
+    }
+}
+
 export class BaseBuffer {
     constructor(context, options = {}) {
         this.context = context;
@@ -425,6 +472,11 @@ export default class BaseRenderer {
             data: new Uint8Array(255)
         })
 
+        /**
+         * @type {BaseRenderTarget}
+         */
+        this._target = null;
+
         this.globalUniforms = new GlobalUniformGroup();
     }
 
@@ -434,6 +486,18 @@ export default class BaseRenderer {
 
     async init() {
 
+    }
+
+    /**
+     * 
+     * @param {BaseRenderTarget} target 
+     */
+    setTarget(target) {
+        if (target && !target.valid) {
+            throw 'Try bound invalid RenderTarget';
+        }
+
+        this._target = target;
     }
 
     /**
@@ -459,6 +523,15 @@ export default class BaseRenderer {
 
     endFrame() {
 
+    }
+
+    /**
+     * Create render target
+     * @param options
+     * @return {BaseRenderTarget}
+     */
+    createRenderTarget(options) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass'); 
     }
 
     /**
