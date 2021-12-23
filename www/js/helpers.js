@@ -658,6 +658,19 @@ export class Helpers {
         }
     }
 
+    // downloadImage
+    static downloadImage(image, filename) {
+        var c = document.createElement('canvas');
+        var ctx = c.getContext('2d');
+        ctx.canvas.width  = image.width;
+        ctx.canvas.height = image.height;      
+        ctx.drawImage(image, 0, 0);
+        c.toBlob(function(blob) {
+            // here the image is a blob
+            Helpers.downloadBlobPNG(blob, filename);
+        }, 'image/png');
+    }
+
     static deg2rad(degrees) {
         return degrees * (Math.PI / 180);
     }
@@ -696,7 +709,7 @@ export class Helpers {
         // Finish program
         gl.linkProgram(program);
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw 'Could not link the shader program!\n'  + gl.getProgramInfoLog(program);
+            throw 'Could not link the shader program!';
         }
         callback({
             program

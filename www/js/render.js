@@ -1,6 +1,6 @@
 "use strict";
 
-import {Vector} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -194,10 +194,20 @@ export class Renderer {
         });
 
         const ZERO = new Vector();
-        const GRID = 10;
+        const GRID = 16;
+        const all_blocks = BLOCK.getAll();
+        const all_count = all_blocks.length;
         const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
             try {
-                return new Particles_Block_Drop(this.gl, {id: i + 1 }, ZERO);
+                if(i >= all_count) {
+                    return null;
+                }
+                let block = all_blocks[i];
+                if(!block.spawnable) {
+                    return null;
+                    // throw 'error_not_spawnable';
+                }
+                return new Particles_Block_Drop(this.gl, {id: block.id}, ZERO);
             } catch(e) {
                 console.log('Error on', i, e);
                 return null;
@@ -256,7 +266,7 @@ export class Renderer {
         
         // render target to Image
         target.toImage().then((image) => {
-            console.log(image);
+            Helpers.downloadImage(image, 'inventory.png');
         });
         
 
