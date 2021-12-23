@@ -58,6 +58,13 @@ export class BaseResourcePack {
                     });
                     v.width = image.width;
                     v.height = image.height;
+                    // Get image bytes
+                    let canvas          = document.createElement('canvas');
+                    canvas.width        = image.width;
+                    canvas.height       = image.height;
+                    let ctx             = canvas.getContext('2d');
+                    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
+                    v.imageData = ctx.getImageData(0, 0, image.width, image.height);
                 });
                 // Image N
                 v.texture_n = null;
@@ -84,6 +91,25 @@ export class BaseResourcePack {
         style.pixelSize = 1.0 / terrainTexSize;
         style.mipmap = settings.mipmap ? 4.0 : 0.0;
         return style;
+    }
+
+    //
+    getMaterial(key) {
+        let texMat = this.materials.get(key);
+        if(texMat) {
+            return texMat;
+        }
+        let key_arr = key.split('/');
+        let texture_id = key_arr[2];
+        let matkey = [
+            key_arr[0],
+            key_arr[1],
+            'default'
+        ].join('/');
+        let mat = this.materials.get(matkey);
+        texMat = mat.getSubMat(this.getTexture(texture_id).texture);
+        this.materials.set(key, texMat);
+        return texMat;
     }
 
     //

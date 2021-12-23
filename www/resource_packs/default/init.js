@@ -17,6 +17,8 @@ export default class ResourcePack extends BaseResourcePack {
 
     //
     async initTextures(renderBackend, settings) {
+        super.initTextures(renderBackend, settings);
+        //
         let that = this;
         const loadImage = (url) => Resources.loadImage(url, true);
         let v = {
@@ -33,6 +35,13 @@ export default class ResourcePack extends BaseResourcePack {
                 magFilter: 'nearest',
                 anisotropy: settings.mipmap ? 4.0 : 0.0,
             });
+            // Get image bytes
+            let canvas          = document.createElement('canvas');
+            canvas.width        = image.width;
+            canvas.height       = image.height;
+            let ctx             = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
+            v.imageData = ctx.getImageData(0, 0, image.width, image.height);
         });
         this.textures.set('default', v);
     }

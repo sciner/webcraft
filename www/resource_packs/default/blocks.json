@@ -87,6 +87,8 @@
     },
     {
         "id": 131,
+        "name": "WOODEN_PICKAXE",
+        "style": "extruder",
         "inventory_icon_id": 3589,
         "transparent": true,
         "gravity": false,
@@ -101,18 +103,19 @@
             0,
             31
         ],
-        "name": "WOODEN_PICKAXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
     {
         "id": 500,
+        "name": "STONE_PICKAXE",
         "inventory_icon_id": 3585,
         "transparent": true,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
         "is_item": true,
+        "style": "extruder",
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -121,12 +124,13 @@
             1,
             31
         ],
-        "name": "STONE_PICKAXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
     {
         "id": 132,
+        "name": "WOODEN_AXE",
+        "style": "extruder",
         "inventory_icon_id": 3587,
         "transparent": true,
         "gravity": false,
@@ -141,7 +145,6 @@
             0,
             30
         ],
-        "name": "WOODEN_AXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
@@ -154,7 +157,7 @@
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
-        "style": "planting",
+        "style": "extruder",
         "is_item": true,
         "instrument_id": "shovel",
         "tags": [
@@ -731,10 +734,11 @@
         "id": 130,
         "name": "STICK",
         "inventory_icon_id": 1139,
+        "style": "extruder",
         "is_item": true,
         "texture": [
-            0,
-            0
+            6,
+            27
         ],
         "destroy_time": 0.4,
         "spawnable": true,
@@ -3370,22 +3374,10 @@
         "id": 158,
         "name": "DROPPER",
         "texture": {
-            "up": [
-                14,
-                3
-            ],
-            "down": [
-                14,
-                3
-            ],
-            "north": [
-                15,
-                2
-            ],
-            "side": [
-                13,
-                2
-            ]
+            "up": [14, 3],
+            "down": [14, 3],
+            "north": [15, 2],
+            "side": [13, 2]
         },
         "destroy_time": 0.4,
         "can_rotate": true,
@@ -3397,75 +3389,80 @@
         "id": 521,
         "name": "SPAWN_EGG_CHICKEN",
         "inventory_icon_id": 1144,
+        "style": "extruder",
         "spawnable": true,
         "max_in_stack": 64,
         "spawn_egg": {
             "type": "chicken",
             "skin": "base"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": {
+            "id": "egg",
+            "side": [3, 0]
+        }
     },
     {
         "id": 522,
         "name": "SPAWN_EGG_CREEPER",
         "inventory_icon_id": 1146,
+        "style": "extruder",
         "spawnable": true,
         "max_in_stack": 64,
         "spawn_egg": {
             "type": "creeper",
             "skin": "base"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": {
+            "id": "egg",
+            "side": [5, 0]
+        }
     },
     {
         "id": 523,
         "name": "SPAWN_EGG_PIG",
         "inventory_icon_id": 1155,
+        "style": "extruder",
         "spawnable": true,
         "max_in_stack": 64,
         "spawn_egg": {
             "type": "pig",
             "skin": "base"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": {
+            "id": "egg",
+            "side": [3, 1]
+        }
     },
     {
         "id": 524,
         "name": "SPAWN_EGG_HORSE",
         "inventory_icon_id": 1151,
+        "style": "extruder",
         "spawnable": true,
         "max_in_stack": 64,
         "spawn_egg": {
             "type": "horse",
             "skin": "creamy"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": {
+            "id": "egg",
+            "side": [2, 2]
+        }
     },
     {
         "id": 525,
         "name": "SPAWN_EGG_DONKEY",
         "inventory_icon_id": 1370,
+        "style": "extruder",
         "spawnable": true,
         "max_in_stack": 64,
         "spawn_egg": {
             "type": "horse",
             "skin": "base"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": {
+            "id": "egg",
+            "side": [4, 2]
+        }
     }
 ]
