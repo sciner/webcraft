@@ -432,6 +432,8 @@ export class Renderer {
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
             let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
             let m = Math.PI / 180;
+            
+            /// alloc!! every frame
             mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
             mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
             //
