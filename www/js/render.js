@@ -181,6 +181,90 @@ export class Renderer {
         }
 
         callback();
+
+        //
+
+        setTimeout(()=>{            
+            this.generatePrev();
+        }, 1000)
+    }
+
+    generatePrev() {
+        const target = this.renderBackend.createRenderTarget({
+            width: 1000,
+            height: 1000
+        });
+
+        const ZERO = new Vector();
+        const GRID = 10;
+        const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
+            try {
+                return new Particles_Block_Drop(this.gl, {id: i + 1 }, ZERO);
+            } catch(e) {
+                console.log('Error on', i);
+                return null;
+            }
+        }).filter(Boolean);
+
+        const camera = new Camera({
+            type: Camera.ORTHO_CAMERA,
+            max: 100,
+            min: 0.01,
+            fov: 60,
+            renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
+            width: GRID * 2, // block size is 2
+            height: GRID * 2,
+        });
+
+        const gu = this.globalUniforms;
+        
+        const matrix = mat4.create();
+        
+        mat4.rotateX(matrix, matrix, Math.PI / 6);
+        mat4.rotateZ(matrix, matrix, Math.PI / 4);
+        
+
+        camera.set(new Vector(0, 0, -2), new Vector(0,0,0));
+
+
+        // larg for valid render results 
+        gu.testLightOn = true;
+        gu.brightness = true;
+        gu.fogColor = settings.fogColor;
+        gu.fogDensity = 100;
+        gu.chunkBlockDist = 100;
+        gu.resolution = [target.width, target.height];
+        gu.sunDir = this.sunDir;
+
+
+        camera.use(gu, true);
+
+        gu.update();
+
+        this.renderBackend.setTarget(target);
+
+        blocks.forEach((block, i)=>{
+            const x = -GRID + 1 + (i % GRID) * 2;
+            const y = GRID - 1 - ((i / GRID) | 0) * 2;
+
+            this.renderBackend.drawMesh(
+                block.buffer,
+                block.material,
+                new Vector(x, y, 0),
+                matrix
+            );    
+        })
+
+        /*
+        render target to Image
+        target.toImage().then((image) => {
+            //
+        });
+        */
+
+        this.hudTarget = target;
+
+        this.renderBackend.setTarget(null);
     }
 
     initSky() {
@@ -325,7 +409,20 @@ export class Renderer {
         if(this.HUD) {
             this.HUD.draw();
         }
+ 
         renderBackend.endFrame();
+
+        if (this.hudTarget) {
+            // preview only
+            // remove me
+            renderBackend.setTarget(this.hudTarget);
+            renderBackend.blitRenderTarget({
+                x: this.renderBackend.size.width - 500,
+                y: this.renderBackend.size.height - 500,
+                w: 500,
+                h: 500
+            })
+        }
     }
 
     // destroyBlock
