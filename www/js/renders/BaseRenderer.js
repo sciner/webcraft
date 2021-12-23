@@ -66,7 +66,14 @@ export class BaseRenderTarget {
             buffer[i + 2] = Math.round(buffer[i + 2] / a);
         }
 
-        const data = new ImageData(new Uint8ClampedArray(buffer.buffer), this.width, this.height);
+        const data = new ImageData(this.width, this.height);
+
+        for(let i = 0; i < this.height; i ++) {
+            const invi = this.height - i - 1;
+            data.data.set(
+                buffer.subarray(invi * this.width * 4, (invi + 1) * this.width * 4),
+                i * this.width * 4);
+        }
         
         if (asBitmap) {
             return self.createImageBitmap(data);
