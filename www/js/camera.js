@@ -1,14 +1,33 @@
 import glMatrix from "../vendors/gl-matrix-3.3.min.js";
-import { Vector } from "./helpers";
+import { Vector } from "./helpers.js";
+//import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 
 const {mat4} = glMatrix;
 
 export class Camera {
-    constructor (options = {min: 2/16, max: 1000, renderType: 'webgl'}) {
+    static PERSP_CAMERA = 'perspective';
+    static ORTHO_CAMERA = 'ortho';
+
+    constructor (options = {
+        type: 'perspective' | 'ortho',
+        min: 2/16,
+        max: 1000,
+        renderType: 'webgl',
+        fov: 75,   // perspective only
+        width: 1, // ortho or for aspect
+        height: 1, // ortho or for aspect
+        scale: 1, // ortho scale
+    }) {
         this.options = options;
 
         this.min = options.min || 2/16;
         this.max = options.max || 1000;
+        this.fov = options.fov || 75;
+        this.width = options.width || 1;
+        this.height = options.height || 1;
+        this.scale = options.scale || 1;
+        this.type = options.type || Camera.PERSP_CAMERA;
+
         /**
          * @type {'webgl' | 'webgpu'}
          */
@@ -22,7 +41,7 @@ export class Camera {
         this._viewProjMatrix = null ;//mat4.create();
 
         this.pos = new Vector();
-        this.rot = new Vector();
+        this.rotate = new Vector();
     }
 
     get viewProjMatrix() {
@@ -54,7 +73,37 @@ export class Camera {
         this.update();
     }
 
+    _updateProj() {
+        const {
+            projMatrix,
+            width,
+            height,
+            scale,
+            min,
+            max,
+            fov,
+            renderType,
+            type
+        } = this;
+
+        if (type === Camera.PERSP_CAMERA) {
+            const func = renderType === 'webgl' ? mat4.perspectiveNO : mat4.perspectiveZO;
+            func(projMatrix, fov * Math.PI / 180.0, width / height, min, max);
+
+            return;
+        } else if(type === Camera.ORTHO_CAMERA) {
+            const func = renderType === 'webgl' ? mat4.orthoNO : mat4.orthoZO;
+            func(projMatrix, - scale * width / 2, scale * width / 2, -scale * height / 2, scale * height / 2, min, max);
+
+            return;
+        }
+
+        throw new TypeError('Unknow camera type:' + type);
+    }
+
     update() {
+        this._updateProj();
+
         mat4.copy(this.viewMatrix, this.bobPrependMatrix);
 
         // @todo Возможно тут надо поменять Z и Y местами
@@ -69,52 +118,18 @@ export class Camera {
     }
 
     /**
-     * Apply camera state onto renderer
-     * @param {Renderer} renderer 
+     * Apply camera state onto unfiforms
+     * @param {GlobalUniformGroup} gu 
+     * @param {boolean} update - force update before apply to uniforms 
      */
-    use(renderer) {
-
-    }
-}
-
-export class PerspectiveCamera extends Camera {
-    constructor(options = {fov: 75, aspect: 1}) {
-        super(options);
-
-        this.fov = options.fov;
-        this.aspect = options.aspect;
-    }
-
-    update() {
-        if (this.renderType === 'webgl') {
-            mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI / 180.0, this.aspect, this.min, this.max);
-        } else {
-            mat4.perspectiveZO(this.projMatrix, this.fov * Math.PI / 180.0, this.aspect, this.min, this.max);
+    use(gu, update = false) {
+        if (update) {
+            this.update();
         }
 
-        super.update();
-    }
-}
+        mat4.copy(gu.projMatrix, this.projMatrix);
+        mat4.copy(gu.viewMatrix, this.viewMatrix);
 
-export class OrthoCamera extends Camera {
-    constructor(options = {width: 1000, height: 1000}) {
-        super(options);
-
-        this.width = options.width;
-        this.height = options.height;
-    }
-
-    update() {
-        const {
-            width, height
-        } = this;
-
-        if (this.renderType === 'webgl') {
-            mat4.orthoNO(this.projMatrix, -width / 2, width / 2, height / 2, -height / 2, this.min, this.max);
-        } else {
-            mat4.orthoZO(this.projMatrix, -width / 2, width / 2, height / 2, -height / 2, this.min, this.max);
-        }
-
-        super.update();
+        gu.camPos.copyFrom(this.pos);
     }
 }
