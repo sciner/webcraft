@@ -191,8 +191,8 @@ export class Renderer {
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
-            width: 1000,
-            height: 1000
+            width: 2048,
+            height: 2048
         });
 
         const ZERO = new Vector();
@@ -255,12 +255,12 @@ export class Renderer {
             );    
         })
 
-        /*
-        render target to Image
+        
+        // render target to Image
         target.toImage().then((image) => {
-            //
+            console.log(image);
         });
-        */
+        
 
         this.hudTarget = target;
 
