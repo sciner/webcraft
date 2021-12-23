@@ -129,9 +129,7 @@ export class Renderer {
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE};
 
         this.brightness         = 1;
-        this.viewportWidth      = this.canvas.width;
-        this.viewportHeight     = this.canvas.height;
-        renderBackend.resize(this.viewportWidth, this.viewportHeight);
+        renderBackend.resize(this.canvas.width, this.canvas.height);
 
         // Init shaders for all resource packs
         await BLOCK.resource_pack_manager.initShaders(renderBackend);
@@ -239,6 +237,8 @@ export class Renderer {
     draw(delta) {
         this.frame++;
         const { gl, shader, renderBackend } = this;
+        const { size } = renderBackend;
+
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
         let player = this.player;
@@ -259,7 +259,7 @@ export class Renderer {
             } else {
                 this.skyBox.shader.brightness = this.brightness;
             }
-            this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, this.camera.width, this.camera.height);
+            this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
         }
         // Clouds
         if(!this.clouds) {
@@ -290,7 +290,7 @@ export class Renderer {
         //
         gu.time                 = performance.now();
         gu.fogDensity           = currentRenderState.fogDensity;
-        gu.resolution           = [this.camera.width, this.camera.height];
+        gu.resolution           = [size.width, size.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
         gu.update();
@@ -420,8 +420,8 @@ export class Renderer {
         //this.min = min;
         //this.max = max;
 
-        this.camera.width = this.viewportWidth;
-        this.camera.height = this.viewportHeight;
+        this.camera.width = this.renderBackend.size.width;
+        this.camera.height = this.renderBackend.size.height;
         this.camera.fov = fov;
         this.camera.min = min;
         this.camera.max = max;
