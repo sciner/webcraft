@@ -73,8 +73,8 @@ export default class Particles_Block_Drop {
         const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
         const biome = chunk.map.cells[0][0].biome;
 
-        this.resource_pack = b.material.resource_pack;
-        this.material = this.resource_pack.materials.get(b.material.material_key);
+        this.resource_pack = b.material.resource_pack
+        this.material = this.resource_pack.getMaterial(b.material.material_key);
 
         let x = -.5, y = -.5, z = -.5;
         this.resource_pack.pushVertices(

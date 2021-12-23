@@ -5,5 +5,11 @@
             "fragment": "/shaders/webgl/fragment.glsl"
         },
         "webgpu": "/shaders/webgpu/shader.wgsl"
+    },
+    "textures": {
+        "egg": {
+            "image": "/textures/egg.png",
+            "tx_cnt": 8
+        }
     }
 }

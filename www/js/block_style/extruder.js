@@ -43,7 +43,7 @@ class FakeCloudWorld {
         // clouds
         this.clouds = {
             size: new Vector(128, 1, 128),
-            blocks: Array(128).fill(null).map(el => Array(128).fill(null)),
+            blocks: Array(256).fill(null).map(el => Array(256).fill(null)),
             init: function(block_id, tex, tex_x, tex_z, tex_w, tex_h) {
                 this.size.set(tex_w + 2, 1, tex_h + 2)
                 for(let x = 0; x < tex_w; x++) {
@@ -100,8 +100,10 @@ export default class style {
         }
 
         let tex = resource_pack.textures.get(texture_id);
+        const TX_CNT = tex.tx_cnt;
+
         // let imageData = tex.imageData;
-        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP);
+        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, TX_CNT);
         let world = new FakeCloudWorld();
         let tex_x = Math.round((c[0] - .5 / tex.tx_cnt) * tex.width);
         let tex_z = Math.round((c[1] - .5 / tex.tx_cnt) * tex.height);
@@ -139,7 +141,6 @@ export default class style {
         ];
 
         let y = 0;
-        console.log(clouds.size);
         for(let x = 0; x < clouds.size.x; x++) {
             for(let z = 0; z < clouds.size.z; z++) {
                 let block  = world.chunkManager.getBlock(x, 0, z);

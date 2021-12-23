@@ -17,6 +17,8 @@ export default class ResourcePack extends BaseResourcePack {
 
     //
     async initTextures(renderBackend, settings) {
+        super.initTextures(renderBackend, settings);
+        //
         let that = this;
         const loadImage = (url) => Resources.loadImage(url, true);
         let v = {
