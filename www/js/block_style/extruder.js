@@ -42,16 +42,16 @@ class FakeCloudWorld {
         this.blocks_pushed = 0;
         // clouds
         this.clouds = {
-            size: new Vector(128, 1, 128),
+            size: new Vector(128, 128, 1),
             blocks: Array(256).fill(null).map(el => Array(256).fill(null)),
-            init: function(block_id, tex, tex_x, tex_z, tex_w, tex_h) {
-                this.size.set(tex_w + 2, 1, tex_h + 2)
+            init: function(block_id, tex, tex_x, tex_y, tex_w, tex_h) {
+                this.size.set(tex_w + 2, tex_h + 2, 1)
                 for(let x = 0; x < tex_w; x++) {
-                    for(let z = 0; z < tex_h; z++) {
-                        let index = ((z + tex_z) * tex.width + (x + tex_x)) * 4;
+                    for(let y = 0; y < tex_h; y++) {
+                        let index = ((y + tex_y) * tex.width + (x + tex_x)) * 4;
                         let is_opaque = tex.imageData.data[index + 3] > 10;
                         if(is_opaque) {
-                            this.blocks[x + 1][z + 1] = new FakeTBlock(BLOCK.SMOOTH_STONE.id);
+                            this.blocks[x + 1][y + 1] = new FakeTBlock(BLOCK.SMOOTH_STONE.id);
                         }
                     }
                 }
@@ -60,10 +60,10 @@ class FakeCloudWorld {
         // chunkManager
         this.chunkManager = {
             getBlock: function(x, y, z) {
-                if(y == 0) {
+                if(z == 0) {
                     if(x >= 0 && x < that.clouds.size.x) {
-                        if(z >= 0 && z < that.clouds.size.z) {
-                            let resp = that.clouds.blocks[x][z]
+                        if(y >= 0 && y < that.clouds.size.y) {
+                            let resp = that.clouds.blocks[x][y]
                             if(resp) {
                                 return resp;
                             }
@@ -106,10 +106,10 @@ export default class style {
         let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, TX_CNT);
         let world = new FakeCloudWorld();
         let tex_x = Math.round((c[0] - .5 / tex.tx_cnt) * tex.width);
-        let tex_z = Math.round((c[1] - .5 / tex.tx_cnt) * tex.height);
+        let tex_y = Math.round((c[1] - .5 / tex.tx_cnt) * tex.height);
         let tex_w = Math.round(c[2] * tex.width);
         let tex_h = Math.round(c[3] * tex.height);
-        world.clouds.init(block.id, tex, tex_x, tex_z, tex_w, tex_h);
+        world.clouds.init(block.id, tex, tex_x, tex_y, tex_w, tex_h);
 
         //
         neighbours  = {
@@ -140,19 +140,19 @@ export default class style {
             c[3] / ts
         ];
 
-        let y = 0;
+        let z = 0;
         for(let x = 0; x < clouds.size.x; x++) {
-            for(let z = 0; z < clouds.size.z; z++) {
-                let block  = world.chunkManager.getBlock(x, 0, z);
+            for(let y = 0; y < clouds.size.y; y++) {
+                let block  = world.chunkManager.getBlock(x, y, 0);
                 if(block.id > 0) {
-                    neighbours.NORTH = world.chunkManager.getBlock(x, 0, z + 1);
-                    neighbours.SOUTH = world.chunkManager.getBlock(x, 0, z - 1);
-                    neighbours.WEST = world.chunkManager.getBlock(x - 1, 0, z);
-                    neighbours.EAST = world.chunkManager.getBlock(x + 1, 0, z);
+                    neighbours.UP = world.chunkManager.getBlock(x, y + 1, 0);
+                    neighbours.DOWN = world.chunkManager.getBlock(x, y - 1, 0);
+                    neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
+                    neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
                     // Position of each texture pixel
                     force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
-                    force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (z - 1) / tex.tx_cnt / ts;
-                    push_cube(block, vertices, world, (x - TEX_WIDTH_HALF) / SCALE_FACTOR, y, (z - TEX_WIDTH_HALF) / SCALE_FACTOR, neighbours, null, false, matrix, null, force_tex);
+                    force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
+                    push_cube(block, vertices, world, (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  (y - TEX_WIDTH_HALF) / SCALE_FACTOR, z, neighbours, null, false, matrix, null, force_tex);
                 }
             }
         }
