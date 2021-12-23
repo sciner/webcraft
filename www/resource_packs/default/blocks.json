@@ -3464,5 +3464,77 @@
             "id": "egg",
             "side": [4, 2]
         }
+    },
+    {
+        "id": 541,
+        "name": "BUCKET_EMPTY",
+        "style": "extruder",
+        "inventory_icon_id": 3145,
+        "gravity": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "bucket",
+        "tags": [
+            "bucket"
+        ],
+        "texture": {
+            "id": "item",
+            "side": [0, 0]
+        },
+        "spawnable": true
+    },
+    {
+        "id": 542,
+        "name": "BUCKET_LAVA",
+        "style": "extruder",
+        "inventory_icon_id": 3146,
+        "gravity": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "bucket",
+        "tags": [
+            "bucket"
+        ],
+        "texture": {
+            "id": "item",
+            "side": [1, 0]
+        },
+        "spawnable": true
+    },
+    {
+        "id": 543,
+        "name": "BUCKET_WATER",
+        "style": "extruder",
+        "inventory_icon_id": 3148,
+        "gravity": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "bucket",
+        "tags": [
+            "bucket"
+        ],
+        "texture": {
+            "id": "item",
+            "side": [3, 0]
+        },
+        "spawnable": true
+    },
+    {
+        "id": 544,
+        "name": "BUCKET_ICE",
+        "style": "extruder",
+        "inventory_icon_id": 3147,
+        "gravity": false,
+        "max_in_stack": 1,
+        "is_item": true,
+        "instrument_id": "bucket",
+        "tags": [
+            "bucket"
+        ],
+        "texture": {
+            "id": "item",
+            "side": [2, 0]
+        },
+        "spawnable": true
     }
 ]

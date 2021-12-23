@@ -10,6 +10,10 @@
         "egg": {
             "image": "/textures/egg.png",
             "tx_cnt": 8
+        },
+        "item": {
+            "image": "/textures/item.png",
+            "tx_cnt": 8
         }
     }
 }

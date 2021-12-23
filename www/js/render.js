@@ -183,10 +183,8 @@ export class Renderer {
         callback();
 
         //
-
-        setTimeout(()=>{            
-            this.generatePrev();
-        }, 1000)
+        this.generatePrev();
+        
     }
 
     generatePrev() {
@@ -201,7 +199,7 @@ export class Renderer {
             try {
                 return new Particles_Block_Drop(this.gl, {id: i + 1 }, ZERO);
             } catch(e) {
-                console.log('Error on', i);
+                console.log('Error on', i, e);
                 return null;
             }
         }).filter(Boolean);

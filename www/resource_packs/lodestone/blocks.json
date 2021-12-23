@@ -52,7 +52,7 @@
             "still_block_id": 202
         },
         "destroy_time": 0.4,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 3148
     },
@@ -79,7 +79,7 @@
             "side": null
         },
         "destroy_time": 0.4,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64,
         "inventory_icon_id": 98
     },
@@ -111,7 +111,7 @@
             "side": null
         },
         "destroy_time": 0.4,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64
     },
     {
@@ -130,7 +130,7 @@
             "side": 18
         },
         "destroy_time": 0,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64,
         "planting": true
     }
