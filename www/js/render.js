@@ -15,6 +15,7 @@ import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Sun from "./particles/sun.js";
 import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
+import { Camera } from "./camera.js";
 
 const {mat4} = glMatrix;
 
@@ -63,7 +64,6 @@ export class Renderer {
         this.rainTim            = null;
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
-        this.camMoved           = false;
         this.frame              = 0;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -73,6 +73,35 @@ export class Renderer {
                 premultipliedAlpha: false
             });
         this.meshes = new MeshManager();
+
+        this.camera = new Camera({
+            type: Camera.PERSP_CAMERA,
+            fov: FOV_NORMAL,
+            min: NEAR_DISTANCE,
+            max: RENDER_DISTANCE,
+            scale: 0.05, // ortho scale
+        });
+    }
+
+    /**
+     * @deprecated Use camera valies direcly
+     */
+    get fov() {
+        return this.camera.fov;
+    }
+
+    /**
+     * @deprecated Use camera valies direcly
+     */
+    get max() {
+        return this.camera.max;
+    }
+
+    /**
+     * @deprecated Use camera valies direcly
+     */
+    get min() {
+        return this.camera.min;
     }
 
     get gl() {
@@ -123,9 +152,15 @@ export class Renderer {
 
         // Prepare default resource pack shader
         let rp                  = BLOCK.resource_pack_manager.get('default');
-        this.defaultShader             = rp.shader;
+
+        this.defaultShader      = rp.shader;
+
+        this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
+        this.camera.width       = this.viewportWidth;
+        this.camera.height      = this.viewportHeight;
 
         // Create projection and view matrices
+        // we can use it directly from camera, but will be problems with reference in multicamera
         this.projMatrix         = this.globalUniforms.projMatrix;
         this.viewMatrix         = this.globalUniforms.viewMatrix;
         this.camPos             = this.globalUniforms.camPos;
@@ -212,16 +247,10 @@ export class Renderer {
         this.updateViewport();
         let fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : currentRenderState.fogColor;
         renderBackend.beginFrame(fogColor);
-        //
-        const {
-            width, height
-        } = renderBackend.size;
-        //
-        if (renderBackend.gl) {
-            mat4.perspectiveNO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
-        } else {
-            mat4.perspectiveZO(this.projMatrix, this.fov * Math.PI/180.0, width / height, this.min, this.max);
-        }
+
+        // apply camera state;
+        this.camera.use(renderBackend.globalUniforms, true);
+
         // 1. Draw skybox
         if(this.skyBox) {
             if(this.skyBox.shader.uniforms) {
@@ -230,7 +259,7 @@ export class Renderer {
             } else {
                 this.skyBox.shader.brightness = this.brightness;
             }
-            this.skyBox.draw(this.viewMatrix, this.projMatrix, width, height);
+            this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, this.camera.width, this.camera.height);
         }
         // Clouds
         if(!this.clouds) {
@@ -261,7 +290,7 @@ export class Renderer {
         //
         gu.time                 = performance.now();
         gu.fogDensity           = currentRenderState.fogDensity;
-        gu.resolution           = [width, height];
+        gu.resolution           = [this.camera.width, this.camera.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
         gu.update();
@@ -374,6 +403,7 @@ export class Renderer {
                 window.innerHeight * self.devicePixelRatio | 0);
             this.viewportWidth = window.innerWidth | 0;
             this.viewportHeight = window.innerHeight | 0;
+
             // Update perspective projection based on new w/h ratio
             this.setPerspective(this.fov, this.min, this.max);
         }
@@ -386,37 +416,26 @@ export class Renderer {
 
     // Sets the properties of the perspective projection.
     setPerspective(fov, min, max) {
-        this.fov = fov;
-        this.min = min;
-        this.max = max;
+        //this.fov = fov;
+        //this.min = min;
+        //this.max = max;
+
+        this.camera.width = this.viewportWidth;
+        this.camera.height = this.viewportHeight;
+        this.camera.fov = fov;
+        this.camera.min = min;
+        this.camera.max = max;
     }
 
     // Moves the camera to the specified orientation.
     // pos - Position in world coordinates.
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
-        this.camMoved = !this.prevCamRotate.equal(rotate) || !this.prevCamPos.equal(pos);
-        if(this.camMoved) {
-            // return;
-        }
-        this.prevCamRotate.set(rotate.x, rotate.y, rotate.z);
-        this.prevCamPos.set(pos.x, pos.y, pos.z);
-        // @todo Возможно тут надо поменять Z и Y местами
-        let pitch           = rotate.x; // X
-        let roll            = rotate.y; // Z
-        let yaw             = rotate.z; // Y
-        this.camPos.copyFrom(pos);
-        mat4.identity(this.viewMatrix);
-        // bobView
-        this.bobView(player, this.viewMatrix);
-        //
-        mat4.rotate(this.viewMatrix, this.viewMatrix, -pitch - Math.PI / 2, [1, 0, 0]); // x
-        mat4.rotate(this.viewMatrix, this.viewMatrix, roll, [0, 1, 0]); // z
-        mat4.rotate(this.viewMatrix, this.viewMatrix, yaw, [0, 0, 1]); // y
-        // Setup frustum
-        let matrix = new Float32Array(this.projMatrix);
-        mat4.multiply(matrix, matrix, this.viewMatrix);
-        this.frustum.setFromProjectionMatrix(matrix, this.camPos);
+        const tmp = mat4.create();
+
+        this.bobView(player, tmp);
+        this.camera.set(pos, rotate, tmp);
+        this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
     }
 
     // Original bobView
@@ -478,6 +497,7 @@ export class Renderer {
     // updateFOV...
     updateFOV(delta, zoom, running) {
         const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE} = this.options;
+
         if(zoom) {
             if(this.fov > FOV_ZOOM) {
                 let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
