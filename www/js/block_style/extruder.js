@@ -140,19 +140,19 @@ export default class style {
             c[3] / ts
         ];
 
-        let z = 0;
+        let z = -0.5 - 0.5 / SCALE_FACTOR;
         for(let x = 0; x < clouds.size.x; x++) {
             for(let y = 0; y < clouds.size.y; y++) {
                 let block  = world.chunkManager.getBlock(x, y, 0);
                 if(block.id > 0) {
-                    neighbours.UP = world.chunkManager.getBlock(x, y + 1, 0);
-                    neighbours.DOWN = world.chunkManager.getBlock(x, y - 1, 0);
+                    neighbours.DOWN = world.chunkManager.getBlock(x, y + 1, 0);
+                    neighbours.UP = world.chunkManager.getBlock(x, y - 1, 0);
                     neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
                     neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
                     // Position of each texture pixel
                     force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
                     force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
-                    push_cube(block, vertices, world, (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  (y - TEX_WIDTH_HALF) / SCALE_FACTOR, z, neighbours, null, false, matrix, null, force_tex);
+                    push_cube(block, vertices, world, 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  -(y - TEX_WIDTH_HALF) / SCALE_FACTOR, z, neighbours, null, false, matrix, null, force_tex);
                 }
             }
         }
