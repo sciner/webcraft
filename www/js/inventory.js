@@ -381,16 +381,20 @@ export class Inventory {
                     );
                 } else {
                     let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+                    if(item.inventory_icon_id == 5) {
+                        console.log(icon);
+                    }
+                    const DEST_SIZE = 64;
                     hud.ctx.drawImage(
                         this.inventory_image,
                         icon.x,
                         icon.y,
                         icon.width,
                         icon.height,
-                        hud_pos.x + cell_size / 2 - icon.width / 2 - 4,
-                        hud_pos.y + cell_size / 2 - icon.height / 2,
-                        48,
-                        48
+                        hud_pos.x + cell_size / 2 - 49 / 2 - 4,
+                        hud_pos.y + cell_size / 2 - 48 / 2 - 2,
+                        DEST_SIZE,
+                        DEST_SIZE
                     );
                 }
                 if(item.count > 1) {

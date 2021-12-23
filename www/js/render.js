@@ -190,13 +190,14 @@ export class Renderer {
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
             width: 2048,
-            height: 2048
+            height: 2048,
+            depth: true
         });
-
         const ZERO = new Vector();
         const GRID = 16;
         const all_blocks = BLOCK.getAll();
         const all_count = all_blocks.length;
+        let inventory_icon_id = 0;
         const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
             try {
                 if(i >= all_count) {
@@ -205,15 +206,16 @@ export class Renderer {
                 let block = all_blocks[i];
                 if(!block.spawnable) {
                     return null;
-                    // throw 'error_not_spawnable';
                 }
-                return new Particles_Block_Drop(this.gl, {id: block.id}, ZERO);
+                let drop = new Particles_Block_Drop(this.gl, {id: block.id}, ZERO);
+                drop.block_material.inventory_icon_id = inventory_icon_id++;
+                return drop;
             } catch(e) {
                 console.log('Error on', i, e);
                 return null;
             }
         }).filter(Boolean);
-
+        //
         const camera = new Camera({
             type: Camera.ORTHO_CAMERA,
             max: 100,
@@ -223,18 +225,18 @@ export class Renderer {
             width: GRID * 2, // block size is 2
             height: GRID * 2,
         });
-
+        //
         const gu = this.globalUniforms;
-        
+        //
+        const matrix_empty = mat4.create();
+        let scale = new Vector(0.8, 0.8, 0.8);
+        mat4.scale(matrix_empty, matrix_empty, scale.toArray());
+        //
         const matrix = mat4.create();
-        
         mat4.rotateX(matrix, matrix, Math.PI / 6);
-        mat4.rotateZ(matrix, matrix, Math.PI / 4);
-        
-
-        camera.set(new Vector(0, 0, -2), new Vector(0,0,0));
-
-
+        mat4.rotateZ(matrix, matrix, Math.PI + Math.PI / 4);
+        //
+        camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
         gu.testLightOn = true;
         gu.brightness = true;
@@ -243,35 +245,26 @@ export class Renderer {
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
         gu.sunDir = this.sunDir;
-
-
         camera.use(gu, true);
-
         gu.update();
-
         this.renderBackend.setTarget(target);
-
-        blocks.forEach((block, i)=>{
-            const x = -GRID + 1 + (i % GRID) * 2;
-            const y = GRID - 1 - ((i / GRID) | 0) * 2;
-
+        blocks.forEach((block, i) => {
+            let pos = block.block_material.inventory_icon_id;
+            const x = -GRID + 1 + (pos % GRID) * 2;
+            const y = GRID - 1 - ((pos / GRID) | 0) * 2;
             this.renderBackend.drawMesh(
                 block.buffer,
                 block.material,
                 new Vector(x, y, 0),
-                matrix
+                block.block_material.style == 'extruder' ? matrix_empty : matrix
             );    
         })
-
-        
         // render target to Image
         target.toImage().then((image) => {
-            Helpers.downloadImage(image, 'inventory.png');
+            // Helpers.downloadImage(image, 'inventory.png');
+            Resources.inventory.image = image;
         });
-        
-
         this.hudTarget = target;
-
         this.renderBackend.setTarget(null);
     }
 
@@ -424,12 +417,12 @@ export class Renderer {
             // preview only
             // remove me
             renderBackend.setTarget(this.hudTarget);
-            renderBackend.blitRenderTarget({
+            /*renderBackend.blitRenderTarget({
                 x: this.renderBackend.size.width - 500,
                 y: this.renderBackend.size.height - 500,
                 w: 500,
                 h: 500
-            })
+            })*/
         }
     }
 

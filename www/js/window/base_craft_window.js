@@ -40,18 +40,19 @@ export class CraftTableSlot extends Label {
         if(!item) {
             return;
         }
-        ctx.imageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = true;
         // 
         if('inventory_icon_id' in item) {
             let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+            const dest_icon_size = 32;
             ctx.drawImage(
                 this.ct.inventory.inventory_image,
                 icon.x,
                 icon.y,
                 icon.width,
                 icon.height,
-                x + width / 2 - icon.width / 2,
-                y + height / 2 - icon.height / 2,
+                x + width / 2 - dest_icon_size / 2,
+                y + height / 2 - dest_icon_size / 2,
                 32,
                 32
             );

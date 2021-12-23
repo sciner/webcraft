@@ -1680,7 +1680,7 @@
         ],
         "name": "CLOUD",
         "destroy_time": 4,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64
     },
     {

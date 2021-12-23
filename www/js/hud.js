@@ -281,7 +281,7 @@ export class HUD {
         this.text += '\nMAT: ';
         let mat = player.buildMaterial;
         if(mat) {
-            this.text += ' ' + mat.id + ' / ' + mat.name;
+            this.text += ' ' + mat.id + ' / ' + mat.name + ' / ' + mat.inventory_icon_id;
             if(mat.fluid) {
                 this.text += ' ' + '(FLUID!!!)';
             }

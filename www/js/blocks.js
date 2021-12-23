@@ -469,11 +469,13 @@ export class BLOCK {
 
     // Return inventory icon pos
     static getInventoryIconPos(inventory_icon_id) {
-        let w = 32;
-        let h = 32;
+        let inventory_image_size = 2048;
+        let w = 128;
+        let h = 128;
+        let icons_per_row = inventory_image_size / w;
         return new Vector4(
-            (inventory_icon_id % w) * w,
-            Math.floor(inventory_icon_id / h) * h,
+            (inventory_icon_id % icons_per_row) * w,
+            Math.floor(inventory_icon_id / icons_per_row) * h,
             w,
             h
         );

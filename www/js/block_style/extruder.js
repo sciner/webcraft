@@ -152,7 +152,7 @@ export default class style {
                     // Position of each texture pixel
                     force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
                     force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
-                    push_cube(block, vertices, world, 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  -(y - TEX_WIDTH_HALF) / SCALE_FACTOR, z, neighbours, null, false, matrix, null, force_tex);
+                    push_cube(block, vertices, world, 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  -(y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5, z, neighbours, null, false, matrix, null, force_tex);
                 }
             }
         }

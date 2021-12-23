@@ -69,9 +69,10 @@ export default class Particles_Block_Drop {
         this.vertices   = [];
 
         let b = new FakeTBlock(block.id);
+        this.block_material = b.material;
 
-        //const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
-        //const biome = chunk.map.cells[0][0].biome;
+        // const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
+        // const biome = chunk.map.cells[0][0].biome;
 
         this.resource_pack = b.material.resource_pack
         this.material = this.resource_pack.getMaterial(b.material.material_key);
