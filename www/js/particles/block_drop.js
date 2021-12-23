@@ -32,7 +32,7 @@ class FakeTBlock {
 }
 
 // World
-const FakeCloudWorld = {
+const FakeWorld = {
     blocks_pushed: 0,
     chunkManager: {
         getBlock: function(x, y, z) {
@@ -80,7 +80,7 @@ export default class Particles_Block_Drop {
         this.resource_pack.pushVertices(
             this.vertices,
             b, // UNSAFE! If you need unique block, use clone
-            FakeCloudWorld,
+            FakeWorld,
             x,
             y,
             z,

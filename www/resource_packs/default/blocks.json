@@ -87,6 +87,8 @@
     },
     {
         "id": 131,
+        "name": "WOODEN_PICKAXE",
+        "style": "extruder",
         "inventory_icon_id": 3589,
         "transparent": true,
         "gravity": false,
@@ -101,18 +103,19 @@
             0,
             31
         ],
-        "name": "WOODEN_PICKAXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
     {
         "id": 500,
+        "name": "STONE_PICKAXE",
         "inventory_icon_id": 3585,
         "transparent": true,
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
         "is_item": true,
+        "style": "extruder",
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -121,12 +124,13 @@
             1,
             31
         ],
-        "name": "STONE_PICKAXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
     {
         "id": 132,
+        "name": "WOODEN_AXE",
+        "style": "extruder",
         "inventory_icon_id": 3587,
         "transparent": true,
         "gravity": false,
@@ -141,7 +145,6 @@
             0,
             30
         ],
-        "name": "WOODEN_AXE",
         "destroy_time": 0.4,
         "spawnable": true
     },
@@ -154,7 +157,7 @@
         "gravity": false,
         "fluid": false,
         "max_in_stack": 1,
-        "style": "planting",
+        "style": "extruder",
         "is_item": true,
         "instrument_id": "shovel",
         "tags": [

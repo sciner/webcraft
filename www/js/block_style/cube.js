@@ -57,7 +57,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -152,7 +152,7 @@ export default class style {
 
         // Top
         if(canDrawFace(neighbours.UP) || bH < 1) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
@@ -207,7 +207,7 @@ export default class style {
 
         // Bottom
         if(canDrawFace(neighbours.DOWN)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -220,7 +220,7 @@ export default class style {
 
         // South | Front/Forward
         if(canDrawFace(neighbours.SOUTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -233,7 +233,7 @@ export default class style {
 
         // North
         if(canDrawFace(neighbours.NORTH)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -246,7 +246,7 @@ export default class style {
 
         // West
         if(canDrawFace(neighbours.WEST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -259,7 +259,7 @@ export default class style {
 
         // East
         if(canDrawFace(neighbours.EAST)) {
-            c = BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, height);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
