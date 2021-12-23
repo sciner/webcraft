@@ -272,11 +272,6 @@ export default class WebGLRenderer extends BaseRenderer {
     _configure() {
         super._configure();
      
-        const {gl} = this;
-     
-        gl.viewportWidth        = this.view.width;
-        gl.viewportHeight       = this.view.height;
-
         if (this._mainFrame) {
             this._mainFrame.destroy();
         }
