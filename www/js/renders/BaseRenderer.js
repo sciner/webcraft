@@ -508,6 +508,7 @@ export default class BaseRenderer {
             drawcalls: 0,
             drawquads: 0
         };
+        this.fogColor = [0,0,0,0];
         this._activeTextures = {};
 
         /**

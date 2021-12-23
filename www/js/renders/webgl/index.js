@@ -291,6 +291,13 @@ export default class WebGLRenderer extends BaseRenderer {
         super.setTarget(target);
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target ?  target.framebuffer : null);
+
+        const { gl, fogColor } = this;
+        const {
+            width, height
+        } = target ? target : this.size;
+
+        gl.viewport(0, 0, width, height);
     }
 
     createRenderTarget(options) {
@@ -364,15 +371,9 @@ export default class WebGLRenderer extends BaseRenderer {
 
     beginFrame(fogColor) {
         // debug only
-
-        this.setTarget(this._mainFrame);
-
         const { gl } = this;
-        const {
-            width, height
-        } = this._target ? this._target : this.size;
+        this.setTarget(this._mainFrame); // or null to init viewport
 
-        gl.viewport(0, 0, width, height);
         gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
@@ -384,7 +385,7 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     // flisth active buffer onto canvas
-    blitRenderTarget() {
+    blitRenderTarget({x = 0, y = 0, w = null, h = null} = {}) {
         /**
          * @type {WebGLRenderTarget}
          */
@@ -400,7 +401,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         gl.blitFramebuffer(
             0, 0, target.width, target.height,
-            0, 0, this.size.width, this.size.height,
+            x, y, (w || this.size.width) + x, (h || this.size.height) + y,
             gl.COLOR_BUFFER_BIT, gl.LINEAR
         );
         
