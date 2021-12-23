@@ -39,6 +39,55 @@ export class BaseRenderTarget {
 
     }
 
+    /**
+     * Read pixels from framebuffer
+     * @returns {Uint8Array}
+     */
+    toRawPixels() {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    /**
+     * 
+     * @returns {Promise<Image | ImageBitmap>}
+     */
+    async toImage({asBitmap} = {asBitmap: false}) {
+        const buffer = this.toRawPixels();
+
+        for (let i = 0; i < buffer.length; i += 4) {
+            const a = buffer[i + 3] / 0xff;
+
+            if (!a) {
+                continue;
+            }
+
+            buffer[i + 0] = Math.round(buffer[i + 0] / a);
+            buffer[i + 1] = Math.round(buffer[i + 1] / a);
+            buffer[i + 2] = Math.round(buffer[i + 2] / a);
+        }
+
+        const data = new ImageData(new Uint8ClampedArray(buffer.buffer), this.width, this.height);
+        
+        if (asBitmap) {
+            return self.createImageBitmap(data);
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image(this.width, this.height);
+
+        ctx.canvas.width = this.width;
+        ctx.canvas.height = this.height;
+        ctx.putImageData(data, 0, 0);
+
+        return new Promise(res => {
+            img.onload = () => res(img);
+            img.src = ctx.canvas.toDataURL();
+
+            ctx.canvas.width = ctx.canvas.height = 0;
+        });
+    }
+
     destroy() {
         this.valid = false;
         if (this.texture) {

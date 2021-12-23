@@ -17,6 +17,27 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         this.init();
     }
 
+    /**
+     * Read pixels from framebuffer
+     * @returns {Uint8Array}
+     */
+    toRawPixels() {
+        /**
+         * @type {WebGL2RenderingContext}
+         */
+        const gl = this.context.gl;
+        const old = this.context._target;
+        const buffer = new Uint8Array(this.width * this.height * 4);
+
+        this.context.setTarget(this);
+
+        gl.readPixels(0,0,this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, buffer);
+
+        this.context.setTarget(old);
+
+        return buffer;
+    }
+
     init() {
         super.init();
         /**
