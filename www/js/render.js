@@ -493,16 +493,18 @@ export class Renderer {
         this.bobView(this.player, this.camera.bobPrependMatrix);
         mat4.invert(this.camera.bobPrependMatrix, this.camera.bobPrependMatrix);
 
-        const animFrame = -1.5 * Math.cos(this.inHandAnimationTime * Math.PI * 2);
+        const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
+        this.camera.pos.set(-0.75, 0.5, -1.5 * animFrame);
         this.camera.set(
-            new Vector(-0.75, 0.5, animFrame), 
+            this.camera.pos, 
             Vector.ZERO,
             this.camera.bobPrependMatrix
         );
 
         this.camera.use(this.globalUniforms, true);
-        
+        this.globalUniforms.brightness = Math.max(0.4, this.brightness);
+
         mat4.identity(this.inHandItem.modelMatrix);
         mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
         mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
