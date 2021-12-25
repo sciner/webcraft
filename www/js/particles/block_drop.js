@@ -136,7 +136,7 @@ export default class Particles_Block_Drop {
             ]
         );
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, delta / 60);
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.addY / 60);
 
         this.material.lightTex = this.lightTex;
         render.renderBackend.drawMesh(
