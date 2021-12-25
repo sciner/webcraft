@@ -42,6 +42,40 @@ export class Camera {
 
         this.pos = new Vector();
         this.rotate = new Vector();
+
+        this.savedState = {
+            pos: null,
+            rotate: null,
+            proj: null,
+            view: null,
+            bob: null
+        };
+    }
+
+    // save camera state
+    save() {
+        this.savedState = {
+            pos: this.pos.clone(),
+            rotate: this.rotate.clone(),
+            proj: mat4.clone(this.projMatrix),
+            view: mat4.clone(this.viewMatrix),
+            bob: mat4.clone(this.bobPrependMatrix)
+        };
+    }
+
+    restore() {
+        if (!this.savedState || !this.savedState.pos) {
+            return;
+        }
+
+        this.pos.copyFrom(this.savedState.pos);
+        this.rotate.copyFrom(this.savedState.rotate);
+
+        mat4.copy(this.projMatrix, this.savedState.proj);
+        mat4.copy(this.viewMatrix, this.savedState.view);
+        mat4.copy(this.bobPrependMatrix, this.savedState.bob);
+
+        this.savedState = null;
     }
 
     get viewProjMatrix() {
