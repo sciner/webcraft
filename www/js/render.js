@@ -408,7 +408,6 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    this.meshes.draw(this, delta);
                     // this.world.draw(this, delta);
                     if(this.world.game_mode.isSurvival() || this.world.game_mode.isCreative()) {
                         player.pickAt.draw();
@@ -417,6 +416,11 @@ export class Renderer {
                     this.drawPlayers(delta);
                     // 4. Draw mobs
                     this.drawMobs(delta);
+
+                    // draw isolated meshes after without AO
+                    this.globalUniforms.brightness = Math.max(0.3, this.brightness);
+                    this.globalUniforms.update();
+                    this.meshes.draw(this, delta);
                 }
             }
         }
@@ -511,7 +515,6 @@ export class Renderer {
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
-        this.camera.fov = FOV_NORMAL;
         this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
         this.camera.set(
             this.camera.pos, 
