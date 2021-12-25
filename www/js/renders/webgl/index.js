@@ -276,7 +276,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     _configure() {
         super._configure();
-     
+
+        /*
         if (this._mainFrame) {
             this._mainFrame.destroy();
         }
@@ -286,6 +287,7 @@ export default class WebGLRenderer extends BaseRenderer {
             height: this.size.height,
             depth: true,
         });
+        */
     }
 
     /**
@@ -387,14 +389,14 @@ export default class WebGLRenderer extends BaseRenderer {
     beginFrame(fogColor) {
         // debug only
         const { gl } = this;
-        this.setTarget(this._mainFrame); // or null to init viewport
+        this.setTarget(null); // or null to init viewport
 
         gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
     endFrame() {
-        this.blitRenderTarget();
+        // this.blitRenderTarget();
         // reset framebufer
         this.setTarget(null);
     }
