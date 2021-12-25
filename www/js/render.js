@@ -490,12 +490,11 @@ export class Renderer {
 
         this.camera.save();
 
-        this.bobView(this.player, this.camera.bobPrependMatrix);
-        mat4.invert(this.camera.bobPrependMatrix, this.camera.bobPrependMatrix);
+        this.bobView(this.player, this.camera.bobPrependMatrix, true);
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
-        this.camera.pos.set(-0.75, 0.5, -1.5 * animFrame);
+        this.camera.pos.set(-1, 0.5, -1.2 * animFrame);
         this.camera.set(
             this.camera.pos, 
             Vector.ZERO,
@@ -633,7 +632,7 @@ export class Renderer {
     }
 
     // Original bobView
-    bobView(player, viewMatrix) {
+    bobView(player, viewMatrix, forDrop = false) {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
@@ -645,16 +644,24 @@ export class Renderer {
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
             let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
             let m = Math.PI / 180;
-            
-            /// alloc!! every frame
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
-            mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
-            //
-            mat4.translate(viewMatrix, viewMatrix, [
-                Mth.sin(f1 * Math.PI) * f2 * 0.5,
-                0.0,
-                -Math.abs(Mth.cos(f1 * Math.PI) * f2),
-            ]);
+        
+            if (!forDrop) {
+                
+                mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
+                mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
+                
+                mat4.translate(viewMatrix, viewMatrix, [
+                    Mth.sin(f1 * Math.PI) * f2 * 0.5,
+                    0.0,
+                    -Math.abs(Mth.cos(f1 * Math.PI) * f2),
+                ]);
+            } else {
+                mat4.translate(viewMatrix, viewMatrix, [
+                    Mth.sin(f1 * Math.PI) * f2 * 0.25,
+                    -Math.abs(Mth.cos(f1 * Math.PI) * f2) * 1,
+                    0.0,
+                ]);
+            }
             if(Math.sign(viewMatrix[1]) != Math.sign(this.step_side)) {
                 this.step_side = viewMatrix[1];
                 player.onStep(this.step_side);
