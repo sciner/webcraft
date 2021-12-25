@@ -17,7 +17,7 @@ import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 
-const {mat4} = glMatrix;
+const {mat4, quat, vec3} = glMatrix;
 
 /**
 * Renderer
@@ -81,6 +81,8 @@ export class Renderer {
             max: RENDER_DISTANCE,
             scale: 0.05, // ortho scale
         });
+
+        this.inHandItem = null;
     }
 
     /**
@@ -408,12 +410,69 @@ export class Renderer {
             }
         }
 
+        this.drawInhandItem();
+
         // 4. Draw HUD
         if(this.HUD) {
             this.HUD.draw();
         }
  
         renderBackend.endFrame();
+    }
+
+    drawInhandItem() {
+        if (
+            this.inHandItem && (
+                !this.player.buildMaterial ||
+                this.player.buildMaterial.id !== this.inHandItem.block.id
+            ) 
+        ) {
+            this.inHandItem.destroy();
+            this.inHandItem = null;
+        }
+
+        if (!this.player.buildMaterial) {
+            return;
+        }
+
+        const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
+
+        if (block.spawnable) {
+            try {
+                this.inHandItem = new Particles_Block_Drop(this.gl, block, Vector.ZERO);
+            } catch(e) {
+                console.log(e);
+                //
+            }
+        }
+
+        if (!this.inHandItem) {
+            return;
+        }
+
+        this.camera.save();
+
+        this.bobView(this.player, this.camera.bobPrependMatrix);
+        mat4.invert(this.camera.bobPrependMatrix, this.camera.bobPrependMatrix);
+
+        this.camera.set(new Vector(-0.75, 0.5, -1.5), Vector.ZERO, this.camera.bobPrependMatrix);
+        this.camera.use(this.globalUniforms, true);
+        
+        mat4.identity(this.inHandItem.modelMatrix);
+        mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
+        mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
+
+        this.globalUniforms.update();
+
+        this.renderBackend.clear({
+            depth: true,
+            color: false
+        });
+
+        this.inHandItem.drawDirectly(this);
+
+        this.camera.restore();
+        this.camera.use(this.globalUniforms);
     }
 
     // destroyBlock

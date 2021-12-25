@@ -67,8 +67,9 @@ export default class Particles_Block_Drop {
         this.posFact    = this.pos.clone();
         this.addY       = 0;
         this.vertices   = [];
+        this.block      = new FakeTBlock(block.id);
 
-        let b = new FakeTBlock(block.id);
+        let b           = this.block;
         this.block_material = b.material;
 
         // const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
@@ -102,6 +103,10 @@ export default class Particles_Block_Drop {
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, delta / 60);
         render.renderBackend.drawMesh(this.buffer, this.material, this.posFact, this.modelMatrix);
+    }
+
+    drawDirectly(render) {
+        render.renderBackend.drawMesh(this.buffer, this.material, this.pos, this.modelMatrix);
     }
 
     destroy() {
