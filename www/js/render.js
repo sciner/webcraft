@@ -410,7 +410,7 @@ export class Renderer {
             }
         }
 
-        this.drawInhandItem();
+        this.drawInhandItem(delta);
 
         // 4. Draw HUD
         if(this.HUD) {
@@ -420,13 +420,13 @@ export class Renderer {
         renderBackend.endFrame();
     }
 
-    drawInhandItem() {
-        if (
-            this.inHandItem && (
-                !this.player.buildMaterial ||
-                this.player.buildMaterial.id !== this.inHandItem.block.id
-            ) 
-        ) {
+    reconstructInHandItem() {
+    
+        if (!this.inHandChanged()) {
+            return;
+        }
+
+        if (this.inHandItem) {
             this.inHandItem.destroy();
             this.inHandItem = null;
         }
@@ -445,6 +445,44 @@ export class Renderer {
                 //
             }
         }
+    }
+
+    inHandChanged() {
+        const mat = this.player.buildMaterial;
+
+        if (!mat) {
+            return !!this.inHandItem;
+        }
+
+        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
+
+        if (!this.inHandItem) {
+            return block.spawnable;
+        }
+
+        return block.spawnable && this.inHandItem.block.id !== block.id;
+    }
+
+    drawInhandItem(dt) {
+        if (
+            !this.inHandAnimation && this.inHandChanged()
+        ) {
+            this.inHandAnimation = true;
+            this.inHandAnimationTime = 0;
+        }
+
+        if (this.inHandAnimation) {
+            this.inHandAnimationTime += 0.05;
+
+            if (this.inHandAnimationTime > 0.5) {
+                this.reconstructInHandItem();
+            }
+
+            if (this.inHandAnimationTime > 1) {
+                this.inHandAnimationTime = 1;
+                this.inHandAnimation = false;
+            }
+        }
 
         if (!this.inHandItem) {
             return;
@@ -455,7 +493,14 @@ export class Renderer {
         this.bobView(this.player, this.camera.bobPrependMatrix);
         mat4.invert(this.camera.bobPrependMatrix, this.camera.bobPrependMatrix);
 
-        this.camera.set(new Vector(-0.75, 0.5, -1.5), Vector.ZERO, this.camera.bobPrependMatrix);
+        const animFrame = -1.5 * Math.cos(this.inHandAnimationTime * Math.PI * 2);
+
+        this.camera.set(
+            new Vector(-0.75, 0.5, animFrame), 
+            Vector.ZERO,
+            this.camera.bobPrependMatrix
+        );
+
         this.camera.use(this.globalUniforms, true);
         
         mat4.identity(this.inHandItem.modelMatrix);
