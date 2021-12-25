@@ -16,7 +16,13 @@ const computeRot = quat.create();
 
 const lm = {r : -1, g : -1, b : -1};
 
-function fillCube({
+/**
+ * Fill cube from bedrock cube notation
+ * @param {*} param0 
+ * @param {*} target 
+ * @returns 
+ */
+export function fillCube({
     matrix,
     size,
     textureSize,
@@ -133,7 +139,7 @@ function fillCube({
  * @param {IGeoTreeBones} bone
  * @param {IGeoTreeDescription} description
  */
-function decodeCubes(bone, description) {
+export function decodeCubes(bone, description) {
     const data = [];
     // only for 1.8 should apply flip
     const offset = bone.bind_pose_rotation ? bone.pivot : null;

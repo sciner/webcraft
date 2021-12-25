@@ -16,6 +16,7 @@ import Particles_Sun from "./particles/sun.js";
 import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
+import { Particle_Hand } from "./particles/block_hand.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -485,7 +486,11 @@ export class Renderer {
         }
 
         if (!this.inHandItem) {
-            return;
+            //return;
+        }
+
+        if (!this.handModel) {
+            this.handModel = new Particle_Hand(this.player.state.skin, this);
         }
 
         this.camera.save();
@@ -494,7 +499,7 @@ export class Renderer {
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
-        this.camera.pos.set(-1, 0.5, -1.2 * animFrame);
+        this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
         this.camera.set(
             this.camera.pos, 
             Vector.ZERO,
@@ -503,11 +508,6 @@ export class Renderer {
 
         this.camera.use(this.globalUniforms, true);
         this.globalUniforms.brightness = Math.max(0.4, this.brightness);
-
-        mat4.identity(this.inHandItem.modelMatrix);
-        mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
-        mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
-
         this.globalUniforms.update();
 
         this.renderBackend.clear({
@@ -515,7 +515,16 @@ export class Renderer {
             color: false
         });
 
-        this.inHandItem.drawDirectly(this);
+        this.handModel.drawDirectly(this);
+
+        if (this.inHandItem) {
+            mat4.identity(this.inHandItem.modelMatrix);
+            mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
+            mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
+            mat4.rotateX(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, Math.PI * 0.05);
+
+            this.inHandItem.drawDirectly(this);
+        }
 
         this.camera.restore();
         this.camera.use(this.globalUniforms);

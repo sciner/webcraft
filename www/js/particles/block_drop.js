@@ -1,6 +1,7 @@
 import {Vector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
+import { getChunkAddr } from '../chunk.js';
 
 const {mat4} = glMatrix;
 
@@ -68,6 +69,7 @@ export default class Particles_Block_Drop {
         this.addY       = 0;
         this.vertices   = [];
         this.block      = new FakeTBlock(block.id);
+        this.chunkAddr  = getChunkAddr(this.pos);
 
         let b           = this.block;
         this.block_material = b.material;
@@ -92,20 +94,58 @@ export default class Particles_Block_Drop {
 
         this.modelMatrix = mat4.create();
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
+
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+        this.lightTex = null;
+        this.chunk = null;
+    }
+
+    updateLightTex(render) {
+        const chunk = render.world.chunkManager.getChunk(this.chunkAddr);
+
+        if (!chunk) {
+            return;
+        }
+
+        this.chunk = chunk;
+        this.lightTex = chunk.getLightTexture(render.renderBackend);
     }
 
     // Draw
     draw(render, delta) {
+        this.updateLightTex(render);
+
         delta /= 1000;
         this.posFact.set(this.pos.x, this.pos.y, this.pos.z);
         this.addY += delta;
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
+
+        mat4.identity(this.modelMatrix);
+        mat4.translate(this.modelMatrix, this.modelMatrix, 
+            [
+                (this.posFact.x - this.chunk.coord.x),
+                (this.posFact.z - this.chunk.coord.z),
+                (this.posFact.y - this.chunk.coord.y)
+            ]
+        );
+        mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, delta / 60);
-        render.renderBackend.drawMesh(this.buffer, this.material, this.posFact, this.modelMatrix);
+
+        this.material.lightTex = this.lightTex;
+        render.renderBackend.drawMesh(
+            this.buffer,
+            this.material,
+            this.chunk.coord,
+            this.modelMatrix
+        );
+
+        this.material.lightTex = null;
     }
 
     drawDirectly(render) {
+        //this.updateLightTex(render);
+        //this.material.lightTex = this.lightTex;
+
         render.renderBackend.drawMesh(this.buffer, this.material, this.pos, this.modelMatrix);
     }
 
