@@ -93,6 +93,11 @@ export default class style {
         let height                  = block.material.height ? block.material.height : 1;
         let drawAllSides            = width != 1 || height != 1;
 
+        if(block.material.style == 'ladder') {
+            width = 1;
+            height = 1;
+        }
+
         if(block.material.tags.indexOf('layering') >= 0) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
