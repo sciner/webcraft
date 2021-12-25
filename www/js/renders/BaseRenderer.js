@@ -581,6 +581,12 @@ export default class BaseRenderer {
 
     }
 
+    clear({
+        depth, color
+    }) {
+        
+    }
+
     /**
      * Create render target
      * @param options

@@ -247,6 +247,11 @@ export default class WebGLRenderer extends BaseRenderer {
          * @type {WebGLRenderTarget}
          */
         this._mainFrame = null;
+
+        this.depthState = {
+            write: true,
+            test: true,
+        }
     }
 
     async init() {
@@ -298,6 +303,16 @@ export default class WebGLRenderer extends BaseRenderer {
         } = target ? target : this.size;
 
         gl.viewport(0, 0, width, height);
+    }
+
+    clear( { depth, color } = {depth: true, color: true}) {
+        const gl = this.gl;
+
+        const mask = (depth ? gl.DEPTH_BUFFER_BIT : 0) | (color ? gl.COLOR_BUFFER_BIT : 0);
+
+        if (mask) {
+            gl.clear(mask);
+        }
     }
 
     createRenderTarget(options) {
