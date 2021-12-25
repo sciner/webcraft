@@ -417,43 +417,6 @@ export class BLOCK {
         ];
     }
 
-    /**
-     * clearBlockCache...
-     */
-    static clearBlockCache() {
-        BLOCK.block_cache = new VectorCollector();
-        BLOCK.cachedBlocksUsed = 0;
-        BLOCK.cachedBlocksMiss = 0;
-    }
-
-    /**
-     * getCachedBlock...
-     * @param { int } x
-     * @param { int } y
-     * @param { int } z
-     * @returns
-     */
-    static getCachedBlock(chunk, x, y, z) {
-        const x1 = x + chunk.coord.x;
-        const y1 = y + chunk.coord.y;
-        const z1 = z + chunk.coord.z;
-        if (chunk.size && x >= 0 && x < chunk.size.x
-            && y >= 0 && y < chunk.size.y
-            && z >= 0 && z < chunk.size.z) {
-            return chunk.getBlock(x1, y1, z1);
-        }
-        let vec = new Vector(x1, y1, z1);
-        let block = BLOCK.block_cache.get(vec);
-        if(block) {
-            BLOCK.cachedBlocksUsed++;
-            return block;
-        }
-        BLOCK.cachedBlocksMiss++;
-        block = chunk.chunkManager.getBlock(x1, y1, z1);
-        BLOCK.block_cache.add(vec, block);
-        return block;
-    }
-
     // Функция определяет, отбрасывает ли указанный блок тень
     static visibleForAO(block) {
         if(!block) return false;

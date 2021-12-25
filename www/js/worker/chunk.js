@@ -339,8 +339,6 @@ export class Chunk {
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
 
-        BLOCK.clearBlockCache();
-
         let group_templates = {
             regular: {
                 list: [],

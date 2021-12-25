@@ -783,6 +783,7 @@
     {
         "id": 106,
         "name": "VINES",
+        "inventory_icon_id": 3447,
         "transparent": true,
         "width": 0.0625,
         "texture": {
@@ -791,8 +792,8 @@
                 16
             ],
             "side": [
-                4,
-                12
+                6,
+                16
             ]
         },
         "align": [
@@ -803,12 +804,12 @@
             "mask_biome"
         ],
         "style": "ladder",
+        "inventory_style": "extruder",
         "passable": 0.25,
         "destroy_time": 0.4,
         "can_rotate": true,
         "spawnable": true,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3447
+        "max_in_stack": 64
     },
     {
         "id": 32,
@@ -1651,6 +1652,7 @@
         "inventory_icon_id": 3261,
         "transparent": true,
         "style": "thin",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "tags": [
             "glass"
@@ -2943,6 +2945,7 @@
             "back"
         ],
         "style": "ladder",
+        "inventory_style": "extruder",
         "transparent": true,
         "passable": 0.25,
         "sound": "madcraft:block.wood",
@@ -2952,8 +2955,8 @@
                 5
             ],
             "side": [
-                4,
-                12
+                3,
+                5
             ]
         },
         "tags": [

@@ -1,7 +1,8 @@
-import {Vector} from '../helpers.js';
+import {Color, Vector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
 import { getChunkAddr } from '../chunk.js';
+// import {BIOMES} from "../terrain_generator/biomes.js";
 
 const {mat4} = glMatrix;
 
@@ -48,6 +49,13 @@ export default class Particles_Block_Drop {
 
     // Constructor
     constructor(gl, block, pos) {
+ 
+        // BIOMES.GRASSLAND
+        const biome = {
+            code:       'GRASSLAND',
+            color:      '#98a136',
+            dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
+        };
 
         if(!Particles_Block_Drop.neighbours) {
             let air = new FakeTBlock(BLOCK.AIR.id);
@@ -74,13 +82,11 @@ export default class Particles_Block_Drop {
         let b           = this.block;
         this.block_material = b.material;
 
-        // const chunk = Game.world.chunkManager.getChunk(Game.player.chunkAddr);
-        // const biome = chunk.map.cells[0][0].biome;
-
         this.resource_pack = b.material.resource_pack
         this.material = this.resource_pack.getMaterial(b.material.material_key);
 
         let x = -.5, y = -.5, z = -.5;
+        let draw_style = b.material.inventory_style ? b.material.inventory_style :  b.material.style;
         this.resource_pack.pushVertices(
             this.vertices,
             b, // UNSAFE! If you need unique block, use clone
@@ -89,7 +95,8 @@ export default class Particles_Block_Drop {
             y,
             z,
             Particles_Block_Drop.neighbours,
-            null
+            biome,
+            draw_style
         );
 
         this.modelMatrix = mat4.create();

@@ -84,6 +84,7 @@ export class Renderer {
         });
 
         this.inHandItem = null;
+
     }
 
     /**
@@ -185,8 +186,13 @@ export class Renderer {
 
         callback();
 
-        //
         this.generatePrev();
+
+        /*
+        await import("./particles/block_drop.js").then(module => {
+            globalThis.Particles_Block_Drop = module.default;
+            this.generatePrev();
+        });*/
         
     }
 
@@ -201,12 +207,13 @@ export class Renderer {
         const all_blocks = BLOCK.getAll();
         const all_count = all_blocks.length;
         let inventory_icon_id = 0;
+        let block = null;
         const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
             try {
                 if(i >= all_count) {
                     return null;
                 }
-                let block = all_blocks[i];
+                block = all_blocks[i];
                 if(!block.spawnable) {
                     return null;
                 }
@@ -214,7 +221,7 @@ export class Renderer {
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
-                console.log('Error on', i, e);
+                console.log('Error on', block.id, e);
                 return null;
             }
         }).filter(Boolean);
@@ -255,11 +262,12 @@ export class Renderer {
             let pos = block.block_material.inventory_icon_id;
             const x = -GRID + 1 + (pos % GRID) * 2;
             const y = GRID - 1 - ((pos / GRID) | 0) * 2;
+            let draw_style = block.block_material.inventory_style ? block.block_material.inventory_style :  block.block_material.style;
             this.renderBackend.drawMesh(
                 block.buffer,
                 block.material,
                 new Vector(x, y, 0),
-                block.block_material.style == 'extruder' ? matrix_empty : matrix
+                draw_style == 'extruder' ? matrix_empty : matrix
             );    
         })
         // render target to Image

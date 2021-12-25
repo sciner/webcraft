@@ -70,7 +70,6 @@ export default class Particles_Clouds {
     // Constructor
     constructor(gl, pos) {
         FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
-        BLOCK.clearBlockCache();
         this.scale      = new Vector(8, 4, 8);
         this.pn         = performance.now();
         this.yaw        = -Math.PI;

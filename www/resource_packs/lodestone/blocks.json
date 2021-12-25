@@ -29,7 +29,7 @@
             "side": [0, 0]
         },
         "destroy_time": 0.4,
-        "spawnable": true,
+        "spawnable": false,
         "max_in_stack": 64
     },
     {
