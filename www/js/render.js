@@ -1,6 +1,6 @@
 "use strict";
 
-import {Helpers, Vector} from "./helpers.js";
+import {Helpers, NORMALS, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -515,6 +515,7 @@ export class Renderer {
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
+        this.camera.fov = FOV_NORMAL;
         this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
         this.camera.set(
             this.camera.pos, 
