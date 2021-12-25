@@ -511,6 +511,7 @@ export class Renderer {
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
+        this.camera.fov = FOV_NORMAL;
         this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
         this.camera.set(
             this.camera.pos, 

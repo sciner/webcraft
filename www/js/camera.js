@@ -44,6 +44,7 @@ export class Camera {
         this.rotate = new Vector();
 
         this.savedState = {
+            fov: null,
             pos: null,
             rotate: null,
             proj: null,
@@ -55,6 +56,7 @@ export class Camera {
     // save camera state
     save() {
         this.savedState = {
+            fov: this.fov,
             pos: this.pos.clone(),
             rotate: this.rotate.clone(),
             proj: mat4.clone(this.projMatrix),
@@ -68,6 +70,7 @@ export class Camera {
             return;
         }
 
+        this.fov = this.savedState.fov;
         this.pos.copyFrom(this.savedState.pos);
         this.rotate.copyFrom(this.savedState.rotate);
 
