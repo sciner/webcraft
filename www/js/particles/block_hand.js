@@ -50,10 +50,10 @@ export class Particle_Hand {
                 "name": "RightArm",
                 cubes: [
                     {
-                        origin: [-2, -12, 1.5],
+                        origin: [-2, 0, -5.5],
                         size: [stive ? 4 : 3, 12, 4],
                         uv: [40, 16],
-                        rotation: [60, -10, -10]
+                        rotation: [-120, -10, -10]
                     },
                 ]
             },
