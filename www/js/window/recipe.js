@@ -47,17 +47,23 @@ export class RecipeSlot extends Window {
     }
 
     drawItem(ctx, item, x, y, width, height) {
-        let inventory_image = Resources.inventory.image;
+        const inventory_image = Resources.inventory.image;
+
         if(!inventory_image) {
             return;
         }
+
         if(!item) {
             return;
         }
+
+        const size = inventory_image.width;
+        const frame = size / 16;
+
         ctx.imageSmoothingEnabled = false;
         // 
         if('inventory_icon_id' in item) {
-            let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+            let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
             ctx.drawImage(
                 inventory_image,
                 icon.x,

@@ -189,8 +189,8 @@ export class Renderer {
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
-            width: 2048,
-            height: 2048,
+            width: 1024,
+            height: 1024,
             depth: true
         });
         const ZERO = new Vector();
@@ -264,8 +264,10 @@ export class Renderer {
             // Helpers.downloadImage(image, 'inventory.png');
             Resources.inventory.image = image;
         });
-        this.hudTarget = target;
+
         this.renderBackend.setTarget(null);
+
+        target.destroy();
     }
 
     initSky() {
@@ -412,18 +414,6 @@ export class Renderer {
         }
  
         renderBackend.endFrame();
-
-        if (this.hudTarget) {
-            // preview only
-            // remove me
-            renderBackend.setTarget(this.hudTarget);
-            /*renderBackend.blitRenderTarget({
-                x: this.renderBackend.size.width - 500,
-                y: this.renderBackend.size.height - 500,
-                w: 500,
-                h: 500
-            })*/
-        }
     }
 
     // destroyBlock

@@ -380,11 +380,18 @@ export class Inventory {
                         48
                     );
                 } else {
-                    let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id);
+
+                    const icon = BLOCK.getInventoryIconPos(
+                        item.inventory_icon_id,
+                        this.inventory_image.width,
+                        this.inventory_image.width / 16
+                    );
+                    const DEST_SIZE = 64;
+
                     if(item.inventory_icon_id == 5) {
                         console.log(icon);
                     }
-                    const DEST_SIZE = 64;
+
                     hud.ctx.drawImage(
                         this.inventory_image,
                         icon.x,
