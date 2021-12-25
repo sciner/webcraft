@@ -84,7 +84,9 @@ export class Renderer {
         });
 
         this.inHandItem = null;
-
+        this.inHandItemBroken = false;
+        this.inHandAnimationTime = 0;
+        this.inHandAnimation = false;
     }
 
     /**
@@ -449,7 +451,9 @@ export class Renderer {
         if (block.spawnable) {
             try {
                 this.inHandItem = new Particles_Block_Drop(this.gl, block, Vector.ZERO);
+                this.inHandItemBroken = false;
             } catch(e) {
+                this.inHandItemBroken = true;
                 console.log(e);
                 //
             }
@@ -474,13 +478,13 @@ export class Renderer {
 
     drawInhandItem(dt) {
         if (
-            !this.inHandAnimation && this.inHandChanged()
+            !this.inHandAnimation && this.inHandChanged() && !this.inHandItemBroken
         ) {
             this.inHandAnimation = true;
             this.inHandAnimationTime = 0;
         }
 
-        if (this.inHandAnimation) {
+        if (this.inHandAnimation && !this.inHandItemBroken) {
             this.inHandAnimationTime += 0.05;
 
             if (this.inHandAnimationTime > 0.5) {
@@ -507,6 +511,7 @@ export class Renderer {
 
         const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
 
+        this.camera.fov = FOV_NORMAL;
         this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
         this.camera.set(
             this.camera.pos, 
@@ -529,7 +534,6 @@ export class Renderer {
             mat4.identity(this.inHandItem.modelMatrix);
             mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
             mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
-            mat4.rotateX(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, Math.PI * 0.05);
 
             this.inHandItem.drawDirectly(this);
         }
