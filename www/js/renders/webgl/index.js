@@ -151,19 +151,45 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 
 export class WebGLTexture extends BaseTexture {
 
+    _applyStyle() {
+        const {
+            gl
+        } = this.context;
+
+        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
+
+        if (this.minFilter !== this._lastMinFilter) {
+            this._lastMinFilter = this.minFilter;
+            gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.LINEAR);
+        }
+
+        if (this.magFilter !== this._lastMagFilter) {
+            this._lastMagFilter = this.magFilter;
+            gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
+        }
+    }
+
     bind(location) {
         location = location || 0;
         const {
             gl
         } = this.context;
+
         gl.activeTexture(gl.TEXTURE0 + location);
+
         if (this.dirty) {
             return this.upload();
         }
+
         const {
             texture
         } = this;
-        gl.bindTexture(gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D, texture);
+
+        const type = gl[TEXTURE_MODE[this.mode]] || gl.TEXTURE_2D;
+
+        gl.bindTexture(type, texture);
+
+        this._applyStyle();
     }
 
     upload() {
@@ -188,9 +214,7 @@ export class WebGLTexture extends BaseTexture {
                 gl.texImage2D(type, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
             }
 
-            gl.texParameteri(type, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.LINEAR);
-            gl.texParameteri(type, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.LINEAR);
-
+            this._applyStyle();
             super.upload();
             return;
         }

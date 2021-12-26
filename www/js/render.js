@@ -200,16 +200,18 @@ export class Renderer {
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
-            width: 2048,
-            height: 2048,
+            width: 1024,
+            height: 1024,
             depth: true
         });
         const ZERO = new Vector();
         const GRID = 16;
         const all_blocks = BLOCK.getAll();
         const all_count = all_blocks.length;
+
         let inventory_icon_id = 0;
         let block = null;
+
         const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
             try {
                 if(i >= all_count) {
@@ -259,19 +261,34 @@ export class Renderer {
         gu.sunDir = this.sunDir;
         camera.use(gu, true);
         gu.update();
+        
         this.renderBackend.setTarget(target);
+
         blocks.forEach((block, i) => {
-            let pos = block.block_material.inventory_icon_id;
+            const pos = block.block_material.inventory_icon_id;
             const x = -GRID + 1 + (pos % GRID) * 2;
             const y = GRID - 1 - ((pos / GRID) | 0) * 2;
-            let draw_style = block.block_material.inventory_style ? block.block_material.inventory_style :  block.block_material.style;
+            const draw_style = block.block_material.inventory_style
+                ? block.block_material.inventory_style 
+                : block.block_material.style;
+            
+            // use linera for inventory
+            block.material.texture.minFilter = 'linear';
+            block.material.texture.magFilter = 'linear';
+            
+
             this.renderBackend.drawMesh(
                 block.buffer,
                 block.material,
                 new Vector(x, y, 0),
                 draw_style == 'extruder' ? matrix_empty : matrix
-            );    
-        })
+            );
+
+            block.material.texture.minFilter = 'nearest';
+            block.material.texture.magFilter = 'nearest';
+
+        });
+
         // render target to Image
         target.toImage().then((image) => {
             // Helpers.downloadImage(image, 'inventory.png');
