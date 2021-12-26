@@ -3,6 +3,7 @@ import {getChunkAddr} from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 import {BLOCK} from "../blocks.js";
+import { TBlock } from '../typed_blocks.js';
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
@@ -91,13 +92,20 @@ export default class Particles_Block_Destroy {
 
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
         this.chunk = chunk;
+
+        let b = block;
+        if(b instanceof TBlock) {
+            b = b.material;
+        }
+        this.resource_pack = b.resource_pack;
+        this.material = this.resource_pack.getMaterial(b.material_key);
+
     }
 
     // Draw
     draw(render, delta) {
         //
         this.life -= delta / 100000; 
-
         //
         let idx = 0;
         for(let p of this.particles) {
@@ -113,13 +121,13 @@ export default class Particles_Block_Destroy {
         this.buffer.updateInternal(this.vertices);
         
         const light = this.chunk.getLightTexture(render.renderBackend);
-        const mat = render.defaultShader.materials.doubleface;
+        const mat = this.material;
         const l = mat.lightTex;
         mat.lightTex = light;
 
         render.renderBackend.drawMesh(
             this.buffer,
-            render.defaultShader.materials.doubleface,
+            this.material,
             this.chunk.coord,
             this.modelMatrix
         );

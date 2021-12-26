@@ -120,11 +120,11 @@ export default class Particles_Block_Drop {
 
     // Draw
     draw(render, delta) {
+
         this.updateLightTex(render);
 
-        delta /= 1000;
         this.posFact.set(this.pos.x, this.pos.y, this.pos.z);
-        this.addY += delta;
+        this.addY = (performance.now() - this.pn) / 10;
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
 
         mat4.identity(this.modelMatrix);
