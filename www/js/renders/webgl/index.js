@@ -454,6 +454,48 @@ export default class WebGLRenderer extends BaseRenderer {
         this.stat.drawcalls++;
     }
 
+    /**
+     * Read pixels from framebuffer
+     * @returns {Uint8Array}
+     */
+    toRawPixels() {
+        const buffer = new Uint8Array(this.view.width * this.view.height * 4);
+        this.gl.readPixels(0,0, this.view.width, this.view.height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, buffer);
+        return buffer;
+    }
+
+    async screenshot() {
+        const buffer = this.toRawPixels();
+        let width = this.view.width;
+        let height = this.view.height;
+        for (let i = 0; i < buffer.length; i += 4) {
+            const a = buffer[i + 3] / 0xff;
+            if (!a) {
+                continue;
+            }
+            buffer[i + 0] = Math.round(buffer[i + 0] / a);
+            buffer[i + 1] = Math.round(buffer[i + 1] / a);
+            buffer[i + 2] = Math.round(buffer[i + 2] / a);
+        }
+        const data = new ImageData(width, height);
+        for(let i = 0; i < height; i ++) {
+            const invi = height - i - 1;
+            data.data.set(
+                buffer.subarray(invi * width * 4, (invi + 1) * width * 4),
+                i * width * 4);
+        }
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
+        ctx.putImageData(data, 0, 0);
+        ctx.canvas.toBlob(function(blob) {
+            ctx.canvas.width = ctx.canvas.height = 0;
+            // let filefromblob = new File([blob], 'image.png', {type: 'image/png'});
+            Helpers.downloadBlobPNG(blob, 'screenshot.png'); // filefromblob);
+        }, 'image/png');
+    }
+
 }
 
 /**

@@ -200,8 +200,8 @@ export class Renderer {
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
-            width: 1024,
-            height: 1024,
+            width: 2048,
+            height: 2048,
             depth: true
         });
         const ZERO = new Vector();
@@ -431,8 +431,14 @@ export class Renderer {
         if(this.HUD) {
             this.HUD.draw();
         }
+
+        if(this.make_screenshot) {
+            this.make_screenshot = false;
+            this.renderBackend.screenshot();
+        }
  
         renderBackend.endFrame();
+
     }
 
     reconstructInHandItem() {
@@ -745,6 +751,14 @@ export class Renderer {
                 }
             }
         }
+    }
+
+    downloadScreenshot() {
+        this.make_screenshot = true;
+    }
+
+    downloadInventoryImage() {
+        Helpers.downloadImage(Resources.inventory.image, 'inventory.png');
     }
 
 }

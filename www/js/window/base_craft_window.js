@@ -50,7 +50,7 @@ export class CraftTableSlot extends Label {
         // 
         if('inventory_icon_id' in item) {
             const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-            const dest_icon_size = 32;
+            const dest_icon_size = 40;
             ctx.drawImage(
                 image,
                 icon.x,
@@ -59,8 +59,8 @@ export class CraftTableSlot extends Label {
                 icon.height,
                 x + width / 2 - dest_icon_size / 2,
                 y + height / 2 - dest_icon_size / 2,
-                32,
-                32
+                dest_icon_size,
+                dest_icon_size
             );
         } else {
             ctx.textBaseline    = 'top';
