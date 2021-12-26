@@ -200,8 +200,8 @@ export class Renderer {
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
-            width: 1024,
-            height: 1024,
+            width: 2048,
+            height: 2048,
             depth: true
         });
         const ZERO = new Vector();
