@@ -558,9 +558,25 @@ export class Renderer {
         this.handModel.drawDirectly(this);
 
         if (this.inHandItem) {
-            mat4.identity(this.inHandItem.modelMatrix);
-            mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
-            mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
+            const {
+                modelMatrix, block_material, pos
+            } = this.inHandItem;
+
+            mat4.identity(modelMatrix);
+            pos.set(0,0,0);
+
+            // for axe and sticks
+            if (block_material.diagonal) {                
+                mat4.scale(modelMatrix, modelMatrix, [0.8, 0.8, 0.8]);
+                mat4.rotateZ(modelMatrix, modelMatrix, - 2 * Math.PI / 5);
+                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI / 4);
+                pos.set(0,0.2,0);
+
+            } else {
+                mat4.scale(modelMatrix, modelMatrix, [0.5, 0.5, 0.5]);
+                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 4 + Math.PI);
+            }
+
 
             this.inHandItem.drawDirectly(this);
         }
