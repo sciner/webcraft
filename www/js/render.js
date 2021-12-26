@@ -17,6 +17,7 @@ import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { Particle_Hand } from "./particles/block_hand.js";
+import { InHandOverlay } from "./ui/inhand_overlay.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -83,10 +84,7 @@ export class Renderer {
             scale: 0.05, // ortho scale
         });
 
-        this.inHandItem = null;
-        this.inHandItemBroken = false;
-        this.inHandAnimationTime = 0;
-        this.inHandAnimation = false;
+        this.inHandOverlay = null;
     }
 
     /**
@@ -458,130 +456,15 @@ export class Renderer {
 
     }
 
-    reconstructInHandItem() {
-    
-        if (!this.inHandChanged()) {
-            return;
-        }
-
-        if (this.inHandItem) {
-            this.inHandItem.destroy();
-            this.inHandItem = null;
-        }
-
-        if (!this.player.buildMaterial) {
-            return;
-        }
-
-        const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
-
-        if (block.spawnable) {
-            try {
-                this.inHandItem = new Particles_Block_Drop(this.gl, block, Vector.ZERO);
-                this.inHandItemBroken = false;
-            } catch(e) {
-                this.inHandItemBroken = true;
-                console.log(e);
-                //
-            }
-        }
-    }
-
-    inHandChanged() {
-        const mat = this.player.buildMaterial;
-
-        if (!mat) {
-            return !!this.inHandItem;
-        }
-
-        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
-
-        if (!this.inHandItem) {
-            return block.spawnable;
-        }
-
-        return block.spawnable && this.inHandItem.block.id !== block.id;
-    }
-
     drawInhandItem(dt) {
-        if (
-            !this.inHandAnimation && this.inHandChanged() && !this.inHandItemBroken
-        ) {
-            this.inHandAnimation = true;
-            this.inHandAnimationTime = 0;
+
+        if (!this.inHandOverlay) {
+            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
         }
 
-        if (this.inHandAnimation && !this.inHandItemBroken) {
-            this.inHandAnimationTime += 0.05;
+        this.inHandOverlay.draw(this, dt);
 
-            if (this.inHandAnimationTime > 0.5) {
-                this.reconstructInHandItem();
-            }
-
-            if (this.inHandAnimationTime > 1) {
-                this.inHandAnimationTime = 1;
-                this.inHandAnimation = false;
-            }
-        }
-
-        if (!this.inHandItem) {
-            //return;
-        }
-
-        if (!this.handModel) {
-            this.handModel = new Particle_Hand(this.player.state.skin, this);
-        }
-
-        this.camera.save();
-
-        this.bobView(this.player, this.camera.bobPrependMatrix, true);
-
-        const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
-
-        this.camera.fov = FOV_NORMAL;
-        this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
-        this.camera.set(
-            this.camera.pos, 
-            Vector.ZERO,
-            this.camera.bobPrependMatrix
-        );
-
-        this.camera.use(this.globalUniforms, true);
-        this.globalUniforms.brightness = Math.max(0.4, this.brightness);
-        this.globalUniforms.update();
-
-        this.renderBackend.clear({
-            depth: true,
-            color: false
-        });
-
-        this.handModel.drawDirectly(this);
-
-        if (this.inHandItem) {
-            const {
-                modelMatrix, block_material, pos
-            } = this.inHandItem;
-
-            mat4.identity(modelMatrix);
-            pos.set(0,0,0);
-
-            // for axe and sticks
-            if (block_material.diagonal) {                
-                mat4.scale(modelMatrix, modelMatrix, [0.8, 0.8, 0.8]);
-                mat4.rotateZ(modelMatrix, modelMatrix, - 2 * Math.PI / 5);
-                mat4.rotateY(modelMatrix, modelMatrix, -Math.PI / 4);
-                pos.set(0,0.2,0);
-
-            } else {
-                mat4.scale(modelMatrix, modelMatrix, [0.5, 0.5, 0.5]);
-                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 4 + Math.PI);
-            }
-
-
-            this.inHandItem.drawDirectly(this);
-        }
-
-        this.camera.restore();
+        // we should reset camera state because a viewMatrix used for picking
         this.camera.use(this.globalUniforms);
     }
 
