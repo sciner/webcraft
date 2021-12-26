@@ -1,6 +1,7 @@
 import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import { default as push_cube_style } from '../block_style/cube.js';
+import {default as push_cube_style, pushTransformed} from '../block_style/cube.js';
+import {impl as alea} from "../../vendors/alea";
 
 // const {mat4} = glMatrix;
 const {mat3, mat4} = glMatrix;
@@ -140,7 +141,10 @@ export default class style {
             c[3] / ts
         ];
 
+        let lm = MULTIPLY.COLOR.WHITE;
         let z = -0.5 - 0.5 / SCALE_FACTOR;
+        let flags = 0;
+
         for(let x = 0; x < clouds.size.x; x++) {
             for(let y = 0; y < clouds.size.y; y++) {
                 let block  = world.chunkManager.getBlock(x, y, 0);
@@ -152,7 +156,63 @@ export default class style {
                     // Position of each texture pixel
                     force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
                     force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
-                    push_cube(block, vertices, world, 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR,  -(y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5, z, neighbours, biome, false, matrix, null, force_tex);
+                    let c = force_tex;
+
+                    // inline cube drawing
+
+                    let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
+                    let y1 = (y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
+                    let z1 = z;
+                    let height = 1.0;
+                    let width = 1.0;
+
+                    if(!neighbours.UP.id) {
+                        pushTransformed(
+                            vertices, matrix, undefined,
+                            x1, z1, y1,
+                            .5, 0.5, height,
+                            1, 0, 0,
+                            0, 1, 0,
+                            c[0], c[1], -c[2], c[3],
+                            lm.r, lm.g, lm.b, flags
+                        );
+                    }
+
+                    // Bottom
+                    if(canDrawFace(neighbours.DOWN)) {
+                        pushTransformed(
+                            vertices, matrix, undefined,
+                            x1, z1, y1,
+                            0.5, 0.5, 0,
+                            1, 0, 0,
+                            0, -1, 0,
+                            c[0], c[1], -c[2], c[3],
+                            lm.r, lm.g, lm.b, flags);
+                    }
+
+                    // West
+                    if(!neighbours.WEST.id) {
+                        pushTransformed(
+                            vertices, matrix, undefined,
+                            x1, z1, y1,
+                            .5 - width / 2, .5, height / 2,
+                            0, 1, 0,
+                            0, 0, -height,
+                            c[0], c[1], -c[2], c[3],
+                            lm.r, lm.g, lm.b, flags);
+                    }
+
+                    // East
+                    if(!neighbours.EAST.id) {
+                        pushTransformed(
+                            vertices, matrix, undefined,
+                            x1, z1, y1,
+                            .5 + width / 2, .5, height / 2,
+                            0, 1, 0,
+                            0, 0, height,
+                            c[0], c[1], c[2], -c[3],
+                            lm.r, lm.g, lm.b, flags);
+                    }
                 }
             }
         }
