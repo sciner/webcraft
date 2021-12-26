@@ -150,9 +150,8 @@ export class InHandOverlay {
 
         camera.pos.set(
             -1,
-            0.5 - 0.4 * (1 - Math.cos(this.mineTime * MINE_TIME_SCALE)),
-
-            -1.5 * animFrame +  Math.sin(this.mineTime * MINE_TIME_SCALE)
+            0.5,
+            -1.5 * animFrame
         );
         camera.set(
             camera.pos, 
@@ -169,6 +168,23 @@ export class InHandOverlay {
             depth: true,
             color: false
         });
+
+        const animMatrix = mat4.create();
+        
+        let animY = Math.cos(this.mineTime * MINE_TIME_SCALE);
+        if(animY < 0) animY *= 0.5;
+
+        mat4.translate(animMatrix, animMatrix, [
+            0,
+            Math.sin(this.mineTime * MINE_TIME_SCALE) * 1.2,
+            -0.5 * (1 - animY),
+        ])
+        
+        mat4.rotateX(animMatrix, animMatrix, -Math.sin(this.mineTime * MINE_TIME_SCALE) * Math.PI / 4)
+
+        mat4.identity(handMesh.modelMatrix);
+        mat4.scale(handMesh.modelMatrix, handMesh.modelMatrix, [1.5, 1.5, 1.5]);
+        mat4.multiply(handMesh.modelMatrix, animMatrix, handMesh.modelMatrix);
 
         handMesh.drawDirectly(render);
 
@@ -191,6 +207,8 @@ export class InHandOverlay {
                 mat4.scale(modelMatrix, modelMatrix, [0.5, 0.5, 0.5]);
                 mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 4 + Math.PI);
             }
+
+            mat4.multiply(modelMatrix, animMatrix, modelMatrix);
 
             inHandItemMesh.drawDirectly(render);
         }
