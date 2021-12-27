@@ -48,7 +48,7 @@ export class ChunkManager {
             let item = cmd.data.item;
             let block = BLOCK.fromId(item.id);
             let extra_data = cmd.data.item.extra_data ? cmd.data.item.extra_data : null;
-            this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data);
+            this.setBlock(pos.x, pos.y, pos.z, block, false, item.power, item.rotate, item.entity_id, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
         });
         //
         this.DUMMY = {
@@ -382,7 +382,7 @@ export class ChunkManager {
     }
 
     // setBlock
-    setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data) {
+    setBlock(x, y, z, block, is_modify, power, rotate, entity_id, extra_data, action_id) {
         // определяем относительные координаты чанка
         let chunkAddr = getChunkAddr(x, y, z);
         // обращаемся к чанку
@@ -405,7 +405,8 @@ export class ChunkManager {
                 name: ServerClient.CMD_BLOCK_SET,
                 data: {
                     pos: pos,
-                    item: item
+                    item: item,
+                    action_id: action_id
                 }
             });
             let material = BLOCK.fromId(item.id);
@@ -450,7 +451,7 @@ export class ChunkManager {
             render.setRain(true);
         }
         render.destroyBlock(block, pos);
-        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true);
+        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true, null, null, null, null, ServerClient.BLOCK_ACTION_DESTROY);
     }
 
     // Set nearby chunks
@@ -489,7 +490,7 @@ export class ChunkManager {
                 pos.z += 2;
             }
             pos.x += 2;
-            this.setBlock(pos.x, pos.y, pos.z, block, true, null, null, null, block.extra_data);
+            this.setBlock(pos.x, pos.y, pos.z, block, true, null, null, null, block.extra_data, ServerClient.BLOCK_ACTION_REPLACE);
             cnt++;
         }
     }

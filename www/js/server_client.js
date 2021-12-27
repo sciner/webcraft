@@ -45,6 +45,16 @@ export class ServerClient {
 	static CMD_MOB_DELETED              = 73;
     static CMD_MOB_UPDATE               = 75;
 
+	static CMD_DROP_ITEM_ADDED          = 76;
+	static CMD_DROP_ITEM_DELETED        = 77;
+	static CMD_DROP_ITEM_UPDATE         = 78;
+
+    // Block actions
+    static BLOCK_ACTION_CREATE          = 1;
+    static BLOCK_ACTION_DESTROY         = 2;
+    static BLOCK_ACTION_REPLACE         = 3;
+    static BLOCK_ACTION_MODIFY          = 4;
+
     // Constructor
     constructor(ws) {
         this.ws                         = ws;

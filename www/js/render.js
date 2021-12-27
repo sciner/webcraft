@@ -221,7 +221,7 @@ export class Renderer {
                 if(!block.spawnable) {
                     return null;
                 }
-                let drop = new Particles_Block_Drop(this.gl, {id: block.id}, ZERO);
+                let drop = new Particles_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
@@ -433,7 +433,8 @@ export class Renderer {
                     this.drawPlayers(delta);
                     // 4. Draw mobs
                     this.drawMobs(delta);
-
+                    // 5. Draw drop items
+                    this.drawDropItems(delta);
                     // draw isolated meshes after without AO
                     this.globalUniforms.brightness = Math.max(0.3, this.brightness);
                     this.globalUniforms.update();
@@ -477,7 +478,7 @@ export class Renderer {
 
         if (block.spawnable) {
             try {
-                this.inHandItem = new Particles_Block_Drop(this.gl, block, Vector.ZERO);
+                this.inHandItem = new Particles_Block_Drop(this.gl, null, [block], Vector.ZERO);
                 this.inHandItemBroken = false;
             } catch(e) {
                 this.inHandItemBroken = true;
@@ -574,11 +575,6 @@ export class Renderer {
         this.meshes.add(new Particles_Block_Destroy(this.gl, block, pos, small));
     }
 
-    // dropBlock
-    dropBlock(block, pos) {
-        this.meshes.add(new Particles_Block_Drop(this.gl, block, pos));
-    }
-
     // rainDrop
     rainDrop(pos) {
         this.meshes.add(new Particles_Raindrop(this.gl, pos));
@@ -625,6 +621,15 @@ export class Renderer {
         defaultShader.bind();
         for(let [id, mob] of this.world.mobs.list) {
             mob.draw(this, this.camPos, delta);
+        }
+    }
+
+    // drawDropItems
+    drawDropItems(delta) {
+        const {renderBackend, defaultShader} = this;
+        defaultShader.bind();
+        for(let [id, drop_item] of this.world.drop_items.list) {
+            drop_item.draw(this, delta);
         }
     }
 

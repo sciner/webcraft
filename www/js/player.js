@@ -257,7 +257,7 @@ export class Player {
                 Game.sounds.play(world_material.sound, 'open');
             }
             this.pickAt.resetTargetPos();
-            world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data);
+            world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_MODIFY);
         } else if(createBlock) {
             // Нельзя ничего ставить поверх этого блока
             let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
@@ -344,10 +344,10 @@ export class Player {
                             return;
                         }
                         this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data, ServerClient.BLOCK_ACTION_MODIFY);
                     } else {
                         this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null, ServerClient.BLOCK_ACTION_CREATE);
                     }
                 }
                 return;
@@ -376,7 +376,7 @@ export class Player {
                         pos.x -= pos.n.x;
                         pos.y -= pos.n.y;
                         pos.z -= pos.n.z;
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
                     }
                 }
             } else {
@@ -404,7 +404,7 @@ export class Player {
                             Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                         }
                     } else {
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
                     }
                 } else {
                     // Create block
@@ -472,7 +472,7 @@ export class Player {
                                 }
                             }
                         }
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
                     }
                 }
                 this.inventory.decrement();
@@ -747,7 +747,8 @@ export class Player {
         pos.y += this.height * .25;
         pos.x += Math.sin(this.rotate.z) * 2;
         pos.z += Math.cos(this.rotate.z) * 2;
-        Game.render.dropBlock(this.buildMaterial, pos);
+        // Game.render.dropBlock(this.buildMaterial, pos);
+        Game.App.onError('error_deprecated');
     }
 
 }

@@ -1,6 +1,7 @@
 import {ChunkManager} from "./chunk_manager.js";
 import {GameMode} from "./game_mode.js";
 import {MobManager} from "./mob_manager.js";
+import {DropItemManager} from "./drop_item_manager.js";
 import {Physics} from "./physics.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
@@ -37,9 +38,12 @@ export class World {
         this.game_mode              = new GameMode(this, info.game_mode);
         this.chunkManager           = new ChunkManager(this);
         this.mobs                   = new MobManager(this);
+        this.drop_items             = new DropItemManager(this)
         this.players                = new PlayerManager(this);
         this.physics                = new Physics(this);
+        // Init
         this.mobs.init();
+        this.drop_items.init();
     }
 
     joinPlayer(player) {}
