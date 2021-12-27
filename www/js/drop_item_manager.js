@@ -15,7 +15,7 @@ export class DropItemManager {
             switch(cmd.name) {
                 case ServerClient.CMD_DROP_ITEM_ADDED: {
                     for(let drop_item of cmd.data) {
-                        this.add(drop_item);
+                        this.add(drop_item, cmd.time);
                     }
                     break;
                 }
@@ -43,8 +43,13 @@ export class DropItemManager {
     }
 
     // add
-    add(data) {
+    add(data, time) {
         let drop_item = new Particles_Block_Drop(null, data.entity_id, data.items, data.pos);
+
+        drop_item.applyNetState({
+            pos: data.pos,
+            time: time
+        });
         this.list.set(data.entity_id, drop_item);
     }
 
