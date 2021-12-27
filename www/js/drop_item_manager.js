@@ -44,12 +44,14 @@ export class DropItemManager {
 
     // add
     add(data, time) {
-        let drop_item = new Particles_Block_Drop(null, data.entity_id, data.items, data.pos);
+        const drop_item = new Particles_Block_Drop(null, data.entity_id, data.items, data.pos);
+        drop_item.world = this.world;
 
         drop_item.applyNetState({
             pos: data.pos,
             time: time
         });
+
         this.list.set(data.entity_id, drop_item);
     }
 

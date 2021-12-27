@@ -1,5 +1,6 @@
 import {Vector} from './helpers.js';
 import { getChunkAddr } from "./chunk.js";
+import { World } from './world.js';
 
 export class NetworkPhysicObject {
 
@@ -18,6 +19,11 @@ export class NetworkPhysicObject {
         this.latency = 100;
         this.tPos = new Vector();
         this.tRot = new Vector();
+
+        /**
+         * @type {World}
+         */
+        this.world = null;
     }
 
     get pos() {
@@ -46,7 +52,7 @@ export class NetworkPhysicObject {
     }
 
     get clientTime() {
-        return Date.now()
+        return this.world ? this.world.serverTime : Date.now();
     }
 
     applyNetState(data = {pos: null, time: 0, rotate: null}) {

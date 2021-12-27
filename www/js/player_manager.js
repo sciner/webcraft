@@ -29,7 +29,7 @@ export class PlayerManager {
     // addPlayer
     add(cmd) {
         const data = cmd.data;
-        let player = new PlayerModel({
+        const player = new PlayerModel({
             id:             data.id,
             pos:            data.pos,
             pitch:          data.rotate.x,
@@ -38,6 +38,8 @@ export class PlayerManager {
             username:       data.username,
             type:           data.type || 'player',
         });
+
+        player.world = this.world;
 
         this.list.set(data.id, player);
         this.setState(cmd);

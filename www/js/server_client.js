@@ -8,6 +8,7 @@ export class ServerClient {
     static CMD_HELLO                    = 1;
     static CMD_PING                     = 3;
     static CMD_PONG                     = 4;
+    static CMD_SYNC_TIME                = 5;
 	static CMD_ERROR                    = 7; // какая-то ошибка (ИСХ)
     static CMD_CHANGE_RENDER_DIST       = 10;
     static CMD_CONNECT                  = 34;

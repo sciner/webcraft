@@ -9,7 +9,14 @@ import {ServerClient} from "./server_client.js";
 // World container
 export class World {
 
-    constructor() {}
+    constructor() {
+        this.localPlayer = null;
+        this.serverTimeShift = 0;
+    }
+
+    get serverTime() {
+        return Date.now() - this.serverTimeShift || 1;
+    }
 
     // Create server client and connect to world
     async connectToServer(ws) {
@@ -20,12 +27,27 @@ export class World {
                 this.hello = cmd; 
                 console.log(cmd.data);
             });
+
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
                 this.setInfo(cmd.data);
                 res(cmd);
             });
+
+            this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], (cmd) => {
+                const { time, data } = cmd;
+                const { clientTime } = data;
+                const latency = (Date.now() - clientTime) / 2;
+                const timeLag = (this.serverTime - time) + latency;
+
+                console.log('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
+
+                this.serverTimeShift = timeLag;
+            });
+
             // Connect
-            await this.server.connect(() => {}, () => {
+            await this.server.connect(() => {
+                this.server.Send({name: ServerClient.CMD_SYNC_TIME, data: {clientTime: Date.now()}});
+            }, () => {
                 location.reload();
             });
         });
