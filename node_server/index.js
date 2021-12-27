@@ -8,7 +8,7 @@ import {Resources} from "../www/js/resources.js";
 import {ServerGame} from "./server_ws.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
-import config from "./conf.json" assert { type: "json" };
+import config from './config.js';
 
 import features from "../www/vendors/prismarine-physics/lib/features.json" assert { type: "json" };
 
@@ -19,6 +19,9 @@ global.fs               = fs;
 global.BLOCK_CHEST      = 54;
 global.GAME_ONE_SECOND  = 72;
 global.GAME_DAY_SECONDS = 24000;
+global.config           = config;
+
+console.log('Server config', config);
 
 // Init environment
 await BLOCK.init();
