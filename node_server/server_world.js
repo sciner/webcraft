@@ -10,19 +10,27 @@ import {ServerClient} from "../www/js/server_client.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 
 import {ServerChunkManager} from "./server_chunk_manager.js";
+import config from "./config.js";
 // import {GameMode} from "../www/js/game_mode.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
+
+// for debugging client time offset
+export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
     constructor() {}
 
     get serverTime() {
-        return Date.now()
+        return Date.now() + SERVE_TIME_LAG;
     }
 
     async initServer(world_guid, db) {
+        if (SERVE_TIME_LAG) {
+            console.log('[World] Server time lag ', SERVE_TIME_LAG);
+        }
+
         this.db             = db;
         this.info           = await this.db.getWorld(world_guid);
         this.entities       = new EntityManager(this);
