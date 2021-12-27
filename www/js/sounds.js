@@ -1,4 +1,5 @@
 import {Resources} from "./resources.js";
+import {Helpers} from "./helpers.js";
 
 export class Sounds {
 
@@ -10,7 +11,8 @@ export class Sounds {
         }
     }
 
-    add(item) {
+    async add(item) {
+        let audios = new Map();
         for(let action of ['dig', 'place', 'open', 'close', 'hit']) {
             if(item.hasOwnProperty(action)) {
                 let volume = 1.;
@@ -18,8 +20,19 @@ export class Sounds {
                     volume = 0.2;
                 }
                 for(let i in item[action]) {
-                    let src = item[action][i];
-                    item[action][i] = new Howl({src: [src], volume: volume})
+                    const src = item[action][i];
+                    const a = audios.get(src);
+                    let ext = src.split('.').pop().toLowerCase();
+                    if(a) {
+                        item[action][i] = new Howl({src: [a], volume: volume, format: ext});
+                    } else {
+                        const f = await Helpers.fetch(src).then(response => response.blob())
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            audios.set(src, blobUrl);
+                            item[action][i] = new Howl({src: [blobUrl], volume: volume, format: ext});
+                        });
+                    }
                 }
             }
         }
