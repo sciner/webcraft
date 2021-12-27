@@ -10,6 +10,7 @@ import {Mob} from "./mob.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
+import { DropItem } from './drop_item.js';
 
 export class DBWorld {
 
@@ -176,6 +177,53 @@ export class DBWorld {
         if(version == 8) {
             await this.db.get('begin transaction');
             await this.db.get(`alter table chest add column "is_deleted" integer DEFAULT 0`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
+        // Version 9 -> 10
+        if (version == 9) {
+            await this.db.get('begin transaction');
+            await this.db.get(`CREATE TABLE "drop_item" (
+                "id" INTEGER NOT NULL,
+                "dt" integer,
+                "entity_id" TEXT,
+                "items" TEXT,
+                "x" real,
+                "y" real,
+                "z" real,
+                PRIMARY KEY ("id")
+              )`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
+        // Version 10 -> 11
+        if (version == 10) {
+            await this.db.get('begin transaction');
+            await this.db.get(`DROP INDEX "main"."world_modify_xyz";`);
+            await this.db.get(`ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20211227";`);
+            await this.db.get(`CREATE TABLE "main"."world_modify" (
+                "id" INTEGER,
+                "world_id" INTEGER NOT NULL,
+                "dt" integer,
+                "user_id" INTEGER,
+                "params" TEXT,
+                "user_session_id" INTEGER,
+                "x" real NOT NULL,
+                "y" real NOT NULL,
+                "z" real NOT NULL,
+                "entity_id" text,
+                "extra_data" text,
+                PRIMARY KEY ("id"),
+                UNIQUE ("entity_id" ASC) ON CONFLICT ABORT
+              );`);
+            await this.db.get(`INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data" FROM "main"."_world_modify_old_20211227";`);
+            await this.db.get(`CREATE INDEX "main"."world_modify_xyz"
+            ON "world_modify" (
+              "x" ASC,
+              "y" ASC,
+              "z" ASC
+            );`);
+            await this.db.get(`DROP TABLE "_world_modify_old_20211227"`);
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
@@ -388,7 +436,11 @@ export class DBWorld {
     // ChunkBecameModified...
     async chunkBecameModified() {
         let resp = new Set();
-        let rows = await this.db.all("SELECT DISTINCT CAST(round(x / " + CHUNK_SIZE_X + " - 0.5) AS INT) AS x, CAST(round(y / " + CHUNK_SIZE_Y + " - 0.5) AS INT) AS y, CAST(round(z / " + CHUNK_SIZE_Z + " - 0.5) AS INT) AS z FROM world_modify");
+        let rows = await this.db.all(`SELECT DISTINCT
+            cast(x / ${CHUNK_SIZE_X} as int) - (x / ${CHUNK_SIZE_X} < cast(x / ${CHUNK_SIZE_X} as int)) AS x,
+            cast(y / ${CHUNK_SIZE_Y} as int) - (y / ${CHUNK_SIZE_Y} < cast(y / ${CHUNK_SIZE_Y} as int)) AS y,
+            cast(z / ${CHUNK_SIZE_Z} as int) - (z / ${CHUNK_SIZE_Z} < cast(z / ${CHUNK_SIZE_Z} as int)) AS z
+        FROM world_modify`);
         for(let row of rows) {
             let addr = new Vector(row.x, row.y, row.z);
             resp.add(addr);
@@ -417,6 +469,22 @@ export class DBWorld {
         };
     }
 
+    // Create drop_item
+    async createDropItem(params) {
+        const entity_id = uuid();
+        const result = await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
+            ':dt':              ~~(Date.now() / 1000),
+            ':entity_id':       entity_id,
+            ':items':           JSON.stringify(params.items),
+            ':x':               params.pos.x,
+            ':y':               params.pos.y,
+            ':z':               params.pos.z
+        });
+        return {
+            entity_id: entity_id
+        };
+    }
+
     // Load mobs
     async loadMobs(addr, size) {
         let rows = await this.db.all('SELECT * FROM entity WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
@@ -438,6 +506,29 @@ export class DBWorld {
                 type:       row.type,
                 skin:       row.skin,
                 indicators: JSON.parse(row.indicators)
+            });
+            resp.set(item.entity_id, item);
+        }
+        return resp;
+    }
+
+    // Load drop items
+    async loadDropItems(addr, size) {
+        let rows = await this.db.all('SELECT * FROM drop_item WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = new DropItem(this.world, {
+                id:         row.id,
+                pos:        new Vector(row.x, row.y, row.z),
+                entity_id:  row.entity_id,
+                items:      JSON.parse(row.items)
             });
             resp.set(item.entity_id, item);
         }

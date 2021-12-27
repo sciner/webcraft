@@ -53,7 +53,7 @@ export class Particle_Hand {
                         origin: [-2, 0, -5.5],
                         size: [stive ? 4 : 3, 12, 4],
                         uv: [40, 16],
-                        rotation: [-120, -10, -10]
+                        rotation: [-90, 0, 0]
                     },
                 ]
             },

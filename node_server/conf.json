@@ -9,5 +9,6 @@
     "APIDomain": "http://api.madcraft.loc/",
     "UseSecureProtocol": false,
     "SSLCertFile": "/var/ssl/auth/fullchain.pem",
-    "SSLKeyFile": "/var/ssl/auth/privkey.pem"
+    "SSLKeyFile": "/var/ssl/auth/privkey.pem",
+    "Debug": false
 }

@@ -388,10 +388,6 @@ export class Inventory {
                     );
                     const DEST_SIZE = 64;
 
-                    if(item.inventory_icon_id == 5) {
-                        console.log(icon);
-                    }
-
                     hud.ctx.drawImage(
                         this.inventory_image,
                         icon.x,

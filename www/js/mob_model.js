@@ -2,8 +2,8 @@ import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
 import { Helpers, Vector } from "./helpers.js";
-import { getChunkAddr } from "./chunk.js";
 import { ChunkManager } from "./chunk_manager.js";
+import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
@@ -268,9 +268,15 @@ export class MobAnimation {
     }
 }
 
-export class MobModel {
+export class MobModel extends NetworkPhysicObject {
 
     constructor(props) {
+
+        super(
+            new Vector(0, 0, 0),
+            new Vector(0, 0, 0)
+        );
+
         this.sceneTree                  = null;
         this.texture                    = null;
         this.material = null;
@@ -278,12 +284,8 @@ export class MobModel {
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
-        this.moving                     = false;
         this.aniframe                   = 0;
         this.height                     = 0;
-        this._pos                       = new Vector(0, 0, 0);
-        this._prevPos                   = new Vector(0, 0, 0);
-        this._chunk_addr                = new Vector(0, 0, 0);
 
         Object.assign(this, props);
 
@@ -318,12 +320,6 @@ export class MobModel {
 
         this.animationScript = new MobAnimation();
 
-        this.netBuffer = [];
-
-        this.latency = 100;
-
-        this.tPos = new Vector();
-        this.tRot = new Vector();
     }
 
     get isRenderable() {
@@ -331,92 +327,6 @@ export class MobModel {
              this.currentChunk &&
              this.currentChunk.in_frustum || 
              !this.currentChunk);
-    } 
-
-    get pos() {
-        return this._pos;
-    }
-
-    get chunk_addr() {
-        return getChunkAddr(this.pos, this._chunk_addr);
-    }
-
-    set pos(v) {
-        const {
-            x, y, z
-        } = this._pos;
-        
-        const dx = v.x - x;
-        const dy = v.y - y;
-        const dz = v.z - z;
-
-        this._prevPos.copyFrom(this._pos);
-        this._pos.copyFrom(v);
-        // chicken fix
-        this._pos.y += 0.001;
-
-        this.moving = Math.abs(dx) + Math.abs(dz) > 0.01;
-    }
-
-    get clientTime() {
-        return Date.now()
-    }
-
-    applyNetState(data = {pos: null, time: 0, rotate: null}) {
-        this.netBuffer.push(data);
-    }
-
-    processNetState() {
-        if (this.netBuffer.length === 0) {
-            return;
-        }
-
-        const correctedTime = this.clientTime - this.latency;
-
-        while (this.netBuffer.length > 2 && correctedTime > this.netBuffer[1].time) {
-            this.netBuffer.shift()
-        }
-
-        if (this.netBuffer.length === 1) {
-            return this.applyState(
-                this.netBuffer[0].pos,
-                this.netBuffer[0].rotate
-            );
-        }
-
-        const tPos = this.tPos;
-        const tRot = this.tRot;
-
-        const {
-            pos: prevPos,
-            rotate: prevRot,
-            time: prevTime,
-        } = this.netBuffer[0];
-
-        const {
-            pos: nextPos,
-            rotate: nextRot,
-            time: nextTime,
-        } = this.netBuffer[1];
-
-        let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
-
-        // prevent extrapolation.
-        // it should be processed by another way
-        // or will be bug with jump
-        if(iterp > 1)
-            iterp = 1;
-
-        tPos.lerpFrom(prevPos, nextPos, iterp);
-        tRot.lerpFrom(prevRot, nextRot, iterp);
-
-        return this.applyState(tPos, tRot);
-    }
-
-    applyState(nextPos, nextRot) {
-        this.pos = nextPos;
-        this.yaw = nextRot.z;
-        this.pitch = nextRot.x;
     }
 
     lazyInit(render) {
@@ -463,7 +373,8 @@ export class MobModel {
     }
 
     update(render, camPos, delta) {
-        this.processNetState();
+        super.update();
+
         this.computeLocalPosAndLight(render);
 
         if (!this.isRenderable) {
@@ -562,4 +473,5 @@ export class MobModel {
     postLoad(tree) {
         this.animator.prepare(this);
     }
+
 }
