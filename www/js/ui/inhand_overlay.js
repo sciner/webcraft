@@ -170,23 +170,32 @@ export class InHandOverlay {
         });
 
         const animMatrix = mat4.create();
-        
-        let animY = Math.cos(this.mineTime * MINE_TIME_SCALE);
-        if(animY < 0) animY *= 0.5;
+        const phasedTime = this.mineTime;
+      
+        const attacPhase = Math.sin(phasedTime * phasedTime * Math.PI * 2 - Math.PI);
+        const rotPhase = Math.min(-attacPhase, 0);
+        const animY = (1 - Math.cos(phasedTime * Math.PI * 2)) * 0.5;    
+
+        mat4.rotateZ(
+            animMatrix,
+            animMatrix,
+            -rotPhase * Math.PI / 6
+        );
+
 
         mat4.translate(animMatrix, animMatrix, [
             0,
-            Math.sin(this.mineTime * MINE_TIME_SCALE) * 1.2,
-            -0.5 * (1 - animY),
+            attacPhase * 2,
+            animY,
         ])
-        
-        mat4.rotateX(animMatrix, animMatrix, -Math.sin(this.mineTime * MINE_TIME_SCALE) * Math.PI / 4)
 
         mat4.identity(handMesh.modelMatrix);
         mat4.scale(handMesh.modelMatrix, handMesh.modelMatrix, [1.5, 1.5, 1.5]);
         mat4.multiply(handMesh.modelMatrix, animMatrix, handMesh.modelMatrix);
 
         handMesh.drawDirectly(render);
+
+        mat4.rotateX(animMatrix, animMatrix, rotPhase * Math.PI / 4)
 
         if (inHandItemMesh) {
             const {
