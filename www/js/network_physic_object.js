@@ -95,12 +95,11 @@ export class NetworkPhysicObject {
         } = this.netBuffer[1];
 
         let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
-
+        
         // prevent extrapolation.
         // it should be processed by another way
         // or will be bug with jump
-        if(iterp > 1)
-            iterp = 1;
+        iterp = Math.min(1, Math.max(0, iterp));
 
         tPos.lerpFrom(prevPos, nextPos, iterp);
         if(nextRot) {
