@@ -95,6 +95,7 @@
         "fluid": false,
         "max_in_stack": 1,
         "is_item": true,
+        "diagonal": true,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -115,6 +116,7 @@
         "fluid": false,
         "max_in_stack": 1,
         "is_item": true,
+        "diagonal": true,
         "style": "extruder",
         "instrument_id": "pickaxe",
         "tags": [
@@ -137,6 +139,7 @@
         "fluid": false,
         "max_in_stack": 1,
         "is_item": true,
+        "diagonal": true,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -159,6 +162,7 @@
         "max_in_stack": 1,
         "style": "extruder",
         "is_item": true,
+        "diagonal": true,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -742,6 +746,7 @@
         "inventory_icon_id": 1139,
         "style": "extruder",
         "is_item": true,
+        "diagonal": true,
         "texture": [
             6,
             27

@@ -19,7 +19,9 @@ const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное врем
 // Creates a new local player manager.
 export class Player {
 
-    constructor() {}
+    constructor() {
+        this.inMiningProcess = false;
+    }
 
     JoinToWorld(world, cb) {
         this.world = world;
@@ -157,6 +159,8 @@ export class Player {
 
     // onPickAtTarget
     onPickAtTarget(e, times, number) {
+        this.inMiningProcess = true;
+
         let bPos = e.pos;
         // createBlock
         if(e.createBlock) {
@@ -576,6 +580,8 @@ export class Player {
 
     // Updates this local player (gravity, movement)
     update() {
+        this.inMiningProcess = false;
+
         // View
         if(this.lastUpdate) {
             if(!this.overChunk) {
