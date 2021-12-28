@@ -119,17 +119,17 @@ export default class style {
         let width = 1.0;
         // back & front, no matrices
         vertices.push(
-            0, 0 / 32, 0,
+            0, -1 / 32, 0,
             2, 0, 0,
             0, 0, 2 * height,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b, flags);
 
         vertices.push(
-            0, 2 / 32, 0,
+            0, 1 / 32, 0,
             2, 0, 0,
             0, 0, -2 *height,
-            c[0], c[1], -c[2], c[3],
+            c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b, flags);
 
         for(let x = 0; x < clouds.size.x; x++) {
@@ -148,7 +148,7 @@ export default class style {
 
                 // inline cube drawing
                 let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
-                let y1 = (y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
+                let y1 = -(y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
                 let z1 = z;
 
                 if(!neighbours.UP) {
