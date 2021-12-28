@@ -8,7 +8,6 @@ export class SceneNode {
          * @type {SceneNode[]}
          */
         this.children = [];
-        this.parent = parent;
 
         /**
          * @type {Float32Array}
@@ -40,6 +39,10 @@ export class SceneNode {
 
         this.matrixId = 0;
         this.matrixWorldId = 0;
+
+        if (parent) {
+            parent.addChild(this);
+        }
     }
 
     get buffer() {
