@@ -1,39 +1,9 @@
-import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector} from '../helpers.js';
+import {MULTIPLY, DIRECTION, Color, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {default as push_cube_style, pushTransformed} from '../block_style/cube.js';
-import {impl as alea} from "../../vendors/alea";
+import {pushTransformed} from '../block_style/cube.js';
 
 // const {mat4} = glMatrix;
 const {mat3, mat4} = glMatrix;
-
-const push_cube = push_cube_style.getRegInfo().func;
-
-class FakeTBlock {
-
-    constructor(id) {this.id = id;}
-
-    get material() {
-        return BLOCK.BLOCK_BY_ID.get(this.id);
-    }
-
-    get properties() {
-        return this.material;
-    }
-
-    get extra_data() {
-        return this.material.extra_data;
-    }
-
-    hasTag(tag) {
-        let mat = this.material;
-        return mat.tags && mat.tags.indexOf(tag) >= 0;
-    }
-
-    getCardinalDirection() {
-        return 0;
-    }
-
-}
 
 // World
 class FakeCloudWorld {
@@ -52,7 +22,7 @@ class FakeCloudWorld {
                         let index = ((y + tex_y) * tex.width + (x + tex_x)) * 4;
                         let is_opaque = tex.imageData.data[index + 3] > 10;
                         if(is_opaque) {
-                            this.blocks[x + 1][y + 1] = new FakeTBlock(block_id);
+                            this.blocks[x + 1][y + 1] = 1;
                         }
                     }
                 }
@@ -71,7 +41,7 @@ class FakeCloudWorld {
                         }
                     }
                 }
-                return new FakeTBlock(BLOCK.AIR.id);
+                return 0;
             }
         };
     }
@@ -145,74 +115,88 @@ export default class style {
         let z = -0.5 - 0.5 / SCALE_FACTOR;
         let flags = 0;
 
+        let height = 1.0;
+        let width = 1.0;
+        // back & front, no matrices
+        vertices.push(
+            0, 0 / 32, 0,
+            2, 0, 0,
+            0, 0, 2 * height,
+            c[0], c[1], c[2], -c[3],
+            lm.r, lm.g, lm.b, flags);
+
+        vertices.push(
+            0, 2 / 32, 0,
+            2, 0, 0,
+            0, 0, -2 *height,
+            c[0], c[1], -c[2], c[3],
+            lm.r, lm.g, lm.b, flags);
+
         for(let x = 0; x < clouds.size.x; x++) {
             for(let y = 0; y < clouds.size.y; y++) {
                 let block  = world.chunkManager.getBlock(x, y, 0);
-                if(block.id > 0) {
-                    neighbours.DOWN = world.chunkManager.getBlock(x, y + 1, 0);
-                    neighbours.UP = world.chunkManager.getBlock(x, y - 1, 0);
-                    neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
-                    neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
-                    // Position of each texture pixel
-                    force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
-                    force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
-                    let c = force_tex;
+                if(!block) {
+                    continue;
+                }
+                neighbours.DOWN = world.chunkManager.getBlock(x, y + 1, 0);
+                neighbours.UP = world.chunkManager.getBlock(x, y - 1, 0);
+                neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
+                neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
+                // Position of each texture pixel
+                force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
+                force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
 
-                    // inline cube drawing
+                // inline cube drawing
+                let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
+                let y1 = (y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
+                let z1 = z;
 
-                    let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
-                    let y1 = (y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
-                    let z1 = z;
-                    let height = 1.0;
-                    let width = 1.0;
+                if(!neighbours.UP) {
+                    pushTransformed(
+                        vertices, matrix, undefined,
+                        x1, z1, y1,
+                        .5, 0.5, height,
+                        1, 0, 0,
+                        0, 1, 0,
+                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        lm.r, lm.g, lm.b, flags
+                    );
+                }
 
-                    if(!neighbours.UP.id) {
-                        pushTransformed(
-                            vertices, matrix, undefined,
-                            x1, z1, y1,
-                            .5, 0.5, height,
-                            1, 0, 0,
-                            0, 1, 0,
-                            c[0], c[1], -c[2], c[3],
-                            lm.r, lm.g, lm.b, flags
-                        );
-                    }
+                // Bottom
+                if(!neighbours.DOWN) {
+                    pushTransformed(
+                        vertices, matrix, undefined,
+                        x1, z1, y1,
+                        0.5, 0.5, 0,
+                        1, 0, 0,
+                        0, -1, 0,
+                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        lm.r, lm.g, lm.b, flags);
+                }
 
-                    // Bottom
-                    if(canDrawFace(neighbours.DOWN)) {
-                        pushTransformed(
-                            vertices, matrix, undefined,
-                            x1, z1, y1,
-                            0.5, 0.5, 0,
-                            1, 0, 0,
-                            0, -1, 0,
-                            c[0], c[1], -c[2], c[3],
-                            lm.r, lm.g, lm.b, flags);
-                    }
+                // West
+                if(!neighbours.WEST) {
+                    pushTransformed(
+                        vertices, matrix, undefined,
+                        x1, z1, y1,
+                        .5 - width / 2, .5, height / 2,
+                        0, 1, 0,
+                        0, 0, -height,
+                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        lm.r, lm.g, lm.b, flags);
+                }
 
-                    // West
-                    if(!neighbours.WEST.id) {
-                        pushTransformed(
-                            vertices, matrix, undefined,
-                            x1, z1, y1,
-                            .5 - width / 2, .5, height / 2,
-                            0, 1, 0,
-                            0, 0, -height,
-                            c[0], c[1], -c[2], c[3],
-                            lm.r, lm.g, lm.b, flags);
-                    }
-
-                    // East
-                    if(!neighbours.EAST.id) {
-                        pushTransformed(
-                            vertices, matrix, undefined,
-                            x1, z1, y1,
-                            .5 + width / 2, .5, height / 2,
-                            0, 1, 0,
-                            0, 0, height,
-                            c[0], c[1], c[2], -c[3],
-                            lm.r, lm.g, lm.b, flags);
-                    }
+                // East
+                if(!neighbours.EAST) {
+                    pushTransformed(
+                        vertices, matrix, undefined,
+                        x1, z1, y1,
+                        .5 + width / 2, .5, height / 2,
+                        0, 1, 0,
+                        0, 0, height,
+                        force_tex[0], force_tex[1], force_tex[2], -force_tex[3],
+                        lm.r, lm.g, lm.b, flags);
                 }
             }
         }
