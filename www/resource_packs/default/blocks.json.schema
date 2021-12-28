@@ -1,0 +1,291 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "type": "array",
+    "items": {
+        "$ref": "#/definitions/WelcomeElement"
+    },
+    "definitions": {
+        "WelcomeElement": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "spawnable": {
+                    "type": "boolean"
+                },
+                "sound": {
+                    "$ref": "#/definitions/Sound"
+                },
+                "texture": {
+                    "$ref": "#/definitions/TextureUnion"
+                },
+                "destroy_time": {
+                    "type": "number"
+                },
+                "passable": {
+                    "type": "number"
+                },
+                "transparent": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "style": {
+                    "type": "string"
+                },
+                "max_in_stack": {
+                    "type": "integer"
+                },
+                "is_item": {
+                    "type": "boolean"
+                },
+                "diagonal": {
+                    "type": "boolean"
+                },
+                "instrument_id": {
+                    "type": "string"
+                },
+                "light": {
+                    "type": "null"
+                },
+                "light_power": {
+                    "$ref": "#/definitions/LightPower"
+                },
+                "gravity": {
+                    "type": "boolean"
+                },
+                "planting": {
+                    "type": "boolean"
+                },
+                "can_rotate": {
+                    "type": "boolean"
+                },
+                "width": {
+                    "type": "number"
+                },
+                "align": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "inventory_style": {
+                    "type": "string"
+                },
+                "halfs": {
+                    "$ref": "#/definitions/Halfs"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "selflit": {
+                    "type": "boolean"
+                },
+                "uvlock": {
+                    "type": "boolean"
+                },
+                "is_entity": {
+                    "type": "boolean"
+                },
+                "extra_data": {
+                    "$ref": "#/definitions/ExtraData"
+                },
+                "spawn_egg": {
+                    "$ref": "#/definitions/SpawnEgg"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "title": "WelcomeElement"
+        },
+        "ExtraData": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "opened": {
+                    "type": "boolean"
+                },
+                "point": {
+                    "$ref": "#/definitions/Point"
+                }
+            },
+            "required": [
+                "opened",
+                "point"
+            ],
+            "title": "ExtraData"
+        },
+        "Point": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "x": {
+                    "type": "integer"
+                },
+                "y": {
+                    "type": "integer"
+                },
+                "z": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "x",
+                "y",
+                "z"
+            ],
+            "title": "Point"
+        },
+        "Halfs": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "up": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "up"
+            ],
+            "title": "Halfs"
+        },
+        "LightPower": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "r": {
+                    "type": "integer"
+                },
+                "g": {
+                    "type": "integer"
+                },
+                "b": {
+                    "type": "integer"
+                },
+                "a": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "a",
+                "b",
+                "g",
+                "r"
+            ],
+            "title": "LightPower"
+        },
+        "SpawnEgg": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "skin": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "skin",
+                "type"
+            ],
+            "title": "SpawnEgg"
+        },
+        "TextureClass": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "up": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "down": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "side": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "south": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "east": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "north": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "west": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": [],
+            "title": "TextureClass"
+        },
+        "TextureUnion": {
+            "anyOf": [
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "$ref": "#/definitions/TextureClass"
+                }
+            ],
+            "title": "TextureUnion"
+        },
+        "Sound": {
+            "type": "string",
+            "enum": [
+                "madcraft:block.wood",
+                "madcraft:block.stone",
+                "madcraft:block.grass",
+                "madcraft:block.gravel",
+                "madcraft:block.sand",
+                "madcraft:block.glass",
+                "madcraft:block.cloth",
+                "madcraft:block.chest",
+                "madcraft:block.wooden_trapdoor"
+            ],
+            "title": "Sound"
+        }
+    }
+}

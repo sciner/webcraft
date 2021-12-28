@@ -24,6 +24,11 @@ export class Inventory extends PlayerInventory {
     setState(inventory_state) {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
+        for(const item of this.items) {
+            if(item && 'id' in item) {
+                item.name = BLOCK.fromId(item.id).name;
+            }
+        }
         this.refresh(false);
     }
 

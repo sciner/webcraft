@@ -2,7 +2,6 @@
     {
         "id": 518,
         "name": "LODESTONE",
-        "inventory_icon_id": 221,
         "sound": "madcraft:block.stone",
         "style": "default",
         "texture": {
@@ -15,7 +14,6 @@
     {
         "id": 202,
         "name": "STILL_WATER",
-        "inventory_icon_id": 1295,
         "transparent": true,
         "passable": 0.4,
         "selflit": true,
@@ -29,8 +27,7 @@
             "side": [0, 0]
         },
         "destroy_time": 0.4,
-        "spawnable": false,
-        "max_in_stack": 64
+        "spawnable": false
     },
     {
         "id": 200,
@@ -52,9 +49,7 @@
             "still_block_id": 202
         },
         "destroy_time": 0.4,
-        "spawnable": false,
-        "max_in_stack": 64,
-        "inventory_icon_id": 3148
+        "spawnable": false
     },
     {
         "id": 171,
@@ -79,18 +74,14 @@
             "side": null
         },
         "destroy_time": 0.4,
-        "spawnable": false,
-        "max_in_stack": 64,
-        "inventory_icon_id": 98
+        "spawnable": false
     },
     {
         "id": 170,
         "name": "FLOWING_LAVA",
-        "inventory_icon_id": 3146,
         "passable": 0.25,
         "transparent": true,
         "selflit": true,
-        "gravity": false,
         "is_fluid": true,
         "fluid": {
             "max_power": 1,
@@ -111,13 +102,11 @@
             "side": null
         },
         "destroy_time": 0.4,
-        "spawnable": false,
-        "max_in_stack": 64
+        "spawnable": false
     },
     {
         "id": 540,
         "name": "SEAGRASS",
-        "inventory_icon_id": 3419,
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -131,7 +120,6 @@
         },
         "destroy_time": 0,
         "spawnable": false,
-        "max_in_stack": 64,
         "planting": true
     }
 ]
