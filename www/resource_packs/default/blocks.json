@@ -843,6 +843,7 @@
     {
         "id": 350,
         "name": "WOOL_BLACK",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 708,
         "texture": [
             0,
@@ -854,84 +855,91 @@
     },
     {
         "id": 351,
+        "name": "WOOL_BLUE",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 714,
         "texture": [
             1,
             18
         ],
-        "name": "WOOL_BLUE",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 352,
+        "name": "WOOL_BROWN",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 729,
         "texture": [
             2,
             18
         ],
-        "name": "WOOL_BROWN",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 353,
+        "name": "WOOL_CYAN",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 726,
         "texture": [
             3,
             18
         ],
-        "name": "WOOL_CYAN",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 354,
+        "name": "WOOL_GRAY",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 229,
         "texture": [
             4,
             18
         ],
-        "name": "WOOL_GRAY",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 355,
+        "name": "WOOL_GREEN",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 738,
         "texture": [
             5,
             18
         ],
-        "name": "WOOL_GREEN",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 502,
+        "name": "WOOL_RED",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 1535,
         "texture": [
             6,
             18
         ],
-        "name": "WOOL_RED",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
     },
     {
         "id": 506,
+        "name": "WOOL_YELLOW",
+        "sound": "madcraft:block.cloth",
         "inventory_icon_id": 1537,
         "texture": [
             7,
             18
         ],
-        "name": "WOOL_YELLOW",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64
@@ -1394,12 +1402,12 @@
     },
     {
         "id": 73,
+        "name": "REDSTONE_ORE",
         "sound": "madcraft:block.stone",
         "texture": [
             3,
             3
         ],
-        "name": "REDSTONE_ORE",
         "destroy_time": 7,
         "spawnable": true,
         "max_in_stack": 64,
@@ -1409,18 +1417,31 @@
         "id": 75,
         "name": "REDSTONE_TORCH_ON",
         "passable": 1,
+        "width": 0.125,
+        "height": 0.6875,
         "transparent": true,
-        "style": "sign",
+        "style": "torch",
+        "can_rotate": true,
         "light_power": {
             "r": 253,
             "g": 200,
             "b": 131,
-            "a": 92
+            "a": 128
         },
-        "texture": [
-            3,
-            6
-        ],
+        "texture": {
+            "up": [
+                0,
+                6
+            ],
+            "down": [
+                0,
+                7
+            ],
+            "side": [
+                3,
+                6
+            ]
+        },
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64,
@@ -2997,6 +3018,7 @@
     },
     {
         "id": 81,
+        "name": "CACTUS",
         "inventory_icon_id": 3409,
         "width": 0.875,
         "transparent": true,
@@ -3015,7 +3037,6 @@
                 4
             ]
         },
-        "name": "CACTUS",
         "destroy_time": 0.4,
         "spawnable": true,
         "max_in_stack": 64

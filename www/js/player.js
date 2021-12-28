@@ -292,7 +292,7 @@ export class Player {
                 return;
             }
             //
-            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data);
+            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, this.buildMaterial?.id);
             if(replaceBlock) {
                 pos.n.y = 1;
             } else {
@@ -357,7 +357,7 @@ export class Player {
             // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
             let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
             if(isLayering) {
-                if(e.number == 1) {
+                // if(e.number == 1) {
                     let new_extra_data = null;
                     pos.y--;
                     if(extra_data) {
@@ -367,24 +367,19 @@ export class Player {
                     }
                     new_extra_data.height += world_material.height;
                     if(new_extra_data.height < 1) {
-                        if(this.limitBlockActionFrequency(e)) {
-                            return;
-                        }
                         this.pickAt.resetTargetPos();
                         world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data, ServerClient.BLOCK_ACTION_MODIFY);
                     } else {
                         this.pickAt.resetTargetPos();
                         world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null, ServerClient.BLOCK_ACTION_CREATE);
                     }
-                }
+                // }
                 return;
             }
             // Факелы можно ставить только на определенные виды блоков!
             let isTorch = matBlock.style == 'torch';
             if(isTorch) {
-                console.log(world_material.style);
-                if(
-                        !replaceBlock && (
+                if(!replaceBlock && (
                             ['default', 'fence'].indexOf(world_material.style) < 0 ||
                             (world_material.style == 'fence' && pos.n.y != 1) ||
                             (pos.n.y < 0) ||
@@ -509,8 +504,8 @@ export class Player {
                 this.destroyBlock(world_material, pos, this.getCurrentInstrument());
             }
         } else if(cloneBlock) {
-            if(world_material && this.game_mode.canBlockClone()) {
-                this.inventory.cloneMaterial(world_material);
+            if(world_material && this.game_mode.canBlockClone() && e.number == 1) {
+                this.world.server.CloneBlock(pos);
             }
         }
     }

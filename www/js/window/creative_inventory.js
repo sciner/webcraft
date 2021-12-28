@@ -18,7 +18,6 @@ class CreativeInventoryCollection extends Window {
             this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
             this.scrollY = Math.min(this.scrollY, 0);
             this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
-
             // console.log(this.scrollY, this.max_height - this.height);
             // this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0));
         };
@@ -195,13 +194,6 @@ export class CreativeInventoryWindow extends Window {
         
         // Обработчик закрытия формы
         this.onHide = function() {
-            // Drag
-            let dragItem = this.getRoot().drag.getItem();
-            if(dragItem) {
-                // @todo inventory
-                console.error('Нужно перенести на сервер');
-                // this.inventory.increment(dragItem.item);
-            }
             this.getRoot().drag.clear();
         }
 

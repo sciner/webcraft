@@ -16,6 +16,7 @@ export class ServerClient {
     // Cnunks and blocks
     static CMD_BLOCK_DESTROY            = 35;
     static CMD_BLOCK_SET                = 36;
+    static CMD_BLOCK_CLONE              = 84;
     static CMD_CHUNK_LOAD               = 37;
     static CMD_CHUNK_LOADED             = 39;
     // Chat
@@ -33,14 +34,18 @@ export class ServerClient {
     static CMD_CHANGE_POS_SPAWN         = 63;
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
-    static CMD_INVENTORY_STATE          = 66;
-    static CMD_INVENTORY_SELECT         = 79;
     static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
     static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
 	static CMD_WORLD_INFO               = 74;
 	static CMD_GAMEMODE_NEXT            = 80;
 	static CMD_GAMEMODE_SET             = 81;
+
+    // Inventory
+    static CMD_INVENTORY_STATE          = 66;
+    static CMD_INVENTORY_SELECT         = 79;
+    static CMD_INVENTORY_INCREMENT      = 82;
+    static CMD_INVENTORY_SET_ITEM       = 83;
 
     // Mobs    
 	static CMD_MOB_ADD                  = 70;
@@ -290,6 +295,24 @@ export class ServerClient {
     // Switch to specific game mode
     GameModeSet(mode_id) {
         this.Send({name: ServerClient.CMD_GAMEMODE_SET, data: {id: mode_id}});
+    }
+
+    // Clone block from pos
+    CloneBlock(pos) {
+        this.Send({name: ServerClient.CMD_BLOCK_CLONE, data: pos});
+    }
+
+    // @temporarly
+    sendInventoryIncrement(item) {
+        this.Send({name: ServerClient.CMD_INVENTORY_INCREMENT, data: item});
+    }
+
+    // @temporarly
+    setInventoryItem(index, item) {
+        this.Send({name: ServerClient.CMD_INVENTORY_SET_ITEM, data: {
+            index: index,
+            item: item
+        }});
     }
 
 }

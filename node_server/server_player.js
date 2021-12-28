@@ -5,6 +5,7 @@ import {ServerClient} from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerInventory } from "../www/js/player_inventory.js";
+import { getChunkAddr } from "../www/js/chunk.js";
 
 const PLAYER_HEIGHT = 1.7;
 export class NetworkMessage {
@@ -183,7 +184,7 @@ export class ServerPlayer extends Player {
 
                 // Request chest content
                 case ServerClient.CMD_LOAD_CHEST: {
-                    this.world.entities.loadChest(this, cmd.data);
+                    await this.world.entities.loadChest(this, cmd.data);
                     break;
                 }
                     
@@ -229,6 +230,37 @@ export class ServerPlayer extends Player {
 
                 case ServerClient.CMD_GAMEMODE_SET: {
                     this.game_mode.applyMode(cmd.data.id, true);
+                    break;
+                }
+
+                case ServerClient.CMD_INVENTORY_INCREMENT: {
+                    console.log('increment', cmd);
+                    this.inventory.increment(cmd.data);
+                    break;
+                }
+
+                case ServerClient.CMD_INVENTORY_SET_ITEM: {
+                    this.inventory.setItem(cmd.data.index, cmd.data.item);
+                    break;
+                }
+
+                case ServerClient.CMD_BLOCK_CLONE: {
+                    // Check game mode
+                    if(!this.game_mode.getCurrent().block_clone) {
+                        throw 'error_command_not_working_in_this_game_mode';
+                    }
+                    //
+                    const pos = new Vector(cmd.data);
+                    const chunk_addr = getChunkAddr(pos);
+                    let chunk = this.world.chunks.get(chunk_addr);
+                    if(!chunk) {
+                        throw 'error_invalid_block_position';
+                    }
+                    const block = chunk.getBlock(pos);
+                    if(block.id < 1) {
+                        throw 'error_block_not_support_clone';
+                    }
+                    this.inventory.cloneMaterial(block.material);
                     break;
                 }
 

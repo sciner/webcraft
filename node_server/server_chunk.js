@@ -198,7 +198,6 @@ export class ServerChunk {
     // 
     async blockAction(player, params, notify_author) {
         // Check action
-        console.log(params.action_id);
         switch(params.action_id) {
             case ServerClient.BLOCK_ACTION_DESTROY: {
                 if(player.game_mode.isSurvival()) {
@@ -209,7 +208,6 @@ export class ServerChunk {
                         this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
                     }
                 }
-                params.item = {id: BLOCK.AIR.id};
                 return await this.blockSet(player, params, notify_author);
                 break;
             }
@@ -225,6 +223,32 @@ export class ServerChunk {
         let is_creative = player.game_mode.isCreative();
         // 1. Detect build material
         let material = player.inventory.current_item;
+        //
+        switch(params.action_id) {
+            case ServerClient.BLOCK_ACTION_DESTROY: {
+                // Принудительно ставим материалом воздух
+                material = BLOCK.AIR;
+                params.item = {id: material.id};
+                break;
+            }
+            case ServerClient.BLOCK_ACTION_MODIFY: {
+                if(!('extra_data' in params.item)) {
+                    throw 'error_empty_extra_data';
+                }
+                const existing_block = this.getBlock(params.pos);
+                if(existing_block.id != params.item.id) {
+                    throw 'error_materials_not_equal';
+                }
+                if('entity_id' in params.item) {
+                    if(params.item.entity_id != existing_block.entity_id) {
+                        throw 'error_invalid_entity_id';
+                    }
+                }
+                material = params.item;
+                break;
+            }
+        }
+        //
         if(!material) {
             if(is_creative) {
                 material = BLOCK.fromId(params.item.id);
@@ -264,7 +288,7 @@ export class ServerChunk {
         }
         let blockKey = this.getBlockKey(params.pos);
         // 4. Если на этом месте есть сущность, тогда запретить ставить что-то на это место
-        let existing_item = this.world.entities.getEntityByPos(params.pos);
+        const existing_item = this.world.entities.getEntityByPos(params.pos);
         if (existing_item) {
             let restore_item = true;
             switch (existing_item.type) {
@@ -284,6 +308,7 @@ export class ServerChunk {
                 }
             }
             if(restore_item) {
+                params.item = item;
                 let packets = [{
                     name: ServerClient.CMD_BLOCK_SET,
                     data: params
@@ -347,9 +372,6 @@ export class ServerChunk {
         tblock.entity_id     = item.entity_id;
         tblock.power         = block.power;
         tblock.rotate        = block.rotate;
-        console.log(item);
-        // do not need send to worker
-        // this.world.chunks.postWorkerMessage(['setBlock', [block]]);
         return true;
     }
 
@@ -390,16 +412,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        const item = {
-            id: block.id
-        };
-        for(let k of ['extra_data', 'entity_id', 'count']) {
-            let v = block[k];
-            if(v !== undefined && v !== null) {
-                item[k] = v;
-            }
-        }
-        return item;
+        return BLOCK.convertItemToInventoryItem(block);
     }
 
     // Before unload chunk

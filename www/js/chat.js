@@ -234,10 +234,11 @@ export class Chat {
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
         const blink_period      = 500; // период моргания курсора ввода текста (мс)
-    
+
         hud.ctx.save();
-    
+
         // Calc text size
+        hud.ctx.font            = '18px Ubuntu';
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
         let mt                  = hud.ctx.measureText('TW|');

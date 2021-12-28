@@ -49,57 +49,6 @@ export class Inventory extends PlayerInventory {
             }
         }
     }
-    
-    // Клонирование материала в инвентарь
-    cloneMaterial(mat) {
-        if(!this.player.game_mode.isCreative()) {
-            return false;
-        }
-        const MAX = mat.max_in_stack;
-        // Search same material with count < max
-        for(let k in Object.keys(this.items)) {
-            if(parseInt(k) >= this.hotbar_count) {
-                break;
-            }
-            if(this.items[k]) {
-                let item = this.items[k];
-                if(item.id == mat.id) {
-                    this.select(parseInt(k));
-                    return this.refresh(false);
-                }
-            }
-        }
-        // Create in current cell if this empty
-        if(this.current.index < this.hotbar_count) {
-            let k = this.current.index;
-            if(!this.items[k]) {
-                this.items[k] = Object.assign({count: 1}, mat);
-                delete(this.items[k].texture);
-                this.select(parseInt(k));
-                return this.refresh(true);
-            }
-        }
-        // Start new cell
-        for(let k in Object.keys(this.items)) {
-            if(parseInt(k) >= this.hotbar_count) {
-                break;
-            }
-            if(!this.items[k]) {
-                this.items[k] = Object.assign({count: 1}, mat);
-                delete(this.items[k].texture);
-                this.select(parseInt(k));
-                return this.refresh(true);
-            }
-        }
-        // Replace current cell
-        if(this.current.index < this.hotbar_count) {
-            let k = this.current.index;
-            this.items[k] = Object.assign({count: 1}, mat);
-            delete(this.items[k].texture);
-            this.select(parseInt(k));
-            return this.refresh(true);
-        }
-    }
 
     // drawHUD
     drawHUD(hud) {
@@ -196,6 +145,20 @@ export class Inventory extends PlayerInventory {
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         this.hud.wm.add(this.frmChest);
+    }
+
+    // sendIncrement...
+    sendInventoryIncrement(item) {
+        // @todo inventory
+        console.error('Нужно перенести на сервер');
+        this.player.world.server.sendInventoryIncrement(BLOCK.convertItemToInventoryItem(item));
+    }
+    
+    //
+    setItem(index, item) {
+        // @todo inventory
+        console.error('Нужно перенести на сервер');
+        this.player.world.server.setInventoryItem(index, BLOCK.convertItemToInventoryItem(item));
     }
 
 }

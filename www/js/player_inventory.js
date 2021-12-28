@@ -79,9 +79,9 @@ export class PlayerInventory {
             let item = this.items[i];
             if(item) {
                 if(item.id == mat.id) {
-                    if(this.player.game_mode.isCreative()) {
+                    /*if(this.player.game_mode.isCreative()) {
                         return;
-                    }
+                    }*/
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
@@ -152,6 +152,55 @@ export class PlayerInventory {
                     this.items[i] = null;
                 }
             }
+        }
+    }
+
+    // Клонирование материала в инвентарь
+    cloneMaterial(mat) {
+        mat = BLOCK.convertItemToInventoryItem(mat);
+        const MAX = mat.max_in_stack;
+        // Search same material with count < max
+        for(let k in Object.keys(this.items)) {
+            if(parseInt(k) >= this.hotbar_count) {
+                break;
+            }
+            if(this.items[k]) {
+                let item = this.items[k];
+                if(item.id == mat.id) {
+                    this.select(parseInt(k));
+                    return this.refresh(false);
+                }
+            }
+        }
+        // Create in current cell if this empty
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
+            if(!this.items[k]) {
+                this.items[k] = Object.assign({count: 1}, mat);
+                delete(this.items[k].texture);
+                this.select(parseInt(k));
+                return this.refresh(true);
+            }
+        }
+        // Start new cell
+        for(let k in Object.keys(this.items)) {
+            if(parseInt(k) >= this.hotbar_count) {
+                break;
+            }
+            if(!this.items[k]) {
+                this.items[k] = Object.assign({count: 1}, mat);
+                delete(this.items[k].texture);
+                this.select(parseInt(k));
+                return this.refresh(true);
+            }
+        }
+        // Replace current cell
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
+            this.items[k] = Object.assign({count: 1}, mat);
+            delete(this.items[k].texture);
+            this.select(parseInt(k));
+            return this.refresh(true);
         }
     }
 

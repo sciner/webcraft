@@ -70,6 +70,23 @@ export class BLOCK {
         return index;
     }
 
+    // convertItemToInventoryItem...
+    static convertItemToInventoryItem(item) {
+        if(!item || !('id' in item)) {
+            return null;
+        }
+        const resp = {
+            id: item.id
+        };
+        for(let k of ['extra_data', 'entity_id', 'count']) {
+            let v = item[k];
+            if(v !== undefined && v !== null) {
+                resp[k] = v;
+            }
+        }
+        return resp;
+    }
+
     //
     static getBlockIndex(x, y, z, v = null) {
         if(x instanceof Vector) {
@@ -166,7 +183,7 @@ export class BLOCK {
     }
 
     // Can replace
-    static canReplace(block_id, extra_data) {
+    static canReplace(block_id, extra_data, replace_with_block_id) {
         if(block_id == 0) {
             return true;
         }
@@ -179,7 +196,7 @@ export class BLOCK {
         }
         if(block.tags.indexOf('layering') >= 0) {
             let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
-            return !isNaN(height) && height == block.height;
+            return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
         }
         return false;
     }

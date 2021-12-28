@@ -58,9 +58,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
-                // @todo inventory
-                console.error('Нужно перенести на сервер');
-                // this.inventory.increment(dragItem.item);
+                this.inventory.sendInventoryIncrement(dragItem.item);
             }
             this.getRoot().drag.clear();
             // Clear result
@@ -68,9 +66,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             //
             for(let slot of this.craft.slots) {
                 if(slot && slot.item) {
-                    // @todo inventory
-                    console.error('Нужно перенести на сервер');
-                    // this.inventory.increment(slot.item);
+                    this.inventory.sendInventoryIncrement(slot.item);
                     slot.item = null;
                 }
             }
