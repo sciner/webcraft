@@ -1,6 +1,8 @@
+import { BLOCK } from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { NORMALS, Helpers } from './helpers.js';
+import { NORMALS, Helpers, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
+import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
 const {mat4, quat} = glMatrix;
@@ -41,7 +43,87 @@ export class PlayerModel extends MobModel {
 
         this.head = null;
 
-        this.animationScript = new PlayerAnimation()
+        this.animationScript = new PlayerAnimation();
+
+        /**
+         * @type {SceneNode}
+         */
+        this.handItem;
+
+        this.handItemId = -1;
+    }
+
+    /**
+     * Change item that placed in remove player arms (hands)
+     * @param {number} id 
+     * @param {boolean} left 
+     * @returns 
+     */
+    changeHandItem (id = -1, left = true) {
+        const armNode = this.sceneTree.findNode(left ? 'LeftArmItemPlace' : 'RightArmItemPlace');
+
+        let scale = 0.3;
+
+        if (!armNode) {
+            return;
+        }
+
+        if (!this.handItem) {
+            this.handItem = new SceneNode();
+            this.handItem.position.set(armNode.pivot);
+
+            this.handItem.updateMatrix();
+        }
+
+        if (id == this.handItemId && this.handItem.terrainGeometry) {
+            return;
+        }
+
+        if (this.handItem.terrainGeometry) {
+            this.handItem.terrainGeometry.destroy();
+            this.handItem.terrainGeometry = null;
+        }
+
+        this.handItemId = id;
+
+        if (id === -1) {
+            return;
+        }
+
+        const block = BLOCK.BLOCK_BY_ID.get(id);
+
+        if (!block.spawnable) {
+            return;
+        }
+
+        let item;
+        try {
+            item = new Particles_Block_Drop(null, null, [block], Vector.ZERO);
+        } catch(e) {
+            console.log(e);
+            //
+        }
+
+        if (item) {
+            this.handItem.terrainGeometry = item.buffer;
+            this.handItem.material = item.material;
+
+            const orient = left ? -1 : 1;
+
+            if (block.diagonal) {
+                scale *= 1.2;
+
+                quat.fromEuler(this.handItem.quat, -10 * orient, -30, -90 + 10 * orient);
+
+            } else {
+                quat.fromEuler(this.handItem.quat, -20 * orient, 0, -20);
+            }
+
+            this.handItem.scale.set([scale, scale, scale]);
+            this.handItem.pivot.set([0, 0, scale / 2]);
+            
+            armNode.addChild(this.handItem);
+        }
     }
 
     itsMe() {
@@ -79,6 +161,8 @@ export class PlayerModel extends MobModel {
     postLoad(tree) {
         super.postLoad(tree);
         tree.scale.set([0.9, 0.9, 0.9]);
+
+        this.changeHandItem(this.handItemId, false);
     }
 
     update(render, camPos, delta) {
