@@ -1,3 +1,3 @@
 @echo off
-node --experimental-json-modules --no-warnings ./index.js --Debug=1
+node --experimental-json-modules --no-warnings ./index.js
 pause

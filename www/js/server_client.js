@@ -264,11 +264,6 @@ export class ServerClient {
         }});
     }
 
-    // Save inventory
-    SaveInventory(inventory_state) {
-        this.Send({name: ServerClient.CMD_SAVE_INVENTORY, data: inventory_state});
-    }
-
     // Modify indicator request
     ModifyIndicator(indicator, value, comment) {
         let data = {

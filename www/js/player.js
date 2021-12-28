@@ -61,6 +61,7 @@ export class Player {
                 this.pickAt.resetProgress();
             }
         };
+        this.inventory.setState(data.inventory);
         Game.hotbar.setInventory(this.inventory);
         // pickAt
         this.pickAt                 = new PickAt(this.world, Game.render, (...args) => {
@@ -97,6 +98,9 @@ export class Player {
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
+        this.world.server.AddCmdListener([ServerClient.CMD_SAVE_INVENTORY], (cmd) => {
+            this.inventory.setState(cmd.data);
+        });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
             this.indicators = cmd.data.indicators;
             Game.hud.refresh();
@@ -125,11 +129,6 @@ export class Player {
             (this.rotate.y - Math.PI) * 180 % 360,
             (this.rotate.z / (Math.PI * 2) * 360 + 180) % 360
         );
-    }
-
-    // saveInventory...
-    saveInventory(items) {
-        this.world.server.SaveInventory(items);
     }
 
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
@@ -479,7 +478,9 @@ export class Player {
                         world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
                     }
                 }
-                this.inventory.decrement();
+                // @todo inventory
+                console.error('Нужно перенести на сервер');
+                // this.inventory.decrement();
             }
         } else if(destroyBlock) {
             // Destroy block

@@ -85,7 +85,7 @@ export class ServerWorld {
         this.chunks.tick(delta);
         // 2.
         for(let player of this.players.values()) {
-            this.chunks.checkPlayerVisibleChunks(player, false);
+            player.tick(delta);
         }
         // 3.
         for(let [entity_id, mob] of this.mobs) {
@@ -106,7 +106,7 @@ export class ServerWorld {
     // onPlayer
     async onPlayer(player, skin) {
         // 1. Insert to DB if new player
-        player.state = await this.db.registerUser(this, player);
+        player.init(await this.db.registerUser(this, player));
         player.state.skin = skin;
         player.updateHands();
         // 2. Add new connection
@@ -137,7 +137,11 @@ export class ServerWorld {
         // 7. Send CMD_CONNECTED
         player.sendPackets([{name: ServerClient.CMD_CONNECTED, data: {
             session: player.session,
-            state:   player.state,
+            state: player.state,
+            inventory: {
+                current: player.inventory.current,
+                items: player.inventory.items
+            }
         }}]);
         // 8. Check player visible chunks
         this.chunks.checkPlayerVisibleChunks(player, true);

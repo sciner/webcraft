@@ -227,6 +227,13 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
+        // Version 10 -> 11
+        if(version == 11) {
+            await this.db.get('begin transaction');
+            await this.db.get(`alter table drop_item add column "is_deleted" integer DEFAULT 0`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
     }
 
     // getDefaultPlayerIndicators...
@@ -249,13 +256,18 @@ export class DBWorld {
 
     // Return default inventory for user
     getDefaultInventory() {
-        return {
+        const MAX_COUNT = 36;
+        const resp = {
             items: [],
             current: {
                 index: 0, // right hand
                 index2: -1 // left hand
             }
         };
+        for(let i = 0; i < MAX_COUNT; i++) {
+            resp.items.push(null);
+        }
+        return resp;
     }
 
     // Register new user or return existed
@@ -269,12 +281,14 @@ export class DBWorld {
                 inventory.current.index2 = -1;
             }
             return {
-                pos:                JSON.parse(row.pos),
-                pos_spawn:          JSON.parse(row.pos_spawn),
-                rotate:             JSON.parse(row.rotate),
-                inventory:          inventory,
-                indicators:         JSON.parse(row.indicators),
-                chunk_render_dist:  row.chunk_render_dist
+                state: {
+                    pos:                JSON.parse(row.pos),
+                    pos_spawn:          JSON.parse(row.pos_spawn),
+                    rotate:             JSON.parse(row.rotate),
+                    indicators:         JSON.parse(row.indicators),
+                    chunk_render_dist:  row.chunk_render_dist
+                },
+                inventory: inventory
             };
         }
         let default_pos_spawn = world.info.pos_spawn;
@@ -469,7 +483,7 @@ export class DBWorld {
         };
     }
 
-    // Create drop_item
+    // Create drop item
     async createDropItem(params) {
         const entity_id = uuid();
         const result = await this.db.run('INSERT INTO drop_item(dt, entity_id, items, x, y, z) VALUES(:dt, :entity_id, :items, :x, :y, :z)', {
@@ -483,6 +497,14 @@ export class DBWorld {
         return {
             entity_id: entity_id
         };
+    }
+
+    // Delete drop item
+    async deleteDropItem(entity_id) {
+        const result = await this.db.run('UPDATE drop_item SET is_deleted = :is_deleted WHERE entity_id = :entity_id', {
+            ':is_deleted': 1,
+            ':entity_id': entity_id
+        });
     }
 
     // Load mobs
@@ -514,7 +536,7 @@ export class DBWorld {
 
     // Load drop items
     async loadDropItems(addr, size) {
-        let rows = await this.db.all('SELECT * FROM drop_item WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+        let rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,

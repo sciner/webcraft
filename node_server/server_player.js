@@ -3,6 +3,7 @@ import {Player} from "../www/js/player.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
+import { PlayerInventory } from "../www/js/player_inventory.js";
 
 const PLAYER_HEIGHT = 1.7;
 export class NetworkMessage {
@@ -31,12 +32,20 @@ export class ServerPlayer extends Player {
         this.nearby_chunk_addrs = new VectorCollector();
         this.height             = PLAYER_HEIGHT;
         this.#forward           = new Vector(0, 1, 0);
+        this.game_mode          = {
+            isCreative: () => false
+        };
         /**
          * @type {ServerWorld}
          */
         this.world;
         this.session_id         = '';
         this.skin               = '';
+    }
+
+    init(init_info) {
+        this.state = init_info.state;
+        this.inventory = new PlayerInventory(this, init_info.inventory);
     }
 
     /**
@@ -130,12 +139,6 @@ export class ServerPlayer extends Player {
                         }
                     }
                     */
-                    break;
-                }
-
-                // Save inventory
-                case ServerClient.CMD_SAVE_INVENTORY: {
-                    this.updateInventory(cmd.data);
                     break;
                 }
 
@@ -264,7 +267,7 @@ export class ServerPlayer extends Player {
 
     // Update hands material
     updateHands() {
-        let inventory = this.state.inventory;
+        let inventory = this.inventory;
         if(!this.state.hands) {
             this.state.hands = {};
         }
@@ -318,19 +321,6 @@ export class ServerPlayer extends Player {
     }
 
     //
-    updateInventory(data) {
-        this.state.inventory.current.index = isNaN(data.current.index) ? 0 : data.current.index;
-        this.state.inventory.current.index2 = isNaN(data.current.index2) ? 0 : data.current.index2;
-        this.updateHands();
-        this.world.db.savePlayerInventory(this, data);
-        let packets = [{
-            name: ServerClient.CMD_PLAYER_STATE,
-            data: this.exportState()
-        }];
-        this.world.sendAll(packets, [this.session.user_id]);
-    }
-
-    //
     exportState()  {
         return {
             id:       this.session.user_id,
@@ -340,6 +330,44 @@ export class ServerPlayer extends Player {
             skin:     this.state.skin,
             hands:    this.state.hands
         };
+    }
+
+    tick(delta) {
+        this.world.chunks.checkPlayerVisibleChunks(this, false);
+        let chunk = this.world.chunks.get(this.chunk_addr);
+        let entity_ids = [];
+        if(chunk.drop_items.size > 0) {
+            let near = [];
+            for(const [entity_id, drop_item] of chunk.drop_items) {
+                let dist = drop_item.pos.distance(this.state.pos);
+                if(dist < 2) {
+                    near.push(drop_item.items);
+                    chunk.drop_items.delete(entity_id);
+                    drop_item.onUnload();
+                    entity_ids.push(drop_item.entity_id);
+                }
+            }
+            if(near.length > 0) {
+                // console.log(near);
+                // 1. add items to inventory
+                for(const drop_item of near) {
+                    for(const item of drop_item) {
+                        this.inventory.increment(item);
+                    }
+                }
+                // 2. deactive drop item in database
+                for(let entity_id of entity_ids) {
+                    this.world.db.deleteDropItem(entity_id);
+                }
+                // 3. play sound on client
+                // 4.
+                let packets = [{
+                    name: ServerClient.CMD_DROP_ITEM_DELETED,
+                    data: entity_ids
+                }];
+                chunk.sendAll(packets, []);
+            }
+        }
     }
 
 }

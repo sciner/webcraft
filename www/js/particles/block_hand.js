@@ -55,6 +55,13 @@ export class Particle_Hand {
                         uv: [40, 16],
                         rotation: [-90, 0, 0]
                     },
+                    {
+                        origin: [-2, 0, -5.5],
+                        size: [stive ? 4 : 3, 12, 4],
+                        uv: [40, 32],
+                        rotation: [-90, 0, 0],
+                        inflate: 0.25
+                    },
                 ]
             },
             {

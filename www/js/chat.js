@@ -230,6 +230,9 @@ export class Chat {
                     break;
                 }
                 case '/give': {
+                    // @todo inventory
+                    console.error('Нужно перенести на сервер');
+                    /*
                     if(temp.length >= 1) {
                         let name = null;
                         let cnt = 1;
@@ -254,7 +257,7 @@ export class Chat {
                         } else {
                             chat.messages.addError(`Unknown item '${name}'`);
                         }
-                    }
+                    }*/
                     break;
                 }
             }

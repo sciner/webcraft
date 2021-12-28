@@ -49,7 +49,8 @@ export class CraftTableSlot extends Label {
         ctx.imageSmoothingEnabled = true;
         // 
         if('inventory_icon_id' in item) {
-            const icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
+            let mat = BLOCK.fromId(item.id);
+            const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
             const dest_icon_size = 40;
             ctx.drawImage(
                 image,
@@ -62,7 +63,7 @@ export class CraftTableSlot extends Label {
                 dest_icon_size,
                 dest_icon_size
             );
-        } else {
+        } /*else {
             ctx.textBaseline    = 'top';
             ctx.textAlign       = 'left';
             ctx.font            = '11px Ubuntu';
@@ -71,7 +72,7 @@ export class CraftTableSlot extends Label {
             ctx.fillText(text, x + 2, y + 2);
             ctx.fillStyle       = '#ffffffff';
             ctx.fillText(text, x + 1, y + 1);
-        }
+        }*/
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
@@ -518,7 +519,9 @@ export class BaseCraftWindow extends Window {
         // Drag
         let dragItem = this.getRoot().drag.getItem();
         if(dragItem) {
-            this.inventory.increment(dragItem.item);
+            // @todo inventory
+            console.error('Нужно перенести на сервер');
+            // this.inventory.increment(dragItem.item);
         }
         this.getRoot().drag.clear();
         // Clear result
@@ -526,7 +529,9 @@ export class BaseCraftWindow extends Window {
         //
         for(let slot of this.craft.slots) {
             if(slot && slot.item) {
-                this.inventory.increment(slot.item);
+                // @todo inventory
+                console.error('Нужно перенести на сервер');
+                // this.inventory.increment(slot.item);
                 slot.item = null;
             }
         }

@@ -42,7 +42,9 @@ export default class ChestWindow extends Window {
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
-                this.inventory.increment(dragItem.item);
+                // @todo inventory
+                console.error('Нужно перенести на сервер');
+                // this.inventory.increment(dragItem.item);
             }
             this.getRoot().drag.clear();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');

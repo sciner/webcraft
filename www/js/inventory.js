@@ -3,27 +3,30 @@ import {DIRECTION, Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
+import { PlayerInventory } from "./player_inventory.js";
 
 // Player inventory
-export class Inventory {
+export class Inventory extends PlayerInventory {
 
     constructor(player, hud, cb_onSelect) {
+        super(null, {current: {index: 0, index2: -1}, items: []});
         this.player         = player;
         this.hud            = hud;
-        this.current_item   = null;
-        this.max_count      = 36;
-        this.hotbar_count   = 9;
-        this.items          = [];
         this.cb_onSelect    = cb_onSelect;
+        this.current_item   = null;
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
         //
-        this.restoreItems(player.state.inventory);
-        this.onSelect = (item) => {};
-        this.select(this.player.state.inventory.current.index);
+        // this.restoreItems(player.state.inventory);
+        this.select(this.current.index);
         // Recipe manager
         this.recipes = new RecipeManager();
+    }
+
+    setState(inventory_state) {
+        this.current = inventory_state.current;
+        this.items = inventory_state.items;
     }
 
     // Open window
@@ -35,67 +38,6 @@ export class Inventory {
         }
     }
 
-    // Return items from inventory
-    exportItems() {
-        let resp = {
-            current: {
-                index: this.player.state.inventory.current.index,
-                index2: this.player.state.inventory.current.index2
-            },
-            items: []
-        }
-        for(var item of this.items) {
-            let t = null;
-            if(item) {
-                t = {
-                    id:         item.id,
-                    count:      item.count,
-                    power:      item.power
-                };
-                // Individual properties
-                for(let prop of ['entity_id', 'entity_name']) {
-                    t[prop] = null;
-                    if(item.hasOwnProperty(prop)) {
-                        t.entity_id = item[prop];
-                    }
-                }
-            }
-            resp.items.push(t);
-        }
-        return resp;
-    }
-
-    // Возвращает список того, чего и в каком количестве не хватает в текущем инвентаре по указанному списку
-    hasResources(resources) {
-        let resp = [];
-        for(let resource of resources) {
-            let r = {
-                item_id: resource.item_id,
-                count: resource.count
-            };
-            // Each all items in inventoryy
-            for(var item of this.items) {
-                if(!item) {
-                    continue;
-                }
-                if(item.id == r.item_id) {
-                    if(item.count > r.count) {
-                        r.count = 0;
-                    } else {
-                        r.count -= item.count;
-                    }
-                    if(r.count == 0) {
-                        break;
-                    }
-                }
-            }
-            if(r.count > 0) {
-                resp.push(r);
-            }
-        }
-        return resp;
-    }
-
     //
     restoreItems(saved_inventory) {
         let items = saved_inventory.items;
@@ -103,7 +45,7 @@ export class Inventory {
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
-        this.player.state.inventory.current.index = 0;
+        this.current.index = 0;
         for(let k in items) {
             if(k >= this.items.length) {
                 console.error('Limit reach of inventory');
@@ -123,22 +65,8 @@ export class Inventory {
         }
     }
 
-    // Return current active item in hotbar
-    getCurrent() {
-        return this.current_item;
-    }
-
-    getLeftIndex() {
-        return this.player.state.inventory.current.index2;
-    }
-
-    getRightIndex() {
-        return this.player.state.inventory.current.index;
-    }
-
     // Refresh
     refresh(changed) {
-        this.player.saveInventory(this.exportItems());
         if(this.hud) {
             this.hud.refresh();
             try {
@@ -148,134 +76,6 @@ export class Inventory {
                 // do nothing
             }
         }
-    }
-
-    // decrementByItemID
-    decrementByItemID(item_id, count) {
-        for(let i in this.items) {
-            let item = this.items[i];
-            if(!item || item.count < 1) {
-                continue;
-            }
-            if(item.id == item_id) {
-                if(item.count >= count) {
-                    item.count -= count;
-                    if(item.count < 1) {
-                        this.items[i] = null;
-                    }
-                    break;
-                } else {
-                    count -= item.count;
-                    item.count = 0;
-                    this.items[i] = null;
-                }
-            }
-        }
-    }
-
-    // Increment
-    increment(mat) {
-        if(!mat.id) {
-            throw 'Empty mat ID';
-        }
-        let block = BLOCK.BLOCK_BY_ID.get(mat.id);
-        if(!block) {
-            throw 'Invalid mat ID';
-        }
-        // Restore material default properties
-        mat = Object.assign({
-            count:              1,
-            name:               block.name,
-            tags:               block.tags,
-            inventory_icon_id:  block.inventory_icon_id,
-            max_in_stack:       block.max_in_stack,
-        }, mat);
-        let item_max_count = mat.max_in_stack;
-        // Update cell if exists
-        for(let i in this.items) {
-            let item = this.items[i];
-            if(item) {
-                if(item.id == mat.id) {
-                    if(this.player.world.game_mode.isCreative()) {
-                        return;
-                    }
-                    if(item.count < item_max_count) {
-                        if(item.count + mat.count <= item_max_count) {
-                            item.count = Math.min(item.count + mat.count, item_max_count);
-                            this.refresh(true);
-                            return;
-                        } else {
-                            let remains = (item.count + mat.count) - item_max_count;
-                            item.count = item_max_count;
-                            mat.count = remains;
-                            this.refresh(true);
-                        }
-                    }
-                }
-            }
-        }
-        // Start new slot
-        for(let i = 0; i < this.items.length; i++) {
-            if(!this.items[i]) {
-                this.items[i] = {...mat};
-                if(this.items[i].count > item_max_count) {
-                    mat.count -= item_max_count;
-                    this.items[i].count = item_max_count;
-                } else {
-                    mat.count = 0;
-                }
-                delete(this.items[i].texture);
-                if(i == this.player.state.inventory.current.index) {
-                    this.select(i);
-                }
-                if(mat.count > 0) {
-                    this.increment(mat);
-                }
-                this.refresh(true);
-                return;
-            }
-        }
-    }
-    
-    // Decrement
-    decrement() {
-        if(!this.current_item || this.player.world.game_mode.isCreative()) {
-            return;
-        }
-        this.current_item.count = Math.max(this.current_item.count - 1, 0);
-        if(this.current_item.count < 1) {
-            this.current_item = this.player.buildMaterial = this.items[this.player.state.inventory.current.index] = null;
-        }
-        this.refresh(true);
-    }
-    
-    //
-    setItem(index, item) {
-        this.items[index] = item;
-        // Обновить текущий инструмент у игрока
-        this.select(this.player.state.inventory.current.index);
-    }
-
-    //
-    select(index) {
-        if(index < 0) {
-            index = this.hotbar_count - 1;
-        }
-        if(index >= this.hotbar_count) {
-            index = 0;
-        }
-        this.player.state.inventory.current.index = index;
-        this.current_item = this.player.buildMaterial = this.items[index];
-        this.refresh(false);
-        this.onSelect(this.current_item);
-    }
-
-    next() {
-        this.select(++this.player.state.inventory.current.index);
-    }
-    
-    prev() {
-        this.select(--this.player.state.inventory.current.index);
     }
     
     // Клонирование материала в инвентарь
@@ -298,8 +98,8 @@ export class Inventory {
             }
         }
         // Create in current cell if this empty
-        if(this.player.state.inventory.current.index < this.hotbar_count) {
-            let k = this.player.state.inventory.current.index;
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
             if(!this.items[k]) {
                 this.items[k] = Object.assign({count: 1}, mat);
                 delete(this.items[k].texture);
@@ -320,8 +120,8 @@ export class Inventory {
             }
         }
         // Replace current cell
-        if(this.player.state.inventory.current.index < this.hotbar_count) {
-            let k = this.player.state.inventory.current.index;
+        if(this.current.index < this.hotbar_count) {
+            let k = this.current.index;
             this.items[k] = Object.assign({count: 1}, mat);
             delete(this.items[k].texture);
             this.select(parseInt(k));
@@ -334,8 +134,8 @@ export class Inventory {
         if(!this.inventory_image) {
             return this.initUI();
         }
-        if(!this.player.state.inventory.current.index) {
-            this.player.state.inventory.current.index = 0;
+        if(!this.current.index) {
+            this.current.index = 0;
         }
         hud.wm.centerChild();
     }
@@ -350,6 +150,7 @@ export class Inventory {
         // 2. inventory_selector
         // img,sx,sy,swidth,sheight,x,y,width,height
         const hud_pos = new Vector(pos.x, pos.y, 0);
+        const DEST_SIZE = 64;
         // style
         hud.ctx.font            = '18px Ubuntu';
         hud.ctx.textAlign       = 'right';
@@ -364,42 +165,22 @@ export class Inventory {
                     console.error(item);
                 }
                 let mat = BLOCK.fromId(item.id);
-                if(mat.inventory_icon_id == 0 && mat.resource_pack.id != 'default') {
-                    let c_front = BLOCK.calcMaterialTexture(mat, DIRECTION.FORWARD);
-                    let image = mat.resource_pack.getTexture(mat.texture.id);
-                    c_front = c_front.map((v) => v * image.width);
-                    hud.ctx.drawImage(
-                        image.texture.source,
-                        c_front[0] - c_front[2] / 2,
-                        c_front[1] - c_front[3] / 2,
-                        c_front[2],
-                        c_front[3],
-                        hud_pos.x + cell_size / 2 - 18,
-                        hud_pos.y + cell_size / 2 - 18,
-                        48,
-                        48
+                const icon = BLOCK.getInventoryIconPos(
+                    mat.inventory_icon_id,
+                    this.inventory_image.width,
+                    this.inventory_image.width / 16
+                );
+                hud.ctx.drawImage(
+                    this.inventory_image,
+                    icon.x,
+                    icon.y,
+                    icon.width,
+                    icon.height,
+                    hud_pos.x + cell_size / 2 - 49 / 2 - 4,
+                    hud_pos.y + cell_size / 2 - 48 / 2 - 2,
+                    DEST_SIZE,
+                    DEST_SIZE
                     );
-                } else {
-
-                    const icon = BLOCK.getInventoryIconPos(
-                        item.inventory_icon_id,
-                        this.inventory_image.width,
-                        this.inventory_image.width / 16
-                    );
-                    const DEST_SIZE = 64;
-
-                    hud.ctx.drawImage(
-                        this.inventory_image,
-                        icon.x,
-                        icon.y,
-                        icon.width,
-                        icon.height,
-                        hud_pos.x + cell_size / 2 - 49 / 2 - 4,
-                        hud_pos.y + cell_size / 2 - 48 / 2 - 2,
-                        DEST_SIZE,
-                        DEST_SIZE
-                    );
-                }
                 if(item.count > 1) {
                     hud.ctx.textBaseline    = 'bottom';
                     hud.ctx.font            = '18px Ubuntu';
