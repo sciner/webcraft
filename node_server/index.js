@@ -1,5 +1,6 @@
 import path from 'path'
 import express from "express"; 
+import compression from "compression";
 import fs from 'fs';
 import {Worker} from "worker_threads";
 
@@ -33,6 +34,26 @@ Resources.physics = {
 
 // http://expressjs.com/en/api.html#req.originalUrl
 var app = express();
+// Compress all HTTP responses
+app.use(compression({
+    // filter: Decide if the answer should be compressed or not,
+    // depending on the 'shouldCompress' function above
+    filter: (req, res) => {
+        const ext = req._parsedUrl.pathname.split('.').pop().toLowerCase();
+        if(['vox'].indexOf(ext) >= 0) {
+            return true;
+        }
+        if (req.headers['x-no-compression']) {
+            // Will not compress responses, if this header is present
+            return false;
+        }
+        // Resort to standard compression
+        return compression.filter(req, res);
+    },
+    // threshold: It is the byte threshold for the response 
+    // body size before considering compression, the default is 1 kB
+    threshold: 0
+}));
 ServerStatic.init(app);
 ServerAPI.init(app);
 
