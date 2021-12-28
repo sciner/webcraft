@@ -71,15 +71,14 @@ export default class style {
         }
 
         let tex = resource_pack.textures.get(texture_id);
-        const TX_CNT = tex.tx_cnt;
 
         // let imageData = tex.imageData;
-        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, TX_CNT);
+        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
         let world = new FakeCloudWorld();
-        let tex_x = Math.round((c[0] - .5 / tex.tx_cnt) * tex.width);
-        let tex_y = Math.round((c[1] - .5 / tex.tx_cnt) * tex.height);
         let tex_w = Math.round(c[2] * tex.width);
         let tex_h = Math.round(c[3] * tex.height);
+        let tex_x = Math.round(c[0] * tex.width) - tex_w/2;
+        let tex_y = Math.round(c[1] * tex.height) - tex_h/2;
         world.clouds.init(block.id, tex, tex_x, tex_y, tex_w, tex_h);
 
         //
@@ -107,8 +106,6 @@ export default class style {
         let force_tex = [
             c[0],
             c[1],
-            // c[2] / ts,
-            // c[3] / ts
             0,
             0,
         ];
@@ -121,18 +118,21 @@ export default class style {
         let width = 1.0;
         // back & front, no matrices
         vertices.push(
-            0, -1 / 32, 0,
-            2, 0, 0,
-            0, 0, 2 * height,
+            0, -scale.z * 0.5, 0,
+            MUL, 0, 0,
+            0, 0, MUL * height,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b, flags);
 
         vertices.push(
-            0, 1 / 32, 0,
-            2, 0, 0,
-            0, 0, -2 *height,
+            0, scale.z * 0.5, 0,
+            MUL, 0, 0,
+            0, 0, -MUL *height,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b, flags);
+
+        let uc = 1 / tex.width;
+        let vc = 1 / tex.height;
 
         for(let x = 0; x < clouds.size.x; x++) {
             for(let y = 0; y < clouds.size.y; y++) {
@@ -145,8 +145,8 @@ export default class style {
                 neighbours.WEST = world.chunkManager.getBlock(x - 1, y, 0);
                 neighbours.EAST = world.chunkManager.getBlock(x + 1, y, 0);
                 // Position of each texture pixel
-                force_tex[0] = (c[0] - 0.5 / tex.tx_cnt + force_tex[2] / 2) + (x - 1) / tex.tx_cnt / ts;
-                force_tex[1] = (c[1] - 0.5 / tex.tx_cnt + force_tex[3] / 2) + (y - 1) / tex.tx_cnt / ts;
+                let u = (tex_x + (x-1) + 0.5) / tex.width;
+                let v = (tex_y + (y-1) + 0.5) / tex.height;
 
                 // inline cube drawing
                 let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
@@ -160,7 +160,7 @@ export default class style {
                         .5, 0.5, height,
                         1, 0, 0,
                         0, 1, 0,
-                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags
                     );
                 }
@@ -173,7 +173,7 @@ export default class style {
                         0.5, 0.5, 0,
                         1, 0, 0,
                         0, -1, 0,
-                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
                 }
 
@@ -185,7 +185,7 @@ export default class style {
                         .5 - width / 2, .5, height / 2,
                         0, 1, 0,
                         0, 0, -height,
-                        force_tex[0], force_tex[1], -force_tex[2], force_tex[3],
+                        u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
                 }
 
@@ -197,7 +197,7 @@ export default class style {
                         .5 + width / 2, .5, height / 2,
                         0, 1, 0,
                         0, 0, height,
-                        force_tex[0], force_tex[1], force_tex[2], -force_tex[3],
+                        u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
                 }
             }
