@@ -7,6 +7,27 @@ import { SceneNode } from "./SceneNode.js";
 
 const {mat4, quat} = glMatrix;
 
+const KEY_SLOT_MAP = {
+    left: 'LeftArm',
+    right: 'RightArm'
+};
+
+export class ModelSlot {
+    constructor(name = '', parent = null) {
+        /**
+         * @type { SceneNode }
+         */
+        this.holder = new SceneNode(parent);
+        this.holder.position.set(parent.pivot);
+
+        this.id = -1;
+
+        this.name = name;
+
+        this.holder.updateMatrix();
+    }
+}
+
 export class PlayerAnimation extends MobAnimation {
     head({
         part, animable
@@ -46,57 +67,59 @@ export class PlayerModel extends MobModel {
         this.animationScript = new PlayerAnimation();
 
         /**
-         * @type {SceneNode}
+         * @type {Map<string, ModelSlot>}
          */
-        this.handItem;
+        this.slots = {};
 
-        this.handItemId = props.hands ? (props.hands.right.id || -1) : -1;
+        // for lazy state generation
+        this.activeSlotsData = props.hands;
     }
 
     applyNetState(state) {
         super.applyNetState(state);
 
-        const itemId = state.hands ? (state.hands.right.id || -1) : -1;
+        this.changeSlots(state.hands);
+    }
 
-        if (this.sceneTree) {
-            this.changeHandItem(itemId, false);
-        } else {
-            this.handItemId = itemId;
+    changeSlots(data) {
+        this.activeSlotsData = data;
+
+        if (this.sceneTree && this.activeSlotsData) {
+            for(const key in this.activeSlotsData) {
+                this.changeSlotEntry(KEY_SLOT_MAP[key], this.activeSlotsData[key]);
+            }
         }
     }
 
-    /**
-     * Change item that placed in remove player arms (hands)
-     * @param {number} id 
-     * @param {boolean} left 
-     * @returns 
-     */
-    changeHandItem (id = -1, left = true) {
-        const armNode = this.sceneTree.findNode(left ? 'LeftArmItemPlace' : 'RightArmItemPlace');
-
-        let scale = 0.3;
-
-        if (!armNode) {
+    changeSlotEntry(name, props) {
+        if (!name || !props) {
             return;
         }
 
-        if (!this.handItem) {
-            this.handItem = new SceneNode();
-            this.handItem.position.set(armNode.pivot);
+        let {
+            id, scale = 0.3
+        } = props;
 
-            this.handItem.updateMatrix();
-        }
+        id = typeof id !== 'number' ? -1 : id;
 
-        if (id == this.handItemId && this.handItem.terrainGeometry) {
+        const slotLocation = this.sceneTree.findNode(name + 'ItemPlace');
+
+        if (!slotLocation) {
             return;
         }
 
-        if (this.handItem.terrainGeometry) {
-            this.handItem.terrainGeometry.destroy();
-            this.handItem.terrainGeometry = null;
+        const slot = (this.slots[name] || (this.slots[name] = new ModelSlot(name, slotLocation)));
+
+        if (id == slot.id && slot.holder.terrainGeometry) {
+            return;
         }
 
-        this.handItemId = id;
+        if (slot.holder.terrainGeometry) {
+            slot.holder.terrainGeometry.destroy();
+            slot.holder.terrainGeometry = null;
+        }
+
+        slot.id = id;
 
         if (id === -1) {
             return;
@@ -109,6 +132,7 @@ export class PlayerModel extends MobModel {
         }
 
         let item;
+        
         try {
             item = new Particles_Block_Drop(null, null, [block], Vector.ZERO);
         } catch(e) {
@@ -116,26 +140,27 @@ export class PlayerModel extends MobModel {
             //
         }
 
-        if (item) {
-            this.handItem.terrainGeometry = item.buffer;
-            this.handItem.material = item.material;
-
-            const orient = left ? -1 : 1;
-
-            if (block.diagonal) {
-                scale *= 1.2;
-
-                quat.fromEuler(this.handItem.quat, -10 * orient, -30, -90 + 10 * orient);
-
-            } else {
-                quat.fromEuler(this.handItem.quat, -20 * orient, 0, -20);
-            }
-
-            this.handItem.scale.set([scale, scale, scale]);
-            this.handItem.pivot.set([0, 0, scale / 2]);
-            
-            armNode.addChild(this.handItem);
+        if (!item) {
+            return;
         }
+        
+        slot.holder.terrainGeometry = item.buffer;
+        slot.holder.material = item.material;
+
+        const orient = name === 'LeftArm' ? -1 : 1;
+
+        if (block.diagonal) {
+            scale *= 1.2;
+
+            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+
+        } else {
+            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+        }
+
+        slot.holder.scale.set([scale, scale, scale]);
+        slot.holder.pivot.set([0, 0, scale / 2]);
+        slot.holder.updateMatrix();
     }
 
     itsMe() {
@@ -174,7 +199,7 @@ export class PlayerModel extends MobModel {
         super.postLoad(tree);
         tree.scale.set([0.9, 0.9, 0.9]);
 
-        this.changeHandItem(this.handItemId, false);
+        this.changeSlots(this.activeSlotsData);
     }
 
     update(render, camPos, delta) {
