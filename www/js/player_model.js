@@ -50,7 +50,19 @@ export class PlayerModel extends MobModel {
          */
         this.handItem;
 
-        this.handItemId = -1;
+        this.handItemId = props.hands ? (props.hands.right.id || -1) : -1;
+    }
+
+    applyNetState(state) {
+        super.applyNetState(state);
+
+        const itemId = state.hands ? (state.hands.right.id || -1) : -1;
+
+        if (this.sceneTree) {
+            this.changeHandItem(itemId, false);
+        } else {
+            this.handItemId = itemId;
+        }
     }
 
     /**
