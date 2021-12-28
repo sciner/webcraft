@@ -107,8 +107,10 @@ export default class style {
         let force_tex = [
             c[0],
             c[1],
-            c[2] / ts,
-            c[3] / ts
+            // c[2] / ts,
+            // c[3] / ts
+            0,
+            0,
         ];
 
         let lm = MULTIPLY.COLOR.WHITE;
