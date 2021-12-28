@@ -58,7 +58,7 @@ export class Particle_Hand {
             origin: [-2, 0, 2],
             size: [stive ? 4 : 3, 12, 4],
             uv: left ? [32, 48] : [40, 16],
-            rotation: [90, 180, 0]
+            rotation: [110, 180, 0]
         };
 
         this.buffer = decodeCubes(
