@@ -1,5 +1,6 @@
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {Player} from "../www/js/player.js";
+import {GameMode} from "../www/js/game_mode.js";
 import {ServerClient} from "../www/js/server_client.js";
 import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
@@ -32,8 +33,11 @@ export class ServerPlayer extends Player {
         this.nearby_chunk_addrs = new VectorCollector();
         this.height             = PLAYER_HEIGHT;
         this.#forward           = new Vector(0, 1, 0);
-        this.game_mode          = {
-            isCreative: () => false
+        this.game_mode          = new GameMode(null, this);
+        this.game_mode.onSelect     = async (mode) => {
+            await this.world.db.changeGameMode(this, mode.id);
+            this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
+            this.world.chat.sendSystemChatMessageToSelectedPlayers('Game mode changed to ... ' + mode.title, [this.session.user_id]);
         };
         /**
          * @type {ServerWorld}
@@ -46,6 +50,7 @@ export class ServerPlayer extends Player {
     init(init_info) {
         this.state = init_info.state;
         this.inventory = new PlayerInventory(this, init_info.inventory);
+        this.game_mode.applyMode(init_info.state.game_mode, false);
     }
 
     /**
@@ -71,7 +76,7 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: 'Welcome to MadCraft ver. 0.0.1'
+            data: 'Welcome to MadCraft ver. 0.0.3'
         }]);
         this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
     }
@@ -195,6 +200,11 @@ export class ServerPlayer extends Player {
                     await this.world.setBlock(this, cmd.data);
                     break;
                 }
+
+                case ServerClient.CMD_INVENTORY_SELECT: {
+                    this.inventory.setIndexes(cmd.data);
+                    break;
+                }
             
                 case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
                     // @ParamChestSetSlotItem
@@ -211,7 +221,17 @@ export class ServerPlayer extends Player {
                     this.changeRenderDist(parseInt(cmd.data));
                     break;
                 }
-                            
+
+                case ServerClient.CMD_GAMEMODE_NEXT: {
+                    this.game_mode.next();
+                    break;
+                }
+
+                case ServerClient.CMD_GAMEMODE_SET: {
+                    this.game_mode.applyMode(cmd.data.id, true);
+                    break;
+                }
+
             }
         } catch(e) {
             console.log(e);

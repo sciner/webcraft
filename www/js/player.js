@@ -10,6 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {PlayerControl} from "./player_control.js";
 import { AABB } from './core/AABB.js';
+import {GameMode, GAME_MODE} from "./game_mode.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -37,6 +38,15 @@ export class Player {
         this.session                = data.session;
         this.state                  = data.state;
         this.indicators             = data.state.indicators;
+        // Game mode
+        this.game_mode              = new GameMode(this, data.state.game_mode);
+        this.game_mode.onSelect     = (mode) => {
+            if(!mode.can_fly) {
+                this.setFlying(false);
+            } else if(mode.id == GAME_MODE.SPECTATOR) {
+                this.setFlying(true);
+            }
+        };
         this._createBlockAABB       = new AABB();
         this._prevActionTime        = performance.now();
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
@@ -60,6 +70,7 @@ export class Player {
             if(this.pickAt) {
                 this.pickAt.resetProgress();
             }
+            this.world.server.InventorySelect(this.inventory.current);
         };
         this.inventory.setState(data.inventory);
         Game.hotbar.setInventory(this.inventory);
@@ -74,7 +85,6 @@ export class Player {
         this.chat                   = new Chat(this);
         //
         this.falling                = false; // падает
-        // this.flying                 = this.world.game_mode.getCurrent().can_fly; // летит
         this.running                = false; // бежит
         this.moving                 = false; // двигается в стороны
         this.walking                = false; // идёт по земле
@@ -98,8 +108,22 @@ export class Player {
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
-        this.world.server.AddCmdListener([ServerClient.CMD_SAVE_INVENTORY], (cmd) => {
-            this.inventory.setState(cmd.data);
+        this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
+        this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
+            let pc_previous = this.getPlayerControl();
+            this.game_mode.applyMode(cmd.data.id, false);
+            let pc_current = this.getPlayerControl();
+            //
+            pc_current.player.entity.velocity   = new Vector(0, 0, 0);
+            pc_current.player_state.vel         = new Vector(0, 0, 0);
+            //
+            let pos                             = new Vector(pc_previous.player.entity.position);
+            pc_current.player.entity.position   = new Vector(pos);
+            pc_current.player_state.pos         = new Vector(pos);
+            this.lerpPos                        = new Vector(pos);
+            this.pos                            = new Vector(pos);
+            this.posO                           = new Vector(pos);
+            this.prevPos                        = new Vector(pos);
         });
         this.world.server.AddCmdListener([ServerClient.CMD_ENTITY_INDICATORS], (cmd) => {
             this.indicators = cmd.data.indicators;
@@ -175,7 +199,7 @@ export class Player {
         } else if(e.destroyBlock) {
             let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
             let block           = BLOCK.BLOCK_BY_ID.get(world_block.id);
-            let destroy_time    = BLOCK.getDestroyTime(block, this.world.game_mode.isCreative(), this.getCurrentInstrument());
+            let destroy_time    = BLOCK.getDestroyTime(block, this.game_mode.isCreative(), this.getCurrentInstrument());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 Game.render.destroyBlock(block, bPos, true);
             }
@@ -226,7 +250,7 @@ export class Player {
 
     // Called to perform an action based on the player's block selection and input.
     doBlockAction(e) {
-        if(e.pos == false || !this.world.game_mode.canBlockAction()) {
+        if(e.pos == false || !this.game_mode.canBlockAction()) {
             return;
         }
         //
@@ -318,7 +342,7 @@ export class Player {
             }
             // Эта проверка обязательно должна быть тут, а не выше!
             // Иначе не будут открываться сундуки и прочее
-            if(!this.buildMaterial || this.inventory.getCurrent().count < 1) {
+            if(!this.buildMaterial || (this.inventory.current_item && this.inventory.current_item.count < 1)) {
                 return;
             }
             if(replaceBlock && this.buildMaterial.style == 'ladder') {
@@ -478,9 +502,6 @@ export class Player {
                         world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
                     }
                 }
-                // @todo inventory
-                console.error('Нужно перенести на сервер');
-                // this.inventory.decrement();
             }
         } else if(destroyBlock) {
             // Destroy block
@@ -488,7 +509,7 @@ export class Player {
                 this.destroyBlock(world_material, pos, this.getCurrentInstrument());
             }
         } else if(cloneBlock) {
-            if(world_material && world.game_mode.canBlockClone()) {
+            if(world_material && this.game_mode.canBlockClone()) {
                 this.inventory.cloneMaterial(world_material);
             }
         }
@@ -555,7 +576,7 @@ export class Player {
 
     //
     getPlayerControl() {
-        if(Game.world.game_mode.isSpectator()) {
+        if(this.game_mode.isSpectator()) {
             return this.pr_spectator;
         }
         return this.pr;
@@ -563,20 +584,7 @@ export class Player {
 
     //
     nextGameMode() {
-        let pc_previous = this.getPlayerControl();
-        this.world.game_mode.next();
-        let pc_current = this.getPlayerControl();
-        //
-        pc_current.player.entity.velocity   = new Vector(0, 0, 0);
-        pc_current.player_state.vel         = new Vector(0, 0, 0);
-        //
-        let pos                             = new Vector(pc_previous.player.entity.position);
-        pc_current.player.entity.position   = new Vector(pos);
-        pc_current.player_state.pos         = new Vector(pos);
-        this.lerpPos                        = new Vector(pos);
-        this.pos                            = new Vector(pos);
-        this.posO                           = new Vector(pos);
-        this.prevPos                        = new Vector(pos);
+        this.world.server.GameModeNext();
     }
 
     // Updates this local player (gravity, movement)
@@ -597,7 +605,7 @@ export class Player {
             if(!this.overChunk?.inited) {
                 return;
             }
-            let isSpectator = this.world.game_mode.isSpectator();
+            let isSpectator = this.game_mode.isSpectator();
             let delta = Math.min(1.0, (performance.now() - this.lastUpdate) / 1000);
             //
             let pc                 = this.getPlayerControl();
@@ -714,7 +722,7 @@ export class Player {
 
     // Проверка падения (урон)
     checkFalling() {
-        if(!Game.world.game_mode.isSurvival()) {
+        if(!this.game_mode.isSurvival()) {
             return;
         }
         if(!this.onGround) {

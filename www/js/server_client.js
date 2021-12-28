@@ -33,12 +33,15 @@ export class ServerClient {
     static CMD_CHANGE_POS_SPAWN         = 63;
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
     static CMD_TELEPORT                 = 65; // сервер телепортировал игрока
-    static CMD_SAVE_INVENTORY           = 66;
+    static CMD_INVENTORY_STATE          = 66;
+    static CMD_INVENTORY_SELECT         = 79;
     static CMD_NEARBY_CHUNKS            = 67 // Чанки, находящиеся рядом с игроком
     static CMD_MODIFY_INDICATOR_REQUEST = 68; // Обновление одного из видов индикатора (здоровья, еды, кислорода)
     static CMD_ENTITY_INDICATORS        = 69;
 	static CMD_WORLD_INFO               = 74;
-    
+	static CMD_GAMEMODE_NEXT            = 80;
+	static CMD_GAMEMODE_SET             = 81;
+
     // Mobs    
 	static CMD_MOB_ADD                  = 70;
 	static CMD_MOB_ADDED                = 71;
@@ -53,8 +56,8 @@ export class ServerClient {
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
     static BLOCK_ACTION_DESTROY         = 2;
-    static BLOCK_ACTION_REPLACE         = 3;
-    static BLOCK_ACTION_MODIFY          = 4;
+    static BLOCK_ACTION_MODIFY          = 3;
+    static BLOCK_ACTION_REPLACE         = 4;
 
     // Constructor
     constructor(ws) {
@@ -272,6 +275,21 @@ export class ServerClient {
             comment: comment
         }
         this.Send({name: ServerClient.CMD_MODIFY_INDICATOR_REQUEST, data: data});
+    }
+
+    // Изменение текущего инструмента в руках
+    InventorySelect(data) {
+        this.Send({name: ServerClient.CMD_INVENTORY_SELECT, data: data});
+    }
+
+    // Switch to next game mode
+    GameModeNext() {
+        this.Send({name: ServerClient.CMD_GAMEMODE_NEXT, data: null});
+    }
+
+    // Switch to specific game mode
+    GameModeSet(mode_id) {
+        this.Send({name: ServerClient.CMD_GAMEMODE_SET, data: {id: mode_id}});
     }
 
 }

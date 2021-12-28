@@ -423,8 +423,7 @@ export class Renderer {
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
                 if (shader.texture) {
                     shader.bind(true);
-                    // this.world.draw(this, delta);
-                    if(this.world.game_mode.isSurvival() || this.world.game_mode.isCreative()) {
+                    if(player.game_mode.isSurvival() || player.game_mode.isCreative()) {
                         player.pickAt.draw();
                     }
                     // 3. Draw players and rain

@@ -1,5 +1,4 @@
 import {ChunkManager} from "./chunk_manager.js";
-import {GameMode} from "./game_mode.js";
 import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {Physics} from "./physics.js";
@@ -57,7 +56,6 @@ export class World {
     setInfo(info) {
         this.info                   = info;
         this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
-        this.game_mode              = new GameMode(this, info.game_mode);
         this.chunkManager           = new ChunkManager(this);
         this.mobs                   = new MobManager(this);
         this.drop_items             = new DropItemManager(this)

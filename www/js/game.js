@@ -305,7 +305,7 @@ export class GameClass {
                 if(e.keyCode == KEY.W) {
                     player.controls.sprint = true;
                 } else if (e.keyCode == KEY.SPACE) {
-                    if(this.world.game_mode.canFly() && !player.in_water && !player.onGround) {
+                    if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
                         if(!player.getFlying()) {
                             player.setFlying(true);
                         }
@@ -341,8 +341,8 @@ export class GameClass {
         }
         this.world.chunkManager.update(player.pos);
         // Picking target
-        if (player.pickAt && Game.hud.active && this.world.game_mode.canBlockAction()) {
-            player.pickAt.update(player.pos, this.world.game_mode.getPickatDistance());
+        if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
+            player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
         }
         // Draw world
         this.render.setCamera(player, player.getEyePos(), player.rotate);

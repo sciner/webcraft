@@ -1,4 +1,5 @@
 import {BLOCK} from "./blocks.js";
+import {Helpers} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 
 export class PlayerInventory {
@@ -7,7 +8,6 @@ export class PlayerInventory {
         this.player         = player;
         this.current        = state.current;
         this.items          = state.items;
-        this.current_item   = null;
         this.max_count      = 36;
         this.hotbar_count   = 9;
         this.onSelect       = (item) => {};
@@ -28,7 +28,19 @@ export class PlayerInventory {
         }];
         this.player.world.sendAll(packets, [this.player.session.user_id]);
         // Send new inventory to player
-        this.player.world.sendSelected([{name: ServerClient.CMD_SAVE_INVENTORY, data: data}], [this.player.session.user_id], []);
+        this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
+    }
+
+    //
+    setIndexes(data) {
+        this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
+        this.current.index2 = Helpers.clamp(data.index2, 0, this.max_count - 1);
+        this.refresh();
+    }
+
+    // Return current active item in hotbar
+    get current_item() {
+        return this.items[this.current.index];
     }
 
     //
@@ -40,8 +52,6 @@ export class PlayerInventory {
             index = 0;
         }
         this.current.index = index;
-        // @todo inventory Нужно обновить this.player.buildMaterial на клиенте
-        this.current_item = this.items[index];
         this.refresh(false);
         this.onSelect(this.current_item);
     }
@@ -117,8 +127,7 @@ export class PlayerInventory {
         }
         this.current_item.count = Math.max(this.current_item.count - 1, 0);
         if(this.current_item.count < 1) {
-            // @todo inventory Нужно обновить this.player.buildMaterial на клиенте
-            this.current_item = this.items[this.current.index] = null;
+            this.items[this.current.index] = null;
         }
         this.refresh(true);
     }
@@ -205,11 +214,6 @@ export class PlayerInventory {
             resp.items.push(t);
         }
         return resp;
-    }
-
-    // Return current active item in hotbar
-    getCurrent() {
-        return this.current_item;
     }
 
     getLeftIndex() {

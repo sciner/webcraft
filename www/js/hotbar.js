@@ -38,7 +38,8 @@ export class Hotbar {
     };
     
     drawHUD(hud) {
-        if(this.inventory.player.world.game_mode.isSpectator()) {
+        const player = this.inventory.player;
+        if(player.game_mode.isSpectator()) {
             return false;
         }
         const scale = 1;
@@ -50,74 +51,90 @@ export class Hotbar {
             y: hud.height - h
         };
         const ss = 27;
-        // bar
-        hud.ctx.drawImage(
-            this.image,
-            0,
-            0,
-            w,
-            h,
-            hud_pos.x,
-            hud_pos.y,
-            w,
-            h
-        );
-        // Indicators
-        let indicators = Game.player.indicators;
-        let live = indicators.live.value / 20;
-        let food = indicators.food.value / 20;
-        // live
-        for(let i = 0; i < Math.floor(live * 10); i++) {
+        if(player.game_mode.mayGetDamaged()) {
+            // bar
             hud.ctx.drawImage(
                 this.image,
                 0,
-                150,
-                ss,
-                ss,
-                hud_pos.x + i * 24,
-                hud_pos.y + 30,
-                ss,
-                ss
+                0,
+                w,
+                h,
+                hud_pos.x,
+                hud_pos.y,
+                w,
+                h
             );
-        }
-        if(Math.round(live * 10) > Math.floor(live * 10)) {
+            // Indicators
+            let indicators = player.indicators;
+            let live = indicators.live.value / 20;
+            let food = indicators.food.value / 20;
+            // live
+            for(let i = 0; i < Math.floor(live * 10); i++) {
+                hud.ctx.drawImage(
+                    this.image,
+                    0,
+                    150,
+                    ss,
+                    ss,
+                    hud_pos.x + i * 24,
+                    hud_pos.y + 30,
+                    ss,
+                    ss
+                );
+            }
+            if(Math.round(live * 10) > Math.floor(live * 10)) {
+                hud.ctx.drawImage(
+                    this.image,
+                    0,
+                    150 + ss,
+                    ss,
+                    ss,
+                    hud_pos.x + Math.floor(live * 10) * 24,
+                    hud_pos.y + 30,
+                    ss,
+                    ss
+                );
+            }
+            // foods
+            for(let i = 0; i < Math.floor(food * 10); i++) {
+                hud.ctx.drawImage(
+                    this.image,
+                    ss,
+                    150,
+                    ss,
+                    ss,
+                    hud_pos.x + w - (i * 24 + ss),
+                    hud_pos.y + 30,
+                    ss,
+                    ss
+                );
+            }
+            if(Math.round(food * 10) > Math.floor(food * 10)) {
+                hud.ctx.drawImage(
+                    this.image,
+                    ss,
+                    150 + ss,
+                    ss,
+                    ss,
+                    hud_pos.x + w - (Math.floor(food * 10) * 24 + ss),
+                    hud_pos.y + 30,
+                    ss,
+                    ss
+                );
+            }
+        } else {
+            const live_bar_height = 81;
+            // bar
             hud.ctx.drawImage(
                 this.image,
                 0,
-                150 + ss,
-                ss,
-                ss,
-                hud_pos.x + Math.floor(live * 10) * 24,
-                hud_pos.y + 30,
-                ss,
-                ss
-            );
-        }
-        // foods
-        for(let i = 0; i < Math.floor(food * 10); i++) {
-            hud.ctx.drawImage(
-                this.image,
-                ss,
-                150,
-                ss,
-                ss,
-                hud_pos.x + w - (i * 24 + ss),
-                hud_pos.y + 30,
-                ss,
-                ss
-            );
-        }
-        if(Math.round(food * 10) > Math.floor(food * 10)) {
-            hud.ctx.drawImage(
-                this.image,
-                ss,
-                150 + ss,
-                ss,
-                ss,
-                hud_pos.x + w - (Math.floor(food * 10) * 24 + ss),
-                hud_pos.y + 30,
-                ss,
-                ss
+                live_bar_height,
+                w,
+                h - live_bar_height,
+                hud_pos.x,
+                hud_pos.y + live_bar_height,
+                w,
+                h - live_bar_height
             );
         }
         // inventory_selector

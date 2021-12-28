@@ -2,203 +2,203 @@
     {
         "type": "madcraft:block.chest",
         "dig": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "place": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "open": [
-            "/sounds/Chest_open.ogg"
+            "Chest_open"
         ],
         "close": [
-            "/sounds/Chest_close.ogg"
+            "Chest_close"
         ],
         "hit": [
-            "/sounds/Wood_hit1.ogg",
-            "/sounds/Wood_hit2.ogg",
-            "/sounds/Wood_hit3.ogg",
-            "/sounds/Wood_hit4.ogg",
-            "/sounds/Wood_hit5.ogg",
-            "/sounds/Wood_hit6.ogg"
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
         ]
     },
     {
         "type": "madcraft:block.wood",
         "dig": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "place": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "hit": [
-            "/sounds/Wood_hit1.ogg",
-            "/sounds/Wood_hit2.ogg",
-            "/sounds/Wood_hit3.ogg",
-            "/sounds/Wood_hit4.ogg",
-            "/sounds/Wood_hit5.ogg",
-            "/sounds/Wood_hit6.ogg"
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
         ]
     },
     {
         "type": "madcraft:block.sand",
         "dig": [
-            "/sounds/Sand_dig1.ogg",
-            "/sounds/Sand_dig2.ogg",
-            "/sounds/Sand_dig3.ogg",
-            "/sounds/Sand_dig4.ogg"
+            "Sand_dig1",
+            "Sand_dig2",
+            "Sand_dig3",
+            "Sand_dig4"
         ],
         "place": [
-            "/sounds/Sand_dig1.ogg",
-            "/sounds/Sand_dig2.ogg",
-            "/sounds/Sand_dig3.ogg",
-            "/sounds/Sand_dig4.ogg"
+            "Sand_dig1",
+            "Sand_dig2",
+            "Sand_dig3",
+            "Sand_dig4"
         ],
         "hit": [
-            "/sounds/Sand_hit1.ogg",
-            "/sounds/Sand_hit2.ogg",
-            "/sounds/Sand_hit3.ogg",
-            "/sounds/Sand_hit4.ogg",
-            "/sounds/Sand_hit5.ogg"
+            "Sand_hit1",
+            "Sand_hit2",
+            "Sand_hit3",
+            "Sand_hit4",
+            "Sand_hit5"
         ]
     },
     {
         "type": "madcraft:block.glass",
         "dig": [
-            "/sounds/Glass_dig1.ogg",
-            "/sounds/Glass_dig2.ogg",
-            "/sounds/Glass_dig3.ogg"
+            "Glass_dig1",
+            "Glass_dig2",
+            "Glass_dig3"
         ],
         "place": [
-            "/sounds/stone1.mp3",
-            "/sounds/stone2.mp3",
-            "/sounds/stone3.mp3",
-            "/sounds/stone4.mp3"
+            "stone1",
+            "stone2",
+            "stone3",
+            "stone4"
         ],
         "hit": [
-            "/sounds/Stone_hit1.ogg",
-            "/sounds/Stone_hit2.ogg",
-            "/sounds/Stone_hit3.ogg",
-            "/sounds/Stone_hit4.ogg",
-            "/sounds/Stone_hit5.ogg",
-            "/sounds/Stone_hit6.ogg"
+            "Stone_hit1",
+            "Stone_hit2",
+            "Stone_hit3",
+            "Stone_hit4",
+            "Stone_hit5",
+            "Stone_hit6"
         ]
     },
     {
         "type": "madcraft:block.cloth",
         "dig": [
-            "/sounds/Cloth_dig1.ogg",
-            "/sounds/Cloth_dig2.ogg",
-            "/sounds/Cloth_dig3.ogg",
-            "/sounds/Cloth_dig4.ogg"
+            "Cloth_dig1",
+            "Cloth_dig2",
+            "Cloth_dig3",
+            "Cloth_dig4"
         ],
         "place": [
-            "/sounds/Cloth_dig1.ogg",
-            "/sounds/Cloth_dig2.ogg",
-            "/sounds/Cloth_dig3.ogg",
-            "/sounds/Cloth_dig4.ogg"
+            "Cloth_dig1",
+            "Cloth_dig2",
+            "Cloth_dig3",
+            "Cloth_dig4"
         ]
     },
     {
         "type": "madcraft:block.grass",
         "dig": [
-            "/sounds/grass1.mp3",
-            "/sounds/grass2.mp3",
-            "/sounds/grass3.mp3",
-            "/sounds/grass4.mp3"
+            "grass1",
+            "grass2",
+            "grass3",
+            "grass4"
         ],
         "place": [
-            "/sounds/grass1.mp3",
-            "/sounds/grass2.mp3",
-            "/sounds/grass3.mp3",
-            "/sounds/grass4.mp3"
+            "grass1",
+            "grass2",
+            "grass3",
+            "grass4"
         ],
         "hit": [
-            "/sounds/Grass_hit1.ogg",
-            "/sounds/Grass_hit2.ogg",
-            "/sounds/Grass_hit3.ogg",
-            "/sounds/Grass_hit4.ogg",
-            "/sounds/Grass_hit5.ogg",
-            "/sounds/Grass_hit6.ogg"
+            "Grass_hit1",
+            "Grass_hit2",
+            "Grass_hit3",
+            "Grass_hit4",
+            "Grass_hit5",
+            "Grass_hit6"
         ]
     },
     {
         "type": "madcraft:block.stone",
         "dig": [
-            "/sounds/stone1.mp3",
-            "/sounds/stone2.mp3",
-            "/sounds/stone3.mp3",
-            "/sounds/stone4.mp3"
+            "stone1",
+            "stone2",
+            "stone3",
+            "stone4"
         ],
         "place": [
-            "/sounds/stone1.mp3",
-            "/sounds/stone2.mp3",
-            "/sounds/stone3.mp3",
-            "/sounds/stone4.mp3"
+            "stone1",
+            "stone2",
+            "stone3",
+            "stone4"
         ],
         "hit": [
-            "/sounds/Stone_hit1.ogg",
-            "/sounds/Stone_hit2.ogg",
-            "/sounds/Stone_hit3.ogg",
-            "/sounds/Stone_hit4.ogg",
-            "/sounds/Stone_hit5.ogg",
-            "/sounds/Stone_hit6.ogg"
+            "Stone_hit1",
+            "Stone_hit2",
+            "Stone_hit3",
+            "Stone_hit4",
+            "Stone_hit5",
+            "Stone_hit6"
         ]
     },
     {
         "type": "madcraft:block.gravel",
         "dig": [
-            "/sounds/gravel1.mp3"
+            "gravel1"
         ],
         "place": [
-            "/sounds/gravel1.mp3"
+            "gravel1"
         ],
         "hit": [
-            "/sounds/Gravel_hit1.ogg",
-            "/sounds/Gravel_hit2.ogg",
-            "/sounds/Gravel_hit3.ogg",
-            "/sounds/Gravel_hit4.ogg"
+            "Gravel_hit1",
+            "Gravel_hit2",
+            "Gravel_hit3",
+            "Gravel_hit4"
         ]
     },
     {
         "type": "madcraft:block.wooden_trapdoor",
         "open": [
-            "/sounds/Wooden_trapdoor_open1.ogg",
-            "/sounds/Wooden_trapdoor_open2.ogg",
-            "/sounds/Wooden_trapdoor_open3.ogg",
-            "/sounds/Wooden_trapdoor_open4.ogg",
-            "/sounds/Wooden_trapdoor_open5.ogg"
+            "Wooden_trapdoor_open1",
+            "Wooden_trapdoor_open2",
+            "Wooden_trapdoor_open3",
+            "Wooden_trapdoor_open4",
+            "Wooden_trapdoor_open5"
         ],
         "dig": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "place": [
-            "/sounds/wood1.mp3",
-            "/sounds/wood2.mp3",
-            "/sounds/wood3.mp3",
-            "/sounds/wood4.mp3"
+            "wood1",
+            "wood2",
+            "wood3",
+            "wood4"
         ],
         "hit": [
-            "/sounds/Wood_hit1.ogg",
-            "/sounds/Wood_hit2.ogg",
-            "/sounds/Wood_hit3.ogg",
-            "/sounds/Wood_hit4.ogg",
-            "/sounds/Wood_hit5.ogg",
-            "/sounds/Wood_hit6.ogg"
+            "Wood_hit1",
+            "Wood_hit2",
+            "Wood_hit3",
+            "Wood_hit4",
+            "Wood_hit5",
+            "Wood_hit6"
         ]
     }
 ]

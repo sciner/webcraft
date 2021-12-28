@@ -288,7 +288,7 @@ export class HUD {
         } else {
             this.text += 'NULL';
         }
-        this.text += '\nGame mode: ' + world.game_mode.getCurrent().title;
+        this.text += '\nGame mode: ' + player.game_mode.getCurrent().title;
         if(player.world.server.ping_value) {
             this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
         }

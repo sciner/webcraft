@@ -234,6 +234,13 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
+        // Version 11 -> 12
+        if(version == 12) {
+            await this.db.get('begin transaction');
+            await this.db.get(`alter table user add column "game_mode" TEXT DEFAULT NULL`);
+            await this.db.get('update options set version = ' + (++version));
+            await this.db.get('commit');
+        }
     }
 
     // getDefaultPlayerIndicators...
@@ -273,7 +280,7 @@ export class DBWorld {
     // Register new user or return existed
     async registerUser(world, player) {
         // Find existing user record
-        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist FROM user WHERE guid = ?", [player.session.user_guid]);
+        let row = await this.db.get("SELECT id, inventory, pos, pos_spawn, rotate, indicators, chunk_render_dist, game_mode FROM user WHERE guid = ?", [player.session.user_guid]);
         if(row) {
             let inventory = JSON.parse(row.inventory);
             // Added new property
@@ -286,7 +293,8 @@ export class DBWorld {
                     pos_spawn:          JSON.parse(row.pos_spawn),
                     rotate:             JSON.parse(row.rotate),
                     indicators:         JSON.parse(row.indicators),
-                    chunk_render_dist:  row.chunk_render_dist
+                    chunk_render_dist:  row.chunk_render_dist,
+                    game_mode:          row.game_mode || world.info.game_mode
                 },
                 inventory: inventory
             };
@@ -635,6 +643,14 @@ export class DBWorld {
         if (item && 'extra_data' in item) {
             // @todo Update extra data
         }
+    }
+
+    // Change player game mode
+    async changeGameMode(player, game_mode) {
+        const result = await this.db.run('UPDATE user SET game_mode = :game_mode WHERE id = :id', {
+            ':id':              player.session.user_id,
+            ':game_mode':       game_mode
+        });
     }
 
 }

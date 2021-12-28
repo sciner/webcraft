@@ -195,17 +195,65 @@ export class ServerChunk {
         return new Vector(pos).toHash();
     }
 
+    // 
+    async blockAction(player, params, notify_author) {
+        // Check action
+        console.log(params.action_id);
+        switch(params.action_id) {
+            case ServerClient.BLOCK_ACTION_DESTROY: {
+                if(player.game_mode.isSurvival()) {
+                    const item = this.getBlockAsItem(params.pos);
+                    let mat = BLOCK.fromId(item.id);
+                    if(mat.spawnable && mat.tags.indexOf('no_drop') < 0) {
+                        item.count = 1;
+                        this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
+                    }
+                }
+                params.item = {id: BLOCK.AIR.id};
+                return await this.blockSet(player, params, notify_author);
+                break;
+            }
+            default: {
+                return await this.blockSet(player, params, notify_author);
+                break;
+            }
+        }
+    }
+
     // Set block
     async blockSet(player, params, notify_author) {
-        if(!this.connections.has(player.session.user_id)) {
-            this.addPlayer(player);
+        let is_creative = player.game_mode.isCreative();
+        // 1. Detect build material
+        let material = player.inventory.current_item;
+        if(!material) {
+            if(is_creative) {
+                material = BLOCK.fromId(params.item.id);
+            } else {
+                throw 'error_material_not_selected';
+            }
         }
-        let material = BLOCK.fromId(params.item.id);
+        material = BLOCK.cloneFromId(material.id);
         if(material.deprecated) {
             throw 'error_deprecated_block';
         }
-        // If is egg
-        if(BLOCK.isEgg(params.item.id)) {
+        let item = {
+            id: material.id
+        };
+        //
+        if(params.item) {
+            const props = {};
+            for(const prop of ['power', 'rotate', 'extra_data', 'entity_id']) {
+                if(prop in params.item) {
+                    item[prop] = params.item[prop];
+                }
+            }
+        }
+        // 2.
+        if(!this.connections.has(player.session.user_id)) {
+            this.addPlayer(player);
+        }
+        // 3. If is egg
+        if(BLOCK.isEgg(material.id)) {
             // @ParamChatSendMessage
             let chat_message = {
                 username: player.session.username,
@@ -215,24 +263,24 @@ export class ServerChunk {
             return false;
         }
         let blockKey = this.getBlockKey(params.pos);
-        // Если на этом месте есть сущность, тогда запретить ставить что-то на это место
-        let item = this.world.entities.getEntityByPos(params.pos);
-        if (item) {
+        // 4. Если на этом месте есть сущность, тогда запретить ставить что-то на это место
+        let existing_item = this.world.entities.getEntityByPos(params.pos);
+        if (existing_item) {
             let restore_item = true;
-            switch (item.type) {
+            switch (existing_item.type) {
                 case 'chest': {
-                    let slots = item.entity.slots;
+                    let slots = existing_item.entity.slots;
                     if(slots && Object.keys(slots).length > 0) {
-                        params.item = item.entity.item; // this.ModifyList[blockKey]
+                        item = existing_item.entity.item;
                     } else {
                         restore_item = false;
-                        this.world.entities.delete(item.entity.item.entity_id, params.pos);
+                        this.world.entities.delete(existing_item.entity.item.entity_id, params.pos);
                     }
                     break;
                 }
                 default: {
                     // этот случай ошибочный, такого не должно произойти
-                    params.item = this.modify_list.get(blockKey);
+                    item = this.modify_list.get(blockKey);
                 }
             }
             if(restore_item) {
@@ -244,11 +292,11 @@ export class ServerChunk {
                 return false;
             }
         }
-        // Create entity
-        switch(params.item.id) {
+        // 5. Create entity
+        switch(material.id) {
             case BLOCK_CHEST: {
-                params.item.entity_id = await this.world.entities.createChest(this.world, player, params);
-                if (!params.item.entity_id) {
+                item.entity_id = await this.world.entities.createChest(this.world, player, params);
+                if (!item.entity_id) {
                     return false;
                 }
                 break;
@@ -256,18 +304,20 @@ export class ServerChunk {
         }
         // Check action
         switch(params.action_id) {
-            case ServerClient.BLOCK_ACTION_DESTROY: {
-                const item = this.getBlockAsItem(params.pos);
-                let mat = BLOCK.fromId(item.id);
-                if(mat.spawnable && mat.tags.indexOf('no_drop') < 0) {
-                    item.count = 1;
-                    this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
+            case ServerClient.BLOCK_ACTION_REPLACE:
+            case ServerClient.BLOCK_ACTION_CREATE: {
+                if(!is_creative) {
+                    const current_item = player.inventory.current_item;
+                    if(!current_item || current_item.count < 1) {
+                        throw 'error_material_not_enough';
+                    }
                 }
+                player.inventory.decrement();
                 break;
             }
         }
         //
-        this.modify_list.set(blockKey, params.item);
+        this.modify_list.set(blockKey, item);
         // Send to users
         let packets = [{
             name: ServerClient.CMD_BLOCK_SET,
@@ -285,18 +335,19 @@ export class ServerChunk {
             x:          params.pos.x,
             y:          params.pos.y,
             z:          params.pos.z,
-            type:       {id: params.item.id},
+            type:       {id: item.id},
             is_modify:  true,
-            power:      params.item?.power,
-            rotate:     params.item?.rotate
+            power:      item?.power,
+            rotate:     item?.rotate
         };
         this.tblocks.delete(pos);
         let tblock           = this.tblocks.get(pos);
         tblock.id            = block.type.id;
-        tblock.extra_data    = params.item.extra_data;
-        tblock.entity_id     = params.item.entity_id;
+        tblock.extra_data    = item.extra_data;
+        tblock.entity_id     = item.entity_id;
         tblock.power         = block.power;
         tblock.rotate        = block.rotate;
+        console.log(item);
         // do not need send to worker
         // this.world.chunks.postWorkerMessage(['setBlock', [block]]);
         return true;

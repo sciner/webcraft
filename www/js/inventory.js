@@ -8,17 +8,14 @@ import { PlayerInventory } from "./player_inventory.js";
 // Player inventory
 export class Inventory extends PlayerInventory {
 
-    constructor(player, hud, cb_onSelect) {
+    constructor(player, hud) {
         super(null, {current: {index: 0, index2: -1}, items: []});
         this.player         = player;
         this.hud            = hud;
-        this.cb_onSelect    = cb_onSelect;
-        this.current_item   = null;
         for(let i = 0; i < this.max_count; i++) {
             this.items.push(null);
         }
         //
-        // this.restoreItems(player.state.inventory);
         this.select(this.current.index);
         // Recipe manager
         this.recipes = new RecipeManager();
@@ -27,46 +24,21 @@ export class Inventory extends PlayerInventory {
     setState(inventory_state) {
         this.current = inventory_state.current;
         this.items = inventory_state.items;
+        this.refresh(false);
     }
 
     // Open window
     open() {
-        if(this.player.world.game_mode.isCreative()) {
+        if(this.player.game_mode.isCreative()) {
             Game.hud.wm.getWindow('frmCreativeInventory').toggleVisibility();
         } else {
             Game.hud.wm.getWindow('frmInventory').toggleVisibility();
         }
     }
 
-    //
-    restoreItems(saved_inventory) {
-        let items = saved_inventory.items;
-        this.items = []; // new Array(this.max_count);
-        for(let i = 0; i < this.max_count; i++) {
-            this.items.push(null);
-        }
-        this.current.index = 0;
-        for(let k in items) {
-            if(k >= this.items.length) {
-                console.error('Limit reach of inventory');
-                break;
-            }
-            let item = items[k];
-            if(item) {
-                const block = {...BLOCK.fromId(item.id)};
-                if(block) {
-                    item = Object.assign(block, items[k]);
-                    if(!item.count) {
-                        item.count = 1;
-                    }
-                    this.items[k] = item;
-                }
-            }
-        }
-    }
-
     // Refresh
     refresh(changed) {
+        this.player.buildMaterial = this.items[this.current.index];
         if(this.hud) {
             this.hud.refresh();
             try {
@@ -80,7 +52,7 @@ export class Inventory extends PlayerInventory {
     
     // Клонирование материала в инвентарь
     cloneMaterial(mat) {
-        if(!this.player.world.game_mode.isCreative()) {
+        if(!this.player.game_mode.isCreative()) {
             return false;
         }
         const MAX = mat.max_in_stack;
@@ -161,7 +133,7 @@ export class Inventory extends PlayerInventory {
                 break;
             }
             if(item) {
-                if(!item.name) {
+                if(!('id' in item)) {
                     console.error(item);
                 }
                 let mat = BLOCK.fromId(item.id);
@@ -190,7 +162,7 @@ export class Inventory extends PlayerInventory {
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size - 2);
                 }
                 // Draw instrument life
-                if(item.instrument_id && item.power < 1) {
+                if(mat.instrument_id && item.power < 1) {
                     let cx = hud_pos.x + 14;
                     let cy = hud_pos.y + 14;
                     let cw = 40;

@@ -47,32 +47,22 @@ export class CraftTableSlot extends Label {
         const frame = size / 16;
 
         ctx.imageSmoothingEnabled = true;
+        let mat = BLOCK.fromId(item.id);
+
         // 
-        if('inventory_icon_id' in item) {
-            let mat = BLOCK.fromId(item.id);
-            const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-            const dest_icon_size = 40;
-            ctx.drawImage(
-                image,
-                icon.x,
-                icon.y,
-                icon.width,
-                icon.height,
-                x + width / 2 - dest_icon_size / 2,
-                y + height / 2 - dest_icon_size / 2,
-                dest_icon_size,
-                dest_icon_size
-            );
-        } /*else {
-            ctx.textBaseline    = 'top';
-            ctx.textAlign       = 'left';
-            ctx.font            = '11px Ubuntu';
-            let text            = item.name.substring(0, 4);
-            ctx.fillStyle       = '#000000ff';
-            ctx.fillText(text, x + 2, y + 2);
-            ctx.fillStyle       = '#ffffffff';
-            ctx.fillText(text, x + 1, y + 1);
-        }*/
+        const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
+        const dest_icon_size = 40;
+        ctx.drawImage(
+            image,
+            icon.x,
+            icon.y,
+            icon.width,
+            icon.height,
+            x + width / 2 - dest_icon_size / 2,
+            y + height / 2 - dest_icon_size / 2,
+            dest_icon_size,
+            dest_icon_size
+        );
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
@@ -83,7 +73,7 @@ export class CraftTableSlot extends Label {
             ctx.fillText(item.count, x + width, y + height);
         }
         // Draw instrument life
-        if(item.instrument_id && item.power < 1) {
+        if(mat.instrument_id && item.power < 1) {
             let cx = x + 4;
             let cy = y + 3;
             let cw = width - 8;

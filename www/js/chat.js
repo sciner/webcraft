@@ -174,29 +174,6 @@ export class Chat {
                     }
                     break;
                 }
-                case '/gamemode': {
-                    if(temp.length == 1) {
-                        let name = temp[0].trim().toLowerCase();
-                        for(let mode of world.game_mode.modes) {
-                            if(mode.id == name) {
-                                world.game_mode.setMode(name);
-                            }
-                        }
-                    }
-                    break;
-                }
-                case '/help': {
-                    let commands = [
-                        '/weather (clear | rain)',
-                        '/gamemode (survival | creative | adventure | spectator)',
-                        '/tp -> teleport',
-                        '/spawnpoint',
-                        '/seed',
-                        '/give <item> [<count>]',
-                    ];
-                    chat.messages.addSystem('\n' + commands.join('\n'));
-                    break;
-                }
                 case '/weather': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();
@@ -227,37 +204,6 @@ export class Chat {
                             world.meshes.add(m)
                         }
                     )
-                    break;
-                }
-                case '/give': {
-                    // @todo inventory
-                    console.error('Нужно перенести на сервер');
-                    /*
-                    if(temp.length >= 1) {
-                        let name = null;
-                        let cnt = 1;
-                        if(temp.length == 1) {
-                            name = temp[0].trim();
-                            cnt = 1;
-                        } else if(temp.length == 2) {
-                            name = temp[0].trim();
-                            cnt = temp[1].trim();
-                        } else {
-                            name = temp[1].trim();
-                            cnt = temp[2].trim();
-                        }
-                        cnt = Math.max(cnt | 0, 1);
-                        let block = BLOCK[name.toUpperCase()];
-                        if(block) {
-                            block = {...block};
-                            delete(block.texture);
-                            block.count = cnt;
-                            player.inventory.increment(block);
-                            chat.messages.addSystem('Выдан: ' + block.name);
-                        } else {
-                            chat.messages.addError(`Unknown item '${name}'`);
-                        }
-                    }*/
                     break;
                 }
             }

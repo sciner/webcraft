@@ -1,5 +1,6 @@
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector} from "../www/js/helpers.js";
+import {BLOCK} from "../www/js/blocks.js";
 
 export class ServerChat {
 
@@ -88,10 +89,53 @@ export class ServerChat {
                 break;
             }
             case '/give':
+                if(!player.game_mode.isCreative()) {
+                    throw 'error_command_not_working_in_this_game_mode';
+                }
+                args = this.parseCMD(args, ['string', 'string', '?int']);
+                let name = null;
+                let cnt = 1;
+                if(!args[2]) {
+                    name = args[1];
+                    cnt = 1;
+                } else {
+                    name = args[1];
+                    cnt = args[2];
+                }
+                cnt = Math.max(cnt | 0, 1);
+                let block = BLOCK[name.toUpperCase()];
+                if(block) {
+                    block = {...block};
+                    delete(block.texture);
+                    block.count = cnt;
+                    player.inventory.increment(block);
+                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + block.name, [player.session.user_id]);
+                } else {
+                    this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
+                }
+                break;
             case '/help':
+                let commands = [
+                    '/weather (clear | rain)',
+                    '/gamemode (survival | creative | adventure | spectator)',
+                    '/tp -> teleport',
+                    '/spawnpoint',
+                    '/seed',
+                    '/give <item> [<count>]',
+                ];
+                this.sendSystemChatMessageToSelectedPlayers('\n' + commands.join('\n'), [player.session.user_id]);
+                break;
+            case '/gamemode':
+                args = this.parseCMD(args, ['string', 'string']);
+                let game_mode_id = args[1].toLowerCase();
+                for(let mode of player.game_mode.modes) {
+                    if(mode.id == game_mode_id) {
+                        player.game_mode.applyMode(game_mode_id, true);
+                    }
+                }
+                break;
             case '/obj':
             case '/weather':
-            case '/gamemode':
             case '/tp': {
                 // @todo Команда пока выполняется на клиенте
                 break;

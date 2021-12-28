@@ -15,16 +15,17 @@ export class Resources {
      */
     static load(settings) {
 
-        this.codeMain       = {};
-        this.codeSky        = {};
-        this.terrain        = {};
-        this.pickat         = {};
-        this.sky            = {};
-        this.clouds         = {};
-        this.inventory      = {};
-        this.physics        = {};
-        this.models         = {};
-        this.sounds         = {};
+        this.codeMain           = {};
+        this.codeSky            = {};
+        this.terrain            = {};
+        this.pickat             = {};
+        this.sky                = {};
+        this.clouds             = {};
+        this.inventory          = {};
+        this.physics            = {};
+        this.models             = {};
+        this.sounds             = {};
+        this.sound_sprite_main  = {};
 
         // Functions
         const loadTextFile = Resources.loadTextFile;
@@ -37,6 +38,7 @@ export class Resources {
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
+        all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
 
         // Skybox textures
         let skiybox_dir = './media/skybox/park';

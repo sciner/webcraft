@@ -361,7 +361,7 @@ export class ServerWorld {
             let addr = getChunkAddr(params.pos);
             let chunk = this.chunks.get(addr);
             if(chunk) {
-                if (await chunk.blockSet(player, params, false)) {
+                if (await chunk.blockAction(player, params, false)) {
                     await this.db.blockSet(this, player, params);
                     this.chunkBecameModified(addr);
                 }

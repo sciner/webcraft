@@ -41,7 +41,7 @@ Game.player.chat.sendMessage('Hello, World!');
 let blocks = Game.block_manager.getAll();
 
 // Change game mode
-Game.world.game_mode.setMode('creative'); // survival|creative|adventure|spectator
+Game.player.game_mode.setMode('creative'); // survival|creative|adventure|spectator
 
 // Open inventory window
 Game.player.inventory.open();

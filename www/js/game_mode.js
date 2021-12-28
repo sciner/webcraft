@@ -6,15 +6,16 @@ export const GAME_MODE = {};
 
 export class GameMode {
 
-    constructor(world, game_mode_id) {
-        this.world = world;
+    constructor(player, game_mode_id) {
+        this.player = player;
+        this.onSelect = (mode) => {};
         this.modes = [];
         this.add({id: GAME_MODE.SURVIVAL, title: 'Survival', can_fly: false, block_action: true, block_clone: false, pickat_distance: 5});
         this.add({id: GAME_MODE.CREATIVE, title: 'Creative', can_fly: true, block_action: true, block_clone: true, pickat_distance: 10});
         this.add({id: GAME_MODE.ADVENTURE, title: 'Adventure', can_fly: false, block_action: false, block_clone: false, pickat_distance: 5});
         this.add({id: GAME_MODE.SPECTATOR, title: 'Spectator', can_fly: true, block_action: false, block_clone: false, pickat_distance: 5});
         if(game_mode_id) {
-            this.setMode(game_mode_id);
+            this.applyMode(game_mode_id, false);
         }
     }
 
@@ -26,50 +27,58 @@ export class GameMode {
         this.modes.push(mode);
     }
 
+    // Return active game mode
     getCurrent() {
         return this.current;
     }
 
+    // Игрок может получить урон
+    mayGetDamaged() {
+        return [GAME_MODE.SURVIVAL, GAME_MODE.ADVENTURE].indexOf(this.getCurrent().id) >= 0;
+    }
+
     // Выживание
     isSurvival() {
-        return this.current.id == GAME_MODE.SURVIVAL;
+        return this.getCurrent().id == GAME_MODE.SURVIVAL;
     }
 
     // Наблюдатель
     isSpectator() {
-        return this.current.id == GAME_MODE.SPECTATOR;
+        return this.getCurrent().id == GAME_MODE.SPECTATOR;
     }
 
     // Творчество
     isCreative() {
-        return this.current.id == GAME_MODE.CREATIVE;
+        return this.getCurrent().id == GAME_MODE.CREATIVE;
     }
 
+    // Позволяет ли текущий режим полёты
     canFly() {
         return this.getCurrent().can_fly;
     }
 
+    // Позволяет ли текущий режим совершать действия с блоками
     canBlockAction() {
         return this.getCurrent().block_action;
     }
 
+    // Позволяет ли текущий режим клонировать блоки
     canBlockClone() {
         return this.getCurrent().block_clone;
     }
 
-    // Смена режима игры
+    // Запрос смена режима игры на сервер
     setMode(id) {
+        return this.player.world.server.GameModeSet(id);
+    }
+
+    // Применение указанного режима игры
+    applyMode(id, notify) {
         for(let mode of this.modes) {
             if(mode.id == id) {
                 this.current = mode;
-                let player = Game.player;
-                if(player) {
-                    if(!mode.can_fly) {
-                        player.setFlying(false);
-                    } else if(id == GAME_MODE.SPECTATOR) {
-                        player.setFlying(true);
-                    }
-                    player.chat.messages.addSystem('Game mode changed to ... ' + this.getCurrent().title);
+                if(notify) {
+                    this.onSelect(mode);
                 }
                 return true;
             }
@@ -87,7 +96,7 @@ export class GameMode {
             }
         }
         let id = this.modes[index % this.modes.length].id;
-        this.setMode(id);
+        this.applyMode(id, true);
     }
 
     // getPickatDistance...

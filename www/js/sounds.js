@@ -6,13 +6,13 @@ export class Sounds {
     constructor() {
         this.tags = {};
         this.prev_index = new Map();
+        this.sound_sprite_main = new Howl(Resources.sound_sprite_main);
         for(let item of Resources.sounds) {
             this.add(item);
         }
     }
 
     async add(item) {
-        let audios = new Map();
         for(let action of ['dig', 'place', 'open', 'close', 'hit']) {
             if(item.hasOwnProperty(action)) {
                 let volume = 1.;
@@ -20,19 +20,7 @@ export class Sounds {
                     volume = 0.2;
                 }
                 for(let i in item[action]) {
-                    const src = item[action][i];
-                    const a = audios.get(src);
-                    let ext = src.split('.').pop().toLowerCase();
-                    if(a) {
-                        item[action][i] = new Howl({src: [a], volume: volume, format: ext});
-                    } else {
-                        const f = await Helpers.fetch(src).then(response => response.blob())
-                        .then(blob => {
-                            const blobUrl = URL.createObjectURL(blob);
-                            audios.set(src, blobUrl);
-                            item[action][i] = new Howl({src: [blobUrl], volume: volume, format: ext});
-                        });
-                    }
+                    item[action][i] = {name: item[action][i], volume: volume};
                 }
             }
         }
@@ -57,7 +45,8 @@ export class Sounds {
         } while (prev_index == index && list.length > 1);
         this.prev_index.set(index_key, index);
         // Play
-        list[index].play();
+        const track = list[index];
+        this.sound_sprite_main.play(track.name);
         return true;
     }
 
