@@ -1,3 +1,4 @@
+
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { decodeCubes, fillCube } from "../bedrockJsonParser.js";
 import GeometryTerrain from "../geometry_terrain.js";
@@ -5,7 +6,11 @@ import { Vector } from "../helpers.js";
 import { Resources } from "../resources.js";
 
 const {mat4} = glMatrix;
+const tmpMatrix = mat4.create();
 
+/**
+ * Model handler class for local player in-hand overlay
+ */
 export class Particle_Hand {
 
     static getSkinImage(id) {
@@ -82,8 +87,24 @@ export class Particle_Hand {
         mat4.scale(this.modelMatrix, this.modelMatrix, [1.5,1.5,1.5])
     }
 
-    drawDirectly(render) {
-        render.renderBackend.drawMesh(this.buffer, this.material, this.pos, this.modelMatrix);
+    /**
+     * Push draw task directly without any pre-computation.
+     * Any matrix updates should be applied manually
+     * Allow prepend matrix to modelMatrix
+     * @param {Rendere} render 
+     * @param {mat4} prePendMatrix 
+     */
+    drawDirectly(render, prePendMatrix = null) {
+        if (prePendMatrix) {
+            mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
+        }
+
+        render.renderBackend.drawMesh(
+            this.buffer,
+            this.material,
+            this.pos,
+            prePendMatrix ? tmpMatrix : this.modelMatrix
+        );
     }
 
 }

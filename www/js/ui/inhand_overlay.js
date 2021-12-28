@@ -190,9 +190,8 @@ export class InHandOverlay {
 
         mat4.identity(handMesh.modelMatrix);
         mat4.scale(handMesh.modelMatrix, handMesh.modelMatrix, [1.5, 1.5, 1.5]);
-        mat4.multiply(handMesh.modelMatrix, animMatrix, handMesh.modelMatrix);
 
-        handMesh.drawDirectly(render);
+        handMesh.drawDirectly(render, animMatrix);
 
         mat4.rotateX(animMatrix, animMatrix, rotPhase * Math.PI / 4)
 
@@ -216,9 +215,7 @@ export class InHandOverlay {
                 mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 4 + Math.PI);
             }
 
-            mat4.multiply(modelMatrix, animMatrix, modelMatrix);
-
-            inHandItemMesh.drawDirectly(render);
+            inHandItemMesh.drawDirectly(render, animMatrix);
         }
     }
 }

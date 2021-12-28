@@ -4,6 +4,7 @@ import {BLOCK} from "../blocks.js";
 import { NetworkPhysicObject } from '../network_physic_object.js';
 
 const {mat4} = glMatrix;
+const tmpMatrix = mat4.create();
 
 class FakeTBlock {
 
@@ -163,11 +164,24 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         //this.material.lightTex = null;
     }
 
-    drawDirectly(render) {
-        //this.updateLightTex(render);
-        //this.material.lightTex = this.lightTex;
+    /**
+     * Push draw task directly without any pre-computation.
+     * Any matrix updates should be applied manually
+     * Allow prepend matrix to modelMatrix
+     * @param {Rendere} render 
+     * @param {mat4} prePendMatrix 
+     */
+     drawDirectly(render, prePendMatrix = null) {
+        if (prePendMatrix) {
+            mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
+        }
 
-        render.renderBackend.drawMesh(this.buffer, this.material, this.pos, this.modelMatrix);
+        render.renderBackend.drawMesh(
+            this.buffer,
+            this.material,
+            this.pos,
+            prePendMatrix ? tmpMatrix : this.modelMatrix
+        );
     }
 
     destroy() {
