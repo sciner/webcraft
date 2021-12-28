@@ -149,9 +149,9 @@ export default class style {
                 let v = (tex_y + (y-1) + 0.5) / tex.height;
 
                 // inline cube drawing
-                let x1 = 0.5 + (x - TEX_WIDTH_HALF) / SCALE_FACTOR
-                let y1 = -(y - TEX_WIDTH_HALF) / SCALE_FACTOR - 1.5
-                let z1 = z;
+                let x1 = 0.5 + (x - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
+                let y1 = -(y - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
+                let z1 = z + scale.z / 8;
 
                 if(!neighbours.UP) {
                     pushTransformed(
