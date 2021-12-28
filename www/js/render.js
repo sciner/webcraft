@@ -17,6 +17,7 @@ import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { Particle_Hand } from "./particles/block_hand.js";
+import { InHandOverlay } from "./ui/inhand_overlay.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -83,10 +84,7 @@ export class Renderer {
             scale: 0.05, // ortho scale
         });
 
-        this.inHandItem = null;
-        this.inHandItemBroken = false;
-        this.inHandAnimationTime = 0;
-        this.inHandAnimation = false;
+        this.inHandOverlay = null;
     }
 
     /**
@@ -221,7 +219,7 @@ export class Renderer {
                 if(!block.spawnable) {
                     return null;
                 }
-                let drop = new Particles_Block_Drop(this.gl, {id: block.id}, ZERO);
+                let drop = new Particles_Block_Drop(this.gl, null, [{id: block.id}], ZERO);
                 drop.block_material.inventory_icon_id = inventory_icon_id++;
                 return drop;
             } catch(e) {
@@ -433,7 +431,8 @@ export class Renderer {
                     this.drawPlayers(delta);
                     // 4. Draw mobs
                     this.drawMobs(delta);
-
+                    // 5. Draw drop items
+                    this.drawDropItems(delta);
                     // draw isolated meshes after without AO
                     this.globalUniforms.brightness = Math.max(0.3, this.brightness);
                     this.globalUniforms.update();
@@ -458,125 +457,21 @@ export class Renderer {
 
     }
 
-    reconstructInHandItem() {
-    
-        if (!this.inHandChanged()) {
-            return;
-        }
-
-        if (this.inHandItem) {
-            this.inHandItem.destroy();
-            this.inHandItem = null;
-        }
-
-        if (!this.player.buildMaterial) {
-            return;
-        }
-
-        const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
-
-        if (block.spawnable) {
-            try {
-                this.inHandItem = new Particles_Block_Drop(this.gl, block, Vector.ZERO);
-                this.inHandItemBroken = false;
-            } catch(e) {
-                this.inHandItemBroken = true;
-                console.log(e);
-                //
-            }
-        }
-    }
-
-    inHandChanged() {
-        const mat = this.player.buildMaterial;
-
-        if (!mat) {
-            return !!this.inHandItem;
-        }
-
-        const block = BLOCK.BLOCK_BY_ID.get(mat.id);
-
-        if (!this.inHandItem) {
-            return block.spawnable;
-        }
-
-        return block.spawnable && this.inHandItem.block.id !== block.id;
-    }
-
     drawInhandItem(dt) {
-        if (
-            !this.inHandAnimation && this.inHandChanged() && !this.inHandItemBroken
-        ) {
-            this.inHandAnimation = true;
-            this.inHandAnimationTime = 0;
+
+        if (!this.inHandOverlay) {
+            this.inHandOverlay = new InHandOverlay(this.player.state.skin, this);
         }
 
-        if (this.inHandAnimation && !this.inHandItemBroken) {
-            this.inHandAnimationTime += 0.05;
+        this.inHandOverlay.draw(this, dt);
 
-            if (this.inHandAnimationTime > 0.5) {
-                this.reconstructInHandItem();
-            }
-
-            if (this.inHandAnimationTime > 1) {
-                this.inHandAnimationTime = 1;
-                this.inHandAnimation = false;
-            }
-        }
-
-        if (!this.inHandItem) {
-            //return;
-        }
-
-        if (!this.handModel) {
-            this.handModel = new Particle_Hand(this.player.state.skin, this);
-        }
-
-        this.camera.save();
-
-        this.bobView(this.player, this.camera.bobPrependMatrix, true);
-
-        const animFrame = Math.cos(this.inHandAnimationTime * Math.PI * 2);
-
-        this.camera.fov = FOV_NORMAL;
-        this.camera.pos.set(-1, 0.5, -1.5 * animFrame);
-        this.camera.set(
-            this.camera.pos, 
-            Vector.ZERO,
-            this.camera.bobPrependMatrix
-        );
-
-        this.camera.use(this.globalUniforms, true);
-        this.globalUniforms.brightness = Math.max(0.4, this.brightness);
-        this.globalUniforms.update();
-
-        this.renderBackend.clear({
-            depth: true,
-            color: false
-        });
-
-        this.handModel.drawDirectly(this);
-
-        if (this.inHandItem) {
-            mat4.identity(this.inHandItem.modelMatrix);
-            mat4.scale(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, [0.5, 0.5, 0.5]);
-            mat4.rotateZ(this.inHandItem.modelMatrix, this.inHandItem.modelMatrix, -Math.PI / 4 + Math.PI);
-
-            this.inHandItem.drawDirectly(this);
-        }
-
-        this.camera.restore();
+        // we should reset camera state because a viewMatrix used for picking
         this.camera.use(this.globalUniforms);
     }
 
     // destroyBlock
     destroyBlock(block, pos, small) {
         this.meshes.add(new Particles_Block_Destroy(this.gl, block, pos, small));
-    }
-
-    // dropBlock
-    dropBlock(block, pos) {
-        this.meshes.add(new Particles_Block_Drop(this.gl, block, pos));
     }
 
     // rainDrop
@@ -625,6 +520,15 @@ export class Renderer {
         defaultShader.bind();
         for(let [id, mob] of this.world.mobs.list) {
             mob.draw(this, this.camPos, delta);
+        }
+    }
+
+    // drawDropItems
+    drawDropItems(delta) {
+        const {renderBackend, defaultShader} = this;
+        defaultShader.bind();
+        for(let [id, drop_item] of this.world.drop_items.list) {
+            drop_item.draw(this, delta);
         }
     }
 

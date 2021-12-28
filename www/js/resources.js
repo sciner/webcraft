@@ -33,7 +33,7 @@ export class Resources {
         let all = [];
 
         // Others
-        all.push(Resources.loadImage('media/inventory2.webp', false).then((img) => {this.inventory.image = img}));
+        // all.push(Resources.loadImage('media/inventory2.webp', false).then((img) => {this.inventory.image = img}));
         all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
@@ -179,7 +179,7 @@ export class Resources {
     }
 
     static async loadJsonModel(entry, key, baseUrl) {
-        const json = await Resources.loadTextFile(baseUrl + '/' + entry.geom, true);
+        const json = await Resources.loadTextFile(baseUrl + entry.geom, true);
         const keys = Object.keys(entry.skins);
         const skins = [];
         json.type = entry.type;
@@ -189,7 +189,7 @@ export class Resources {
         for(let key of keys) {
             skins.push(
                 Resources
-                .loadImage(baseUrl + '/' + entry.skins[key], !!self.createImageBitmap)
+                .loadImage(baseUrl + entry.skins[key], !!self.createImageBitmap)
                 .then((image) => {
                     json.skins[key] = image;
                 })

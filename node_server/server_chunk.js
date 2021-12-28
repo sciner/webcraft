@@ -20,6 +20,7 @@ export class ServerChunk {
         this.preq           = new Map();
         this.modify_list    = new Map();
         this.mobs           = new Map();
+        this.drop_items     = new Map();
         this.setState(CHUNK_STATE_NEW);
     }
 
@@ -66,6 +67,7 @@ export class ServerChunk {
         this.sendToPlayers([player.session.user_id]);
         if(this.load_state > CHUNK_STATE_LOADED) {
             this.sendMobs([player.session.user_id]);
+            this.sendDropItems([player.session.user_id]);
         }
     }
 
@@ -79,6 +81,13 @@ export class ServerChunk {
                 let packets = [{
                     name: ServerClient.CMD_MOB_DELETED,
                     data: Array.from(this.mobs.keys())
+                }];
+                this.world.sendSelected(packets, [player.session.user_id], []);
+            }
+            if(this.drop_items.size > 0) {
+                let packets = [{
+                    name: ServerClient.CMD_DROP_ITEM_DELETED,
+                    data: Array.from(this.drop_items.keys())
                 }];
                 this.world.sendSelected(packets, [player.session.user_id], []);
             }
@@ -96,6 +105,16 @@ export class ServerChunk {
         let packets = [{
             name: ServerClient.CMD_MOB_ADDED,
             data: [mob]
+        }];
+        this.sendAll(packets);
+    }
+
+    // Add drop item
+    addDropItem(drop_item) {
+        this.drop_items.set(drop_item.entity_id, drop_item);
+        let packets = [{
+            name: ServerClient.CMD_DROP_ITEM_ADDED,
+            data: [drop_item]
         }];
         this.sendAll(packets);
     }
@@ -129,6 +148,21 @@ export class ServerChunk {
         this.world.sendSelected(packets_mobs, player_user_ids, []);
     }
 
+    sendDropItems(player_user_ids) {
+        // Send all drop items in this chunk
+        if (this.drop_items.size < 1) {
+            return;
+        }
+        let packets = [{
+            name: ServerClient.CMD_DROP_ITEM_ADDED,
+            data: []
+        }];
+        for(const [_, drop_item] of this.drop_items) {
+            packets[0].data.push(drop_item);
+        }
+        this.world.sendSelected(packets, player_user_ids, []);
+    }
+
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
         this.tblocks            = new TypedBlocks(this.coord);
@@ -145,10 +179,14 @@ export class ServerChunk {
         this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
+        this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0 && this.mobs.size > 0) {
             this.sendMobs(Array.from(this.connections.keys()));
+        }
+        if(this.connections.size > 0 && this.drop_items.size > 0) {
+            this.sendDropItems(Array.from(this.connections.keys()));
         }
     }
 
@@ -207,11 +245,23 @@ export class ServerChunk {
             }
         }
         // Create entity
-        switch (params.item.id) {
+        switch(params.item.id) {
             case BLOCK_CHEST: {
                 params.item.entity_id = await this.world.entities.createChest(this.world, player, params);
                 if (!params.item.entity_id) {
                     return false;
+                }
+                break;
+            }
+        }
+        // Check action
+        switch(params.action_id) {
+            case ServerClient.BLOCK_ACTION_DESTROY: {
+                const item = this.getBlockAsItem(params.pos);
+                let mat = BLOCK.fromId(item.id);
+                if(mat.spawnable && mat.tags.indexOf('no_drop') < 0) {
+                    item.count = 1;
+                    this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
                 }
                 break;
             }
@@ -272,6 +322,10 @@ export class ServerChunk {
 
         if (typeof pos == 'number') {
             pos = new Vector(pos, y, z);
+        } else if (typeof pos == 'Vector') {
+            // do nothing
+        } else if (typeof pos == 'object') {
+            pos = new Vector(pos);
         }
 
         pos = pos.floored().sub(this.coord);
@@ -282,11 +336,33 @@ export class ServerChunk {
         return block;
     }
 
+    // getBlockAsItem
+    getBlockAsItem(pos, y, z) {
+        const block = this.getBlock(pos, y, z);
+        const item = {
+            id: block.id
+        };
+        for(let k of ['extra_data', 'entity_id', 'count']) {
+            let v = block[k];
+            if(v !== undefined && v !== null) {
+                item[k] = v;
+            }
+        }
+        return item;
+    }
+
     // Before unload chunk
     async onUnload() {
+        // Unload mobs
         if(this.mobs.size > 0) {
             for(let [entity_id, mob] of this.mobs) {
                 mob.onUnload();
+            }
+        }
+        // Unload drop items
+        if(this.drop_items.size > 0) {
+            for(let [entity_id, drop_item] of this.drop_items) {
+                drop_item.onUnload();
             }
         }
     }

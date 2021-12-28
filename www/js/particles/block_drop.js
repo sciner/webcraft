@@ -1,8 +1,7 @@
 import {Color, Vector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
-import { getChunkAddr } from '../chunk.js';
-// import {BIOMES} from "../terrain_generator/biomes.js";
+import { NetworkPhysicObject } from '../network_physic_object.js';
 
 const {mat4} = glMatrix;
 
@@ -43,13 +42,21 @@ const FakeWorld = {
     }
 }
 
-export default class Particles_Block_Drop {
+export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     static neighbours = null;
 
     // Constructor
-    constructor(gl, block, pos) {
- 
+    constructor(gl, entity_id, items, pos) {
+
+        super(
+            new Vector(pos.x, pos.y, pos.z),
+            new Vector(0, 0, 0)
+        );
+
+        this.entity_id = entity_id;
+        const block = items[0];
+
         // BIOMES.GRASSLAND
         const biome = {
             code:       'GRASSLAND',
@@ -70,14 +77,12 @@ export default class Particles_Block_Drop {
         }
 
         this.scale      = new Vector(.2, .2, .2);
-        this.pn         = performance.now();
+        this.pn         = performance.now() + Math.random() * 2000;
         this.life       = 1.0;
-        this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.posFact    = this.pos.clone();
         this.addY       = 0;
         this.vertices   = [];
         this.block      = new FakeTBlock(block.id);
-        this.chunkAddr  = getChunkAddr(this.pos);
 
         let b           = this.block;
         this.block_material = b.material;
@@ -105,10 +110,11 @@ export default class Particles_Block_Drop {
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
         this.lightTex = null;
         this.chunk = null;
+
     }
 
     updateLightTex(render) {
-        const chunk = render.world.chunkManager.getChunk(this.chunkAddr);
+        const chunk = render.world.chunkManager.getChunk(this.chunk_addr);
 
         if (!chunk) {
             return;
@@ -121,7 +127,12 @@ export default class Particles_Block_Drop {
     // Draw
     draw(render, delta) {
 
+        this.update();
         this.updateLightTex(render);
+
+        if(!this.chunk) {
+            return;
+        }
 
         this.posFact.set(this.pos.x, this.pos.y, this.pos.z);
         this.addY = (performance.now() - this.pn) / 10;
@@ -132,7 +143,7 @@ export default class Particles_Block_Drop {
             [
                 (this.posFact.x - this.chunk.coord.x),
                 (this.posFact.z - this.chunk.coord.z),
-                (this.posFact.y - this.chunk.coord.y)
+                (this.posFact.y - this.chunk.coord.y + 3 / 16)
             ]
         );
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());

@@ -45,7 +45,7 @@ export class MobManager {
 
     // add
     add(data) {
-        let mob = new MobModel({
+        const mob = new MobModel({
             id:             data.id,
             type:           data.type,
             name:           data.name,
@@ -56,7 +56,10 @@ export class MobManager {
             yaw:            data.rotate.z,
             skin:           data.skin || 'base'
         });
-        mob.pos.y += 1/200; 
+
+        mob.world = this.world;
+        mob.pos.y += 1/200;
+
         this.list.set(data.id, mob);
     }
 

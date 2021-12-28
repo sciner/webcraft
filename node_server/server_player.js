@@ -78,12 +78,19 @@ export class ServerPlayer extends Player {
 
         try {
             switch(cmd.name) {
-            
                 // Connect
                 case ServerClient.CMD_CONNECT: {
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
                     world.onPlayer(this, skin);
+                    break;
+                }
+
+                case ServerClient.CMD_SYNC_TIME: {
+                    this.sendPackets([{
+                        name: ServerClient.CMD_SYNC_TIME,
+                        data: { clientTime: cmd.data.clientTime },
+                    }]);
                     break;
                 }
 

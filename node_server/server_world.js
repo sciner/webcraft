@@ -1,4 +1,5 @@
 import {Mob} from "./mob.js";
+import {DropItem} from "./drop_item.js";
 import {ServerChat} from "./server_chat.js";
 import {EntityManager} from "./entity_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
@@ -9,19 +10,27 @@ import {ServerClient} from "../www/js/server_client.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 
 import {ServerChunkManager} from "./server_chunk_manager.js";
+import config from "./config.js";
 // import {GameMode} from "../www/js/game_mode.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
+
+// for debugging client time offset
+export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 
 export class ServerWorld {
 
     constructor() {}
 
     get serverTime() {
-        return Date.now()
+        return Date.now() + SERVE_TIME_LAG;
     }
 
     async initServer(world_guid, db) {
+        if (SERVE_TIME_LAG) {
+            console.log('[World] Server time lag ', SERVE_TIME_LAG);
+        }
+
         this.db             = db;
         this.info           = await this.db.getWorld(world_guid);
         this.entities       = new EntityManager(this);
@@ -29,6 +38,7 @@ export class ServerWorld {
         this.chunks         = new ServerChunkManager(this);
         this.players        = new Map(); // new PlayerManager(this);
         this.mobs           = new Map(); // Store refs to all loaded mobs in the world
+        this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         this.models         = new ModelManager();
         this.models.init();
         this.ticks_stat     = {
@@ -80,6 +90,10 @@ export class ServerWorld {
         // 3.
         for(let [entity_id, mob] of this.mobs) {
             mob.tick(delta);
+        }
+        // 3.
+        for(let [entity_id, drop_item] of this.all_drop_items) {
+            drop_item.tick(delta);
         }
     }
 
@@ -263,6 +277,24 @@ export class ServerWorld {
             }
             let mob = await Mob.create(this, params);
             this.chunks.get(mob.chunk_addr)?.addMob(mob);
+            return true;
+        } catch(e) {
+            console.log('e', e);
+            let packets = [{
+                name: ServerClient.CMD_ERROR,
+                data: {
+                    message: e
+                }
+            }];
+            this.sendSelected(packets, [player.session.user_id], []);
+        }
+    }
+
+    // Create drop items
+    async createDropItems(player, pos, items) {
+        try {
+            let drop_item = await DropItem.create(this, player, pos, items);
+            this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch(e) {
             console.log('e', e);
