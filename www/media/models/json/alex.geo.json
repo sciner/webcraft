@@ -38,7 +38,7 @@
 				{
 					"name": "RightArmItemPlace",
 					"parent": "RightArm",
-					"pivot": [-6, 12, -2],
+					"pivot": [-5.5, 12, -2],
 					"rotation": [90, 0, 0]
 				},
 				{
@@ -52,7 +52,7 @@
 				{
 					"name": "LeftArmItemPlace",
 					"parent": "LeftArm",
-					"pivot": [6, 12, -2],
+					"pivot": [5.5, 12, -2],
 					"rotation": [90, 0, 0]
 				},
 				{
