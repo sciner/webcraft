@@ -1,4 +1,4 @@
-import {MULTIPLY, DIRECTION, Color, Vector} from '../helpers.js';
+import {MULTIPLY, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {pushTransformed} from '../block_style/cube.js';
 
@@ -114,6 +114,11 @@ export default class style {
         let z = -0.5 - 0.5 / SCALE_FACTOR;
         let flags = 0;
 
+        if(block.hasTag('mask_biome')) {
+            lm = biome.dirt_color;
+            flags = QUAD_FLAGS.MASK_BIOME;
+        }
+
         let height = 1.0;
         let width = 1.0;
         // back & front, no matrices
@@ -125,9 +130,9 @@ export default class style {
             lm.r, lm.g, lm.b, flags);
 
         vertices.push(
-            0, scale.z * 0.5, 0,
+            0, scale.z * (MUL*0.75), 0,
             MUL, 0, 0,
-            0, 0, -MUL *height,
+            0, 0, -MUL * height,
             c[0], c[1], c[2], c[3],
             lm.r, lm.g, lm.b, flags);
 
@@ -151,15 +156,15 @@ export default class style {
                 // inline cube drawing
                 let x1 = 0.5 + (x - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
                 let y1 = -(y - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
-                let z1 = z + scale.z / 8;
+                let z1 = z + scale.z / (ts / 16);
 
                 if(!neighbours.UP) {
                     pushTransformed(
                         vertices, matrix, undefined,
                         x1, z1, y1,
-                        .5, 0.5, height,
+                        .5, 0.5 * MUL, height,
                         1, 0, 0,
-                        0, 1, 0,
+                        0, MUL, 0,
                         u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags
                     );
@@ -170,9 +175,9 @@ export default class style {
                     pushTransformed(
                         vertices, matrix, undefined,
                         x1, z1, y1,
-                        0.5, 0.5, 0,
+                        0.5, 0.5 * MUL, 0,
                         1, 0, 0,
-                        0, -1, 0,
+                        0, -1 * MUL, 0,
                         u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
                 }
@@ -182,8 +187,8 @@ export default class style {
                     pushTransformed(
                         vertices, matrix, undefined,
                         x1, z1, y1,
-                        .5 - width / 2, .5, height / 2,
-                        0, 1, 0,
+                        .5 - width / 2, .5 * MUL, height / 2,
+                        0, 1 * MUL, 0,
                         0, 0, -height,
                         u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
@@ -194,8 +199,8 @@ export default class style {
                     pushTransformed(
                         vertices, matrix, undefined,
                         x1, z1, y1,
-                        .5 + width / 2, .5, height / 2,
-                        0, 1, 0,
+                        .5 + width / 2, .5 * MUL, height / 2,
+                        0, 1 * MUL, 0,
                         0, 0, height,
                         u, v, uc, vc,
                         lm.r, lm.g, lm.b, flags);
