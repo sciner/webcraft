@@ -204,6 +204,20 @@ export class PlayerInventory {
         }
     }
 
+    // Drop item from hand
+    dropItem(data) {
+        if(!this.current_item) {
+            return false;
+        }
+        const item = {...this.current_item};
+        const pos = this.player.state.pos.clone();
+        pos.x += Math.sin(this.player.state.rotate.z) * 3;
+        pos.z += Math.cos(this.player.state.rotate.z) * 3;
+        this.player.world.createDropItems(this.player, pos, [item]);
+        this.setItem(this.current.index, null);
+        return true;
+    }
+
     // Возвращает список того, чего и в каком количестве не хватает в текущем инвентаре по указанному списку
     hasResources(resources) {
         let resp = [];

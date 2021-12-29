@@ -208,7 +208,6 @@ export class ServerPlayer extends Player {
                 }
             
                 case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
-                    // @ParamChestSetSlotItem
                     this.world.entities.setChestSlotItem(this, cmd.data);
                     break;
                 }
@@ -234,7 +233,6 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_INVENTORY_INCREMENT: {
-                    console.log('increment', cmd);
                     this.inventory.increment(cmd.data);
                     break;
                 }
@@ -261,6 +259,11 @@ export class ServerPlayer extends Player {
                         throw 'error_block_not_support_clone';
                     }
                     this.inventory.cloneMaterial(block.material);
+                    break;
+                }
+
+                case ServerClient.CMD_DROP_ITEM: {
+                    this.inventory.dropItem(cmd.data);
                     break;
                 }
 

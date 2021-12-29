@@ -243,7 +243,7 @@ export class GameClass {
                     // Q (Drop item)
                     case KEY.Q: {
                         if(!e.down) {
-                            this.player.dropItem();
+                            this.player.world.server.DropItem();
                         }
                         return true;
                         break;

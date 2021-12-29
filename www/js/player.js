@@ -749,17 +749,4 @@ export class Player {
         }
     }
 
-    // Test method
-    dropItem() {
-        if(!this.buildMaterial) {
-            return false;
-        }
-        let pos = this.lerpPos.clone();
-        pos.y += this.height * .25;
-        pos.x += Math.sin(this.rotate.z) * 2;
-        pos.z += Math.cos(this.rotate.z) * 2;
-        // Game.render.dropBlock(this.buildMaterial, pos);
-        Game.App.onError('error_deprecated');
-    }
-
 }

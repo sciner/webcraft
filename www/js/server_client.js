@@ -58,6 +58,7 @@ export class ServerClient {
 	static CMD_DROP_ITEM_ADDED          = 76;
 	static CMD_DROP_ITEM_DELETED        = 77;
 	static CMD_DROP_ITEM_UPDATE         = 78;
+	static CMD_DROP_ITEM                = 86;
 
     // Block actions
     static BLOCK_ACTION_CREATE          = 1;
@@ -313,6 +314,12 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_INVENTORY_SET_ITEM, data: {
             index: index,
             item: item
+        }});
+    }
+
+    DropItem() {
+        this.Send({name: ServerClient.CMD_DROP_ITEM, data: {
+            hand: 1
         }});
     }
 
