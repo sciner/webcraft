@@ -34,13 +34,15 @@ const FakeCloudWorld = {
         imgData: null,
         size: new Vector(256, 1, 256),
         blocks: Array(256).fill(null).map(el => Array(256).fill(null)),
-        init: function() {
+        init: function(aabb) {
             let index = 0;
             for(let x = 0; x < this.size.x; x++) {
                 for(let z = 0; z < this.size.z; z++) {
-                    let is_cloud = this.imgData.data[index + 3] > 10;
-                    if(is_cloud) {
-                        this.blocks[x][z] = new TBlock(BLOCK.CLOUD.id);
+                    if(x >= aabb.min_x && x < aabb.max_x && z >= aabb.min_z && z < aabb.max_z) {
+                        const is_cloud = this.imgData.data[index + 3] > 10;
+                        if(is_cloud) {
+                            this.blocks[x][z] = new TBlock(BLOCK.CLOUD.id);
+                        }
                     }
                     index += 4;
                 }
@@ -54,13 +56,13 @@ const FakeCloudWorld = {
                 if(x >= 0 && x < clouds.size.x) {
                     if(z >= 0 && z < clouds.size.z) {
                         let resp = clouds.blocks[x][z]
-                        if(resp) {
+                        //if(resp) {
                             return resp;
-                        }
+                        //}
                     }
                 }
             }
-            return new TBlock(BLOCK.AIR.id);
+            return null;
         }
     }
 }
@@ -69,8 +71,18 @@ export default class Particles_Clouds {
 
     // Constructor
     constructor(gl, pos) {
+        //
+        const clouds = FakeCloudWorld.clouds;
+        this.size = 64; // Временно, чтобы сильно не напрягать проц
+        const aabb = {
+            min_x: clouds.size.x / 2 - this.size / 2,
+            max_x: clouds.size.x / 2 + this.size / 2,
+            min_z: clouds.size.z / 2 - this.size / 2,
+            max_z: clouds.size.z / 2 + this.size / 2
+        };
+        //
         FakeCloudWorld.clouds.imgData = Resources.clouds.texture;
-        this.scale      = new Vector(8, 4, 8);
+        this.scale      = new Vector(16, 4, 16);
         this.pn         = performance.now();
         this.yaw        = -Math.PI;
         this.life       = 0.5;
@@ -78,13 +90,15 @@ export default class Particles_Clouds {
         this.pos        = new Vector(pos.x, pos.y, pos.z);
         this.vertices   = [];
         //
-        FakeCloudWorld.clouds.init();
+        FakeCloudWorld.clouds.init(aabb);
         //
-        let cloud_movement = 128;
+        const cloud_movement = 128;
         this.pos.x += cloud_movement * this.scale.x;
         this.pos.z += cloud_movement * this.scale.z;
         //
-        let neighbours  = {
+        this.posOrig = this.pos.clone();
+        //
+        const neighbours  = {
             UP: null,
             DOWN: null,
             NORTH: null,
@@ -92,17 +106,11 @@ export default class Particles_Clouds {
             WEST: null,
             EAST: null
         };
-        //
-        let clouds = FakeCloudWorld.clouds;
-        let y = 0;
-        for(let x = 0; x < clouds.size.x; x++) {
-            for(let z = 0; z < clouds.size.z; z++) {
-                // @todo Временно, чтобы сильно не напрягать проц
-                if(x < 64 || z < 64 || x > 196 || z > 196) {
-                    continue;
-                }
+        const y = 0;
+        for(let x = aabb.min_x; x < aabb.max_x; x++) {
+            for(let z = aabb.min_z; z < aabb.max_z; z++) {
                 let block  = FakeCloudWorld.chunkManager.getBlock(x, 0, z);
-                if(block.id > 0) {
+                if(block && block.id > 0) {
                     neighbours.NORTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z + 1);
                     neighbours.SOUTH = FakeCloudWorld.chunkManager.getBlock(x, 0, z - 1);
                     neighbours.WEST = FakeCloudWorld.chunkManager.getBlock(x - 1, 0, z);
@@ -115,17 +123,16 @@ export default class Particles_Clouds {
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
         //
-        // console.log(parseInt(this.vertices.length / 21) + ' quads in clouds ');
+        // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
     }
 
     // Draw
     draw(render, delta) {
-        delta /= 1000;
         // движение на восток
-        let wind_move = delta * .01;
-        this.pos.x -= wind_move;
+        const wind_move = (performance.now() - this.pn) / 1000;
+        this.pos.set(this.posOrig.x - wind_move, this.posOrig.y, this.posOrig.z);
         render.renderBackend.drawMesh(this.buffer, render.defaultShader.materials.transparent, this.pos, this.modelMatrix);
     }
 

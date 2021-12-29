@@ -306,7 +306,9 @@ export class GameClass {
                     player.controls.sprint = true;
                 } else if (e.keyCode == KEY.SPACE) {
                     if(player.game_mode.canFly() && !player.in_water && !player.onGround) {
-                        if(!player.getFlying()) {
+                        if(player.getFlying()) {
+                            player.setFlying(false);
+                        } else {
                             player.setFlying(true);
                         }
                     }
