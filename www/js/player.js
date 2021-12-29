@@ -685,7 +685,7 @@ export class Player {
                 }
             }
             // Update FOV
-            Game.render.updateFOV(delta, this.zoom, this.running);
+            Game.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
         }
         this.lastUpdate = performance.now();
     }

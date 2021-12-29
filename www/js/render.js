@@ -27,14 +27,16 @@ const {mat4, quat, vec3} = glMatrix;
 * This class contains the code that takes care of visualising the
 * elements in the specified world.
 **/
-export const ZOOM_FACTOR    = 0.25;
-const BACKEND               = 'auto';
-const FOV_CHANGE_SPEED      = 150;
-const FOV_NORMAL            = 75;
-const FOV_WIDE              = FOV_NORMAL * 1.15;
-const FOV_ZOOM              = FOV_NORMAL * ZOOM_FACTOR;
-const NEAR_DISTANCE         = 2 / 16;
-const RENDER_DISTANCE       = 800;
+export const ZOOM_FACTOR        = 0.25;
+const BACKEND                   = 'auto';
+const FOV_CHANGE_SPEED          = 75;
+const FOV_FLYING_CHANGE_SPEED   = 35;
+const FOV_NORMAL                = 75;
+const FOV_FLYING                = FOV_NORMAL * 1.075;
+const FOV_WIDE                  = FOV_NORMAL * 1.15;
+const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
+const NEAR_DISTANCE             = 2 / 16;
+const RENDER_DISTANCE           = 800;
 
 let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
@@ -130,7 +132,7 @@ export class Renderer {
 
         this.skyBox             = null;
         this.videoCardInfoCache = null;
-        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE};
+        this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
         this.brightness         = 1;
         renderBackend.resize(this.canvas.width, this.canvas.height);
@@ -647,29 +649,27 @@ export class Renderer {
     }
 
     // updateFOV...
-    updateFOV(delta, zoom, running) {
-        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE} = this.options;
-
+    updateFOV(delta, zoom, running, flying) {
+        const {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED} = this.options;
+        let target_fov = FOV_NORMAL;
+        let new_fov = null;
         if(zoom) {
-            if(this.fov > FOV_ZOOM) {
-                let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_ZOOM);
-                this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
-            }
+            target_fov = FOV_ZOOM;
         } else {
             if(running) {
-                if(this.fov < FOV_WIDE) {
-                    let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_WIDE);
-                    this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
-                }
-            } else if(this.fov < FOV_NORMAL) {
-                let fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
-            } else {
-                if(this.fov > FOV_NORMAL) {
-                    let fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, FOV_NORMAL);
-                    this.setPerspective(fov, NEAR_DISTANCE, RENDER_DISTANCE);
-                }
+                target_fov = FOV_WIDE;
+            } else if(flying) {
+                target_fov = FOV_FLYING;
             }
+        }
+        if(this.fov < target_fov) {
+            new_fov = Math.min(this.fov + FOV_CHANGE_SPEED * delta, target_fov);
+        }
+        if(this.fov > target_fov) {
+            new_fov = Math.max(this.fov - FOV_CHANGE_SPEED * delta, target_fov);
+        }
+        if(new_fov !== null) {
+            this.setPerspective(new_fov, NEAR_DISTANCE, RENDER_DISTANCE);
         }
     }
 
