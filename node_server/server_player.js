@@ -412,6 +412,11 @@ export class ServerPlayer extends Player {
                     this.world.db.deleteDropItem(entity_id);
                 }
                 // 3. play sound on client
+                let packets_sound = [{
+                    name: ServerClient.CMD_PLAY_SOUND,
+                    data: {tag: 'madcraft:entity.item.pickup', action: 'hit'}
+                }];
+                this.world.sendSelected(packets_sound, [this.session.user_id], []);
                 // 4.
                 let packets = [{
                     name: ServerClient.CMD_DROP_ITEM_DELETED,

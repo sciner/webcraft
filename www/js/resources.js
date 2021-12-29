@@ -1,5 +1,4 @@
 import "./../vendors/gl-matrix-3.3.min.js";
-import { glTFLoader } from "./../vendors/minimal-gltf-loader.js";
 import { Helpers } from "./helpers.js";
 
 export class Resources {
@@ -217,30 +216,6 @@ export class Resources {
         }
         await Promise.all(process);
         return base;
-    }
-
-    static async loadGltf(url, options)  {
-        const loader = new glTFLoader(null);
-        return new Promise((res) => {
-            loader.loadGLTF(url, {baseUri: ''}, (model) => {
-                for(const mesh of model.meshes) {
-                    // mesh can be shared
-                    // skip same mesh    
-                    if (mesh.interlivedData) {
-                        continue;
-                    }
-
-                    const data = [];
-                    for(const p of mesh.primitives) {
-                        Resources.unrollGltf(p, model, data);
-                    }	
-
-                    mesh.interlivedData = data;
-                }
-
-                return res(model);
-            });
-        });
     }
 
     // loadResourcePacks...

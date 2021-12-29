@@ -10,26 +10,31 @@ def get_name_no_ext(filename):
 
 filelist = os.listdir("sounds")
 
-counter = 0
-result = dict()
+offset = 0
+sprite = dict()
 sound_final = None
 for file in filelist:
-    if 'ogg' in file:
+    if '.ogg' == file[-4:]:
         sound = AudioSegment.from_ogg("sounds/" + file)
-    elif 'mp3' in file:
+    elif '.mp3' == file[-4:]:
         sound = AudioSegment.from_mp3("sounds/" + file)
     else:
-        print("Ext proc not found: " + file[-4:])
-        exit()
+        continue
     if not sound_final:
         sound_final = sound
     else:
         sound_final = sound_final + sound
     sound_len = len(sound)
-    result[get_name_no_ext(file)] = [counter, sound_len]
-    counter = counter + sound_len
-sound_final.export("result.ogg", format="ogg")
-sound_final.export("result.mp3", format="mp3")
+    sprite[get_name_no_ext(file)] = [offset, sound_len - 5]
+    offset = offset + sound_len
+sound_final.export("sprite.ogg", format="ogg")
+sound_final.export("sprite.mp3", format="mp3")
 io = StringIO()
-json.dump(result, io)
+final_result = dict()
+final_result["src"] = ["/sounds/main/sprite.ogg", "/sounds/main/sprite.mp3"]
+final_result["sprite"] = sprite
+
+with open('sprite.json', 'w') as f:
+    json.dump(final_result, f, indent = 6)
+    
 print(io.getvalue())

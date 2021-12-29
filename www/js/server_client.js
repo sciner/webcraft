@@ -40,6 +40,7 @@ export class ServerClient {
 	static CMD_WORLD_INFO               = 74;
 	static CMD_GAMEMODE_NEXT            = 80;
 	static CMD_GAMEMODE_SET             = 81;
+	static CMD_PLAY_SOUND               = 85;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;

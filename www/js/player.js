@@ -109,6 +109,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_TELEPORT], (cmd) => {this.setPosition(cmd.data.pos);});
         this.world.server.AddCmdListener([ServerClient.CMD_ERROR], (cmd) => {Game.App.onError(cmd.data.message);});
         this.world.server.AddCmdListener([ServerClient.CMD_INVENTORY_STATE], (cmd) => {this.inventory.setState(cmd.data);});
+        this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
             this.game_mode.applyMode(cmd.data.id, false);

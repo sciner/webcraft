@@ -200,5 +200,11 @@
             "Wood_hit5",
             "Wood_hit6"
         ]
+    },
+    {
+        "type": "madcraft:entity.item.pickup",
+        "hit": [
+            "Pop"
+        ]
     }
 ]
