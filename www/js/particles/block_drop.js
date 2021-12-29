@@ -46,6 +46,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     static neighbours = null;
 
+    static buffer_cache = new Map();
+
     // Constructor
     constructor(gl, entity_id, items, pos) {
 
@@ -76,38 +78,42 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             };
         }
 
-        this.scale      = new Vector(.2, .2, .2);
-        this.pn         = performance.now() + Math.random() * 2000;
-        this.life       = 1.0;
-        this.posFact    = this.pos.clone();
-        this.addY       = 0;
-        this.vertices   = [];
-        this.block      = new FakeTBlock(block.id);
+        this.scale          = new Vector(.2, .2, .2);
+        this.pn             = performance.now() + Math.random() * 2000; // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
+        this.life           = 1.0;
+        this.posFact        = this.pos.clone();
+        this.addY           = 0;
+        this.vertices       = [];
+        this.block          = new FakeTBlock(block.id);
 
-        let b           = this.block;
+        const b             = this.block;
         this.block_material = b.material;
 
-        this.resource_pack = b.material.resource_pack
-        this.material = this.resource_pack.getMaterial(b.material.material_key);
+        const resource_pack = b.material.resource_pack
+        this.material = resource_pack.getMaterial(b.material.material_key);
 
-        let x = -.5, y = -.5, z = -.5;
-        let draw_style = b.material.inventory_style ? b.material.inventory_style :  b.material.style;
-        this.resource_pack.pushVertices(
-            this.vertices,
-            b, // UNSAFE! If you need unique block, use clone
-            FakeWorld,
-            x,
-            y,
-            z,
-            Particles_Block_Drop.neighbours,
-            biome,
-            draw_style
-        );
+        this.buffer = Particles_Block_Drop.buffer_cache.get(block.id);
+        if(!this.buffer) {
+            const x = -.5, y = -.5, z = -.5;
+            const draw_style = b.material.inventory_style ? b.material.inventory_style :  b.material.style;
+            resource_pack.pushVertices(
+                this.vertices,
+                b, // UNSAFE! If you need unique block, use clone
+                FakeWorld,
+                x,
+                y,
+                z,
+                Particles_Block_Drop.neighbours,
+                biome,
+                draw_style
+            );
+            this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+            Particles_Block_Drop.buffer_cache.set(block.id, this.buffer);
+        }
 
         this.modelMatrix = mat4.create();
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.swapYZ().toArray());
 
-        this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
         this.lightTex = null;
         this.chunk = null;
 
@@ -149,7 +155,6 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.addY / 60);
 
-        
         // not working yet
         //this.material.lightTex = this.lightTex;
 
@@ -171,7 +176,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
     }
 
     destroy() {
-        this.buffer.destroy();
+        // this.buffer.destroy();
     }
 
     isAlive() {
