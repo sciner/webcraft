@@ -36,12 +36,24 @@
 					]
 				},
 				{
+					"name": "RightArmItemPlace",
+					"parent": "RightArm",
+					"pivot": [-5.5, 12, -2],
+					"rotation": [90, 0, 0]
+				},
+				{
 					"name": "LeftArm",
 					"pivot": [5, 21.5, 0],
 					"cubes": [
 						{"origin": [4, 11.5, -2], "size": [3, 12, 4], "uv": [32, 48]},
 						{"origin": [4, 11.5, -2], "size": [3, 12, 4], "inflate": 0.25, "uv": [48, 48]}
 					]
+				},
+				{
+					"name": "LeftArmItemPlace",
+					"parent": "LeftArm",
+					"pivot": [5.5, 12, -2],
+					"rotation": [90, 0, 0]
 				},
 				{
 					"name": "RightLeg",

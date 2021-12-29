@@ -106,7 +106,8 @@ export class PlayerManager {
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skin.id,
-            username:       Game.App.session.username + ' Ghost'
+            username:       Game.App.session.username + ' Ghost',
+            hands:          {left: {id: null}, right: {id: player.buildMaterial?.id}}
         }));
     };
 

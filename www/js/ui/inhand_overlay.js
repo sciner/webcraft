@@ -6,9 +6,8 @@ import Particles_Block_Drop from "../particles/block_drop.js";
 import { Particle_Hand } from "../particles/block_hand.js";
 
 const {mat4} = glMatrix;
-
+const tmpMatrix = mat4.create();
 const MINE_PERIOD = 20;
-const MINE_TIME_SCALE = Math.PI * 2;
 
 export class InHandOverlay {
     constructor (skinId, render) {
@@ -30,7 +29,7 @@ export class InHandOverlay {
         this.inHandItemBroken = false;
         this.inHandItemId = -1;
 
-        this.handMesh = new Particle_Hand(skinId, render);
+        this.handMesh = new Particle_Hand(skinId, render, false);
 
         this.changeAnimation = true;
         this.changAnimationTime = 0;
@@ -148,7 +147,7 @@ export class InHandOverlay {
         const animFrame = Math.cos(this.changAnimationTime * Math.PI * 2);
 
         camera.pos.set(
-            -1,
+            0,
             0.5,
             -1.5 * animFrame
         );
@@ -168,9 +167,11 @@ export class InHandOverlay {
             color: false
         });
 
-        const animMatrix = mat4.create();
+        const animMatrix = mat4.identity(tmpMatrix);
         const phasedTime = this.mineTime;
-      
+
+        // shift matrix for left hand
+        const orient = handMesh.isLeft ? -1 : 1;
         const attacPhase = Math.sin(phasedTime * phasedTime * Math.PI * 2 - Math.PI);
         const rotPhase = Math.min(-attacPhase, 0);
         const animY = (1 - Math.cos(phasedTime * Math.PI * 2)) * 0.5;    
@@ -178,21 +179,16 @@ export class InHandOverlay {
         mat4.rotateZ(
             animMatrix,
             animMatrix,
-            -rotPhase * Math.PI / 6
+            -orient * rotPhase * Math.PI / 4
         );
 
-
         mat4.translate(animMatrix, animMatrix, [
-            0,
-            attacPhase * 2,
-            animY,
-        ])
+            orient, 
+            attacPhase *  0.8,
+            animY * 0.8,
+        ]);
 
-        mat4.identity(handMesh.modelMatrix);
-        mat4.scale(handMesh.modelMatrix, handMesh.modelMatrix, [1.5, 1.5, 1.5]);
-        mat4.multiply(handMesh.modelMatrix, animMatrix, handMesh.modelMatrix);
-
-        handMesh.drawDirectly(render);
+        handMesh.drawDirectly(render, animMatrix);
 
         mat4.rotateX(animMatrix, animMatrix, rotPhase * Math.PI / 4)
 
@@ -207,18 +203,16 @@ export class InHandOverlay {
             // for axe and sticks
             if (block_material.diagonal) {                
                 mat4.scale(modelMatrix, modelMatrix, [0.8, 0.8, 0.8]);
-                mat4.rotateZ(modelMatrix, modelMatrix, - 2 * Math.PI / 5);
+                mat4.rotateZ(modelMatrix, modelMatrix, -orient * 2 * Math.PI / 5);
                 mat4.rotateY(modelMatrix, modelMatrix, -Math.PI / 4);
                 pos.set(0,0.2,0);
 
             } else {
                 mat4.scale(modelMatrix, modelMatrix, [0.5, 0.5, 0.5]);
-                mat4.rotateZ(modelMatrix, modelMatrix, -Math.PI / 4 + Math.PI);
+                mat4.rotateZ(modelMatrix, modelMatrix, -orient * Math.PI / 4 + Math.PI);
             }
 
-            mat4.multiply(modelMatrix, animMatrix, modelMatrix);
-
-            inHandItemMesh.drawDirectly(render);
+            inHandItemMesh.drawDirectly(render, animMatrix);
         }
     }
 }

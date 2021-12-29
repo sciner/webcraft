@@ -8,7 +8,6 @@ export class SceneNode {
          * @type {SceneNode[]}
          */
         this.children = [];
-        this.parent = parent;
 
         /**
          * @type {Float32Array}
@@ -23,7 +22,6 @@ export class SceneNode {
         this.name = '';
 
         this.source = null;
-
         this.terrainGeometry = null;
         this.material = null;
 
@@ -41,6 +39,14 @@ export class SceneNode {
 
         this.matrixId = 0;
         this.matrixWorldId = 0;
+
+        if (parent) {
+            parent.addChild(this);
+        }
+    }
+
+    get buffer() {
+        return this.terrainGeometry;
     }
 
     addChild(child) {
@@ -55,6 +61,7 @@ export class SceneNode {
         child.updateMatrix();
 
         this.children.push(child);
+
         child.parent = this;
     }
 
@@ -123,8 +130,13 @@ export class SceneNode {
             return this.matrix;
         }
 
+        const parentMatrix = this.parent.matrixWorld;
+
         if (this._oldMatrixId !== this.matrixWorldId || this._parentMatrixId !== this.parent.matrixWorldId) {
-            mat4.multiply(this._matrixWorld, this.parent.matrixWorld, this.matrix);
+            mat4.multiply(this._matrixWorld, parentMatrix, this.matrix);
+
+            // because we update matrix, change their ID to track in next child
+            this.matrixWorldId ++;
         }
 
         this._oldMatrixWorldId = this.matrixWorldId;

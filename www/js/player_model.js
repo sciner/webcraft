@@ -1,9 +1,32 @@
+import { BLOCK } from "./blocks.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import { NORMALS, Helpers } from './helpers.js';
+import { NORMALS, Helpers, Vector } from './helpers.js';
 import { MobAnimation, MobModel } from "./mob_model.js";
+import Particles_Block_Drop from "./particles/block_drop.js";
 import { SceneNode } from "./SceneNode.js";
 
 const {mat4, quat} = glMatrix;
+
+const KEY_SLOT_MAP = {
+    left: 'LeftArm',
+    right: 'RightArm'
+};
+
+export class ModelSlot {
+    constructor(name = '', parent = null) {
+        /**
+         * @type { SceneNode }
+         */
+        this.holder = new SceneNode(parent);
+        this.holder.position.set(parent.pivot);
+
+        this.id = -1;
+
+        this.name = name;
+
+        this.holder.updateMatrix();
+    }
+}
 
 export class PlayerAnimation extends MobAnimation {
     head({
@@ -41,7 +64,103 @@ export class PlayerModel extends MobModel {
 
         this.head = null;
 
-        this.animationScript = new PlayerAnimation()
+        this.animationScript = new PlayerAnimation();
+
+        /**
+         * @type {Map<string, ModelSlot>}
+         */
+        this.slots = {};
+
+        // for lazy state generation
+        this.activeSlotsData = props.hands;
+    }
+
+    applyNetState(state) {
+        super.applyNetState(state);
+
+        this.changeSlots(state.hands);
+    }
+
+    changeSlots(data) {
+        this.activeSlotsData = data;
+
+        if (this.sceneTree && this.activeSlotsData) {
+            for(const key in this.activeSlotsData) {
+                this.changeSlotEntry(KEY_SLOT_MAP[key], this.activeSlotsData[key]);
+            }
+        }
+    }
+
+    changeSlotEntry(name, props) {
+        if (!name || !props) {
+            return;
+        }
+
+        let {
+            id, scale = 0.3
+        } = props;
+
+        id = typeof id !== 'number' ? -1 : id;
+
+        const slotLocation = this.sceneTree.findNode(name + 'ItemPlace');
+
+        if (!slotLocation) {
+            return;
+        }
+
+        const slot = (this.slots[name] || (this.slots[name] = new ModelSlot(name, slotLocation)));
+
+        if (id == slot.id && slot.holder.terrainGeometry) {
+            return;
+        }
+
+        if (slot.holder.terrainGeometry) {
+            slot.holder.terrainGeometry.destroy();
+            slot.holder.terrainGeometry = null;
+        }
+
+        slot.id = id;
+
+        if (id === -1) {
+            return;
+        }
+
+        const block = BLOCK.BLOCK_BY_ID.get(id);
+
+        if (!block.spawnable) {
+            return;
+        }
+
+        let item;
+        
+        try {
+            item = new Particles_Block_Drop(null, null, [block], Vector.ZERO);
+        } catch(e) {
+            console.log(e);
+            //
+        }
+
+        if (!item) {
+            return;
+        }
+        
+        slot.holder.terrainGeometry = item.buffer;
+        slot.holder.material = item.material;
+
+        const orient = name === 'LeftArm' ? -1 : 1;
+
+        if (block.diagonal) {
+            scale *= 1.2;
+
+            quat.fromEuler(slot.holder.quat, 10 * orient, -70, 90 + 10 * orient);
+
+        } else {
+            quat.fromEuler(slot.holder.quat, 20, 0, -20);
+        }
+
+        slot.holder.scale.set([scale, scale, scale]);
+        slot.holder.pivot.set([0, 0, scale / 2]);
+        slot.holder.updateMatrix();
     }
 
     itsMe() {
@@ -79,6 +198,8 @@ export class PlayerModel extends MobModel {
     postLoad(tree) {
         super.postLoad(tree);
         tree.scale.set([0.9, 0.9, 0.9]);
+
+        this.changeSlots(this.activeSlotsData);
     }
 
     update(render, camPos, delta) {
