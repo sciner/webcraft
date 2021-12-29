@@ -86,6 +86,18 @@ export class UIApp {
         return result;
     }
 
+    // JoinWorld...
+    async JoinWorld(form, callback, callback_error, callback_progress, callback_final) {
+        let result = [];
+        await this.api.call(this, '/api/Game/JoinWorld', form, (resp) => {
+            result = resp;
+            if(callback) {
+                callback(result);
+            }
+        }, callback_error, callback_progress, callback_final);
+        return result;
+    }
+
     // MyWorlds...
     async MyWorlds(form, callback, callback_error, callback_progress, callback_final) {
         let result = [];

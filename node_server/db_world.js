@@ -227,20 +227,25 @@ export class DBWorld {
             await this.db.get('update options set version = ' + (++version));
             await this.db.get('commit');
         }
-        // Version 10 -> 11
-        if(version == 11) {
-            await this.db.get('begin transaction');
-            await this.db.get(`alter table drop_item add column "is_deleted" integer DEFAULT 0`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
+
+        const migrations = [];
+        migrations.push({version: 12, queries: [`alter table drop_item add column "is_deleted" integer DEFAULT 0`]});
+        migrations.push({version: 13, queries: [`alter table user add column "game_mode" TEXT DEFAULT NULL`]});
+        migrations.push({version: 14, queries: [`UPDATE user SET inventory = replace(inventory, '"index2":0', '"index2":-1')`]});
+
+        for(let m of migrations) {
+            if(m.version > version) {
+                await this.db.get('begin transaction');
+                for(let query of m.queries) {
+                    await this.db.get(query);
+                }
+                await this.db.get('update options set version = ' + (++version));
+                await this.db.get('commit');
+                version = m.version;
+                console.info('Migration applied : ' + version);
+            }
         }
-        // Version 11 -> 12
-        if(version == 12) {
-            await this.db.get('begin transaction');
-            await this.db.get(`alter table user add column "game_mode" TEXT DEFAULT NULL`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
+
     }
 
     // getDefaultPlayerIndicators...

@@ -29,6 +29,13 @@ export class ServerAPI {
                         res.status(200).json(world);
                         break;
                     }
+                    case '/api/Game/JoinWorld': {
+                        const world_guid = req.body.world_guid;
+                        const session    = await Game.db.GetPlayerSession(req.get('x-session-id'));
+                        const world      = await Game.db.JoinWorld(session.user_id, world_guid);
+                        res.status(200).json(world);
+                        break;
+                    }
                     case '/api/Game/MyWorlds': {
                         let session = await Game.db.GetPlayerSession(req.get('x-session-id'));
                         let result = await Game.db.MyWorlds(session.user_id);

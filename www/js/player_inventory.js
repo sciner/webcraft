@@ -19,7 +19,7 @@ export class PlayerInventory {
             items: this.items
         };
         this.current.index = isNaN(data.current.index) ? 0 : data.current.index;
-        this.current.index2 = isNaN(data.current.index2) ? 0 : data.current.index2;
+        this.current.index2 = isNaN(data.current.index2) ? -1 : data.current.index2;
         this.player.updateHands();
         this.player.world.db.savePlayerInventory(this.player, data);
         let packets = [{

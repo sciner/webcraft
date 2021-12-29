@@ -345,12 +345,13 @@ let gameCtrl = function($scope, $timeout) {
                 if(that.worldExists(world_guid)) {
                     return false;
                 }
-                helperService.api.call($scope.App, '/api/Game/JoinWorld', {world_guid: world_guid}, function(resp) {
-                    that.list.push(resp);
-                    vt.success('You invited to world ' + hash);
-                    location.href = location.protocol + '//' + location.host;
-                }, null, null, function() {
-                    that.loading = false;
+                $scope.App.JoinWorld({world_guid: world_guid}, (resp) => {
+                    $timeout(() => {
+                        that.list.push(resp);
+                        vt.success('You invited to world ' + hash);
+                        location.href = location.protocol + '//' + location.host;
+                        that.loading = false;
+                    });
                 });
                 return true;
             }
