@@ -34,7 +34,7 @@ export class PlayerInventory {
     //
     setIndexes(data) {
         this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
-        this.current.index2 = Helpers.clamp(data.index2, 0, this.max_count - 1);
+        this.current.index2 = Helpers.clamp(data.index2, -1, this.max_count - 1);
         this.refresh();
     }
 
