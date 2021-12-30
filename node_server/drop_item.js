@@ -8,6 +8,8 @@ export class DropItem {
 
     #world;
     #chunk_addr;
+    #prev_chunk_addr;
+    #pc;
 
     constructor(world, params) {
         this.#world         = world;
@@ -20,7 +22,8 @@ export class DropItem {
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //
-        this.pc = this.createPlayerControl(1, 0.3, 1);
+        this.#pc = this.createPlayerControl(1, 0.3, 1);
+        this.#prev_chunk_addr = getChunkAddr(this.pos);
     }
 
     /**
@@ -67,24 +70,40 @@ export class DropItem {
         return new DropItem(world, params);
     }
 
+    // Tick
     tick(delta) {
-        let pc = this.pc;
+        const pc = this.#pc;
         pc.tick(delta);
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);
+            // Migrate drop item from previous chunk to new chunk
+            if(!this.chunk_addr.equal(this.#prev_chunk_addr)) {
+                const world = this.getWorld();
+                // Delete from previous chunk
+                const prev_chunk = world.chunks.get(this.#prev_chunk_addr);
+                if(prev_chunk) {
+                    prev_chunk.drop_items.delete(this.entity_id);
+                }
+                // Add drop item to new chunk
+                const new_chunk = world.chunks.get(this.chunk_addr);
+                if(new_chunk) {
+                    new_chunk.drop_items.set(this.entity_id, this);
+                    this.#prev_chunk_addr.clone(this.chunk_addr);
+                }
+            }
             this.sendState();
         }
     }
 
     // Send current drop item state to players
     sendState() {
-        let world = this.getWorld();
+        const world = this.getWorld();
         let chunk_over = world.chunks.get(this.chunk_addr);
         if(!chunk_over) {
             return;
         }
-        let packets = [{
+        const packets = [{
             name: ServerClient.CMD_DROP_ITEM_UPDATE,
             data: {
                 entity_id:  this.entity_id,
