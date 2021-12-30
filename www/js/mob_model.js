@@ -149,7 +149,7 @@ export class MobAnimator extends Animator {
         
         head = tree.findNode('head') || tree.findNode('Head');
 
-        parts['head'] = [head];
+        parts['head'] = head ? [head] : [];
         parts['arm'] = arms;
         parts['leg'] = legs;
 
