@@ -185,7 +185,7 @@ export default class style {
             }
 
             let animations_up = getAnimations('up');
-            
+
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -223,54 +223,56 @@ export default class style {
                 lm.r, lm.g, lm.b, flags);
         }
 
+        const H = (bH - 1 + height);
+
         // South | Front/Forward
         if(canDrawFace(neighbours.SOUTH)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5, .5 - width / 2, height / 2,
+                .5, .5 - width / 2, H / 2,
                 1, 0, 0,
-                0, 0, height,
+                0, 0, H,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // North
         if(canDrawFace(neighbours.NORTH)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5, .5 + width / 2, height / 2,
+                .5, .5 + width / 2, H / 2,
                 1, 0, 0,
-                0, 0, -height,
+                0, 0, -H,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // West
         if(canDrawFace(neighbours.WEST)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5 - width / 2, .5, height / 2,
+                .5 - width / 2, .5, H / 2,
                 0, 1, 0,
-                0, 0, -height,
+                0, 0, -H,
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         // East
         if(canDrawFace(neighbours.EAST)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, height);
+            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
-                .5 + width / 2, .5, height / 2,
+                .5 + width / 2, .5, H / 2,
                 0, 1, 0,
-                0, 0, height,
+                0, 0, H,
                 c[0], c[1], c[2], -c[3],
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
