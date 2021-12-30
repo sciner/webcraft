@@ -41,14 +41,14 @@ Game.player.chat.sendMessage('Hello, World!');
 let blocks = Game.block_manager.getAll();
 
 // Change game mode
-Game.player.game_mode.setMode('creative'); // survival|creative|adventure|spectator
+Game.world.server.GameModeSet('creative'); // survival|creative|adventure|spectator
 
 // Open inventory window
 Game.player.inventory.open();
 
 // Spawn mob
-Game.player.world.server.Send({name: 70, data: {type: "horse", skin: "creamy", pos: Game.player.pos}});
-Game.player.world.server.Send({name: 70, data: {type: "bee", skin: "base", pos: Game.player.pos}});
+Game.player.chat.sendMessage('/spawnmob 3880 71 2527 horse creamy');
+Game.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
 
 // Admins
 // 1. admin list managed only by chat commands

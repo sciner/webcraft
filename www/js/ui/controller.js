@@ -33,6 +33,7 @@ window.KEY          = {};
     KEY.R           = 82;
     KEY.S           = 83;
     KEY.T           = 84;
+    KEY.V           = 86;
     KEY.W           = 87;
     KEY.F1          = 112;
     KEY.F2          = 113;

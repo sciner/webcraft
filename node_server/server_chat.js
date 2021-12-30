@@ -137,7 +137,14 @@ export class ServerChat {
             case '/obj':
             case '/weather':
             case '/tp': {
-                // @todo Команда пока выполняется на клиенте
+                try {
+                    args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
+                    const pos = new Vector(args[1], args[2], args[3]);
+                    this.world.teleportPlayer(player, {place_id: null, pos: pos});
+                } catch(e) {
+                    args = this.parseCMD(args, ['string', 'string']);
+                    this.world.teleportPlayer(player, {place_id: args[1], pos: null});
+                }
                 break;
             }
             case '/tps': {

@@ -126,6 +126,16 @@ export class Chat {
         }
         this.buffer.push(ch);
     }
+
+    pasteText(text) {
+        if(!this.active) {
+            return false;
+        }
+        let chars = text.trim().split('');
+        if(chars.length > 0) {
+            this.buffer.push(...chars);
+        }
+    }
     
     backspace() {
         if(!this.active) {
@@ -163,17 +173,6 @@ export class Chat {
             let temp = text.replace(/  +/g, ' ').split(' ');
             let cmd = temp.shift();
             switch(cmd.trim().toLowerCase()) {
-                case '/tp': {
-                    if(temp.length == 3) {
-                        let x = parseFloat(temp[0].trim());
-                        let y = parseFloat(temp[1].trim());
-                        let z = parseFloat(temp[2].trim());
-                        player.teleport(null, new Vector(x, y, z));
-                    } else {
-                        chat.messages.addError(`Incorrect argument for command`);
-                    }
-                    break;
-                }
                 case '/weather': {
                     if(temp.length == 1) {
                         let name = temp[0].trim().toLowerCase();

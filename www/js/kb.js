@@ -20,7 +20,16 @@ export class Kb {
         };
 
         document.onkeydown = function(e) {
-            if (e.target.tagName != 'INPUT') {
+            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
+                if (e.code !== undefined) {
+                    if(e.code == 'KeyV' && e.ctrlKey)  {
+                        return true;
+                    }
+                } else if (e.keyCode !== undefined) {
+                    if(e.keyCode == KEY.V && e.ctrlKey)  {
+                        return true;
+                    }
+                }
                 if(that._onKeyEvent(makeEvent(e, true, false))) {
                     return false;
                 }
@@ -33,7 +42,7 @@ export class Kb {
         }
 
         document.onkeyup = function(e) {
-            if (e.target.tagName != 'INPUT') {
+            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
                 if(that._onKeyEvent(makeEvent(e, false, false))) {
                     return false;
                 }
@@ -50,6 +59,14 @@ export class Kb {
         canvas.onmouseup    = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.UP, e.which, e.shiftKey); e.stopPropagation(); e.preventDefault(); return false; }
         canvas.onmousemove  = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.MOVE, e.which, e.shiftKey); return false; }
         canvas.onclick      = function(e) {that.options.onMouseEvent(e, e.clientX, e.clientY, MOUSE.CLICK, e.which, e.shiftKey); return false; }
+
+        document.addEventListener('paste', function(e) {
+            // onPaste
+            if (['INPUT', 'TEXTAREA'].indexOf(e.target.tagName) < 0) {
+                return that.options.onPaste(e);
+            }
+            return true;
+        });
 
     }
 

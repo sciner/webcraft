@@ -47,11 +47,11 @@ export class WorldAdminManager {
             throw 'Not permitted';
         }
         let user = await this.world.db.findPlayer(this.world.info.id, username);
-        if (user.id == this.world.info.user_id) {
-            throw 'Can\'t remove owner';
-        }
         if (!user) {
             throw 'User not found';
+        }
+        if (user.id == this.world.info.user_id) {
+            throw 'Can\'t remove owner';
         }
         await this.world.db.setAdmin(this.world.info.id, user.id, 0);
         return await this.load();

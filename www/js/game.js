@@ -68,6 +68,16 @@ export class GameClass {
         let player = this.player;
         let canvas = document.getElementById(element_id);
         let kb = this.kb = new Kb(canvas, {
+            onPaste: (e) => {
+                let clipboardData = e.clipboardData || window.clipboardData;
+                if(clipboardData) {
+                    let pastedData = clipboardData.getData('Text');
+                    if(pastedData) {
+                        player.chat.pasteText(pastedData);
+                    }
+                }
+                return true;
+            },
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
                 let visibleWindows = this.hud.wm.getVisibleWindows();
                 if(type == MOUSE.DOWN && visibleWindows.length > 0) {

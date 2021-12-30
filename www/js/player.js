@@ -539,7 +539,7 @@ export class Player {
         Game.player.world.server.SetPosSpawn(pos);
     }
 
-    // randomTeleport
+    // Teleport
     teleport(place_id, pos) {
         Game.player.world.server.Teleport(place_id, pos);
     }
@@ -692,28 +692,16 @@ export class Player {
 
     // Emulate user keyboard control
     walk(direction, duration) {
-        let keyCode = null;
-        switch(direction) {
-            case 'forward': keyCode = KEY.W; break;
-            case 'back': keyCode = KEY.S; break;
-            case 'left': keyCode = KEY.A; break;
-            case 'right': keyCode = KEY.D; break;
-            default: throw 'Invalid direction';
-        }
-        this.onKeyEvent({
-            keyCode: keyCode,
-            down: true,
-            first: true,
-            shiftKey: false,
-            ctrlKey: false
-        });
-        setTimeout(() => {this.onKeyEvent({
-            keyCode: keyCode,
-            down: false,
-            first: true,
-            shiftKey: false,
-            ctrlKey: false
-        });}, duration);
+        this.controls.forward = direction == 'forward';
+        this.controls.back = direction == 'back';
+        this.controls.left = direction == 'left';
+        this.controls.right = direction == 'right';
+        setTimeout(() => {
+            this.controls.forward = false;
+            this.controls.back = false;
+            this.controls.left = false;
+            this.controls.right = false;
+        }, duration);
     }
 
     // Проверка падения (урон)
