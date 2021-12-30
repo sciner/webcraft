@@ -1,5 +1,5 @@
 import GeometryTerrain from "../geometry_terrain.js";
-import { MULTIPLY, DIRECTION } from "../helpers.js";
+import { MULTIPLY, DIRECTION, Vector } from "../helpers.js";
 import { BLOCK } from "../blocks.js";
 
 export class Vox_Mesh {
@@ -120,13 +120,15 @@ export class Vox_Mesh {
 
         this.geometry = new GeometryTerrain(vertices);
         this.vertices = vertices;
+        this.temp_xyz = new Vector(0, 0, 0);
 
     }
 
     // getBlock
     getBlock(xyz) {
-        xyz = xyz.sub(this.coord);
-        const index = xyz.x + (xyz.z * this.offsety) + (xyz.y * this.offsetz);
+        this.temp_xyz.set(xyz.x - this.coord.x, xyz.y - this.coord.y, xyz.z - this.coord.z);
+        // xyz = xyz.sub(this.coord);
+        const index = this.temp_xyz.x + (this.temp_xyz.z * this.offsety) + (this.temp_xyz.y * this.offsetz);
         if(index < 0 || index >= this.blocks.length) {
             return null;
         }

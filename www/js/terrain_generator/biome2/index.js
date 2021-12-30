@@ -8,6 +8,7 @@ import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
+import { AABB } from '../../core/AABB.js';
 
 //
 let vox_templates = {};
@@ -17,6 +18,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
         super(seed, world_id);
+        this._createBlockAABB = new AABB();
     }
 
     async init() {
@@ -242,17 +244,100 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         //
+        let temp_set_block = null;
         let setBlock = (x, y, z, block_id) => {
             temp_vec2.set(x, y, z);
             // let vec = new Vector(x, y, z);
             chunk.tblocks.delete(temp_vec2);
-            let block = chunk.tblocks.get(temp_vec2);
-            block.id = block_id;
+            temp_set_block = chunk.tblocks.get(temp_vec2, temp_set_block);
+            temp_set_block.id = block_id;
         };
+
+        //
+        this._createBlockAABB.copyFrom({
+            x_min: chunk.coord.x,
+            x_max: chunk.coord.x + CHUNK_SIZE_X,
+            y_min: chunk.coord.y,
+            y_max: chunk.coord.y + CHUNK_SIZE_Y,
+            z_min: chunk.coord.z,
+            z_max: chunk.coord.z + CHUNK_SIZE_Z
+        });
 
         // Static objects
         let islands = this.islands;
         let extruders = this.extruders;
+
+        // voxel_buildings
+        let has_voxel_buildings = false;
+        for(var item of this.voxel_buildings) {
+            if(this._createBlockAABB.intersect({
+                x_min: item.coord.x,
+                x_max: item.coord.x + item.size.x,
+                y_min: item.coord.y,
+                y_max: item.coord.y + item.size.y,
+                z_min: item.coord.z,
+                z_max: item.coord.z + item.size.z
+            })) {
+                has_voxel_buildings = true;
+                break;
+            }
+        }
+
+        // Islands
+        let has_islands = false;
+        for(let item of this.islands) {
+            let rad = item.rad;
+            if(this._createBlockAABB.intersect({
+                x_min: item.pos.x - rad,
+                x_max: item.pos.x + rad,
+                y_min: item.pos.y - rad,
+                y_max: item.pos.y + rad,
+                z_min: item.pos.z - rad,
+                z_max: item.pos.z + rad
+            })) {
+                has_islands = true;
+                break;
+            }
+        }
+
+        // extruders
+        let has_extruders = false;
+        for(let item of this.extruders) {
+            let rad = item.rad;
+            if(this._createBlockAABB.intersect({
+                x_min: item.pos.x - rad,
+                x_max: item.pos.x + rad,
+                y_min: item.pos.y - rad,
+                y_max: item.pos.y + rad,
+                z_min: item.pos.z - rad,
+                z_max: item.pos.z + rad
+            })) {
+                has_extruders = true;
+                break;
+            }
+        }
+
+        // caves
+        let has_caves = false;
+        for(let map_cave of neighbours_caves) {
+            for(let item of map_cave.points) {
+                let rad = item.rad;
+                if(this._createBlockAABB.intersect({
+                    x_min: item.pos.x - rad,
+                    x_max: item.pos.x + rad,
+                    y_min: item.pos.y - rad,
+                    y_max: item.pos.y + rad,
+                    z_min: item.pos.z - rad,
+                    z_max: item.pos.z + rad
+                })) {
+                    has_caves = true;
+                    break;
+                }
+            }
+            if(has_caves) {
+                break;
+            }
+        }
 
         // Endless spiral staircase
         if(this.world_id == 'demo') {
@@ -299,48 +384,54 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
                     // Draw voxel buildings
-                    let vb = this.getVoxelBuilding(xyz);
-                    if(vb) {
-                        let block = vb.getBlock(xyz);
-                        if(block) {
-                            setBlock(x, y, z, block.id);
+                    if(has_voxel_buildings) {
+                        let vb = this.getVoxelBuilding(xyz);
+                        if(vb) {
+                            let block = vb.getBlock(xyz);
+                            if(block) {
+                                setBlock(x, y, z, block.id);
+                            }
+                            continue;
                         }
-                        continue;
                     }
 
                     // Islands
-                    for(let island of islands) {
-                        let dist = xyz.distance(island.pos);
-                        if(dist < island.rad) {
-                            if(xyz.y < island.pos.y) {
-                                if(xyz.y < island.pos.y - 3) {
-                                    setBlock(x, y, z, BLOCK.CONCRETE.id);
-                                } else {
-                                    if(dist < island.rad * 0.9) {
+                    if(has_islands) {
+                        for(let island of islands) {
+                            let dist = xyz.distance(island.pos);
+                            if(dist < island.rad) {
+                                if(xyz.y < island.pos.y) {
+                                    if(xyz.y < island.pos.y - 3) {
                                         setBlock(x, y, z, BLOCK.CONCRETE.id);
                                     } else {
-                                        setBlock(x, y, z, BLOCK.DIRT.id);
+                                        if(dist < island.rad * 0.9) {
+                                            setBlock(x, y, z, BLOCK.CONCRETE.id);
+                                        } else {
+                                            setBlock(x, y, z, BLOCK.DIRT.id);
+                                        }
                                     }
                                 }
+                                break;
                             }
-                            break;
                         }
                     }
 
                     // Remove island form from terrain
-                    let need_extrude = false;
-                    for(let extruder of extruders) {
-                        let dist = xyz.distance(extruder.pos);
-                        if(dist < extruder.rad) {
-                            need_extrude = true;
-                            break;
+                    if(has_extruders) {
+                        let need_extrude = false;
+                        for(let extruder of extruders) {
+                            let dist = xyz.distance(extruder.pos);
+                            if(dist < extruder.rad) {
+                                need_extrude = true;
+                                break;
+                            }
+                            if(need_extrude) {
+                                break;
+                            }
                         }
                         if(need_extrude) {
-                            break;
+                            continue;
                         }
-                    }
-                    if(need_extrude) {
-                        continue;
                     }
 
                     // Exit
@@ -352,15 +443,17 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     if(!in_ocean) {
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
-                        for(let map_cave of neighbours_caves) {
-                            for(let cave_point of map_cave.points) {
-                                if(xyz.distance(cave_point.pos) < cave_point.rad) {
-                                    is_cave_block = true;
+                        if(has_caves) {
+                            for(let map_cave of neighbours_caves) {
+                                for(let cave_point of map_cave.points) {
+                                    if(xyz.distance(cave_point.pos) < cave_point.rad) {
+                                        is_cave_block = true;
+                                        break;
+                                    }
+                                }
+                                if(is_cave_block) {
                                     break;
                                 }
-                            }
-                            if(is_cave_block) {
-                                break;
                             }
                         }
                         // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
@@ -368,12 +461,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             // Чтобы не удалять землю из под деревьев
                             let near_tree = false;
                             for(let m of maps) {
+                                if(m.info.trees.length == 0) continue;
                                 ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
                                 for(let tree of m.info.trees) {
-                                    if(tree.pos.distance(ppos) < 5) {
+                                    /*if(tree.pos.distance(ppos) < 5) {
                                         near_tree = true;
                                         break;
-                                    }
+                                    }*/
+                                    if(Math.abs(tree.pos.x - ppos.x) > 5) continue;
+                                    if(Math.abs(tree.pos.y - ppos.y) > 5) continue;
+                                    if(Math.abs(tree.pos.z - ppos.z) > 5) continue;
+                                    near_tree = true;
+                                    break;
                                 }
                                 if(near_tree) {
                                     break;
@@ -439,11 +538,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         // Plant herbs
+        let temp_block = null;
         for(let pos of map.info.plants.keys()) {
             let block_id = map.info.plants.get(pos);
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
-                let b = chunk.tblocks.get(new Vector(pos.x, pos.y - chunk.coord.y - 1, pos.z));
-                if(b.id === BLOCK.DIRT.id || b.id == 516) {
+                xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
+                temp_block = chunk.tblocks.get(xyz, temp_block);
+                if(temp_block.id === BLOCK.DIRT.id || temp_block.id == 516) {
                     temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
                     if(!chunk.tblocks.has(temp_vec)) {
                         setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
