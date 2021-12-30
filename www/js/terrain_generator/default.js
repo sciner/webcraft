@@ -1,3 +1,4 @@
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from '../blocks.js';
 import {Color, Helpers, Vector} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
@@ -78,9 +79,11 @@ export class Default_Terrain_Generator {
             if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
                 this.xyz_temp_coord.set(x, y, z).addSelf(chunk.coord);
                 if(!this.getVoxelBuilding(this.xyz_temp_coord)) {
-                    chunk.tblocks.delete(this.xyz_temp);
-                    this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
-                    this.temp_tblock.id = block_type.id;
+                    let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
+                    chunk.tblocks.id[index] = block_type.id;
+                    // chunk.tblocks.delete(this.xyz_temp);
+                    // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
+                    // this.temp_tblock.id = block_type.id;
                 }
             }
         }

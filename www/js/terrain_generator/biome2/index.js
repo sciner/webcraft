@@ -19,6 +19,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     constructor(seed, world_id) {
         super(seed, world_id);
         this._createBlockAABB = new AABB();
+        this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
     }
 
@@ -242,7 +243,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         //
-        this.temp_set_block = null;
+        // this.temp_set_block = null;
         const setBlock = (x, y, z, block_id) => {
             temp_vec2.set(x, y, z);
             // chunk.tblocks.delete(temp_vec2);
@@ -451,14 +452,35 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
                         }
                         // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
-                        // Редкий случай, поэтомун е требует оптимизации
                         if(is_cave_block) {
                             let near_tree = false;
+                            const near_rad = 5;
+                            // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
                             for(let m of maps) {
-                                if(m.info.trees.length == 0) continue;
+                                if(m.info.trees.size == 0) continue;
+                                //
+                                this._createBlockAABB.copyFrom({
+                                    x_min: m.chunk.coord.x,
+                                    x_max: m.chunk.coord.x + CHUNK_SIZE_X,
+                                    y_min: m.chunk.coord.y,
+                                    y_max: m.chunk.coord.y + CHUNK_SIZE_Y,
+                                    z_min: m.chunk.coord.z,
+                                    z_max: m.chunk.coord.z + CHUNK_SIZE_Z
+                                });
+                                this._createBlockAABB_second.set(
+                                    xyz.x - near_rad,
+                                    xyz.y - near_rad - chunk.coord.y,
+                                    xyz.z - near_rad,
+                                    xyz.x + near_rad,
+                                    xyz.y + near_rad - chunk.coord.y,
+                                    xyz.z + near_rad
+                                );
+                                if(!this._createBlockAABB.intersect(this._createBlockAABB_second)) {
+                                    continue;
+                                }
                                 ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
                                 for(let tree of m.info.trees) {
-                                    if(tree.pos.distance(ppos) < 5) {
+                                    if(tree.pos.distance(ppos) < near_rad) {
                                         near_tree = true;
                                         break;
                                     }

@@ -1,6 +1,7 @@
 import {CubeSym} from "./CubeSym.js";
 
 export class AABB {
+
     constructor() {
         this.x_min = 0;
         this.y_min = 0;
