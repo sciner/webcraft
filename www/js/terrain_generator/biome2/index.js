@@ -19,6 +19,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     constructor(seed, world_id) {
         super(seed, world_id);
         this._createBlockAABB = new AABB();
+        this.temp_set_block = null;
     }
 
     async init() {
@@ -234,9 +235,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
 
-        // Проверяем соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-        let neighbours_caves        = this.caveManager.getNeighbours(chunk.addr);
-
         // Bedrock
         let min_y   = 0;
         if(chunk.coord.y == 0) {
@@ -244,13 +242,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         //
-        let temp_set_block = null;
-        let setBlock = (x, y, z, block_id) => {
+        this.temp_set_block = null;
+        const setBlock = (x, y, z, block_id) => {
             temp_vec2.set(x, y, z);
-            // let vec = new Vector(x, y, z);
-            chunk.tblocks.delete(temp_vec2);
-            temp_set_block = chunk.tblocks.get(temp_vec2, temp_set_block);
-            temp_set_block.id = block_id;
+            // chunk.tblocks.delete(temp_vec2);
+            // this.temp_set_block = chunk.tblocks.get(temp_vec2, this.temp_set_block);
+            // this.temp_set_block.id = block_id;
+            // const index = BLOCK.getIndex(temp_vec2);
+            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            chunk.tblocks.id[index] = block_id;
         };
 
         //
@@ -318,7 +318,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         // caves
-        let has_caves = false;
+        // Соседние чанки в указанном радиусе, на наличие начала(головы) пещер
+        let neighbours_caves = this.caveManager.getNeighbours(chunk.addr);
+        let in_chunk_cave_points = [];
         for(let map_cave of neighbours_caves) {
             for(let item of map_cave.points) {
                 let rad = item.rad;
@@ -330,12 +332,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     z_min: item.pos.z - rad,
                     z_max: item.pos.z + rad
                 })) {
-                    has_caves = true;
-                    break;
+                    in_chunk_cave_points.push(item);
                 }
-            }
-            if(has_caves) {
-                break;
             }
         }
 
@@ -416,7 +414,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                     }
 
-                    // Remove island form from terrain
+                    // Remove volume from terrain
                     if(has_extruders) {
                         let need_extrude = false;
                         for(let extruder of extruders) {
@@ -440,39 +438,30 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
 
                     // Caves | Пещеры
-                    if(!in_ocean) {
+                    if(in_chunk_cave_points && !in_ocean) {
                         // Проверка не является ли этот блок пещерой
                         let is_cave_block = false;
-                        if(has_caves) {
-                            for(let map_cave of neighbours_caves) {
-                                for(let cave_point of map_cave.points) {
-                                    if(xyz.distance(cave_point.pos) < cave_point.rad) {
-                                        is_cave_block = true;
-                                        break;
-                                    }
-                                }
-                                if(is_cave_block) {
-                                    break;
-                                }
+                        for(let cave_point of in_chunk_cave_points) {
+                            if(xyz.distance(cave_point.pos) < cave_point.rad) {
+                                is_cave_block = true;
+                                break;
+                            }
+                            if(is_cave_block) {
+                                break;
                             }
                         }
                         // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
+                        // Редкий случай, поэтомун е требует оптимизации
                         if(is_cave_block) {
-                            // Чтобы не удалять землю из под деревьев
                             let near_tree = false;
                             for(let m of maps) {
                                 if(m.info.trees.length == 0) continue;
                                 ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
                                 for(let tree of m.info.trees) {
-                                    /*if(tree.pos.distance(ppos) < 5) {
+                                    if(tree.pos.distance(ppos) < 5) {
                                         near_tree = true;
                                         break;
-                                    }*/
-                                    if(Math.abs(tree.pos.x - ppos.x) > 5) continue;
-                                    if(Math.abs(tree.pos.y - ppos.y) > 5) continue;
-                                    if(Math.abs(tree.pos.z - ppos.z) > 5) continue;
-                                    near_tree = true;
-                                    break;
+                                    }
                                 }
                                 if(near_tree) {
                                     break;
@@ -493,26 +482,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             setBlock(x, y, z, BLOCK.COAL_ORE.id);
                         } else {
                             temp_vec.set(x, y + 1, z);
-                            let norm = !map.info.plants.has(temp_vec)
-                            /*
-                            for(let plant of map.info.plants) {
-                                if(plant.pos.x == x && y == plant.pos.y - 1 && plant.pos.z == z) {
-                                    norm = false;
-                                    break;
-                                }
-                            }*/
+                            const norm = !map.info.plants.has(temp_vec)
                             setBlock(x, y, z, norm ? BLOCK.CONCRETE.id : biome.dirt_block);
                         }
                     } else {
                         setBlock(x, y, z, biome.dirt_block);
                     }
+
                 }
+
                 // `Y` of waterline
                 let ywl = map.info.options.WATER_LINE - chunk.coord.y;
                 if(biome.code == 'OCEAN' && ywl >= 0) {
                     for(let y = value; y <= map.info.options.WATER_LINE; y++) {
                         if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
-                            // if(!chunk.blocks[x][z][y - chunk.coord.y]) {
                             temp_vec.set(x, y - chunk.coord.y, z);
                             if(!chunk.tblocks.has(temp_vec)) {
                                 setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.STILL_WATER.id);
