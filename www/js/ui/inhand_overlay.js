@@ -81,7 +81,7 @@ export class InHandOverlay {
         let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
     
         mat4.translate(viewMatrix, viewMatrix, [
-            Math.sin(f1 * Math.PI) * f2 * 0.25,
+            Math.sin(f1 * Math.PI) * f2 * 1.0,
             -Math.abs(Math.cos(f1 * Math.PI) * f2) * 1,
             0.0,
         ]);
