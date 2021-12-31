@@ -389,7 +389,7 @@ export class Chunk {
                 this.fluid_blocks.push(block.pos);
             }
             */
-            if((block.material.id + 
+            /*if((block.material.id + 
                 (neighbours.UP?.id || 0) +
                 (neighbours.DOWN?.id || 0) +
                 (neighbours.SOUTH?.id || 0) +
@@ -397,7 +397,7 @@ export class Chunk {
                 (neighbours.EAST?.id || 0) +
                 (neighbours.WEST?.id || 0)) / 7 === 202) {
                     continue;
-            }
+            }*/
             if(block.vertices === null) {
                 block.vertices = [];
                 const biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
