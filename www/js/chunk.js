@@ -71,9 +71,9 @@ export class Chunk {
 
     constructor(addr, modify_list, chunkManager) {
 
-        this.key        = chunkManager.getPosChunkKey(addr);
-        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
         this.addr       = new Vector(addr); // относительные координаты чанка
+        this.key        = this.addr.toChunkKey();
+        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
         this.coord      = this.addr.mul(this.size);
         this.seed       = chunkManager.world.info.seed;
         this.tblocks    = null;
@@ -395,7 +395,7 @@ export class Chunk {
             for(var update_neighbour of update_neighbours) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbour);
                 let chunk_addr = getChunkAddr(pos);
-                let key = chunkManager.getPosChunkKey(chunk_addr);
+                let key = chunk_addr.toChunkKey();
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
@@ -412,7 +412,6 @@ export class Chunk {
                     });
                 }
             }
-
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }

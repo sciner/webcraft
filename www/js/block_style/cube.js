@@ -63,10 +63,56 @@ export default class style {
             return;
         }
 
+        if(!block.material) {
+            console.error('block', JSON.stringify(block), block.id);
+            debugger;
+        }
+
+        const material              = block.material;
+        let width                   = material.width ? material.width : 1;
+        let height                  = material.height ? material.height : 1;
+        const drawAllSides          = width != 1 || height != 1;
+
+        let canDrawFace = (neighbourBlock) => {
+            let resp = drawAllSides || !neighbourBlock || neighbourBlock.material.transparent;
+            if(resp && neighbourBlock) {
+                if(block.id == neighbourBlock.id && material.selflit) {
+                    resp = false;
+                }
+            }
+            return resp;
+        };
+
+        // Can change height
+        let bH = 1.0;
+        if(material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
+            bH = Math.min(block.power, .9)
+            let blockOver = neighbours.UP;
+            if(blockOver) {
+                let blockOverIsFluid = (blockOver.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+                if(blockOverIsFluid) {
+                    bH = 1.0;
+                }
+            }
+            block.bH = bH;
+        }
+
+        //
+        let canDrawTOP = canDrawFace(neighbours.UP) || bH < 1;
+        let canDrawDOWN = canDrawFace(neighbours.DOWN);
+        let canDrawSOUTH = canDrawFace(neighbours.SOUTH);
+        let canDrawNORTH = canDrawFace(neighbours.NORTH);
+        let canDrawWEST = canDrawFace(neighbours.WEST);
+        let canDrawEAST = canDrawFace(neighbours.EAST);
+        if(!canDrawTOP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
+            return;
+        }
+
         const cardinal_direction    = block.getCardinalDirection();
         let flags                   = 0;
         let sideFlags               = 0;
         let upFlags                 = 0;
+        let c;
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
@@ -83,39 +129,15 @@ export default class style {
         let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
         let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
 
-        if(!block.material) {
-            console.error('block', JSON.stringify(block), block.id);
-            debugger;
-        }
-
-        let c;
-        let width                   = block.material.width ? block.material.width : 1;
-        let height                  = block.material.height ? block.material.height : 1;
-        let drawAllSides            = width != 1 || height != 1;
-
-        if(block.material.style == 'ladder') {
+        if(material.style == 'ladder') {
             width = 1;
             height = 1;
         }
 
-        if(block.material.tags.indexOf('layering') >= 0) {
+        if(material.tags.indexOf('layering') >= 0) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
             }
-        }
-
-        // Can change height
-        let bH = 1.0;
-        if(block.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
-            bH = Math.min(block.power, .9)
-            let blockOver = neighbours.UP;
-            if(blockOver) {
-                let blockOverIsFluid = (blockOver.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
-                if(blockOverIsFluid) {
-                    bH = 1.0;
-                }
-            }
-            block.bH = bH;
         }
 
         // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
@@ -132,32 +154,22 @@ export default class style {
             }
         }
 
-        let canDrawFace = (neighbourBlock) => {
-            let resp = drawAllSides || !neighbourBlock || neighbourBlock.material.transparent;
-            if(resp && neighbourBlock) {
-                if(block.id == neighbourBlock.id && block.material.selflit) {
-                    resp = false;
-                }
-            }
-            return resp;
-        };
-
         // getAnimations...
         let getAnimations = (side) => {
-            if(!block.material.texture_animations) {
+            if(!material.texture_animations) {
                 return 1;
             }
-            if(side in block.material.texture_animations) {
-                return block.material.texture_animations[side];
-            } else if('side' in block.material.texture_animations) {
-                return block.material.texture_animations['side'];
+            if(side in material.texture_animations) {
+                return material.texture_animations[side];
+            } else if('side' in material.texture_animations) {
+                return material.texture_animations['side'];
             }
             return 1;
         };
 
         // Top
-        if(canDrawFace(neighbours.UP) || bH < 1) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_UP);
+        if(canDrawTOP) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP);
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
@@ -195,7 +207,7 @@ export default class style {
                 lm.r, lm.g, animations_up, flags | upFlags
             );
 
-            if(block.material.is_fluid && block.material.transparent) {
+            if(material.is_fluid && material.transparent) {
                 top_vectors = [
                     1, 0, 0,
                     0, -1, 0
@@ -211,8 +223,8 @@ export default class style {
         }
 
         // Bottom
-        if(canDrawFace(neighbours.DOWN)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_DOWN);
+        if(canDrawDOWN) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -226,8 +238,8 @@ export default class style {
         const H = (bH - 1 + height);
 
         // South | Front/Forward
-        if(canDrawFace(neighbours.SOUTH)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_BACK, null, H);
+        if(canDrawSOUTH) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -239,8 +251,8 @@ export default class style {
         }
 
         // North
-        if(canDrawFace(neighbours.NORTH)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_FORWARD, null, H);
+        if(canDrawNORTH) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -252,8 +264,8 @@ export default class style {
         }
 
         // West
-        if(canDrawFace(neighbours.WEST)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_LEFT, null, H);
+        if(canDrawWEST) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,
@@ -265,8 +277,8 @@ export default class style {
         }
 
         // East
-        if(canDrawFace(neighbours.EAST)) {
-            c = force_tex || BLOCK.calcMaterialTexture(block.material, DIRECTION_RIGHT, null, H);
+        if(canDrawEAST) {
+            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
                 x, z, y,

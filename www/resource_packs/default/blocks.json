@@ -2952,5 +2952,65 @@
             "id": "item",
             "side": [2, 0]
         }
+    },
+    {
+        "id": 545,
+        "name": "ANDESITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [0, 0]
+        }
+    },
+    {
+        "id": 546,
+        "name": "POLISHED_ANDESITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [0, 1]
+        }
+    },
+    {
+        "id": 547,
+        "name": "DIORITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [1, 0]
+        }
+    },
+    {
+        "id": 548,
+        "name": "POLISHED_DIORITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [1, 1]
+        }
+    },
+    {
+        "id": 549,
+        "name": "GRANITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [2, 0]
+        }
+    },
+    {
+        "id": 550,
+        "name": "POLISHED_GRANITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [2, 1]
+        }
     }
 ]

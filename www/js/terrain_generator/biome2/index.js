@@ -361,6 +361,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
+        // const noisefn = this.noisefn;
+        const noise3d = noise.simplex3;
+
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -504,8 +507,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             setBlock(x, y, z, BLOCK.COAL_ORE.id);
                         } else {
                             temp_vec.set(x, y + 1, z);
-                            const norm = !map.info.plants.has(temp_vec)
-                            setBlock(x, y, z, norm ? BLOCK.CONCRETE.id : biome.dirt_block);
+                            const norm = !map.info.plants.has(temp_vec);
+                            let stone_block_id = norm ? BLOCK.CONCRETE.id : biome.dirt_block;
+                            if(norm) {
+                                let density = noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
+                                if(density > 0.5) {
+                                    if(density < 0.66) {
+                                        stone_block_id = BLOCK.DIORITE.id;
+                                    } else if(density < 0.83) {
+                                        stone_block_id = BLOCK.ANDESITE.id;
+                                    } else {
+                                        stone_block_id = BLOCK.GRANITE.id;
+                                    }
+                                }
+                            }
+                            setBlock(x, y, z, stone_block_id);
                         }
                     } else {
                         setBlock(x, y, z, biome.dirt_block);

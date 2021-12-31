@@ -71,10 +71,7 @@ export class WorkerWorld {
     }
 
     getChunk(addr) {
-        if(this.chunks.has(addr)) {
-            return this.chunks.get(addr);
-        }
-        return null;
+        return this.chunks.get(addr) || null;
     }
 
 }
