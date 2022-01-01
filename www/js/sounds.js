@@ -46,7 +46,8 @@ export class Sounds {
         this.prev_index.set(index_key, index);
         // Play
         const track = list[index];
-        this.sound_sprite_main.play(track.name);
+        const track_id = this.sound_sprite_main.play(track.name);
+        this.sound_sprite_main.volume(track.volume, track_id);
         return true;
     }
 
