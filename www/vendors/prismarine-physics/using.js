@@ -31,7 +31,7 @@ class FakeWorld {
                 soul_sand:      BLOCK.SOUL_SAND,
                 cobweb:         BLOCK.COBWEB,
                 water:          [BLOCK.STILL_WATER, BLOCK.FLOWING_WATER],
-                lava:           BLOCK.STILL_LAVA,
+                lava:           [BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id],
                 ladder:         BLOCK.LADDER,
                 vine:           BLOCK.VINES,
                 honey_block:    null,

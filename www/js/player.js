@@ -166,9 +166,14 @@ export class Player {
         }
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
-            let pos = player.getBlockPos();
-            let world_block = world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-            if(world_block && world_block.id > 0 && (!world_block.passable || world_block.passable == 1)) {
+            const pos = player.getBlockPos().clone();
+            let world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            const isLayering = world_block && world_block.material.tags.indexOf('layering') >= 0;
+            if(!isLayering) {
+                pos.y--;
+                world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+            }
+            if(world_block && world_block.id > 0 && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
                 let sound           = world_block.getSound();

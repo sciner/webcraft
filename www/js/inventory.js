@@ -1,5 +1,5 @@
 import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
-import {DIRECTION, Vector, Helpers} from "./helpers.js";
+import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
@@ -30,6 +30,10 @@ export class Inventory extends PlayerInventory {
             }
         }
         this.refresh(false);
+    }
+
+    get inventory_window() {
+        return Game.hud.wm.getWindow('frmInventory');
     }
 
     // Open window

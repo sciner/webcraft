@@ -34,7 +34,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
     const honeyblockId  = blocksByName.honey_block ? blocksByName.honey_block.id : BLOCK_NOT_EXISTS // 1.15+
     const webId         = blocksByName.cobweb ? blocksByName.cobweb.id : blocksByName.web.id
     // const waterId       = blocksByName.water.id
-    const lavaId        = blocksByName.lava.id
+    const lavaId        = blocksByName.lava
     const ladderId      = blocksByName.ladder.id
     const vineId        = blocksByName.vine.id
     const waterLike     = new Set()
@@ -468,7 +468,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
             for (cursor.z = Math.floor(queryBB.minZ); cursor.z <= Math.floor(queryBB.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(queryBB.minX); cursor.x <= Math.floor(queryBB.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && block.type === type) return true
+                    if (block && (Array.isArray(type) ? type.indexOf(block.type) >= 0 : block.type === type)) return true
                 }
             }
         }
@@ -548,7 +548,6 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
             const flow = getFlow(world, block)
             acceleration.add(flow)
         }
-
         const len = acceleration.norm()
         if (len > 0) {
             vel.x += acceleration.x / len * 0.014

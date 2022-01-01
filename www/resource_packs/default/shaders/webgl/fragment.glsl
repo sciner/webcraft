@@ -163,10 +163,9 @@ void main() {
         float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 
         if(v_normal.x != 0.) {
-            light = light * .85;
-        }
-        if(v_normal.y != 0.) {
             light = light * .7;
+        } else if(v_normal.y != 0.) {
+            light = light * .85;
         }
 
         // Apply light

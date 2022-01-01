@@ -37,7 +37,9 @@ void main() {
     v_color         = vec4(a_color, 1.0);
 
     u_uvCenter = a_uvCenter;
+    // Animated textures
     if(v_color.b > 1.) {
+        // v_color.b contain number of animation frames
         u_uvCenter.y += (floor(mod((u_time * v_color.b / 3.) / 1000., v_color.b))) / 32.;
     }
 

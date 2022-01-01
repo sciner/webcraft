@@ -442,7 +442,9 @@ export class Renderer {
             }
         }
 
-        this.drawInhandItem(delta);
+        if(!player.game_mode.isSpectator()) {
+            this.drawInhandItem(delta);
+        }
 
         // 4. Draw HUD
         if(this.HUD) {
@@ -458,6 +460,7 @@ export class Renderer {
 
     }
 
+    //
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {
