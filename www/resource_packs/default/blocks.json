@@ -1166,6 +1166,7 @@
     {
         "id": 80,
         "name": "SNOW_BLOCK",
+        "sound": "madcraft:block.snow",
         "texture": [
             2,
             4
@@ -2045,6 +2046,7 @@
         "id": 145,
         "name": "SNOW_DIRT",
         "sound": "madcraft:block.grass",
+        "sound": "madcraft:block.snow",
         "texture": {
             "up": [
                 2,
@@ -2455,6 +2457,7 @@
         "name": "SNOW",
         "height": 0.125,
         "transparent": true,
+        "sound": "madcraft:block.snow",
         "texture": [2, 4],
         "tags": [
             "layering",
