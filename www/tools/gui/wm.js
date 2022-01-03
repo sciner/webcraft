@@ -5,9 +5,10 @@
 // Base window
 export class Window {
 
+    #_visible = true;
+
     constructor(x, y, w, h, id, title, text) {
-        this.list           = {};
-        this.visible        = true;
+        this.list           = new Map();
         this.index          = 0;
         this.x              = x;
         this.y              = y;
@@ -58,23 +59,33 @@ export class Window {
             }
         };
     }
+    get visible() {return this.#_visible}
+    set visible(value) {this.#_visible = value; globalThis.wmGlobal.visible_change_count++;}
+    getRoot() {
+        return globalThis.wmGlobal;
+        // if(this.parent) {
+        //     return this.parent.getRoot();
+        // }
+        // return this;
+    }
     add(w) {
         if(!w.id) {
             throw 'Control does not have valid ID';
         }
         w.parent = this;
-        this.list[w.id] = w;
+        w.root = this.root;
+        this.list.set(w.id, w);
     }
     delete(id) {
-        if(this.list[id]) {
-            delete(this.list[id]);
+        if(this.list.has(id)) {
+            this.list.delete(id);
         }
     }
     getWindow(id) {
-        if(!this.list.hasOwnProperty(id)) {
+        if(!this.list.has(id)) {
             throw 'Window not found by ID ' + id;
         }
-        return this.list[id];
+        return this.list.get(id);
     }
     move(x, y) {
         this.x = x;
@@ -93,8 +104,7 @@ export class Window {
         let width_sum = 0;
         let height_sum = 0;
         let visible_windows = [];
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 width_sum += w.width;
                 height_sum += w.height;
@@ -206,17 +216,30 @@ export class Window {
         }
         // Restore the default state
         ctx.restore();
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 w.draw(ctx, ax+this.x, ay+this.y);
             }
         }
     }
+    hasVisibleWindow() {
+        if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
+            return this._has_visible_window;
+        }
+        let resp = false;
+        for(let w of this.list.values()) {
+            if(w.visible) {
+                resp = true;
+                break;
+            }
+        }
+        this._has_visible_window = resp;
+        this._has_visible_window_cng = globalThis.wmGlobal.visible_change_count;
+        return resp;
+    }
     getVisibleWindows() {
         let list = [];
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 list.push(w);
             }
@@ -231,12 +254,6 @@ export class Window {
     }
     setText(text) {
         this.text = text;
-    }
-    getRoot() {
-        if(this.parent) {
-            return this.parent.getRoot();
-        }
-        return this;
     }
     applyStyle(ctx, ax, ay) {
         this.ctx            = ctx;
@@ -274,8 +291,7 @@ export class Window {
     }
     resetHover() {
         this.hover = false;
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             w.hover = false;
         }
     }
@@ -288,8 +304,7 @@ export class Window {
     _mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(!w.catchEvents) {
                 continue;
             }
@@ -316,8 +331,7 @@ export class Window {
         }
     }
     _mousedown(e) {
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 let e2 = {...e};
                 let x = e2.x - (this.ax + w.x);
@@ -334,8 +348,7 @@ export class Window {
         this.onMouseDown(e);
     }
     _drop(e) {
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 let e2 = {...e};
                 let x = e2.x - (this.ax + w.x);
@@ -351,8 +364,7 @@ export class Window {
         this.onDrop(e);
     }
     _wheel(e) {
-        for(let id of Object.keys(this.list)) {
-            let w = this.list[id];
+        for(let w of this.list.values()) {
             if(w.visible) {
                 let e2 = {...e};
                 e2.x -= (this.ax + w.x);
@@ -451,10 +463,13 @@ export class WindowManager extends Window {
     
     constructor(canvas, ctx, x, y, w, h) {
         super(x, y, w, h, '_wm', null);
+        globalThis.wmGlobal = this;
         let that = this;
-        this.list = [];
+        this.root = this;
+        this.list = new Map();
         this.canvas = canvas;
         this.ctx = ctx;
+        this.visible_change_count = 0;
         this.pointer = {
             x: w / 2,
             y: h / 2,

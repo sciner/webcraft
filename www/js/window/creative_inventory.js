@@ -147,8 +147,7 @@ class CreativeInventoryCollection extends Window {
         region.rect(x, y, w, h);
         ctx.save();
         ctx.clip(region, 'evenodd');
-        for(let id of Object.keys(this.list)) {
-            let lblSlot = this.list[id];
+        for(let lblSlot of this.list.values()) {
             lblSlot.drawOrig(ctx, ax + 16, ay + 34 + this.scrollY);
         }
         ctx.restore();
