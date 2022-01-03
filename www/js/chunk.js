@@ -127,6 +127,9 @@ export class Chunk {
     onVerticesGenerated(args) {
         this.vertices_args = args;
         this.need_apply_vertices = true;
+        if(!this.dirt_colors) {
+            this.dirt_colors = args.dirt_colors;
+        }
         if(!this.map) {
             this.map = args.map;
         }
