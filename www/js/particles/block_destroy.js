@@ -15,12 +15,12 @@ export default class Particles_Block_Destroy {
         let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
 
-        if(!chunk.map) {
-            debugger;
-            return false;
-        }
+        //if(!chunk.map) {
+        //    debugger;
+        //    return false;
+        //}
 
-        let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
+        // let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
         this.yaw        = -Game.player.rotate.z;
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
@@ -33,9 +33,11 @@ export default class Particles_Block_Destroy {
             return;
         }
         if([BLOCK.DIRT.id, BLOCK.GRASS.id].indexOf(block.id) >= 0) {
-            lm          = cell.biome.dirt_color;
+            // lm          = cell.biome.dirt_color;
+            lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
             sideFlags   = QUAD_FLAGS.MASK_BIOME;
         }
+
         let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,

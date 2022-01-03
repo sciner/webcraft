@@ -97,7 +97,7 @@ async function onMessageFunc(e) {
                 let chunk = world.chunks.get(addr);
                 if(chunk) {
                     // 4. Rebuild vertices list
-                    result.push(buildVertices(chunk, false));
+                    result.push(buildVertices(chunk, true));
                     chunk.vertices = null;
                 }
             }
