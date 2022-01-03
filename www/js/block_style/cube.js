@@ -74,8 +74,11 @@ export default class style {
         const drawAllSides          = width != 1 || height != 1;
 
         let canDrawFace = (neighbourBlock) => {
-            let resp = drawAllSides || !neighbourBlock || neighbourBlock.material.transparent;
-            if(resp && neighbourBlock) {
+            if(!neighbourBlock) {
+                return true;
+            }
+            let resp = drawAllSides || neighbourBlock.material.transparent;
+            if(resp) {
                 if(block.id == neighbourBlock.id && material.selflit) {
                     resp = false;
                 }

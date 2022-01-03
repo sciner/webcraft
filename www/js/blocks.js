@@ -41,7 +41,7 @@ export class BLOCK {
 
     static list                     = [];
     static spawn_eggs               = [];
-    static styles                   = [];
+    static styles                   = new Map();
     static ao_invisible_blocks      = [];
     static resource_pack_manager    = null;
     static max_id                   = 0;
@@ -340,6 +340,7 @@ export class BLOCK {
         }
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
+        block.light_power_number = BLOCK.getLightPower(block);
         this[block.name] = block;
         BLOCK.BLOCK_BY_ID.set(block.id, block);
         this.list.push(block);
@@ -469,7 +470,7 @@ export class BLOCK {
     static registerStyle(style) {
         let reg_info = style.getRegInfo();
         for(let style of reg_info.styles) {
-            BLOCK.styles[style] = reg_info;
+            BLOCK.styles.set(style, reg_info);
         }
     }
 
@@ -711,7 +712,7 @@ export class BLOCK {
             }
         } else {
             if(!for_physic) {
-                const styleVariant = BLOCK.styles[b.properties.style];
+                const styleVariant = BLOCK.styles.get(b.properties.style);
                 if (styleVariant && styleVariant.aabb) {
                     shapes.push(
                         styleVariant.aabb(b).toArray()

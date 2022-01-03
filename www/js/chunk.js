@@ -130,7 +130,6 @@ export class Chunk {
         if(!this.map) {
             this.map = args.map;
         }
-        //args.lightmap
     }
 
     onLightGenerated(args) {
@@ -148,12 +147,18 @@ export class Chunk {
         const ids = this.tblocks.id;
 
         let ind = 0;
-        for (let y=0; y < size.y; y++)
-            for (let z=0; z < size.z; z++)
-                for (let x=0; x < size.x; x++) {
-                    light_source[ind] = BLOCK.getLightPower(BLOCK.BLOCK_BY_ID.get(ids[ind]));
-                    ind++;
-                }
+        let prev_block_id = Infinity;
+        let light_power_number = 0;
+        let blocks_count = size.x * size.y * size.z;
+        for(let i = 0; i < blocks_count; i++) {
+            const block_id = ids[ind];
+            if(block_id != prev_block_id) {
+                light_power_number = BLOCK.BLOCK_BY_ID.get(block_id).light_power_number;
+                prev_block_id = block_id;
+            }
+            light_source[ind] = light_power_number;
+            ind++;
+        }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
             {addr: this.addr, size: this.size, light_buffer}]);
     }

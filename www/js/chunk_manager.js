@@ -3,7 +3,7 @@ import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalC
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
-const CHUNKS_ADD_PER_UPDATE     = 16;
+const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
 
 //

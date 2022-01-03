@@ -158,7 +158,7 @@ export class BaseResourcePack {
     // pushVertices
     pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style) {
         const style = draw_style ? draw_style : block.material.style;
-        let module = BLOCK.styles[style];
+        const module = BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
