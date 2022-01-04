@@ -2918,6 +2918,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "FLOWING_LAVA",
         "tags": [
             "bucket"
         ],
@@ -2933,6 +2934,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "FLOWING_WATER",
         "tags": [
             "bucket"
         ],
@@ -2948,6 +2950,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "SNOW_BLOCK",
         "tags": [
             "bucket"
         ],

@@ -400,11 +400,20 @@ export class Player {
             if(matBlock.instrument_id) {
                 if(matBlock.instrument_id == 'shovel') {
                     if(world_material.id == BLOCK.DIRT.id) {
-                        let extra_data = null;
+                        const extra_data = null;
                         pos.x -= pos.n.x;
                         pos.y -= pos.n.y;
                         pos.z -= pos.n.z;
                         world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+                    }
+                } else if(matBlock.instrument_id == 'bucket') {
+                    if(matBlock.emit_on_set) {
+                        matBlock = BLOCK.fromName(matBlock.emit_on_set);
+                        const extra_data = BLOCK.makeExtraData(matBlock, pos);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, rotate, null, extra_data, replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE);
+                        if(matBlock.sound) {
+                            Game.sounds.play(matBlock.sound, 'place');
+                        }
                     }
                 }
             } else {
@@ -424,7 +433,7 @@ export class Player {
                         orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
                     }
                 }
-                let extra_data = BLOCK.makeExtraData(this.buildMaterial, pos);
+                let extra_data = BLOCK.makeExtraData(matBlock, pos);
                 if(replaceBlock) {
                     // Replace block
                     if(matBlock.is_item || matBlock.is_entity) {
@@ -432,25 +441,25 @@ export class Player {
                             Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
                         }
                     } else {
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
                     }
                 } else {
                     // Create block
                     // Посадить растения можно только на блок земли
                     let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
-                    if(BLOCK.isPlants(this.buildMaterial.id) && underBlock.id != BLOCK.DIRT.id) {
+                    if(BLOCK.isPlants(matBlock.id) && underBlock.id != BLOCK.DIRT.id) {
                         return;
                     }
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
                             Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
-                            let b = BLOCK.fromId(this.buildMaterial.id);
+                            let b = BLOCK.fromId(matBlock.id);
                             if(b.sound) {
                                 Game.sounds.play(b.sound, 'place');
                             }
                         }
                     } else {
-                        if(['ladder'].indexOf(this.buildMaterial.style) >= 0) {
+                        if(['ladder'].indexOf(matBlock.style) >= 0) {
                             // Лианы можно ставить на блоки с прозрачностью
                             if(world_material.transparent && world_material.style != 'default') {
                                 return;
@@ -488,7 +497,7 @@ export class Player {
                                         }
                                     }
                                     let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
-                                    if(cardinal_block.transparent && !(this.buildMaterial.tags && this.buildMaterial.tags.indexOf('anycardinal') >= 0)) {
+                                    if(cardinal_block.transparent && !(matBlock.tags.indexOf('anycardinal') >= 0)) {
                                         cardinal_direction = cd;
                                         rotateDegree.z = (rotateDegree.z + i * 90) % 360;
                                         ok = true;
@@ -500,7 +509,7 @@ export class Player {
                                 }
                             }
                         }
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, this.buildMaterial, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
                     }
                 }
             }
