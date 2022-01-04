@@ -260,8 +260,8 @@ export class Renderer {
 
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
-        gu.brightness = 0.7;
-        gu.sunDir = [1, -1, 1];
+        gu.brightness = 0.55;
+        gu.sunDir = [-1, -1, 1];
         gu.useSunDir = true;
 
         camera.use(gu, true);
@@ -300,7 +300,7 @@ export class Renderer {
             Resources.inventory.image = image;
         });
 
-        // diable
+        // disable
         gu.useSunDir = false;
 
         this.renderBackend.setTarget(null);

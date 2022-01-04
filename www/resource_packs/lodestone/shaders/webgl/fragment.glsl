@@ -151,7 +151,7 @@ void main() {
             }
         } else {
             // limit brightness to 0.2
-            light += max(0.2, dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+            light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
         }
 
         // Apply light
