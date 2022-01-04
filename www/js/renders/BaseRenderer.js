@@ -11,7 +11,7 @@ export class BaseRenderTarget {
          * @type {BaseTexture}
          */
         this.texture = null;
-        this.valid = false;        
+        this.valid = false;
     }
 
     get width() {
@@ -535,14 +535,27 @@ export default class BaseRenderer {
         this._target = null;
 
         this.globalUniforms = new GlobalUniformGroup();
+
+        /**
+         * Shader blocks
+         */
+        this.blocks = {};
     }
 
     get kind() {
         return this.constructor.kind;
     }
 
-    async init() {
+    async init({blocks} = {}) {
+        this.blocks = blocks || {};
+        if (Object.keys(this.blocks).length === 0) {
+            console.warn('Shader blocks is empty');
+        }
+    }
 
+    preprocess (shaderText, options = {}) {
+        // 
+        return shaderText;
     }
 
     /**

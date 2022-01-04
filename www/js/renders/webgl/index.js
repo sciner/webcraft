@@ -278,7 +278,9 @@ export default class WebGLRenderer extends BaseRenderer {
         }
     }
 
-    async init() {
+    async init(args) {
+        super.init(args);
+
         const gl = this.gl = this.view.getContext('webgl2', this.options);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);

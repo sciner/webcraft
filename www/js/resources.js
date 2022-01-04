@@ -13,7 +13,7 @@ export class Resources {
      * @returns {Promise<void>}
      */
     static load(settings) {
-
+        this.shaderBlocks       = {};
         this.codeMain           = {};
         this.codeSky            = {};
         this.terrain            = {};
@@ -54,6 +54,20 @@ export class Resources {
         } else {
             all.push(loadTextFile('./shaders/skybox/vertex.glsl').then((txt) => { this.codeSky.vertex = txt } ));
             all.push(loadTextFile('./shaders/skybox/fragment.glsl').then((txt) => { this.codeSky.fragment = txt } ));
+        }
+
+        // Shader blocks
+
+        if (settings.wgsl) {
+            // not supported 
+        } else {
+            all.push(
+                loadTextFile('./shaders/shader.blocks.glsl')
+                    .then(text => {
+                        const blocks = Resources.parseShaderBlocks(text, this.shaderBlocks);
+                        console.log('Load shader blocks:', blocks);
+                    })
+            );
         }
 
         // Physics features
@@ -97,6 +111,43 @@ export class Resources {
         // TODO: add retry
         return Promise.all(all);
 
+    }
+
+    /**
+     * Parse shader.blocks file defenition
+     * @param {string} text 
+     * @param {{[key: string]: string}} blocks
+     */
+    static async parseShaderBlocks(text, blocks = {}) {
+        const blocksStart = '#ifdef';
+        const blocksEnd = '#endif';
+
+        let start = text.indexOf(blocksStart);
+        let end = start;
+
+        while(start > -1) {
+            end = text.indexOf(blocksEnd, start);
+
+            if (end === -1) {
+                throw new TypeError('Shader block has unclosed ifdef statement at:' + start + '\n\n' + text);
+            }
+
+            const block = text.substring(start  + blocksStart.length, end);
+            const lines = block.split('\n');
+            const name = lines.shift().trim();
+
+            const source = lines.map((e) => {
+                return e.startsWith('    ') // remove first tab (4 space)
+                    ? e.substring(4).trimEnd() 
+                    : e.trimEnd();
+            }).join('\n');
+
+            blocks[name] = source.trim();
+
+            start = text.indexOf(blocksStart, start + blocksStart.length);
+        }
+
+        return blocks;
     }
 
     //
