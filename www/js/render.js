@@ -418,6 +418,18 @@ export class Renderer {
         gu.resolution           = [size.width, size.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
+        gu.localLigthRadius     = 0;
+        
+        if (this.player.buildMaterial) {
+            const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
+            const power = BLOCK.getLightPower(block);
+
+            // base torch light a 14 power, reduce it
+            gu.localLigthRadius = (power & 0x0f) / 2;
+            
+            console.log(gu.localLigthRadius)
+        }
+
         gu.update();
 
         this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;

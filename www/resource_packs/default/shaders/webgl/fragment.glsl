@@ -21,6 +21,7 @@ uniform float u_chunkBlockDist;
 
 //
 uniform float u_brightness;
+uniform float u_localLightRadius;
 uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
@@ -141,7 +142,7 @@ void main() {
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-        float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
+        float light = max(min(caveSample + daySample * brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 
         if (u_SunDir.w < 0.5) {
             if(v_normal.x != 0.) {
