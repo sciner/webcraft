@@ -12,7 +12,12 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         super(context, options);
 
         const { gl } = context;
-        const program  = context.createProgram(options.code, {});
+        const program  = context.createProgram(options.code, {
+            // for ex, skip mip block
+            ['manual_mip'] : {
+                //skip: true
+            }
+        });
 
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');

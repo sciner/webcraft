@@ -153,6 +153,7 @@
 #endif
 
 #ifdef manual_mip
+    // apply manual mip
     if (u_mipmap > 0.0) {
         biome *= 0.5;
 

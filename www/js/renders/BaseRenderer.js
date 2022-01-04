@@ -554,7 +554,7 @@ export default class BaseRenderer {
         }
     }
 
-    _onReplace(replace, args = {}) {
+    _onReplace(replace, offset, string, args = {}) {
         const {
             blocks
         } = this;
@@ -564,27 +564,57 @@ export default class BaseRenderer {
         if (!(key in blocks)) {
             throw '[Preprocess] Block for ' + key + 'not found';
         }
-        
-        let block = blocks[key];
 
-        for(const argkey of argsKeys) {
-            if (!(argkey in args)) {
-                throw '[Preprocess] Argument value for ' + argkey + ' not found';
+        // compute pad spaces
+        let pad = 0;
+        for(pad = 0; pad < 32; pad ++) {
+            if (string[offset - pad - 1] !== ' ') {
+                break;                
+            }
+        }
+
+        let block = blocks[key]
+            .split('\n')
+            // we should skip first block because pad applied in repalce
+            .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
+            .join('\n');
+
+        const blockArgs = args[key];
+
+        if (blockArgs && typeof blockArgs === 'object') {
+            if (blockArgs.skip) {
+                return '// skip block ' + key;
             }
 
-            block = block.replaceAll(argkey, '' + args[argkey]);
+            for(const argkey of argsKeys) {
+                if (!(argkey in blockArgs)) {
+                    throw '[Preprocess] Argument value for ' + argkey + ' not found';
+                }
+
+                block = block.replaceAll(argkey, '' + blockArgs[argkey]);
+            }
         }
 
         return block;
     }
-
+    
+    /***
+     * Preprocess shader
+     * You can define args to block that was replaced if needed
+     * pass a `skip: true` for block - ignore block compilation
+     * @param {string} shaderText
+     * @param {{[key: string]: {skip?: boolean, [key: string]: number } }} args
+     */
     preprocess (shaderText, args = {}) {
         if (!shaderText) {
             return shaderText;
         }
 
         const pattern = /#include<([^>]+)>/g;
-        const out = shaderText.replaceAll(pattern, (_, r) => this._onReplace(r, args || {}));
+        const out = shaderText
+            .replaceAll(pattern, (_, r, offset, string) => {
+                return this._onReplace(r, offset, string, args || {});
+            });
 
         console.debug('Preprocess result:\n', out);
 
