@@ -11,17 +11,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     constructor(context, options) {
         super(context, options);
 
-        const {gl} = context;
-        const code = {
-            vertex: context.preprocess(options.code.vertex),
-            fragment: context.preprocess(options.code.fragment),
-        }
-
-        Helpers.createGLProgram(gl, code, (ret) => {
-            this.program = ret.program;
-        });
-
-        const program = this.program;
+        const { gl } = context;
+        const program  = context.createProgram(options.code, {});
 
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
@@ -63,6 +54,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this._material = null;
 
         this.globalID = -1;
+        this.program = program;
     }
 
     bind(force = false) {

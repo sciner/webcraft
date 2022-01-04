@@ -711,9 +711,12 @@ export class Helpers {
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             throw 'Could not link the shader program!';
         }
-        callback({
+
+        callback && callback({
             program
         });
+
+        return program;
     }
 
     // Return from green to red color depend on percentage

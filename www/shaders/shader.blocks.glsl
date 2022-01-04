@@ -73,7 +73,6 @@
     out vec4 v_texClamp;
     out vec3 v_normal;
     out vec4 v_color;
-    out vec4 crosshair;
     out vec2 u_uvCenter;
     //--
 #endif
@@ -86,7 +85,6 @@
     in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
-    in vec4 crosshair;
     in vec3 world_pos;
     in vec3 chunk_pos;
     in vec2 u_uvCenter;
@@ -98,6 +96,15 @@
 #ifdef crosshair_define_func
     // crosshair draw block
     void drawCrosshair() {
+        float cm = 0.00065;
+        vec4 crosshair; 
+
+        if(u_resolution.x > u_resolution.y) {
+            crosshair = vec4(0., 0., u_resolution.x * cm, u_resolution.x * cm * 7.);
+        } else {
+            crosshair = vec4(0., 0., u_resolution.y * cm, u_resolution.y * cm * 7.);
+        }
+
         float w = u_resolution.x;
         float h = u_resolution.y;
         float x = gl_FragCoord.x;
@@ -117,7 +124,9 @@
 #endif
 
 #ifdef crosshair_call_func
+    // Draw crosshair
     drawCrosshair();
+    //--
 #endif
 
 #ifdef vignetting_define_func
