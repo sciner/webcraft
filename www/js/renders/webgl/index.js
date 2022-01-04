@@ -308,7 +308,7 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', this.options);
+        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
@@ -462,7 +462,7 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     /**
-     * Blit current attachen framebufer to specific a rea of canvas
+     * Blit color from current attached framebuffer to specific area of canvas
      * @param {{x?: number, y?: number, w?: number, h?: number}} param0 
      * @returns 
      */
