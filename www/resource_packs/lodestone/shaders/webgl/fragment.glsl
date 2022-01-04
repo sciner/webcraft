@@ -25,7 +25,7 @@ uniform float u_time;
 uniform vec2 u_resolution;
 uniform vec3 u_shift;
 uniform bool u_TestLightOn;
-uniform vec3 u_SunDir;
+uniform vec4 u_SunDir;
 
 in vec3 v_position;
 in vec2 v_texcoord;
@@ -124,25 +124,6 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        /*float u_brightness2 = u_brightness;
-
-        if(u_TestLightOn) {
-            u_brightness2 = clamp(1. + u_brightness2, 0., 1.);
-            color = mix(color, vec4(1.,1.,1.,1.1), u_brightness2);
-        }*/
-        // Static point light
-        /*
-        PointLight pl = PointLight(vec3(2902., 2794., 70.), vec4(1.,1.,1.,1.), 7.); // 250000000
-        float lightDistance = distance(pl.WorldSpacePos, world_pos + u_camera_pos);
-        if(lightDistance < pl.Radius) {
-            float percent = 1. - lightDistance / pl.Radius;
-            if(percent < 1.) {
-                u_brightness2 = clamp(percent + u_brightness2, 0., 1.);
-                // color = mix(color, pl.Color, percent);
-            }
-        }
-        */
-
         vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
         vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
@@ -162,8 +143,15 @@ void main() {
 
         float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 
-        if(v_normal.x != 0.) {
-            light = light * .8;
+       if (u_SunDir.w < 0.5) {
+            if(v_normal.x != 0.) {
+                light = light * .7;
+            } else if(v_normal.y != 0.) {
+                light = light * .85;
+            }
+        } else {
+            // limit brightness to 0.2
+            light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
         }
 
         // Apply light

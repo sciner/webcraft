@@ -253,12 +253,17 @@ export class Renderer {
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
         gu.testLightOn = true;
-        gu.brightness = true;
         gu.fogColor = settings.fogColor;
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
-        gu.sunDir = this.sunDir;
+
+        // when use a sun dir, brightness is factor how many of sunfactor is applied
+        // sun light is additive
+        gu.brightness = 0.55;
+        gu.sunDir = [-1, -1, 1];
+        gu.useSunDir = true;
+
         camera.use(gu, true);
         gu.update();
         
@@ -294,6 +299,9 @@ export class Renderer {
             // Helpers.downloadImage(image, 'inventory.png');
             Resources.inventory.image = image;
         });
+
+        // disable
+        gu.useSunDir = false;
 
         this.renderBackend.setTarget(null);
 
