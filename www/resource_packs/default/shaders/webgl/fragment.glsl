@@ -1,6 +1,4 @@
-#version 300 es
-
-precision highp float;
+#include<header>
 
 #define LOG2 1.442695
 const float desaturateFactor = 2.0;

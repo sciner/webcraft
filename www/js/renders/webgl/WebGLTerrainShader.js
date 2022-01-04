@@ -1,14 +1,23 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
 import {Helpers} from "../../helpers.js";
+import WebGLRenderer from "./index.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
-
+    /**
+     * 
+     * @param {WebGLRenderer} context 
+     * @param {*} options 
+     */
     constructor(context, options) {
         super(context, options);
 
         const {gl} = context;
+        const code = {
+            vertex: context.preprocess(options.code.vertex),
+            fragment: context.preprocess(options.code.fragment),
+        }
 
-        Helpers.createGLProgram(gl, options.code, (ret) => {
+        Helpers.createGLProgram(gl, code, (ret) => {
             this.program = ret.program;
         });
 

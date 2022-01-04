@@ -63,8 +63,8 @@ export class Resources {
         } else {
             all.push(
                 loadTextFile('./shaders/shader.blocks.glsl')
-                    .then(text => {
-                        const blocks = Resources.parseShaderBlocks(text, this.shaderBlocks);
+                    .then(text => Resources.parseShaderBlocks(text, this.shaderBlocks))
+                    .then(blocks => {
                         console.log('Load shader blocks:', blocks);
                     })
             );

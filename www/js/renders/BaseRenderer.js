@@ -548,14 +548,47 @@ export default class BaseRenderer {
 
     async init({blocks} = {}) {
         this.blocks = blocks || {};
+        
         if (Object.keys(this.blocks).length === 0) {
             console.warn('Shader blocks is empty');
         }
     }
 
-    preprocess (shaderText, options = {}) {
-        // 
-        return shaderText;
+    _onReplace(replace, args = {}) {
+        const {
+            blocks
+        } = this;
+
+        const [key, ...argsKeys] = replace.split(',').map((e) => e.trim());
+
+        if (!(key in blocks)) {
+            throw '[Preprocess] Block for ' + key + 'not found';
+        }
+        
+        let block = blocks[key];
+
+        for(const argkey of argsKeys) {
+            if (!(argkey in args)) {
+                throw '[Preprocess] Argument value for ' + argkey + ' not found';
+            }
+
+            block = block.replaceAll(argkey, '' + args[argkey]);
+        }
+
+        return block;
+    }
+
+    preprocess (shaderText, args = {}) {
+        if (!shaderText) {
+            return shaderText;
+        }
+
+        const pattern = /#include<([^>]+)>/g;
+        const out = shaderText.replaceAll(pattern, (_, r) => this._onReplace(r, args || {}));
+
+        console.debug('Preprocess result:\n', out);
+
+        return out;
     }
 
     /**
