@@ -129,8 +129,11 @@ void main() {
         float rad = u_localLightRadius;
         float brightness = u_brightness;
 
+        // max power is 16, we use a radious that half of it
+        float initBright = rad / 8.;
+
         if(lightDistance < rad) {
-            float percent = 1. - pow(lightDistance / rad,  0.5);
+            float percent = (1. -lightDistance / rad) * initBright;
 
             brightness = clamp(percent + brightness, 0., 1.);
         }

@@ -129,8 +129,11 @@ void main() {
         float rad = u_localLightRadius;
         float brightness = u_brightness;
 
+        // max power is 16, we use a radious that half of it
+        float initBright = rad / 8.;
+
         if(lightDistance < rad) {
-            float percent = 1. - pow(lightDistance / rad,  0.5);
+            float percent = (1. -lightDistance / rad) * initBright;
 
             brightness = clamp(percent + brightness, 0., 1.);
         }
@@ -152,7 +155,7 @@ void main() {
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-        float light = max(min(caveSample + daySample * brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
+        float light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
 
        if (u_SunDir.w < 0.5) {
             if(v_normal.x != 0.) {
