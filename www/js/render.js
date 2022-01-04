@@ -418,6 +418,17 @@ export class Renderer {
         gu.resolution           = [size.width, size.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
+        gu.localLigthRadius     = 0;
+        
+        if (this.player.buildMaterial) {
+            const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
+            const power = BLOCK.getLightPower(block);
+
+            // and skip all block that have power greater that 0x0f
+            // it not a light source, it store other light data
+            gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+        }
+
         gu.update();
 
         this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;
