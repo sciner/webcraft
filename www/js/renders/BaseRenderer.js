@@ -11,7 +11,11 @@ export class BaseRenderTarget {
          * @type {BaseTexture}
          */
         this.texture = null;
-        this.valid = false;
+        /**
+         * @type {BaseTexture}
+         */
+        this.depthTexture = null;
+        this.valid = false;        
     }
 
     get width() {
@@ -32,6 +36,9 @@ export class BaseRenderTarget {
 
     init() {
         this.texture = this.context.createTexture(this.options);
+        if (this.options.depth) {
+            this.depthTexture = this.context.createTexture({ ...this.options, type: 'depth24stencil8' });
+        }
         this.valid = true;
     }
 
@@ -101,7 +108,12 @@ export class BaseRenderTarget {
             this.texture.destroy();
         }
 
+        if (this.depthTexture) {
+            this.depthTexture.destroy();
+        }
+
         this.texture = null;
+        this.depthTexture = null;
     }
 }
 
@@ -150,6 +162,7 @@ export class BaseTexture {
      * @param {'linear' | 'nearest'} magFilter
      * @param {'linear' | 'nearest'} minFilter
      * @param {TerrainTextureUniforms} style
+     * @param {'rgba8u' | 'depth24stencil8'} type
      * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
      */
     constructor(context, {
@@ -159,6 +172,7 @@ export class BaseTexture {
         minFilter = 'linear',
         style = null,
         source = null,
+        type = 'rgba8u'
     } = {}) {
         this.width = width;
         this.height = height;
@@ -167,6 +181,7 @@ export class BaseTexture {
         this.source = source;
         this.style = style;
         this.context = context;
+        this.type = type;
 
         this.id = BaseRenderer.ID++;
         this.usage = 0;

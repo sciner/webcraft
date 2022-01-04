@@ -8,6 +8,15 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 
+const TEXTURE_TYPE_FORMAT = {
+    'rgba8u': {
+        format: 'RGBA', type : 'UNSIGNED_BYTE'
+    },
+    'depth24stencil8': {
+        format: 'DEPTH_STENCIL', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
+    }
+}
+
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
     'nearest': 'NEAREST'
@@ -146,7 +155,6 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 }
 
 export class WebGLTexture extends BaseTexture {
-
     _applyStyle() {
         const {
             gl
@@ -189,31 +197,54 @@ export class WebGLTexture extends BaseTexture {
     }
 
     upload() {
-        const { gl } = this.context;
         /**
-         * @type {WebGLTexture}
+         * @type {WebGL2RenderingContext}
          */
-
+        const gl = this.context.gl;
         const mode = Array.isArray(this.source) ? 'cube' : '2d';
+
         this.mode = mode;
 
         const t = this.texture = this.texture || gl.createTexture();
         const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
+        const formats = TEXTURE_TYPE_FORMAT[this.type] || TEXTURE_TYPE_FORMAT.rgba8u;
 
         gl.bindTexture(type, t);
-
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
         if (mode === '2d') {
             if (this.source) {
-                gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+                gl.texImage2D(
+                    type,
+                    0, 
+                    gl[formats.internal || formats.format],
+                    gl[formats.format], 
+                    gl[formats.type],
+                    this.source
+                );
             } else {
-                gl.texImage2D(type, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+                console.log(formats);
+
+                gl.texImage2D(
+                    type,
+                    0,
+                    gl[formats.internal || formats.format],
+                    this.width,
+                    this.height,
+                    0,
+                    gl[formats.format],
+                    gl[formats.type],
+                    null
+                );
             }
 
             this._applyStyle();
             super.upload();
             return;
         }
+
+        // cube is only RGBA
         for(let i = 0; i < 6; i ++) {
             const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
