@@ -125,6 +125,16 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
+        float lightDistance = distance(vec3(0.), world_pos);
+        float rad = u_localLightRadius;
+        float brightness = u_brightness;
+
+        if(lightDistance < rad) {
+            float percent = 1. - pow(lightDistance / rad,  0.5);
+
+            brightness = clamp(percent + brightness, 0., 1.);
+        }
+
         vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
         vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
