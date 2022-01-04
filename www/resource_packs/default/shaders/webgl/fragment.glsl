@@ -69,7 +69,7 @@ void main() {
         float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
         float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
         if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
-        aoSample *= 0.5;
+        aoSample *= aoFactor;
 
         float gamma = 0.5;
         caveSample = pow(vec3(caveSample, caveSample, caveSample), vec3(1.0/gamma)).r;

@@ -11,6 +11,7 @@
     #define LOG2 1.442695
     #define PI 3.14159265359
     #define desaturateFactor 2.0
+    #define aoFactor 1.0
 #endif
 
 #ifdef global_uniforms
