@@ -424,11 +424,9 @@ export class Renderer {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
             const power = BLOCK.getLightPower(block);
 
-            // base torch light a 14 power, but ligthed blocks is 15 (1 + half)
-            // compute valid radious
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
-            gu.localLigthRadius = +(power <= 0x0f) *((power & 0x0f) / 2);
+            gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
         }
 
         gu.update();

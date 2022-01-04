@@ -125,18 +125,19 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        float lightDistance = distance(vec3(0.), world_pos);
+        float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
         float rad = u_localLightRadius;
         float brightness = u_brightness;
 
         // max power is 16, we use a radious that half of it
-        float initBright = rad / 8.;
+        float initBright = rad / 16.;
 
         if(lightDistance < rad) {
-            float percent = (1. -lightDistance / rad) * initBright;
+            float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
 
             brightness = clamp(percent + brightness, 0., 1.);
         }
+
 
         vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
