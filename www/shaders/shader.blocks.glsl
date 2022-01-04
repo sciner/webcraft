@@ -1,7 +1,9 @@
+// we can't coment in block, because version must be a first command
 #ifdef header
     #version 300 es
     precision highp float;
     precision mediump sampler3D;
+    //--
 #endif
 
 #ifdef constants
@@ -9,12 +11,10 @@
     #define LOG2 1.442695
     #define PI 3.14159265359
     #define desaturateFactor 2.0
-
 #endif
 
 #ifdef global_uniforms
     // global uniform block base
-
     uniform vec3 u_camera_pos;
     // Fog
     uniform vec4 u_fogColor;
@@ -33,7 +33,6 @@
 #endif
 
 #ifdef global_uniforms_frag
-
     // global uniforms fragment part
     uniform sampler2D u_texture;
     uniform lowp sampler3D u_lightTex;
@@ -47,7 +46,6 @@
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
-
     uniform mat4 uProjMatrix;
     uniform mat4 u_worldView;
     uniform mat4 uModelMatrix;
@@ -58,7 +56,6 @@
 
 #ifdef terrain_attrs_vert 
     // terrain shader attributes and varings
-
     in vec3 a_position;
     in vec3 a_axisX;
     in vec3 a_axisY;
@@ -78,11 +75,11 @@
     out vec4 v_color;
     out vec4 crosshair;
     out vec2 u_uvCenter;
+    //--
 #endif
 
 #ifdef terrain_attrs_frag 
     // terrain shader attributes and varings
-
     in vec3 v_position;
     in vec2 v_texcoord;
     in vec4 v_texClamp;
@@ -116,6 +113,7 @@
                 outColor.a = 1.0;
         }
     }
+    //--
 #endif
 
 #ifdef crosshair_call_func
@@ -123,7 +121,6 @@
 #endif
 
 #ifdef vignetting_define_func
-
     // vignetting
     const float outerRadius = .65, innerRadius = .4, intensity = .1;
     const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
@@ -137,10 +134,12 @@
         float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
         outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity);
     }
+    //--
 #endif
 
 #ifdef vignetting_call_func
     // apply vignette to render result
     drawVignetting();
+    //--
 #endif
 

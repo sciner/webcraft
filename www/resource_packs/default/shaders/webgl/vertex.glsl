@@ -1,36 +1,10 @@
-#version 300 es
-precision mediump sampler3D;
+#include<header>
+#include<constants>
 
-in vec3 a_position;
-in vec3 a_axisX;
-in vec3 a_axisY;
-in vec2 a_uvCenter;
-in vec2 a_uvSize;
-in vec3 a_color;
-in float a_flags;
-in vec2 a_quad;
+#include<global_uniforms>
+#include<global_uniforms_vert>
 
-uniform mat4 uProjMatrix;
-uniform mat4 u_worldView;
-uniform mat4 uModelMatrix;
-uniform bool u_fogOn;
-uniform float u_brightness;
-uniform float u_time;
-uniform vec3 u_add_pos;
-uniform float u_pixelSize;
-uniform vec2 u_resolution;
-uniform vec3 u_shift;
-uniform bool u_TestLightOn;
-
-out vec3 world_pos;
-out vec3 chunk_pos;
-out vec3 v_position;
-out vec2 v_texcoord;
-out vec4 v_texClamp;
-out vec3 v_normal;
-out vec4 v_color;
-out vec4 crosshair;
-out vec2 u_uvCenter;
+#include<terrain_attrs_vert>
 
 void main() {
 
