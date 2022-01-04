@@ -682,6 +682,23 @@ export default class BaseRenderer {
     }
 
     /**
+     * Blit one render target to another size-to-size
+     * @param {BaseRenderTarget} fromTarget 
+     * @param {BaseRenderTarget} toTarget 
+     */
+    blit(fromTarget = null, toTarget = null) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass'); 
+    }
+
+    /**
+     * Blit active render target to another, can be used for blitting canvas too
+     * @param {BaseRenderTarget} toTarget
+     */
+    blitActiveTo(toTarget) {
+        this.blit(this._target, toTarget);
+    }
+
+    /**
      * Create render target
      * @param options
      * @return {BaseRenderTarget}

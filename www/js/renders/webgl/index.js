@@ -461,7 +461,11 @@ export default class WebGLRenderer extends BaseRenderer {
         this.setTarget(null);
     }
 
-    // flisth active buffer onto canvas
+    /**
+     * Blit current attachen framebufer to specific a rea of canvas
+     * @param {{x?: number, y?: number, w?: number, h?: number}} param0 
+     * @returns 
+     */
     blitRenderTarget({x = 0, y = 0, w = null, h = null} = {}) {
         /**
          * @type {WebGLRenderTarget}
@@ -486,6 +490,46 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+    }
+
+    /**
+     * Blit one render target to another size-to-size
+     * @param {WebGLRenderTarget} fromTarget 
+     * @param {WebGLRenderTarget} toTarget 
+    */
+    blit(fromTarget = null, toTarget = null) {
+        fromTarget = fromTarget || null;
+        toTarget = toTarget || null;
+
+        if (fromTarget === toTarget) {
+            throw new TypeError('fromTarget and toTarget should be different');
+        }
+
+        /**
+         * @type {WebGLRenderTarget}
+         */
+        const target = this._target;
+        const gl = this.gl;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fromTarget ? fromTarget.framebuffer : null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, toTarget ? toTarget.framebuffer : null);
+
+        const fromSize = fromTarget ? fromTarget : this.size;
+        const toSize = toTarget ? toTarget : this.size;
+        const fromDepth = fromTarget ? fromTarget.options.depth : true;
+        const toDepth = toTarget ? toTarget.options.depth : true;
+        const bits = (toDepth && fromDepth) 
+            ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT) 
+            : gl.COLOR_BUFFER_BIT;
+
+
+        gl.blitFramebuffer(
+            0, 0, fromSize.width, fromSize.height,
+            0, 0, toSize.width, toSize.height,
+            bits, gl.LINEAR
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.framebuffer : null);
     }
 
     createCubeMap(options) {
