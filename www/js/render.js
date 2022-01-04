@@ -128,7 +128,9 @@ export class Renderer {
 
         this.setWorld(world);
         const {renderBackend} = this;
-        await renderBackend.init();
+        await renderBackend.init({
+            blocks: Resources.shaderBlocks
+        });
 
         this.skyBox             = null;
         this.videoCardInfoCache = null;

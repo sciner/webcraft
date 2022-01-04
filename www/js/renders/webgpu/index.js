@@ -191,7 +191,8 @@ export default class WebGPURenderer extends BaseRenderer{
         this.subMats.length = 0;
     }
 
-    async init() {
+    async init(args) {
+        super.init(args);
         this.adapter = await navigator.gpu.requestAdapter();
         this.device = await this.adapter.requestDevice();
         this.context = this.view.getContext('webgpu');

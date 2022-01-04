@@ -1,18 +1,23 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
 import {Helpers} from "../../helpers.js";
+import WebGLRenderer from "./index.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
-
+    /**
+     * 
+     * @param {WebGLRenderer} context 
+     * @param {*} options 
+     */
     constructor(context, options) {
         super(context, options);
 
-        const {gl} = context;
-
-        Helpers.createGLProgram(gl, options.code, (ret) => {
-            this.program = ret.program;
+        const { gl } = context;
+        const program  = context.createProgram(options.code, {
+            // for ex, skip mip block
+            ['manual_mip'] : {
+                //skip: true
+            }
         });
-
-        const program = this.program;
 
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
@@ -55,6 +60,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this._material = null;
 
         this.globalID = -1;
+        this.program = program;
     }
 
     bind(force = false) {

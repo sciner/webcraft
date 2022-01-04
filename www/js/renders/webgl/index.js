@@ -23,14 +23,10 @@ export class WebGLCubeShader extends BaseCubeShader {
     constructor(context, options) {
         super(context, options);
         //
-        const {
-            gl
-        } = this.context;
-        //
-        Helpers.createGLProgram(gl, options.code, (ret) => {
-            this.program = ret.program;
-        });
-        //
+        const { gl } = this.context;        
+
+        this.program  = context.createProgram(options.code, {});
+
         this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
         this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
         this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
@@ -278,7 +274,9 @@ export default class WebGLRenderer extends BaseRenderer {
         }
     }
 
-    async init() {
+    async init(args) {
+        super.init(args);
+
         const gl = this.gl = this.view.getContext('webgl2', this.options);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
@@ -364,6 +362,13 @@ export default class WebGLRenderer extends BaseRenderer {
         texture.usage ++;
 
         return texture;
+    }
+
+    createProgram({vertex, fragment}, preprocessArgs = {}) {
+        return Helpers.createGLProgram(this.gl, {
+            vertex: this.preprocess(vertex, preprocessArgs),
+            fragment: this.preprocess(fragment, preprocessArgs)
+        });
     }
 
     createTexture3D(options) {
