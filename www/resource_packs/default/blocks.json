@@ -2945,7 +2945,7 @@
     },
     {
         "id": 544,
-        "name": "BUCKET_ICE",
+        "name": "BUCKET_POWDER_SNOW",
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
@@ -2956,7 +2956,7 @@
         ],
         "texture": {
             "id": "item",
-            "side": [2, 0]
+            "side": [4, 0]
         }
     },
     {

@@ -373,7 +373,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 const value             = cell.value2;
 
                 let rnd                 = aleaRandom.double();
-                let local_dirt_level    = value - (rnd < .005 ? 0 : 3);
+                let local_dirt_level    = value - (rnd < .005 ? 1 : 3);
                 let in_ocean            = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
 
                 // Bedrock
@@ -501,9 +501,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(xyz.y < local_dirt_level) {
                         temp_vec.set(x, y + 1, z);
-                        const norm = !map.info.plants.has(temp_vec);
-                        let stone_block_id = norm ? BLOCK.CONCRETE.id : biome.dirt_block;
-                        if(norm) {
+                        const has_plant = !map.info.plants.has(temp_vec);
+                        let stone_block_id = has_plant ? BLOCK.CONCRETE.id : biome.dirt_block;
+                        if(has_plant) {
                             let density = noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
                             if(density > 0.5) {
                                 if(density < 0.66) {

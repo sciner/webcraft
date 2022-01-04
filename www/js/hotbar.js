@@ -1,3 +1,4 @@
+import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
 export class Hotbar {
@@ -15,6 +16,9 @@ export class Hotbar {
             that.hud.add(that, 0);
         }
         this.image.src = './media/hotbar.png';
+        //
+        this.itemNameO = null;
+        this.itemNameChangeTime = performance.now();
     }
 
     //
@@ -46,12 +50,47 @@ export class Hotbar {
         let w = 546; // this.image.width;
         let h = 147; // this.image.height;
         const cell_size = 60;
+        const live_bar_height = 81;
         let hud_pos = {
             x: hud.width / 2 - w / 2,
             y: hud.height - h
         };
         const ss = 27;
-        if(player.game_mode.mayGetDamaged()) {
+        const mayGetDamaged = player.game_mode.mayGetDamaged();
+
+        // Draw item name in hotbar
+        let currentBuildMaterial = player.buildMaterial;
+        if(currentBuildMaterial) {
+            let itemName = currentBuildMaterial?.name || BLOCK.fromId(currentBuildMaterial.id)?.name;
+            itemName = itemName.replaceAll('_', ' ');
+            const max_name_show_time = 2000;
+            if(itemName != this.itemNameO) {
+                this.itemNameO = itemName;
+                this.itemNameChangeTime = performance.now();
+            }
+            const time_remains = performance.now() - this.itemNameChangeTime;
+            if(time_remains < max_name_show_time) {
+                // Text opacity
+                let alpha = 1;
+                alpha = Math.min(2 - (time_remains / max_name_show_time) * 2, 1);
+                let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
+                //
+                hud.ctx.textBaseline = 'bottom';
+                hud.ctx.font = '24px Ubuntu';
+                const yMargin = mayGetDamaged ? 40 : 0;
+                const textWidth = hud.ctx.measureText(itemName).width;
+                hud.ctx.fillStyle = '#000000' + aa;
+                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
+                hud.ctx.fillStyle = '#ffffff' + aa;
+                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2);
+                //
+                hud.refresh();
+            }
+        } else {
+            this.itemNameO = null;
+        }
+
+        if(mayGetDamaged) {
             // bar
             hud.ctx.drawImage(
                 this.image,
@@ -123,7 +162,6 @@ export class Hotbar {
                 );
             }
         } else {
-            const live_bar_height = 81;
             // bar
             hud.ctx.drawImage(
                 this.image,
@@ -140,7 +178,7 @@ export class Hotbar {
         // inventory_selector
         hud.ctx.drawImage(
             this.image,
-            81,
+            live_bar_height,
             150,
             72,
             69,
