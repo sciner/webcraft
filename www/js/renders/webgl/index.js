@@ -60,7 +60,7 @@ export class WebGLCubeShader extends BaseCubeShader {
                     func = 'uniform1f';
                     break;
                 }
-                case 'Vector': {
+                case 'object': {
                     type = 'vec3';
                     func = 'uniform3fv';
                     break;

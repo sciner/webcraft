@@ -328,6 +328,7 @@ export class GlobalUniformGroup {
 
         this.testLightOn = 0;
         this.sunDir = [0, 0, 0];
+        this.useSunDir = false;
 
         this.updateID = 0;
         this.camPos = new Vector();
