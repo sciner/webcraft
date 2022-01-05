@@ -2,63 +2,66 @@ import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
 
+// Общее количество блоков в чанке
+const BLOCK_COUNT       = CHUNK_SIZE_X * MAX_CAVES_LEVEL * CHUNK_SIZE_Z;
+const DIVIDER           = new Vector(CHUNK_SIZE_X, MAX_CAVES_LEVEL, CHUNK_SIZE_Z);
+const DEF_RAD           = 5;
+const MIN_RAD           = 2; // минимальный радиус секции
+const MAX_RAD           = 10; // максимальный радиус секции
+const HIGH_CAVE_V1      = new Vector(0, -DEF_RAD * .9, 0);
+const HIGH_CAVE_V2      = new Vector(0, -DEF_RAD * 2 * .9, 0);
+const chunk_addr_temp   = new Vector(0, 0, 0);
+const temp_vec          = new Vector(0, 0, 0);
+
 // Cave...
 export class Cave {
 
     // Constructor
     constructor(seed, addr) {
-        let csy             = MAX_CAVES_LEVEL; // | CHUNK_SIZE_Y
         this.alea           = new alea(seed + addr.toString());
         this.head_pos       = null;
-        this.coord          = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z));
+        this.coord          = addr.mul(DIVIDER);
         this.points         = [];
         this.chunks         = new VectorCollector();
         //
         let r               = this.alea.double();
         let index           = r;
-        let divider         = new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z);
-        let chunk_addr      = new Vector(0, 0, 0);
         // проверяем нужно или нет начало пещеры в этом чанке
         if(index < .99) {
             let addPoint = (point) => {
                 point.pos = point.pos.toInt();
-                // chunk_addr = point.pos.div(divider).toInt();
-                chunk_addr.set((point.pos.x / divider.x) | 0, (point.pos.y / divider.y) | 0, (point.pos.z / divider.z) | 0);
-                let chunk = this.chunks.get(chunk_addr);
+                chunk_addr_temp.set((point.pos.x / DIVIDER.x) | 0, (point.pos.y / DIVIDER.y) | 0, (point.pos.z / DIVIDER.z) | 0);
+                let chunk = this.chunks.get(chunk_addr_temp);
                 if(!chunk) {
                     chunk = {points: []};
-                    this.chunks.set(chunk_addr, chunk);
+                    this.chunks.set(chunk_addr_temp, chunk);
                 }
                 chunk.points.push(point);
             };
-            // Общее количество блоков в чанке
-            let block_count = CHUNK_SIZE_X * csy * CHUNK_SIZE_Z;
             // Генерируем абсолютную позицию начала пещеры в этом чанке
-            index = parseInt(block_count * .05 + this.alea.double() * block_count * .5);
+            index = parseInt(BLOCK_COUNT * .05 + this.alea.double() * BLOCK_COUNT * .5);
             // Конвертируем позицию в 3D вектор
-            this.head_pos = addr.mul(new Vector(CHUNK_SIZE_X, csy, CHUNK_SIZE_Z)).add(new Vector(
+            temp_vec.set(
                 index % CHUNK_SIZE_X,
                 parseInt(index / (CHUNK_SIZE_X * CHUNK_SIZE_Z)),
                 parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
-            ));
-            const DEF_RAD   = 5;
-            const MIN_RAD   = 2; // минимальный радиус секции
-            const MAX_RAD   = 10; // максимальный радиус секции
+            );
+            this.head_pos = addr.mul(DIVIDER).add(temp_vec);
             let rad         = DEF_RAD;
             // Добавляем "голову" пещеры
             addPoint({rad: rad, pos: this.head_pos});
             let point_pos = this.head_pos;
             // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
-            for(let _ of [1, 2, 3]) {
+            for(let _ of [1, 2, 3, 4, 5]) {
                 let pts_count = parseInt(this.alea.double() * MAX_RAD) + 1;
                 // Генерация нового направления группы секций
-                let direction = new Vector(
+                temp_vec.set(
                     (this.alea.double() * 2 - 1) * 4,
                     (this.alea.double() * 2 - 1) * 1.25,
                     (this.alea.double() * 2 - 1) * 4,
                 );
                 for(let i = 0; i < pts_count; i++) {
-                    point_pos = point_pos.add(direction);
+                    point_pos = point_pos.add(temp_vec);
                     rad = parseInt((rad + this.alea.double() * DEF_RAD + MIN_RAD) / 2);
                     let point = {
                         rad: rad,
@@ -67,9 +70,9 @@ export class Cave {
                     addPoint(point);
                     // В редких случаях генерируем высокие пещеры
                     if(r < .1) {
-                        addPoint({rad: point.rad, pos: point.pos.add(new Vector(0, -DEF_RAD * .9, 0))});
+                        addPoint({rad: point.rad, pos: point.pos.add(HIGH_CAVE_V1)});
                         if(r < .065) {
-                            addPoint({rad: point.rad, pos: point.pos.add(new Vector(0, -DEF_RAD * 2 * .9, 0))});
+                            addPoint({rad: point.rad, pos: point.pos.add(HIGH_CAVE_V2)});
                         }
                     }
                 }
