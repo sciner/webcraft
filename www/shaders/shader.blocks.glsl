@@ -33,6 +33,7 @@
     uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
     uniform float u_localLightRadius;
+    uniform float u_aoDisaturateFactor;
     //--
 #endif
 
@@ -220,7 +221,7 @@
     //--
 #endif
 
-#ifdef global_light_pass
+#ifdef ao_light_pass
     // global illumination
     vec3 lightCoord = (chunk_pos + 0.5) / CHUNK_SIZE;
     vec3 absNormal = abs(v_normal);
@@ -243,6 +244,6 @@
     totalAO = min(totalAO, 1.0 - aoSample);
     totalAO = max(totalAO, 0.075 * (1.0 - aoSample));
 
-    light = totalAO;
+    light = mix(totalAO, light, u_aoDisaturateFactor);
     //--
 #endif

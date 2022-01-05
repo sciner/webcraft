@@ -50,7 +50,7 @@ void main() {
 
         #include<local_light_pass>
 
-        #include<global_light_pass>
+        #include<ao_light_pass>
 
         #include<sun_light_pass>
 
