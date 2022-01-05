@@ -23,8 +23,9 @@ void main() {
     vec2 mipOffset = vec2(0.0);
     vec2 biome = v_color.rg;
 
-    #include<manual_mip>
+    float light = 0.0;
 
+    #include<manual_mip>
 
     // Game
     if(u_fogOn) {
@@ -47,20 +48,6 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
-        float rad = u_localLightRadius;
-        float brightness = u_brightness;
-
-        // max power is 16, we use a radious that half of it
-        float initBright = rad / 16.;
-
-        if(lightDistance < rad) {
-            float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
-
-            brightness = clamp(percent + brightness, 0., 1.);
-        }
-
-
         vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
         vec3 absNormal = abs(v_normal);
         vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
@@ -78,7 +65,19 @@ void main() {
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-        float light = max(min(caveSample + daySample * brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
+        light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
+
+        float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
+        float rad = u_localLightRadius;
+
+        // max power is 16, we use a radious that half of it
+        float initBright = rad / 16.;
+
+        if(lightDistance < rad) {
+            float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
+
+            light = clamp(percent + light, 0., 1.);
+        }
 
         if (u_SunDir.w < 0.5) {
             if(v_normal.x != 0.) {
