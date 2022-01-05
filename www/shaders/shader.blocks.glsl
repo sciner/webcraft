@@ -186,3 +186,18 @@
     outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
 
 #endif
+
+#ifdef sun_light_pass
+    // sun light pass
+    if (u_SunDir.w < 0.5) {
+        if(v_normal.x != 0.) {
+            light = light * .7;
+        } else if(v_normal.y != 0.) {
+            light = light * .85;
+        }
+    } else {
+        // limit brightness to 0.2
+        light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+    }
+
+#endif

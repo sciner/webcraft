@@ -79,16 +79,7 @@ void main() {
             light = clamp(percent + light, 0., 1.);
         }
 
-        if (u_SunDir.w < 0.5) {
-            if(v_normal.x != 0.) {
-                light = light * .7;
-            } else if(v_normal.y != 0.) {
-                light = light * .85;
-            }
-        } else {
-            // limit brightness to 0.2
-            light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
-        }
+        #include<sun_light_pass>
 
         // Apply light
         color.rgb *= light;
