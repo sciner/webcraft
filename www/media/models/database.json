@@ -120,6 +120,14 @@
             "skins": {
                 "base": "textures/snow_golem.png"
             }
+        },
+        "spider": {
+            "type": "json",
+            "geom": "json/spider.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/spider.png"
+            }
         }
     }
 }
