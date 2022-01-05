@@ -59,8 +59,9 @@ Game.player.chat.sendMessage('/spawnmob 3880 71 2527 bee base');
 /admin remove username
 ```
 
+# Server packets
 Send particle animation from server to player:
-```
+```JS
 const packets = [{
     name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
     data: {
