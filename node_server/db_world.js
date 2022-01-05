@@ -635,7 +635,7 @@ export class DBWorld {
             }
         }
         const result = await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data)', {
-            ':user_id':     player.session.user_id,
+            ':user_id':     player?.session.user_id || null,
             ':dt':          ~~(Date.now() / 1000),
             ':world_id':    world.info.id,
             ':params':      item ? JSON.stringify(item) : null,

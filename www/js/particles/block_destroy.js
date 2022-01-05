@@ -101,6 +101,9 @@ export default class Particles_Block_Destroy {
         if(b instanceof TBlock) {
             b = b.material;
         }
+        if(!('material_key' in b)) {
+            b = BLOCK.fromId(b.id);
+        }
         this.resource_pack = b.resource_pack;
         this.material = this.resource_pack.getMaterial(b.material_key);
 

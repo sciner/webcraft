@@ -32,6 +32,10 @@ export class World {
                 res(cmd);
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
+                Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], (cmd) => {
                 const { time, data } = cmd;
                 const { clientTime } = data;

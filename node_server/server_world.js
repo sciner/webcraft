@@ -8,6 +8,7 @@ import {ModelManager} from "./model_manager.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {getChunkAddr} from "../www/js/chunk.js";
+import {BLOCK} from "../www/js/blocks.js";
 
 import {ServerChunkManager} from "./server_chunk_manager.js";
 import config from "./config.js";
@@ -279,8 +280,9 @@ export class ServerWorld {
             if(!this.admins.checkIsAdmin(player)) {
                 throw 'error_not_permitted';
             }
-            let mob = await Mob.create(this, params);
-            this.chunks.get(mob.chunk_addr)?.addMob(mob);
+            await this.createMob(params);
+            // let mob = await Mob.create(this, params);
+            // this.chunks.get(mob.chunk_addr)?.addMob(mob);
             return true;
         } catch(e) {
             console.log('e', e);
@@ -292,6 +294,20 @@ export class ServerWorld {
             }];
             this.sendSelected(packets, [player.session.user_id], []);
         }
+    }
+
+    //
+    async createMob(params) {
+        let chunk_addr = getChunkAddr(params.pos);
+        let chunk = this.chunks.get(chunk_addr);
+        if(chunk) {
+            let mob = await Mob.create(this, params);
+            chunk.addMob(mob);
+            return mob;
+        } else {
+            console.error('Chunk for mob not found');
+        }
+        return null;
     }
 
     // Create drop items
@@ -347,6 +363,15 @@ export class ServerWorld {
         chunk.addPlayerLoadRequest(player);
     }
 
+    getBlock(pos) {
+        let chunk_addr = getChunkAddr(pos);
+        let chunk = this.chunks.get(chunk_addr);
+        if(!chunk) {
+            return null;
+        }
+        return chunk.getBlock(pos);
+    }
+
     //
     async setBlock(player, params) {
         // @ParamBlockSet
@@ -368,6 +393,70 @@ export class ServerWorld {
             } else {
                 throw 'error_chunk_not_loaded';
             }
+        }
+    }
+
+    // setBlocksForce
+    // @example:
+    // [
+    //      {
+    //          "pos": {"x": 0, "y": 0, "z": 0},
+    //          "item": {"id": 2}
+    //      }
+    // ]
+    async setBlocksForce(blocks) {
+        let chunks_packets = new VectorCollector();
+        for(let params of blocks) {
+            params.item = BLOCK.convertItemToInventoryItem(params.item);
+            let chunk_addr = getChunkAddr(params.pos);
+            let chunk = this.chunks.get(chunk_addr);
+            if(chunk) {
+                await this.db.blockSet(this, null, params);
+                const block_pos = params.pos.floored();
+                const block_pos_in_chunk = block_pos.sub(chunk.coord);
+                let cps = chunks_packets.get(chunk_addr);
+                if(!cps) {
+                    cps = {packets: [], chunk: chunk};
+                    chunks_packets.set(chunk_addr, cps);
+                }
+                cps.packets.push({
+                    name: ServerClient.CMD_BLOCK_SET,
+                    data: params
+                });
+                // 0. Play particle animation on clients
+                if(params.item.id == BLOCK.AIR.id) {
+                    let tblock = chunk.tblocks.get(block_pos_in_chunk);
+                    if(tblock.id > 0) {
+                        let destroy_data = {
+                            pos: params.pos,
+                            item: {id: tblock.id}
+                        }
+                        let packet = {
+                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                            data: destroy_data
+                        };
+                        cps.packets.push(packet);
+                    }
+                }
+                // 1. Store in modify list
+                chunk.modify_list.set(block_pos.toHash(), params.item);
+                // 2. Mark as became modifieds
+                this.chunkBecameModified(chunk_addr);
+                // 3. Store in chunk tblocks
+                chunk.tblocks.delete(block_pos_in_chunk);
+                let tblock           = chunk.tblocks.get(block_pos_in_chunk);
+                tblock.id            = params.item.id;
+                tblock.extra_data    = params.item?.extra_data || null;
+                tblock.entity_id     = params.item?.entity_id || null;
+                tblock.power         = params.item?.power || null;
+                tblock.rotate        = params.item?.rotate || null;
+            } else {
+                console.error('Chunk not found in pos', chunk_addr, params);
+            }
+        }
+        for(let cp of chunks_packets) {
+            let packets = cp.packets;
+            cp.chunk.sendAll(packets, []);
         }
     }
 
