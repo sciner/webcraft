@@ -12,6 +12,8 @@
     #define PI 3.14159265359
     #define desaturateFactor 2.0
     #define aoFactor 1.0
+    #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
+    
 #endif
 
 #ifdef global_uniforms
@@ -31,6 +33,7 @@
     uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
     uniform float u_localLightRadius;
+    uniform float u_aoDisaturateFactor;
     //--
 #endif
 
@@ -185,4 +188,62 @@
     outColor.g = (outColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
     outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
 
+#endif
+
+#ifdef sun_light_pass
+    // sun light pass
+    if (u_SunDir.w < 0.5) {
+        if(v_normal.x != 0.) {
+            light = light * .7;
+        } else if(v_normal.y != 0.) {
+            light = light * .85;
+        }
+    } else {
+        // limit brightness to 0.2
+        light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+    }
+    //--
+#endif
+
+#ifdef local_light_pass
+    // local light from hand located object
+    float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
+    float rad = u_localLightRadius;
+
+    // max power is 16, we use a radious that half of it
+    float initBright = rad / 16.;
+
+    if(lightDistance < rad) {
+        float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
+
+        light = clamp(percent + light, 0., 1.);
+    }
+    //--
+#endif
+
+#ifdef ao_light_pass
+    // global illumination
+    vec3 lightCoord = (chunk_pos + 0.5) / CHUNK_SIZE;
+    vec3 absNormal = abs(v_normal);
+    vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
+
+    float caveSample = texture(u_lightTex, lightCoord).a;
+    float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
+    float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
+    if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+    aoSample *= aoFactor;
+
+    float gamma = 0.5;
+    caveSample = pow(caveSample, 1.0 / gamma);
+
+    caveSample = caveSample * (1.0 - aoSample);
+    daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
+
+    float totalAO = caveSample + daySample * u_brightness;
+    totalAO = max(light, totalAO);
+    totalAO = min(totalAO, 1.0 - aoSample);
+    totalAO = max(totalAO, 0.075 * (1.0 - aoSample));
+
+    light = mix(totalAO, light, u_aoDisaturateFactor);
+    //--
 #endif
