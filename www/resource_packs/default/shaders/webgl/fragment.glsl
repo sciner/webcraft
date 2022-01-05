@@ -48,9 +48,9 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        #include<global_light_pass>
-
         #include<local_light_pass>
+
+        #include<global_light_pass>
 
         #include<sun_light_pass>
 

@@ -234,12 +234,12 @@
 
     float gamma = 0.5;
     caveSample = pow(caveSample, 1.0 / gamma);
-    // caveSample = round(caveSample * 16.) / 16.;
 
     caveSample = caveSample * (1.0 - aoSample);
     daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
     float totalAO = caveSample + daySample * u_brightness;
+    totalAO = max(light, totalAO);
     totalAO = min(totalAO, 1.0 - aoSample);
     totalAO = max(totalAO, 0.075 * (1.0 - aoSample));
 
