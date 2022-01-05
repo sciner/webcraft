@@ -48,36 +48,9 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
-        vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
-        vec3 absNormal = abs(v_normal);
-        vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
+        #include<global_light_pass>
 
-        float caveSample = texture(u_lightTex, lightCoord).a;
-        float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
-        float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
-        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
-        aoSample *= aoFactor;
-
-        float gamma = 0.5;
-        caveSample = pow(vec3(caveSample, caveSample, caveSample), vec3(1.0/gamma)).r;
-        // caveSample = round(caveSample * 16.) / 16.;
-
-        caveSample = caveSample * (1.0 - aoSample);
-        daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
-
-        light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
-
-        float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
-        float rad = u_localLightRadius;
-
-        // max power is 16, we use a radious that half of it
-        float initBright = rad / 16.;
-
-        if(lightDistance < rad) {
-            float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
-
-            light = clamp(percent + light, 0., 1.);
-        }
+        #include<local_light_pass>
 
         #include<sun_light_pass>
 
