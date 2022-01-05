@@ -10,18 +10,6 @@
         "lodestone": {
             "image": "/textures/lodestone_top.jpg",
             "tx_cnt": 1
-        },
-        "water_still": {
-            "image": "/textures/water_still.png",
-            "tx_cnt": 32
-        },
-        "lava_still": {
-            "image": "/textures/lava_still.png",
-            "tx_cnt": 32
-        },
-        "seagrass": {
-            "image": "/textures/seagrass.png",
-            "tx_cnt": 32
         }
     }
 }
