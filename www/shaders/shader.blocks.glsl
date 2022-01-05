@@ -12,6 +12,8 @@
     #define PI 3.14159265359
     #define desaturateFactor 2.0
     #define aoFactor 1.0
+    #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
+    
 #endif
 
 #ifdef global_uniforms
@@ -220,9 +222,9 @@
 
 #ifdef global_light_pass
     // global illumination
-    vec3 lightCoord = (chunk_pos + 0.5) / vec3(18.0, 18.0, 84.0);
+    vec3 lightCoord = (chunk_pos + 0.5) / CHUNK_SIZE;
     vec3 absNormal = abs(v_normal);
-    vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / vec3(18.0, 18.0, 84.0);
+    vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
 
     float caveSample = texture(u_lightTex, lightCoord).a;
     float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
@@ -231,12 +233,16 @@
     aoSample *= aoFactor;
 
     float gamma = 0.5;
-    caveSample = pow(vec3(caveSample, caveSample, caveSample), vec3(1.0/gamma)).r;
+    caveSample = pow(caveSample, 1.0 / gamma);
     // caveSample = round(caveSample * 16.) / 16.;
 
     caveSample = caveSample * (1.0 - aoSample);
     daySample = daySample * (1.0 - aoSample - max(-v_normal.z, 0.0) * 0.2);
 
-    light = max(min(caveSample + daySample * u_brightness, 1.0 - aoSample), 0.075 * (1.0 - aoSample));
+    float totalAO = caveSample + daySample * u_brightness;
+    totalAO = min(totalAO, 1.0 - aoSample);
+    totalAO = max(totalAO, 0.075 * (1.0 - aoSample));
+
+    light = totalAO;
     //--
 #endif
