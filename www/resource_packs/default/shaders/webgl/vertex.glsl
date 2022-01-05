@@ -14,7 +14,9 @@ void main() {
     // Animated textures
     if(v_color.b > 1.) {
         // v_color.b contain number of animation frames
-        u_uvCenter.y += (floor(mod((u_time * v_color.b / 3.) / 1000., v_color.b))) / 32.;
+        float disc = v_color.b - 1.;
+        float i = floor((u_time * v_color.b / 3.) / 1000.);
+        u_uvCenter.y += (abs(mod(i, disc * 2.) - disc)) / 32.;
     }
 
     // find flags
