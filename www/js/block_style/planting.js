@@ -1,10 +1,16 @@
 import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color} from '../helpers.js';
 import { default as push_plane_style } from './plane.js';
-import {CHUNK_SIZE_Z} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
+import {impl as alea} from "../../vendors/alea.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
-let randoms = [];
+
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
 
 // Растения
 export default class style {
@@ -47,9 +53,6 @@ export default class style {
         let index = x * CHUNK_SIZE_Z + z;
         let r = 0;
         if([block.material.style].indexOf('sign') < 0) {
-            if(!randoms[index]) {
-                randoms[index] = Math.random();
-            }
             r = randoms[index] * 4/16 - 2/16;
         }
         x += 0.5 - 0.5 / 1.41 + r;
