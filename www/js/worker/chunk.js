@@ -16,6 +16,7 @@ const CC = [
 ];
 
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
+
 // ChunkManager
 export class ChunkManager {
 
@@ -32,29 +33,15 @@ export class ChunkManager {
         };
     }
 
-    // Возвращает координаты чанка по глобальным абсолютным координатам
-    getChunkAddr(x, y, z) {
-        return getChunkAddr(x, y, z);
-    }
-
-    /**
-     *
-     * @param {Vector} pos
-     * @returns
-     */
-    getPosChunkKey(pos) {
-        return pos.toChunkKey();
-    }
-
     // Get
     getChunk(addr) {
         return this.world.chunks.get(addr);
     }
 
-    // Возвращает блок по абслютным координатам
+    // Возвращает блок по абсолютным координатам
     getBlock(x, y, z) {
         // определяем относительные координаты чанка
-        let chunkAddr = this.getChunkAddr(x, y, z);
+        let chunkAddr = getChunkAddr(x, y, z);
         // обращаемся к чанку
         let chunk = this.getChunk(chunkAddr);
         // если чанк найден
@@ -118,13 +105,15 @@ export class Chunk {
         if(!this.modify_list) {
             return;
         }
+        const pos = new Vector(0, 0, 0);
+        const block_index = new Vector(0, 0, 0);
         for(let key of Object.keys(this.modify_list)) {
             let m           = this.modify_list[key];
-            let pos         = key.split(',');
-            pos = new Vector(pos[0], pos[1], pos[2]);
+            let pos_temp         = key.split(',');
+            pos.set(pos_temp[0], pos_temp[1], pos_temp[2])
             if(m.id < 1) {
-                pos = BLOCK.getBlockIndex(pos);
-                this.tblocks.delete(pos);
+                BLOCK.getBlockIndex(pos, null, null, block_index);
+                this.tblocks.delete(block_index);
                 continue;
             }
             let type        = BLOCK.fromId(m.id);
@@ -201,7 +190,7 @@ export class Chunk {
             this.modify_list[[x, y, z]] = modify_item;
         }
         let pos = new Vector(x, y, z);
-        pos = BLOCK.getBlockIndex(pos);
+        BLOCK.getBlockIndex(pos, null, null, pos);
         x = pos.x;
         y = pos.y;
         z = pos.z;
@@ -211,7 +200,7 @@ export class Chunk {
         if(is_modify) {
             console.table(orig_type);
         }
-        let block        = this.tblocks.get(new Vector(x, y, z));
+        let block        = this.tblocks.get(pos);
         block.id         = orig_type.id;
         block.power      = power;
         block.rotate     = rotate;
@@ -386,6 +375,7 @@ export class Chunk {
             if(neighbours.pcnt == 6) {
                 continue;
             }
+            /*
             // if block with gravity
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
             if(block.material.gravity && block.pos.y > 0 && block.falling) {
@@ -398,9 +388,19 @@ export class Chunk {
             if(block.material.fluid) {
                 this.fluid_blocks.push(block.pos);
             }
+            */
+            /*if((block.material.id + 
+                (neighbours.UP?.id || 0) +
+                (neighbours.DOWN?.id || 0) +
+                (neighbours.SOUTH?.id || 0) +
+                (neighbours.NORTH?.id || 0) +
+                (neighbours.EAST?.id || 0) +
+                (neighbours.WEST?.id || 0)) / 7 === 202) {
+                    continue;
+            }*/
             if(block.vertices === null) {
                 block.vertices = [];
-                let biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
+                const biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
                 block.material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone

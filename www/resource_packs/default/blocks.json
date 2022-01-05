@@ -1166,6 +1166,7 @@
     {
         "id": 80,
         "name": "SNOW_BLOCK",
+        "sound": "madcraft:block.snow",
         "texture": [
             2,
             4
@@ -2044,7 +2045,7 @@
     {
         "id": 145,
         "name": "SNOW_DIRT",
-        "sound": "madcraft:block.grass",
+        "sound": "madcraft:block.snow",
         "texture": {
             "up": [
                 2,
@@ -2455,6 +2456,7 @@
         "name": "SNOW",
         "height": 0.125,
         "transparent": true,
+        "sound": "madcraft:block.snow",
         "texture": [2, 4],
         "tags": [
             "layering",
@@ -2915,6 +2917,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "FLOWING_LAVA",
         "tags": [
             "bucket"
         ],
@@ -2930,6 +2933,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "FLOWING_WATER",
         "tags": [
             "bucket"
         ],
@@ -2940,20 +2944,72 @@
     },
     {
         "id": 544,
-        "name": "BUCKET_ICE",
+        "name": "BUCKET_POWDER_SNOW",
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
         "instrument_id": "bucket",
+        "emit_on_set": "SNOW_BLOCK",
         "tags": [
             "bucket"
         ],
         "texture": {
             "id": "item",
+            "side": [4, 0]
+        }
+    },
+    {
+        "id": 545,
+        "name": "ANDESITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [0, 0]
+        }
+    },
+    {
+        "id": 546,
+        "name": "POLISHED_ANDESITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [0, 1]
+        }
+    },
+    {
+        "id": 547,
+        "name": "DIORITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [1, 0]
+        }
+    },
+    {
+        "id": 548,
+        "name": "POLISHED_DIORITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [1, 1]
+        }
+    },
+    {
+        "id": 549,
+        "name": "GRANITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
             "side": [2, 0]
         }
     },
     {
+<<<<<<< HEAD
         "id": 202,
         "name": "STILL_WATER",
         "transparent": true,
@@ -3063,5 +3119,15 @@
         "destroy_time": 0,
         "spawnable": false,
         "planting": true
+=======
+        "id": 550,
+        "name": "POLISHED_GRANITE",
+        "sound": "madcraft:block.stone",
+        "destroy_time": 7,
+        "texture": {
+            "id": "stone",
+            "side": [2, 1]
+        }
+>>>>>>> e26cb6070479289fe5f33386404d29be2af4b770
     }
 ]

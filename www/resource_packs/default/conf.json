@@ -26,6 +26,10 @@
         "seagrass": {
             "image": "/textures/seagrass.png",
             "tx_cnt": 32
+        },
+        "stone": {
+            "image": "/textures/stone.png",
+            "tx_cnt": 8
         }
     }
 }

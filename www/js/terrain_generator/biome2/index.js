@@ -361,6 +361,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
+        // const noisefn = this.noisefn;
+        const noise3d = noise.simplex3;
+
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -370,7 +373,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 const value             = cell.value2;
 
                 let rnd                 = aleaRandom.double();
-                let local_dirt_level    = value - (rnd < .005 ? 0 : 3);
+                let local_dirt_level    = value - (rnd < .005 ? 1 : 3);
                 let in_ocean            = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
 
                 // Bedrock
@@ -497,16 +500,32 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // Ores (если это не вода, то заполняем полезными ископаемыми)
                     if(xyz.y < local_dirt_level) {
-                        let r = aleaRandom.double() * 1.33;
-                        if(r < 0.0025 && xyz.y < value - 5) {
-                            setBlock(x, y, z, BLOCK.DIAMOND_ORE.id);
-                        } else if(r < 0.01) {
-                            setBlock(x, y, z, BLOCK.COAL_ORE.id);
-                        } else {
-                            temp_vec.set(x, y + 1, z);
-                            const norm = !map.info.plants.has(temp_vec)
-                            setBlock(x, y, z, norm ? BLOCK.CONCRETE.id : biome.dirt_block);
+                        temp_vec.set(x, y + 1, z);
+                        const has_plant = !map.info.plants.has(temp_vec);
+                        let stone_block_id = has_plant ? BLOCK.CONCRETE.id : biome.dirt_block;
+                        if(has_plant) {
+                            let density = noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
+                            if(density > 0.5) {
+                                if(density < 0.66) {
+                                    stone_block_id = BLOCK.DIORITE.id;
+                                } else if(density < 0.83) {
+                                    stone_block_id = BLOCK.ANDESITE.id;
+                                } else {
+                                    stone_block_id = BLOCK.GRANITE.id;
+                                }
+                            } else if(xyz.y < value - 5) {
+                                let density_ore = noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
+                                const DIAMOND_ORE_FREQ = xyz.y < 16 ? (xyz.y < 6 ? 0.06 : 0.04) : 0;
+                                if(density < DIAMOND_ORE_FREQ) {
+                                    stone_block_id = BLOCK.DIAMOND_ORE.id;
+                                } else if (density_ore < .1) {
+                                    stone_block_id = BLOCK.COAL_ORE.id;
+                                } else if (density_ore > .85) {
+                                    stone_block_id = BLOCK.COAL_ORE.id;
+                                }
+                            }
                         }
+                        setBlock(x, y, z, stone_block_id);
                     } else {
                         setBlock(x, y, z, biome.dirt_block);
                     }

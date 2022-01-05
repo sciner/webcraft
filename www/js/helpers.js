@@ -93,18 +93,18 @@ export class VectorCollector {
     }
 
     has(vec) {
-        // return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
-        if(!this.list.has(vec.x)) return false;
-        if(!this.list.get(vec.x).has(vec.y)) return false;
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
-        return true;
+        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
+        //if(!this.list.has(vec.x)) return false;
+        //if(!this.list.get(vec.x).has(vec.y)) return false;
+        //if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
+        //return true;
     }
 
     get(vec) {
-        if(!this.list.has(vec.x)) return null;
-        if(!this.list.get(vec.x).has(vec.y)) return null;
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
-        return this.list.get(vec.x).get(vec.y).get(vec.z);
+        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
+        // if(!this.list.has(vec.x)) return null;
+        // if(!this.list.get(vec.x).has(vec.y)) return null;
+        // if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
     }
 
     keys() {
@@ -711,9 +711,12 @@ export class Helpers {
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             throw 'Could not link the shader program!';
         }
-        callback({
+
+        callback && callback({
             program
         });
+
+        return program;
     }
 
     // Return from green to red color depend on percentage

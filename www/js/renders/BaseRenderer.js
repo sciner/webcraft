@@ -11,7 +11,7 @@ export class BaseRenderTarget {
          * @type {BaseTexture}
          */
         this.texture = null;
-        this.valid = false;        
+        this.valid = false;
     }
 
     get width() {
@@ -328,9 +328,12 @@ export class GlobalUniformGroup {
 
         this.testLightOn = 0;
         this.sunDir = [0, 0, 0];
+        this.useSunDir = false;
 
         this.updateID = 0;
         this.camPos = new Vector();
+
+        this.localLigthRadius = 0;
     }
 
     update() {
@@ -534,14 +537,90 @@ export default class BaseRenderer {
         this._target = null;
 
         this.globalUniforms = new GlobalUniformGroup();
+
+        /**
+         * Shader blocks
+         */
+        this.blocks = {};
     }
 
     get kind() {
         return this.constructor.kind;
     }
 
-    async init() {
+    async init({blocks} = {}) {
+        this.blocks = blocks || {};
+        
+        if (Object.keys(this.blocks).length === 0) {
+            console.warn('Shader blocks is empty');
+        }
+    }
 
+    _onReplace(replace, offset, string, args = {}) {
+        const {
+            blocks
+        } = this;
+
+        const [key, ...argsKeys] = replace.split(',').map((e) => e.trim());
+
+        if (!(key in blocks)) {
+            throw '[Preprocess] Block for ' + key + 'not found';
+        }
+
+        // compute pad spaces
+        let pad = 0;
+        for(pad = 0; pad < 32; pad ++) {
+            if (string[offset - pad - 1] !== ' ') {
+                break;                
+            }
+        }
+
+        let block = blocks[key]
+            .split('\n')
+            // we should skip first block because pad applied in repalce
+            .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
+            .join('\n');
+
+        const blockArgs = args[key];
+
+        if (blockArgs && typeof blockArgs === 'object') {
+            if (blockArgs.skip) {
+                return '// skip block ' + key;
+            }
+
+            for(const argkey of argsKeys) {
+                if (!(argkey in blockArgs)) {
+                    throw '[Preprocess] Argument value for ' + argkey + ' not found';
+                }
+
+                block = block.replaceAll(argkey, '' + blockArgs[argkey]);
+            }
+        }
+
+        return block;
+    }
+    
+    /***
+     * Preprocess shader
+     * You can define args to block that was replaced if needed
+     * pass a `skip: true` for block - ignore block compilation
+     * @param {string} shaderText
+     * @param {{[key: string]: {skip?: boolean, [key: string]: number } }} args
+     */
+    preprocess (shaderText, args = {}) {
+        if (!shaderText) {
+            return shaderText;
+        }
+
+        const pattern = /#include<([^>]+)>/g;
+        const out = shaderText
+            .replaceAll(pattern, (_, r, offset, string) => {
+                return this._onReplace(r, offset, string, args || {});
+            });
+
+        console.debug('Preprocess result:\n', out);
+
+        return out;
     }
 
     /**

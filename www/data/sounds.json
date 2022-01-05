@@ -202,6 +202,33 @@
         ]
     },
     {
+        "type": "madcraft:block.snow",
+        "open": [
+            "Snow_dig1",
+            "Snow_dig2",
+            "Snow_dig3",
+            "Snow_dig4"
+        ],
+        "dig": [
+            "Snow_dig1",
+            "Snow_dig2",
+            "Snow_dig3",
+            "Snow_dig4"
+        ],
+        "place": [
+            "Snow_dig1",
+            "Snow_dig2",
+            "Snow_dig3",
+            "Snow_dig4"
+        ],
+        "hit": [
+            "Snow_dig1",
+            "Snow_dig2",
+            "Snow_dig3",
+            "Snow_dig4"
+        ]
+    },
+    {
         "type": "madcraft:entity.item.pickup",
         "hit": [
             "Pop"

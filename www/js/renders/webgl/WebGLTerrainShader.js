@@ -1,18 +1,23 @@
 import {BaseTerrainShader} from "../BaseRenderer.js";
 import {Helpers} from "../../helpers.js";
+import WebGLRenderer from "./index.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
-
+    /**
+     * 
+     * @param {WebGLRenderer} context 
+     * @param {*} options 
+     */
     constructor(context, options) {
         super(context, options);
 
-        const {gl} = context;
-
-        Helpers.createGLProgram(gl, options.code, (ret) => {
-            this.program = ret.program;
+        const { gl } = context;
+        const program  = context.createProgram(options.code, {
+            // for ex, skip mip block
+            ['manual_mip'] : {
+                //skip: true
+            }
         });
-
-        const program = this.program;
 
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
@@ -32,6 +37,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_mipmap           = gl.getUniformLocation(program, 'u_mipmap');
         this.u_chunkBlockDist   = gl.getUniformLocation(program, 'u_chunkBlockDist');
         this.u_brightness       = gl.getUniformLocation(program, 'u_brightness');
+        this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
 
         this.a_position         = gl.getAttribLocation(program, 'a_position');
@@ -54,6 +60,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this._material = null;
 
         this.globalID = -1;
+        this.program = program;
     }
 
     bind(force = false) {
@@ -106,7 +113,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
         gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
-        gl.uniform3fv(this.u_SunDir, gu.sunDir);
+        gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
+        gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
         // gl.uniform1f(this.u_opaqueThreshold, 0.0);
 
         gl.uniform1i(this.u_fogOn, true);

@@ -79,8 +79,8 @@ export class GameClass {
                 return true;
             },
             onMouseEvent: (e, x, y, type, button_id, shiftKey) => {
-                let visibleWindows = this.hud.wm.getVisibleWindows();
-                if(type == MOUSE.DOWN && visibleWindows.length > 0) {
+                const hasVisibleWindow = this.hud.wm.hasVisibleWindow();
+                if(type == MOUSE.DOWN && hasVisibleWindow) {
                     this.hud.wm.mouseEventDispatcher({
                         type:       e.type,
                         shiftKey:   e.shiftKey,
@@ -90,7 +90,7 @@ export class GameClass {
                     });
                     return false;
                 }
-                if(!this.player.controls.enabled || player.chat.active || visibleWindows.length > 0) {
+                if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {
                     return false
                 }
                 return player.onMouseEvent({type: type, button_id: button_id, shiftKey: shiftKey});
@@ -109,8 +109,7 @@ export class GameClass {
                     return false;
                 }
                 // Windows
-                let vw = this.hud.wm.getVisibleWindows();
-                if(vw.length > 0) {
+                if(this.hud.wm.hasVisibleWindow()) {
                     switch(e.keyCode) {
                         // E (Inventory)
                         case KEY.ESC:
@@ -261,7 +260,7 @@ export class GameClass {
                     // E (Inventory)
                     case KEY.E: {
                         if(!e.down) {
-                            if(this.hud.wm.getVisibleWindows().length == 0) {
+                            if(!this.hud.wm.hasVisibleWindow()) {
                                 player.inventory.open();
                                 return true;
                             }
@@ -396,7 +395,7 @@ export class GameClass {
     // setupMousePointer...
     setupMousePointer(check_opened_windows) {
         let that = this;
-        if(check_opened_windows && that.hud.wm.getVisibleWindows().length > 0) {
+        if(check_opened_windows && that.hud.wm.hasVisibleWindow()) {
             return;
         }
         if(!that.world || that.player.controls.enabled) {
@@ -414,7 +413,7 @@ export class GameClass {
                 that.setControlsEnabled(true);
             }  else {
                 that.setControlsEnabled(false);
-                if(that.hud.wm.getVisibleWindows().length == 0 && !that.player.chat.active) {
+                if(!that.hud.wm.hasVisibleWindow() && !that.player.chat.active) {
                     that.hud.frmMainMenu.show();
                 }
                 that.kb.clearStates();
@@ -446,7 +445,7 @@ export class GameClass {
                     that.player.onScroll(e.deltaY > 0);
                 }
                 //
-                if(that.hud.wm.getVisibleWindows().length > 0) {
+                if(that.hud.wm.hasVisibleWindow()) {
                     that.hud.wm.mouseEventDispatcher({
                         original_event:     e,
                         type:               e.type,
@@ -462,9 +461,9 @@ export class GameClass {
         let add_mouse_rotate = new Vector();
         document.addEventListener('mousemove', function(e) {
             let controls = that.player.controls;
-            let z = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
-            let x = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
-            if(that.hud.wm.getVisibleWindows().length > 0) {
+            let z = e.movementX;
+            let x = e.movementY;
+            if(that.hud.wm.hasVisibleWindow()) {
             	if(controls.enabled) {
                     controls.mouseY += x;
                     controls.mouseX += z;

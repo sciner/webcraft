@@ -92,16 +92,25 @@ async function onMessageFunc(e) {
             break;
         }
         case 'buildVertices': {
-            let result = [];
+            let results = [];
             for(let addr of args.addrs) {
                 let chunk = world.chunks.get(addr);
                 if(chunk) {
                     // 4. Rebuild vertices list
-                    result.push(buildVertices(chunk, true));
+                    const item = buildVertices(chunk, false);
+                    item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
+                    let index = 0;
+                    for(let z = 0; z < chunk.size.z; z++) {
+                        for(let x = 0; x < chunk.size.x; x++) {
+                            item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.r;
+                            item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.g;
+                        }
+                    }
+                    results.push(item);
                     chunk.vertices = null;
                 }
             }
-            worker.postMessage(['vertices_generated', result]);
+            worker.postMessage(['vertices_generated', results]);
             break;
         }
         case 'setBlock': {

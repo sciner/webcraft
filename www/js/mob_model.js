@@ -118,10 +118,12 @@ export class MobAnimator extends Animator {
         const legs = [];
         const heads = [];
         const arms = [];
+        const wings = [];
 
         let leg;
         let arm;
         let head;
+        let wing;
 
         for(let i = 0; i < 8; i ++) {
             leg = tree.findNode('leg' + i);
@@ -129,6 +131,9 @@ export class MobAnimator extends Animator {
 
             arm = tree.findNode('arm' + i);
             arm && arms.push(arm);
+
+            wing = tree.findNode('wing' + i);
+            wing && wings.push(wing);
         }
 
         // humanoid case
@@ -149,9 +154,10 @@ export class MobAnimator extends Animator {
         
         head = tree.findNode('head') || tree.findNode('Head');
 
-        parts['head'] = [head];
+        parts['head'] = head ? [head] : [];
         parts['arm'] = arms;
         parts['leg'] = legs;
+        parts['wing'] = wings;
 
         animable.parts = parts;
     }
@@ -250,7 +256,7 @@ export class MobAnimation {
     }
 
     leg({
-        part, index, aniangle
+        part, index, aniangle, animable
     }) {
         const x = index % 2;
         const y = index / 2 | 0;
@@ -265,6 +271,39 @@ export class MobAnimation {
     arm(opts) {
         opts.index += 2;
         return this.leg(opts);
+    }
+
+    wing({
+        part, index, animable, delta
+    }) {
+
+        const deltaY = animable._prevPos.y - animable._pos.y;
+        let p = part.frame = part.frame === undefined ? 0 : (part.frame + delta / 1000);
+
+        const x = index % 2;
+        const y = index / 2 | 0;
+        const sign = (x ^ y ? 1 : -1);
+        const isJump = +(Math.abs(deltaY) > 0.01);
+
+        let anim = 0;
+
+        if (isJump) {
+            part.endFrame = part.frame + 30;
+            anim = sign;
+        }
+
+        if (part.frame < part.endFrame) {
+            anim = sign;
+        }
+
+        quat.fromEuler(
+            part.quat,
+            0,
+            -anim * (Math.sin(p * Math.PI * 2 / 8) * 30 + 90),
+            0,
+        );
+
+        part.updateMatrix();
     }
 }
 

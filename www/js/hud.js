@@ -210,7 +210,7 @@ export class HUD {
 
         // Make info for draw
         let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && Game.hud.wm.getVisibleWindows().length == 0 && !hasDrawContent) {
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
             return false;
         }
         this.need_refresh = false;
@@ -248,7 +248,7 @@ export class HUD {
 
         // Draw windows
         this.ctx.restore();
-        if(this.wm.getVisibleWindows().length > 0) {
+        if(this.wm.hasVisibleWindow()) {
             this.wm.style.background.color = '#00000077';
             this.wm.draw(true);
         } else {

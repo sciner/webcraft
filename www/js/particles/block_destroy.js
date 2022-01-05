@@ -1,5 +1,5 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
-import {getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 import {BLOCK} from "../blocks.js";
@@ -15,12 +15,12 @@ export default class Particles_Block_Destroy {
         let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
         let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
 
-        if(!chunk.map) {
-            debugger;
-            return false;
-        }
+        //if(!chunk.map) {
+        //    debugger;
+        //    return false;
+        //}
 
-        let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
+        // let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
         this.yaw        = -Game.player.rotate.z;
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
@@ -33,9 +33,13 @@ export default class Particles_Block_Destroy {
             return;
         }
         if([BLOCK.DIRT.id, BLOCK.GRASS.id].indexOf(block.id) >= 0) {
-            lm          = cell.biome.dirt_color;
+            // lm          = cell.biome.dirt_color;
+            // lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
+            const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
+            lm          = {r: chunk.dirt_colors[index], g: chunk.dirt_colors[index + 1], b: 0, a: 0};
             sideFlags   = QUAD_FLAGS.MASK_BIOME;
         }
+
         let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,

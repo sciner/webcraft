@@ -3,8 +3,17 @@ import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalC
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
-const CHUNKS_ADD_PER_UPDATE     = 16;
+const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
+
+const CC = [
+    {x:  0, y:  1, z:  0},
+    {x:  0, y: -1, z:  0},
+    {x:  0, y:  0, z: -1},
+    {x:  0, y:  0, z:  1},
+    {x: -1, y:  0, z:  0},
+    {x:  1, y:  0, z:  0}
+];
 
 //
 export class ChunkManager {
@@ -322,20 +331,12 @@ export class ChunkManager {
         }
 
         // Build dirty chunks
-        let cc = [
-            {x:  0, y:  1, z:  0},
-            {x:  0, y: -1, z:  0},
-            {x:  0, y:  0, z: -1},
-            {x:  0, y:  0, z:  1},
-            {x: -1, y:  0, z:  0},
-            {x:  1, y:  0, z:  0}
-        ];
         for(let chunk of this.chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 let ok = true;
                 if(!chunk.addr_neighbors) {
                     chunk.addr_neighbors = [];
-                    for(let c of cc) {
+                    for(let c of CC) {
                         chunk.addr_neighbors.push(chunk.addr.add(c));
                     }
                 }
@@ -352,18 +353,6 @@ export class ChunkManager {
                 }
             }
         }
-    }
-
-    /**
-     * getPosChunkKey...
-     * @param {Vector} pos
-     * @returns string
-     */
-    getPosChunkKey(pos) {
-        if(pos instanceof Vector) {
-            return pos.toChunkKey();
-        }
-        return new Vector(pos.x, pos.y, pos.z).toChunkKey();
     }
 
     // Возвращает блок по абслютным координатам

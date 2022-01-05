@@ -71,9 +71,9 @@ export class Chunk {
 
     constructor(addr, modify_list, chunkManager) {
 
-        this.key        = chunkManager.getPosChunkKey(addr);
-        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
         this.addr       = new Vector(addr); // относительные координаты чанка
+        this.key        = this.addr.toChunkKey();
+        this.size       = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z); // размеры чанка
         this.coord      = this.addr.mul(this.size);
         this.seed       = chunkManager.world.info.seed;
         this.tblocks    = null;
@@ -127,10 +127,12 @@ export class Chunk {
     onVerticesGenerated(args) {
         this.vertices_args = args;
         this.need_apply_vertices = true;
+        if(!this.dirt_colors) {
+            this.dirt_colors = args.dirt_colors;
+        }
         if(!this.map) {
             this.map = args.map;
         }
-        //args.lightmap
     }
 
     onLightGenerated(args) {
@@ -148,12 +150,18 @@ export class Chunk {
         const ids = this.tblocks.id;
 
         let ind = 0;
-        for (let y=0; y < size.y; y++)
-            for (let z=0; z < size.z; z++)
-                for (let x=0; x < size.x; x++) {
-                    light_source[ind] = BLOCK.getLightPower(BLOCK.BLOCK_BY_ID.get(ids[ind]));
-                    ind++;
-                }
+        let prev_block_id = Infinity;
+        let light_power_number = 0;
+        let blocks_count = size.x * size.y * size.z;
+        for(let i = 0; i < blocks_count; i++) {
+            const block_id = ids[ind];
+            if(block_id != prev_block_id) {
+                light_power_number = BLOCK.BLOCK_BY_ID.get(block_id).light_power_number;
+                prev_block_id = block_id;
+            }
+            light_source[ind] = light_power_number;
+            ind++;
+        }
         this.getChunkManager().postLightWorkerMessage(['createChunk',
             {addr: this.addr, size: this.size, light_buffer}]);
     }
@@ -395,7 +403,7 @@ export class Chunk {
             for(var update_neighbour of update_neighbours) {
                 let pos = new Vector(x, y, z).add(this.coord).add(update_neighbour);
                 let chunk_addr = getChunkAddr(pos);
-                let key = chunkManager.getPosChunkKey(chunk_addr);
+                let key = chunk_addr.toChunkKey();
                 // чтобы не обновлять один и тот же чанк дважды
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
@@ -412,7 +420,6 @@ export class Chunk {
                     });
                 }
             }
-
             chunkManager.postWorkerMessage(['setBlock', set_block_list]);
         }
     }

@@ -128,7 +128,9 @@ export class Renderer {
 
         this.setWorld(world);
         const {renderBackend} = this;
-        await renderBackend.init();
+        await renderBackend.init({
+            blocks: Resources.shaderBlocks
+        });
 
         this.skyBox             = null;
         this.videoCardInfoCache = null;
@@ -253,12 +255,17 @@ export class Renderer {
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
         gu.testLightOn = true;
-        gu.brightness = true;
         gu.fogColor = settings.fogColor;
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
-        gu.sunDir = this.sunDir;
+
+        // when use a sun dir, brightness is factor how many of sunfactor is applied
+        // sun light is additive
+        gu.brightness = 0.55;
+        gu.sunDir = [-1, -1, 1];
+        gu.useSunDir = true;
+
         camera.use(gu, true);
         gu.update();
         
@@ -294,6 +301,9 @@ export class Renderer {
             // Helpers.downloadImage(image, 'inventory.png');
             Resources.inventory.image = image;
         });
+
+        // disable
+        gu.useSunDir = false;
 
         this.renderBackend.setTarget(null);
 
@@ -410,6 +420,17 @@ export class Renderer {
         gu.resolution           = [size.width, size.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
+        gu.localLigthRadius     = 0;
+        
+        if (this.player.buildMaterial) {
+            const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
+            const power = BLOCK.getLightPower(block);
+
+            // and skip all block that have power greater that 0x0f
+            // it not a light source, it store other light data
+            gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+        }
+
         gu.update();
 
         this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;
@@ -442,7 +463,9 @@ export class Renderer {
             }
         }
 
-        this.drawInhandItem(delta);
+        if(!player.game_mode.isSpectator()) {
+            this.drawInhandItem(delta);
+        }
 
         // 4. Draw HUD
         if(this.HUD) {
@@ -458,6 +481,7 @@ export class Renderer {
 
     }
 
+    //
     drawInhandItem(dt) {
 
         if (!this.inHandOverlay) {

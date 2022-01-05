@@ -49,7 +49,7 @@ export class Particle_Hand {
 
         this.isLeft = left;
 
-        this.material = render.defaultShader.materials.transparent.getSubMat(this.texture);
+        this.material = render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture);
         
         this.modelMatrix = mat4.create();
         
@@ -58,7 +58,7 @@ export class Particle_Hand {
             origin: [-2, 0, 2],
             size: [stive ? 4 : 3, 12, 4],
             uv: left ? [32, 48] : [40, 16],
-            rotation: [110, 180, 0]
+            rotation: [0, 0, 0]
         };
 
         this.buffer = decodeCubes(
@@ -76,13 +76,6 @@ export class Particle_Hand {
                         uv: left ? [48, 48] : [40, 32],
                         inflate: 0.25,
                     },
-                    {
-                        origin: [-2, 0, -5.5],
-                        size: [stive ? 4 : 3, 12, 4],
-                        uv: [40, 32],
-                        rotation: [-90, 0, 0],
-                        inflate: 0.25
-                    },
                 ]
             },
             {
@@ -92,6 +85,9 @@ export class Particle_Hand {
         );
 
         mat4.scale(this.modelMatrix, this.modelMatrix, [1.5,1.5,1.5])
+        mat4.rotateX(this.modelMatrix, this.modelMatrix, Math.PI / 2);
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, Math.PI);
+        
     }
 
     /**
