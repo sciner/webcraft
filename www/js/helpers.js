@@ -765,19 +765,21 @@ if(typeof fetch === 'undefined') {
 // SpiralGenerator ...
 export class SpiralGenerator {
 
-    static cache = {};
+    static cache = new Map();
     static cache3D = {};
 
     // generate ...
     static generate(margin) {
         let size = margin * 2;
-        if(SpiralGenerator.cache.hasOwnProperty(margin)) {
-            return SpiralGenerator.cache[margin];
+        if(SpiralGenerator.cache.has(margin)) {
+            return SpiralGenerator.cache.get[margin];
         }
         var resp = [];
         function rPush(vec) {
             // Если позиция на расстояние видимости (считаем честно, по кругу)
-            let dist = Math.sqrt(Math.pow(vec.x - size / 2, 2) + Math.pow(vec.z - size / 2, 2));
+            let x = vec.x - size / 2;
+            let z = vec.z - size / 2;
+            let dist = Math.sqrt(x * x + z * z);
             if(dist < margin) {
                 resp.push(vec);
             }
@@ -796,7 +798,7 @@ export class SpiralGenerator {
         for(let h = 0; h < size - 1; h++) {
             rPush(new Vector(iInd, 0, jInd += jStep));
         }
-        SpiralGenerator.cache[margin] = resp;
+        SpiralGenerator.cache.set(margin, resp);
         return resp;
     }
 

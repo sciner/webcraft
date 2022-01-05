@@ -3,15 +3,16 @@ import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
 
 // Общее количество блоков в чанке
-const BLOCK_COUNT       = CHUNK_SIZE_X * MAX_CAVES_LEVEL * CHUNK_SIZE_Z;
-const DIVIDER           = new Vector(CHUNK_SIZE_X, MAX_CAVES_LEVEL, CHUNK_SIZE_Z);
-const DEF_RAD           = 5;
-const MIN_RAD           = 2; // минимальный радиус секции
-const MAX_RAD           = 10; // максимальный радиус секции
-const HIGH_CAVE_V1      = new Vector(0, -DEF_RAD * .9, 0);
-const HIGH_CAVE_V2      = new Vector(0, -DEF_RAD * 2 * .9, 0);
-const chunk_addr_temp   = new Vector(0, 0, 0);
-const temp_vec          = new Vector(0, 0, 0);
+const BLOCK_COUNT               = CHUNK_SIZE_X * MAX_CAVES_LEVEL * CHUNK_SIZE_Z;
+const DIVIDER                   = new Vector(CHUNK_SIZE_X, MAX_CAVES_LEVEL, CHUNK_SIZE_Z);
+const DEF_RAD                   = 5;
+const MIN_RAD                   = 2; // минимальный радиус секции
+const MAX_RAD                   = 10; // максимальный радиус секции
+const NEIGHBOURS_CAVES_RADIUS   = 5;
+const HIGH_CAVE_V1              = new Vector(0, -DEF_RAD * .9, 0);
+const HIGH_CAVE_V2              = new Vector(0, -DEF_RAD * 2 * .9, 0);
+const chunk_addr_temp           = new Vector(0, 0, 0);
+const temp_vec                  = new Vector(0, 0, 0);
 
 // Cave...
 export class Cave {
@@ -24,7 +25,7 @@ export class Cave {
         this.points         = [];
         this.chunks         = new VectorCollector();
         //
-        let r               = this.alea.double();
+        const r             = this.alea.double();
         let index           = r;
         // проверяем нужно или нет начало пещеры в этом чанке
         if(index < .99) {
@@ -47,7 +48,7 @@ export class Cave {
                 parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
             );
             this.head_pos = addr.mul(DIVIDER).add(temp_vec);
-            let rad         = DEF_RAD;
+            let rad = DEF_RAD;
             // Добавляем "голову" пещеры
             addPoint({rad: rad, pos: this.head_pos});
             let point_pos = this.head_pos;
@@ -63,7 +64,7 @@ export class Cave {
                 for(let i = 0; i < pts_count; i++) {
                     point_pos = point_pos.add(temp_vec);
                     rad = parseInt((rad + this.alea.double() * DEF_RAD + MIN_RAD) / 2);
-                    let point = {
+                    const point = {
                         rad: rad,
                         pos: point_pos
                     };
@@ -116,15 +117,13 @@ export class CaveGenerator {
      */
     getNeighbours(chunk_addr) {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        let NEIGHBOURS_CAVES_RADIUS = 5;
-        let neighbours_caves        = [];
-        let temp_addr               = new Vector(0, 0, 0);
+        const neighbours_caves = [];
         for(let cx = -NEIGHBOURS_CAVES_RADIUS; cx < NEIGHBOURS_CAVES_RADIUS; cx++) {
             for(let cz = -NEIGHBOURS_CAVES_RADIUS; cz < NEIGHBOURS_CAVES_RADIUS; cz++) {
-                temp_addr.set(chunk_addr.x + cx, chunk_addr.y, chunk_addr.z + cz);
-                let map_cave = this.get(temp_addr);
+                temp_vec.set(chunk_addr.x + cx, chunk_addr.y, chunk_addr.z + cz);
+                const map_cave = this.get(temp_vec);
                 if(map_cave && map_cave.head_pos) {
-                    let chunk = map_cave.chunks.get(chunk_addr);
+                    const chunk = map_cave.chunks.get(chunk_addr);
                     if(chunk) {
                         neighbours_caves.push(chunk);
                     }
@@ -137,7 +136,7 @@ export class CaveGenerator {
     // addSpiral
     addSpiral(chunk_addr) {
         chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        this.add(chunk_addr.add(new Vector(0, 0, 0)));
+        this.add(chunk_addr.add(Vector.ZERO));
         for(let sm of this.spiral_moves) {
             this.add(chunk_addr.add(sm));
         }
