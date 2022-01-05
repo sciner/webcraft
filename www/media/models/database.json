@@ -112,6 +112,14 @@
             "skins": {
                 "base": "textures/creeper/creeper.png"
             }
+        },
+        "snow_golem": {
+            "type": "json",
+            "geom": "json/snow_golem.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/snow_golem.png"
+            }
         }
     }
 }

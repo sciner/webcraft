@@ -37,12 +37,31 @@ export function fillCube({
 
     let tX = matrix[12], tY = matrix[13], tZ = matrix[14];
 
-    
     const itx = 1 / textureSize[0];
     const ity = 1 / textureSize[1];
 
-    const [ sx, sy ] = uvPoint;
+    // const [ sx, sy ] = uvPoint;
     const [ dx, dy, dz ] = size;
+
+    let uv = {
+        up: null,
+        down: null,
+        north: null,
+        south: null,
+        east: null,
+        west: null
+    };
+
+    if(Array.isArray(uvPoint)) {
+        uv.up = {uv: uvPoint, "uv_size": size};
+        uv.down = {uv: uvPoint, "uv_size": size};
+        uv.north = {uv: uvPoint, "uv_size": size};
+        uv.south = {uv: uvPoint, "uv_size": size};
+        uv.east = {uv: uvPoint, "uv_size": size};
+        uv.west = {uv: uvPoint, "uv_size": size};
+    } else {
+        uv = uvPoint;
+    }
 
     const flip = mirror ? -1 : 1;
 
@@ -66,27 +85,27 @@ export function fillCube({
     zZ += Math.sign(zZ) * inflate;
 
     // UV
-    //                X                                  Y                         w         h
-    const topUV =    [itx * (sx + dz + dx / 2)         , ity * (sy + dz / 2)      , dx * itx, dz * ity];
-    const bottomUV = [itx * (sx + dz + dx + dx / 2)    , ity * (sy + dz / 2)      , dx * itx, dz * ity];
-    const northUV =  [itx * (sx + dz + dx / 2)         , ity * (sy + dz + dy / 2) , dx * itx, dy * ity];
-    const southUV =  [itx * (sx + 2 * dz + dx + dx / 2), ity * (sy + dz + dy / 2) , dx * itx, dy * ity];
-    const eastUV =   [itx * (sx + dz + dx + dz / 2)    , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
-    const westUV =   [itx * (sx + dz / 2)              , ity * (sy + dz + dy / 2) , dz * itx, dy * ity];
+    //                X                                                Y                                      w         h
+    const upUV =     [itx * (uv.up.uv[0] + dz + dx / 2),               ity * (uv.up.uv[1] + dz / 2),          dx * itx, dz * ity];
+    const downUV =   [itx * (uv.down.uv[0] + dz + dx + dx / 2),        ity * (uv.down.uv[1] + dz / 2),        dx * itx, dz * ity];
+    const northUV =  [itx * (uv.north.uv[0] + dz + dx / 2),            ity * (uv.north.uv[1] + dz + dy / 2),  dx * itx, dy * ity];
+    const southUV =  [itx * (uv.south.uv[0] + 2 * dz + dx + dx / 2),   ity * (uv.south.uv[1] + dz + dy / 2),  dx * itx, dy * ity];
+    const eastUV =   [itx * (uv.east.uv[0] + dz + dx + dz / 2),        ity * (uv.east.uv[1] + dz + dy / 2),   dz * itx, dy * ity];
+    const westUV =   [itx * (uv.west.uv[0] + dz / 2),                  ity * (uv.west.uv[1] + dz + dy / 2),   dz * itx, dy * ity];
     let c;
 
     // when size by any axes is zero we drop quads that based on this axis
     if (dx * dz > 0) {
-        //top
-        c = topUV;
+        //up
+        c = upUV;
         target.push(cX + inf2 * yX, cZ + inf2 * yZ, cY + inf2 * yY,
             xX, xZ, xY,
             zX, zZ, zY,
             c[0], c[1], c[2] * flip, -c[3],
             lm.r, lm.g, lm.b, flags);
         
-        //bottom
-        c = bottomUV;
+        //down
+        c = downUV;
         target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
             xX, xZ, xY,
             -zX, -zZ, -zY,
