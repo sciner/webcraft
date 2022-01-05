@@ -3009,7 +3009,6 @@
         }
     },
     {
-<<<<<<< HEAD
         "id": 202,
         "name": "STILL_WATER",
         "transparent": true,
@@ -3119,7 +3118,8 @@
         "destroy_time": 0,
         "spawnable": false,
         "planting": true
-=======
+    },
+    {
         "id": 550,
         "name": "POLISHED_GRANITE",
         "sound": "madcraft:block.stone",
@@ -3128,6 +3128,5 @@
             "id": "stone",
             "side": [2, 1]
         }
->>>>>>> e26cb6070479289fe5f33386404d29be2af4b770
     }
 ]
