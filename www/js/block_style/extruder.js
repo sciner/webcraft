@@ -112,7 +112,7 @@ export default class style {
 
         let lm = MULTIPLY.COLOR.WHITE;
         let z = -0.5 - 0.5 / SCALE_FACTOR;
-        let flags = 0;
+        let flags = QUAD_FLAGS.NO_AO;
 
         if(block.hasTag('mask_biome')) {
             lm = biome.dirt_color;

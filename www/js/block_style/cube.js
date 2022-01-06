@@ -21,7 +21,7 @@ export function pushTransformed(
     r, g, b,
     flags
 ) {
-    pivot = pivot || defaultPivot; 
+    pivot = pivot || defaultPivot;
     cx += pivot[0];
     cy += pivot[1];
     cz += pivot[2];
@@ -112,9 +112,9 @@ export default class style {
         }
 
         const cardinal_direction    = block.getCardinalDirection();
-        let flags                   = 0;
-        let sideFlags               = 0;
-        let upFlags                 = 0;
+        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
+        let sideFlags               = flags;
+        let upFlags                 = flags;
         let c;
 
         // Texture color multiplier

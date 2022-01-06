@@ -276,7 +276,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {Vector}
      */
     add(vec) {
@@ -284,7 +284,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {Vector}
      */
     addSelf(vec) {
@@ -295,7 +295,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {Vector}
      */
     sub(vec) {
@@ -303,7 +303,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {Vector}
      */
     mul(vec) {
@@ -311,7 +311,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {Vector}
      */
     div(vec) {
@@ -340,7 +340,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {number}
      */
     distance(vec) {
@@ -353,7 +353,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {number}
      */
     horizontalDistance(vec) {
@@ -380,7 +380,7 @@ export class Vector {
     }
 
     /**
-     * @param {Vector} vec 
+     * @param {Vector} vec
      * @return {number}
      */
     dot(vec) {
@@ -530,6 +530,7 @@ export let MULTIPLY = {
 export let QUAD_FLAGS = {}
     QUAD_FLAGS.NORMAL_UP = 1;
     QUAD_FLAGS.MASK_BIOME = 2;
+    QUAD_FLAGS.NO_AO = 4;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
@@ -674,7 +675,7 @@ export class Helpers {
         var c = document.createElement('canvas');
         var ctx = c.getContext('2d');
         ctx.canvas.width  = image.width;
-        ctx.canvas.height = image.height;      
+        ctx.canvas.height = image.height;
         ctx.drawImage(image, 0, 0);
         c.toBlob(function(blob) {
             // here the image is a blob
