@@ -68,7 +68,7 @@ export class Chunk {
     init() {
         // Variables
         this.vertices_length    = 0;
-        this.vertices           = {};
+        this.vertices           = new Map();
         this.dirty              = true;
         this.fluid_blocks       = [];
         this.gravity_blocks     = [];
@@ -317,7 +317,7 @@ export class Chunk {
         const tmpVector = new Vector();
 
         // Add vertices for blocks
-        this.vertices = {};
+        this.vertices = new Map();
 
         this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
@@ -356,18 +356,17 @@ export class Chunk {
                 this.fluid_blocks.push(block.pos);
             }
             */
-            /*if((block.material.id + 
-                (neighbours.UP?.id || 0) +
-                (neighbours.DOWN?.id || 0) +
-                (neighbours.SOUTH?.id || 0) +
-                (neighbours.NORTH?.id || 0) +
-                (neighbours.EAST?.id || 0) +
-                (neighbours.WEST?.id || 0)) / 7 === 202) {
+            if(block.material.id == 202
+                && (neighbours.UP?.id || 0) == 202
+                && (neighbours.DOWN?.id || 0) == 202
+                && (neighbours.SOUTH?.id || 0) == 202
+                && (neighbours.NORTH?.id || 0) == 202
+                && (neighbours.EAST?.id || 0) == 202
+                && (neighbours.WEST?.id || 0) == 202) {
                     continue;
-            }*/
+            }
             if(block.vertices === null) {
                 block.vertices = [];
-                const biome = this.map.info.cells[block.pos.x][block.pos.z].biome;
                 block.material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
@@ -376,23 +375,17 @@ export class Chunk {
                     block.pos.y,
                     block.pos.z,
                     neighbours,
-                    biome
+                    this.map.info.cells[block.pos.x][block.pos.z].biome
                 );
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                let resource_pack_id = block.material.resource_pack.id;
-                let mat_group = block.material.group;
-                let texture_id = 'default';
-                if(typeof block.material.texture == 'object' && 'id' in block.material.texture) {
-                    texture_id = block.material.texture.id;
-                }
-                let key = `${resource_pack_id}/${mat_group}/${texture_id}`;
-                if(!this.vertices[key]) {
-                    this.vertices[key] = JSON.parse(JSON.stringify(group_templates[mat_group])); // {...group_templates[mat_group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                if(!this.vertices.has(block.material.material_key)) {
+                    // {...group_templates[block.material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                    this.vertices.set(block.material.material_key, JSON.parse(JSON.stringify(group_templates[block.material.group])));
                 }
                 // Push vertices
-                this.vertices[key].list.push(...block.vertices);
+                this.vertices.get(block.material.material_key).list.push(...block.vertices);
             }
         }
 

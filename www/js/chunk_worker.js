@@ -167,7 +167,7 @@ function buildVertices(chunk, return_map) {
     let resp = {
         key:                    chunk.key,
         addr:                   chunk.addr,
-        vertices:               chunk.vertices,
+        vertices:               Object.fromEntries(chunk.vertices),
         gravity_blocks:         chunk.gravity_blocks,
         fluid_blocks:           chunk.fluid_blocks,
         timers:                 chunk.timers,
