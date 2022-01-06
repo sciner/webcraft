@@ -1,6 +1,6 @@
 "use strict";
 
-import {Helpers, NORMALS, Vector} from "./helpers.js";
+import {DIRECTION, Helpers, NORMALS, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -188,9 +188,10 @@ export class Renderer {
             }
         }
 
-        callback();
 
         this.generatePrev();
+        
+        callback();
 
         /*
         await import("./particles/block_drop.js").then(module => {
@@ -209,17 +210,23 @@ export class Renderer {
         const ZERO = new Vector();
         const GRID = 16;
         const all_blocks = BLOCK.getAll();
-        const all_count = all_blocks.length;
 
         let inventory_icon_id = 0;
-        let block = null;
 
-        const blocks =  Array.from({length: GRID * GRID}, (_, i) => {
+        const extruded = [];
+        const regular = all_blocks.map((block, i) => {
+            const draw_style = block.inventory_style
+                ? block.inventory_style 
+                : block.style;
+
+            // pass extruded manually
+            if (draw_style === 'extruder') {
+                block.inventory_icon_id = inventory_icon_id++;
+                extruded.push(block);
+                return;
+            }
+
             try {
-                if(i >= all_count) {
-                    return null;
-                }
-                block = all_blocks[i];
                 if(!block.spawnable) {
                     return null;
                 }
@@ -231,6 +238,7 @@ export class Renderer {
                 return null;
             }
         }).filter(Boolean);
+
         //
         const camera = new Camera({
             type: Camera.ORTHO_CAMERA,
@@ -271,24 +279,20 @@ export class Renderer {
         
         this.renderBackend.setTarget(target);
 
-        blocks.forEach((block, i) => {
+        regular.forEach((block, i) => {
             const pos = block.block_material.inventory_icon_id;
             const x = -GRID + 1 + (pos % GRID) * 2;
             const y = GRID - 1 - ((pos / GRID) | 0) * 2;
-            const draw_style = block.block_material.inventory_style
-                ? block.block_material.inventory_style 
-                : block.block_material.style;
-            
+
             // use linera for inventory
             block.material.texture.minFilter = 'linear';
             block.material.texture.magFilter = 'linear';
             
-
             this.renderBackend.drawMesh(
                 block.buffer,
                 block.material,
                 new Vector(x, y, 0),
-                draw_style == 'extruder' ? matrix_empty : matrix
+                matrix
             );
 
             block.material.texture.minFilter = 'nearest';
@@ -296,10 +300,91 @@ export class Renderer {
 
         });
 
-        // render target to Image
-        target.toImage().then((image) => {
-            // Helpers.downloadImage(image, 'inventory.png');
-            Resources.inventory.image = image;
+        // render target to Canvas
+        target.toImage('canvas').then((data) => {
+            /**
+             * @type {CanvasRenderingContext2D}
+             */
+            const ctx = data.getContext('2d');
+
+            const tmpCanvas = document.createElement('canvas');
+            const tmpContext = tmpCanvas.getContext('2d');
+            tmpCanvas.width = target.width / GRID;
+            tmpCanvas.height = target.height / GRID;
+
+            tmpContext.imageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+
+            // render plain preview that not require 3D view
+            // and can be draw directly
+            extruded.forEach((material) => {
+                const pos = material.inventory_icon_id;
+                const w = target.width / GRID;
+                const h = target.height / GRID;
+                const x = (pos % GRID) * w;
+                const y = ((pos / GRID) | 0) * h;
+
+                const resource_pack = material.resource_pack;
+
+                let texture_id = 'default';
+                if(typeof material.texture == 'object' && 'id' in material.texture) {
+                    texture_id = material.texture.id;
+                }
+
+                const tex = resource_pack.textures.get(texture_id);
+
+                // let imageData = tex.imageData;
+                const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
+
+                let tex_w = Math.round(c[2] * tex.width);
+                let tex_h = Math.round(c[3] * tex.height);
+                let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
+                let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
+
+                let image = tex.texture.source;
+
+                const tint = material.tags && material.tags.indexOf('mask_biome') > -1;
+
+                ctx.globalCompositeOperation = 'source-over';
+ 
+                if (tint) {
+                    tmpContext.globalCompositeOperation = 'source-over';
+                    tmpContext.fillStyle = "#7ba83d";
+                    tmpContext.fillRect(0, 0, w, h);
+
+                    tmpContext.globalCompositeOperation = 'multiply';
+                    tmpContext.drawImage(
+                        image,
+                        tex_x + tex_w, tex_y, tex_w, tex_h,
+                        0, 0, w , h
+                    );
+
+                    tmpContext.globalCompositeOperation = 'destination-in';
+                    tmpContext.drawImage(
+                        image,
+                        tex_x + tex_w, tex_y, tex_w, tex_h,
+                        0, 0, w , h
+                    );
+
+                    image = tmpContext.canvas;
+                    tex_x = 0;
+                    tex_y = 0;
+                    tex_w = w;
+                    tex_h = h;
+                }
+
+                ctx.drawImage(
+                    image,
+                    tex_x, tex_y, tex_w, tex_h,
+                    x + 0.1 * w, y + 0.1 * h,
+                    w * 0.8, h * 0.8
+                );
+
+            });
+
+            tmpCanvas.width = tmpCanvas.height = 0;
+
+            Resources.inventory.image = data;
         });
 
         // disable

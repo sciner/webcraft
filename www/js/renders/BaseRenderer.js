@@ -48,10 +48,10 @@ export class BaseRenderTarget {
     }
 
     /**
-     * 
-     * @returns {Promise<Image | ImageBitmap>}
+     * @param {'image' | 'bitmap' | 'canvas'} mode
+     * @returns {Promise<Image | ImageBitmap | HTMLCanvasElement>}
      */
-    async toImage({asBitmap} = {asBitmap: false}) {
+    async toImage(mode = 'image') {
         const buffer = this.toRawPixels();
 
         for (let i = 0; i < buffer.length; i += 4) {
@@ -75,17 +75,21 @@ export class BaseRenderTarget {
                 i * this.width * 4);
         }
         
-        if (asBitmap) {
+        if (mode === 'bitmap') {
             return self.createImageBitmap(data);
         }
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        const img = new Image(this.width, this.height);
-
         ctx.canvas.width = this.width;
         ctx.canvas.height = this.height;
         ctx.putImageData(data, 0, 0);
+
+        if (mode === 'canvas') {
+            return Promise.resolve(canvas);
+        }
+        
+        const img = new Image(this.width, this.height);
 
         return new Promise(res => {
             img.onload = () => res(img);
