@@ -19,9 +19,12 @@ void main() {
     }
 
     // find flags
-    float flagBiome = step(1.5, a_flags);
-    float flags = a_flags - flagBiome * 2.0;
+    float flagNoAO = step(3.5, a_flags);
+    float flagBiome = step(1.5, a_flags - flagNoAO);
+    float flags = a_flags - flagBiome * 2.0 - flagNoAO * 4.0;
     float flagNormalUp = step(0.5, flags);
+
+    v_lightMode = 1.0 - flagNoAO;
 
     if (flagNormalUp > 0.0) {
         v_normal = -a_axisY;

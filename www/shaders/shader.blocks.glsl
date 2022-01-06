@@ -13,7 +13,7 @@
     #define desaturateFactor 2.0
     #define aoFactor 1.0
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
-    
+
 #endif
 
 #ifdef global_uniforms
@@ -41,13 +41,13 @@
     // global uniforms fragment part
     uniform sampler2D u_texture;
     uniform lowp sampler3D u_lightTex;
-    
+
     uniform float u_mipmap;
     uniform float u_blockSize;
     uniform float u_opaqueThreshold;
     //--
 
-#endif 
+#endif
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
@@ -59,7 +59,7 @@
     //--
 #endif
 
-#ifdef terrain_attrs_vert 
+#ifdef terrain_attrs_vert
     // terrain shader attributes and varings
     in vec3 a_position;
     in vec3 a_axisX;
@@ -79,10 +79,11 @@
     out vec3 v_normal;
     out vec4 v_color;
     out vec2 u_uvCenter;
+    out float v_lightMode;
     //--
 #endif
 
-#ifdef terrain_attrs_frag 
+#ifdef terrain_attrs_frag
     // terrain shader attributes and varings
     in vec3 v_position;
     in vec2 v_texcoord;
@@ -93,6 +94,7 @@
     in vec3 world_pos;
     in vec3 chunk_pos;
     in vec2 u_uvCenter;
+    in float v_lightMode;
 
     out vec4 outColor;
 #endif
@@ -102,7 +104,7 @@
     // crosshair draw block
     void drawCrosshair() {
         float cm = 0.00065;
-        vec4 crosshair; 
+        vec4 crosshair;
 
         if(u_resolution.x > u_resolution.y) {
             crosshair = vec4(0., 0., u_resolution.x * cm, u_resolution.x * cm * 7.);
@@ -229,9 +231,13 @@
 
     float caveSample = texture(u_lightTex, lightCoord).a;
     float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
-    float aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
-    if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
-    aoSample *= aoFactor;
+    float aoSample = 0.0;
+
+    if (v_lightMode > 0.5) {
+        aoSample = dot(texture(u_lightTex, aoCoord).rgb, absNormal);
+        if (aoSample > 0.5) { aoSample = aoSample * 0.5 + 0.25; }
+        aoSample *= aoFactor;
+    }
 
     float gamma = 0.5;
     caveSample = pow(caveSample, 1.0 / gamma);
