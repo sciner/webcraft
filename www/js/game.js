@@ -35,7 +35,7 @@ export class GameClass {
         //
         await BLOCK.init(settings);
         // Create world
-        this.world = new World();
+        this.world = new World(settings);
         await this.render.init(this.world, settings);
         let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
         await this.world.connectToServer(ws);

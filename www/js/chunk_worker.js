@@ -35,7 +35,7 @@ worker.init();
 /**
 * @param {string} terrain_type
 */
-async function importModules(terrain_type, seed, world_id) {
+async function importModules(terrain_type, world_seed, world_guid, settings) {
     // load module
     await import('./helpers.js').then(module => {
         Vector = module.Vector;
@@ -47,12 +47,12 @@ async function importModules(terrain_type, seed, world_id) {
     // load module
     await import('./blocks.js').then(module => {
         globalThis.BLOCK = module.BLOCK;
-        return BLOCK.init();
+        return BLOCK.init(settings);
     });
     //
     worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators([terrain_type]);
-    globalThis.world = await worlds.add(terrain_type, seed, world_id);
+    globalThis.world = await worlds.add(terrain_type, world_seed, world_guid);
     // Worker inited
     worker.postMessage(['world_inited', null]);
 }
@@ -67,9 +67,7 @@ async function onMessageFunc(e) {
     const args = data[1];
     if(cmd == 'init') {
         // Init modules
-        let seed = data[2];
-        let world_id = data[3];
-        return await importModules(args.id, seed, world_id);
+        return await importModules(args.generator.id, args.world_seed, args.world_guid, args.settings);
     }
     switch(cmd) {
         case 'createChunk': {

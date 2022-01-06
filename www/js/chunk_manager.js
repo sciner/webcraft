@@ -123,7 +123,11 @@ export class ChunkManager {
         }
         // Init webworkers
         let world_info = world.info;
-        this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
+        const generator = world_info.generator;
+        const world_seed = world_info.seed;
+        const world_guid = world_info.guid;
+        const settings = world.settings;
+        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
         this.postLightWorkerMessage(['init', null]);
 
         ChunkManager.instance = this;
@@ -468,9 +472,8 @@ export class ChunkManager {
         let d = 10;
         let cnt = 0;
         let startx = pos.x;
-        let all_items = BLOCK.getAll();
-        for(let i = 0; i < all_items.length; i++) {
-            let block = all_items[i]
+        let all_blocks = BLOCK.getAll();
+        for(let [id, block] of all_blocks) {
             if(block.fluid || block.is_item || !block.spawnable) {
                 continue;
             }

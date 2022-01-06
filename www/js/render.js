@@ -158,7 +158,6 @@ export class Renderer {
 
         // Prepare base resource pack shader
         let rp                  = BLOCK.resource_pack_manager.get('base');
-console.log(rp);
         this.defaultShader      = rp.shader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
@@ -207,7 +206,7 @@ console.log(rp);
         let inventory_icon_id = 0;
 
         const extruded = [];
-        const regular = all_blocks.map((block, i) => {
+        const regular = Array.from(all_blocks.values()).map((block, i) => {
             const draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;

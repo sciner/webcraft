@@ -39,9 +39,9 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 
 export class BLOCK {
 
-    static list                     = [];
-    static spawn_eggs               = [];
+    static list                     = new Map();
     static styles                   = new Map();
+    static spawn_eggs               = [];
     static ao_invisible_blocks      = [];
     static resource_pack_manager    = null;
     static max_id                   = 0;
@@ -239,111 +239,149 @@ export class BLOCK {
     }
 
     static reset() {
-        BLOCK.list                   = [];
         BLOCK.spawn_eggs             = [];
-        BLOCK.BLOCK_BY_ID            = new Map();
-        BLOCK.BLOCK_BY_TAGS          = {};
         BLOCK.ao_invisible_blocks    = [];
+        BLOCK.list                   = new Map();
+        BLOCK.BLOCK_BY_ID            = new Map();
+        BLOCK.BLOCK_BY_TAGS          = new Map();
+    }
+
+    
+        // Function calc and return destroy time for specific block
+    static calcDestroyTime(block) {
+        let destroy_time = .4;
+        // bedrock
+        if(block.id == 1) {
+            return -1;
+        }
+        if(block.hasOwnProperty('style')) {
+            if(block.style == 'planting') {
+                return 0;
+            }
+        }
+        if(block.id == 50) {
+            return 0;
+        }
+        if(block.hasOwnProperty('sound')) {
+            switch(block.sound) {
+                case 'madcraft:block.grass':
+                    destroy_time = 1.;
+                    break;
+                case 'madcraft:block.gravel':
+                case 'madcraft:block.sand': {
+                    destroy_time = 2.;
+                    break;
+                }
+                case 'madcraft:block.wood': {
+                    destroy_time = 4.;
+                    break;
+                }
+                case 'madcraft:block.stone': {
+                    destroy_time = 7.;
+                    break;
+                }
+            }
+        }
+        return destroy_time;
+    }
+
+    // parseBlockStyle...
+    static parseBlockStyle(block) {
+        return block.hasOwnProperty('style') ? block.style : 'default';
+    }
+
+    // parseBlockTransparent...
+    static parseBlockTransparent(block) {
+        let transparent = block.hasOwnProperty('transparent') && !!block.transparent;
+        if(block.style && block.style == 'stairs') {
+            transparent = true;
+        }
+        return transparent;
     }
 
     static async add(resource_pack, block) {
         // Check duplicate ID
-        if(this.BLOCK_BY_ID.has(block.id))  {
-            console.error('Duplicate block id ', block.id, block);
+        if(!('name' in block) || !('id' in block)) {
+            throw 'error_invalid_block';
         }
-        if(block.id > this.max_id) {
-            this.max_id = block.id;
-        }
-        // Function calc and return destroy time for specific block
-        let calcDestroyTime = (block) => {
-            let destroy_time = .4;
-            // bedrock
-            if(block.id == 1) {
-                return -1;
-            }
-            if(block.hasOwnProperty('style')) {
-                if(block.style == 'planting') {
-                    return 0;
-                }
-            }
-            if(block.id == 50) {
-                return 0;
-            }
-            if(block.hasOwnProperty('sound')) {
-                switch(block.sound) {
-                    case 'madcraft:block.grass':
-                        destroy_time = 1.;
-                        break;
-                    case 'madcraft:block.gravel':
-                    case 'madcraft:block.sand': {
-                        destroy_time = 2.;
-                        break;
-                    }
-                    case 'madcraft:block.wood': {
-                        destroy_time = 4.;
-                        break;
-                    }
-                    case 'madcraft:block.stone': {
-                        destroy_time = 7.;
-                        break;
+        const existing_block = this.BLOCK_BY_ID.has(block.id) ? this.fromId(block.id) : null;
+        const replace_block = existing_block && (block.name == existing_block.name);
+        const original_props = Object.keys(block);
+        if(existing_block) {
+            if(replace_block) {
+                for(let prop_name in existing_block) {
+                    if(original_props.indexOf(prop_name) < 0) {
+                        block[prop_name] = existing_block[prop_name];
                     }
                 }
+            } else {
+                console.error('Duplicate block id ', block.id, block);
             }
-            return destroy_time;
-        };
+        }
         //
-        block.style = block.hasOwnProperty('style') ? block.style : 'default';
-        if(block.style && block.style == 'triangle') {
-            return;
-        }
-        block.resource_pack     = resource_pack;
-        block.destroy_time      = calcDestroyTime(block);
+        block.style             = this.parseBlockStyle(block);
+        block.destroy_time      = this.calcDestroyTime(block);
+        block.tags              = block?.tags || [];
         block.power             = 1;
         block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
-        block.transparent       = block.hasOwnProperty('transparent') && !!block.transparent;
+        block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
+        block.planting          = block?.style == 'planting';
+        block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
-        // Parse tags
-        if(block.hasOwnProperty('tags')) {
-            for(let tag of block.tags) {
-                if(!this.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
-                    this.BLOCK_BY_TAGS[tag] = [];
-                }
-                this.BLOCK_BY_TAGS[tag].push(block);
-            }
-        } else {
-            block.tags = [];
-        }
-        // Fix properties
+        // Set default properties
         let default_properties = {
             light:              null,
             texture_animations: null,
             passable:           0,
             spawnable:          true,
-            max_in_stack:       INVENTORY_STACK_DEFAULT_SIZE,
-            inventory_icon_id:  0
+            max_in_stack:       INVENTORY_STACK_DEFAULT_SIZE
         };
         for(let [k, v] of Object.entries(default_properties)) {
             if(!block.hasOwnProperty(k)) {
                 block[k] = v;
             }
         }
-        if(block.style && block.style == 'planting') block.planting = true;
-        if(block.style && block.style == 'stairs') block.transparent = true;
+        // Add to ao_invisible_blocks list
         if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
-            this.ao_invisible_blocks.push(block.id);
-        }
-        if(block.spawn_egg) {
-            BLOCK.spawn_eggs.push(block.id);
+            if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
+                this.ao_invisible_blocks.push(block.id);
+            }
         }
         // Calculate in last time, after all init procedures
         block.visible_for_ao = BLOCK.visibleForAO(block);
         block.light_power_number = BLOCK.getLightPower(block);
-        this[block.name] = block;
-        BLOCK.BLOCK_BY_ID.set(block.id, block);
-        this.list.push(block);
+        // Append to collections
+        if(replace_block) {
+            original_props.push('resource_pack');
+            original_props.push('material_key');
+            for(let prop_name of original_props) {
+                existing_block[prop_name] = block[prop_name];
+            }
+            block = existing_block;
+        } else {
+            this[block.name] = block;
+            BLOCK.BLOCK_BY_ID.set(block.id, block);
+            this.list.set(block.id, block);
+        }
+        // After add works
+        // Add spawn egg
+        if(block.spawn_egg && BLOCK.spawn_eggs.indexOf(block.id) < 0) {
+            BLOCK.spawn_eggs.push(block.id);
+        }
+        // Parse tags
+        for(let tag of block.tags) {
+            if(!this.BLOCK_BY_TAGS.has(tag)) {
+                this.BLOCK_BY_TAGS.set(tag, new Map());
+            }
+            this.BLOCK_BY_TAGS.get(tag).set(block.id, block);
+        }
+        // Max block ID
+        if(block.id > this.max_id) {
+            this.max_id = block.id;
+        }
     }
 
     // Make material key
@@ -763,7 +801,7 @@ export class BLOCK {
 // Init
 BLOCK.init = async function(settings) {
 
-    if(BLOCK.list.length > 0) {
+    if(BLOCK.list.size > 0) {
         throw 'Already inited';
     }
 

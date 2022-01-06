@@ -18,15 +18,13 @@ class CreativeInventoryCollection extends Window {
             this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
             this.scrollY = Math.min(this.scrollY, 0);
             this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
-            // console.log(this.scrollY, this.max_height - this.height);
-            // this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0));
         };
     }
 
     // Init
     init() {
         //
-        let all_blocks = BLOCK.getAll().filter((i) => {
+        let all_blocks = Array.from(BLOCK.getAll().values()).filter((i) => {
             return (i.id > 0) && i.spawnable;
         });
         //

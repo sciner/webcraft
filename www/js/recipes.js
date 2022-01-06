@@ -56,8 +56,9 @@ export class RecipeManager {
                         keys[key] = block.id;
                     } else if(value.hasOwnProperty('tag')) {
                         let tag = value.tag;
-                        if(BLOCK.BLOCK_BY_TAGS.hasOwnProperty(tag)) {
-                            for(let block of BLOCK.BLOCK_BY_TAGS[tag]) {
+                        if(BLOCK.BLOCK_BY_TAGS.has(tag)) {
+                            const tag_map = BLOCK.BLOCK_BY_TAGS.get(tag);
+                            for(let block of tag_map.values()) {
                                 // @todo ???
                             }
                         } else {

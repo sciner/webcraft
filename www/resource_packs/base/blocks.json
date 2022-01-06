@@ -201,36 +201,6 @@
         "destroy_time": 1
     },
     {
-        "id": 526,
-        "name": "DARK_OAK_LEAVES",
-        "transparent": true,
-        "sound": "madcraft:block.grass",
-        "texture": [
-            24,
-            18
-        ],
-        "tags": [
-            "no_drop",
-            "leaves"
-        ],
-        "destroy_time": 1
-    },
-    {
-        "id": 527,
-        "name": "JUNGLE_LEAVES",
-        "transparent": true,
-        "sound": "madcraft:block.grass",
-        "texture": [
-            25,
-            18
-        ],
-        "tags": [
-            "no_drop",
-            "leaves"
-        ],
-        "destroy_time": 1
-    },
-    {
         "id": 220,
         "name": "ACACIA_LEAVES",
         "transparent": true,
@@ -252,6 +222,36 @@
         "sound": "madcraft:block.grass",
         "texture": [
             23,
+            18
+        ],
+        "tags": [
+            "no_drop",
+            "leaves"
+        ],
+        "destroy_time": 1
+    },
+    {
+        "id": 526,
+        "name": "DARK_OAK_LEAVES",
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            24,
+            18
+        ],
+        "tags": [
+            "no_drop",
+            "leaves"
+        ],
+        "destroy_time": 1
+    },
+    {
+        "id": 527,
+        "name": "JUNGLE_LEAVES",
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            25,
             18
         ],
         "tags": [
@@ -287,6 +287,32 @@
         "destroy_time": 4
     },
     {
+        "id": 457,
+        "name": "ACACIA_PLANK",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            22,
+            19
+        ],
+        "destroy_time": 4
+    },
+    {
+        "id": 460,
+        "name": "SPRUCE_PLANK",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "plank"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "destroy_time": 4
+    },
+    {
         "id": 528,
         "name": "DARK_OAK_PLANK",
         "sound": "madcraft:block.wood",
@@ -310,32 +336,6 @@
             25,
             19
         ],
-        "destroy_time": 4
-    },
-    {
-        "id": 457,
-        "name": "ACACIA_PLANK",
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "plank"
-        ],
-        "texture": [
-            22,
-            19
-        ],
-        "destroy_time": 4
-    },
-    {
-        "id": 460,
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "plank"
-        ],
-        "texture": [
-            23,
-            19
-        ],
-        "name": "SPRUCE_PLANK",
         "destroy_time": 4
     },
     {
@@ -475,12 +475,12 @@
     },
     {
         "id": 14,
+        "name": "GOLD_ORE",
         "sound": "madcraft:block.stone",
         "texture": [
             0,
             2
         ],
-        "name": "GOLD_ORE",
         "destroy_time": 7
     },
     {
@@ -1047,6 +1047,7 @@
     },
     {
         "id": 520,
+        "name": "MOSS_COBBLESTONE_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.stone",
         "tags": [
@@ -1056,18 +1057,17 @@
             4,
             2
         ],
-        "name": "MOSS_COBBLESTONE_STAIRS",
         "destroy_time": 7,
         "can_rotate": true
     },
     {
         "id": 56,
+        "name": "DIAMOND_ORE",
         "sound": "madcraft:block.stone",
         "texture": [
             2,
             3
         ],
-        "name": "DIAMOND_ORE",
         "destroy_time": 7
     },
     {
@@ -1107,7 +1107,7 @@
         ],
         "destroy_time": 7,
         "can_rotate": true,
-                "transparent": true
+        "transparent": true
     },
     {
         "id": 72,
@@ -1174,11 +1174,11 @@
     },
     {
         "id": 79,
+        "name": "ICE",
         "texture": [
             3,
             4
         ],
-        "name": "ICE",
         "destroy_time": 0.4
     },
     {
@@ -1202,6 +1202,7 @@
     },
     {
         "id": 189,
+        "name": "BIRCH_FENCE",
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
@@ -1209,7 +1210,6 @@
             20,
             19
         ],
-        "name": "BIRCH_FENCE",
         "destroy_time": 4
     },
     {
@@ -1220,6 +1220,30 @@
         "sound": "madcraft:block.wood",
         "texture": [
             21,
+            19
+        ],
+        "destroy_time": 4
+    },
+    {
+        "id": 188,
+        "name": "ACACIA_FENCE",
+        "transparent": true,
+        "style": "fence",
+        "sound": "madcraft:block.wood",
+        "texture": [
+            22,
+            19
+        ],
+        "destroy_time": 4
+    },
+    {
+        "id": 191,
+        "name": "SPRUCE_FENCE",
+        "transparent": true,
+        "style": "fence",
+        "sound": "madcraft:block.wood",
+        "texture": [
+            23,
             19
         ],
         "destroy_time": 4
@@ -1249,38 +1273,14 @@
         "destroy_time": 4
     },
     {
-        "id": 188,
-        "transparent": true,
-        "style": "fence",
-        "sound": "madcraft:block.wood",
-        "texture": [
-            22,
-            19
-        ],
-        "name": "ACACIA_FENCE",
-        "destroy_time": 4
-    },
-    {
-        "id": 191,
-        "transparent": true,
-        "style": "fence",
-        "sound": "madcraft:block.wood",
-        "texture": [
-            23,
-            19
-        ],
-        "name": "SPRUCE_FENCE",
-        "destroy_time": 4
-    },
-    {
         "id": 113,
+        "name": "NETHER_BRICK_FENCE",
         "transparent": true,
         "style": "fence",
         "texture": [
             8,
             13
         ],
-        "name": "NETHER_BRICK_FENCE",
         "destroy_time": 0.4
     },
     {
@@ -1317,12 +1317,12 @@
     },
     {
         "id": 98,
+        "name": "STONE_BRICK",
         "sound": "madcraft:block.stone",
         "texture": [
             6,
             3
         ],
-        "name": "STONE_BRICK",
         "destroy_time": 7
     },
     {
@@ -1597,11 +1597,11 @@
     },
     {
         "id": 125,
+        "name": "DOUBLE_SLAB2",
         "texture": [
             5,
             0
         ],
-        "name": "DOUBLE_SLAB2",
         "destroy_time": 0.4
     },
     {
@@ -1737,6 +1737,7 @@
     },
     {
         "id": 135,
+        "name": "BIRCH_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
         "tags": [
@@ -1746,7 +1747,6 @@
             20,
             19
         ],
-        "name": "BIRCH_STAIRS",
         "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
@@ -1764,6 +1764,38 @@
             19
         ],
         "destroy_time": 4,
+        "can_rotate": true,
+        "transparent": true
+    },
+    {
+        "id": 163,
+        "name": "ACACIA_STAIRS",
+        "style": "stairs",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            22,
+            19
+        ],
+        "destroy_time": 0.4,
+        "can_rotate": true,
+        "transparent": true
+    },
+    {
+        "id": 134,
+        "name": "SPRUCE_STAIRS",
+        "style": "stairs",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "stairs"
+        ],
+        "texture": [
+            23,
+            19
+        ],
+        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1796,38 +1828,6 @@
             19
         ],
         "destroy_time": 4,
-        "can_rotate": true,
-        "transparent": true
-    },
-    {
-        "id": 163,
-        "style": "stairs",
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "stairs"
-        ],
-        "texture": [
-            22,
-            19
-        ],
-        "name": "ACACIA_STAIRS",
-        "destroy_time": 0.4,
-        "can_rotate": true,
-        "transparent": true
-    },
-    {
-        "id": 134,
-        "style": "stairs",
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "stairs"
-        ],
-        "texture": [
-            23,
-            19
-        ],
-        "name": "SPRUCE_STAIRS",
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1951,20 +1951,6 @@
             4
         ],
         "destroy_time": 0.4
-    },
-    {
-        "id": 519,
-        "name": "BRICK_TRIANGLE",
-        "style": "triangle",
-        "sound": "madcraft:block.stone",
-        "tags": [
-            "triangle"
-        ],
-        "texture": [
-            7,
-            0
-        ],
-        "destroy_time": 7
     },
     {
         "id": 199,
@@ -2147,52 +2133,6 @@
         "destroy_time": 4
     },
     {
-        "id": 530,
-        "name": "DARK_OAK_TRUNK",
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
-        "texture": {
-            "up": [
-                24,
-                17
-            ],
-            "down": [
-                24,
-                17
-            ],
-            "side": [
-                24,
-                16
-            ]
-        },
-        "destroy_time": 4
-    },
-    {
-        "id": 531,
-        "name": "JUNGLE_TRUNK",
-        "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
-        "texture": {
-            "up": [
-                25,
-                17
-            ],
-            "down": [
-                25,
-                17
-            ],
-            "side": [
-                25,
-                16
-            ]
-        },
-        "destroy_time": 4
-    },
-    {
         "id": 165,
         "name": "ACACIA_TRUNK",
         "sound": "madcraft:block.wood",
@@ -2233,6 +2173,52 @@
             ],
             "side": [
                 23,
+                16
+            ]
+        },
+        "destroy_time": 4
+    },
+    {
+        "id": 530,
+        "name": "DARK_OAK_TRUNK",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                24,
+                17
+            ],
+            "down": [
+                24,
+                17
+            ],
+            "side": [
+                24,
+                16
+            ]
+        },
+        "destroy_time": 4
+    },
+    {
+        "id": 531,
+        "name": "JUNGLE_TRUNK",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "wood"
+        ],
+        "texture": {
+            "up": [
+                25,
+                17
+            ],
+            "down": [
+                25,
+                17
+            ],
+            "side": [
+                25,
                 16
             ]
         },
@@ -2596,81 +2582,6 @@
         "can_rotate": true
     },
     {
-        "id": 532,
-        "name": "DARK_OAK_TRAPDOOR",
-        "transparent": true,
-        "style": "trapdoor",
-        "sound": "madcraft:block.wooden_trapdoor",
-        "tags": [
-            "trapdoor"
-        ],
-        "texture": {
-            "up": [
-                24,
-                20
-            ],
-            "down": [
-                24,
-                20
-            ],
-            "west": [
-                24,
-                21
-            ],
-            "east": [
-                24,
-                21
-            ],
-            "side": [
-                24,
-                22
-            ]
-        },
-        "extra_data": {
-            "opened": false,
-            "point": {"x":0, "y":0, "z":0}
-        },
-        "destroy_time": 0.4,
-        "can_rotate": true
-    },
-    {
-        "id": 533,
-        "name": "JUNGLE_TRAPDOOR",
-        "transparent": true,
-        "style": "trapdoor",
-        "sound": "madcraft:block.wooden_trapdoor",
-        "tags": [
-            "trapdoor"
-        ],
-        "texture": {
-            "up": [
-                25,
-                20
-            ],
-            "down": [
-                25,
-                20
-            ],
-            "west": [
-                25,
-                21
-            ],
-            "east": [
-                25,
-                21
-            ],
-            "side": [
-                25,
-                22
-            ]
-        },
-        "extra_data": {
-            "opened": false,
-            "point": {"x":0, "y":0, "z":0}
-        },
-        "destroy_time": 0.4
-    },
-    {
         "id": 464,
         "name": "ACACIA_TRAPDOOR",
         "transparent": true,
@@ -2745,6 +2656,81 @@
         },
         "destroy_time": 0.4,
         "can_rotate": true
+    },
+    {
+        "id": 532,
+        "name": "DARK_OAK_TRAPDOOR",
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                24,
+                20
+            ],
+            "down": [
+                24,
+                20
+            ],
+            "west": [
+                24,
+                21
+            ],
+            "east": [
+                24,
+                21
+            ],
+            "side": [
+                24,
+                22
+            ]
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
+        "destroy_time": 0.4,
+        "can_rotate": true
+    },
+    {
+        "id": 533,
+        "name": "JUNGLE_TRAPDOOR",
+        "transparent": true,
+        "style": "trapdoor",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "trapdoor"
+        ],
+        "texture": {
+            "up": [
+                25,
+                20
+            ],
+            "down": [
+                25,
+                20
+            ],
+            "west": [
+                25,
+                21
+            ],
+            "east": [
+                25,
+                21
+            ],
+            "side": [
+                25,
+                22
+            ]
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        },
+        "destroy_time": 0.4
     },
     {
         "id": 86,

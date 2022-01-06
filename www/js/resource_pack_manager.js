@@ -15,21 +15,20 @@ export class ResourcePackManager {
         const resource_packs    = new Set();
         const all               = [];
         // 1. base
-        all.push(import(def_resource_pack.path + '/init.js').then((module) => {resource_packs.add(module.default);}));
+        await import(def_resource_pack.path + '/init.js').then((module) => {resource_packs.add(module.default);});
         // 2. extends
         for(let item of json.extends) {
-            all.push(import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);}));
+            await import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);});
         }
         // 3. variants
         const selected_variant_id = settings ? settings.texture_pack : null;
         if(settings?.texture_pack != def_resource_pack.id) {
             for(let item of json.variants) {
                 if(!selected_variant_id || item.id == selected_variant_id) {
-                    all.push(import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);}));
+                    await import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);});
                 }
             }
         }
-        await Promise.all(all).then(() => { return this; });
         // Load Resourse packs (blocks)
         for(let rp of resource_packs.values()) {
             await this.registerResourcePack(rp);

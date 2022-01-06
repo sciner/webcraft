@@ -8,8 +8,9 @@ import {ServerClient} from "./server_client.js";
 // World container
 export class World {
 
-    constructor() {
+    constructor(settings) {
         this.localPlayer = null;
+        this.settings = settings;
         this.serverTimeShift = 0;
     }
 

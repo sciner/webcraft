@@ -1,2 +1,202 @@
 [
+    {
+        "id": 2,
+        "name": "DIRT"
+    },
+    {
+        "id": 31,
+        "name": "GRASS"
+    },
+    {
+        "id": 56,
+        "name": "DIAMOND_ORE"
+    },
+    {
+        "id": 106,
+        "name": "VINES"
+    },
+    {
+        "id": 162,
+        "name": "BIRCH_TRUNK"
+    },
+    {
+        "id": 3,
+        "name": "OAK_TRUNK"
+    },
+    {
+        "id": 165,
+        "name": "ACACIA_TRUNK"
+    },
+    {
+        "id": 138,
+        "name": "SPRUCE_TRUNK"
+    },
+    {
+        "id": 233,
+        "name": "OAK_LEAVES"
+    },
+    {
+        "id": 220,
+        "name": "ACACIA_LEAVES"
+    },
+    {
+        "id": 190,
+        "name": "SPRUCE_LEAVES"
+    },
+    {
+        "id": 456,
+        "name": "BIRCH_PLANK"
+    },
+    {
+        "id": 7,
+        "name": "OAK_PLANK"
+    },
+    {
+        "id": 457,
+        "name": "ACACIA_PLANK"
+    },
+    {
+        "id": 460,
+        "name": "SPRUCE_PLANK"
+    },
+    {
+        "id": 1,
+        "name": "BEDROCK"
+    },
+    {
+        "id": 8,
+        "name": "COBBLESTONE"
+    },
+    {
+        "id": 9,
+        "name": "CONCRETE"
+    },
+    {
+        "id": 10,
+        "name": "BRICK"
+    },
+    {
+        "id": 11,
+        "name": "SAND"
+    },
+    {
+        "id": 12,
+        "name": "GRAVEL"
+    },
+    {
+        "id": 15,
+        "name": "IRON_ORE"
+    },
+    {
+        "id": 16,
+        "name": "COAL_ORE"
+    },
+    {
+        "id": 14,
+        "name": "GOLD_ORE"
+    },
+    {
+        "id": 189,
+        "name": "BIRCH_FENCE"
+    },
+    {
+        "id": 85,
+        "name": "OAK_FENCE"
+    },
+    {
+        "id": 188,
+        "name": "ACACIA_FENCE"
+    },
+    {
+        "id": 191,
+        "name": "SPRUCE_FENCE"
+    },
+    {
+        "id": 462,
+        "name": "BIRCH_TRAPDOOR"
+    },
+    {
+        "id": 463,
+        "name": "OAK_TRAPDOOR"
+    },
+    {
+        "id": 464,
+        "name": "ACACIA_TRAPDOOR"
+    },
+    {
+        "id": 465,
+        "name": "SPRUCE_TRAPDOOR"
+    },
+    {
+        "id": 108,
+        "name": "BRICK_STAIRS"
+    },
+    {
+        "id": 135,
+        "name": "BIRCH_STAIRS"
+    },
+    {
+        "id": 53,
+        "name": "OAK_STAIRS"
+    },
+    {
+        "id": 163,
+        "name": "ACACIA_STAIRS"
+    },
+    {
+        "id": 134,
+        "name": "SPRUCE_STAIRS"
+    },
+    {
+        "id": 4,
+        "name": "TNT"
+    },
+    {
+        "id": 5,
+        "name": "BOOKCASE"
+    },
+    {
+        "id": 126,
+        "name": "OAK_SLAB"
+    },
+    {
+        "id": 80,
+        "name": "SNOW_BLOCK"
+    },
+    {
+        "id": 145,
+        "name": "SNOW_DIRT"
+    },
+    {
+        "id": 98,
+        "name": "STONE_BRICK"
+    },
+    {
+        "id": 39,
+        "name": "BROWN_MUSHROOM"
+    },
+    {
+        "id": 40,
+        "name": "RED_MUSHROOM"
+    },
+    {
+        "id": 38,
+        "name": "TULIP"
+    },
+    {
+        "id": 36,
+        "name": "DANDELION"
+    },
+    {
+        "id": 79,
+        "name": "ICE"
+    },
+    {
+        "id": 109,
+        "name": "STONE_STAIRS"
+    },
+    {
+        "id": 67,
+        "name": "COBBLESTONE_STAIRS"
+    }
 ]

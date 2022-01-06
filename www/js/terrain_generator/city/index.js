@@ -9,7 +9,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.setSeed(0);
         // Init palette blocks
         this.blocks1 = [];
-        for(let b of BLOCK.list) {
+        for(let b of BLOCK.list.values()) {
             if (b.name.substring(0, 4) === 'TERR' || b.name.substring(0, 4) === 'WOOL') {
                 this.blocks1.push(b);
             }
