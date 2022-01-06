@@ -261,6 +261,8 @@ let gameCtrl = async function($scope, $timeout) {
                 if('texture_pack' in this.form) {
                     if(['terrain', 'default'].indexOf(this.form.texture_pack) >= 0) {
                         this.form.texture_pack = 'base';
+                    } else if(['terrain_hd'].indexOf(this.form.texture_pack) >= 0) {
+                        this.form.texture_pack = '32';
                     }
                 }
                 // add default render_distance

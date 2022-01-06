@@ -59,7 +59,11 @@ export class ServerChunkManager {
         });
         // Init webworkers
         let world_info = this.world.info;
-        this.postWorkerMessage(['init', world_info.generator, world_info.seed, world_info.guid]);
+        const generator = world_info.generator;
+        const world_seed = world_info.seed;
+        const world_guid = world_info.guid;
+        const settings = {texture_pack: null};
+        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
         return promise;
     }
 

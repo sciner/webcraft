@@ -198,5 +198,21 @@
     {
         "id": 67,
         "name": "COBBLESTONE_STAIRS"
+    },
+    {
+        "id": 61,
+        "name": "FURNACE"
+    },
+    {
+        "id": 62,
+        "name": "BURNING_FURNACE"
+    },
+    {
+        "id": 58,
+        "name": "CRAFTING_TABLE"
+    },
+    {
+        "id": 54,
+        "name": "CHEST"
     }
 ]

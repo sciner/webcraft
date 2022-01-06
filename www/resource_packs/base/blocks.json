@@ -1275,6 +1275,7 @@
     {
         "id": 113,
         "name": "NETHER_BRICK_FENCE",
+        "sound": "madcraft:block.wood",
         "transparent": true,
         "style": "fence",
         "texture": [
@@ -1285,11 +1286,11 @@
     },
     {
         "id": 87,
+        "name": "NETHERRACK",
         "texture": [
             7,
             6
         ],
-        "name": "NETHERRACK",
         "destroy_time": 0.4
     },
     {
@@ -1696,6 +1697,7 @@
     },
     {
         "id": 461,
+        "name": "SPRUCE_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
@@ -1706,7 +1708,6 @@
             23,
             19
         ],
-        "name": "SPRUCE_SLAB",
         "destroy_time": 4
     },
     {
@@ -1870,7 +1871,7 @@
             5
         ],
         "destroy_time": 0,
-                "planting": true
+        "planting": true
     },
     {
         "id": 142,
@@ -1884,7 +1885,7 @@
             5
         ],
         "destroy_time": 0,
-                "planting": true
+        "planting": true
     },
     {
         "id": 155,
@@ -1908,7 +1909,7 @@
         ],
         "destroy_time": 0.4,
         "can_rotate": true,
-                "transparent": true
+        "transparent": true
     },
     {
         "id": 161,
@@ -2346,7 +2347,7 @@
         "name": "CHEST",
         "width": 0.875,
         "height": 0.875,
-                "is_entity": true,
+        "is_entity": true,
         "transparent": true,
         "sound": "madcraft:block.chest",
         "texture": {
