@@ -505,6 +505,33 @@ export class Vector {
         return this;
     }
 
+    toAngles() {
+        // N = 0
+        // W = 1
+        // S = 2
+        // E = 3
+        switch(this.x) {
+            case ROTATE.N: {
+                break;
+            }
+            case ROTATE.W: {
+                this.z = -Math.PI / 2;
+                break;
+            }
+            case ROTATE.S: {
+                this.z = Math.PI;
+                break;
+            }
+            case ROTATE.E: {
+                this.z = Math.PI / 2;
+                break;
+            }
+        }
+        this.x = 0;
+        this.y = 0;
+        return this;
+    }
+
 }
 
 export class Vec3 extends Vector {}

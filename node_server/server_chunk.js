@@ -377,6 +377,7 @@ export class ServerChunk {
         return true;
     }
 
+    // onBlockSet
     async onBlockSet(tblock) {
         switch(tblock.id) {
             case BLOCK.LIT_PUMPKIN.id: {
@@ -387,15 +388,14 @@ export class ServerChunk {
                 let under2 = this.world.getBlock(pos);
                 if(under1?.id == BLOCK.SNOW_BLOCK.id && under2?.id == BLOCK.SNOW_BLOCK.id) {
                     pos.addSelf(new Vector(.5, 0, .5));
-                    console.log('Create snow golem on pos', pos.toHash(), tblock.rotate);
                     const params = {
                         type           : 'snow_golem',
                         skin           : 'base',
                         pos            : pos.clone(),
                         pos_spawn      : pos.clone(),
-                        rotate         : tblock.rotate
+                        rotate         : new Vector(tblock.rotate).toAngles()
                     }
-                    const mob = await this.world.createMob(params);
+                    await this.world.createMob(params);
                     await this.world.setBlocksForce([
                         {pos: tblock.pos.add(this.coord), item: BLOCK.AIR},
                         {pos: under1.pos.add(this.coord), item: BLOCK.AIR},

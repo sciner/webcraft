@@ -296,7 +296,7 @@ export class ServerWorld {
         }
     }
 
-    //
+    // Create mob
     async createMob(params) {
         let chunk_addr = getChunkAddr(params.pos);
         let chunk = this.chunks.get(chunk_addr);
