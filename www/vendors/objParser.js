@@ -30,7 +30,7 @@ export function parseOBJ(gl, text) {
     const materialLibs = [];
     const geometries = [];
     let geometry;
-    let groups = ['default'];
+    let groups = ['base'];
     let material = 'default';
     let object = 'default';
 

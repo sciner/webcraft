@@ -1,4 +1,12 @@
-[
-    "../resource_packs/default",
-    "../resource_packs/lodestone"
-]
+{
+	"base": {"id": "base", "name": "Base", "path": "../resource_packs/base"},
+	"extends": [
+		{"id": "extend", "name": "extend", "path": "../resource_packs/extend"}
+	],
+	"variants": [
+		{"id": "32", "name": "32", "path": "../resource_packs/32"},
+		{"id": "kenney", "name": "Kenney", "path": "../resource_packs/kenney"},
+		{"id": "1px", "name": "1px", "path": "../resource_packs/1px"},
+		{"id": "128", "name": "128", "path": "../resource_packs/128"}
+	]
+}

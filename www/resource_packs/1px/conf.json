@@ -1,0 +1,15 @@
+{
+    "shader": {
+        "webgl": {
+            "vertex": "/shaders/webgl/vertex.glsl",
+            "fragment": "/shaders/webgl/fragment.glsl"
+        },
+        "webgpu": "/shaders/webgpu/shader.wgsl"
+    },
+    "textures": {
+        "default": {
+            "image": "/textures/default.png",
+            "tx_cnt": 32
+        }
+    }
+}

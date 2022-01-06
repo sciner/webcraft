@@ -1,23 +1,23 @@
 "use strict";
 
-import {DIRECTION, Helpers, NORMALS, Vector} from "./helpers.js";
+import {DIRECTION, Helpers, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
-import {Vox_Loader} from "./vox/loader.js";
-import {Vox_Mesh} from "./vox/mesh.js";
 import {FrustumProxy} from "./frustum.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
 import Particles_Raindrop from "./particles/raindrop.js";
-import Particles_Sun from "./particles/sun.js";
 import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
-import { Particle_Hand } from "./particles/block_hand.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
+// import {Vox_Loader} from "./vox/loader.js";
+// import {Vox_Mesh} from "./vox/mesh.js";
+// import Particles_Sun from "./particles/sun.js";
+// import { Particle_Hand } from "./particles/block_hand.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -156,9 +156,9 @@ export class Renderer {
             }
         }
 
-        // Prepare default resource pack shader
-        let rp                  = BLOCK.resource_pack_manager.get('default');
-
+        // Prepare base resource pack shader
+        let rp                  = BLOCK.resource_pack_manager.get('base');
+console.log(rp);
         this.defaultShader      = rp.shader;
 
         this.camera.renderType  = this.renderBackend.gl ? 'webgl' : 'webgpu';
@@ -188,17 +188,10 @@ export class Renderer {
             }
         }
 
-
         this.generatePrev();
         
         callback();
 
-        /*
-        await import("./particles/block_drop.js").then(module => {
-            globalThis.Particles_Block_Drop = module.default;
-            this.generatePrev();
-        });*/
-        
     }
 
     generatePrev() {
@@ -518,7 +511,7 @@ export class Renderer {
 
         gu.update();
 
-        this.defaultShader.texture = BLOCK.resource_pack_manager.get('default').textures.get('default').texture;
+        this.defaultShader.texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture;
         this.defaultShader.bind(true);
 
         for(let transparent of [false, true]) {

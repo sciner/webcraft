@@ -124,6 +124,24 @@
         "destroy_time": 0.4
     },
     {
+        "id": 551,
+        "name": "IRON_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "texture": [
+            2,
+            30
+        ],
+        "destroy_time": 0.4
+    },
+    {
         "id": 137,
         "name": "WOODEN_SHOVEL",
         "transparent": true,
@@ -2761,7 +2779,7 @@
                 6
             ],
             "north": [
-                8,
+                7,
                 7
             ],
             "side": [
@@ -2770,13 +2788,7 @@
             ]
         },
         "destroy_time": 0.4,
-        "can_rotate": true,
-        "light_power": {
-            "r": 253,
-            "g": 241,
-            "b": 131,
-            "a": 224
-        }
+        "can_rotate": true
     },
     {
         "id": 110,

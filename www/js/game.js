@@ -29,12 +29,11 @@ export class GameClass {
         Resources.onLoading = resource_loading_progress;
         await Resources.load({
             imageBitmap:    true,
-            texture_pack:   settings.texture_pack,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
         //
-        await BLOCK.init();
+        await BLOCK.init(settings);
         // Create world
         this.world = new World();
         await this.render.init(this.world, settings);

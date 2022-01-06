@@ -6,7 +6,7 @@ import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 
 // Mouse event enumeration
-window.MOUSE      = {};
+globalThis.MOUSE = {};
     MOUSE.DOWN    = 1;
     MOUSE.UP      = 2;
     MOUSE.MOVE    = 3;
@@ -15,7 +15,7 @@ window.MOUSE      = {};
     MOUSE.BUTTON_WHEEL  = 1;
     MOUSE.BUTTON_RIGHT  = 2;
 
-window.KEY          = {};
+globalThis.KEY = {};
     KEY.BACKSPACE   = 8;
     KEY.ENTER       = 13;
     KEY.SHIFT       = 16;
@@ -52,13 +52,14 @@ window.KEY          = {};
 let app = angular.module('gameApp', []);
 
 let injectParams = ['$scope', '$timeout'];
-let gameCtrl = function($scope, $timeout) {
+let gameCtrl = async function($scope, $timeout) {
 
     window.Game                     = new GameClass();
 
     $scope.App                      = Game.App = new UIApp();
-    $scope.texture_pack             = new TexturePackManager($scope);
     $scope.skin                     = new SkinManager($scope);
+    $scope.texture_pack             = new TexturePackManager($scope);
+    $scope.texture_pack.init();
 
     //
     $scope.App.onLogin = (e) => {};
@@ -245,8 +246,8 @@ let gameCtrl = function($scope, $timeout) {
     // Settings
     $scope.settings = {
         form: {
-            hd: false,
-            texture_pack: 'terrain_hd',
+            texture_pack: 'base',
+            render_distance: 4,
             mipmap: false
         },
         save: function() {
@@ -256,6 +257,16 @@ let gameCtrl = function($scope, $timeout) {
             let form = localStorage.getItem('settings');
             if(form) {
                 this.form = Object.assign(this.form, JSON.parse(form));
+                // fix texture_pack id
+                if('texture_pack' in this.form) {
+                    if(['terrain', 'default'].indexOf(this.form.texture_pack) >= 0) {
+                        this.form.texture_pack = 'base';
+                    }
+                }
+                // add default render_distance
+                if(!('render_distance' in this.form)) {
+                    this.form.render_distance = 4;
+                }
             }
         }
     };

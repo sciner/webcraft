@@ -16,7 +16,6 @@ export class Resources {
         this.shaderBlocks       = {};
         this.codeMain           = {};
         this.codeSky            = {};
-        this.terrain            = {};
         this.pickat             = {};
         this.sky                = {};
         this.clouds             = {};
@@ -33,8 +32,6 @@ export class Resources {
         let all = [];
 
         // Others
-        // all.push(Resources.loadImage('media/inventory2.webp', false).then((img) => {this.inventory.image = img}));
-        all.push(loadImage('media/' + settings.texture_pack + '.png').then((img) => { this.terrain.image = img}));
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
@@ -257,7 +254,6 @@ export class Resources {
         for(let key in base.assets) {
             const entry = base.assets[key];
             if (entry.type == 'json') {
-
                 process.push(
                     Resources.loadJsonModel(entry, key, baseUrl).then((entry) => {
                         base.assets[entry.key] = entry;
@@ -271,14 +267,10 @@ export class Resources {
 
     // loadResourcePacks...
     static async loadResourcePacks() {
-        let resp = new Set();
-        let all = [];
+        let resp = null;
         await Helpers.fetchJSON('../data/resource_packs.json').then(json => {
-            for(let init_file of json) {
-                all.push(import(init_file + '/init.js').then((module) => {resp.add(module.default);}));
-            }
+            resp = json;
         });
-        await Promise.all(all).then(() => { return this; });
         return resp;
     }
 

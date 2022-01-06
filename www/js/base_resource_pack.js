@@ -102,11 +102,6 @@ export class BaseResourcePack {
         let key_arr = key.split('/');
         let group = key_arr[1];
         let texture_id = key_arr[2];
-        //let matkey = [
-        //    key_arr[0],
-        //    key_arr[1],
-        //    'default'
-        //].join('/');
         let mat = this.shader.materials[group];
         texMat = mat.getSubMat(this.getTexture(texture_id).texture);
         this.materials.set(key, texMat);

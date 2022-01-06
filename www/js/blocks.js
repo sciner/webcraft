@@ -761,7 +761,7 @@ export class BLOCK {
 };
 
 // Init
-BLOCK.init = async function() {
+BLOCK.init = async function(settings) {
 
     if(BLOCK.list.length > 0) {
         throw 'Already inited';
@@ -777,6 +777,6 @@ BLOCK.init = async function() {
 
     // Resource packs
     BLOCK.resource_pack_manager = new ResourcePackManager();
-    await BLOCK.resource_pack_manager.init();
+    await BLOCK.resource_pack_manager.init(settings);
 
 };

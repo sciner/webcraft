@@ -7,6 +7,10 @@
         "webgpu": "/shaders/webgpu/shader.wgsl"
     },
     "textures": {
+        "default": {
+            "image": "/textures/default.png",
+            "tx_cnt": 32
+        },
         "egg": {
             "image": "/textures/egg.png",
             "tx_cnt": 8

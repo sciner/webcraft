@@ -1,14 +1,17 @@
+import { Resources } from "../resources.js";
+
 export class TexturePackManager {
 
     constructor($scope) {
         this.$scope = $scope;
-            this.list = [
-            {id: 'default', name: 'Default', value: 'terrain'},
-            {id: 'hd', name: '32', value: 'terrain_hd'},
-            {id: 'kenney', name: 'Kenney', value: 'terrain_kenney'},
-            {id: '1px', name: '1px', value: 'terrain_1px'},
-            {id: '128', name: '128', value: 'terrain_128'}
-        ];
+    }
+
+    async init() {
+        const resource_packs = await Resources.loadResourcePacks();
+        this.list = [...resource_packs.variants];
+        // Prepend default resource-pack option
+        this.list.unshift({"id": "base", "name": "Base"});
+        return this;
     }
 
     next() {
@@ -16,7 +19,7 @@ export class TexturePackManager {
         let index = 0;
         for(let i in this.list) {
             let tp = this.list[i];
-            if(tp.value == current.value) {
+            if(tp.id == current.id) {
                 index = i;
                 break;
             }
@@ -26,12 +29,12 @@ export class TexturePackManager {
 
     select(index) {
         index = index % this.list.length;
-        this.$scope.settings.form.texture_pack = this.list[index].value;
+        this.$scope.settings.form.texture_pack = this.list[index].id;
     }
 
     getCurrent() {
         for(let tp of this.list) {
-            if(tp.value == this.$scope.settings.form.texture_pack) {
+            if(tp.id == this.$scope.settings.form.texture_pack) {
                 return tp;
             }
         }

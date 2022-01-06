@@ -8,7 +8,7 @@ export default class ResourcePack extends BaseResourcePack {
 
     constructor() {
         super();
-        this.id = 'lodestone';
+        this.id = '1px';
         this.dir = getRunningScript() + '/..';
     }
 
