@@ -306,6 +306,11 @@ export class Renderer {
              */
             const ctx = data.getContext('2d');
 
+            const tmpCanvas = document.createElement('canvas');
+            const tmpContext = tmpCanvas.getContext('2d');
+            tmpCanvas.width = target.width / GRID;
+            tmpCanvas.height = target.height / GRID;
+
             // render plain preview that not require 3D view
             // and can be draw directly
             extruded.forEach((material) => {
@@ -327,19 +332,53 @@ export class Renderer {
                 // let imageData = tex.imageData;
                 const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
 
-                const tex_w = Math.round(c[2] * tex.width);
-                const tex_h = Math.round(c[3] * tex.height);
-                const tex_x = Math.round(c[0] * tex.width) - tex_w/2;
-                const tex_y = Math.round(c[1] * tex.height) - tex_h/2;
+                let tex_w = Math.round(c[2] * tex.width);
+                let tex_h = Math.round(c[3] * tex.height);
+                let tex_x = Math.round(c[0] * tex.width) - tex_w/2;
+                let tex_y = Math.round(c[1] * tex.height) - tex_h/2;
+
+                let image = tex.texture.source;
+
+                const tint = material.tags && material.tags.indexOf('mask_biome') > -1;
+
+                ctx.globalCompositeOperation = 'source-over';
+ 
+                if (tint) {
+                    tmpContext.globalCompositeOperation = 'source-over';
+                    tmpContext.fillStyle = "#7ba83d";
+                    tmpContext.fillRect(0, 0, w, h);
+
+                    tmpContext.globalCompositeOperation = 'multiply';
+                    tmpContext.drawImage(
+                        image,
+                        tex_x + tex_w, tex_y, tex_w, tex_h,
+                        0, 0, w , h
+                    );
+
+                    tmpContext.globalCompositeOperation = 'destination-in';
+                    tmpContext.drawImage(
+                        image,
+                        tex_x + tex_w, tex_y, tex_w, tex_h,
+                        0, 0, w , h
+                    );
+
+                    image = tmpContext.canvas;
+                    tex_x = 0;
+                    tex_y = 0;
+                    tex_w = w;
+                    tex_h = h;
+                }
 
                 ctx.drawImage(
-                    tex.texture.source,
+                    image,
                     tex_x, tex_y, tex_w, tex_h,
                     x + 0.1 * w, y + 0.1 * h,
                     w * 0.8, h * 0.8
                 );
 
             });
+
+            tmpCanvas.width = tmpCanvas.height = 0;
 
             Resources.inventory.image = data;
         });
