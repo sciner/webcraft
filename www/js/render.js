@@ -312,6 +312,9 @@ export class Renderer {
             tmpCanvas.width = target.width / GRID;
             tmpCanvas.height = target.height / GRID;
 
+            tmpContext.imageSmoothingEnabled = false;
+            ctx.imageSmoothingEnabled = false;
+
             // render plain preview that not require 3D view
             // and can be draw directly
             extruded.forEach((material) => {
@@ -335,8 +338,8 @@ export class Renderer {
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
-                let tex_x = Math.round(c[0] * tex.width) - tex_w/2;
-                let tex_y = Math.round(c[1] * tex.height) - tex_h/2;
+                let tex_x = Math.round(c[0] * tex.width) - tex_w/2 | 0;
+                let tex_y = Math.round(c[1] * tex.height) - tex_h/2 | 0;
 
                 let image = tex.texture.source;
 
