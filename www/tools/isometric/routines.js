@@ -1,6 +1,8 @@
+import {Helpers} from '../../js/helpers.js';
+
 //
 const cache = {};
-function lightHex(hex, light_value) {
+export function lightHex(hex, light_value) {
     light_value = Helpers.clamp(light_value);
     light_value = Math.round(light_value * 255) / 255;
     let k = hex + light_value;
@@ -17,12 +19,12 @@ function lightHex(hex, light_value) {
 }
 
 //
-function rgb2Hex(rgb) {
+export function rgb2Hex(rgb) {
     return '#' + rgb.map(x => ('0' + x.toString(16)).slice(-2)).join('');
 }
 
 // Make signal
-function makeSignal(w, h) {
+export function makeSignal(w, h) {
     // minimum two points
     let myPoints = [
         0.01,    0,
@@ -41,7 +43,7 @@ function makeSignal(w, h) {
     return signal;
 }
 
-function getCurvePoints(pts, tension, isClosed, numOfSegments) {
+export function getCurvePoints(pts, tension, isClosed, numOfSegments) {
 
     // use input value if provided, or use a default value   
     tension = (typeof tension != 'undefined') ? tension : 0.5;

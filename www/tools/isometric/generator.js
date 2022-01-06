@@ -1,3 +1,7 @@
+import noise from '../../vendors/perlin.js';
+import {Helpers} from '../../js/helpers.js';
+import {makeSignal, lightHex, rgb2Hex, getCurvePoints} from './routines.js';
+
 let canvas = document.getElementById('canvas3D');
 let ctx = canvas.getContext('2d', { alpha: false });
 canvas.width = window.innerWidth;
