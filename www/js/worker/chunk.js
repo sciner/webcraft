@@ -216,9 +216,7 @@ export class Chunk {
      * @returns 
      */
     getBlockNeighbours(pos, cache = null) {
-        const x = pos.x;
-        const y = pos.y;
-        const z = pos.z;
+
         const neighbours = {
             pcnt: 0,
             UP: null,
@@ -229,64 +227,34 @@ export class Chunk {
             EAST: null
         };
 
-        let pcnt = 0;
+        neighbours.pcnt = 0;
 
         // обходим соседние блоки
         for(let i = 0; i < 6; i ++) {
+
             const p = CC[i];
             const cb = (cache && cache[i]) || new TBlock(null, new Vector());
             const v = cb.vec;
+            const ax = pos.x + p.x;
+            const ay = pos.y + p.y;
+            const az = pos.z + p.z;
             
             let b;
-    
-            if(x > 0 && y > 0 && z > 0 && x < this.size.x - 1 && y < this.size.y - 1 && z < this.size.z - 1) {
-                // если сосед внутри того же чанка
-                b = this.tblocks.get(v.set(x + p.x, y + p.y, z + p.z), cb);
+
+            if(ax < 0) {
+                b = this.neighbour_chunks.nx.tblocks.get(v.set(this.size.x - 1, pos.y, pos.z), cb);
+            } else if(az < 0) {
+                b = this.neighbour_chunks.nz.tblocks.get(v.set(pos.x, pos.y, this.size.z - 1), cb);
+            } else if(ay < 0) {
+                b = this.neighbour_chunks.ny?.tblocks.get(v.set(pos.x, this.size.y - 1, pos.z), cb);
+            } else if(ay >= this.size.y) {
+                b = this.neighbour_chunks.py.tblocks.get(v.set(pos.x, 0, pos.z), cb);
+            } else if(ax >= this.size.x) {
+                b = this.neighbour_chunks.px.tblocks.get(v.set(0, pos.y, pos.z), cb);
+            } else if(az >= this.size.z) {
+                b = this.neighbour_chunks.pz.tblocks.get(v.set(pos.x, pos.y, 0), cb);
             } else {
-                // если блок с краю чанка или вообще в соседнем чанке
-                if(p.x == -1) {
-                    if(x == 0) {
-                        b = this.neighbour_chunks.nx.tblocks.get(v.set(this.size.x - 1, y, z), cb);
-                    } else {
-                        b = this.tblocks.get(v.set(x - 1, y, z), cb);
-                    }
-                } else if (p.x == 1) {
-                    if(x == this.size.x - 1) {
-                        b = this.neighbour_chunks.px.tblocks.get(v.set(0, y, z), cb);
-                    } else {
-                        b = this.tblocks.get(v.set(x + 1, y, z), cb);
-                    }
-                // Y
-                } else if (p.y == -1) {
-                    if(y == 0) {
-                        if(this.neighbour_chunks.ny) {
-                            b = this.neighbour_chunks.ny.tblocks.get(v.set(x, this.size.y - 1, z), cb);
-                        }
-                    } else {
-                        b = this.tblocks.get(v.set(x, y - 1, z));
-                    }
-                } else if (p.y == 1) {
-                    if(y == this.size.y - 1) {
-                        if(this.neighbour_chunks.py) {
-                            b = this.neighbour_chunks.py.tblocks.get(v.set(x, 0, z), cb);
-                        }
-                    } else {
-                        b = this.tblocks.get(v.set(x, y + 1, z), cb);
-                    }
-                // Z
-                } else if (p.z == -1) {
-                    if(z == 0) {
-                        b = this.neighbour_chunks.nz.tblocks.get(v.set(x, y, this.size.z - 1), cb);
-                    } else {
-                        b = this.tblocks.get(v.set(x, y, z - 1), cb);
-                    }
-                } else if (p.z == 1) {
-                    if(z == this.size.z - 1) {
-                        b = this.neighbour_chunks.pz.tblocks.get(v.set(x, y, 0), cb);
-                    } else {
-                        b = this.tblocks.get(v.set(x, y, z + 1), cb);
-                    }
-                }
+                b = this.tblocks.get(v.set(ax, ay, az), cb);
             }
 
             if(p.y == 1) {
@@ -307,12 +275,11 @@ export class Chunk {
             if(!properties || properties.transparent || properties.fluid) {
                 // @нельзя прерывать, потому что нам нужно собрать всех "соседей"
                 // break;
-                pcnt = -40;
+                neighbours.pcnt = -40;
             }
-            pcnt++;
+            neighbours.pcnt++;
         }
 
-        neighbours.pcnt = pcnt;
         return neighbours;
     }
 
