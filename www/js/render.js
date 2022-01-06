@@ -188,9 +188,10 @@ export class Renderer {
             }
         }
 
-        callback();
 
         this.generatePrev();
+        
+        callback();
 
         /*
         await import("./particles/block_drop.js").then(module => {
