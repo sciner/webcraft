@@ -3,6 +3,7 @@ import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import { Default_Terrain_Generator } from '../default.js';
 import {BLOCK} from '../../blocks.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 
 //
 let palette = {
@@ -83,6 +84,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
      * @returns 
      */
     generate(chunk) {
+    
+        // setBlock
+        let temp_vec2 = new Vector(0, 0, 0);
+        const setBlock = (x, y, z, block_id) => {
+            temp_vec2.set(x, y, z);
+            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            chunk.tblocks.id[index] = block_id;
+        };
 
         if(chunk.addr.y < 5) {
 
@@ -90,7 +99,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(chunk.addr.y == 0) {
                 for(let x = 0; x < chunk.size.x; x++) {
                     for (let z = 0; z < chunk.size.z; z++) {
-                        this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
+                        // this.setBlock(chunk, x, 0, z, BLOCK.BEDROCK, false);
+                        setBlock(x, 0, z, BLOCK.BEDROCK.id);
                     }
                 }
             }
@@ -109,7 +119,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             xyz.z = xyz.z % 126;
                             let block   = vb.getBlock(xyz);
                             if(block) {
-                                this.setBlock(chunk, x, y, z, block, false);
+                                // this.setBlock(chunk, x, y, z, block, false);
+                                setBlock(x, y, z, block.id);
                             }
                         }
                     }

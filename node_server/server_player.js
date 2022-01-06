@@ -388,8 +388,18 @@ export class ServerPlayer extends Player {
     }
 
     tick(delta) {
+        // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
+        // 2. Check near drop items
+        this.checkNearDropItems();
+    }
+
+    // Check near drop items
+    checkNearDropItems() {
         let chunk = this.world.chunks.get(this.chunk_addr);
+        if(!chunk) {
+            return;
+        }
         let entity_ids = [];
         if(chunk.drop_items.size > 0) {
             let near = [];
@@ -403,7 +413,6 @@ export class ServerPlayer extends Player {
                 }
             }
             if(near.length > 0) {
-                // console.log(near);
                 // 1. add items to inventory
                 for(const drop_item of near) {
                     for(const item of drop_item) {

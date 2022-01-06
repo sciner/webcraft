@@ -263,7 +263,10 @@ export class ServerWorld {
 
     // changePlayerPosition...
     changePlayerPosition(player, params) {
-        if (params.pos.y < 1) {
+        // @todo Нужно разрешить в режиме спектатора посещать отрицательную высоту,
+        // но если это сделать, то почему-то игрок зависает в точке контакта и после
+        // этого никуда не может сместиться =(
+        if (params.pos.y < 1 /*&& !player.game_mode.isSpectator()*/) {
             this.teleportPlayer(player, {
                 place_id: 'spawn'
             })
