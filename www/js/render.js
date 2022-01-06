@@ -210,7 +210,6 @@ export class Renderer {
             const draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;
-
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;

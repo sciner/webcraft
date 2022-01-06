@@ -50,7 +50,7 @@ export default class style {
             y -= .15;
         }
         let sz = 1 / 1.41;
-        let index = x * CHUNK_SIZE_Z + z;
+        let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         let r = 0;
         if([block.material.style].indexOf('sign') < 0) {
             r = randoms[index] * 4/16 - 2/16;
