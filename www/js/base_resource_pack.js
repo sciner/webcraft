@@ -5,9 +5,9 @@ import {TerrainTextureUniforms} from "./renders/common.js";
 
 export class BaseResourcePack {
 
-    constructor() {
-        this.id = null;
-        this.dir = null;
+    constructor(location, id) {
+        this.id = id;
+        this.dir = location;
         this.textures = new Map();
         this.materials = new Map();
 
