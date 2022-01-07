@@ -1,3 +1,4 @@
+import { BaseResourcePack } from "./base_resource_pack.js";
 import { BLOCK } from "./blocks.js";
 import { Resources } from "./resources.js";
 
@@ -14,18 +15,23 @@ export class ResourcePackManager {
         const def_resource_pack = json.base;
         const resource_packs    = new Set();
         const all               = [];
+
         // 1. base
-        await import(def_resource_pack.path + '/init.js').then((module) => {resource_packs.add(module.default);});
+        resource_packs.add(new BaseResourcePack(def_resource_pack.path, def_resource_pack.id));
+
         // 2. extends
         for(let item of json.extends) {
-            await import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);});
+            resource_packs.add(new BaseResourcePack(item.path, item.id));
         }
+
         // 3. variants
         const selected_variant_id = settings ? settings.texture_pack : null;
+
         if(settings?.texture_pack != def_resource_pack.id) {
             for(let item of json.variants) {
                 if(!selected_variant_id || item.id == selected_variant_id) {
-                    await import(item.path + '/init.js').then((module) => {resource_packs.add(module.default);});
+
+                    resource_packs.add(new BaseResourcePack(item.path, item.id));
                 }
             }
         }
@@ -40,26 +46,24 @@ export class ResourcePackManager {
     }
 
     // registerResourcePack
-    async registerResourcePack(module) {
-        let rp = new module(BLOCK);
+    async registerResourcePack(rp) {
         this.list.set(rp.id, rp);
-        await Promise.all([
-            rp.init()
-        ]).then(() => {
-            return this;
-        });
+
+        await rp.init(this);
+
+        return this;
     }
 
     // Init shaders for all resource packs
     async initShaders(renderBackend) {
-        for (let [_, value] of this.list.entries()) {
+        for (let value of this.list.values()) {
             await value.initShaders(renderBackend);
         }
     }
 
     // Init textures
     async initTextures(renderBackend, options) {
-        for (let [_, value] of this.list.entries()) {
+        for (let value of this.list.values()) {
             await value.initTextures(renderBackend, options);
         }
     }

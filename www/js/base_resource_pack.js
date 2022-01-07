@@ -5,42 +5,64 @@ import {TerrainTextureUniforms} from "./renders/common.js";
 
 export class BaseResourcePack {
 
-    constructor() {
-        this.id = null;
-        this.dir = null;
+    constructor(location, id) {
+        this.id = id;
+        this.dir = location;
         this.textures = new Map();
         this.materials = new Map();
+
+        this.manager = null;
+        this.shader = null;
     }
 
-    async init() {
+    async init(manager) {
+        this.manager = manager;
+
         let dir = this.dir;
-        let that = this;
+
         //
-        await Helpers.fetchJSON(dir + '/conf.json').then((json) => {
-            that.conf = json;
-        });
+        this.conf = await Helpers.fetchJSON(dir + '/conf.json');
+
         //
-        await Helpers.fetchJSON(dir + '/blocks.json').then((json) => {
-            for(let block of json) {
-                BLOCK.add(that, block);
-            }
+        const json = await Helpers.fetchJSON(dir + '/blocks.json');
+
+        json.forEach(b => {
+            BLOCK.add(this, b)
         });
+
     }
 
-    async initShaders(renderBackend) {
+    async initShaders(renderBackend, shared = false) {
+        if (this.shader) {
+            this.shader.shared = shared;
+            return this.shader;
+        }
+
         let shader_options = null;
+
+        if (!this.conf.shader || this.conf.shader.extends) {
+            const pack = this.manager.list.get(this.conf.shader?.extends || 'base');
+
+            if (pack) {
+                return this.shader = await pack.initShaders(renderBackend, true);
+            }
+        }
+
         if('gl' in renderBackend) {
             shader_options = this.conf.shader.webgl;
-            shader_options.vertex = this.dir + shader_options.vertex;
-            shader_options.fragment = this.dir + shader_options.fragment;
+            shader_options = {
+                vertex : this.dir + shader_options.vertex,
+                fragment : this.dir + shader_options.fragment
+            }
         } else {
             shader_options = this.dir + this.conf.shader.webgpu;
         }
-        let that = this;
-        return renderBackend.createResourcePackShader(shader_options).then((shader) => {
-            that.shader = shader;
-            shader.resource_pack_id = that.id;
-        });
+    
+        this.shader = await renderBackend.createResourcePackShader(shader_options);
+        this.shader.resource_pack_id = this.id;
+        this.shader.shared = shared;
+
+        return this.shader;
     }
 
     async initTextures(renderBackend, settings) {
@@ -65,6 +87,8 @@ export class BaseResourcePack {
                     let ctx             = canvas.getContext('2d');
                     ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
                     v.imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+                    canvas.width = canvas.height = 0;
                 });
                 // Image N
                 v.texture_n = null;

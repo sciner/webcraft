@@ -1,10 +1,7 @@
 {
+    "id": "32",
     "shader": {
-        "webgl": {
-            "vertex": "/shaders/webgl/vertex.glsl",
-            "fragment": "/shaders/webgl/fragment.glsl"
-        },
-        "webgpu": "/shaders/webgpu/shader.wgsl"
+        "extends": "base"
     },
     "textures": {
         "default": {
