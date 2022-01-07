@@ -71,14 +71,14 @@
     in vec2 a_quad;
 
     // please, replace all out with v_
-    out vec3 world_pos;
-    out vec3 chunk_pos;
+    out vec3 v_world_pos;
+    out vec3 v_chunk_pos;
     out vec3 v_position;
     out vec2 v_texcoord;
     out vec4 v_texClamp;
     out vec3 v_normal;
     out vec4 v_color;
-    out vec2 u_uvCenter;
+    out vec2 v_uvCenter;
     out float v_lightMode;
     //--
 #endif
@@ -91,9 +91,9 @@
     in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
-    in vec3 world_pos;
-    in vec3 chunk_pos;
-    in vec2 u_uvCenter;
+    in vec3 v_world_pos;
+    in vec3 v_chunk_pos;
+    in vec2 v_uvCenter;
     in float v_lightMode;
 
     out vec4 outColor;
@@ -178,7 +178,7 @@
 
 #ifdef fog_frag
     // Calc fog amount
-    float fogDistance = length(world_pos.xy);
+    float fogDistance = length(v_world_pos.xy);
     float fogAmount = 0.;
     if(fogDistance > u_chunkBlockDist) {
         fogAmount = clamp(0.05 * (fogDistance - u_chunkBlockDist), 0., 1.);
@@ -190,6 +190,17 @@
     outColor.g = (outColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
     outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
 
+#endif
+
+#ifdef terrain_read_flags_vert
+    // read flags
+    int flags = int(a_flags);
+    int flagNormalUp = flags & 1;
+    int flagBiome = (flags >> 1) & 1; 
+    int flagNoAO = (flags >> 2) & 1;
+ 
+    v_lightMode = 1.0 - float(flagNoAO);
+    //--
 #endif
 
 #ifdef sun_light_pass
@@ -209,7 +220,7 @@
 
 #ifdef local_light_pass
     // local light from hand located object
-    float lightDistance = distance(vec3(0., 0., 1.4), world_pos);
+    float lightDistance = distance(vec3(0., 0., 1.4), v_world_pos);
     float rad = u_localLightRadius;
 
     // max power is 16, we use a radious that half of it
@@ -225,9 +236,9 @@
 
 #ifdef ao_light_pass
     // global illumination
-    vec3 lightCoord = (chunk_pos + 0.5) / CHUNK_SIZE;
+    vec3 lightCoord = (v_chunk_pos + 0.5) / CHUNK_SIZE;
     vec3 absNormal = abs(v_normal);
-    vec3 aoCoord = (chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
+    vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
 
     float caveSample = texture(u_lightTex, lightCoord).a;
     float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
