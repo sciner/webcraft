@@ -1,4 +1,5 @@
 {
+    "id": "base",
     "shader": {
         "webgl": {
             "vertex": "/shaders/webgl/vertex.glsl",

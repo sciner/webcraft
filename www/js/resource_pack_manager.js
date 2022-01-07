@@ -41,13 +41,13 @@ export class ResourcePackManager {
 
     // registerResourcePack
     async registerResourcePack(module) {
-        let rp = new module(BLOCK);
+        const rp = new module(BLOCK);
+        
         this.list.set(rp.id, rp);
-        await Promise.all([
-            rp.init()
-        ]).then(() => {
-            return this;
-        });
+
+        await rp.init(this);
+
+        return this;
     }
 
     // Init shaders for all resource packs
