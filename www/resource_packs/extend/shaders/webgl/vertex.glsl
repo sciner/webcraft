@@ -19,14 +19,14 @@ void main() {
     }
 
     // find flags
-    float flagNoAO = step(3.5, a_flags);
-    float flagBiome = step(1.5, a_flags - flagNoAO);
-    float flags = a_flags - flagBiome * 2.0 - flagNoAO * 4.0;
-    float flagNormalUp = step(0.5, flags);
+    int flags = int(a_flags);
+    int flagNormalUp = flags & 1;
+    int flagBiome = (flags >> 1) & 1;
+    int flagNoAO = (flags >> 2) & 1;
 
-    v_lightMode = 1.0 - flagNoAO;
+    v_lightMode = 1.0 - float(flagNoAO);
 
-    if (flagNormalUp > 0.0) {
+    if (flagNormalUp > 0) {
         v_normal = -a_axisY;
     } else {
         v_normal = normalize(cross(a_axisX, a_axisY));
@@ -41,7 +41,7 @@ void main() {
     v_texClamp = vec4(u_uvCenter - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, u_uvCenter + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
 
     if(u_fogOn) {
-        if (flagBiome < 0.5) {
+        if (flagBiome < 2) {
             v_color.r = -1.0;
         }
     }
