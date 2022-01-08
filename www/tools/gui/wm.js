@@ -632,7 +632,9 @@ export class WindowManager extends Window {
         if(drawPointer && drawPointer === true) {
             this.pointer.draw();
         }
-        this._wm_tooltip.draw(this.ctx, this.x, this.y);
+        if(this.hasVisibleWindow()) {
+            this._wm_tooltip.draw(this.ctx, this.x, this.y);
+        }
     }
 
     mouseEventDispatcher(e) {

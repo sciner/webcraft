@@ -200,7 +200,6 @@ export class CreativeInventoryWindow extends Window {
             const ct = this;
             // Close button
             let btnClose = new Button(ct.width - this.cell_size, 9, 20, 20, 'btnClose', '');
-            btnClose.tooltip = 'Close window';
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
