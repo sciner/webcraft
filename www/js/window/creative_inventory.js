@@ -71,7 +71,7 @@ class CreativeInventoryCollection extends Window {
             if(y + this.cell_size > this.max_height) {
                 this.max_height = y + this.cell_size;
             }
-            let lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
+            const lblSlot = new CraftTableInventorySlot(x, y, sz, sz, 'lblCollectionSlot' + (i), null, '' + i, this.parent, null);
             //
             lblSlot.onMouseDown = function(e) {
                 let that = this;
@@ -200,6 +200,7 @@ export class CreativeInventoryWindow extends Window {
             const ct = this;
             // Close button
             let btnClose = new Button(ct.width - this.cell_size, 9, 20, 20, 'btnClose', '');
+            btnClose.tooltip = 'Close window';
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';

@@ -6,6 +6,7 @@
 export class Window {
 
     #_visible = true;
+    #_tooltip = null;
 
     constructor(x, y, w, h, id, title, text) {
         this.list           = new Map();
@@ -26,7 +27,14 @@ export class Window {
         this.onHide         = function() {};
         this.onShow         = function() {};
         this.onMouseEnter   = function() {};
-        this.onMouseLeave   = function() {};
+        this.onMouseLeave   = () => {
+            for(let w of this.list.values()) {
+                if(w.hover) {
+                    w.hover = false;
+                    w.onMouseLeave();
+                }
+            }
+        };
         this.onMouseDown    = function() {};
         this.onMouseMove    = function(e) {};
         this.onDrop         = function(e) {};
@@ -36,6 +44,12 @@ export class Window {
             textAlign: {
                 horizonal: 'left',
                 vertical: 'top' // "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
+            },
+            padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0
             },
             font: {
                 size: 20,
@@ -59,8 +73,12 @@ export class Window {
             }
         };
     }
+    //
     get visible() {return this.#_visible}
     set visible(value) {this.#_visible = value; globalThis.wmGlobal.visible_change_count++;}
+    //
+    get tooltip() {return this.#_tooltip}
+    set tooltip(value) {this.#_tooltip = value;}
     getRoot() {
         return globalThis.wmGlobal;
         // if(this.parent) {
@@ -92,6 +110,7 @@ export class Window {
         this.y = y;
     }
     resize(w, h) {
+        this.getRoot()._wm_setTooltipText(null);
         this.width = w;
         this.height = h;
     }
@@ -304,6 +323,9 @@ export class Window {
     _mousemove(e) {
         this.hover = true;
         this.onMouseMove(e);
+        let entered = [];
+        let leaved = [];
+        // let fire_mousemove = [];
         for(let w of this.list.values()) {
             if(!w.catchEvents) {
                 continue;
@@ -318,17 +340,39 @@ export class Window {
                     e2.x = x + this.x;
                     e2.y = y + this.y - w.scrollY;
                     w._mousemove(e2);
+                    // fire_mousemove.push({w: w, event: e2});
                     w.hover = true;
                 }
             }
             if(w.hover != old_hover) {
                 if(w.hover) {
-                    w.onMouseEnter();
+                    // w.onMouseEnter();
+                    entered.push(w);
                 } else {
-                    w.onMouseLeave();
+                    // w.onMouseLeave();
+                    leaved.push(w);
                 }
             }
         }
+        if(entered.length + leaved.length > 0) {
+            // console.log(entered.length, leaved.length, entered[0]);
+            if(entered.length > 0) {
+                if(entered[0]?.tooltip) {
+                    this.getRoot()._wm_setTooltipText(entered[0].tooltip);
+                }
+                entered[0].onMouseEnter();
+            } else {
+                this.getRoot()._wm_setTooltipText(null);
+            }
+            //
+            if(leaved.length > 0) {
+                leaved[0].onMouseLeave();
+            }
+        }
+        //
+        /*for(let item of fire_mousemove) {
+            item.w._mousemove(item.event);
+        }*/
     }
     _mousedown(e) {
         for(let w of this.list.values()) {
@@ -386,8 +430,8 @@ export class Window {
         if(!text) {
             return;
         }
-        const x             = this.x + this.ax;
-        const y             = this.y + this.ay;
+        const x             = this.x + this.ax + this.style.padding.left;
+        const y             = this.y + this.ay + this.style.padding.top;
         const lineHeight    = 20;
         let currentLine     = 0;
         let words           = (text + '').split(' ');
@@ -456,6 +500,48 @@ export class Label extends Window {
 
 }
 
+class Tooltip extends Label {
+
+    constructor(text) {
+        super(0, 0, 100, 20, '_tooltip', null, text);
+        this.style.background.color = '#000000cc';
+        this.style.border.hidden = true;
+        this.style.color = '#ffffff';
+        this.style.font.size = 20;
+        this.style.font.family = 'Ubuntu';
+        this.style.padding = {
+            left: 5,
+            right: 5,
+            top: 5,
+            bottom: 5
+        };
+        //
+        this.need_update_size = false;
+        this.setText(text);
+    }
+
+    draw(ctx, ax, ay) {
+        if(this.text === null || typeof this.text === undefined || this.text === '') {
+            return;
+        }
+        this.applyStyle(ctx, ax, ay);
+        //
+        if(this.need_update_size) {
+            this.need_update_size = false;
+            let mt = ctx.measureText(this.text);
+            this.width = mt.width + this.style.padding.left + this.style.padding.right;
+            this.height = mt.actualBoundingBoxDescent + this.style.padding.top + this.style.padding.bottom + 2;
+        }
+        super.draw(ctx, ax, ay);
+    }
+
+    setText(text) {
+        this.text = text;
+        this.need_update_size = true;
+    }
+
+}
+
 // WindowManager
 export class WindowManager extends Window {
     
@@ -470,6 +556,9 @@ export class WindowManager extends Window {
         this.canvas = canvas;
         this.ctx = ctx;
         this.visible_change_count = 0;
+        //
+        this._wm_tooltip = new Tooltip(null);
+        //
         this.pointer = {
             x: w / 2,
             y: h / 2,
@@ -543,6 +632,7 @@ export class WindowManager extends Window {
         if(drawPointer && drawPointer === true) {
             this.pointer.draw();
         }
+        this._wm_tooltip.draw(this.ctx, this.x, this.y);
     }
 
     mouseEventDispatcher(e) {
@@ -556,6 +646,15 @@ export class WindowManager extends Window {
                 };
                 this.pointer.x = e.offsetX;
                 this.pointer.y = e.offsetY;
+                // Calculate tooltip position
+                let pos = {x: this.pointer.x, y: this.pointer.y};
+                if(pos.x + this._wm_tooltip.width > this.width) {
+                    pos.x -= this._wm_tooltip.width;
+                }
+                if(pos.y + this._wm_tooltip.height > this.height) {
+                    pos.y -= this._wm_tooltip.height;
+                }
+                this._wm_tooltip.move(pos.x, pos.y);
                 this._mousemove(evt);
                 break;
             }
@@ -584,6 +683,9 @@ export class WindowManager extends Window {
                         y:              e.offsetY - this.y
                     };
                     this._wheel(evt);
+                    // Хак, чтобы обновились ховер элементы
+                    e.type = 'mousemove';
+                    this.mouseEventDispatcher(e);
                 }
                 break;
             }
@@ -591,6 +693,10 @@ export class WindowManager extends Window {
                 break;
             }
         }
+    }
+
+    _wm_setTooltipText(text) {
+        this._wm_tooltip.setText(text);
     }
 
 }

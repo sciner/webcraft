@@ -10,6 +10,11 @@ export class CraftTableSlot extends Label {
         this.setSlotIndex(slot_index);
     }
 
+    //
+    get tooltip() {
+        return this.getItem()?.name.replaceAll('_', ' ') || null;
+    }
+
     setItem(item) {
         if(this.slot_index !== null) {
             Game.player.inventory.setItem(this.slot_index, item);
