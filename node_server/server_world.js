@@ -31,7 +31,7 @@ export class ServerWorld {
         if (SERVE_TIME_LAG) {
             console.log('[World] Server time lag ', SERVE_TIME_LAG);
         }
-
+        const that          = this;
         this.db             = db;
         this.info           = await this.db.getWorld(world_guid);
         this.entities       = new EntityManager(this);
@@ -74,7 +74,29 @@ export class ServerWorld {
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
         //
-        this.set_block_queue = [];
+        this.set_block_queue = {
+            list: [],
+            add: function(player, params) {
+                this.list.push({player, params});
+            },
+            run: async function() {
+                while(this.list.length > 0) {
+                    const queue_item = this.list.shift();
+                    const player = queue_item.player;
+                    const params = queue_item.params;
+                    let addr = getChunkAddr(params.pos);
+                    let chunk = that.chunks.get(addr);
+                    if(chunk) {
+                        if (await chunk.blockAction(player, params, false)) {
+                            await that.db.blockSet(that, player, params);
+                            that.chunkBecameModified(addr);
+                        }
+                    } else {
+                        throw 'error_chunk_not_loaded';
+                    }
+                }
+            }
+        };
     }
 
     // World tick
@@ -99,21 +121,7 @@ export class ServerWorld {
             drop_item.tick(delta);
         }
         // 5.
-        while(this.set_block_queue.length > 0) {
-            const queue_item = this.set_block_queue.shift();
-            const player = queue_item.player;
-            const params = queue_item.params;
-            let addr = getChunkAddr(params.pos);
-            let chunk = this.chunks.get(addr);
-            if(chunk) {
-                if (await chunk.blockAction(player, params, false)) {
-                    await this.db.blockSet(this, player, params);
-                    this.chunkBecameModified(addr);
-                }
-            } else {
-                throw 'error_chunk_not_loaded';
-            }
-        }
+        // this.set_block_queue.run();
     }
 
     save() {
@@ -404,7 +412,8 @@ export class ServerWorld {
                 console.log('dist', dist);
                 throw 'error_unreachable_coordinate';
             }
-            this.set_block_queue.push({player, params});
+            this.set_block_queue.add(player, params);
+            this.set_block_queue.run();
         }
     }
 
