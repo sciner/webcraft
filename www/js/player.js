@@ -186,6 +186,26 @@ export class Player {
         }
     }
 
+    //
+    onScroll(down) {
+        if(down) {
+            this.inventory.next();
+        } else {
+            this.inventory.prev();
+        }
+    }
+
+    // Hook for mouse input
+    onMouseEvent(e) {
+        let {type, button_id, shiftKey} = e;
+        // Mouse actions
+        if (type == MOUSE.DOWN) {
+            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
+        } else if (type == MOUSE.UP) {
+            this.pickAt.clearEvent();
+        }
+    }
+
     // onPickAtTarget
     onPickAtTarget(e, times, number) {
         this.inMiningProcess = true;
@@ -221,28 +241,57 @@ export class Player {
                 return false;
             }
         }
-        this.doBlockAction(e);
+        //
+        if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
+            const world = this.world;
+            const player = {
+                radius: 0.7,
+                height: this.height,
+                pos: this.lerpPos,
+                rotate: this.rotateDegree.clone()
+            }
+            let actions = this.doBlockAction(e, this.world, player, this.buildMaterial);
+            if(actions.open_window) {
+                Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
+            }
+            if(actions.error) {
+                console.error(actions.error);
+            }
+            if(actions.load_chest) {
+                Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
+            }
+            if(actions.play_sound) {
+                Game.sounds.play(actions.play_sound.tag, actions.play_sound.action);
+            }
+            if(actions.reset_target_pos) {
+                this.pickAt.resetTargetPos();
+            }
+            if(actions.reset_target_event) {
+                this.pickAt.clearEvent();
+            }
+            if(actions.clone_block && this.game_mode.canBlockClone()) {
+                this.world.server.CloneBlock(e.pos);
+            }
+            for(let mod of actions.blocks) {
+                const pos = mod.pos;
+                const item = mod.item;
+                const rotate = item.rotate;
+                const extra_data = item.extra_data;
+                switch(mod.action_id) {
+                    case ServerClient.BLOCK_ACTION_CREATE:
+                    case ServerClient.BLOCK_ACTION_REPLACE:
+                    case ServerClient.BLOCK_ACTION_MODIFY: {
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                        break;
+                    }
+                    case ServerClient.BLOCK_ACTION_DESTROY: {
+                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                        break;
+                    }
+                }
+            }
+        }
         return true;
-    }
-
-    //
-    onScroll(down) {
-        if(down) {
-            this.inventory.next();
-        } else {
-            this.inventory.prev();
-        }
-    }
-
-    // Hook for mouse input
-    onMouseEvent(e) {
-        let {type, button_id, shiftKey} = e;
-        // Mouse actions
-        if (type == MOUSE.DOWN) {
-            this.pickAt.setEvent({button_id: button_id, shiftKey: shiftKey});
-        } else if (type == MOUSE.UP) {
-            this.pickAt.clearEvent();
-        }
     }
 
     // Ограничение частоты выолнения данного действия
@@ -255,9 +304,19 @@ export class Player {
     }
 
     // Called to perform an action based on the player's block selection and input.
-    doBlockAction(e) {
-        if(e.pos == false || !this.game_mode.canBlockAction()) {
-            return;
+    doBlockAction(e, world, player, buildMaterial) {
+        const resp = {
+            error:              null,
+            play_sound:         null,
+            load_chest:         null,
+            open_window:        null,
+            clone_block:        false,
+            reset_target_pos:   false,
+            reset_target_event: false,
+            blocks:             []
+        };
+        if(e.pos == false) {
+            return resp;
         }
         //
         let pos             = e.pos;
@@ -265,18 +324,13 @@ export class Player {
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         //
-        let world           = this.world;
-        let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        let world_block     = world.getBlock(pos);
+        let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
         let extra_data      = world_block.extra_data;
         let rotate          = world_block.rotate;
         let entity_id       = world_block.entity_id;
-        let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
-        let playerPos       = this.lerpPos;
+        //
         let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
-        console.log(pos);
-        if(this.limitBlockActionFrequency(e)) {
-            return;
-        }
         if(isTrapdoor) {
             // Trapdoor
             if(!extra_data) {
@@ -287,70 +341,76 @@ export class Player {
             }
             extra_data.opened = extra_data && !extra_data.opened;
             if(world_material.sound) {
-                Game.sounds.play(world_material.sound, 'open');
+                resp.play_sound = {tag: world_material.sound, action: 'open'};
             }
-            this.pickAt.resetTargetPos();
-            world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_MODIFY);
+            resp.reset_target_pos = true;
+            resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        } else if(destroyBlock) {
+            // Destroy block
+            if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
+                resp.blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+            }
+        } else if(cloneBlock) {
+            if(world_material && e.number == 1) {
+                resp.clone_block = true;
+            }
         } else if(createBlock) {
             // 1. Если ткнули на предмет с собственным окном
             if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
                 if(!e.shiftKey) {
                     switch(world_material.id) {
                         case BLOCK.CRAFTING_TABLE.id: {
-                            Game.hud.wm.getWindow('frmCraft').toggleVisibility();
+                            resp.open_window = 'frmCraft';
                             break;
                         }
                         case BLOCK.CHEST.id: {
-                            Game.hud.wm.getWindow('frmChest').load(entity_id);
+                            resp.load_chest = entity_id;
                             break;
                         }
                     }
-                    this.pickAt.clearEvent();
-                    return;
+                    resp.reset_target_event = true;
+                    return resp;
                 }
             }
             // 2. Проверка инвентаря
-            if(!this.buildMaterial || (this.inventory.current_item && this.inventory.current_item.count < 1)) {
-                return;
+            if(!buildMaterial || (this.inventory.current_item && this.inventory.current_item.count < 1)) {
+                return resp;
             }
             // 3. Нельзя ничего ставить поверх этого блока
             let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
             if(noSetOnTop && pos.n.y == 1) {
-                return;
+                return resp;
             }
             // 4.
-            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, this.buildMaterial?.id);
+            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, buildMaterial.id);
             if(replaceBlock) {
+                if(buildMaterial.style == 'ladder') {
+                    return resp;
+                }
                 pos.n.y = 1;
             } else {
                 pos.x += pos.n.x;
                 pos.y += pos.n.y;
                 pos.z += pos.n.z;
+                // Запрет установки блока, если на позиции уже есть другой блок
+                let existingBlock = world.getBlock(pos);
+                if(!existingBlock.canReplace()) {
+                    return resp;
+                }
             }
             // 5. Запрет установки блока на блоки, которые занимает игрок
             this._createBlockAABB.copyFrom({x_min: pos.x, x_max: pos.x + 1, y_min: pos.y, y_max: pos.y + 1, z_min: pos.z, z_max: pos.z + 1});
-            let player_radius = 0.7;
             if(this._createBlockAABB.intersect({
-                x_min: playerPos.x - player_radius / 2,
-                x_max: playerPos.x - player_radius / 2 + player_radius,
-                y_min: playerPos.y,
-                y_max: playerPos.y + this.height,
-                z_min: playerPos.z - player_radius / 2,
-                z_max: playerPos.z - player_radius / 2 + player_radius
+                x_min: player.pos.x - player.radius / 2,
+                x_max: player.pos.x - player.radius / 2 + player.radius,
+                y_min: player.pos.y,
+                y_max: player.pos.y + player.height,
+                z_min: player.pos.z - player.radius / 2,
+                z_max: player.pos.z - player.radius / 2 + player.radius
             })) {
-                return;
+                return resp;
             }
-            // 6. Запрет установки блока, если на позиции уже есть другой блок
-            if(!replaceBlock) {
-                let existingBlock = this.world.chunkManager.getBlock(pos);
-                if(!existingBlock.canReplace()) {
-                    return;
-                }
-            }
-            if(replaceBlock && this.buildMaterial.style == 'ladder') {
-                return;
-            }
-            const matBlock = BLOCK.fromId(this.buildMaterial.id);
+            const matBlock = BLOCK.fromId(buildMaterial.id);
             const new_pos = new Vector(pos);
             // 7. Проверка места, куда игрок пытается установить блок(и)
             let check_poses = [new_pos];
@@ -359,38 +419,36 @@ export class Player {
                 check_poses.push(new_pos.add(matBlock.next_part.offset_pos));
             }
             for(let cp of check_poses) {
-                let cp_block = this.world.chunkManager.getBlock(cp);
+                let cp_block = world.getBlock(cp);
                 if(!BLOCK.canReplace(cp_block.id, cp_block.extra_data, matBlock.id)) {
-                    console.log('error_block_cannot_be_replace');
-                    return false;
+                    resp.error = 'error_block_cannot_be_replace';
+                    return resp;
                 }
             }
             // 8. Некоторые блоки можно ставить только на что-то сверху
             let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
             if(setOnlyToTop && pos.n.y != 1) {
-                return;
+                return resp;
             }
             // 9. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
             let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
             if(isLayering) {
-                // if(e.number == 1) {
-                    let new_extra_data = null;
-                    pos.y--;
-                    if(extra_data) {
-                        new_extra_data = JSON.parse(JSON.stringify(extra_data));
-                    } else {
-                        new_extra_data = {height: world_material.height};
-                    }
-                    new_extra_data.height += world_material.height;
-                    if(new_extra_data.height < 1) {
-                        this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, new_extra_data, ServerClient.BLOCK_ACTION_MODIFY);
-                    } else {
-                        this.pickAt.resetTargetPos();
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.SNOW_BLOCK, true, null, null, null, null, ServerClient.BLOCK_ACTION_CREATE);
-                    }
-                // }
-                return;
+                let new_extra_data = null;
+                pos.y--;
+                if(extra_data) {
+                    new_extra_data = JSON.parse(JSON.stringify(extra_data));
+                } else {
+                    new_extra_data = {height: world_material.height};
+                }
+                new_extra_data.height += world_material.height;
+                if(new_extra_data.height < 1) {
+                    resp.reset_target_pos = true;
+                    resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                } else {
+                    resp.reset_target_pos = true;
+                    resp.blocks.push({pos: pos, item: {id: BLOCK.SNOW_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                }
+                return resp;
             }
             // 10. Факелы можно ставить только на определенные виды блоков!
             let isTorch = matBlock.style == 'torch';
@@ -403,7 +461,7 @@ export class Player {
                             (world_material.height && world_material.height != 1)
                         )
                     ) {
-                    return;
+                    return resp;
                 }
             }
             // 11. Запрет на списание инструментов как блоков
@@ -414,33 +472,32 @@ export class Player {
                         pos.x -= pos.n.x;
                         pos.y -= pos.n.y;
                         pos.z -= pos.n.z;
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, BLOCK.DIRT_PATH, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+                        resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                     }
                 } else if(matBlock.instrument_id == 'bucket') {
                     if(matBlock.emit_on_set) {
                         matBlock = BLOCK.fromName(matBlock.emit_on_set);
                         const extra_data = BLOCK.makeExtraData(matBlock, pos);
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, rotate, null, extra_data, replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE);
+                        resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                         if(matBlock.sound) {
-                            Game.sounds.play(matBlock.sound, 'place');
+                            resp.play_sound = {tag: matBlock.sound, action: 'place'};
                         }
                     }
                 }
             } else {
-                const orientation = new Vector(this.rotateDegree);
-                orientation.x = 0;
-                orientation.y = 0;
+                player.rotate.x = 0;
+                player.rotate.y = 0;
                 // top normal
                 if (Math.abs(pos.n.y) === 1) {                        
-                    orientation.x = BLOCK.getCardinalDirection(orientation);
-                    orientation.z = 0;
-                    orientation.y = pos.n.y; // mark that is up
+                    player.rotate.x = BLOCK.getCardinalDirection(player.rotate);
+                    player.rotate.z = 0;
+                    player.rotate.y = pos.n.y; // mark that is up
                 } else {
-                    orientation.z = 0;
+                    player.rotate.z = 0;
                     if (pos.n.x !== 0) {
-                        orientation.x = pos.n.x > 0 ? ROTATE.E : ROTATE.W;
+                        player.rotate.x = pos.n.x > 0 ? ROTATE.E : ROTATE.W;
                     } else {
-                        orientation.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
+                        player.rotate.x = pos.n.z > 0 ? ROTATE.N : ROTATE.S;
                     }
                 }
                 let extra_data = BLOCK.makeExtraData(matBlock, pos);
@@ -448,31 +505,31 @@ export class Player {
                     // Replace block
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
-                            Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
+                            resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: player.rotate}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         }
                     } else {
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_REPLACE);
+                        resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: player.rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                     }
                 } else {
                     // Create block
                     // Посадить растения можно только на блок земли
-                    let underBlock = this.world.chunkManager.getBlock(pos.x, pos.y - 1, pos.z);
+                    let underBlock = world.getBlock(pos.x, pos.y - 1, pos.z);
                     if(BLOCK.isPlants(matBlock.id) && underBlock.id != BLOCK.DIRT.id) {
-                        return;
+                        return resp;
                     }
                     if(matBlock.is_item || matBlock.is_entity) {
                         if(matBlock.is_entity) {
-                            Game.player.world.server.CreateEntity(matBlock.id, new Vector(pos.x, pos.y, pos.z), orientation);
+                            resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: player.rotate}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                             let b = BLOCK.fromId(matBlock.id);
                             if(b.sound) {
-                                Game.sounds.play(b.sound, 'place');
+                                resp.play_sound = {tag: b.sound, action: 'place'};
                             }
                         }
                     } else {
                         if(['ladder'].indexOf(matBlock.style) >= 0) {
                             // Лианы можно ставить на блоки с прозрачностью
                             if(world_material.transparent && world_material.style != 'default') {
-                                return;
+                                return resp;
                             }
                             if(pos.n.y == 0) {
                                 if(pos.n.z != 0) {
@@ -481,7 +538,7 @@ export class Player {
                                     // x
                                 }
                             } else {
-                                let cardinal_direction = orientation.x;
+                                let cardinal_direction = player.rotate.x;
                                 let ok = false;
                                 for(let i = 0; i < 4; i++) {
                                     let pos2 = new Vector(pos.x, pos.y, pos.z);
@@ -506,7 +563,7 @@ export class Player {
                                             break;
                                         }
                                     }
-                                    let cardinal_block = this.world.chunkManager.getBlock(pos2.x, pos2.y, pos2.z);
+                                    let cardinal_block = world.getBlock(pos2.x, pos2.y, pos2.z);
                                     if(cardinal_block.transparent && !(matBlock.tags.indexOf('anycardinal') >= 0)) {
                                         cardinal_direction = cd;
                                         rotateDegree.z = (rotateDegree.z + i * 90) % 360;
@@ -515,30 +572,16 @@ export class Player {
                                     }
                                 }
                                 if(!ok) {
-                                    return;
+                                    return resp;
                                 }
                             }
                         }
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, matBlock, true, null, orientation, null, extra_data, ServerClient.BLOCK_ACTION_CREATE);
+                        resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: player.rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     }
                 }
             }
-        } else if(destroyBlock) {
-            // Destroy block
-            if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
-                this.destroyBlock(world_material, pos, this.getCurrentInstrument());
-            }
-        } else if(cloneBlock) {
-            if(world_material && this.game_mode.canBlockClone() && e.number == 1) {
-                this.world.server.CloneBlock(pos);
-            }
         }
-    }
-
-    // Удалить блок используя инструмент
-    destroyBlock(block, pos, instrument) {
-        instrument.destroyBlock(block);
-        this.world.chunkManager.destroyBlock(pos);
+        return resp;
     }
 
     // getCurrentInstrument

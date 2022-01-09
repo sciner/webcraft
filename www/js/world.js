@@ -92,4 +92,8 @@ export class World {
         };
     }
 
+    getBlock(x, y, z) {
+        return this.chunkManager.getBlock(x, y, z);
+    }
+
 }

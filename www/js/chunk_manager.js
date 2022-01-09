@@ -432,6 +432,7 @@ export class ChunkManager {
         return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
     }
 
+    /*
     // destroyBlock
     destroyBlock(pos) {
         let render = Game.render;
@@ -445,7 +446,7 @@ export class ChunkManager {
         }
         render.destroyBlock(block, pos);
         this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true, null, null, null, null, ServerClient.BLOCK_ACTION_DESTROY);
-    }
+    }*/
 
     // Set nearby chunks
     updateNearby(data) {
