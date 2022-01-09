@@ -631,6 +631,7 @@
     {
         "id": 106,
         "name": "VINES",
+        "sound": "madcraft:block.grass",
         "transparent": true,
         "width": 0.0625,
         "texture": {
@@ -1906,6 +1907,7 @@
     {
         "id": 155,
         "name": "QUARTZ",
+        "sound": "madcraft:block.stone",
         "texture": [
             10,
             14
@@ -1915,6 +1917,7 @@
     {
         "id": 156,
         "name": "QUARTZ_STAIRS",
+        "sound": "madcraft:block.stone",
         "style": "stairs",
         "tags": [
             "stairs"

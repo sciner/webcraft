@@ -260,25 +260,25 @@ export class Player {
             return;
         }
         //
+        let pos             = e.pos;
         let destroyBlock    = e.destroyBlock;
         let cloneBlock      = e.cloneBlock;
         let createBlock     = e.createBlock;
         //
-        let pos             = e.pos;
         let world           = this.world;
         let world_block     = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
         let extra_data      = world_block.extra_data;
         let rotate          = world_block.rotate;
         let entity_id       = world_block.entity_id;
         let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
-        let playerPos       = this.lerpPos; // this.getBlockPos();
+        let playerPos       = this.lerpPos;
         let isTrapdoor      = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
+        console.log(pos);
+        if(this.limitBlockActionFrequency(e)) {
+            return;
+        }
         if(isTrapdoor) {
             // Trapdoor
-            if(this.limitBlockActionFrequency(e)) {
-                return;
-            }
-            this._prevActionTime = performance.now();
             if(!extra_data) {
                 extra_data = {
                     opened: false,
@@ -292,44 +292,7 @@ export class Player {
             this.pickAt.resetTargetPos();
             world.chunkManager.setBlock(pos.x, pos.y, pos.z, world_material, true, null, rotate, null, extra_data, ServerClient.BLOCK_ACTION_MODIFY);
         } else if(createBlock) {
-            // Нельзя ничего ставить поверх этого блока
-            let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
-            if(noSetOnTop && pos.n.y == 1) {
-                return;
-            }
-            //
-            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, this.buildMaterial?.id);
-            if(replaceBlock) {
-                pos.n.y = 1;
-            } else {
-                pos.x += pos.n.x;
-                pos.y += pos.n.y;
-                pos.z += pos.n.z;
-            }
-            // Запрет установки блока на блоки, которые занимает игрок
-            this._createBlockAABB.copyFrom({x_min: pos.x, x_max: pos.x + 1, y_min: pos.y, y_max: pos.y + 1, z_min: pos.z, z_max: pos.z + 1});
-            let player_radius = 0.7;
-            if(this._createBlockAABB.intersect({
-                x_min: playerPos.x - player_radius / 2,
-                x_max: playerPos.x - player_radius / 2 + player_radius,
-                y_min: playerPos.y,
-                y_max: playerPos.y + this.height,
-                z_min: playerPos.z - player_radius / 2,
-                z_max: playerPos.z - player_radius / 2 + player_radius
-            })) {
-                return;
-            }
-            // Запрет установки блока, если на позиции уже есть другой блок
-            if(!replaceBlock) {
-                let existingBlock = this.world.chunkManager.getBlock(pos);
-                if(!existingBlock.canReplace()) {
-                    return;
-                }
-            }
-            if(this.limitBlockActionFrequency(e)) {
-                return;
-            }
-            // Если ткнули на предмет с собственным окном
+            // 1. Если ткнули на предмет с собственным окном
             if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
                 if(!e.shiftKey) {
                     switch(world_material.id) {
@@ -346,17 +309,50 @@ export class Player {
                     return;
                 }
             }
-            // Эта проверка обязательно должна быть тут, а не выше!
-            // Иначе не будут открываться сундуки и прочее
+            // 2. Проверка инвентаря
             if(!this.buildMaterial || (this.inventory.current_item && this.inventory.current_item.count < 1)) {
                 return;
+            }
+            // 3. Нельзя ничего ставить поверх этого блока
+            let noSetOnTop = world_material.tags.indexOf('no_set_on_top') >= 0;
+            if(noSetOnTop && pos.n.y == 1) {
+                return;
+            }
+            // 4.
+            let replaceBlock = world_material && BLOCK.canReplace(world_material.id, world_block.extra_data, this.buildMaterial?.id);
+            if(replaceBlock) {
+                pos.n.y = 1;
+            } else {
+                pos.x += pos.n.x;
+                pos.y += pos.n.y;
+                pos.z += pos.n.z;
+            }
+            // 5. Запрет установки блока на блоки, которые занимает игрок
+            this._createBlockAABB.copyFrom({x_min: pos.x, x_max: pos.x + 1, y_min: pos.y, y_max: pos.y + 1, z_min: pos.z, z_max: pos.z + 1});
+            let player_radius = 0.7;
+            if(this._createBlockAABB.intersect({
+                x_min: playerPos.x - player_radius / 2,
+                x_max: playerPos.x - player_radius / 2 + player_radius,
+                y_min: playerPos.y,
+                y_max: playerPos.y + this.height,
+                z_min: playerPos.z - player_radius / 2,
+                z_max: playerPos.z - player_radius / 2 + player_radius
+            })) {
+                return;
+            }
+            // 6. Запрет установки блока, если на позиции уже есть другой блок
+            if(!replaceBlock) {
+                let existingBlock = this.world.chunkManager.getBlock(pos);
+                if(!existingBlock.canReplace()) {
+                    return;
+                }
             }
             if(replaceBlock && this.buildMaterial.style == 'ladder') {
                 return;
             }
             const matBlock = BLOCK.fromId(this.buildMaterial.id);
             const new_pos = new Vector(pos);
-            //
+            // 7. Проверка места, куда игрок пытается установить блок(и)
             let check_poses = [new_pos];
             if(matBlock.next_part) {
                 // Если этот блок имеет "пару"
@@ -369,12 +365,12 @@ export class Player {
                     return false;
                 }
             }
-            // Некоторые блоки можно ставить только на что-то сверху
+            // 8. Некоторые блоки можно ставить только на что-то сверху
             let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
             if(setOnlyToTop && pos.n.y != 1) {
                 return;
             }
-            // "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
+            // 9. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
             let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
             if(isLayering) {
                 // if(e.number == 1) {
@@ -396,7 +392,7 @@ export class Player {
                 // }
                 return;
             }
-            // Факелы можно ставить только на определенные виды блоков!
+            // 10. Факелы можно ставить только на определенные виды блоков!
             let isTorch = matBlock.style == 'torch';
             if(isTorch) {
                 if(!replaceBlock && (
@@ -410,7 +406,7 @@ export class Player {
                     return;
                 }
             }
-            // Запрет на списание инструментов как блоков
+            // 11. Запрет на списание инструментов как блоков
             if(matBlock.instrument_id) {
                 if(matBlock.instrument_id == 'shovel') {
                     if(world_material.id == BLOCK.DIRT.id) {
