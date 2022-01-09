@@ -8,6 +8,9 @@ import { AABB } from './core/AABB.js';
 export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
+// Свойства, которые могут сохраняться в БД
+export const ITEM_DB_PROPS = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
 
@@ -78,7 +81,7 @@ export class BLOCK {
         const resp = {
             id: item.id
         };
-        for(let k of ['extra_data', 'entity_id', 'count']) {
+        for(let k of ITEM_DB_PROPS) {
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;
@@ -151,17 +154,6 @@ export class BLOCK {
         }
         console.error('Warning: id missing in BLOCK ' + id);
         return this.DUMMY;
-    }
-
-    // cloneFromId
-    static cloneFromId(id) {
-        let b = {...BLOCK.fromId(id)};
-        // delete(b['spawnable']);
-        // delete(b['max_in_stack']);
-        // delete(b['inventory_icon_id']);
-        // delete(b['destroy_time']);
-        // delete(b['passable']);
-        return b;
     }
 
     // Returns a block structure for the given id.

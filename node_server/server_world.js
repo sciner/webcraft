@@ -73,10 +73,12 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        //
+        this.set_block_queue = [];
     }
 
     // World tick
-    tick() {
+    async tick() {
         let delta = 0;
         if(this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -92,9 +94,25 @@ export class ServerWorld {
         for(let [entity_id, mob] of this.mobs) {
             mob.tick(delta);
         }
-        // 3.
+        // 4.
         for(let [entity_id, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
+        }
+        // 5.
+        while(this.set_block_queue.length > 0) {
+            const queue_item = this.set_block_queue.shift();
+            const player = queue_item.player;
+            const params = queue_item.params;
+            let addr = getChunkAddr(params.pos);
+            let chunk = this.chunks.get(addr);
+            if(chunk) {
+                if (await chunk.blockAction(player, params, false)) {
+                    await this.db.blockSet(this, player, params);
+                    this.chunkBecameModified(addr);
+                }
+            } else {
+                throw 'error_chunk_not_loaded';
+            }
         }
     }
 
@@ -386,20 +404,11 @@ export class ServerWorld {
                 console.log('dist', dist);
                 throw 'error_unreachable_coordinate';
             }
-            let addr = getChunkAddr(params.pos);
-            let chunk = this.chunks.get(addr);
-            if(chunk) {
-                if (await chunk.blockAction(player, params, false)) {
-                    await this.db.blockSet(this, player, params);
-                    this.chunkBecameModified(addr);
-                }
-            } else {
-                throw 'error_chunk_not_loaded';
-            }
+            this.set_block_queue.push({player, params});
         }
     }
 
-    // setBlocksForce
+    // setBlocksApply
     // @example:
     // [
     //      {
@@ -407,7 +416,7 @@ export class ServerWorld {
     //          "item": {"id": 2}
     //      }
     // ]
-    async setBlocksForce(blocks) {
+    async setBlocksApply(blocks) {
         let chunks_packets = new VectorCollector();
         for(let params of blocks) {
             params.item = BLOCK.convertItemToInventoryItem(params.item);
@@ -441,8 +450,6 @@ export class ServerWorld {
                         cps.packets.push(packet);
                     }
                 }
-                // 1. Store in modify list
-                chunk.modify_list.set(block_pos.toHash(), params.item);
                 // 2. Mark as became modifieds
                 this.chunkBecameModified(chunk_addr);
                 // 3. Store in chunk tblocks
@@ -453,6 +460,9 @@ export class ServerWorld {
                 tblock.entity_id     = params.item?.entity_id || null;
                 tblock.power         = params.item?.power || null;
                 tblock.rotate        = params.item?.rotate || null;
+                // 1. Store in modify list
+                chunk.modify_list.set(block_pos.toHash(), params.item);
+                chunk.onBlockSet(block_pos.clone(), params.item)
             } else {
                 console.error('Chunk not found in pos', chunk_addr, params);
             }

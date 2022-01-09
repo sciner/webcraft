@@ -15,6 +15,10 @@ export class TBlock {
         return this;
     }
 
+    get posworld() {
+        return this.vec.add(this.tb.coord);
+    }
+
     //
     get pos() {
         return this.vec;

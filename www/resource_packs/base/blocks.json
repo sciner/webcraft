@@ -922,7 +922,7 @@
     },
     {
         "id": 514,
-        "name": "FLOWER_PEONY_BOTTOM",
+        "name": "FLOWER_PEONY",
         "passable": 1,
         "transparent": true,
         "style": "planting",
@@ -931,6 +931,10 @@
             5,
             22
         ],
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 515
+        },
         "destroy_time": 0,
         "planting": true
     },
@@ -946,6 +950,10 @@
             6,
             22
         ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 514
+        },
         "destroy_time": 0,
         "planting": true
     },
@@ -961,6 +969,10 @@
             7,
             22
         ],
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 517
+        },
         "destroy_time": 0,
         "planting": true
     },
@@ -976,6 +988,10 @@
             8,
             22
         ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 516
+        },
         "destroy_time": 0,
         "planting": true
     },

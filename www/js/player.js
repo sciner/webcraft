@@ -321,7 +321,7 @@ export class Player {
             }
             // Запрет установки блока, если на позиции уже есть другой блок
             if(!replaceBlock) {
-                let existingBlock = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                let existingBlock = this.world.chunkManager.getBlock(pos);
                 if(!existingBlock.canReplace()) {
                     return;
                 }
@@ -354,7 +354,21 @@ export class Player {
             if(replaceBlock && this.buildMaterial.style == 'ladder') {
                 return;
             }
-            let matBlock = BLOCK.fromId(this.buildMaterial.id);
+            const matBlock = BLOCK.fromId(this.buildMaterial.id);
+            const new_pos = new Vector(pos);
+            //
+            let check_poses = [new_pos];
+            if(matBlock.next_part) {
+                // Если этот блок имеет "пару"
+                check_poses.push(new_pos.add(matBlock.next_part.offset_pos));
+            }
+            for(let cp of check_poses) {
+                let cp_block = this.world.chunkManager.getBlock(cp);
+                if(!BLOCK.canReplace(cp_block.id, cp_block.extra_data, matBlock.id)) {
+                    console.log('error_block_cannot_be_replace');
+                    return false;
+                }
+            }
             // Некоторые блоки можно ставить только на что-то сверху
             let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
             if(setOnlyToTop && pos.n.y != 1) {
@@ -529,12 +543,6 @@ export class Player {
     destroyBlock(block, pos, instrument) {
         instrument.destroyBlock(block);
         this.world.chunkManager.destroyBlock(pos);
-        // Delete plant over deleted block
-        let block_over = this.world.chunkManager.getBlock(pos.x, pos.y + 1, pos.z);
-        if(BLOCK.isPlants(block_over.id)) {
-            pos.y++;
-            this.destroyBlock(block_over.material, pos, instrument);
-        }
     }
 
     // getCurrentInstrument
