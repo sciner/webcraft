@@ -373,12 +373,20 @@ export class MobModel extends NetworkPhysicObject {
             return;
         }
 
-        this.loadModel(render);
-        this.initialised = !!this.sceneTree;
+        return this
+            .loadModel(render)
+            .then(()=>{
+                this.initialised = true;
+                this.postLoad(this.sceneTree);
+            });
     }
 
     computeLocalPosAndLight(render) {
         if (!this.initialised) {
+            return;
+        }
+
+        if (!this.sceneTree) {
             return;
         }
 
@@ -457,7 +465,7 @@ export class MobModel extends NetworkPhysicObject {
      * 
      * @param {Renderer} render
      */
-    loadModel(render) {
+    async loadModel(render) {
         if (this.sceneTree) {
             return;
         }
@@ -480,7 +488,7 @@ export class MobModel extends NetworkPhysicObject {
             }
         }
 
-        const asset = Resources.models[this.type];
+        const asset = await Resources.getModelAsset(this.type);
 
         if (!asset) {
             console.log("Can't lokate model for:", this.type);
@@ -500,9 +508,9 @@ export class MobModel extends NetworkPhysicObject {
             this.skin = asset.baseSkin;
         }
 
-        this.loadTextures(render, asset.skins[this.skin]);
-    
-        return this.postLoad(this.sceneTree);    
+        const image = await asset.getSkin(this.skin);
+
+        this.loadTextures(render, image); 
     }
 
     /**
@@ -510,6 +518,10 @@ export class MobModel extends NetworkPhysicObject {
      * @param {SceneNode} tree 
      */
     postLoad(tree) {
+        if (!tree) {
+            return;
+        }
+
         this.animator.prepare(this);
     }
 

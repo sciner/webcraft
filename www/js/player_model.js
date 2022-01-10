@@ -168,11 +168,19 @@ export class PlayerModel extends MobModel {
     }
 
     lazyInit(render) {
-        if (this.initialised) {
+        if (!this.initialised) {
+            super.lazyInit(render);
+        }
+    }
+
+    postLoad(tree) {
+        super.postLoad(tree);
+        
+        tree.scale.set([0.9, 0.9, 0.9]);
+        
+        if (this.nametag || !this.sceneTree) {
             return;
         }
-
-        super.lazyInit(render);
 
         this.textCanvas                 = document.createElement('canvas');
         this.textCanvas.width           = 256;
@@ -193,11 +201,6 @@ export class PlayerModel extends MobModel {
             .pivot[2] + 0.5;
         
         this.nametag.updateMatrix();
-    }
-
-    postLoad(tree) {
-        super.postLoad(tree);
-        tree.scale.set([0.9, 0.9, 0.9]);
 
         this.changeSlots(this.activeSlotsData);
     }
