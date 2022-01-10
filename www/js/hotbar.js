@@ -59,9 +59,9 @@ export class Hotbar {
         const mayGetDamaged = player.game_mode.mayGetDamaged();
 
         // Draw item name in hotbar
-        let currentBuildMaterial = player.buildMaterial;
-        if(currentBuildMaterial) {
-            let itemName = currentBuildMaterial?.name || BLOCK.fromId(currentBuildMaterial.id)?.name;
+        let currentInventoryItem = player.currentInventoryItem;
+        if(currentInventoryItem) {
+            let itemName = currentInventoryItem?.name || BLOCK.fromId(currentInventoryItem.id)?.name;
             itemName = itemName.replaceAll('_', ' ');
             const max_name_show_time = 2000;
             if(itemName != this.itemNameO) {

@@ -47,7 +47,6 @@ export class Inventory extends PlayerInventory {
 
     // Refresh
     refresh(changed) {
-        this.player.buildMaterial = this.items[this.current.index];
         if(this.hud) {
             this.hud.refresh();
             try {

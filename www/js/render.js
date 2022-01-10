@@ -498,8 +498,8 @@ export class Renderer {
         gu.sunDir               = this.sunDir;
         gu.localLigthRadius     = 0;
         
-        if (this.player.buildMaterial) {
-            const block = BLOCK.BLOCK_BY_ID.get(this.player.buildMaterial.id);
+        if (this.player.currentInventoryItem) {
+            const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
             const power = BLOCK.getLightPower(block);
 
             // and skip all block that have power greater that 0x0f

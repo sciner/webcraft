@@ -279,7 +279,7 @@ export class HUD {
         }
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
-        let mat = player.buildMaterial;
+        let mat = player.currentInventoryItem;
         if(mat) {
             this.text += ' ' + mat.id + ' / ' + mat.name;
             if(mat.fluid) {

@@ -109,7 +109,7 @@ export class InHandOverlay {
             this.mineTime = 0;
         }
 
-        const id = player.buildMaterial ? player.buildMaterial.id : -1;
+        const id = player.currentInventoryItem ? player.currentInventoryItem.id : -1;
 
         if (id !== this.inHandItemId && !this.changeAnimation) {
             this.changAnimationTime = 0;
