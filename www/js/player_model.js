@@ -167,12 +167,6 @@ export class PlayerModel extends MobModel {
         return this.username == Game.App.session.username;
     }
 
-    lazyInit(render) {
-        if (!this.initialised) {
-            super.lazyInit(render);
-        }
-    }
-
     postLoad(render, tree) {
         super.postLoad(tree);
         
@@ -209,6 +203,10 @@ export class PlayerModel extends MobModel {
         super.update(render, camPos, delta);
 
         if (!this.isRenderable) {
+            return;
+        }
+
+        if (!this.nametag) {
             return;
         }
 
