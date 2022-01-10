@@ -143,7 +143,7 @@ export class PickAt {
     }
 
     // checkTargets...
-    checkTargets() {
+    async checkTargets() {
         let target_block = this.target_block;
         let damage_block = this.damage_block;
         if(!target_block.visible) {
@@ -165,7 +165,7 @@ export class PickAt {
             event.pos = {...damage_block.pos};
             event.pos.n = event.pos.n.clone();
             event.pos.point = event.pos.point.clone();
-            if(this.onTarget(event, damage_block.times / 1000, damage_block.number)) {
+            if(await this.onTarget(event, damage_block.times / 1000, damage_block.number)) {
                 this.updateDamageBlock();
                 if(damage_block.mesh) {
                     damage_block.mesh.destroy();

@@ -291,7 +291,7 @@ export class Player {
                     }
                 }
             }
-            // @server Отправляем на сервер инфу об установке блока
+            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
                 name: ServerClient.CMD_PICKAT_ACTION,
                 data: e_orig
