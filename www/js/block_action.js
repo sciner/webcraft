@@ -11,6 +11,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         error:              null,
         chat_message:       null,
         create_chest:       null,
+        delete_chest:       null,
         play_sound:         null,
         load_chest:         null,
         open_window:        null,
@@ -35,6 +36,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let entity_id       = world_block.entity_id;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
+    // Edit trapdoor
     if(isEditTrapdoor) {
         // Trapdoor
         if(!extra_data) {
@@ -49,15 +51,26 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         resp.reset_target_pos = true;
         resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+    // Destroy
     } else if(destroyBlock) {
-        // Destroy block
-        if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
-            resp.blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+        let can_destroy = true;
+        if(world_block.extra_data && 'can_destroy' in world_block.extra_data) {
+            can_destroy = world_block.extra_data.can_destroy;
         }
+        if(can_destroy) {
+            if(world_block.id == BLOCK.CHEST.id) {
+                resp.delete_chest = {pos: pos, entity_id: world_block.entity_id};
+            }
+            if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
+                resp.blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+            }
+        }
+    // Clone
     } else if(cloneBlock) {
         if(world_material && e.number == 1) {
             resp.clone_block = true;
         }
+    // Create
     } else if(createBlock) {
         // 1. Если ткнули на предмет с собственным окном
         if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
@@ -235,7 +248,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             // 4. Если на этом месте есть сущность, тогда запретить ставить что-то на это место
             let blockKey = new Vector(pos).toHash();
             if('entities' in world) {
-                const existing_item = world.entities.getEntityByPos(pos);
+                const existing_item = world.chests.getOnPos(pos);
                 if (existing_item) {
                     let restore_item = true;
                     switch (existing_item.type) {
@@ -245,7 +258,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 new_item = existing_item.entity.item;
                             } else {
                                 restore_item = false;
-                                world.entities.delete(existing_item.entity.item.entity_id, pos);
+                                world.chests.delete(existing_item.entity.item.entity_id, pos);
                             }
                             break;
                         }

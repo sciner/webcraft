@@ -104,7 +104,7 @@ export default class ChestWindow extends Window {
             let item = chest.slots[k];
             let block = {...BLOCK.fromId(item.id)};
             block = Object.assign(block, item);
-            this.chest.slots[k].setItem(block);
+            this.chest.slots[k].setItem(block, true);
         }
     }
     
@@ -149,13 +149,15 @@ export default class ChestWindow extends Window {
             }
             // Перехват установки содержимого
             lblSlot.setItemOriginal = lblSlot.setItem;
-            lblSlot.setItem = function(e) {
+            lblSlot.setItem = function(e, no_send_to_server) {
                 // не разрешаем ничего делать, если сундук еще не загрузился
                 if(this.parent.parent.loading) {
                     return;
                 }
                 this.setItemOriginal(e);
-                ct.SendChestSlotItem(this.index, this.getItem());
+                if(!no_send_to_server) {
+                    ct.SendChestSlotItem(this.index, this.getItem());
+                }
             }
             // Перехват бросания на слот
             lblSlot.onDropOriginal = lblSlot.onDrop;

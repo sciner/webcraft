@@ -73,7 +73,7 @@ export class BLOCK {
         return index;
     }
 
-    // convertItemToInventoryItem...
+    // Return new simplified item
     static convertItemToInventoryItem(item) {
         if(!item || !('id' in item)) {
             return null;

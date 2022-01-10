@@ -186,7 +186,22 @@ export class ServerPlayer extends Player {
 
                 // Request chest content
                 case ServerClient.CMD_LOAD_CHEST: {
-                    await this.world.entities.loadChest(this, cmd.data);
+                    const chest = this.world.chests.get(cmd.data.entity_id);
+                    if(chest) {
+                        await chest.sendContentToPlayers([this]);
+                    } else {
+                        throw `Chest ${cmd.data.entity_id} not found`;
+                    }
+                    break;
+                }
+            
+                case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
+                    const chest = this.world.chests.get(cmd.data.entity_id);
+                    if(chest) {
+                        chest.setSlotItem(this, cmd.data.slot_index, cmd.data.item);
+                    } else {
+                        throw `Chest ${cmd.data.entity_id} not found`;
+                    }
                     break;
                 }
                     
@@ -211,11 +226,6 @@ export class ServerPlayer extends Player {
 
                 case ServerClient.CMD_INVENTORY_SELECT: {
                     this.inventory.setIndexes(cmd.data);
-                    break;
-                }
-            
-                case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
-                    this.world.entities.setChestSlotItem(this, cmd.data);
                     break;
                 }
 
@@ -345,15 +355,6 @@ export class ServerPlayer extends Player {
         let right_hand_material = inventory.items[inventory.current.index];
         this.state.hands.left = makeHand(left_hand_material);
         this.state.hands.right = makeHand(right_hand_material);
-    }
-
-    // Отправка содержимого сундука
-    sendChest(chest) {
-        let packets = [{
-            name: ServerClient.CMD_CHEST_CONTENT,
-            data: chest
-        }];
-        this.sendPackets(packets);
     }
 
     /**

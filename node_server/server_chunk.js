@@ -37,6 +37,15 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_LOADING);
         if(this.world.chunkHasModifiers(this.addr)) {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
+            for(let k of this.modify_list.keys()) {
+                let pos = k.split(',');
+                pos = new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0);
+                // If chest
+                let chest = this.world.chests.getOnPos(pos);
+                if(chest) {
+                    this.modify_list.set(k, chest.entity.item);
+                }
+            }
         }
         this.setState(CHUNK_STATE_LOADED);
         // Send requet to worker for create blocks structure
@@ -255,7 +264,7 @@ export class ServerChunk {
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
                     await this.world.createMob(params);
-                    await this.world.applyActions({blocks: [
+                    await this.world.applyActions(null, {blocks: [
                         {pos: item_pos, item: BLOCK.AIR},
                         {pos: under1.posworld, item: BLOCK.AIR},
                         {pos: under2.posworld, item: BLOCK.AIR}

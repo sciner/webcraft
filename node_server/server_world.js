@@ -1,7 +1,7 @@
 import {Mob} from "./mob.js";
 import {DropItem} from "./drop_item.js";
 import {ServerChat} from "./server_chat.js";
-import {EntityManager} from "./entity_manager.js";
+import {ChestManager} from "./chest_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
 
@@ -13,7 +13,6 @@ import {doBlockAction} from "../www/js/block_action.js";
 
 import {ServerChunkManager} from "./server_chunk_manager.js";
 import config from "./config.js";
-// import {GameMode} from "../www/js/game_mode.js";
 
 export const MAX_BLOCK_PLACE_DIST = 14;
 
@@ -35,7 +34,7 @@ export class ServerWorld {
         const that          = this;
         this.db             = db;
         this.info           = await this.db.getWorld(world_guid);
-        this.entities       = new EntityManager(this);
+        this.chests         = new ChestManager(this);
         this.chat           = new ServerChat(this);
         this.chunks         = new ServerChunkManager(this);
         this.players        = new Map(); // new PlayerManager(this);
@@ -121,8 +120,6 @@ export class ServerWorld {
         for(let [entity_id, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
         }
-        // 5.
-        // this.set_block_queue.run();
     }
 
     save() {
@@ -552,21 +549,24 @@ export class ServerWorld {
     // ]
     async applyActions(server_player, actions) {
         let chunks_packets = new VectorCollector();
-        // 1. chat_message
+        // Send message to chat
         if(actions.chat_message) {
             this.chat.sendMessage(player, actions.chat_message);
         }
-        //
+        // Create chest
         if(actions.create_chest) {
             const params = actions.create_chest;
-            const new_item = params.item;
-            new_item.entity_id = await this.entities.createChest(server_player, params);
-            if (new_item.entity_id) {
-                const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
-                actions.blocks.push(b_params);
-            }
+            const chest = await this.chests.create(server_player, params);
+            const new_item = chest.item;
+            const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
+            actions.blocks.push(b_params);
         }
-        // 2. change blocks
+        // Delete chest
+        if(actions.delete_chest) {
+            const params = actions.delete_chest;
+            await this.chests.delete(params.entity_id, params.pos);
+        }
+        // Modify blocks
         for(let params of actions.blocks) {
             params.item = BLOCK.convertItemToInventoryItem(params.item);
             let chunk_addr = getChunkAddr(params.pos);

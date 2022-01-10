@@ -395,9 +395,9 @@ export class DBWorld {
     }
 
     // Load world chests
-    async loadWorldChests(world) {
+    async loadChests(world) {
         let resp = {
-            chests: new Map(),
+            list: new Map(),
             blocks: new VectorCollector() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
         };
         let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest WHERE is_deleted = 0');
@@ -407,18 +407,24 @@ export class DBWorld {
                 id:   row.entity_id,
                 type: 'chest'
             };
-            // Block item
-            let bi = JSON.parse(row.item);
             // slots
             let slots = JSON.parse(row.slots);
+            // Block item
+            let bi = JSON.parse(row.item);
+            if(!('extra_data' in bi)) {
+                bi.extra_data = {};
+            }
+            bi.extra_data.can_destroy = Object.entries(slots).length == 0;
             // chest
             let chest = new Chest(
+                world,
+                new Vector(row.x, row.y, row.z),
                 row.user_id,
                 new Date(row.dt * 1000).toISOString(),
                 bi,
                 slots
             );
-            resp.chests.set(row.entity_id, chest);
+            resp.list.set(row.entity_id, chest);
             resp.blocks.set(new Vector(row.x, row.y, row.z), entity_block);
         }
         return resp;
