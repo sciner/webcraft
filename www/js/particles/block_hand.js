@@ -13,17 +13,20 @@ const tmpMatrix = mat4.create();
  */
 export class Particle_Hand {
 
-    static getSkinImage(id) {
-        if (id in Resources.models['player:steve'].skins) {
+    static async getSkinImage(id) {
+        const stiveData = Resources.models['player:steve'];
+        const alexData = Resources.models['player:alex'];
+
+        if (id in stiveData.skins) {
             return  {
-                image:  Resources.models['player:steve'].skins[id],
+                image:  await (await Resources.getModelAsset('player:steve')).getSkin(id),
                 stive: true,
             };
         }
 
-        if (id in Resources.models['player:alex'].skins) {
+        if (id in alexData.skins) {
             return  {
-                image :Resources.models['player:alex'].skins[id],
+                image: await (await Resources.getModelAsset('player:alex')).getSkin(id),
                 stive: false,
             }
         }
@@ -39,7 +42,29 @@ export class Particle_Hand {
      */
     constructor(skinId, render, left = false) {
 
-        const { image, stive } = Particle_Hand.getSkinImage(skinId);
+        this.texture = null;
+
+        this.isLeft = left;
+
+        this.material = null;
+
+        this.modelMatrix = mat4.create();
+        
+        this.pos = new Vector(0, 0, 0);
+
+        this.buffer = null;
+
+        mat4.scale(this.modelMatrix, this.modelMatrix, [1.5,1.5,1.5])
+        mat4.rotateX(this.modelMatrix, this.modelMatrix, Math.PI / 2);
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, Math.PI);
+        
+        this.init(skinId, render);
+    }
+
+    async init(skinId, render) {
+        
+        const { image, stive } = await Particle_Hand.getSkinImage(skinId);
+
         this.texture = render.renderBackend.createTexture({
             source:  image,
             minFilter: 'nearest',
@@ -47,17 +72,12 @@ export class Particle_Hand {
             shared: true
         });
 
-        this.isLeft = left;
-
         this.material = render.defaultShader.materials.doubleface_transparent.getSubMat(this.texture);
         
-        this.modelMatrix = mat4.create();
-        
-        this.pos = new Vector(0, 0, 0);
         const handData = {
             origin: [-2, 0, 2],
             size: [stive ? 4 : 3, 12, 4],
-            uv: left ? [32, 48] : [40, 16],
+            uv: this.isLeft ? [32, 48] : [40, 16],
             rotation: [0, 0, 0]
         };
 
@@ -73,7 +93,7 @@ export class Particle_Hand {
                     },
                     {
                         ...handData,
-                        uv: left ? [48, 48] : [40, 32],
+                        uv: this.isLeft ? [48, 48] : [40, 32],
                         inflate: 0.25,
                     },
                 ]
@@ -83,11 +103,6 @@ export class Particle_Hand {
                 texture_height: image.height,
             }
         );
-
-        mat4.scale(this.modelMatrix, this.modelMatrix, [1.5,1.5,1.5])
-        mat4.rotateX(this.modelMatrix, this.modelMatrix, Math.PI / 2);
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, Math.PI);
-        
     }
 
     /**
@@ -98,6 +113,10 @@ export class Particle_Hand {
      * @param {mat4} prePendMatrix 
      */
     drawDirectly(render, prePendMatrix = null) {
+        if (!this.buffer || !this.material) {
+            return;
+        }
+
         if (prePendMatrix) {
             mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
         }

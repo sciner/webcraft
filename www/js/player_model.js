@@ -167,12 +167,14 @@ export class PlayerModel extends MobModel {
         return this.username == Game.App.session.username;
     }
 
-    lazyInit(render) {
-        if (this.initialised) {
+    postLoad(render, tree) {
+        super.postLoad(tree);
+        
+        tree.scale.set([0.9, 0.9, 0.9]);
+        
+        if (this.nametag || !this.sceneTree) {
             return;
         }
-
-        super.lazyInit(render);
 
         this.textCanvas                 = document.createElement('canvas');
         this.textCanvas.width           = 256;
@@ -193,11 +195,6 @@ export class PlayerModel extends MobModel {
             .pivot[2] + 0.5;
         
         this.nametag.updateMatrix();
-    }
-
-    postLoad(tree) {
-        super.postLoad(tree);
-        tree.scale.set([0.9, 0.9, 0.9]);
 
         this.changeSlots(this.activeSlotsData);
     }
@@ -206,6 +203,10 @@ export class PlayerModel extends MobModel {
         super.update(render, camPos, delta);
 
         if (!this.isRenderable) {
+            return;
+        }
+
+        if (!this.nametag) {
             return;
         }
 

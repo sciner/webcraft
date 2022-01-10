@@ -3,6 +3,26 @@ import { Helpers } from "./helpers.js";
 
 export class Resources {
 
+    static async getModelAsset(key) {
+        if (!this.models[key]) {
+            return;
+        }
+
+        const entry = this.models[key];
+
+        if (entry.asset) {
+            return entry.asset;
+        }
+
+        let asset;
+
+        if (entry.type == 'json') {
+            asset = Resources.loadJsonModel(entry, key, entry.baseUrl);
+        }
+
+        return entry.asset = asset;
+    }
+
     static onLoading = (state) => {};
 
     /**
@@ -227,41 +247,39 @@ export class Resources {
         return data;
     }
 
-    static async loadJsonModel(entry, key, baseUrl) {
-        const json = await Resources.loadTextFile(baseUrl + entry.geom, true);
-        const keys = Object.keys(entry.skins);
-        const skins = [];
-        json.type = entry.type;
-        json.source = entry;
-        json.key = key;
-        json.skins = {};
-        for(let key of keys) {
-            skins.push(
-                Resources
-                .loadImage(baseUrl + entry.skins[key], !!self.createImageBitmap)
-                .then((image) => {
-                    json.skins[key] = image;
-                })
-            )
+    static async loadJsonModel(dataModel, key, baseUrl) {
+        const asset = await Resources.loadTextFile(baseUrl + dataModel.geom, true);
+    
+        asset.type = dataModel.type;
+        asset.source = dataModel;
+        asset.key = key;
+        asset.skins = Object.fromEntries(Object.entries(dataModel.skins).map((e) => [e[0], null]));
+
+        asset.getSkin = async (id) => {
+            if (!dataModel.skins[id]) {
+                return null;
+            }
+
+            if (asset.skins[id]) {
+                return asset.skins[id];
+            }
+
+            const image = Resources
+                .loadImage(baseUrl + dataModel.skins[id], !!self.createImageBitmap)
+
+            return asset.skins[id] = image;
         }
-        await Promise.all(skins);
-        return json;
+    
+        return asset;
     }
 
     static async loadJsonDatabase(url, baseUrl) {
         const base = await Resources.loadTextFile(url, true);
-        const process = [];
+        base.baseUrl = baseUrl;
+
         for(let key in base.assets) {
-            const entry = base.assets[key];
-            if (entry.type == 'json') {
-                process.push(
-                    Resources.loadJsonModel(entry, key, baseUrl).then((entry) => {
-                        base.assets[entry.key] = entry;
-                    })
-                )
-            }
+            base.assets[key].baseUrl = baseUrl;
         }
-        await Promise.all(process);
         return base;
     }
 

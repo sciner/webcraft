@@ -35,10 +35,17 @@ export class ResourcePackManager {
                 }
             }
         }
+
+        const pendings = [];
+
         // Load Resourse packs (blocks)
         for(let rp of resource_packs.values()) {
-            await this.registerResourcePack(rp);
+            this.list.set(rp.id, rp);
+
+            pendings.push(rp.init(this));
         }
+
+       await Promise.all(pendings);
     }
 
     get(id) {

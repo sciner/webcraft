@@ -20,16 +20,16 @@ export class BaseResourcePack {
 
         let dir = this.dir;
 
-        //
-        this.conf = await Helpers.fetchJSON(dir + '/conf.json');
+        return Promise.all([
+            Helpers.fetchJSON(dir + '/conf.json'),
+            Helpers.fetchJSON(dir + '/blocks.json')
+        ]).then(([conf, json]) => {
+            this.conf = conf;
 
-        //
-        const json = await Helpers.fetchJSON(dir + '/blocks.json');
-
-        json.forEach(b => {
-            BLOCK.add(this, b)
-        });
-
+            json.forEach(b => {
+                BLOCK.add(this, b)
+            });    
+        })
     }
 
     async initShaders(renderBackend, shared = false) {
