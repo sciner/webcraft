@@ -377,7 +377,7 @@ export class MobModel extends NetworkPhysicObject {
             .loadModel(render)
             .then(()=>{
                 this.initialised = true;
-                this.postLoad(this.sceneTree);
+                this.postLoad(render, this.sceneTree);
             });
     }
 
@@ -514,10 +514,10 @@ export class MobModel extends NetworkPhysicObject {
     }
 
     /**
-     * 
+     * @param {Renderer} render
      * @param {SceneNode} tree 
      */
-    postLoad(tree) {
+    postLoad(render, tree) {
         if (!tree) {
             return;
         }

@@ -173,7 +173,7 @@ export class PlayerModel extends MobModel {
         }
     }
 
-    postLoad(tree) {
+    postLoad(render, tree) {
         super.postLoad(tree);
         
         tree.scale.set([0.9, 0.9, 0.9]);
