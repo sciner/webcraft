@@ -393,7 +393,7 @@ export class ChunkManager {
             extra_data: extra_data ? extra_data : null
         };
         if(is_modify) {
-            // @server Отправляем на сервер инфу об установке блока
+            /*// @server Отправляем на сервер инфу об установке блока
             this.world.server.Send({
                 name: ServerClient.CMD_BLOCK_SET,
                 data: {
@@ -401,7 +401,7 @@ export class ChunkManager {
                     item: item,
                     action_id: action_id
                 }
-            });
+            });*/
             let material = BLOCK.fromId(item.id);
             if(material.spawn_egg) {
                 return;

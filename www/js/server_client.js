@@ -42,6 +42,7 @@ export class ServerClient {
 	static CMD_GAMEMODE_SET             = 81;
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
+	static CMD_PICKAT_ACTION            = 88;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;

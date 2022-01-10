@@ -457,11 +457,11 @@
     },
     {
         "id": 13,
+        "name": "IRON",
         "texture": [
             6,
             1
         ],
-        "name": "IRON",
         "destroy_time": 0.4
     },
     {
@@ -753,74 +753,74 @@
     },
     {
         "id": 450,
+        "name": "TERRACOTTA_BLACK",
         "texture": [
             0,
             19
         ],
-        "name": "TERRACOTTA_BLACK",
         "destroy_time": 0.4
     },
     {
         "id": 451,
+        "name": "TERRACOTTA_BLUE",
         "texture": [
             1,
             19
         ],
-        "name": "TERRACOTTA_BLUE",
         "destroy_time": 0.4
     },
     {
         "id": 452,
+        "name": "TERRACOTTA_BROWN",
         "texture": [
             2,
             19
         ],
-        "name": "TERRACOTTA_BROWN",
         "destroy_time": 0.4
     },
     {
         "id": 453,
+        "name": "TERRACOTTA_CYAN",
         "texture": [
             3,
             19
         ],
-        "name": "TERRACOTTA_CYAN",
         "destroy_time": 0.4
     },
     {
         "id": 454,
+        "name": "TERRACOTTA_GRAY",
         "texture": [
             4,
             19
         ],
-        "name": "TERRACOTTA_GRAY",
         "destroy_time": 0.4
     },
     {
         "id": 455,
+        "name": "TERRACOTTA_GREEN",
         "texture": [
             5,
             19
         ],
-        "name": "TERRACOTTA_GREEN",
         "destroy_time": 0.4
     },
     {
         "id": 503,
+        "name": "TERRACOTTA_RED",
         "texture": [
             6,
             19
         ],
-        "name": "TERRACOTTA_RED",
         "destroy_time": 0.4
     },
     {
         "id": 507,
+        "name": "TERRACOTTA_YELLOW",
         "texture": [
             7,
             19
         ],
-        "name": "TERRACOTTA_YELLOW",
         "destroy_time": 0.4
     },
     {
@@ -1051,6 +1051,7 @@
     },
     {
         "id": 48,
+        "name": "MOSS_STONE",
         "sound": "madcraft:block.stone",
         "tags": [
             "stone"
@@ -1059,7 +1060,6 @@
             4,
             2
         ],
-        "name": "MOSS_STONE",
         "destroy_time": 7
     },
     {
@@ -1210,11 +1210,11 @@
     },
     {
         "id": 82,
+        "name": "CLAY",
         "texture": [
             8,
             4
         ],
-        "name": "CLAY",
         "destroy_time": 0.4
     },
     {
@@ -1312,12 +1312,12 @@
     },
     {
         "id": 88,
+        "name": "SOUL_SAND",
         "gravity": true,
         "texture": [
             8,
             6
         ],
-        "name": "SOUL_SAND",
         "destroy_time": 0.4
     },
     {
@@ -1868,12 +1868,12 @@
     },
     {
         "id": 139,
+        "name": "COBBLESTONE_WALL",
         "sound": "madcraft:block.stone",
         "texture": [
             0,
             1
         ],
-        "name": "COBBLESTONE_WALL",
         "destroy_time": 7
     },
     {
@@ -2023,6 +2023,7 @@
     },
     {
         "id": 466,
+        "name": "PODZOL",
         "sound": "madcraft:block.gravel",
         "texture": {
             "up": [
@@ -2038,7 +2039,6 @@
                 1
             ]
         },
-        "name": "PODZOL",
         "destroy_time": 2
     },
     {
@@ -2309,6 +2309,7 @@
     },
     {
         "id": 33,
+        "name": "PISTON",
         "texture": {
             "up": [
                 11,
@@ -2323,7 +2324,6 @@
                 6
             ]
         },
-        "name": "PISTON",
         "destroy_time": 0.4
     },
     {
@@ -2512,6 +2512,7 @@
     },
     {
         "id": 84,
+        "name": "JUKEBOX",
         "texture": {
             "up": [
                 11,
@@ -2522,7 +2523,6 @@
                 4
             ]
         },
-        "name": "JUKEBOX",
         "destroy_time": 0.4
     },
     {
@@ -2750,7 +2750,8 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4
+        "destroy_time": 0.4,
+        "can_rotate": true
     },
     {
         "id": 86,

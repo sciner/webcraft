@@ -23,6 +23,7 @@ export class NetworkMessage {
 export class ServerPlayer extends Player {
 
     #forward;
+    #_rotateDegree;
 
     constructor() {
         super();
@@ -30,6 +31,7 @@ export class ServerPlayer extends Player {
         this.chunk_addr         = new Vector(0, 0, 0);
         this.chunk_addr_o       = new Vector(0, 0, 0);
         this._eye_pos           = new Vector(0, 0, 0);
+        this.#_rotateDegree     = new Vector(0, 0, 0);
         this.chunks             = new VectorCollector();
         this.nearby_chunk_addrs = new VectorCollector();
         this.height             = PLAYER_HEIGHT;
@@ -77,7 +79,7 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: 'Welcome to MadCraft ver. 0.0.3'
+            data: `Welcome to MadCraft ver. 0.0.3 (${world.info.guid})`
         }]);
         this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
     }
@@ -197,8 +199,13 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
-                case ServerClient.CMD_BLOCK_SET: {
+                /*case ServerClient.CMD_BLOCK_SET: {
                     await this.world.setBlock(this, cmd.data);
+                    break;
+                }*/
+
+                case ServerClient.CMD_PICKAT_ACTION: {
+                    await this.world.pickAtAction(this, cmd.data);
                     break;
                 }
 
@@ -255,10 +262,11 @@ export class ServerPlayer extends Player {
                         throw 'error_invalid_block_position';
                     }
                     const block = chunk.getBlock(pos);
-                    if(block.id < 1) {
-                        throw 'error_block_not_support_clone';
+                    if(block.id < 2) {
+                        // throw 'error_block_not_support_clone';
+                    } else {
+                        this.inventory.cloneMaterial(block.material);
                     }
-                    this.inventory.cloneMaterial(block.material);
                     break;
                 }
 
@@ -353,6 +361,15 @@ export class ServerPlayer extends Player {
      */
     addChunk(chunk) {
         this.chunks.set(chunk.addr, chunk.addr);
+    }
+
+    get rotateDegree() {
+        // Rad to degree
+        return this.#_rotateDegree.set(
+            (this.state.rotate.x / Math.PI) * 180,
+            (this.state.rotate.y - Math.PI) * 180 % 360,
+            (this.state.rotate.z / (Math.PI * 2) * 360 + 180) % 360
+        );
     }
 
     get forward() {

@@ -323,6 +323,7 @@ export class BLOCK {
         block.planting          = block?.style == 'planting';
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
+        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs'].indexOf(x) >= 0).length > 0;
         // Set default properties
         let default_properties = {
             light:              null,

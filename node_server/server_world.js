@@ -9,6 +9,7 @@ import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 import {BLOCK} from "../www/js/blocks.js";
+import {doBlockAction} from "../www/js/block_action.js";
 
 import {ServerChunkManager} from "./server_chunk_manager.js";
 import config from "./config.js";
@@ -417,6 +418,130 @@ export class ServerWorld {
         }
     }
 
+    // Create entity
+    async createEntity(player, params) {
+        // @ParamBlockSet
+        let addr = getChunkAddr(params.pos);
+        let chunk = this.chunks.get(addr);
+        if(chunk) {
+            await chunk.doBlockAction(player, params, false, false, true);
+            await this.db.blockSet(this, player, params);
+            this.chunkBecameModified(addr);
+        } else {
+            console.log('createEntity: Chunk not found', addr);
+        }
+    }
+
+    /**
+     * @return {ServerChunkManager}
+     */
+    get chunkManager() {
+        return this.chunks;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    async pickAtAction(server_player, params) {
+        const currentInventoryItem = server_player.inventory.current_item;
+        const player = {
+            radius:     0.7,
+            height:     server_player.height,
+            pos:        new Vector(server_player.state.pos),
+            rotate:     server_player.rotateDegree.clone()
+        };
+        const actions = await doBlockAction(params, this, player, currentInventoryItem);
+        await this.applyActions(server_player, actions);
+        return actions;
+    }
+
+    /*
+    //
+    async blockAction(player, params, notify_author) {
+        // Check action
+        switch(params.action_id) {
+            case ServerClient.BLOCK_ACTION_DESTROY: {
+                // 1. Drop block if need
+                if(player.game_mode.isSurvival()) {
+                    const item = this.getBlockAsItem(params.pos);
+                    let mat = BLOCK.fromId(item.id);
+                    if(mat.spawnable && mat.tags.indexOf('no_drop') < 0) {
+                        item.count = 1;
+                        this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
+                    }
+                }
+                // Destroyed block
+                const pos = new Vector(params.pos);
+                let block = this.world.getBlock(pos);
+                //
+                let actions = await this.doBlockAction(player, params, notify_author, true, false);
+                //
+                const blocks_for_destroy = [block];
+                //
+                // 2. destroy plants over this block
+                let block_under = this.world.getBlock(pos.add(Vector.YP));
+                if(BLOCK.isPlants(block_under.id)) {
+                    blocks_for_destroy.push(block_under);
+                    actions.blocks.push({pos: block_under.posworld, item: {id: BLOCK.AIR.id}});
+                }
+                // 3. Destroy connected blocks
+                for(let bfd of blocks_for_destroy) {
+                    for(let cn of ['next_part', 'previous_part']) {
+                        let part = bfd.material[cn];
+                        if(part) {
+                            let connected_pos = bfd.posworld.add(part.offset_pos);
+                            let block_connected = this.world.getBlock(connected_pos);
+                            if(block_connected.id == part.id) {
+                                actions.blocks.push({pos: connected_pos, item: {id: BLOCK.AIR.id}});
+                            }
+                        }
+                    }
+                }
+                await this.world.applyActions(actions);
+                break;
+            }
+            default: {
+                return await this.doBlockAction(player, params, notify_author, false, true);
+                break;
+            }
+        }
+    }*/
+
     // setBlocksApply
     // @example:
     // [
@@ -425,15 +550,30 @@ export class ServerWorld {
     //          "item": {"id": 2}
     //      }
     // ]
-    async setBlocksApply(blocks) {
+    async applyActions(server_player, actions) {
         let chunks_packets = new VectorCollector();
-        for(let params of blocks) {
+        // 1. chat_message
+        if(actions.chat_message) {
+            this.chat.sendMessage(player, actions.chat_message);
+        }
+        //
+        if(actions.create_chest) {
+            const params = actions.create_chest;
+            const new_item = params.item;
+            new_item.entity_id = await this.entities.createChest(server_player, params);
+            if (new_item.entity_id) {
+                const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
+                actions.blocks.push(b_params);
+            }
+        }
+        // 2. change blocks
+        for(let params of actions.blocks) {
             params.item = BLOCK.convertItemToInventoryItem(params.item);
             let chunk_addr = getChunkAddr(params.pos);
             let chunk = this.chunks.get(chunk_addr);
             if(chunk) {
                 await this.db.blockSet(this, null, params);
-                const block_pos = params.pos.floored();
+                const block_pos = new Vector(params.pos).floored();
                 const block_pos_in_chunk = block_pos.sub(chunk.coord);
                 let cps = chunks_packets.get(chunk_addr);
                 if(!cps) {
@@ -480,27 +620,6 @@ export class ServerWorld {
             let packets = cp.packets;
             cp.chunk.sendAll(packets, []);
         }
-    }
-
-    // Create entity
-    async createEntity(player, params) {
-        // @ParamBlockSet
-        let addr = getChunkAddr(params.pos);
-        let chunk = this.chunks.get(addr);
-        if(chunk) {
-            await chunk.blockSet(player, params, true);
-            await this.db.blockSet(this, player, params);
-            this.chunkBecameModified(addr);
-        } else {
-            console.log('createEntity: Chunk not found', addr);
-        }
-    }
-
-    /**
-     * @return {ServerChunkManager}
-     */
-    get chunkManager() {
-        return this.chunks;
     }
 
 }

@@ -74,8 +74,8 @@ export class Player {
         this.inventory.setState(data.inventory);
         Game.hotbar.setInventory(this.inventory);
         // pickAt
-        this.pickAt                 = new PickAt(this.world, Game.render, (...args) => {
-            return this.onPickAtTarget(...args);
+        this.pickAt                 = new PickAt(this.world, Game.render, async (...args) => {
+            return await this.onPickAtTarget(...args);
         });
         // Player control
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
@@ -206,7 +206,8 @@ export class Player {
     }
 
     // onPickAtTarget
-    onPickAtTarget(e, times, number) {
+    async onPickAtTarget(e, times, number) {
+
         this.inMiningProcess = true;
 
         let bPos = e.pos;
@@ -242,14 +243,15 @@ export class Player {
         }
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
+            const e_orig = JSON.parse(JSON.stringify(e));
             const world = this.world;
             const player = {
                 radius: 0.7,
                 height: this.height,
                 pos: this.lerpPos,
                 rotate: this.rotateDegree.clone()
-            }
-            let actions = doBlockAction(e, this.world, player, this.currentInventoryItem);
+            };
+            let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
             if(actions.open_window) {
                 Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
             }
@@ -289,6 +291,11 @@ export class Player {
                     }
                 }
             }
+            // @server Отправляем на сервер инфу об установке блока
+            this.world.server.Send({
+                name: ServerClient.CMD_PICKAT_ACTION,
+                data: e_orig
+            });
         }
         return true;
     }
@@ -379,8 +386,8 @@ export class Player {
             if (!this.overChunk) {
                 // some kind of race F8+R
                 const blockPos = this.getBlockPos();
-                this.chunkAddr          = getChunkAddr(blockPos.x, blockPos.y, blockPos.z);
-                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
+                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z);
+                this.overChunk = Game.world.chunkManager.getChunk(this.chunkAddr);
             }
             if(!this.overChunk?.inited) {
                 return;

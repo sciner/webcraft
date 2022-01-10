@@ -61,11 +61,10 @@ export class EntityManager {
 
     /**
      * Create chest 
-     * @param {*} world 
      * @param {*} player 
      * @param {ParamBlockSet} params 
      */
-    async createChest(world, player, params) {
+    async createChest(player, params) {
         if(this.blocks.has(params.pos)) {
             throw 'error_block_occupied_by_another_entity';
         }
