@@ -119,6 +119,7 @@ export class PickAt {
         let damage_block = this.damage_block;
         target_block.visible = !!bPos;
         if(bPos) {
+            damage_block.pos = bPos;
             // Check if pick-at block changed
             let tbp = target_block.pos;
             if(!tbp || (tbp.x != bPos.x || tbp.y != bPos.y || tbp.z != bPos.z)) {
