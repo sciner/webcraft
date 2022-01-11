@@ -93,6 +93,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 const block = world.getBlock(pos);
                 const blocks_for_destroy = [block];
                 pushDestroyBlock(block);
+                //
+                resp.decrement = {id: block.id};
                 // Destroyed block
                 pos = new Vector(pos);
                 // 2. destroy plants over this block
@@ -249,13 +251,16 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         // 12. Запрет на списание инструментов как блоков
         if(matBlock.instrument_id) {
-            if(matBlock.instrument_id == 'shovel') {
-                if(world_material.id == BLOCK.DIRT.id) {
-                    const extra_data = null;
-                    pos.x -= pos.n.x;
-                    pos.y -= pos.n.y;
-                    pos.z -= pos.n.z;
-                    resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+            switch(matBlock.instrument_id) {
+                case 'shovel': {
+                    if(world_material.id == BLOCK.DIRT.id) {
+                        const extra_data = null;
+                        pos.x -= pos.n.x;
+                        pos.y -= pos.n.y;
+                        pos.z -= pos.n.z;
+                        resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                    }
+                    break;
                 }
             }
         } else if(matBlock.tags.indexOf('bucket') >= 0) {

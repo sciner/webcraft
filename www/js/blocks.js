@@ -40,6 +40,12 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
 
+class Block {
+
+    constructor() {}
+
+}
+
 class Block_Material {
 
     static materials = {

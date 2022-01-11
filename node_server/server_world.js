@@ -478,7 +478,7 @@ export class ServerWorld {
         }
         // Decrement item
         if(actions.decrement) {
-            server_player.inventory.decrement();
+            server_player.inventory.decrement(actions.decrement);
         }
         // Create drop items
         if(actions.drop_items.length > 0) {

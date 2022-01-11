@@ -121,20 +121,28 @@ export class PlayerInventory {
     }
     
     // Decrement
-    decrement() {
+    decrement(mining_block) {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
         }
-        this.current_item.count = Math.max(this.current_item.count - 1, 0);
-        if(this.current_item.count < 1) {
-            let matBlock = BLOCK.fromId(this.current_item.id);
-            if(matBlock.tags.indexOf('bucket') >= 0) {
-                if(matBlock.emit_on_set) {
-                    const emptyBucket = BLOCK.BUCKET_EMPTY;
-                    this.items[this.current.index] = {id: emptyBucket.id, count: 1};
-                }
-            } else {
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        if(current_item_material.instrument_id) {
+            this.current_item.power = Math.max(this.current_item.power - .01, 0);
+            if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
+            }
+        } else {
+            this.current_item.count = Math.max(this.current_item.count - 1, 0);
+            if(this.current_item.count < 1) {
+                let matBlock = BLOCK.fromId(this.current_item.id);
+                if(matBlock.tags.indexOf('bucket') >= 0) {
+                    if(matBlock.emit_on_set) {
+                        const emptyBucket = BLOCK.BUCKET_EMPTY;
+                        this.items[this.current.index] = {id: emptyBucket.id, count: 1};
+                    }
+                } else {
+                    this.items[this.current.index] = null;
+                }
             }
         }
         this.refresh(true);
