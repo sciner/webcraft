@@ -436,44 +436,6 @@ export class ServerWorld {
         return this.chunks;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     async pickAtAction(server_player, params) {
         const currentInventoryItem = server_player.inventory.current_item;
         const player = {
@@ -486,58 +448,6 @@ export class ServerWorld {
         await this.applyActions(server_player, actions);
         return actions;
     }
-
-    /*
-    //
-    async blockAction(player, params, notify_author) {
-        // Check action
-        switch(params.action_id) {
-            case ServerClient.BLOCK_ACTION_DESTROY: {
-                // 1. Drop block if need
-                if(player.game_mode.isSurvival()) {
-                    const item = this.getBlockAsItem(params.pos);
-                    let mat = BLOCK.fromId(item.id);
-                    if(mat.spawnable && mat.tags.indexOf('no_drop') < 0) {
-                        item.count = 1;
-                        this.world.createDropItems(player, new Vector(params.pos).add(new Vector(.5, 0, .5)), [item]);
-                    }
-                }
-                // Destroyed block
-                const pos = new Vector(params.pos);
-                let block = this.world.getBlock(pos);
-                //
-                let actions = await this.doBlockAction(player, params, notify_author, true, false);
-                //
-                const blocks_for_destroy = [block];
-                //
-                // 2. destroy plants over this block
-                let block_under = this.world.getBlock(pos.add(Vector.YP));
-                if(BLOCK.isPlants(block_under.id)) {
-                    blocks_for_destroy.push(block_under);
-                    actions.blocks.push({pos: block_under.posworld, item: {id: BLOCK.AIR.id}});
-                }
-                // 3. Destroy connected blocks
-                for(let bfd of blocks_for_destroy) {
-                    for(let cn of ['next_part', 'previous_part']) {
-                        let part = bfd.material[cn];
-                        if(part) {
-                            let connected_pos = bfd.posworld.add(part.offset_pos);
-                            let block_connected = this.world.getBlock(connected_pos);
-                            if(block_connected.id == part.id) {
-                                actions.blocks.push({pos: connected_pos, item: {id: BLOCK.AIR.id}});
-                            }
-                        }
-                    }
-                }
-                await this.world.applyActions(actions);
-                break;
-            }
-            default: {
-                return await this.doBlockAction(player, params, notify_author, false, true);
-                break;
-            }
-        }
-    }*/
 
     // setBlocksApply
     // @example:
@@ -565,6 +475,18 @@ export class ServerWorld {
         if(actions.delete_chest) {
             const params = actions.delete_chest;
             await this.chests.delete(params.entity_id, params.pos);
+        }
+        // Decrement item
+        if(actions.decrement) {
+            server_player.inventory.decrement();
+        }
+        // Create drop items
+        if(actions.drop_items.length > 0) {
+            if(server_player.game_mode.isSurvival()) {
+                for(let di of actions.drop_items) {
+                    this.createDropItems(server_player, di.pos, di.items);
+                }
+            }
         }
         // Modify blocks
         for(let params of actions.blocks) {

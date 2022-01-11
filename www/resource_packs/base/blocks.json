@@ -955,6 +955,9 @@
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 514
         },
+        "tags": [
+            "no_drop"
+        ],
         "destroy_time": 0,
         "planting": true
     },
@@ -993,6 +996,9 @@
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 516
         },
+        "tags": [
+            "no_drop"
+        ],
         "destroy_time": 0,
         "planting": true
     },
@@ -2532,6 +2538,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {
@@ -2570,6 +2577,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {
@@ -2608,6 +2616,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {
@@ -2646,6 +2655,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {
@@ -2684,6 +2694,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {
@@ -2722,6 +2733,7 @@
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
+            "no_drop_ao",
             "trapdoor"
         ],
         "texture": {

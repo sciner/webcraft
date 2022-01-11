@@ -1,4 +1,4 @@
-import {ROTATE, Vector} from "./helpers.js";
+import {ROTATE, Vector, VectorCollector} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {BLOCK} from "./blocks.js";
 import {ServerClient} from "./server_client.js";
@@ -7,6 +7,7 @@ const _createBlockAABB = new AABB();
 
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, currentInventoryItem) {
+    const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
     const resp = {
         error:              null,
         chat_message:       null,
@@ -18,6 +19,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         clone_block:        false,
         reset_target_pos:   false,
         reset_target_event: false,
+        decrement:          false,
+        drop_items:         [],
         blocks:             []
     };
     if(e.pos == false) {
@@ -34,6 +37,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let extra_data      = world_block.extra_data;
     let rotate          = world_block.rotate;
     let entity_id       = world_block.entity_id;
+    //
+    if(!world_material && (cloneBlock || createBlock)) {
+        console.log('empty world_material', world_block.id, pos);
+        return resp;
+    }
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
     // Edit trapdoor
@@ -61,8 +69,50 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(world_block.id == BLOCK.CHEST.id) {
                 resp.delete_chest = {pos: pos, entity_id: world_block.entity_id};
             }
-            if([BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id].indexOf(world_material.id) < 0) {
-                resp.blocks.push({pos: pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+            if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
+                //
+                const cv = new VectorCollector();
+                //
+                const pushDestroyBlock = (block) => {
+                    if(cv.has(block.posworld)) {
+                        return false;
+                    }
+                    cv.add(block.posworld, true);
+                    resp.blocks.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                    // 1. Drop block if need
+                    const isSurvival = true; // player.game_mode.isSurvival()
+                    if(isSurvival) {
+                        if(block.material.spawnable && block.material.tags.indexOf('no_drop') < 0) {
+                            const item = {id: block.id, count: 1};
+                            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                        }
+                    }
+                };
+                //
+                const block = world.getBlock(pos);
+                const blocks_for_destroy = [block];
+                pushDestroyBlock(block);
+                // Destroyed block
+                pos = new Vector(pos);
+                // 2. destroy plants over this block
+                let block_over = world.getBlock(pos.add(Vector.YP));
+                if(BLOCK.isPlants(block_over.id)) {
+                    blocks_for_destroy.push(block_over);
+                    pushDestroyBlock(block_over);
+                }
+                // 3. Destroy connected blocks
+                for(let block of blocks_for_destroy) {
+                    for(let cn of ['next_part', 'previous_part']) {
+                        let part = block.material[cn];
+                        if(part) {
+                            let connected_pos = block.posworld.add(part.offset_pos);
+                            let block_connected = world.getBlock(connected_pos);
+                            if(block_connected.id == part.id) {
+                                pushDestroyBlock(block_connected);
+                            }
+                        }
+                    }
+                }
             }
         }
     // Clone
@@ -104,6 +154,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             pos.y += pos.n.y;
             pos.z += pos.n.z;
             resp.chat_message = {text: "/spawnmob " + (pos.x + ".5 ") + pos.y + " " + (pos.z + ".5 ") + matBlock.spawn_egg.type + " " + matBlock.spawn_egg.skin};
+            resp.decrement = true;
             return resp;
         }
         // 4. Нельзя ничего ставить поверх этого блока
@@ -173,9 +224,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(new_extra_data.height < 1) {
                 resp.reset_target_pos = true;
                 resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.decrement = true;
             } else {
                 resp.reset_target_pos = true;
                 resp.blocks.push({pos: pos, item: {id: BLOCK.SNOW_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                resp.decrement = true;
             }
             return resp;
         }
@@ -208,6 +261,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     const emitBlock = BLOCK.fromName(matBlock.emit_on_set);
                     const extra_data = BLOCK.makeExtraData(emitBlock, pos);
                     resp.blocks.push({pos: pos, item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
+                    resp.decrement = true;
                     if(emitBlock.sound) {
                         resp.play_sound = {tag: emitBlock.sound, action: 'place'};
                     }
@@ -245,64 +299,53 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     new_item[prop] = currentInventoryItem[prop];
                 }
             }
-            // 4. Если на этом месте есть сущность, тогда запретить ставить что-то на это место
-            let blockKey = new Vector(pos).toHash();
-            if('entities' in world) {
-                const existing_item = world.chests.getOnPos(pos);
-                if (existing_item) {
-                    let restore_item = true;
-                    switch (existing_item.type) {
-                        case 'chest': {
-                            let slots = existing_item.entity.slots;
-                            if(slots && Object.keys(slots).length > 0) {
-                                new_item = existing_item.entity.item;
-                            } else {
-                                restore_item = false;
-                                world.chests.delete(existing_item.entity.item.entity_id, pos);
-                            }
-                            break;
-                        }
-                        default: {
-                            // этот случай ошибочный, такого не должно произойти
-                            new_item = world.modify_list.get(blockKey);
-                        }
-                    }
-                    if(restore_item) {
-                        resp.blocks.push({pos: pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                        return resp;
-                    }
-                }
-            }
-            // 9. Create entity
+            // Create entity
             switch(matBlock.id) {
                 case BLOCK.CHEST.id: {
                     new_item.rotate = orientation; // rotate_orig;
                     resp.create_chest = {pos: new Vector(pos), item: new_item};
+                    resp.decrement = true;
                     return resp;
                     break;
                 }
             }
             //
             let extra_data = BLOCK.makeExtraData(matBlock, pos);
+            //
+            const pushBlock = (params) => {
+                resp.blocks.push(params);
+                const block = BLOCK.fromId(params.item.id);
+                if(block.next_part) {
+                    // Если этот блок имеет "пару"
+                    const next_params = JSON.parse(JSON.stringify(params));
+                    next_params.item.id = block.next_part.id;
+                    next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
+                    pushBlock(next_params);
+                }
+            };
+            //
             if(replaceBlock) {
                 // Replace block
                 if(matBlock.is_item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
-                        resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        resp.decrement = true;
                     }
                 } else {
-                    resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                    pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
+                    resp.decrement = true;
                 }
             } else {
                 // Create block
                 // Посадить растения можно только на блок земли
                 let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-                if(BLOCK.isPlants(matBlock.id) && underBlock.id != BLOCK.DIRT.id) {
+                if(BLOCK.isPlants(matBlock.id) && (!underBlock || underBlock.id != BLOCK.DIRT.id)) {
                     return resp;
                 }
                 if(matBlock.is_item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
-                        resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        resp.decrement = true;
                         let b = BLOCK.fromId(matBlock.id);
                         if(b.sound) {
                             resp.play_sound = {tag: b.sound, action: 'place'};
@@ -349,7 +392,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 let cardinal_block = world.getBlock(pos2);
                                 if(cardinal_block.transparent && !(matBlock.tags.indexOf('anycardinal') >= 0)) {
                                     cardinal_direction = cd;
-                                    // rotateDegree.z = (rotateDegree.z + i * 90) % 360;
                                     ok = true;
                                     break;
                                 }
@@ -359,7 +401,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
-                    resp.blocks.push({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    resp.decrement = true;
                 }
             }
         }
