@@ -15,7 +15,7 @@
         "diamond": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 7}},
         "dirt": {"mining": {"time": 2, "instruments": ["shovel"]}},
         "glass": {"mining": {"time": 1, "instruments": []}},
-        "gold": {"mining": {"time": 5, "instruments": ["pickaxe"], "instrument_boost": 3}},
+        "gold": {"mining": {"time": 5, "instruments": ["pickaxe"], "instrument_boost": 8}},
         "ice": {"mining": {"time": 5, "instruments": ["pickaxe"]}},
         "iron": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 5}},
         "lava": {"mining": {"time": -1, "instruments": []}},
