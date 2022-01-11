@@ -131,6 +131,7 @@ export class PlayerInventory {
             if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
             }
+            console.log(this.current_item.power);
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {

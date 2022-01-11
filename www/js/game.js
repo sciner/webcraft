@@ -499,7 +499,15 @@ export class GameClass {
         let instruments = [];
         for(let i of this.block_manager.getAll().values()) {
             if(i.instrument_id) {
-                instruments.push({id: i.id, name: i.name, material: i.material.id, instrument_id: i.instrument_id, instrument_boost: i.material.mining.instrument_boost, texture: JSON.stringify(i.texture)});
+                instruments.push({
+                    id: i.id,
+                    name: i.name,
+                    material: i.material.id,
+                    instrument_id: i.instrument_id,
+                    instrument_boost: i.material.mining.instrument_boost,
+                    power: i.power,
+                    texture: JSON.stringify(i.texture)
+                });
             }
         }
         console.table(instruments);

@@ -102,6 +102,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -123,6 +124,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 3,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -144,6 +146,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -165,6 +168,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 5,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -186,6 +190,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 10,
         "instrument_id": "shovel",
         "tags": [
             "shovel"
@@ -228,6 +233,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "hoe",
         "tags": [
             "hoe"
@@ -249,6 +255,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 3,
         "instrument_id": "hoe",
         "tags": [
             "hoe"
@@ -270,6 +277,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "hoe",
         "tags": [
             "hoe"
@@ -291,6 +299,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 5,
         "instrument_id": "hoe",
         "tags": [
             "hoe"
@@ -312,6 +321,7 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
+        "power": 10,
         "instrument_id": "hoe",
         "tags": [
             "hoe"
@@ -353,6 +363,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -373,6 +384,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "diagonal": true,
+        "power": 3,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -393,6 +405,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "diagonal": true,
+        "power": 2,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -413,6 +426,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "diagonal": true,
+        "power": 5,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -433,6 +447,7 @@
         "max_in_stack": 1,
         "is_item": true,
         "diagonal": true,
+        "power": 10,
         "instrument_id": "axe",
         "tags": [
             "axe"
@@ -473,6 +488,7 @@
         "is_item": true,
         "diagonal": true,
         "style": "extruder",
+        "power": 2,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -493,6 +509,7 @@
         "is_item": true,
         "diagonal": true,
         "style": "extruder",
+        "power": 3,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -513,6 +530,7 @@
         "is_item": true,
         "diagonal": true,
         "style": "extruder",
+        "power": 2,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -533,6 +551,7 @@
         "is_item": true,
         "diagonal": true,
         "style": "extruder",
+        "power": 5,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -553,6 +572,7 @@
         "is_item": true,
         "diagonal": true,
         "style": "extruder",
+        "power": 10,
         "instrument_id": "pickaxe",
         "tags": [
             "pickaxe"
@@ -1383,6 +1403,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             0,
@@ -1399,6 +1420,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             1,
@@ -1415,6 +1437,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             2,
@@ -1431,6 +1454,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             3,
@@ -1447,6 +1471,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             4,
@@ -1463,6 +1488,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "texture": [
             5,
@@ -1507,6 +1533,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "halfs": {"up": 517},
         "texture": [

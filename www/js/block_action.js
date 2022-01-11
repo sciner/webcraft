@@ -259,6 +259,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         pos.y -= pos.n.y;
                         pos.z -= pos.n.z;
                         resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                        resp.decrement = true;
                     }
                     break;
                 }

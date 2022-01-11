@@ -343,7 +343,7 @@ export class BLOCK {
         //
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
-        block.power             = 1;
+        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;
         block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
