@@ -2006,7 +2006,8 @@
             "id": "glass"
         },
         "tags": [
-            "glass"
+            "glass",
+            "no_drop_ao"
         ],
         "texture": [
             1,

@@ -98,6 +98,7 @@
     {"id": 507, "name": "TERRACOTTA_YELLOW"},
 
     {"id": 17, "name": "GLASS"},
+    {"id": 102, "name": "GLASS_PANE"},
     {"id": 470, "name": "BLUE_STAINED_GLASS"},
     {"id": 471, "name": "BLACK_STAINED_GLASS"},
     {"id": 472, "name": "PINK_STAINED_GLASS"},
