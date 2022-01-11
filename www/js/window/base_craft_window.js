@@ -78,7 +78,8 @@ export class CraftTableSlot extends Label {
             ctx.fillText(item.count, x + width, y + height);
         }
         // Draw instrument life
-        if(mat.instrument_id && item.power < 1) {
+        if(mat.instrument_id && item.power < mat.power) {
+            const power_normal = item.power / mat.power;
             let cx = x + 4;
             let cy = y + 3;
             let cw = width - 8;
@@ -86,9 +87,9 @@ export class CraftTableSlot extends Label {
             ctx.fillStyle = '#000000ff';
             ctx.fillRect(cx, cy + ch - 6, cw, 6);
             //
-            let rgb = Helpers.getColorForPercentage(item.power);
+            let rgb = Helpers.getColorForPercentage(power_normal);
             ctx.fillStyle = rgb.toCSS();
-            ctx.fillRect(cx, cy + ch - 6, cw * item.power | 0, 4);
+            ctx.fillRect(cx, cy + ch - 6, cw * power_normal | 0, 4);
         }
     }
 

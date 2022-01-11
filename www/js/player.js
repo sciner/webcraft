@@ -111,7 +111,7 @@ export class Player {
         this.world.server.AddCmdListener([ServerClient.CMD_PLAY_SOUND], (cmd) => {Game.sounds.play(cmd.data.tag, cmd.data.action);});
         this.world.server.AddCmdListener([ServerClient.CMD_GAMEMODE_SET], (cmd) => {
             let pc_previous = this.getPlayerControl();
-            this.game_mode.applyMode(cmd.data.id, false);
+            this.game_mode.applyMode(cmd.data.id, true);
             let pc_current = this.getPlayerControl();
             //
             pc_current.player.entity.velocity   = new Vector(0, 0, 0);

@@ -119,7 +119,8 @@ export class Inventory extends PlayerInventory {
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size - 2);
                 }
                 // Draw instrument life
-                if(mat.instrument_id && item.power < 1) {
+                if(mat.instrument_id && item.power < mat.power) {
+                    const power_normal = item.power / mat.power;
                     let cx = hud_pos.x + 14;
                     let cy = hud_pos.y + 14;
                     let cw = 40;
@@ -127,9 +128,9 @@ export class Inventory extends PlayerInventory {
                     hud.ctx.fillStyle = '#000000ff';
                     hud.ctx.fillRect(cx, cy + ch - 8, cw, 8);
                     //
-                    let rgb = Helpers.getColorForPercentage(item.power);
+                    let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
-                    hud.ctx.fillRect(cx, cy + ch - 8, cw * item.power | 0, 4);
+                    hud.ctx.fillRect(cx, cy + ch - 8, cw * power_normal | 0, 4);
                 }
             }
             hud_pos.x += cell_size;

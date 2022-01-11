@@ -91,7 +91,7 @@ class Block_Material {
         let mining_time = this.mining.time;
         if(force) {
             mining_time = 0;
-        } else if(instrument.material) {
+        } else if(instrument && instrument.material) {
             const instrument_id = instrument.material.instrument_id;
             if(instrument_id) {
                 if(this.mining.instruments.indexOf(instrument_id) >= 0) {
