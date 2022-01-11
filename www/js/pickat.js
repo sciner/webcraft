@@ -162,6 +162,7 @@ export class PickAt {
         if(this.onTarget instanceof Function) {
             // полное копирование, во избежания модификации
             let event = {...damage_block.event};
+            event.id = ~~(Date.now() / 1000);
             event.pos = {...damage_block.pos};
             event.pos.n = event.pos.n.clone();
             event.pos.point = event.pos.point.clone();

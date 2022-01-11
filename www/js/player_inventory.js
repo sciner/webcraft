@@ -128,7 +128,7 @@ export class PlayerInventory {
         this.current_item.count = Math.max(this.current_item.count - 1, 0);
         if(this.current_item.count < 1) {
             let matBlock = BLOCK.fromId(this.current_item.id);
-            if(matBlock.instrument_id == 'bucket') {
+            if(matBlock.tags.indexOf('bucket') >= 0) {
                 if(matBlock.emit_on_set) {
                     const emptyBucket = BLOCK.BUCKET_EMPTY;
                     this.items[this.current.index] = {id: emptyBucket.id, count: 1};

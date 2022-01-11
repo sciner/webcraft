@@ -223,17 +223,17 @@ export class Player {
             }
         // destroyBlock
         } else if(e.destroyBlock) {
-            let world_block     = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
-            let block           = BLOCK.BLOCK_BY_ID.get(world_block.id);
-            let destroy_time    = BLOCK.getDestroyTime(block, this.game_mode.isCreative(), this.getCurrentInstrument());
+            const world_block   = this.world.chunkManager.getBlock(bPos.x, bPos.y, bPos.z);
+            const block         = BLOCK.fromId(world_block.id);
+            const mining_time   = block.material.getMiningTime(this.getCurrentInstrument(), this.game_mode.isCreative());
             if(e.destroyBlock && e.number == 1 || e.number % 10 == 0) {
                 Game.render.destroyBlock(block, bPos, true);
             }
-            if(destroy_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
+            if(mining_time == 0 && e.number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
                 return false;
             }
-            if(times < destroy_time) {
-                this.pickAt.setDamagePercent(bPos, times / destroy_time);
+            if(times < mining_time) {
+                this.pickAt.setDamagePercent(bPos, times / mining_time);
                 return false;
             }
             if(number > 1 && times < CONTINOUS_BLOCK_DESTROY_MIN_TIME) {
@@ -244,7 +244,6 @@ export class Player {
         //
         if(!this.limitBlockActionFrequency(e) && this.game_mode.canBlockAction()) {
             const e_orig = JSON.parse(JSON.stringify(e));
-            const world = this.world;
             const player = {
                 radius: 0.7,
                 height: this.height,
@@ -252,45 +251,7 @@ export class Player {
                 rotate: this.rotateDegree.clone()
             };
             let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
-            if(actions.open_window) {
-                Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
-            }
-            if(actions.error) {
-                console.error(actions.error);
-            }
-            if(actions.load_chest) {
-                Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
-            }
-            if(actions.play_sound) {
-                Game.sounds.play(actions.play_sound.tag, actions.play_sound.action);
-            }
-            if(actions.reset_target_pos) {
-                this.pickAt.resetTargetPos();
-            }
-            if(actions.reset_target_event) {
-                this.pickAt.clearEvent();
-            }
-            if(actions.clone_block && this.game_mode.canBlockClone()) {
-                this.world.server.CloneBlock(e.pos);
-            }
-            for(let mod of actions.blocks) {
-                const pos = mod.pos;
-                const item = mod.item;
-                const rotate = item.rotate;
-                const extra_data = item.extra_data;
-                switch(mod.action_id) {
-                    case ServerClient.BLOCK_ACTION_CREATE:
-                    case ServerClient.BLOCK_ACTION_REPLACE:
-                    case ServerClient.BLOCK_ACTION_MODIFY: {
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                        break;
-                    }
-                    case ServerClient.BLOCK_ACTION_DESTROY: {
-                        world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                        break;
-                    }
-                }
-            }
+            this.applyActions(e, actions);
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
                 name: ServerClient.CMD_PICKAT_ACTION,
@@ -309,6 +270,50 @@ export class Player {
         return resp;
     }
 
+    // Apply pickat actions
+    applyActions(e, actions) {
+        // console.log(actions.id);
+        if(actions.open_window) {
+            Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
+        }
+        if(actions.error) {
+            console.error(actions.error);
+        }
+        if(actions.load_chest) {
+            Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
+        }
+        if(actions.play_sound) {
+            Game.sounds.play(actions.play_sound.tag, actions.play_sound.action);
+        }
+        if(actions.reset_target_pos) {
+            this.pickAt.resetTargetPos();
+        }
+        if(actions.reset_target_event) {
+            this.pickAt.clearEvent();
+        }
+        if(actions.clone_block && this.game_mode.canBlockClone()) {
+            this.world.server.CloneBlock(e.pos);
+        }
+        for(let mod of actions.blocks) {
+            const pos = mod.pos;
+            const item = mod.item;
+            const rotate = item.rotate;
+            const extra_data = item.extra_data;
+            switch(mod.action_id) {
+                case ServerClient.BLOCK_ACTION_CREATE:
+                case ServerClient.BLOCK_ACTION_REPLACE:
+                case ServerClient.BLOCK_ACTION_MODIFY: {
+                    this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                    break;
+                }
+                case ServerClient.BLOCK_ACTION_DESTROY: {
+                    this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                    break;
+                }
+            }
+        }
+    }
+
     //
     get currentInventoryItem() {
         return this.inventory.current_item;
@@ -317,7 +322,7 @@ export class Player {
     // getCurrentInstrument
     getCurrentInstrument() {
         let currentInventoryItem = this.currentInventoryItem;
-        let instrument = new Instrument_Hand(currentInventoryItem, this.inventory);
+        let instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
         if(currentInventoryItem && currentInventoryItem.instrument_id) {
             // instrument = new Instrument_Hand();
         }
@@ -327,12 +332,12 @@ export class Player {
     // changeSpawnpoint
     changeSpawnpoint() {
         let pos = this.lerpPos.clone().multiplyScalar(1000).floored().divScalar(1000);
-        Game.player.world.server.SetPosSpawn(pos);
+        this.world.server.SetPosSpawn(pos);
     }
 
     // Teleport
     teleport(place_id, pos) {
-        Game.player.world.server.Teleport(place_id, pos);
+        this.world.server.Teleport(place_id, pos);
     }
 
     // Returns the position of the eyes of the player for rendering.
@@ -369,11 +374,6 @@ export class Player {
         return this.pr;
     }
 
-    //
-    nextGameMode() {
-        this.world.server.GameModeNext();
-    }
-
     // Updates this local player (gravity, movement)
     update() {
         this.inMiningProcess = false;
@@ -381,13 +381,13 @@ export class Player {
         // View
         if(this.lastUpdate) {
             if(!this.overChunk) {
-                this.overChunk = Game.world.chunkManager.getChunk(this.chunkAddr);
+                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
             }
             if (!this.overChunk) {
                 // some kind of race F8+R
                 const blockPos = this.getBlockPos();
-                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z);
-                this.overChunk = Game.world.chunkManager.getChunk(this.chunkAddr);
+                this.chunkAddr = getChunkAddr(blockPos.x, blockPos.y, blockPos.z, this.chunkAddr);
+                this.overChunk = this.world.chunkManager.getChunk(this.chunkAddr);
             }
             if(!this.overChunk?.inited) {
                 return;
@@ -458,17 +458,17 @@ export class Player {
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
                 this.chunkAddr          = getChunkAddr(this.blockPos.x, this.blockPos.y, this.blockPos.z);
-                this.overChunk          = Game.world.chunkManager.getChunk(this.chunkAddr);
+                this.overChunk          = this.world.chunkManager.getChunk(this.chunkAddr);
                 this.blockPosO          = this.blockPos;
             }
             // Внутри какого блока находится голова (в идеале глаза)
             let hby                 = this.pos.y + this.height;
-            this.headBlock          = Game.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
+            this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
             this.eyes_in_water_o    = this.eyes_in_water;
             this.eyes_in_water      = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
-                let headBlockOver = Game.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
+                let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
                 let blockOverIsFluid = (headBlockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
@@ -501,8 +501,8 @@ export class Player {
             return;
         }
         if(!this.onGround) {
-            let bpos = Game.player.getBlockPos().add({x: 0, y: -1, z: 0});
-            let block = Game.world.chunkManager.getBlock(bpos);
+            let bpos = this.getBlockPos().add({x: 0, y: -1, z: 0});
+            let block = this.world.chunkManager.getBlock(bpos);
             // ignore damage if dropped into water
             if(block.material.is_fluid) {
                 this.lastBlockPos = this.getBlockPos();

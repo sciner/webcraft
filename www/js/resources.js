@@ -332,4 +332,9 @@ export class Resources {
         return  Helpers.fetchJSON('../media/models/database.json');
     }
 
+    // Load materials
+    static async loadMaterials() {
+        return  Helpers.fetchJSON('../data/materials.json');
+    }
+
 }

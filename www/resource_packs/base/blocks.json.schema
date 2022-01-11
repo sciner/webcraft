@@ -24,7 +24,7 @@
                 "texture": {
                     "$ref": "#/definitions/TextureUnion"
                 },
-                "destroy_time": {
+                "mining_time": {
                     "type": "number"
                 },
                 "passable": {

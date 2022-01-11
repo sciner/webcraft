@@ -1,5 +1,5 @@
-import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS } from "./chunk.js";
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4, VectorCollector, Helpers } from './helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
+import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -39,6 +39,67 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 // tags (string[])              - Array of string tags
 // texture (array | function)   - ?
 // transparent (bool)           - Not cube
+
+class Block_Material {
+
+    static materials = {
+        data: null,
+        checkBlock: async function(resource_pack, block) {
+            if(block.material && block.material instanceof Block_Material) {
+                return;
+            }
+            if(!this.data) {
+                this.data = await Resources.loadMaterials();
+            }
+            if(!block.material || !('id' in block.material)) {
+                throw 'error_block_has_no_material|' + resource_pack.id + '.' + block.name;
+            }
+            //
+            if(block.instrument_id && !this.data.instruments[block.instrument_id]) {
+                throw 'error_unknown_instrument|' + block.instrument_id;
+            }
+            //
+            const block_material_id = block.material.id;
+            if(!this.data.list[block_material_id]) {
+                throw 'error_invalid_instrument|' + block_material_id;
+            }
+            block.material = new Block_Material(this.data.list[block_material_id]);
+            block.material.id = block_material_id;
+            if(typeof block.mining_time !== 'undefined') {
+                block.material.mining.time = block.mining_time
+            }
+        }
+    };
+
+    constructor(data) {
+        Object.assign(this, JSON.parse(JSON.stringify(data)));
+    }
+
+    /**
+     * Возвращает время, необходимое для того, чтобы разбить блок
+     * @param { Object } instrument
+     * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
+     * @return float
+     */
+    getMiningTime(instrument, force) {
+        let mining_time = this.mining.time;
+        if(force) {
+            mining_time = 0;
+        } else if(instrument.material) {
+            const instrument_id = instrument.material.instrument_id;
+            if(instrument_id) {
+                if(this.mining.instruments.indexOf(instrument_id) >= 0) {
+                    const instrument_boost = instrument.material.material.mining.instrument_boost;
+                    if(typeof instrument_boost !== 'undefined' && !isNaN(instrument_boost)) {
+                        mining_time = Math.round((mining_time / instrument_boost) * 100) / 100;
+                    }
+                }
+            }
+        }
+        return mining_time;
+    }
+
+}
 
 export class BLOCK {
 
@@ -238,45 +299,6 @@ export class BLOCK {
         BLOCK.BLOCK_BY_TAGS          = new Map();
     }
 
-    
-        // Function calc and return destroy time for specific block
-    static calcDestroyTime(block) {
-        let destroy_time = .4;
-        // bedrock
-        if(block.id == 1) {
-            return -1;
-        }
-        if(block.hasOwnProperty('style')) {
-            if(block.style == 'planting') {
-                return 0;
-            }
-        }
-        if(block.id == 50) {
-            return 0;
-        }
-        if(block.hasOwnProperty('sound')) {
-            switch(block.sound) {
-                case 'madcraft:block.grass':
-                    destroy_time = 1.;
-                    break;
-                case 'madcraft:block.gravel':
-                case 'madcraft:block.sand': {
-                    destroy_time = 2.;
-                    break;
-                }
-                case 'madcraft:block.wood': {
-                    destroy_time = 4.;
-                    break;
-                }
-                case 'madcraft:block.stone': {
-                    destroy_time = 7.;
-                    break;
-                }
-            }
-        }
-        return destroy_time;
-    }
-
     // parseBlockStyle...
     static parseBlockStyle(block) {
         return block.hasOwnProperty('style') ? block.style : 'default';
@@ -310,9 +332,10 @@ export class BLOCK {
                 console.error('Duplicate block id ', block.id, block);
             }
         }
+        // Check block material
+        Block_Material.materials.checkBlock(resource_pack, block);
         //
         block.style             = this.parseBlockStyle(block);
-        block.destroy_time      = this.calcDestroyTime(block);
         block.tags              = block?.tags || [];
         block.power             = 1;
         block.group             = this.getBlockStyleGroup(block);
@@ -394,20 +417,6 @@ export class BLOCK {
 
     static isEgg(block_id) {
         return BLOCK.spawn_eggs.indexOf(block_id) >= 0;
-    }
-
-    /**
-     * Возвращает время, необходимое для того, чтобы разбить блок голыми руками
-     * @param { Object } block
-     * @param { Bool } force Фиксированное и ускоренное разбитие (например в режиме креатива)
-     * @return float
-     */
-    static getDestroyTime(block, force, instrument) {
-        let destroy_time = block.destroy_time;
-        if(force) {
-            destroy_time = 0;
-        }
-        return destroy_time;
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака

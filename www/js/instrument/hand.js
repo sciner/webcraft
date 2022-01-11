@@ -2,15 +2,15 @@ import {BLOCK} from "../blocks.js";
 
 export class Instrument_Hand {
 
-    constructor(inventory_item, inventory) {
+    constructor(inventory, inventory_item) {
         this.inventory_item = inventory_item;
+        this.material = inventory_item ? BLOCK.fromId(inventory_item.id) : null;
         this.inventory = inventory;
     }
 
     //
     destroyBlock(block) {
         // @todo inventory
-        // console.error('Нужно перенести на сервер');
         let inventory_item = this.inventory_item;
         if(inventory_item) {
             if(inventory_item.instrument_id) {
@@ -22,15 +22,6 @@ export class Instrument_Hand {
                     // this.inventory.decrement();
                 }
             }
-        }
-        if(block.id == BLOCK.CONCRETE.id) {
-            block = BLOCK.fromId(BLOCK.COBBLESTONE.id);
-        }
-        if(block.id == BLOCK.DIRT_PATH.id) {
-            block = BLOCK.fromId(BLOCK.DIRT.id);
-        }
-        if([BLOCK.GRASS.id, BLOCK.CHEST.id].indexOf(block.id) < 0 || block.tags.indexOf('leaves') >= 0) {
-            // this.inventory.increment({count: 1, id: block.id, power: block.power});
         }
         return true;
     }

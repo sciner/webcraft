@@ -4,11 +4,13 @@
         "name": "DUMMY",
         "spawnable": false,
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "bedrock"
+        },
         "texture": [
             9,
             9
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 0,
@@ -16,21 +18,22 @@
         "spawnable": false,
         "passable": 1,
         "transparent": true,
-        "destroy_time": 0.4
+        "material": {
+            "id": "air"
+        }
     },
     {
         "id": 1,
         "name": "BEDROCK",
         "spawnable": false,
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "bedrock"
+        },
         "texture": [
             1,
             1
-        ],
-        "destroy_time": -1
+        ]
     },
     {
         "id": 2,
@@ -40,6 +43,9 @@
             "mask_biome",
             "dirt"
         ],
+        "material": {
+            "id": "dirt"
+        },
         "texture": {
             "up": [
                 0,
@@ -53,93 +59,19 @@
                 2,
                 16
             ]
-        },
-        "destroy_time": 1
+        }
     },
     {
         "id": 8,
         "name": "COBBLESTONE",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "cobblestone"
-        ],
+        "material": {
+            "id": "cobblestone"
+        },
         "texture": [
             0,
             1
-        ],
-        "destroy_time": 7
-    },
-    {
-        "id": 131,
-        "name": "WOODEN_PICKAXE",
-        "style": "extruder",
-        "transparent": true,
-        "max_in_stack": 1,
-        "is_item": true,
-        "diagonal": true,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
-        "texture": [
-            0,
-            31
-        ],
-        "destroy_time": 0.4
-    },
-    {
-        "id": 500,
-        "name": "STONE_PICKAXE",
-        "transparent": true,
-        "max_in_stack": 1,
-        "is_item": true,
-        "diagonal": true,
-        "style": "extruder",
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
-        "texture": [
-            1,
-            31
-        ],
-        "destroy_time": 0.4
-    },
-    {
-        "id": 132,
-        "name": "WOODEN_AXE",
-        "style": "extruder",
-        "transparent": true,
-        "max_in_stack": 1,
-        "is_item": true,
-        "diagonal": true,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
-        "texture": [
-            0,
-            30
-        ],
-        "destroy_time": 0.4
-    },
-    {
-        "id": 551,
-        "name": "IRON_AXE",
-        "style": "extruder",
-        "transparent": true,
-        "max_in_stack": 1,
-        "is_item": true,
-        "diagonal": true,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
-        "texture": [
-            2,
-            30
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 137,
@@ -153,12 +85,505 @@
         "tags": [
             "shovel"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             0,
             28
         ],
-        "destroy_time": 0.4,
         "light": null
+    },
+    {
+        "id": 561,
+        "name": "STONE_SHOVEL",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            1,
+            28
+        ],
+        "light": null
+    },
+    {
+        "id": 562,
+        "name": "IRON_SHOVEL",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            2,
+            28
+        ],
+        "light": null
+    },
+    {
+        "id": 563,
+        "name": "GOLD_SHOVEL",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "material": {
+            "id": "gold"
+        },
+        "texture": [
+            3,
+            28
+        ],
+        "light": null
+    },
+    {
+        "id": 564,
+        "name": "DIAMOND_SHOVEL",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "material": {
+            "id": "diamond"
+        },
+        "texture": [
+            4,
+            28
+        ],
+        "light": null
+    },
+    {
+        "id": 565,
+        "name": "NETHERITE_SHOVEL",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "shovel",
+        "tags": [
+            "shovel"
+        ],
+        "material": {
+            "id": "netherite"
+        },
+        "texture": [
+            5,
+            28
+        ],
+        "light": null
+    },
+    {
+        "id": 566,
+        "name": "WOODEN_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "texture": [
+            0,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 567,
+        "name": "STONE_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            1,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 568,
+        "name": "IRON_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            2,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 569,
+        "name": "GOLD_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "gold"
+        },
+        "texture": [
+            3,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 570,
+        "name": "DIAMOND_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "diamond"
+        },
+        "texture": [
+            4,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 571,
+        "name": "NETHERITE_HOE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "hoe",
+        "tags": [
+            "hoe"
+        ],
+        "material": {
+            "id": "netherite"
+        },
+        "texture": [
+            5,
+            29
+        ],
+        "light": null
+    },
+    {
+        "id": 132,
+        "name": "WOODEN_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "texture": [
+            0,
+            30
+        ]
+    },
+    {
+        "id": 557,
+        "name": "STONE_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            1,
+            30
+        ]
+    },
+    {
+        "id": 551,
+        "name": "IRON_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            2,
+            30
+        ]
+    },
+    {
+        "id": 558,
+        "name": "GOLD_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "gold"
+        },
+        "texture": [
+            3,
+            30
+        ]
+    },
+    {
+        "id": 559,
+        "name": "DIAMOND_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "diamond"
+        },
+        "texture": [
+            4,
+            30
+        ]
+    },
+    {
+        "id": 560,
+        "name": "NETHERITE_AXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "axe",
+        "tags": [
+            "axe"
+        ],
+        "material": {
+            "id": "netherite"
+        },
+        "texture": [
+            5,
+            30
+        ]
+    },
+    {
+        "id": 131,
+        "name": "WOODEN_PICKAXE",
+        "style": "extruder",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "texture": [
+            0,
+            31
+        ]
+    },
+    {
+        "id": 500,
+        "name": "STONE_PICKAXE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "style": "extruder",
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            1,
+            31
+        ]
+    },
+    {
+        "id": 553,
+        "name": "IRON_PICKAXE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "style": "extruder",
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            2,
+            31
+        ]
+    },
+    {
+        "id": 554,
+        "name": "GOLD_PICKAXE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "style": "extruder",
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "gold"
+        },
+        "texture": [
+            3,
+            31
+        ]
+    },
+    {
+        "id": 555,
+        "name": "DIAMOND_PICKAXE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "style": "extruder",
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "diamond"
+        },
+        "texture": [
+            4,
+            31
+        ]
+    },
+    {
+        "id": 556,
+        "name": "NETHERITE_PICKAXE",
+        "transparent": true,
+        "max_in_stack": 1,
+        "is_item": true,
+        "diagonal": true,
+        "style": "extruder",
+        "instrument_id": "pickaxe",
+        "tags": [
+            "pickaxe"
+        ],
+        "material": {
+            "id": "netherite"
+        },
+        "texture": [
+            5,
+            31
+        ]
+    },
+    {
+        "id": 552,
+        "name": "SHEARS",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "diagonal": true,
+        "is_item": true,
+        "instrument_id": "shears",
+        "tags": [
+            "shears"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [0, 0]
+        }
     },
     {
         "id": 467,
@@ -168,7 +593,9 @@
             4,
             3
         ],
-        "destroy_time": 2
+        "material": {
+            "id": "dirt"
+        }
     },
     {
         "id": 198,
@@ -179,11 +606,13 @@
             20,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 233,
@@ -194,11 +623,13 @@
             21,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 220,
@@ -209,11 +640,13 @@
             22,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 190,
@@ -224,11 +657,13 @@
             23,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 526,
@@ -239,11 +674,13 @@
             24,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 527,
@@ -254,11 +691,13 @@
             25,
             18
         ],
+        "material": {
+            "id": "leaves"
+        },
         "tags": [
             "no_drop",
             "leaves"
-        ],
-        "destroy_time": 1
+        ]
     },
     {
         "id": 456,
@@ -267,11 +706,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             20,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 7,
@@ -280,11 +721,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             21,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 457,
@@ -293,11 +736,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             22,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 460,
@@ -306,11 +751,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             23,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 528,
@@ -319,11 +766,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             24,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 529,
@@ -332,11 +781,13 @@
         "tags": [
             "plank"
         ],
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             25,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 89,
@@ -347,67 +798,62 @@
             "b": 35,
             "a": 255
         },
+        "material": {
+            "id": "stone"
+        },
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
         "texture": [
             9,
             6
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 9,
         "name": "CONCRETE",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             1,
             0
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 504,
         "name": "CONCRETE_CYAN",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             3,
             17
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 505,
         "name": "CONCRETE_YELLOW",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             7,
             17
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 70,
         "name": "SMOOTH_STONE",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             6,
             0
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 10,
@@ -417,29 +863,35 @@
             7,
             0
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 11,
         "name": "SAND",
         "gravity": true,
         "sound": "madcraft:block.sand",
+        "material": {
+            "id": "sand"
+        },
         "texture": [
             2,
             1
-        ],
-        "destroy_time": 2
+        ]
     },
     {
         "id": 12,
         "name": "GRAVEL",
         "gravity": true,
         "sound": "madcraft:block.gravel",
+        "material": {
+            "id": "sand"
+        },
         "texture": [
             3,
             1
-        ],
-        "destroy_time": 2
+        ]
     },
     {
         "id": 6,
@@ -448,11 +900,13 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             15,
             0
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -462,7 +916,9 @@
             6,
             1
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "iron"
+        }
     },
     {
         "id": 69,
@@ -471,7 +927,9 @@
             7,
             1
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "gold"
+        }
     },
     {
         "id": 14,
@@ -481,17 +939,21 @@
             0,
             2
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "gold"
+        }
     },
     {
         "id": 150,
         "name": "DIAMOND",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "diamond"
+        },
         "texture": [
             8,
             1
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 90,
@@ -501,7 +963,9 @@
             5,
             2
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "obsidian"
+        }
     },
     {
         "id": 17,
@@ -512,19 +976,23 @@
             1,
             3
         ],
+        "material": {
+            "id": "glass"
+        },
         "tags": [
             "no_drop_ao"
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 201,
         "name": "SPONGE",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             0,
             3
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -535,7 +1003,9 @@
             1,
             2
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "iron"
+        }
     },
     {
         "id": 16,
@@ -545,7 +1015,9 @@
             2,
             2
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 21,
@@ -555,7 +1027,9 @@
             0,
             10
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 22,
@@ -564,7 +1038,9 @@
             0,
             9
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 24,
@@ -574,16 +1050,20 @@
             0,
             12
         ],
-        "destroy_time": 2
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 25,
         "name": "NOTE_BLOCK",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             10,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 130,
@@ -595,7 +1075,9 @@
             6,
             27
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wood"
+        }
     },
     {
         "id": 30,
@@ -608,7 +1090,9 @@
             11,
             0
         ],
-        "destroy_time": 0
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 31,
@@ -621,11 +1105,13 @@
             4,
             16
         ],
+        "material": {
+            "id": "plant"
+        },
         "tags": [
             "no_drop",
             "mask_biome"
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -651,10 +1137,12 @@
             "vines",
             "mask_biome"
         ],
+        "material": {
+            "id": "plant"
+        },
         "style": "ladder",
         "inventory_style": "extruder",
         "passable": 0.25,
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -668,7 +1156,9 @@
             7,
             3
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -679,7 +1169,9 @@
             0,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 351,
@@ -689,7 +1181,9 @@
             1,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 352,
@@ -699,7 +1193,9 @@
             2,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 353,
@@ -709,7 +1205,9 @@
             3,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 354,
@@ -719,7 +1217,9 @@
             4,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 355,
@@ -729,7 +1229,9 @@
             5,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 502,
@@ -739,7 +1241,9 @@
             6,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 506,
@@ -749,7 +1253,9 @@
             7,
             18
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "wool"
+        }
     },
     {
         "id": 450,
@@ -758,7 +1264,9 @@
             0,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 451,
@@ -767,7 +1275,9 @@
             1,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 452,
@@ -776,7 +1286,9 @@
             2,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 453,
@@ -785,7 +1297,9 @@
             3,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 454,
@@ -794,7 +1308,9 @@
             4,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 455,
@@ -803,7 +1319,9 @@
             5,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 503,
@@ -812,7 +1330,9 @@
             6,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 507,
@@ -821,7 +1341,9 @@
             7,
             19
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "terracota"
+        }
     },
     {
         "id": 36,
@@ -834,7 +1356,9 @@
             13,
             0
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -848,7 +1372,9 @@
             12,
             0
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -862,7 +1388,9 @@
             0,
             22
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -876,7 +1404,9 @@
             1,
             22
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -890,7 +1420,9 @@
             2,
             22
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -904,7 +1436,9 @@
             3,
             22
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -918,7 +1452,9 @@
             4,
             22
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -932,11 +1468,13 @@
             5,
             22
         ],
+        "material": {
+            "id": "plant"
+        },
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 515
         },
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -951,6 +1489,9 @@
             6,
             22
         ],
+        "material": {
+            "id": "plant"
+        },
         "previous_part": {
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 514
@@ -958,7 +1499,6 @@
         "tags": [
             "no_drop"
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -973,11 +1513,13 @@
             7,
             22
         ],
+        "material": {
+            "id": "plant"
+        },
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 517
         },
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -992,6 +1534,9 @@
             8,
             22
         ],
+        "material": {
+            "id": "plant"
+        },
         "previous_part": {
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 516
@@ -999,7 +1544,6 @@
         "tags": [
             "no_drop"
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -1013,7 +1557,9 @@
             13,
             1
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -1027,7 +1573,9 @@
             12,
             1
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "planting": true
     },
     {
@@ -1038,7 +1586,9 @@
             5,
             0
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 44,
@@ -1049,24 +1599,25 @@
         "tags": [
             "slab"
         ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             6,
             0
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 48,
         "name": "MOSS_STONE",
         "sound": "madcraft:block.stone",
-        "tags": [
-            "stone"
-        ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             4,
             2
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 520,
@@ -1076,11 +1627,13 @@
         "tags": [
             "stairs"
         ],
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             4,
             2
         ],
-        "destroy_time": 7,
         "can_rotate": true
     },
     {
@@ -1091,7 +1644,9 @@
             2,
             3
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "diamond"
+        }
     },
     {
         "id": 59,
@@ -1103,7 +1658,9 @@
             15,
             5
         ],
-        "destroy_time": 0,
+        "material": {
+            "id": "plant"
+        },
         "spawnable": false,
         "planting": true
     },
@@ -1114,7 +1671,9 @@
             7,
             5
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "dirt"
+        }
     },
     {
         "id": 67,
@@ -1124,11 +1683,13 @@
         "tags": [
             "stairs"
         ],
+        "material": {
+            "id": "cobblestone"
+        },
         "texture": [
             0,
             1
         ],
-        "destroy_time": 7,
         "can_rotate": true,
         "transparent": true
     },
@@ -1140,7 +1701,9 @@
             21,
             19
         ],
-        "destroy_time": 4
+        "material": {
+            "id": "wood"
+        }
     },
     {
         "id": 73,
@@ -1150,7 +1713,9 @@
             3,
             3
         ],
-        "destroy_time": 7
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 75,
@@ -1161,6 +1726,9 @@
         "transparent": true,
         "style": "torch",
         "can_rotate": true,
+        "material": {
+            "id": "wood"
+        },
         "light_power": {
             "r": 253,
             "g": 200,
@@ -1180,8 +1748,7 @@
                 3,
                 6
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 76,
@@ -1189,39 +1756,47 @@
         "passable": 1,
         "transparent": true,
         "style": "sign",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             3,
             7
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 79,
         "name": "ICE",
+        "material": {
+            "id": "ice"
+        },
         "texture": [
             3,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 80,
         "name": "SNOW_BLOCK",
         "sound": "madcraft:block.snow",
+        "material": {
+            "id": "snow"
+        },
         "texture": [
             2,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 82,
         "name": "CLAY",
+        "material": {
+            "id": "clay"
+        },
         "texture": [
             8,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 189,
@@ -1229,11 +1804,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             20,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 85,
@@ -1241,11 +1818,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             21,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 188,
@@ -1253,11 +1832,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             22,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 191,
@@ -1265,11 +1846,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             23,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 536,
@@ -1277,11 +1860,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             24,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 537,
@@ -1289,11 +1874,13 @@
         "transparent": true,
         "style": "fence",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             25,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 113,
@@ -1301,41 +1888,49 @@
         "sound": "madcraft:block.wood",
         "transparent": true,
         "style": "fence",
+        "material": {
+            "id": "wood"
+        },
         "texture": [
             8,
             13
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 87,
-        "name": "NETHERRACK",
+        "name": "NETHERITE",
+        "material": {
+            "id": "netherite"
+        },
         "texture": [
             7,
             6
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 88,
         "name": "SOUL_SAND",
         "gravity": true,
+        "material": {
+            "id": "sand"
+        },
         "texture": [
             8,
             6
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 95,
         "name": "STAINED_GLASS",
         "deprecated": true,
         "transparent": true,
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             1,
             3
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "spawnable": false
     },
@@ -1343,29 +1938,35 @@
         "id": 98,
         "name": "STONE_BRICK",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             6,
             3
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 99,
         "name": "BROWN_MUSHROOM_BLOCK",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             14,
             7
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 100,
         "name": "RED_MUSHROOM_BLOCK",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             13,
             7
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 102,
@@ -1374,14 +1975,13 @@
         "style": "thin",
         "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             1,
             3
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1391,6 +1991,9 @@
         "passable": 1,
         "selflit": true,
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "air"
+        },
         "tags": [
             "alpha"
         ],
@@ -1398,7 +2001,6 @@
             22,
             31
         ],
-        "destroy_time": 4,
         "spawnable": false
     },
     {
@@ -1407,14 +2009,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             1,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1423,14 +2024,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             0,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1439,14 +2039,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             2,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1455,14 +2054,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             3,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1471,14 +2069,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             4,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1487,14 +2084,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             5,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1503,14 +2099,13 @@
         "transparent": true,
         "style": "pane",
         "sound": "madcraft:block.glass",
-        "tags": [
-            "glass"
-        ],
+        "material": {
+            "id": "glass"
+        },
         "texture": [
             6,
             20
         ],
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -1519,13 +2114,15 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             15,
             6
         ],
-        "destroy_time": 0,
         "spawnable": false,
-                "planting": true
+        "planting": true
     },
     {
         "id": 105,
@@ -1533,19 +2130,24 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             15,
             6
         ],
-        "destroy_time": 0,
         "spawnable": false,
-                "planting": true
+            "planting": true
     },
     {
         "id": 108,
         "name": "BRICK_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
         "tags": [
             "stairs"
         ],
@@ -1553,7 +2155,6 @@
             7,
             0
         ],
-        "destroy_time": 7,
         "can_rotate": true,
         "transparent": true
     },
@@ -1562,6 +2163,9 @@
         "name": "STONE_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
         "tags": [
             "stairs"
         ],
@@ -1569,7 +2173,6 @@
             1,
             0
         ],
-        "destroy_time": 7,
         "can_rotate": true,
         "transparent": true
     },
@@ -1578,16 +2181,21 @@
         "name": "NETHER_BRICK",
         "deprecated": true,
         "spawnable": false,
+        "material": {
+            "id": "netherite"
+        },
         "texture": [
             7,
             6
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 114,
         "name": "NETHER_STAIRS",
         "style": "stairs",
+        "material": {
+            "id": "netherite"
+        },
         "tags": [
             "stairs"
         ],
@@ -1595,7 +2203,6 @@
             0,
             14
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1604,11 +2211,13 @@
         "name": "BREWING_STAND",
         "transparent": true,
         "style": "sign",
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             13,
             9
-        ],
-        "destroy_time": 0
+        ]
     },
     {
         "id": 121,
@@ -1617,16 +2226,20 @@
             15,
             10
         ],
-        "destroy_time": 0.4
+        "material": {
+            "id": "stone"
+        }
     },
     {
         "id": 125,
         "name": "DOUBLE_SLAB2",
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             5,
             0
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 501,
@@ -1634,14 +2247,16 @@
         "transparent": true,
         "sound": "madcraft:block.stone",
         "style": "slab",
+        "material": {
+            "id": "stone"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             7,
             0
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 126,
@@ -1649,14 +2264,16 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             21,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 538,
@@ -1664,14 +2281,16 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             24,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 539,
@@ -1679,14 +2298,16 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             25,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 458,
@@ -1694,14 +2315,16 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             20,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 459,
@@ -1709,14 +2332,16 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             22,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 461,
@@ -1724,19 +2349,24 @@
         "transparent": true,
         "sound": "madcraft:block.wood",
         "style": "slab",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "slab"
         ],
         "texture": [
             23,
             19
-        ],
-        "destroy_time": 4
+        ]
     },
     {
         "id": 128,
         "name": "SANDSTONE_STAIRS",
         "style": "stairs",
+        "material": {
+            "id": "stone"
+        },
         "tags": [
             "stairs"
         ],
@@ -1744,7 +2374,6 @@
             0,
             12
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1753,17 +2382,22 @@
         "name": "EMERALD_ORE",
         "deprecated": true,
         "spawnable": false,
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             9,
             11
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 135,
         "name": "BIRCH_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1771,7 +2405,6 @@
             20,
             19
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1780,6 +2413,9 @@
         "name": "OAK_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1787,7 +2423,6 @@
             21,
             19
         ],
-        "destroy_time": 4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1796,6 +2431,9 @@
         "name": "ACACIA_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1803,7 +2441,6 @@
             22,
             19
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1812,6 +2449,9 @@
         "name": "SPRUCE_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1819,7 +2459,6 @@
             23,
             19
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1828,6 +2467,9 @@
         "name": "DARK_OAK_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1835,7 +2477,6 @@
             24,
             19
         ],
-        "destroy_time": 4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1844,6 +2485,9 @@
         "name": "JUNGLE_STAIRS",
         "style": "stairs",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "stairs"
         ],
@@ -1851,36 +2495,33 @@
             25,
             19
         ],
-        "destroy_time": 4,
         "can_rotate": true,
         "transparent": true
     },
     {
         "id": 136,
-        "name": "JUNGLE_STAIRS",
+        "name": "DEPRECATED_1",
         "deprecated": true,
         "spawnable": false,
-        "style": "stairs",
-        "tags": [
-            "stairs"
-        ],
+        "material": {
+            "id": "bedrock"
+        },
         "texture": [
-            23,
-            19
-        ],
-        "destroy_time": 0.4,
-        "can_rotate": true,
-                "transparent": true
+            0,
+            0
+        ]
     },
     {
         "id": 139,
         "name": "COBBLESTONE_WALL",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "cobblestone"
+        },
         "texture": [
             0,
             1
-        ],
-        "destroy_time": 7
+        ]
     },
     {
         "id": 141,
@@ -1889,11 +2530,13 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             11,
             5
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
@@ -1903,28 +2546,35 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "material": {
+            "id": "plant"
+        },
         "texture": [
             11,
             5
         ],
-        "destroy_time": 0,
         "planting": true
     },
     {
         "id": 155,
         "name": "QUARTZ",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "quartz"
+        },
         "texture": [
             10,
             14
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 156,
         "name": "QUARTZ_STAIRS",
         "sound": "madcraft:block.stone",
         "style": "stairs",
+        "material": {
+            "id": "quartz"
+        },
         "tags": [
             "stairs"
         ],
@@ -1932,7 +2582,6 @@
             10,
             14
         ],
-        "destroy_time": 0.4,
         "can_rotate": true,
         "transparent": true
     },
@@ -1940,49 +2589,60 @@
         "id": 161,
         "name": "LEAVES2",
         "transparent": true,
+        "material": {
+            "id": "leaves"
+        },
         "texture": [
             5,
             3
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 173,
         "name": "COAL",
         "is_item": true,
+        "material": {
+            "id": "stone"
+        },
         "texture": [
             5,
             2
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 174,
         "name": "ICE2",
         "deprecated": true,
         "spawnable": false,
+        "material": {
+            "id": "ice"
+        },
         "texture": [
             3,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 212,
         "name": "ICE3",
         "deprecated": true,
         "spawnable": false,
+        "material": {
+            "id": "ice"
+        },
         "texture": [
             3,
             4
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 199,
         "name": "TEST",
         "sound": "madcraft:block.wood",
         "uvlock": false,
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [26, 31, 2],
             "down": [27, 31],
@@ -1991,13 +2651,15 @@
             "north": [30, 31],
             "west": [31, 31]
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 58,
         "name": "CRAFTING_TABLE",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 11,
@@ -2024,13 +2686,15 @@
                 3
             ]
         },
-        "destroy_time": 4,
         "can_rotate": true
     },
     {
         "id": 466,
         "name": "PODZOL",
         "sound": "madcraft:block.gravel",
+        "material": {
+            "id": "dirt"
+        },
         "texture": {
             "up": [
                 4,
@@ -2044,8 +2708,7 @@
                 4,
                 1
             ]
-        },
-        "destroy_time": 2
+        }
     },
     {
         "id": 468,
@@ -2053,6 +2716,9 @@
         "transparent": true,
         "height": 0.9375,
         "sound": "madcraft:block.grass",
+        "material": {
+            "id": "dirt"
+        },
         "tags": [
             "dirt"
         ],
@@ -2069,13 +2735,15 @@
                 4,
                 6
             ]
-        },
-        "destroy_time": 1
+        }
     },
     {
         "id": 145,
         "name": "SNOW_DIRT",
         "sound": "madcraft:block.snow",
+        "material": {
+            "id": "dirt"
+        },
         "texture": {
             "up": [
                 2,
@@ -2089,13 +2757,15 @@
                 4,
                 4
             ]
-        },
-        "destroy_time": 1
+        }
     },
     {
         "id": 4,
         "name": "TNT",
         "sound": "madcraft:block.grass",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 9,
@@ -2109,16 +2779,15 @@
                 8,
                 0
             ]
-        },
-        "destroy_time": 1
+        }
     },
     {
         "id": 162,
         "name": "BIRCH_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 20,
@@ -2132,16 +2801,15 @@
                 20,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 3,
         "name": "OAK_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 21,
@@ -2155,16 +2823,15 @@
                 21,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 165,
         "name": "ACACIA_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 22,
@@ -2178,16 +2845,15 @@
                 22,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 138,
         "name": "SPRUCE_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 23,
@@ -2201,16 +2867,15 @@
                 23,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 530,
         "name": "DARK_OAK_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 24,
@@ -2224,16 +2889,15 @@
                 24,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 531,
         "name": "JUNGLE_TRUNK",
         "sound": "madcraft:block.wood",
-        "tags": [
-            "wood"
-        ],
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 25,
@@ -2247,13 +2911,15 @@
                 25,
                 16
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 5,
         "name": "BOOKCASE",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 21,
@@ -2267,12 +2933,14 @@
                 3,
                 2
             ]
-        },
-        "destroy_time": 4
+        }
     },
     {
         "id": 23,
         "name": "DISPENSER",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 14,
@@ -2290,13 +2958,15 @@
                 13,
                 2
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 29,
         "name": "STICKY_PISTON",
         "spawnable": false,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 10,
@@ -2310,12 +2980,14 @@
                 12,
                 6
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 33,
         "name": "PISTON",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 11,
@@ -2329,8 +3001,7 @@
                 12,
                 6
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 50,
@@ -2341,6 +3012,10 @@
         "transparent": true,
         "style": "torch",
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
+        "mining_time": 0,
         "light_power": {
             "r": 253,
             "g": 241,
@@ -2364,8 +3039,7 @@
         "tags": [
             "no_set_on_top"
         ],
-        "can_rotate": true,
-        "destroy_time": 0
+        "can_rotate": true
     },
     {
         "id": 54,
@@ -2375,6 +3049,9 @@
         "is_entity": true,
         "transparent": true,
         "sound": "madcraft:block.chest",
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 17,
@@ -2393,13 +3070,15 @@
                 6
             ]
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 61,
         "name": "FURNACE",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 14,
@@ -2418,13 +3097,15 @@
                 2
             ]
         },
-        "destroy_time": 7,
         "can_rotate": true
     },
     {
         "id": 62,
         "name": "BURNING_FURNACE",
         "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [
                 14,
@@ -2449,7 +3130,6 @@
             "b": 131,
             "a": 224
         },
-        "destroy_time": 7,
         "can_rotate": true,
         "spawnable": false
     },
@@ -2465,6 +3145,9 @@
         "transparent": true,
         "passable": 0.25,
         "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "south": [
                 3,
@@ -2478,7 +3161,6 @@
         "tags": [
             "ladder"
         ],
-        "destroy_time": 4,
         "can_rotate": true
     },
     {
@@ -2488,11 +3170,13 @@
         "transparent": true,
         "sound": "madcraft:block.snow",
         "texture": [2, 4],
+        "material": {
+            "id": "snow"
+        },
         "tags": [
             "layering",
             "no_drop_ao"
-        ],
-        "destroy_time": 0.4
+        ]
     },
     {
         "id": 81,
@@ -2500,6 +3184,9 @@
         "width": 0.875,
         "transparent": true,
         "sound": "madcraft:block.cloth",
+        "material": {
+            "id": "plant"
+        },
         "texture": {
             "up": [
                 5,
@@ -2513,12 +3200,14 @@
                 6,
                 4
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 84,
         "name": "JUKEBOX",
+        "material": {
+            "id": "wood"
+        },
         "texture": {
             "up": [
                 11,
@@ -2528,8 +3217,7 @@
                 10,
                 4
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 462,
@@ -2537,6 +3225,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2567,7 +3258,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -2576,6 +3266,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2606,7 +3299,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -2615,6 +3307,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2645,7 +3340,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -2654,6 +3348,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2684,7 +3381,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -2693,6 +3389,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2723,7 +3422,6 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
@@ -2732,6 +3430,9 @@
         "transparent": true,
         "style": "trapdoor",
         "sound": "madcraft:block.wooden_trapdoor",
+        "material": {
+            "id": "wood"
+        },
         "tags": [
             "no_drop_ao",
             "trapdoor"
@@ -2762,12 +3463,14 @@
             "opened": false,
             "point": {"x":0, "y":0, "z":0}
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 86,
         "name": "PUMPKIN",
+        "material": {
+            "id": "plant"
+        },
         "texture": {
             "up": [
                 6,
@@ -2782,12 +3485,14 @@
                 7
             ]
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 91,
         "name": "LIT_PUMPKIN",
+        "material": {
+            "id": "plant"
+        },
         "texture": {
             "up": [
                 6,
@@ -2806,12 +3511,14 @@
                 7
             ]
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 110,
         "name": "MYCELIUM",
+        "material": {
+            "id": "plant"
+        },
         "texture": {
             "up": [
                 14,
@@ -2825,12 +3532,14 @@
                 13,
                 4
             ]
-        },
-        "destroy_time": 0.4
+        }
     },
     {
         "id": 120,
         "name": "END_PORTAL_FRAME",
+        "material": {
+            "id": "stone"
+        },
         "height": 0.8125,
         "texture": {
             "up": [
@@ -2846,25 +3555,29 @@
                 9
             ]
         },
-        "destroy_time": 0.4,
         "transparent": true
     },
     {
         "id": 158,
         "name": "DROPPER",
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "up": [14, 3],
             "down": [14, 3],
             "north": [15, 2],
             "side": [13, 2]
         },
-        "destroy_time": 0.4,
         "can_rotate": true
     },
     {
         "id": 521,
         "name": "SPAWN_EGG_CHICKEN",
         "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
         "spawn_egg": {
             "type": "chicken",
             "skin": "base"
@@ -2878,6 +3591,9 @@
         "id": 522,
         "name": "SPAWN_EGG_CREEPER",
         "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
         "spawn_egg": {
             "type": "creeper",
             "skin": "base"
@@ -2891,6 +3607,9 @@
         "id": 523,
         "name": "SPAWN_EGG_PIG",
         "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
         "spawn_egg": {
             "type": "pig",
             "skin": "base"
@@ -2904,6 +3623,9 @@
         "id": 524,
         "name": "SPAWN_EGG_HORSE",
         "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
         "spawn_egg": {
             "type": "horse",
             "skin": "creamy"
@@ -2917,6 +3639,9 @@
         "id": 525,
         "name": "SPAWN_EGG_DONKEY",
         "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
         "spawn_egg": {
             "type": "horse",
             "skin": "base"
@@ -2932,7 +3657,9 @@
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
-        "instrument_id": "bucket",
+        "material": {
+            "id": "iron"
+        },
         "tags": [
             "bucket"
         ],
@@ -2947,8 +3674,10 @@
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
-        "instrument_id": "bucket",
         "emit_on_set": "FLOWING_LAVA",
+        "material": {
+            "id": "iron"
+        },
         "tags": [
             "bucket"
         ],
@@ -2963,8 +3692,10 @@
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
-        "instrument_id": "bucket",
         "emit_on_set": "FLOWING_WATER",
+        "material": {
+            "id": "iron"
+        },
         "tags": [
             "bucket"
         ],
@@ -2979,8 +3710,10 @@
         "style": "extruder",
         "max_in_stack": 1,
         "is_item": true,
-        "instrument_id": "bucket",
         "emit_on_set": "SNOW_BLOCK",
+        "material": {
+            "id": "iron"
+        },
         "tags": [
             "bucket"
         ],
@@ -2993,7 +3726,9 @@
         "id": 545,
         "name": "ANDESITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [0, 0]
@@ -3003,7 +3738,9 @@
         "id": 546,
         "name": "POLISHED_ANDESITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [0, 1]
@@ -3013,7 +3750,9 @@
         "id": 547,
         "name": "DIORITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [1, 0]
@@ -3023,7 +3762,9 @@
         "id": 548,
         "name": "POLISHED_DIORITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [1, 1]
@@ -3033,7 +3774,9 @@
         "id": 549,
         "name": "GRANITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [2, 0]
@@ -3046,6 +3789,9 @@
         "passable": 0.4,
         "selflit": true,
         "is_fluid": true,
+        "material": {
+            "id": "water"
+        },
         "texture_animations": {
             "up": 32,
             "side": null
@@ -3054,7 +3800,6 @@
             "id": "water_still",
             "side": [0, 0]
         },
-        "destroy_time": 0.4,
         "spawnable": false
     },
     {
@@ -3064,6 +3809,9 @@
         "transparent": true,
         "selflit": true,
         "is_fluid": true,
+        "material": {
+            "id": "water"
+        },
         "texture_animations": {
             "up": 32,
             "side": null
@@ -3076,7 +3824,6 @@
             "max_power": 1,
             "still_block_id": 202
         },
-        "destroy_time": 0.4,
         "spawnable": false
     },
     {
@@ -3087,6 +3834,9 @@
         "selflit": true,
         "gravity": true,
         "is_fluid": true,
+        "material": {
+            "id": "lava"
+        },
         "light_power": {
             "r": 253,
             "g": 200,
@@ -3101,7 +3851,6 @@
             "up": 20,
             "side": null
         },
-        "destroy_time": 0.4,
         "spawnable": false
     },
     {
@@ -3111,6 +3860,9 @@
         "transparent": true,
         "selflit": true,
         "is_fluid": true,
+        "material": {
+            "id": "lava"
+        },
         "fluid": {
             "max_power": 1,
             "still_block_id": 171
@@ -3129,7 +3881,6 @@
             "up": 20,
             "side": null
         },
-        "destroy_time": 0.4,
         "spawnable": false
     },
     {
@@ -3139,6 +3890,9 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
         "texture": {
             "id": "seagrass",
             "side": [0, 0]
@@ -3146,7 +3900,6 @@
         "texture_animations": {
             "side": 18
         },
-        "destroy_time": 0,
         "spawnable": false,
         "planting": true
     },
@@ -3154,7 +3907,9 @@
         "id": 550,
         "name": "POLISHED_GRANITE",
         "sound": "madcraft:block.stone",
-        "destroy_time": 7,
+        "material": {
+            "id": "stone"
+        },
         "texture": {
             "id": "stone",
             "side": [2, 1]

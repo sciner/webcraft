@@ -35,6 +35,10 @@
         "stone": {
             "image": "/textures/stone.png",
             "tx_cnt": 8
+        },
+        "tool": {
+            "image": "/textures/tool.png",
+            "tx_cnt": 16
         }
     }
 }

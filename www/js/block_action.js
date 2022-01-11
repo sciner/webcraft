@@ -9,6 +9,7 @@ const _createBlockAABB = new AABB();
 export async function doBlockAction(e, world, player, currentInventoryItem) {
     const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
     const resp = {
+        id:                 e.id,
         error:              null,
         chat_message:       null,
         create_chest:       null,
@@ -150,10 +151,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         // 3. If is egg
         if(BLOCK.isEgg(matBlock.id)) {
-            pos.x += pos.n.x;
+            pos.x += pos.n.x + .5
             pos.y += pos.n.y;
-            pos.z += pos.n.z;
-            resp.chat_message = {text: "/spawnmob " + (pos.x + ".5 ") + pos.y + " " + (pos.z + ".5 ") + matBlock.spawn_egg.type + " " + matBlock.spawn_egg.skin};
+            pos.z += pos.n.z + .5;
+            resp.chat_message = {text: `/spawnmob ${pos.x} ${pos.y} ${pos.z} ${matBlock.spawn_egg.type} ${matBlock.spawn_egg.skin}`};
             resp.decrement = true;
             return resp;
         }
@@ -256,17 +257,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     pos.z -= pos.n.z;
                     resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                 }
-            } else if(matBlock.instrument_id == 'bucket') {
-                if(matBlock.emit_on_set) {
-                    const emitBlock = BLOCK.fromName(matBlock.emit_on_set);
-                    const extra_data = BLOCK.makeExtraData(emitBlock, pos);
-                    resp.blocks.push({pos: pos, item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
-                    resp.decrement = true;
-                    if(emitBlock.sound) {
-                        resp.play_sound = {tag: emitBlock.sound, action: 'place'};
-                    }
-                    return resp;
+            }
+        } else if(matBlock.tags.indexOf('bucket') >= 0) {
+            if(matBlock.emit_on_set) {
+                const emitBlock = BLOCK.fromName(matBlock.emit_on_set);
+                const extra_data = BLOCK.makeExtraData(emitBlock, pos);
+                resp.blocks.push({pos: pos, item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
+                resp.decrement = true;
+                if(emitBlock.sound) {
+                    resp.play_sound = {tag: emitBlock.sound, action: 'place'};
                 }
+                return resp;
             }
         } else {
             // Calc rotate

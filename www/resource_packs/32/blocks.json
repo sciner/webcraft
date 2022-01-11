@@ -1,450 +1,149 @@
 [
-    {
-        "id": 2,
-        "name": "DIRT"
-    },
-    {
-        "id": 31,
-        "name": "GRASS"
-    },
-    {
-        "id": 56,
-        "name": "DIAMOND_ORE"
-    },
-    {
-        "id": 150,
-        "name": "DIAMOND"
-    },
-    {
-        "id": 106,
-        "name": "VINES"
-    },
-    {
-        "id": 162,
-        "name": "BIRCH_TRUNK"
-    },
-    {
-        "id": 3,
-        "name": "OAK_TRUNK"
-    },
-    {
-        "id": 165,
-        "name": "ACACIA_TRUNK"
-    },
-    {
-        "id": 138,
-        "name": "SPRUCE_TRUNK"
-    },
-    {
-        "id": 233,
-        "name": "OAK_LEAVES"
-    },
-    {
-        "id": 220,
-        "name": "ACACIA_LEAVES"
-    },
-    {
-        "id": 190,
-        "name": "SPRUCE_LEAVES"
-    },
-    {
-        "id": 456,
-        "name": "BIRCH_PLANK"
-    },
-    {
-        "id": 7,
-        "name": "OAK_PLANK"
-    },
-    {
-        "id": 457,
-        "name": "ACACIA_PLANK"
-    },
-    {
-        "id": 460,
-        "name": "SPRUCE_PLANK"
-    },
-    {
-        "id": 1,
-        "name": "BEDROCK"
-    },
-    {
-        "id": 8,
-        "name": "COBBLESTONE"
-    },
-    {
-        "id": 9,
-        "name": "CONCRETE"
-    },
-    {
-        "id": 10,
-        "name": "BRICK"
-    },
-    {
-        "id": 11,
-        "name": "SAND"
-    },
-    {
-        "id": 12,
-        "name": "GRAVEL"
-    },
-    {
-        "id": 15,
-        "name": "IRON_ORE"
-    },
-    {
-        "id": 16,
-        "name": "COAL_ORE"
-    },
-    {
-        "id": 14,
-        "name": "GOLD_ORE"
-    },
-    {
-        "id": 189,
-        "name": "BIRCH_FENCE"
-    },
-    {
-        "id": 85,
-        "name": "OAK_FENCE"
-    },
-    {
-        "id": 188,
-        "name": "ACACIA_FENCE"
-    },
-    {
-        "id": 191,
-        "name": "SPRUCE_FENCE"
-    },
-    {
-        "id": 462,
-        "name": "BIRCH_TRAPDOOR"
-    },
-    {
-        "id": 463,
-        "name": "OAK_TRAPDOOR"
-    },
-    {
-        "id": 464,
-        "name": "ACACIA_TRAPDOOR"
-    },
-    {
-        "id": 465,
-        "name": "SPRUCE_TRAPDOOR"
-    },
-    {
-        "id": 108,
-        "name": "BRICK_STAIRS"
-    },
-    {
-        "id": 135,
-        "name": "BIRCH_STAIRS"
-    },
-    {
-        "id": 53,
-        "name": "OAK_STAIRS"
-    },
-    {
-        "id": 163,
-        "name": "ACACIA_STAIRS"
-    },
-    {
-        "id": 134,
-        "name": "SPRUCE_STAIRS"
-    },
-    {
-        "id": 4,
-        "name": "TNT"
-    },
-    {
-        "id": 5,
-        "name": "BOOKCASE"
-    },
-    {
-        "id": 126,
-        "name": "OAK_SLAB"
-    },
-    {
-        "id": 80,
-        "name": "SNOW_BLOCK"
-    },
-    {
-        "id": 145,
-        "name": "SNOW_DIRT"
-    },
-    {
-        "id": 98,
-        "name": "STONE_BRICK"
-    },
-    {
-        "id": 39,
-        "name": "BROWN_MUSHROOM"
-    },
-    {
-        "id": 40,
-        "name": "RED_MUSHROOM"
-    },
-    {
-        "id": 38,
-        "name": "TULIP"
-    },
-    {
-        "id": 36,
-        "name": "DANDELION"
-    },
-    {
-        "id": 79,
-        "name": "ICE"
-    },
-    {
-        "id": 109,
-        "name": "STONE_STAIRS"
-    },
-    {
-        "id": 67,
-        "name": "COBBLESTONE_STAIRS"
-    },
-    {
-        "id": 461,
-        "name": "SPRUCE_SLAB"
-    },
-    {
-        "id": 350,
-        "name": "WOOL_BLACK"
-    },
-    {
-        "id": 351,
-        "name": "WOOL_BLUE"
-    },
-    {
-        "id": 352,
-        "name": "WOOL_BROWN"
-    },
-    {
-        "id": 353,
-        "name": "WOOL_CYAN"
-    },
-    {
-        "id": 354,
-        "name": "WOOL_GRAY"
-    },
-    {
-        "id": 355,
-        "name": "WOOL_GREEN"
-    },
-    {
-        "id": 502,
-        "name": "WOOL_RED"
-    },
-    {
-        "id": 506,
-        "name": "WOOL_YELLOW"
-    },
-    {
-        "id": 450,
-        "name": "TERRACOTTA_BLACK"
-    },
-    {
-        "id": 451,
-        "name": "TERRACOTTA_BLUE"
-    },
-    {
-        "id": 452,
-        "name": "TERRACOTTA_BROWN"
-    },
-    {
-        "id": 453,
-        "name": "TERRACOTTA_CYAN"
-    },
-    {
-        "id": 454,
-        "name": "TERRACOTTA_GRAY"
-    },
-    {
-        "id": 455,
-        "name": "TERRACOTTA_GREEN"
-    },
-    {
-        "id": 503,
-        "name": "TERRACOTTA_RED"
-    },
-    {
-        "id": 507,
-        "name": "TERRACOTTA_YELLOW"
-    },
-    {
-        "id": 65,
-        "name": "LADDER"
-    },
-    {
-        "id": 50,
-        "name": "TORCH"
-    },
-    {
-        "id": 509,
-        "name": "FLOWER_ALLIUM"
-    },
-    {
-        "id": 510,
-        "name": "FLOWER_BLUE_ORCHID"
-    },
-    {
-        "id": 511,
-        "name": "FLOWER_OXEYE_DAISY"
-    },
-    {
-        "id": 512,
-        "name": "FLOWER_LILY_OF_THE_VALLEY"
-    },
-    {
-        "id": 513,
-        "name": "FLOWER_CORNFLOWER"
-    },
-    {
-        "id": 514,
-        "name": "FLOWER_PEONY"
-    },
-    {
-        "id": 515,
-        "name": "FLOWER_PEONY_TOP"
-    },
-    {
-        "id": 516,
-        "name": "FLOWER_LILAC"
-    },
-    {
-        "id": 517,
-        "name": "FLOWER_LILAC_TOP"
-    },
-    {
-        "id": 535,
-        "name": "JUNGLE_STAIRS"
-    },
-    {
-        "id": 536,
-        "name": "DARK_OAK_FENCE"
-    },
-    {
-        "id": 537,
-        "name": "JUNGLE_FENCE"
-    },
-    {
-        "id": 538,
-        "name": "DARK_OAK_SLAB"
-    },
-    {
-        "id": 539,
-        "name": "JUNGLE_SLAB"
-    },
-    {
-        "id": 534,
-        "name": "DARK_OAK_STAIRS"
-    },
-    {
-        "id": 136,
-        "name": "JUNGLE_STAIRS"
-    },
-    {
-        "id": 530,
-        "name": "DARK_OAK_TRUNK"
-    },
-    {
-        "id": 531,
-        "name": "JUNGLE_TRUNK"
-    },
-    {
-        "id": 532,
-        "name": "DARK_OAK_TRAPDOOR"
-    },
-    {
-        "id": 533,
-        "name": "JUNGLE_TRAPDOOR"
-    },
-    {
-        "id": 17,
-        "name": "GLASS"
-    },
-    {
-        "id": 470,
-        "name": "BLUE_STAINED_GLASS"
-    },
-    {
-        "id": 471,
-        "name": "BLACK_STAINED_GLASS"
-    },
-    {
-        "id": 472,
-        "name": "PINK_STAINED_GLASS"
-    },
-    {
-        "id": 473,
-        "name": "RED_STAINED_GLASS"
-    },
-    {
-        "id": 474,
-        "name": "WHITE_STAINED_GLASS"
-    },
-    {
-        "id": 475,
-        "name": "YELLOW_STAINED_GLASS"
-    },
-    {
-        "id": 476,
-        "name": "GREEN_STAINED_GLASS"
-    },
-    {
-        "id": 131,
-        "name": "WOODEN_PICKAXE"
-    },
-    {
-        "id": 500,
-        "name": "STONE_PICKAXE"
-    },
-    {
-        "id": 132,
-        "name": "WOODEN_AXE"
-    },
-    {
-        "id": 551,
-        "name": "IRON_AXE"
-    },
-    {
-        "id": 137,
-        "name": "WOODEN_SHOVEL"
-    },
-    {
-        "id": 70,
-        "name": "SMOOTH_STONE"
-    },
-    {
-        "id": 89,
-        "name": "GLOWSTONE"
-    },
-    {
-        "id": 467,
-        "name": "COARSE_DIRT"
-    },
-    {
-        "id": 61,
-        "name": "FURNACE"
-    },
-    {
-        "id": 62,
-        "name": "BURNING_FURNACE"
-    },
-    {
-        "id": 58,
-        "name": "CRAFTING_TABLE"
-    },
-    {
-        "id": 81,
-        "name": "CACTUS"
-    },
-    {
-        "id": 54,
-        "name": "CHEST"
-    },
-    {
-        "id": 468,
-        "name": "DIRT_PATH"
-    }
+    {"id": 2, "name": "DIRT"},
+    {"id": 31, "name": "GRASS"},
+    {"id": 150, "name": "DIAMOND"},
+    {"id": 106, "name": "VINES"},
+    {"id": 4, "name": "TNT"},
+    {"id": 80, "name": "SNOW_BLOCK"},
+    {"id": 145, "name": "SNOW_DIRT"},
+    {"id": 79, "name": "ICE"},
+    {"id": 65, "name": "LADDER"},
+    {"id": 50, "name": "TORCH"},
+    {"id": 1, "name": "BEDROCK"},
+    {"id": 8, "name": "COBBLESTONE"},
+    {"id": 9, "name": "CONCRETE"},
+    {"id": 10, "name": "BRICK"},
+    {"id": 11, "name": "SAND"},
+    {"id": 12, "name": "GRAVEL"},
+    {"id": 70, "name": "SMOOTH_STONE"},
+    {"id": 89, "name": "GLOWSTONE"},
+    {"id": 467, "name": "COARSE_DIRT"},
+    {"id": 81, "name": "CACTUS"},
+    {"id": 468, "name": "DIRT_PATH"},
+
+    {"id": 5, "name": "BOOKCASE"},
+    {"id": 61, "name": "FURNACE"},
+    {"id": 62, "name": "BURNING_FURNACE"},
+    {"id": 58, "name": "CRAFTING_TABLE"},
+    {"id": 54, "name": "CHEST"},
+
+    {"id": 98, "name": "STONE_BRICK"},
+    
+    {"id": 126, "name": "OAK_SLAB"},
+    {"id": 461, "name": "SPRUCE_SLAB"},
+    {"id": 538, "name": "DARK_OAK_SLAB"},
+    {"id": 539, "name": "JUNGLE_SLAB"},
+
+    {"id": 15, "name": "IRON_ORE"},
+    {"id": 16, "name": "COAL_ORE"},
+    {"id": 14, "name": "GOLD_ORE"},
+    {"id": 56, "name": "DIAMOND_ORE"},
+
+    {"id": 162, "name": "BIRCH_TRUNK"},
+    {"id": 3, "name": "OAK_TRUNK"},
+    {"id": 165, "name": "ACACIA_TRUNK"},
+    {"id": 138, "name": "SPRUCE_TRUNK"},
+    {"id": 530, "name": "DARK_OAK_TRUNK"},
+    {"id": 531, "name": "JUNGLE_TRUNK"},
+
+    {"id": 233, "name": "OAK_LEAVES"},
+    {"id": 220, "name": "ACACIA_LEAVES"},
+    {"id": 190, "name": "SPRUCE_LEAVES"},
+
+    {"id": 456, "name": "BIRCH_PLANK"},
+    {"id": 7, "name": "OAK_PLANK"},
+    {"id": 457, "name": "ACACIA_PLANK"},
+    {"id": 460, "name": "SPRUCE_PLANK"},
+
+    {"id": 189, "name": "BIRCH_FENCE"},
+    {"id": 85, "name": "OAK_FENCE"},
+    {"id": 188, "name": "ACACIA_FENCE"},
+    {"id": 191, "name": "SPRUCE_FENCE"},
+    {"id": 536, "name": "DARK_OAK_FENCE"},
+    {"id": 537, "name": "JUNGLE_FENCE"},
+
+    {"id": 462, "name": "BIRCH_TRAPDOOR"},
+    {"id": 463, "name": "OAK_TRAPDOOR"},
+    {"id": 464, "name": "ACACIA_TRAPDOOR"},
+    {"id": 465, "name": "SPRUCE_TRAPDOOR"},
+    {"id": 532, "name": "DARK_OAK_TRAPDOOR"},
+    {"id": 533, "name": "JUNGLE_TRAPDOOR"},
+
+    {"id": 108, "name": "BRICK_STAIRS"},
+    {"id": 135, "name": "BIRCH_STAIRS"},
+    {"id": 53, "name": "OAK_STAIRS"},
+    {"id": 163, "name": "ACACIA_STAIRS"},
+    {"id": 134, "name": "SPRUCE_STAIRS"},
+    {"id": 535, "name": "JUNGLE_STAIRS"},
+    {"id": 534, "name": "DARK_OAK_STAIRS"},
+    {"id": 109, "name": "STONE_STAIRS"},
+    {"id": 67, "name": "COBBLESTONE_STAIRS"},
+    
+    {"id": 350, "name": "WOOL_BLACK"},
+    {"id": 351, "name": "WOOL_BLUE"},
+    {"id": 352, "name": "WOOL_BROWN"},
+    {"id": 353, "name": "WOOL_CYAN"},
+    {"id": 354, "name": "WOOL_GRAY"},
+    {"id": 355, "name": "WOOL_GREEN"},
+    {"id": 502, "name": "WOOL_RED"},
+    {"id": 506, "name": "WOOL_YELLOW"},
+
+    {"id": 450, "name": "TERRACOTTA_BLACK"},
+    {"id": 451, "name": "TERRACOTTA_BLUE"},
+    {"id": 452, "name": "TERRACOTTA_BROWN"},
+    {"id": 453, "name": "TERRACOTTA_CYAN"},
+    {"id": 454, "name": "TERRACOTTA_GRAY"},
+    {"id": 455, "name": "TERRACOTTA_GREEN"},
+    {"id": 503, "name": "TERRACOTTA_RED"},
+    {"id": 507, "name": "TERRACOTTA_YELLOW"},
+
+    {"id": 17, "name": "GLASS"},
+    {"id": 470, "name": "BLUE_STAINED_GLASS"},
+    {"id": 471, "name": "BLACK_STAINED_GLASS"},
+    {"id": 472, "name": "PINK_STAINED_GLASS"},
+    {"id": 473, "name": "RED_STAINED_GLASS"},
+    {"id": 474, "name": "WHITE_STAINED_GLASS"},
+    {"id": 475, "name": "YELLOW_STAINED_GLASS"},
+    {"id": 476, "name": "GREEN_STAINED_GLASS"},
+
+    {"id": 509, "name": "FLOWER_ALLIUM"},
+    {"id": 510, "name": "FLOWER_BLUE_ORCHID"},
+    {"id": 511, "name": "FLOWER_OXEYE_DAISY"},
+    {"id": 512, "name": "FLOWER_LILY_OF_THE_VALLEY"},
+    {"id": 513, "name": "FLOWER_CORNFLOWER"},
+    {"id": 514, "name": "FLOWER_PEONY"},
+    {"id": 515, "name": "FLOWER_PEONY_TOP"},
+    {"id": 516, "name": "FLOWER_LILAC"},
+    {"id": 517, "name": "FLOWER_LILAC_TOP"},
+
+    {"id": 39, "name": "BROWN_MUSHROOM"},
+    {"id": 40, "name": "RED_MUSHROOM"},
+    {"id": 38, "name": "TULIP"},
+    {"id": 36, "name": "DANDELION"},
+
+    {"id": 137, "name": "WOODEN_SHOVEL"},
+    {"id": 561, "name": "STONE_SHOVEL"},
+    {"id": 562, "name": "IRON_SHOVEL"},
+    {"id": 563, "name": "GOLD_SHOVEL"},
+    {"id": 564, "name": "DIAMOND_SHOVEL"},
+    {"id": 565, "name": "NETHERITE_SHOVEL"},
+    {"id": 566, "name": "WOODEN_HOE"},
+    {"id": 567, "name": "STONE_HOE"},
+    {"id": 568, "name": "IRON_HOE"},
+    {"id": 569, "name": "GOLD_HOE"},
+    {"id": 570, "name": "DIAMOND_HOE"},
+    {"id": 571, "name": "NETHERITE_HOE"},
+    {"id": 132, "name": "WOODEN_AXE"},
+    {"id": 557, "name": "STONE_AXE"},
+    {"id": 551, "name": "IRON_AXE"},
+    {"id": 558, "name": "GOLD_AXE"},
+    {"id": 559, "name": "DIAMOND_AXE"},
+    {"id": 560, "name": "NETHERITE_AXE"},
+    {"id": 131, "name": "WOODEN_PICKAXE"},
+    {"id": 500, "name": "STONE_PICKAXE"},
+    {"id": 553, "name": "IRON_PICKAXE"},
+    {"id": 554, "name": "GOLD_PICKAXE"},
+    {"id": 555, "name": "DIAMOND_PICKAXE"},
+    {"id": 556, "name": "NETHERITE_PICKAXE"}
+
 ]

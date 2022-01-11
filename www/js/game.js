@@ -235,7 +235,7 @@ export class GameClass {
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
                         if(!e.down) {
-                            player.nextGameMode();
+                            player.world.server.GameModeNext();
                         }
                         return true;
                         break;
@@ -493,6 +493,16 @@ export class GameClass {
                 that.player.addRotate(add_mouse_rotate.divScalar(900));
             }
         }, false);
+    }
+
+    drawInstruments() {
+        let instruments = [];
+        for(let i of this.block_manager.getAll().values()) {
+            if(i.instrument_id) {
+                instruments.push({id: i.id, name: i.name, material: i.material.id, instrument_id: i.instrument_id, instrument_boost: i.material.mining.instrument_boost, texture: JSON.stringify(i.texture)});
+            }
+        }
+        console.table(instruments);
     }
 
     // drawPerf

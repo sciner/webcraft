@@ -314,15 +314,15 @@ export class HUD {
         let chunk = player.overChunk;
         this.text += '\nXYZ: ' + playerBlockPos.x + ', ' + playerBlockPos.y + ', ' + playerBlockPos.z + ' / ' + this.FPS.speed + ' km/h';
         if(chunk) {
-            let biome = null;
+            /*let biome = null;
             if(chunk.map) {
                 try {
                     biome = chunk.map.cells[playerBlockPos.x - chunk.coord.x][[playerBlockPos.z - chunk.coord.z]].biome.code;
                 } catch(e) {
                     //
                 }
-            }
-            this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + ' / ' + biome + '\n';
+            }*/
+            this.text += '\nCHUNK: ' + chunk.addr.x + ', ' + chunk.addr.y + ', ' + chunk.addr.z + '\n'; // + ' / ' + biome + '\n';
         }
         // Players list
         this.text += '\nOnline:\n';

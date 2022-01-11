@@ -461,7 +461,7 @@ export class ServerWorld {
         let chunks_packets = new VectorCollector();
         // Send message to chat
         if(actions.chat_message) {
-            this.chat.sendMessage(player, actions.chat_message);
+            this.chat.sendMessage(server_player, actions.chat_message);
         }
         // Create chest
         if(actions.create_chest) {

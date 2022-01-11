@@ -30,22 +30,17 @@ export class ResourcePackManager {
         if(settings?.texture_pack != def_resource_pack.id) {
             for(let item of json.variants) {
                 if(!selected_variant_id || item.id == selected_variant_id) {
-
                     resource_packs.add(new BaseResourcePack(item.path, item.id));
                 }
             }
         }
 
-        const pendings = [];
-
         // Load Resourse packs (blocks)
         for(let rp of resource_packs.values()) {
             this.list.set(rp.id, rp);
-
-            pendings.push(rp.init(this));
+            await rp.init(this);
         }
 
-       await Promise.all(pendings);
     }
 
     get(id) {
