@@ -5,6 +5,52 @@ import {SkinManager} from './skin-manager.js';
 import {GameClass} from '../game.js';
 import { Player } from '../player.js';
 
+function isSupported() {
+
+    // we should support webgl2 strictly
+    if(!('WebGL2RenderingContext' in self)) {
+        console.error('Browser not supported:', 'Webgl2 context is required');
+        return false;
+    }
+    
+    const canvas = document.createElement('canvas');
+
+    //
+    try {
+        
+        // context should be stable and without fails
+        const gl = canvas.getContext('webgl2', {stencil: true, failIfMajorPerformanceCaveat: true});
+
+        if (!gl) {
+            return false;
+        }
+
+        // free context
+        gl.getExtension('WEBGL_lose_context').loseContext();
+    } catch(e) {
+
+        console.error('Browser not supported:', e.message);
+        return false;
+    }
+
+    // GC issues on safari
+    canvas.width = canvas.height = 0;
+
+    const isFF = navigator.userAgent.indexOf('Firefox') > -1;
+    // safari 15 is ok
+    const isSafari = navigator.userAgent.indexOf('Safari') > -1;
+    const isChrome = navigator.userAgent.indexOf('Chrome') > -1 || self.chrome;
+
+    if (isFF) {
+        console.error('Browser not supported:', 'Firefox not support modules for workes');
+
+        return false;
+    }
+
+    // chrome + safari
+    return isSafari || isChrome;
+}
+
 // Mouse event enumeration
 globalThis.MOUSE = {};
     MOUSE.DOWN    = 1;
@@ -125,7 +171,7 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    $scope.isSupportedBrowser = window.chrome;
+    $scope.isSupportedBrowser = isSupported();
 
     // Current window
     $scope.current_window = {
