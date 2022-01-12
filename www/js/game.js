@@ -393,34 +393,46 @@ export class GameClass {
 
     // setupMousePointer...
     setupMousePointer(check_opened_windows) {
-        let that = this;
-        if(check_opened_windows && that.hud.wm.hasVisibleWindow()) {
+        if(check_opened_windows && this.hud.wm.hasVisibleWindow()) {
             return;
         }
-        if(!that.world || that.player.controls.enabled) {
+
+        if(!this.world || this.player.controls.enabled) {
             return;
         }
-        let element = that.render.canvas;
-        element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
-        document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-        if(that.player.controls.inited) {
+
+        const element = this.render.canvas;
+        element.requestPointerLock = element.requestPointerLock || element.webkitRequestPointerLock;
+
+        if(this.player.controls.inited) {
             element.requestPointerLock();
             return;
         }
-        let pointerlockchange = function(event) {
-            if (document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element) {
-                that.setControlsEnabled(true);
+
+        const pointerlockchange = (event) => {
+
+            if (document.pointerLockElement === element || document.webkitPointerLockElement === element) {
+                this.setControlsEnabled(true);
             }  else {
-                that.setControlsEnabled(false);
-                if(!that.hud.wm.hasVisibleWindow() && !that.player.chat.active) {
-                    that.hud.frmMainMenu.show();
+                this.setControlsEnabled(false);
+                this.kb.clearStates();
+
+                if(!this.hud.wm.hasVisibleWindow() && !this.player.chat.active) {
+
+                    // Safari emit ESC keyup since ~100 ms after pointer lock left event
+                    // we should skip this ESC
+                    // otherwise we never can open mine menu
+                    this.kb.skipUntil(200);
+                    this.hud.frmMainMenu.show();
                 }
-                that.kb.clearStates();
+
             }
         }
-        let pointerlockerror = function(event) {
+
+        const pointerlockerror = function(event) {
             console.error('Error setting pointer lock!', event);
         }
+
         // Hook pointer lock state change events
         document.addEventListener('pointerlockchange', pointerlockchange, false);
         document.addEventListener('mozpointerlockchange', pointerlockchange, false);
@@ -428,8 +440,9 @@ export class GameClass {
         document.addEventListener('pointerlockerror', pointerlockerror, false);
         document.addEventListener('mozpointerlockerror', pointerlockerror, false);
         document.addEventListener('webkitpointerlockerror', pointerlockerror, false);
+
         element.requestPointerLock();
-        that.player.controls.inited = true;
+        this.player.controls.inited = true;
     }
 
     // setupMouseListeners...
