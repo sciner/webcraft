@@ -173,8 +173,13 @@ export class PlayerInventory {
 
     // Клонирование материала в инвентарь
     cloneMaterial(mat) {
+        if(mat.id < 2 || mat.deprecated) {
+            return false;
+        }
+        if(mat.previous_part) {
+            mat = {id: mat.previous_part.id};
+        }
         mat = BLOCK.convertItemToInventoryItem(mat);
-        const MAX = mat.max_in_stack;
         // Search same material with count < max
         for(let k in Object.keys(this.items)) {
             if(parseInt(k) >= this.hotbar_count) {

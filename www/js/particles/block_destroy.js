@@ -32,7 +32,7 @@ export default class Particles_Block_Destroy {
             this.life = 0;
             return;
         }
-        if([BLOCK.DIRT.id, BLOCK.GRASS.id, BLOCK.VINES.id].indexOf(block.id) >= 0) {
+        if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             // lm          = cell.biome.dirt_color;
             // lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
             const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;

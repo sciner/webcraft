@@ -46,7 +46,7 @@ export default class style {
             style.lm.set(biome.dirt_color);
             flags |= QUAD_FLAGS.MASK_BIOME;
         }
-        if(block.id == BLOCK.GRASS.id) {
+        if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
             y -= .15;
         }
         let sz = 1 / 1.41;

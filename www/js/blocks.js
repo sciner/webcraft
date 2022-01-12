@@ -115,6 +115,7 @@ export class BLOCK {
     static ao_invisible_blocks      = [];
     static resource_pack_manager    = null;
     static max_id                   = 0;
+    static MASK_BIOME_BLOCKS        = [];
 
     static getLightPower(material) {
         if (!material) {
@@ -246,7 +247,7 @@ export class BLOCK {
         if(block_id == 0) {
             return true;
         }
-        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id].indexOf(block_id) >= 0) {
+        if([BLOCK.GRASS.id, BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id, BLOCK.STILL_LAVA.id, BLOCK.FLOWING_LAVA.id, BLOCK.CLOUD.id, BLOCK.TALL_GRASS.id, BLOCK.TALL_GRASS_TOP.id].indexOf(block_id) >= 0) {
             return true;
         }
         let block = BLOCK.BLOCK_BY_ID.get(block_id);
@@ -353,6 +354,9 @@ export class BLOCK {
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs'].indexOf(x) >= 0).length > 0;
+        if(block.planting && !('inventory_style' in block)) {
+            block.inventory_style = 'extruder';
+        }
         // Set default properties
         let default_properties = {
             light:              null,
@@ -392,6 +396,9 @@ export class BLOCK {
         // Add spawn egg
         if(block.spawn_egg && BLOCK.spawn_eggs.indexOf(block.id) < 0) {
             BLOCK.spawn_eggs.push(block.id);
+        }
+        if(block.tags.indexOf('mask_biome') >= 0 && BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) < 0) {
+            BLOCK.MASK_BIOME_BLOCKS.push(block.id)
         }
         // Parse tags
         for(let tag of block.tags) {

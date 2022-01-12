@@ -204,7 +204,13 @@ export class Resources {
         if (imageBitmap) {
             return fetch(url)
                 .then(r => r.blob())
-                .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}));
+                .then(blob => self.createImageBitmap(blob, {premultiplyAlpha: 'none'}))
+                .catch((e) => {
+                    vt.error('Error loadImage in resources');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                });
         }
         return new Promise((resolve, reject) => {
             const image = new Image();

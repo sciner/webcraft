@@ -1121,6 +1121,7 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
+        "inventory_style": "extruder",
         "texture": [
             4,
             16
@@ -1138,6 +1139,7 @@
         "id": 106,
         "name": "VINES",
         "sound": "madcraft:block.grass",
+        "inventory_style": "extruder",
         "transparent": true,
         "width": 0.0625,
         "texture": {
@@ -1161,7 +1163,6 @@
             "id": "plant"
         },
         "style": "ladder",
-        "inventory_style": "extruder",
         "passable": 0.25,
         "can_rotate": true
     },

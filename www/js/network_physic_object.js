@@ -111,8 +111,6 @@ export class NetworkPhysicObject {
 
         if(nextRot) {
             tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
-
-            console.log(tRot);
         }
 
         return this.applyState(tPos, tRot);

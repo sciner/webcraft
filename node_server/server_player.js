@@ -274,11 +274,7 @@ export class ServerPlayer extends Player {
                         throw 'error_invalid_block_position';
                     }
                     const block = chunk.getBlock(pos);
-                    if(block.id < 2) {
-                        // throw 'error_block_not_support_clone';
-                    } else {
-                        this.inventory.cloneMaterial(block.material);
-                    }
+                    this.inventory.cloneMaterial(block.material);
                     break;
                 }
 
