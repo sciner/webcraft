@@ -744,17 +744,20 @@ export class BLOCK {
                 case 'door': {
                     let cardinal_direction = b.getCardinalDirection();
                     let opened = this.isOpened(b);
-                    let on_ceil = true; // this.isOnCeil(b);
-                    let sz = 3 / 15.9;
+                    // let on_ceil = true; // this.isOnCeil(b);
                     if(opened) {
-                        shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    } else {
-                        if(on_ceil) {
-                            shapes.push(aabb.set(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                        } else {
-                            shapes.push(aabb.set(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                        }
+                        cardinal_direction = (cardinal_direction + 1) % 4;
                     }
+                    let sz = 3 / 15.9;
+                    //if(opened) {
+                        shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                    //} else {
+                    //    if(on_ceil) {
+                    //        shapes.push(aabb.set(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                    //    } else {
+                    //        shapes.push(aabb.set(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                    //    }
+                    //}
                     break;
                 }
                 case 'slab': {

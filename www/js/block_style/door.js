@@ -37,9 +37,14 @@ export default class style {
         }
 
         let texture                 = block.material.texture;
+        let opened                  = block.extra_data.opened;
 
         // F R B L
         let cardinal_direction    = block.getCardinalDirection();
+        if(opened) {
+            cardinal_direction = (cardinal_direction + 1) % 4;
+        }
+
         switch(cardinal_direction) {
             case ROTATE.S: {
                 break;
@@ -72,50 +77,39 @@ export default class style {
                 point: new Vector(0, 0, 0),
             };
         }
-        let on_ceil = true;//block.extra_data.point.y >= .5;
+        let on_ceil = true; // block.extra_data.point.y >= .5;
         let thickness = 3/16; // толщина блока
         // if (on_ceil) {
         //     on_ceil = false;
         //     cardinal_direction = CubeSym.add(CubeSym.ROT_Z2, cardinal_direction);
         // }
-        if(block.extra_data.opened) {
-            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
-            let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
-            let x_pos = 0;
-            let z_pos = 0;
-            let y_pos = 0; // нарисовать в нижней части блока
-            tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-            tex_side[2] -= (1 - thickness) / TX_CNT;
-            tex_side[3] = thickness / TX_CNT;
-            let size = new Vector(1, thickness, 1);
 
-            tex_up_down[1] = tex_side[1];
-            tex_up_down[2] = 1 / TX_CNT;
-            tex_up_down[3] = thickness / TX_CNT;
-            //
-            tex_side[2] = 1 / TX_CNT;
-            tex_side[3] = thickness / TX_CNT;
-            //
-            x_pos = .5;
-            z_pos = thickness/2;
-            size = new Vector(1, thickness, 1);
-            push_part(vertices, cardinal_direction,
-                x + .5, y + .5, z + .5,
-                x_pos - .5, y_pos - .5, z_pos - .5,
-                size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
-        } else {
-            let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_UP);
-            let tex_front  = BLOCK.calcTexture(texture, DIRECTION_LEFT);
-            let tex_side = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-            let y_pos = on_ceil ? 1 - thickness : 0; // нарисовать в верхней части блока
-            tex_front[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-            tex_front[3] = thickness / TX_CNT;
-            tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-            tex_side[3] = thickness / TX_CNT;
-            push_part(vertices, cardinal_direction, x + .5, y + .5, z + .5,
-                    0, y_pos - .5, 0, 1, 1, thickness, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
-        }
+        let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
+        let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
+        let tex_side = BLOCK.calcTexture(texture, DIRECTION_LEFT);
+        let x_pos = 0;
+        let z_pos = 0;
+        let y_pos = 0; // нарисовать в нижней части блока
+        tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
+        tex_side[2] -= (1 - thickness) / TX_CNT;
+        tex_side[3] = thickness / TX_CNT;
+        let size = new Vector(1, thickness, 1);
+
+        tex_up_down[1] = tex_side[1];
+        tex_up_down[2] = 1 / TX_CNT;
+        tex_up_down[3] = thickness / TX_CNT;
+        //
+        tex_side[2] = 1 / TX_CNT;
+        tex_side[3] = thickness / TX_CNT;
+        //
+        x_pos = .5;
+        z_pos = thickness/2;
+        size = new Vector(1, thickness, 1);
+        push_part(vertices, cardinal_direction,
+            x + .5, y + .5, z + .5,
+            x_pos - .5, y_pos - .5, z_pos - .5,
+            size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
+
     }
 }
 
