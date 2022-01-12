@@ -252,6 +252,7 @@ export class Player {
             };
             let actions = await doBlockAction(e, this.world, player, this.currentInventoryItem);
             this.applyActions(e, actions);
+            e_orig.actions = {blocks: actions.blocks};
             // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
             this.world.server.Send({
                 name: ServerClient.CMD_PICKAT_ACTION,

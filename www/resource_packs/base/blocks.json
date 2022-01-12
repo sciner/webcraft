@@ -3945,5 +3945,53 @@
             "id": "stone",
             "side": [2, 1]
         }
+    },
+    {
+        "id": 572,
+        "name": "TALL_GRASS",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "texture": [
+            8,
+            16
+        ],
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome"
+        ],
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 573
+        },
+        "planting": true
+    },
+    {
+        "id": 573,
+        "name": "TALL_GRASS_TOP",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "texture": [
+            10,
+            16
+        ],
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome"
+        ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 572
+        },
+        "planting": true
     }
 ]

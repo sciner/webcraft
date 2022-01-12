@@ -59,7 +59,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             resp.play_sound = {tag: world_material.sound, action: 'open'};
         }
         resp.reset_target_pos = true;
-        resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        resp.blocks.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
     // Destroy
     } else if(destroyBlock) {
         let can_destroy = true;
@@ -68,7 +68,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         if(can_destroy) {
             if(world_block.id == BLOCK.CHEST.id) {
-                resp.delete_chest = {pos: pos, entity_id: world_block.entity_id};
+                resp.delete_chest = {pos: new Vector(pos), entity_id: world_block.entity_id};
             }
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
                 //
@@ -226,11 +226,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             new_extra_data.height += world_material.height;
             if(new_extra_data.height < 1) {
                 resp.reset_target_pos = true;
-                resp.blocks.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.blocks.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 resp.decrement = true;
             } else {
                 resp.reset_target_pos = true;
-                resp.blocks.push({pos: pos, item: {id: BLOCK.SNOW_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.SNOW_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                 resp.decrement = true;
             }
             return resp;
@@ -258,7 +258,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         pos.x -= pos.n.x;
                         pos.y -= pos.n.y;
                         pos.z -= pos.n.z;
-                        resp.blocks.push({pos: pos, item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                        resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                         resp.decrement = true;
                     }
                     break;
@@ -268,7 +268,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(matBlock.emit_on_set) {
                 const emitBlock = BLOCK.fromName(matBlock.emit_on_set);
                 const extra_data = BLOCK.makeExtraData(emitBlock, pos);
-                resp.blocks.push({pos: pos, item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
+                resp.blocks.push({pos: new Vector(pos), item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                 resp.decrement = true;
                 if(emitBlock.sound) {
                     resp.play_sound = {tag: emitBlock.sound, action: 'place'};
@@ -319,13 +319,27 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             //
             let extra_data = BLOCK.makeExtraData(matBlock, pos);
             //
+            const optimizePushedItem = (item) => {
+                if('extra_data' in item && !item.extra_data) {
+                    delete(item.extra_data);
+                }
+                if('rotate' in item) {
+                    const block = BLOCK.fromId(item.id);
+                    if(!block.can_rotate) {
+                        delete(item.rotate);
+                    }
+                }
+            };
+            //
             const pushBlock = (params) => {
+                optimizePushedItem(params.item);
                 resp.blocks.push(params);
                 const block = BLOCK.fromId(params.item.id);
                 if(block.next_part) {
                     // Если этот блок имеет "пару"
                     const next_params = JSON.parse(JSON.stringify(params));
                     next_params.item.id = block.next_part.id;
+                    optimizePushedItem(next_params.item);
                     next_params.pos = new Vector(next_params.pos).add(block.next_part.offset_pos);
                     pushBlock(next_params);
                 }
@@ -335,11 +349,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 // Replace block
                 if(matBlock.is_item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
-                        pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
                     }
                 } else {
-                    pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
                     resp.decrement = true;
                 }
             } else {
@@ -351,7 +365,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
                 if(matBlock.is_item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
-                        pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                        pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
                         let b = BLOCK.fromId(matBlock.id);
                         if(b.sound) {
@@ -408,7 +422,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
-                    pushBlock({pos: pos, item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     resp.decrement = true;
                 }
             }

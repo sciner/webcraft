@@ -1,6 +1,8 @@
 [
     {"id": 2, "name": "DIRT"},
     {"id": 31, "name": "GRASS"},
+    {"id": 572, "name": "TALL_GRASS"},
+    {"id": 573, "name": "TALL_GRASS_TOP"},
     {"id": 150, "name": "DIAMOND"},
     {"id": 106, "name": "VINES"},
     {"id": 4, "name": "TNT"},

@@ -133,11 +133,13 @@ export class ServerPlayer extends Player {
                     // Update local position
                     this.world.changePlayerPosition(this, cmd.data);
                     // Send new position to other players
+                    /*
                     let packets = [{
                         name: ServerClient.CMD_PLAYER_STATE,
                         data: this.exportState()
                     }];
                     this.world.sendAll(packets, [this.session.user_id]);
+                    */
                     /*const pick = this.raycastFromHead();
                     if (pick) {
                         let block = this.world.chunkManager.getBlock(pick.x, pick.y, pick.z);
@@ -220,7 +222,7 @@ export class ServerPlayer extends Player {
                 }*/
 
                 case ServerClient.CMD_PICKAT_ACTION: {
-                    await this.world.pickAtAction(this, cmd.data);
+                    this.world.pickAtAction(this, cmd.data);
                     break;
                 }
 
@@ -303,6 +305,12 @@ export class ServerPlayer extends Player {
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        //
+        //try {
+        //    this.conn.close();
+        //} catch(e) {
+        //    console.error(e);
+        //}
     }
 
     /**
@@ -410,6 +418,23 @@ export class ServerPlayer extends Player {
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2. Check near drop items
         this.checkNearDropItems();
+        //
+        this.sendState();
+    }
+
+    // Send current state to players
+    sendState() {
+        let chunk_over = this.world.chunks.get(this.chunk_addr);
+        if(!chunk_over) {
+            return;
+        }
+        // Send new position to other players
+        let packets = [{
+            name: ServerClient.CMD_PLAYER_STATE,
+            data: this.exportState()
+        }];
+        // this.world.sendAll(packets, [this.session.user_id]);
+        this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.id]);
     }
 
     // Check near drop items

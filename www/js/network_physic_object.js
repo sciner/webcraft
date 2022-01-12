@@ -16,7 +16,7 @@ export class NetworkPhysicObject {
 
         // Networking
         this.netBuffer = [];
-        this.latency = 100;
+        this.latency = 200;
         this.tPos = new Vector();
         this.tRot = new Vector();
 

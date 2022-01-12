@@ -4,6 +4,7 @@ import { BLOCK } from "./blocks.js";
 const INF = 100000.0;
 const eps = 1e-3;
 const coord = ['x', 'y', 'z'];
+const point_precision = 1000;
 const side = new Vector(0, 0, 0);
 const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
@@ -22,6 +23,11 @@ export class RaycasterResult {
         this.z = leftTop.z;
         this.n = side;
         this.point = new Vector(pos.x, pos.y, pos.z).sub(leftTop);
+        if(point_precision != 1) {
+            this.point.x = Math.round(this.point.x * point_precision) / point_precision;
+            this.point.y = Math.round(this.point.y * point_precision) / point_precision;
+            this.point.z = Math.round(this.point.z * point_precision) / point_precision;
+        }
     }
 
 }

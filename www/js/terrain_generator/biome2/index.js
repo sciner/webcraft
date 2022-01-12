@@ -563,6 +563,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         // Plant herbs
         let temp_block = null;
+        let idx = 0;
         for(let pos of map.info.plants.keys()) {
             let block_id = map.info.plants.get(pos);
             if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
@@ -571,7 +572,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(temp_block.id === BLOCK.DIRT.id || temp_block.id == 516) {
                     temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
                     if(!chunk.tblocks.has(temp_vec)) {
-                        setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
+                        if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
+                            setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
+                            setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
+                        } else {
+                            setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
+                        }
                     }
                 }
             }

@@ -73,27 +73,30 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
-        //
-        this.set_block_queue = {
+        // Queue of player pickat actions
+        this.pickat_action_queue = {
             list: [],
             add: function(player, params) {
                 this.list.push({player, params});
             },
             run: async function() {
                 while(this.list.length > 0) {
+                    const world = that;
                     const queue_item = this.list.shift();
-                    const player = queue_item.player;
+                    const server_player = queue_item.player;
                     const params = queue_item.params;
-                    let addr = getChunkAddr(params.pos);
-                    let chunk = that.chunks.get(addr);
-                    if(chunk) {
-                        if (await chunk.blockAction(player, params, false)) {
-                            await that.db.blockSet(that, player, params);
-                            that.chunkBecameModified(addr);
-                        }
-                    } else {
-                        throw 'error_chunk_not_loaded';
-                    }
+                    const currentInventoryItem = server_player.inventory.current_item;
+                    const player = {
+                        radius:     0.7,
+                        height:     server_player.height,
+                        pos:        new Vector(server_player.state.pos),
+                        rotate:     server_player.rotateDegree.clone()
+                    };
+                    const actions = await doBlockAction(params, world, player, currentInventoryItem);
+                    // @todo Need to compare two actions
+                    // console.log(JSON.stringify(params.actions.blocks));
+                    // console.log(JSON.stringify(actions.blocks));
+                    await world.applyActions(server_player, actions);
                 }
             }
         };
@@ -120,6 +123,8 @@ export class ServerWorld {
         for(let [entity_id, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
         }
+        // 5.
+        this.pickat_action_queue.run();
     }
 
     save() {
@@ -399,22 +404,6 @@ export class ServerWorld {
         return chunk.getBlock(pos);
     }
 
-    //
-    async setBlock(player, params) {
-        // @ParamBlockSet
-        // Ignore bedrock for non admin
-        let is_admin = this.admins.checkIsAdmin(player);
-        if (params.item.id != 1 || is_admin) {
-            let dist = player.state.pos.distance(params.pos);
-            if(dist > MAX_BLOCK_PLACE_DIST) {
-                console.log('dist', dist);
-                throw 'error_unreachable_coordinate';
-            }
-            this.set_block_queue.add(player, params);
-            this.set_block_queue.run();
-        }
-    }
-
     // Create entity
     async createEntity(player, params) {
         // @ParamBlockSet
@@ -436,17 +425,25 @@ export class ServerWorld {
         return this.chunks;
     }
 
-    async pickAtAction(server_player, params) {
-        const currentInventoryItem = server_player.inventory.current_item;
-        const player = {
-            radius:     0.7,
-            height:     server_player.height,
-            pos:        new Vector(server_player.state.pos),
-            rotate:     server_player.rotateDegree.clone()
-        };
-        const actions = await doBlockAction(params, this, player, currentInventoryItem);
-        await this.applyActions(server_player, actions);
-        return actions;
+    /*
+    //
+    async setBlock(player, params) {
+        // @ParamBlockSet
+        // Ignore bedrock for non admin
+        let is_admin = this.admins.checkIsAdmin(player);
+        if (params.item.id != 1 || is_admin) {
+            let dist = player.state.pos.distance(params.pos);
+            if(dist > MAX_BLOCK_PLACE_DIST) {
+                console.log('dist', dist);
+                throw 'error_unreachable_coordinate';
+            }
+            this.pickat_action_queue.add(player, params);
+            this.pickat_action_queue.run();
+        }
+    }*/
+
+    pickAtAction(server_player, params) {
+        this.pickat_action_queue.add(server_player, params);
     }
 
     // setBlocksApply
