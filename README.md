@@ -1,6 +1,8 @@
 # MadCraft
 Minecraft clone on JS
 
+Demo: https://madcraft.io/
+
 # Run and play
 ```
 // Run NodeJS v17.1.0 server
