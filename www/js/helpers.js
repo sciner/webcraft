@@ -30,6 +30,49 @@ export class Mth {
         return Math.cos(a);
     }
 
+    static clamp (value, min, max) {
+        return value < min 
+            ? min : (
+                value > max 
+                    ? max 
+                    : value
+            );
+    }
+
+    static repeat(value, length) {
+        return Mth.clamp(value - Math.floor(value / length) * length, 0.0, length);
+    }
+
+    /**
+     * Compute a distance between over minimal arc
+     * @param {number} current 
+     * @param {number} target 
+     * @returns {number} 
+     */
+    static deltaAngle(current, target) {
+        const delta = Mth.repeat((target - current), 360.0);
+
+        return delta > 180 
+            ? delta - 360.0 
+            : delta;
+    }
+
+    /**
+     * Lerp angle with over minimal distance
+     * @param {number} a - start angle 
+     * @param {number} b - target angle 
+     * @param {number} t - lerp factor
+     * @returns {number}
+     */
+    static lerpAngle(a, b, t) {
+        let delta = Mth.repeat((b - a), 360);
+
+        if (delta > 180)
+            delta -= 360;
+
+        return a + delta * Mth.clamp(t, 0, 1);
+    }
+
 }
 
 // VectorCollector...
@@ -273,6 +316,23 @@ export class Vector {
         this.x = vec1.x * (1.0 - delta) + vec2.x * delta;
         this.y = vec1.y * (1.0 - delta) + vec2.y * delta;
         this.z = vec1.z * (1.0 - delta) + vec2.z * delta;
+    }
+
+    /**
+     * @param {Vector} vec1
+     * @param {Vector} vec2
+     * @param {number} delta
+     * @param {boolean} rad
+     * @return {void}
+     */
+    lerpFromAngle(vec1, vec2, delta, rad = false) {
+        const coef = rad 
+            ? 180 / Math.PI 
+            : 1;
+
+        this.x = Mth.lerpAngle(vec1.x * coef, vec2.x * coef, delta) / coef;
+        this.y = Mth.lerpAngle(vec1.y * coef, vec2.y * coef, delta) / coef;
+        this.z = Mth.lerpAngle(vec1.z * coef, vec2.z * coef, delta) / coef;
     }
 
     /**

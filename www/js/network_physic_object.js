@@ -1,4 +1,4 @@
-import {Vector} from './helpers.js';
+import {Mth, Vector} from './helpers.js';
 import { getChunkAddr } from "./chunk.js";
 import { World } from './world.js';
 
@@ -105,11 +105,14 @@ export class NetworkPhysicObject {
         // prevent extrapolation.
         // it should be processed by another way
         // or will be bug with jump
-        iterp = Math.min(1, Math.max(0, iterp));
+        iterp = Mth.clamp(iterp, 0, 1);
 
         tPos.lerpFrom(prevPos, nextPos, iterp);
+
         if(nextRot) {
-            tRot.lerpFrom(prevRot, nextRot, iterp);
+            tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
+
+            console.log(tRot);
         }
 
         return this.applyState(tPos, tRot);
