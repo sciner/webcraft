@@ -7,6 +7,8 @@ import {Resources} from "./resources.js";
 
 export class HUD {
 
+    zoom = 2.0;
+
     constructor(width, height) {
 
         // Create canvas used to draw HUD
@@ -229,7 +231,7 @@ export class HUD {
 
         // Set style
         this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = '20px Ubuntu';
+        this.ctx.font           = Math.round(20 * this.zoom) + 'px Ubuntu';
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
 
@@ -352,7 +354,7 @@ export class HUD {
             return;
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
-        this.drawText(this.text, 10, 10);
+        this.drawText(this.text, 10 * this.zoom, 10 * this.zoom);
     }
 
     // Просто функция печати текста
@@ -360,7 +362,7 @@ export class HUD {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
         for(let i in str) {
-            this.drawTextBG(str[i], x, y + 28 * i);
+            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i);
         }
     }
 
@@ -371,19 +373,19 @@ export class HUD {
         /// draw text from top - makes life easier at the moment
         this.ctx.textBaseline = 'top';
         // get width of text
-        let mt = this.ctx.measureText(txt);
+        let mt = this.ctx.measureText(txt+'|');
         let width = mt.width;
         let height = mt.actualBoundingBoxDescent;
         // color for background
         this.ctx.fillStyle = 'rgba(0, 0, 0, .35)';
         if(txt) {
             // draw background rect assuming height of font
-            this.ctx.fillRect(x, y, width + 4, height + 4);
+            this.ctx.fillRect(x, y, width + 4 * this.zoom, height + 4 * this.zoom);
         }
         // text color
         this.ctx.fillStyle = '#fff';
         // draw text on top
-        this.ctx.fillText(txt, x + 2, y + 2);
+        this.ctx.fillText(txt, x + 2 * this.zoom, y + 2 * this.zoom);
         // restore original state
         this.ctx.restore();
     }

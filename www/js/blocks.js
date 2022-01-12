@@ -199,11 +199,15 @@ export class BLOCK {
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_slab = block.tags.indexOf('slab') >= 0;
-        if(is_trapdoor || is_stairs || is_slab) {
+        let is_door = block.tags.indexOf('door') >= 0;
+        if(is_trapdoor || is_stairs || is_slab || is_door) {
             extra_data = {
                 point: new Vector(pos.point.x, pos.point.y, pos.point.z)
             };
             if(is_trapdoor) {
+                extra_data.opened = false;
+            }
+            if(is_door) {
                 extra_data.opened = false;
             }
             if(pos.n.y == 1) {
@@ -353,7 +357,7 @@ export class BLOCK {
         block.planting          = block?.style == 'planting';
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
-        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs'].indexOf(x) >= 0).length > 0;
+        block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
         }
@@ -555,7 +559,7 @@ export class BLOCK {
         return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
     }
 
-    static isOpenedTrapdoor(block) {
+    static isOpened(block) {
         return !!(block.extra_data && block.extra_data.opened);
     }
 
@@ -723,8 +727,24 @@ export class BLOCK {
                 }
                 case 'trapdoor': {
                     let cardinal_direction = b.getCardinalDirection();
-                    let opened = this.isOpenedTrapdoor(b);
+                    let opened = this.isOpened(b);
                     let on_ceil = this.isOnCeil(b);
+                    let sz = 3 / 15.9;
+                    if(opened) {
+                        shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                    } else {
+                        if(on_ceil) {
+                            shapes.push(aabb.set(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                        } else {
+                            shapes.push(aabb.set(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
+                        }
+                    }
+                    break;
+                }
+                case 'door': {
+                    let cardinal_direction = b.getCardinalDirection();
+                    let opened = this.isOpened(b);
+                    let on_ceil = true; // this.isOnCeil(b);
                     let sz = 3 / 15.9;
                     if(opened) {
                         shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());

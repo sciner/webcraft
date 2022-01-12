@@ -3977,6 +3977,7 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
+        "spawnable": false,
         "sound": "madcraft:block.grass",
         "texture": [
             10,
@@ -3994,5 +3995,61 @@
             "id": 572
         },
         "planting": true
+    },
+    {
+        "id": 574,
+        "name": "OAK_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            1,
+            6
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 575
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 575,
+        "name": "OAK_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            1,
+            5
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 574
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
     }
 ]

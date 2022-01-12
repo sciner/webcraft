@@ -44,7 +44,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         return resp;
     }
     //
-    let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('trapdoor') >= 0;
+    let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
     // Edit trapdoor
     if(isEditTrapdoor) {
         // Trapdoor
@@ -60,6 +60,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         resp.reset_target_pos = true;
         resp.blocks.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+        // Если блок имеет пару (двери)
+        for(let cn of ['next_part', 'previous_part']) {
+            let part = world_material[cn];
+            if(part) {
+                let connected_pos = new Vector(pos).add(part.offset_pos);
+                let block_connected = world.getBlock(connected_pos);
+                if(block_connected.id == part.id) {
+                    resp.blocks.push({pos: connected_pos, item: {id: block_connected.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
+            }
+        }
     // Destroy
     } else if(destroyBlock) {
         let can_destroy = true;

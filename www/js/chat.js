@@ -9,6 +9,8 @@ const SYSTEM_NAME               = '<MadCraft>';
 
 export class Chat {
 
+    zoom = 2.0;
+
     constructor(player) {
         let that                    = this;
         this.player                 = player;
@@ -227,9 +229,9 @@ export class Chat {
 
     drawHUD(hud) {
 
-        const margin            = 10;
-        const padding           = 5;
-        const top               = 45;
+        const margin            = 10 * this.zoom;
+        const padding           = 5 * this.zoom;
+        const top               = 45 * this.zoom;
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
         const blink_period      = 500; // период моргания курсора ввода текста (мс)
@@ -237,11 +239,11 @@ export class Chat {
         hud.ctx.save();
 
         // Calc text size
-        hud.ctx.font            = '18px Ubuntu';
+        hud.ctx.font            = Math.round(18 * this.zoom) + 'px Ubuntu';
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
         let mt                  = hud.ctx.measureText('TW|');
-        let line_height         = mt.actualBoundingBoxDescent + 14;
+        let line_height         = mt.actualBoundingBoxDescent + 14 * this.zoom;
         let y                   = hud.height - (top + margin + line_height);
 
         if(this.active) {
@@ -278,11 +280,11 @@ export class Chat {
                     //
                     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillText(text, margin + padding, y + 4);
+                    hud.ctx.fillText(text, margin + padding, y + 4 * this.zoom);
                     //
                     aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#ffffff' + aa;
-                    hud.ctx.fillText(text, margin + padding + 2, y + 2);
+                    hud.ctx.fillText(text, margin + padding + 2, y + 2 * this.zoom);
                     //
                     y -= line_height;
                 }

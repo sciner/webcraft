@@ -2,9 +2,13 @@ import {Window, Label, Button} from "../../tools/gui/wm.js";
 
 export default class MainMenu extends Window {
 
+    zoom = 2.0;
+
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
+        this.width *= this.zoom;
+        this.height *= this.zoom;
 
         // Get window by ID
         const ct = this;
@@ -13,13 +17,13 @@ export default class MainMenu extends Window {
         // ct.setBackground('./media/gui/form-crafting-table.png');
         ct.hide();
         // Add labels to window
-        let lbl1 = new Label(0, 0, this.width, 30, 'lbl1', 'Menu');
+        let lbl1 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl1', 'Menu');
         lbl1.style.color = '#333333ff';
         lbl1.style.textAlign.horizontal = 'center';
         lbl1.style.textAlign.vertical = 'middle';
         ct.add(lbl1);
         //
-        let lbl2 = new Label(0, 0, this.width, 30, 'lbl2', 'Menu');
+        let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', 'Menu');
         lbl2.style.color = '#ffffffff';
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
@@ -49,13 +53,13 @@ export default class MainMenu extends Window {
     }
 
     addReturnButton() {
-        let btnReturn = this.btnReturn = new Button(20, 80, this.width - 40, 40, 'btnReturn', 'Return');
+        let btnReturn = this.btnReturn = new Button(20 * this.zoom, 80 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnReturn', 'Return');
         btnReturn.style.background.color = '#777777ff';
         btnReturn.style.color = '#ffffffff';
         btnReturn.style.font.shadow = {
             enable: true,
-            x: 2,
-            y: 2,
+            x: 2 * this.zoom,
+            y: 2 * this.zoom,
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
@@ -78,13 +82,13 @@ export default class MainMenu extends Window {
 
     addCloseButton() {
         // Close button
-        let btnClose = this.btnClose = new Button(20, 130, this.width - 40, 40, 'btnClose', 'Exit');
+        let btnClose = this.btnClose = new Button(20 * this.zoom, 130 * this.zoom, this.width - 40 * this.zoom, 40 * this.zoom, 'btnClose', 'Exit');
         btnClose.style.background.color = '#777777ff';
         btnClose.style.color = '#ffffffff';
         btnClose.style.font.shadow = {
             enable: true,
-            x: 2,
-            y: 2,
+            x: 2 * this.zoom,
+            y: 2 * this.zoom,
             blur: 0,
             color: 'rgba(0, 0, 0, 0.5)'
         }
