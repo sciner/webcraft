@@ -3,6 +3,8 @@ import {Vector} from "./helpers.js";
 
 export class Hotbar {
 
+    zoom = 2.0;
+
     constructor(hud, inventory) {
         let that                = this;
         this.hud                = hud;
@@ -47,15 +49,15 @@ export class Hotbar {
             return false;
         }
         const scale = 1;
-        let w = 546; // this.image.width;
-        let h = 147; // this.image.height;
-        const cell_size = 60;
-        const live_bar_height = 81;
+        let w = 546 * this.zoom; // this.image.width;
+        let h = 147 * this.zoom; // this.image.height;
+        const cell_size = 60 * this.zoom;
+        const live_bar_height = 81 * this.zoom;
         let hud_pos = {
             x: hud.width / 2 - w / 2,
             y: hud.height - h
         };
-        const ss = 27;
+        const ss = 27 * this.zoom;
         const mayGetDamaged = player.game_mode.mayGetDamaged();
 
         // Draw item name in hotbar
@@ -76,13 +78,13 @@ export class Hotbar {
                 let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                 //
                 hud.ctx.textBaseline = 'bottom';
-                hud.ctx.font = '24px Ubuntu';
-                const yMargin = mayGetDamaged ? 40 : 0;
+                hud.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
+                const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
                 const textWidth = hud.ctx.measureText(itemName).width;
                 hud.ctx.fillStyle = '#000000' + aa;
                 hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
                 hud.ctx.fillStyle = '#ffffff' + aa;
-                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2);
+                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
                 //
                 hud.refresh();
             }
@@ -112,11 +114,11 @@ export class Hotbar {
                 hud.ctx.drawImage(
                     this.image,
                     0,
-                    150,
+                    150 * this.zoom,
                     ss,
                     ss,
-                    hud_pos.x + i * 24,
-                    hud_pos.y + 30,
+                    hud_pos.x + i * 24 * this.zoom,
+                    hud_pos.y + 30 * this.zoom,
                     ss,
                     ss
                 );
@@ -125,11 +127,11 @@ export class Hotbar {
                 hud.ctx.drawImage(
                     this.image,
                     0,
-                    150 + ss,
+                    150 * this.zoom + ss,
                     ss,
                     ss,
-                    hud_pos.x + Math.floor(live * 10) * 24,
-                    hud_pos.y + 30,
+                    hud_pos.x + Math.floor(live * 10) * (24 * this.zoom),
+                    hud_pos.y + (30 * this.zoom),
                     ss,
                     ss
                 );
@@ -139,11 +141,11 @@ export class Hotbar {
                 hud.ctx.drawImage(
                     this.image,
                     ss,
-                    150,
+                    150 * this.zoom,
                     ss,
                     ss,
-                    hud_pos.x + w - (i * 24 + ss),
-                    hud_pos.y + 30,
+                    hud_pos.x + w - (i * 24 * this.zoom + ss),
+                    hud_pos.y + 30 * this.zoom,
                     ss,
                     ss
                 );
@@ -152,11 +154,11 @@ export class Hotbar {
                 hud.ctx.drawImage(
                     this.image,
                     ss,
-                    150 + ss,
+                    150 * this.zoom + ss,
                     ss,
                     ss,
-                    hud_pos.x + w - (Math.floor(food * 10) * 24 + ss),
-                    hud_pos.y + 30,
+                    hud_pos.x + w - (Math.floor(food * 10) * 24 * this.zoom + ss),
+                    hud_pos.y + 30 * this.zoom,
                     ss,
                     ss
                 );
@@ -179,16 +181,16 @@ export class Hotbar {
         hud.ctx.drawImage(
             this.image,
             live_bar_height,
-            150,
-            72,
-            69,
+            150 * this.zoom,
+            72 * this.zoom,
+            69 * this.zoom,
             hud_pos.x - 3 + this.inventory.getRightIndex() * cell_size,
-            hud_pos.y + 48 + 30,
-            72,
-            69
+            hud_pos.y + (48 + 30) * this.zoom,
+            72 * this.zoom,
+            69 * this.zoom
         );
         if(this.inventory) {
-            this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + 48 + 30, 0));
+            this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom);
         }
     }
 

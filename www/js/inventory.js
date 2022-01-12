@@ -70,7 +70,7 @@ export class Inventory extends PlayerInventory {
     }
 
     // drawHotbar
-    drawHotbar(hud, cell_size, pos) {
+    drawHotbar(hud, cell_size, pos, zoom) {
         if(!this.inventory_image) {
             return this.initUI();
         }
@@ -79,9 +79,9 @@ export class Inventory extends PlayerInventory {
         // 2. inventory_selector
         // img,sx,sy,swidth,sheight,x,y,width,height
         const hud_pos = new Vector(pos.x, pos.y, 0);
-        const DEST_SIZE = 64;
+        const DEST_SIZE = 64 * zoom;
         // style
-        hud.ctx.font            = '18px Ubuntu';
+        hud.ctx.font            = Math.round(18 * zoom) + 'px Ubuntu';
         hud.ctx.textAlign       = 'right';
         hud.ctx.textBaseline    = 'bottom';
         for(const k in this.items) {
@@ -105,32 +105,32 @@ export class Inventory extends PlayerInventory {
                     icon.y,
                     icon.width,
                     icon.height,
-                    hud_pos.x + cell_size / 2 - 49 / 2 - 4,
-                    hud_pos.y + cell_size / 2 - 48 / 2 - 2,
+                    hud_pos.x + cell_size / 2 - 49 * zoom / 2 - 4 * zoom,
+                    hud_pos.y + cell_size / 2 - 48 * zoom / 2 - 2 * zoom,
                     DEST_SIZE,
                     DEST_SIZE
                     );
                 if(item.count > 1) {
                     hud.ctx.textBaseline    = 'bottom';
-                    hud.ctx.font            = '18px Ubuntu';
+                    hud.ctx.font            = Math.round(18 * zoom) + 'px Ubuntu';
                     hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size);
+                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size);
                     hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5, hud_pos.y + cell_size - 2);
+                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size - 2 * zoom);
                 }
                 // Draw instrument life
                 if(mat.instrument_id && item.power < mat.power) {
                     const power_normal = item.power / mat.power;
-                    let cx = hud_pos.x + 14;
-                    let cy = hud_pos.y + 14;
-                    let cw = 40;
-                    let ch = 43;
+                    let cx = hud_pos.x + 14 * zoom;
+                    let cy = hud_pos.y + 14 * zoom;
+                    let cw = 40 * zoom;
+                    let ch = 43 * zoom;
                     hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillRect(cx, cy + ch - 8, cw, 8);
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 8 * zoom);
                     //
                     let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
-                    hud.ctx.fillRect(cx, cy + ch - 8, cw * power_normal | 0, 4);
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw * power_normal | 0, 4 * zoom);
                 }
             }
             hud_pos.x += cell_size;
