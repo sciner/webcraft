@@ -8,6 +8,8 @@ export class Window {
     #_visible = true;
     #_tooltip = null;
 
+    zoom = 2.0;
+
     constructor(x, y, w, h, id, title, text) {
         this.list           = new Map();
         this.index          = 0;
@@ -52,7 +54,7 @@ export class Window {
                 bottom: 0
             },
             font: {
-                size: 20,
+                size: 20 * this.zoom,
                 family: 'Ubuntu',
                 shadow: {
                     enable: false,

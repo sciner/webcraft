@@ -190,14 +190,15 @@ export class HUD {
         let new_height = null;
 
         if(Game.render.canvas.width > Game.render.canvas.height) {
-            new_width =  Math.round(352 * 4.5);
-            new_height = Math.round(new_width * (Game.render.canvas.height / Game.render.canvas.width));
             new_width = document.body.clientWidth;
             new_height = document.body.clientHeight;
         } else {
-            new_height =  Math.round(332 * 3.5);
-            new_width = Math.round(new_height * (Game.render.canvas.width / Game.render.canvas.height));
+            new_height =  (332 * 3.5);
+            new_width = (new_height * (Game.render.canvas.width / Game.render.canvas.height));
         }
+
+        new_width = Math.round(new_width * window.devicePixelRatio);
+        new_height = Math.round(new_height * window.devicePixelRatio);
 
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
             this.width  = this.ctx.canvas.width   = new_width;

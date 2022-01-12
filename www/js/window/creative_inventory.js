@@ -8,7 +8,7 @@ class CreativeInventoryCollection extends Window {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         // Ширина / высота слота
-        this.cell_size = 36;
+        this.cell_size = 36 * this.zoom;
         this.max_height = 0;
         //
         this.style.background.color = '#00000000';
@@ -146,7 +146,7 @@ class CreativeInventoryCollection extends Window {
         ctx.save();
         ctx.clip(region, 'evenodd');
         for(let lblSlot of this.list.values()) {
-            lblSlot.drawOrig(ctx, ax + 16, ay + 34 + this.scrollY);
+            lblSlot.drawOrig(ctx, ax + 16 * this.zoom, ay + 34 * this.zoom + this.scrollY);
         }
         ctx.restore();
     }
@@ -158,6 +158,8 @@ export class CreativeInventoryWindow extends Window {
     constructor(x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
+        this.width *= this.zoom;
+        this.height *= this.zoom;
 
         this.inventory = inventory;
 
@@ -171,10 +173,10 @@ export class CreativeInventoryWindow extends Window {
         this.dragItem = null;
 
         // Ширина / высота слота
-        this.cell_size = 36;
+        this.cell_size = 36 * this.zoom;
 
         // Add labels to window
-        let lbl1 = new Label(17, 12, 230, 30, 'lbl1', null, 'Creative inventory');
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 230 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Creative inventory');
         ct.add(lbl1);
 
         // Создание слотов для инвентаря
@@ -199,7 +201,7 @@ export class CreativeInventoryWindow extends Window {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - this.cell_size, 9, 20, 20, 'btnClose', '');
+            let btnClose = new Button(ct.width - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
@@ -223,8 +225,8 @@ export class CreativeInventoryWindow extends Window {
         }
         ct.inventory_slots  = [];
         // нижний ряд (видимые на хотбаре)
-        let sx          = 16;
-        let sy          = this.height - this.cell_size - 14;
+        let sx          = 16 * this.zoom;
+        let sy          = this.height - this.cell_size - 14 * this.zoom;
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
             let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * this.cell_size, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
@@ -240,7 +242,7 @@ export class CreativeInventoryWindow extends Window {
             console.error('createCollectionSlots() already created');
             return;
         }
-        this.collection = new CreativeInventoryCollection(16, 35, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
+        this.collection = new CreativeInventoryCollection(16 * this.zoom, 35 * this.zoom, this.cell_size * 9, this.cell_size * 9, 'wCollectionSlots');
         this.add(this.collection);
         this.collection.init();
     }

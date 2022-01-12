@@ -56,7 +56,7 @@ export class CraftTableSlot extends Label {
 
         // 
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 40;
+        const dest_icon_size = 64;
         ctx.drawImage(
             image,
             icon.x,
@@ -71,7 +71,7 @@ export class CraftTableSlot extends Label {
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = '18px Ubuntu';
+            ctx.font                = Math.round(18 * this.zoom) + 'px Ubuntu';
             ctx.fillStyle           = '#000000ff';
             ctx.fillText(item.count, x + width + 2, y + height + 2);
             ctx.fillStyle           = '#ffffffff';
@@ -487,20 +487,20 @@ export class BaseCraftWindow extends Window {
         }
         ct.inventory_slots  = [];
         // нижний ряд (видимые на хотбаре)
-        let sx          = 14;
-        let sy          = 282;
+        let sx          = 14 * this.zoom;
+        let sy          = 282 * this.zoom;
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        sx              = 14;
-        sy              = 166;
+        sx              = 14 * this.zoom;
+        sy              = 166 * this.zoom;
         xcnt            = 9;
         // верхние 3 ряда
         for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }

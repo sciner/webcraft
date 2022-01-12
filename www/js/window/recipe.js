@@ -65,7 +65,7 @@ export class RecipeSlot extends Window {
         // 
         if('inventory_icon_id' in item) {
             let icon = BLOCK.getInventoryIconPos(item.inventory_icon_id, size, frame);
-            const dest_icon_size = 40;
+            const dest_icon_size = 32 * this.zoom;
             ctx.drawImage(
                 inventory_image,
                 icon.x,
@@ -88,13 +88,15 @@ export class RecipeWindow extends Window {
     constructor(recipe_manager, x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
+        this.width *= this.zoom;
+        this.height *= this.zoom;
 
         this.items_per_page     = 20;
         this.index              = -1;
         this.recipe_manager     = recipe_manager;
 
         // Ширина / высота слота
-        this.cell_size = 50;
+        this.cell_size = 50 * this.zoom;
 
         // Get window by ID
         const ct = this;
@@ -149,7 +151,7 @@ export class RecipeWindow extends Window {
     addPaginatorButtons() {
         const ct = this;
         // Label
-        let lblPages = new Label(105, 260, 40, 40, 'lblPages', '1 / 2');
+        let lblPages = new Label(105 * this.zoom, 260 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
         lblPages.style.color = '#ffffff';
         lblPages.style.font.shadow.enable = true;
         lblPages.style.font.shadow.x = 1;
@@ -157,14 +159,14 @@ export class RecipeWindow extends Window {
         ct.add(lblPages);
         this.lblPages = lblPages;
         // Prev
-        let btnPrev = new Button(65, 270, 40, 40, 'btnPrev', null);
+        let btnPrev = new Button(65 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnPrev', null);
         btnPrev.setBackground('./media/gui/btn_prev.png');
         btnPrev.onMouseDown = (e) => {
             this.paginator.prev();
         }
         ct.add(btnPrev);
         // Next
-        let btnNext = new Button(185, 270, 40, 40, 'btnNext', null);
+        let btnNext = new Button(185 * this.zoom, 270 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'btnNext', null);
         btnNext.setBackground('./media/gui/btn_next.png');
         btnNext.onMouseDown = (e) => {
             this.paginator.next();
@@ -185,8 +187,8 @@ export class RecipeWindow extends Window {
         }
         //
         let i           = 0;
-        let sx          = 22;
-        let sy          = 62;
+        let sx          = 22 * this.zoom;
+        let sy          = 62 * this.zoom;
         let xcnt        = 5;
         let list        = this.recipe_manager.crafting_shaped.list;
         let min_index   = this.paginator.page * this.items_per_page;

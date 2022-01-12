@@ -8,6 +8,8 @@ export default class ChestWindow extends Window {
     constructor(x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
+        this.width *= this.zoom;
+        this.height *= this.zoom;
 
         this.inventory  = inventory;
         this.loading    = false;
@@ -22,7 +24,7 @@ export default class ChestWindow extends Window {
         this.dragItem = null;
 
         // Ширина / высота слота
-        this.cell_size = 36;
+        this.cell_size = 36 * this.zoom;
 
         // Создание слотов сундука
         this.createChest(this.cell_size);
@@ -49,8 +51,8 @@ export default class ChestWindow extends Window {
         }
 
         // Add labels to window
-        ct.add(this.lbl1 = new Label(15, 12, 80, 30, 'lbl1', null, 'Chest'));
-        ct.add(new Label(15, 147, 80, 30, 'lbl2', null, 'Inventory'));
+        ct.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Chest'));
+        ct.add(new Label(15 * this.zoom, 147 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
 
         // Add listeners for server commands
         inventory.player.world.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
@@ -62,7 +64,7 @@ export default class ChestWindow extends Window {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '');
+            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
@@ -131,14 +133,14 @@ export default class ChestWindow extends Window {
             console.error('createCraftSlots() already created');
             return;
         }
-        let sx          = 14;
-        let sy          = 34;
+        let sx          = 14 * this.zoom;
+        let sy          = 34 * this.zoom;
         let xcnt        = 9;
         this.chest = {
             slots: []
         };
         for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
             lblSlot.index = i;
             lblSlot.is_chest_slot = true;
             lblSlot.onMouseEnter = function() {
@@ -185,20 +187,20 @@ export default class ChestWindow extends Window {
         }
         ct.inventory_slots  = [];
         // нижний ряд (видимые на хотбаре)
-        let sx          = 14;
-        let sy          = 282;
+        let sx          = 14 * this.zoom;
+        let sy          = 282 * this.zoom;
         let xcnt        = 9;
         for(let i = 0; i < 9; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i), null, '' + i, this, i);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }
-        sx              = 14;
-        sy              = 166;
+        sx              = 14 * this.zoom;
+        sy              = 166 * this.zoom;
         xcnt            = 9;
         // верхние 3 ряда
         for(let i = 0; i < 27; i++) {
-            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
+            let lblSlot = new CraftTableInventorySlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblSlot' + (i + 9), null, '' + (i + 9), this, i + 9);
             ct.add(lblSlot);
             ct.inventory_slots.push(lblSlot);
         }

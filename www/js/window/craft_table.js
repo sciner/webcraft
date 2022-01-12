@@ -8,6 +8,8 @@ export class CraftTable extends BaseCraftWindow {
     constructor(recipes, x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
+        this.width *= this.zoom;
+        this.height *= this.zoom;
 
         this.recipes = recipes;
         this.inventory = inventory;
@@ -36,7 +38,7 @@ export class CraftTable extends BaseCraftWindow {
         }
 
         // Ширина / высота слота
-        this.cell_size = 36;
+        this.cell_size = 36 * this.zoom;
 
         // Создание слотов для крафта
         this.createCraft(this.cell_size);
@@ -45,7 +47,7 @@ export class CraftTable extends BaseCraftWindow {
         this.createInventorySlots(this.cell_size);
 
         // Итоговый слот (то, что мы получим)
-        this.createResultSlot(246, 68);
+        this.createResultSlot(246 * this.zoom, 68 * this.zoom);
 
         // Обработчик закрытия формы
         this.onHide = function() {
@@ -55,8 +57,8 @@ export class CraftTable extends BaseCraftWindow {
         }
 
         // Add labels to window
-        let lbl1 = new Label(59, 12, 80, 30, 'lbl1', null, 'Crafting');
-        let lbl2 = new Label(16, 144, 80, 30, 'lbl2', null, 'Inventory');
+        let lbl1 = new Label(59 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Crafting');
+        let lbl2 = new Label(16 * this.zoom, 144 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory');
         ct.add(lbl1);
         ct.add(lbl2);
 
@@ -65,7 +67,7 @@ export class CraftTable extends BaseCraftWindow {
             // Add buttons
             const ct = this;
             // Close button
-            let btnClose = new Button(ct.width - 34, 9, 20, 20, 'btnClose', '');
+            let btnClose = new Button(ct.width - 34 * this.zoom, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
             btnClose.style.background.image = image;
             btnClose.style.background.image_size_mode = 'stretch';
@@ -80,7 +82,7 @@ export class CraftTable extends BaseCraftWindow {
     // Recipes button
     addRecipesButton() {
         const ct = this;
-        let btnRecipes = new Button(10, 68, 40, 36, 'btnRecipes', null);
+        let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = 'Toggle recipes';
         btnRecipes.setBackground('./media/gui/recipes.png');
         btnRecipes.onMouseDown = (e) => {
@@ -101,14 +103,14 @@ export class CraftTable extends BaseCraftWindow {
             console.error('createCraftSlots() already created');
             return;
         }
-        let sx          = 58;
-        let sy          = 32;
+        let sx          = 58 * this.zoom;
+        let sy          = 32 * this.zoom;
         let xcnt        = 3;
         this.craft = {
             slots: [null, null, null, null, null, null, null, null, null]
         };
         for(let i = 0; i < ct.craft.slots.length; i++) {
-            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * 36, sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
+            let lblSlot = new CraftTableRecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * (36 * this.zoom), sz, sz, 'lblCraftRecipeSlot' + i, null, '' + i, this, null);
             lblSlot.is_craft_slot = true;
             lblSlot.onMouseEnter = function() {
                 this.style.background.color = '#ffffff33';
