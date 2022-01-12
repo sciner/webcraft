@@ -8,6 +8,7 @@ export class Kb {
         this.keys_fired     = {down: {}, up: {}};
         this.keys           = {};
         this.dbl_press      = new Map();
+        this.skipUntilTime  = -1;
 
         let makeEvent = function(e, down, first) {
             return {
@@ -79,8 +80,25 @@ export class Kb {
         this.keys[KEY.SHIFT] = false;
     }
 
+    /**
+     * skip next events on this duration
+     * @param {number} delta 
+     * @returns {number}
+     */
+    skipUntil(delta) {
+        if (delta <= 0) {
+            return this.skipUntilTime = -1;
+        }
+
+        return this.skipUntilTime = performance.now() + delta;
+    }
+
     // Hook for keyboard input
     _onKeyEvent(e) {
+        if (this.skipUntilTime > -1 && performance.now() < this.skipUntilTime) {
+            return false;
+        }
+        this.skipUntilTime = -1;
 
         // Detect double key press
         if(!this.dbl_press.has(e.keyCode)) {
