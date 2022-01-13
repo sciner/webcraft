@@ -190,7 +190,7 @@ export class BLOCK {
     }
 
     // Call before setBlock
-    static makeExtraData(block, pos) {
+    static makeExtraData(block, pos, orientation) {
         block = BLOCK.BLOCK_BY_ID.get(block.id);
         let extra_data = null;
         if(!block.tags) {
@@ -204,11 +204,32 @@ export class BLOCK {
             extra_data = {
                 point: new Vector(pos.point.x, pos.point.y, pos.point.z)
             };
+            // Trapdoor
             if(is_trapdoor) {
                 extra_data.opened = false;
             }
+            // Door
             if(is_door) {
                 extra_data.opened = false;
+                extra_data.left = false;
+                switch(orientation.x) {
+                    case ROTATE.S: {
+                        extra_data.left = pos.point.x < .5;
+                        break;
+                    }
+                    case ROTATE.N: {
+                        extra_data.left = pos.point.x >= .5;
+                        break;
+                    }
+                    case ROTATE.W: {
+                        extra_data.left = pos.point.z >= .5;
+                        break;
+                    }
+                    case ROTATE.E: {
+                        extra_data.left = pos.point.z < .5;
+                        break;
+                    }
+                }
             }
             if(pos.n.y == 1) {
                 extra_data.point.y = 0;
@@ -296,7 +317,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign') {
+        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign' || block.style == 'door') {
             group = 'doubleface';
         }
         return group;
@@ -742,22 +763,12 @@ export class BLOCK {
                     break;
                 }
                 case 'door': {
-                    let cardinal_direction = b.getCardinalDirection();
-                    let opened = this.isOpened(b);
-                    // let on_ceil = true; // this.isOnCeil(b);
-                    if(opened) {
-                        cardinal_direction = (cardinal_direction + 1) % 4;
+                    let cardinal_direction = CubeSym.dirAdd(b.getCardinalDirection(), CubeSym.ROT_Y2);
+                    if(this.isOpened(b)) {
+                        cardinal_direction = CubeSym.dirAdd(cardinal_direction, b.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
                     }
                     let sz = 3 / 15.9;
-                    //if(opened) {
-                        shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    //} else {
-                    //    if(on_ceil) {
-                    //        shapes.push(aabb.set(0, 1-sz, 0, 1, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    //    } else {
-                    //        shapes.push(aabb.set(0, 0, 0, 1, sz, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
-                    //    }
-                    //}
+                    shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
                     break;
                 }
                 case 'slab': {

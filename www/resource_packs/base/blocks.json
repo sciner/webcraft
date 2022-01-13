@@ -4009,8 +4009,8 @@
             "no_drop_ao"
         ],
         "texture": [
-            1,
-            6
+            21,
+            15
         ],
         "material": {
             "id": "wood"
@@ -4021,6 +4021,7 @@
         },
         "extra_data": {
             "opened": false,
+            "left": false,
             "point": {"x":0, "y":0, "z":0}
         }
     },
@@ -4037,8 +4038,8 @@
             "no_drop_ao"
         ],
         "texture": [
-            1,
-            5
+            21,
+            14
         ],
         "material": {
             "id": "wood"

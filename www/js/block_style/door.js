@@ -18,11 +18,7 @@ export default class style {
             return;
         }
 
-        // Texture color multiplier
-        let lm = MULTIPLY.COLOR.WHITE;
-        if(block.id == BLOCK.DIRT.id) {
-            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
-        }
+        const thickness             = 3/16; // толщина блока
 
         let DIRECTION_UP            = DIRECTION.UP;
         let DIRECTION_DOWN          = DIRECTION.DOWN;
@@ -40,9 +36,9 @@ export default class style {
         let opened                  = block.extra_data.opened;
 
         // F R B L
-        let cardinal_direction    = block.getCardinalDirection();
+        let cardinal_direction      = CubeSym.dirAdd(block.getCardinalDirection(), CubeSym.ROT_Y2);
         if(opened) {
-            cardinal_direction = (cardinal_direction + 1) % 4;
+            cardinal_direction = CubeSym.dirAdd(cardinal_direction, block.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
         }
 
         switch(cardinal_direction) {
@@ -71,18 +67,13 @@ export default class style {
                 break;
             }
         }
+
         if(!block.extra_data) {
             block.extra_data = {
                 opened: true,
                 point: new Vector(0, 0, 0),
             };
         }
-        let on_ceil = true; // block.extra_data.point.y >= .5;
-        let thickness = 3/16; // толщина блока
-        // if (on_ceil) {
-        //     on_ceil = false;
-        //     cardinal_direction = CubeSym.add(CubeSym.ROT_Z2, cardinal_direction);
-        // }
 
         let tex_up_down = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
         let tex_front  = BLOCK.calcTexture(texture, DIRECTION_UP);
@@ -108,15 +99,15 @@ export default class style {
         push_part(vertices, cardinal_direction,
             x + .5, y + .5, z + .5,
             x_pos - .5, y_pos - .5, z_pos - .5,
-            size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, on_ceil);
+            size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, block.extra_data.left);
 
     }
 }
 
 //
-function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, opened, on_ceil) {
+function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys, tex_up_down, tex_front, tex_side, opened, left) {
 
-    let lm              = MULTIPLY.COLOR.WHITE;
+    let lm              = MULTIPLY.COLOR.WHITE; // Texture color multiplier
     let flags           = 0;
     let sideFlags       = 0;
     let upFlags         = 0;
@@ -128,21 +119,25 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     let west_rotate     = [0, -zs, 0, 0, 0, ys];
     let east_rotate     = [0, zs, 0, 0, 0, ys];
 
-    if(opened) {
-        if(on_ceil) {
-            bottom_rotate = [-xs, 0, 0, 0, zs, 0];
-            west_rotate = [0, 0, ys, 0, zs, 0];
-            east_rotate = [0, 0, -ys, 0, zs, 0];
-        } else {
-            top_rotate = [-xs, 0, 0, 0, -zs, 0];
-            north_rotate = [-xs, 0, 0, 0, 0, ys];
-            south_rotate = [-xs, 0, 0, 0, 0, -ys];
-            west_rotate = [0, 0,- ys, 0, -zs, 0];
-            east_rotate = [0, 0, ys, 0, -zs, 0];
-        }
-    } else {
-        top_rotate = [-xs, 0, 0, 0, -zs, 0];
+    if(!left) {
+        // @todo Need mirror and rotate textures
+        /*
+            if(opened) {
+                bottom_rotate = [-xs, 0, 0, 0, zs, 0];
+                west_rotate = [0, 0, ys, 0, zs, 0];
+                east_rotate = [0, 0, -ys, 0, zs, 0];
+                top_rotate = [-xs, 0, 0, 0, -zs, 0];
+                north_rotate = [-xs, 0, 0, 0, 0, ys];
+                south_rotate = [-xs, 0, 0, 0, 0, -ys];
+                west_rotate = [0, 0, -ys, 0, -zs, 0];
+                east_rotate = [0, 0, ys, 0, -zs, 0];
+            } else {
+                top_rotate = [-xs, 0, 0, 0, -zs, 0];
+            }
+        */
     }
+
+
     // TOP
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
@@ -185,4 +180,5 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
         ...east_rotate,
         tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
+
 }

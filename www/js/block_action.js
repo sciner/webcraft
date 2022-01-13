@@ -328,7 +328,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
             //
-            let extra_data = BLOCK.makeExtraData(matBlock, pos);
+            let extra_data = BLOCK.makeExtraData(matBlock, pos, orientation);
             //
             const optimizePushedItem = (item) => {
                 if('extra_data' in item && !item.extra_data) {

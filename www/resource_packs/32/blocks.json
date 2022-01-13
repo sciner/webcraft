@@ -71,6 +71,9 @@
     {"id": 532, "name": "DARK_OAK_TRAPDOOR"},
     {"id": 533, "name": "JUNGLE_TRAPDOOR"},
 
+    {"id": 574, "name": "OAK_DOOR"},
+    {"id": 575, "name": "OAK_DOOR_TOP"},
+
     {"id": 108, "name": "BRICK_STAIRS"},
     {"id": 135, "name": "BIRCH_STAIRS"},
     {"id": 53, "name": "OAK_STAIRS"},
