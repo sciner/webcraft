@@ -94,7 +94,7 @@ export default class style {
         push_part(vertices, cardinal_direction,
             x + .5, y + .5, z + .5,
             x_pos - .5, y_pos - .5, z_pos - .5,
-            1, thickness, 1,
+            1, thickness, 1.001,
             tex_up_down, tex_front, tex_side, block.extra_data.opened, block.extra_data.left);
 
     }
