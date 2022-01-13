@@ -205,7 +205,7 @@ export class HUD {
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
             this.width  = this.ctx.canvas.width   = new_width;
             this.height = this.ctx.canvas.height  = new_height;
-            this.ctx.font = '24px Ubuntu';
+            this.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
             Game.hud.wm.resize(this.width, this.height);
             // Vignette
             // this.makeVignette(this.width, this.height);

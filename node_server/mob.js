@@ -14,8 +14,10 @@ export class Mob {
     #chunk_addr;
     #forward;
 
-    constructor(world, params) {
+    // 200 is approximately 1 time per 10 seconds
+    save_per_tick = 200;
 
+    constructor(world, params) {
         this.#world         = world;
         this.id             = params.id,
         this.entity_id      = params.entity_id,
@@ -31,6 +33,7 @@ export class Mob {
         this.#brain         = Brains.get(this.type, this);
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
         world.mobs.set(this.entity_id, this);
+        this.save_offset = Math.round(Math.random() * this.save_per_tick);
     }
 
     get chunk_addr() {
@@ -60,10 +63,20 @@ export class Mob {
 
     tick(delta) {
         this.#brain.tick(delta);
+        if(this.save_offset++ % this.save_per_tick == 0) {
+            // console.log('Mob state saved ' + this.entity_id);
+            this.save();
+        }
+    }
+
+    // Save mob state to DB
+    save() {
+        this.#world.db.saveMob(this);
     }
 
     onUnload() {
         console.log('Mob unloaded: ' + this.entity_id);
+        this.save();
         this.#world.mobs.delete(this.entity_id);
     }
 

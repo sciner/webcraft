@@ -553,6 +553,16 @@ export class DBWorld {
         return resp;
     }
 
+    // Save mob state
+    async saveMob(mob) {
+        const result = await this.db.run('UPDATE entity SET x = :x, y = :y, z = :z WHERE entity_id = :entity_id', {
+            ':x': mob.pos.x,
+            ':y': mob.pos.y,
+            ':z': mob.pos.z,
+            ':entity_id': mob.entity_id
+        });
+    }
+
     // Load drop items
     async loadDropItems(addr, size) {
         let rows = await this.db.all('SELECT * FROM drop_item WHERE is_deleted = 0 AND x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {

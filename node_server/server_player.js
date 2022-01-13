@@ -8,6 +8,8 @@ import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
 
 const PLAYER_HEIGHT = 1.7;
+const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 3;
+
 export class NetworkMessage {
     constructor({
         time = Date.now(),
@@ -442,6 +444,7 @@ export class ServerPlayer extends Player {
         let entity_ids = [];
         if(chunk.drop_items.size > 0) {
             let near = [];
+            // pick up the maximum number of items per tick
             for(const [entity_id, drop_item] of chunk.drop_items) {
                 // so that the player does not immediately intercept the thrown item
                 if(performance.now() - drop_item.load_time < 200) {
@@ -453,9 +456,13 @@ export class ServerPlayer extends Player {
                     chunk.drop_items.delete(entity_id);
                     drop_item.onUnload();
                     entity_ids.push(drop_item.entity_id);
+                    if(near.length == MAX_PICK_UP_DROP_ITEMS_PER_TICK) {
+                        break;
+                    }
                 }
             }
             if(near.length > 0) {
+                console.log('Pick up drop items: ' + near.length);
                 // 1. add items to inventory
                 for(const drop_item of near) {
                     for(const item of drop_item) {
