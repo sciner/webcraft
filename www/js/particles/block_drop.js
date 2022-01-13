@@ -8,7 +8,23 @@ const tmpMatrix = mat4.create();
 
 class FakeTBlock {
 
-    constructor(id) {this.id = id;}
+    constructor(id) {
+        this.id = id;
+        this.offset = null;
+        /**
+         * @type {FakeTBlock}
+         */
+        this.next = null;
+
+        if (this.material.next_part) {
+            const {
+                id, offset_pos
+            } = this.material.next_part;
+
+            this.next = new FakeTBlock(id);
+            this.next.offset = new Vector(offset_pos);
+        }
+    }
 
     get material() {
         return BLOCK.BLOCK_BY_ID.get(this.id);
@@ -87,27 +103,43 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.vertices       = [];
         this.block          = new FakeTBlock(block.id);
 
-        const b             = this.block;
+        let b               = this.block;
         this.block_material = b.material;
 
         const resource_pack = b.material.resource_pack
-        this.material = resource_pack.getMaterial(b.material.material_key);
 
+        this.material = resource_pack.getMaterial(b.material.material_key);
         this.buffer = Particles_Block_Drop.buffer_cache.get(block.id);
+
         if(!this.buffer) {
-            const x = -.5, y = -.5, z = -.5;
-            const draw_style = b.material.inventory_style ? b.material.inventory_style :  b.material.style;
-            resource_pack.pushVertices(
-                this.vertices,
-                b, // UNSAFE! If you need unique block, use clone
-                FakeWorld,
-                x,
-                y,
-                z,
-                Particles_Block_Drop.neighbours,
-                biome,
-                draw_style
-            );
+            let x = -.5, y = -.5, z = -.5;
+
+            while(b) {
+                const draw_style = b.material.inventory_style 
+                    ? b.material.inventory_style 
+                    : b.material.style;
+
+                if(b.offset) {
+                    x += b.offset.x;
+                    y += b.offset.y;
+                    z += b.offset.z;
+                }
+
+                resource_pack.pushVertices(
+                    this.vertices,
+                    b,
+                    FakeWorld,
+                    x,
+                    y,
+                    z,
+                    Particles_Block_Drop.neighbours,
+                    biome,
+                    draw_style
+                );
+
+                b = b.next;
+            }
+
             this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
             Particles_Block_Drop.buffer_cache.set(block.id, this.buffer);
         }
