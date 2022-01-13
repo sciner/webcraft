@@ -3956,7 +3956,7 @@
         "sound": "madcraft:block.grass",
         "texture": [
             8,
-            16
+            17
         ],
         "material": {
             "id": "plant"
@@ -3980,7 +3980,7 @@
         "spawnable": false,
         "sound": "madcraft:block.grass",
         "texture": [
-            10,
+            8,
             16
         ],
         "material": {
