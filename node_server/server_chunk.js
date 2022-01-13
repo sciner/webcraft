@@ -50,6 +50,7 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_LOADED);
         // Send requet to worker for create blocks structure
         this.world.chunks.postWorkerMessage(['createChunk', {
+            update:         true,
             size:           this.size,
             coord:          this.coord,
             addr:           this.addr,

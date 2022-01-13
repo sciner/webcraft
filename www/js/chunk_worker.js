@@ -71,7 +71,15 @@ async function onMessageFunc(e) {
     }
     switch(cmd) {
         case 'createChunk': {
-            if(world.chunks.has(args.addr)) {
+            let from_cache = world.chunks.has(args.addr);
+            const update = ('update' in args) && args.update;
+            if(update) {
+                if(from_cache) {
+                    world.chunks.delete(args.addr);
+                    from_cache = false;
+                }
+            }
+            if(from_cache) {
                 let chunk = world.chunks.get(args.addr);
                 worker.postMessage(['blocks_generated', {
                     key:        chunk.key,
