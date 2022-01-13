@@ -365,7 +365,7 @@ export class BLOCK {
             }
         }
         // Check block material
-        Block_Material.materials.checkBlock(resource_pack, block);
+        await Block_Material.materials.checkBlock(resource_pack, block);
         //
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];

@@ -23,12 +23,11 @@ export class BaseResourcePack {
         return Promise.all([
             Helpers.fetchJSON(dir + '/conf.json'),
             Helpers.fetchJSON(dir + '/blocks.json')
-        ]).then(([conf, json]) => {
+        ]).then(async ([conf, json]) => {
             this.conf = conf;
-
-            json.forEach(b => {
-                BLOCK.add(this, b)
-            });    
+            for(let b of json) {
+                await BLOCK.add(this, b);
+            }
         })
     }
 
