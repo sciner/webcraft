@@ -87,6 +87,8 @@ export class DropItem {
         pc.tick(delta);
         if(pc.player_state.onGround) {
             pc.physics.defaultSlipperiness = DEFAULT_SLIPPERINESS;
+            pc.player_state.vel.x = 0;
+            pc.player_state.vel.z = 0;
         }
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
