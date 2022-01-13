@@ -3996,8 +3996,81 @@
         },
         "planting": true
     },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     {
         "id": 574,
+        "name": "BIRCH_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            20,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 575
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 575,
+        "name": "BIRCH_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            20,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 574
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 576,
         "name": "OAK_DOOR",
         "passable": 0,
         "transparent": true,
@@ -4017,7 +4090,7 @@
         },
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
-            "id": 575
+            "id": 577
         },
         "extra_data": {
             "opened": false,
@@ -4026,7 +4099,7 @@
         }
     },
     {
-        "id": 575,
+        "id": 577,
         "name": "OAK_DOOR_TOP",
         "passable": 0,
         "transparent": true,
@@ -4046,7 +4119,406 @@
         },
         "previous_part": {
             "offset_pos": {"x": 0, "y": -1, "z": 0},
-            "id": 574
+            "id": 576
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 578,
+        "name": "ACACIA_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            22,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 579
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 579,
+        "name": "ACACIA_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            22,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 578
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 580,
+        "name": "SPRUCE_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            23,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 581
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 581,
+        "name": "SPRUCE_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            23,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 580
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 582,
+        "name": "DARK_OAK_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            24,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 583
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 583,
+        "name": "DARK_OAK_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            24,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 582
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 584,
+        "name": "JUNGLE_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            25,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 585
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 585,
+        "name": "JUNGLE_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            25,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 584
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 586,
+        "name": "WARPED_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            26,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 587
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 587,
+        "name": "WARPED_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            26,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 586
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 588,
+        "name": "CRIMSON_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            27,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 589
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 589,
+        "name": "CRIMSON_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            27,
+            14
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 588
+        },
+        "extra_data": {
+            "opened": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 590,
+        "name": "IRON_DOOR",
+        "passable": 0,
+        "transparent": true,
+        "style": "door",
+        "inventory_style": "extruder",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            28,
+            15
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 591
+        },
+        "extra_data": {
+            "opened": false,
+            "left": false,
+            "point": {"x":0, "y":0, "z":0}
+        }
+    },
+    {
+        "id": 591,
+        "name": "IRON_DOOR_TOP",
+        "passable": 0,
+        "transparent": true,
+        "spawnable": false,
+        "style": "door",
+        "sound": "madcraft:block.wooden_trapdoor",
+        "tags": [
+            "door",
+            "no_drop_ao"
+        ],
+        "texture": [
+            28,
+            14
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 590
         },
         "extra_data": {
             "opened": false,
