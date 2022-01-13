@@ -10,6 +10,7 @@ import { Raycaster, RaycasterResult } from "../../www/js/Raycaster.js";
 export class FSMBrain {
 
     #pos;
+    #chunk_addr = new Vector();
 
     constructor(mob) {
         this.mob            = mob;
@@ -33,7 +34,13 @@ export class FSMBrain {
     }
 
     tick(delta) {
-        this.stack.tick(delta, this);
+        const world = this.mob.getWorld();
+        this.#chunk_addr = getChunkAddr(this.mob.pos, this.#chunk_addr);
+        let chunk = world.chunks.get(this.#chunk_addr);
+        if(chunk && chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+            // tick
+            this.stack.tick(delta, this);
+        }
     }
 
     /**
