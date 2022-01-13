@@ -61,6 +61,9 @@ export default class style {
     }
 
     static func(block, vertices, chunk, _x, _y, _z, neighbours, biome) {
+        _x *= 2;
+        _y *= 2;
+        _z *= 2;
 
         let material = block.material;
         let resource_pack = material.resource_pack;
@@ -123,14 +126,14 @@ export default class style {
         let width = 1.0;
         // back & front, no matrices
         vertices.push(
-            0, -scale.z * 0.5, 0,
+            _x, -scale.z * 0.5 + _z, _y,
             MUL, 0, 0,
             0, 0, MUL * height,
             c[0], c[1], c[2], -c[3],
             lm.r, lm.g, lm.b, flags);
 
         vertices.push(
-            0, scale.z * (MUL*0.75), 0,
+            _x, scale.z * (MUL*0.75) + _z, _y,
             MUL, 0, 0,
             0, 0, -MUL * height,
             c[0], c[1], c[2], c[3],
@@ -154,9 +157,9 @@ export default class style {
                 let v = (tex_y + (y-1) + 0.5) / tex.height;
 
                 // inline cube drawing
-                let x1 = 0.5 + (x - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
-                let y1 = -(y - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
-                let z1 = z + scale.z / (ts / 16);
+                let x1 = _x + 0.5 + (x - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR
+                let y1 = _y - (y - TEX_WIDTH_HALF - 0.5) / SCALE_FACTOR - 1.5
+                let z1 = _z + z + scale.z / (ts / 16);
 
                 if(!neighbours.UP) {
                     pushTransformed(

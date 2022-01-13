@@ -4018,7 +4018,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4075,7 +4074,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4132,7 +4130,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4189,7 +4186,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4246,7 +4242,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4303,7 +4298,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4360,7 +4354,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4417,7 +4410,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",
@@ -4474,7 +4466,6 @@
         "passable": 0,
         "transparent": true,
         "style": "door",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.wooden_trapdoor",
         "tags": [
             "door",

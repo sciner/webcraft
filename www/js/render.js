@@ -274,6 +274,7 @@ export class Renderer {
             const pos = block.block_material.inventory_icon_id;
             const x = -GRID + 1 + (pos % GRID) * 2;
             const y = GRID - 1 - ((pos / GRID) | 0) * 2;
+            const multipart = block.parts > 1;
 
             // use linera for inventory
             block.material.texture.minFilter = 'linear';
@@ -283,7 +284,7 @@ export class Renderer {
                 block.buffer,
                 block.material,
                 new Vector(x, y, 0),
-                matrix
+                multipart ? matrix_empty : matrix
             );
 
             block.material.texture.minFilter = 'nearest';

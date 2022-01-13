@@ -102,23 +102,35 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.addY           = 0;
         this.vertices       = [];
         this.block          = new FakeTBlock(block.id);
+        this.block_material = this.block.material;
+        this.parts          = 0;
 
         let b               = this.block;
-        this.block_material = b.material;
-
+        
+        const isDoor        = this.block_material.tags.indexOf('door') > -1;
         const resource_pack = b.material.resource_pack
+        const draw_style    = b.material.inventory_style
+            ? b.material.inventory_style 
+            : b.material.style;
+
+        // calc how many parts is exist
+        for(let ib = b; !!ib; ib = ib.next) {
+            this.parts ++;
+        }
 
         this.material = resource_pack.getMaterial(b.material.material_key);
         this.buffer = Particles_Block_Drop.buffer_cache.get(block.id);
 
         if(!this.buffer) {
-            let x = -.5, y = -.5, z = -.5;
+            let x = -.5;
+            let y = -this.parts / 2;
+            let z = isDoor ? -1 : -.5;
+
+            if (draw_style ==='extruder') {
+                x = y = z = 0;
+            } 
 
             while(b) {
-                const draw_style = b.material.inventory_style 
-                    ? b.material.inventory_style 
-                    : b.material.style;
-
                 if(b.offset) {
                     x += b.offset.x;
                     y += b.offset.y;
@@ -173,7 +185,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             return;
         }
 
-        this.posFact.set(this.pos.x, this.pos.y, this.pos.z);
+        this.posFact.set(this.pos.x, this.pos.y + (this.parts / 2) * this.scale.x, this.pos.z);
         this.addY = (performance.now() - this.pn) / 10;
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
 
