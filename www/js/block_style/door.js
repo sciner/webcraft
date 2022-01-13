@@ -37,6 +37,7 @@ export default class style {
 
         // F R B L
         let cardinal_direction      = CubeSym.dirAdd(block.getCardinalDirection(), CubeSym.ROT_Y2);
+
         if(opened) {
             cardinal_direction = CubeSym.dirAdd(cardinal_direction, block.extra_data.left ? DIRECTION.RIGHT : DIRECTION.LEFT);
         }
@@ -81,25 +82,20 @@ export default class style {
         let x_pos = 0;
         let z_pos = 0;
         let y_pos = 0; // нарисовать в нижней части блока
-        tex_side[1] -= (thickness * 2 +  .5/16) / TX_CNT;
-        tex_side[2] -= (1 - thickness) / TX_CNT;
-        tex_side[3] = thickness / TX_CNT;
-        let size = new Vector(1, thickness, 1);
 
-        tex_up_down[1] = tex_side[1];
-        tex_up_down[2] = 1 / TX_CNT;
+        tex_side[0] -= (thickness * 2 +  .5/16) / TX_CNT;
+        tex_side[2] = -thickness / TX_CNT;
+        tex_up_down[1] -= (thickness * 2 +  .5/16) / TX_CNT;
         tex_up_down[3] = thickness / TX_CNT;
-        //
-        tex_side[2] = 1 / TX_CNT;
-        tex_side[3] = thickness / TX_CNT;
-        //
+
         x_pos = .5;
         z_pos = thickness/2;
 
         push_part(vertices, cardinal_direction,
             x + .5, y + .5, z + .5,
             x_pos - .5, y_pos - .5, z_pos - .5,
-            size.x, size.y, size.z, tex_up_down, tex_front, tex_side, block.extra_data.opened, block.extra_data.left);
+            1, thickness, 1,
+            tex_up_down, tex_front, tex_side, block.extra_data.opened, block.extra_data.left);
 
     }
 }
@@ -119,26 +115,9 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     let west_rotate     = [0, -zs, 0, 0, 0, ys];
     let east_rotate     = [0, zs, 0, 0, 0, ys];
 
-    const orient = left ? 1 : -1;
-
-    if(!left) {
-        // @todo Need mirror and rotate textures
-        /*
-            if(opened) {
-                bottom_rotate = [-xs, 0, 0, 0, zs, 0];
-                west_rotate = [0, 0, ys, 0, zs, 0];
-                east_rotate = [0, 0, -ys, 0, zs, 0];
-                top_rotate = [-xs, 0, 0, 0, -zs, 0];
-                north_rotate = [-xs, 0, 0, 0, 0, ys];
-                south_rotate = [-xs, 0, 0, 0, 0, -ys];
-                west_rotate = [0, 0, -ys, 0, -zs, 0];
-                east_rotate = [0, 0, ys, 0, -zs, 0];
-            } else {
-                top_rotate = [-xs, 0, 0, 0, -zs, 0];
-            }
-        */
-    }
-
+    // opened door flips texture
+    // flip it back
+    const orient = (left ^ opened) ? 1 : -1;
 
     // TOP
     pushSym(vertices, cardinal_direction,
@@ -166,7 +145,7 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
         cx, cz, cy,
         x, z + zs/2, y + ys/2,
         ...north_rotate,
-        tex_front[0], tex_front[1], orient * -tex_front[2], tex_front[3],
+        tex_front[0], tex_front[1], orient * tex_front[2], tex_front[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // WEST
     pushSym(vertices, cardinal_direction,
