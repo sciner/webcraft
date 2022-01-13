@@ -9,6 +9,7 @@ import {Resources} from "../../js/resources.js";
 
 const PHYSICS_INTERVAL_MS   = 50;
 export const PHYSICS_TIMESTEP = PHYSICS_INTERVAL_MS / 1000;
+export const DEFAULT_SLIPPERINESS = 0.6;
 
 // FakeWorld
 class FakeWorld {
@@ -81,10 +82,10 @@ function FakePlayer(pos) {
 
 export class PrismarinePlayerControl {
 
-    constructor(world, pos, default_speed, playerHeight, stepHeight) {
+    constructor(world, pos, default_speed, playerHeight, stepHeight, defaultSlipperiness) {
         const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
-        this.physics            = Physics(mcData, this.world, playerHeight, stepHeight);
+        this.physics            = Physics(mcData, this.world, playerHeight, stepHeight, defaultSlipperiness);
         this.player             = FakePlayer(pos);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;

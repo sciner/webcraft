@@ -443,6 +443,10 @@ export class ServerPlayer extends Player {
         if(chunk.drop_items.size > 0) {
             let near = [];
             for(const [entity_id, drop_item] of chunk.drop_items) {
+                // so that the player does not immediately intercept the thrown item
+                if(performance.now() - drop_item.load_time < 200) {
+                    continue;
+                }
                 let dist = drop_item.pos.distance(this.state.pos);
                 if(dist < 2) {
                     near.push(drop_item.items);

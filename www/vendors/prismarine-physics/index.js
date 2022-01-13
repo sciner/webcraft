@@ -2,6 +2,7 @@ import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
 import { math } from "./lib/math.js";
 import {Resources} from "../../js/resources.js";
+import {DEFAULT_SLIPPERINESS} from "./using.js";
 
 const BLOCK_NOT_EXISTS = -2;
 
@@ -9,7 +10,7 @@ function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
 
-export function Physics(mcData, fake_world, playerHeight, stepHeight) {
+export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSlipperiness) {
 
     const supportFeature = makeSupportFeature(mcData, Resources.physics.features);
 
@@ -70,7 +71,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight) {
         liquidAcceleration: 0.02,
         airborneInertia: 0.91,
         airborneAcceleration: 0.02,
-        defaultSlipperiness: 0.6,
+        defaultSlipperiness: typeof defaultSlipperiness === 'undefined' ? DEFAULT_SLIPPERINESS : defaultSlipperiness,
         outOfLiquidImpulse: 0.3,
         autojumpCooldown: 10, // ticks (0.5s)
         bubbleColumnSurfaceDrag: {

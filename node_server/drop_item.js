@@ -1,6 +1,6 @@
 import {getChunkAddr} from "../www/js/chunk.js";
 import { Vector } from "../www/js/helpers.js";
-import { PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../www/vendors/prismarine-physics/using.js";
+import { PrismarinePlayerControl, PHYSICS_TIMESTEP, DEFAULT_SLIPPERINESS} from "../www/vendors/prismarine-physics/using.js";
 import {CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 
@@ -11,7 +11,7 @@ export class DropItem {
     #prev_chunk_addr;
     #pc;
 
-    constructor(world, params) {
+    constructor(world, params, velocity) {
         this.#world         = world;
         this.entity_id      = params.entity_id,
         this.items          = params.items;
@@ -22,8 +22,14 @@ export class DropItem {
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //
-        this.#pc = this.createPlayerControl(1, 0.3, 1);
+        this.#pc = this.createPlayerControl(1, 0.3, 1, .98);
         this.#prev_chunk_addr = getChunkAddr(this.pos);
+        //
+        this.load_time = performance.now();
+        //
+        if(velocity) {
+            this.addVelocity(velocity);
+        }
     }
 
     /**
@@ -32,7 +38,7 @@ export class DropItem {
      * @param {number} stepHeight 
      * @return {PrismarinePlayerControl}
      */
-    createPlayerControl(base_speed, playerHeight, stepHeight) {
+    createPlayerControl(base_speed, playerHeight, stepHeight, defaultSlipperiness) {
         let world = this.getWorld();
         return new PrismarinePlayerControl({
             chunkManager: {
@@ -48,11 +54,16 @@ export class DropItem {
                     }
                 }
             }
-        }, this.pos, base_speed, playerHeight, stepHeight);
+        }, this.pos, base_speed, playerHeight, stepHeight, defaultSlipperiness);
     }
 
     get chunk_addr() {
         return getChunkAddr(this.pos, this.#chunk_addr);
+    }
+
+    addVelocity(vec) {
+        this.#pc.player_state.vel.addSelf(vec);
+        this.#pc.tick(0);
     }
 
     getWorld() {
@@ -60,20 +71,23 @@ export class DropItem {
     }
 
     // Create new drop item
-    static async create(world, player, pos, items) {
+    static async create(world, player, pos, items, velocity) {
         const params = {
             pos: new Vector(pos),
             items: JSON.parse(JSON.stringify(items))
         }
         let result = await world.db.createDropItem(params);
         params.entity_id = result.entity_id;
-        return new DropItem(world, params);
+        return new DropItem(world, params, velocity);
     }
 
     // Tick
     tick(delta) {
         const pc = this.#pc;
         pc.tick(delta);
+        if(pc.player_state.onGround) {
+            pc.physics.defaultSlipperiness = DEFAULT_SLIPPERINESS;
+        }
         this.pos.copyFrom(pc.player.entity.position);
         if(!this.pos.equal(this.posO)) {
             this.posO.set(this.pos.x, this.pos.y, this.pos.z);

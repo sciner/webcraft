@@ -1,8 +1,10 @@
 import {BLOCK} from "./blocks.js";
-import {Helpers} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 
 export class PlayerInventory {
+
+    temp_vec = new Vector();
 
     constructor(player, state) {
         this.player         = player;
@@ -231,11 +233,25 @@ export class PlayerInventory {
             return false;
         }
         const item = {...this.current_item};
+        item.count = 1;
         const pos = this.player.state.pos.clone();
-        pos.x += Math.sin(this.player.state.rotate.z) * 3;
-        pos.z += Math.cos(this.player.state.rotate.z) * 3;
-        this.player.world.createDropItems(this.player, pos, [item]);
-        this.setItem(this.current.index, null);
+        pos.addSelf(this.temp_vec.set(
+            -Math.sin(this.player.state.rotate.z) * .15,
+            this.player.height * .4,
+            -Math.cos(this.player.state.rotate.z) * .15,
+        ));
+        // Add velocity for drop item
+        this.temp_vec.set(
+            Math.sin(this.player.state.rotate.z) *  .5,
+            .5,
+            Math.cos(this.player.state.rotate.z) * .5,
+        );
+        this.player.world.createDropItems(this.player, pos, [item], this.temp_vec);
+        if(this.current_item.count == 1) {
+            this.setItem(this.current.index, null);
+        } else {
+            this.decrement();
+        }
         return true;
     }
 

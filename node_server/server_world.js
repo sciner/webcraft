@@ -22,6 +22,7 @@ export const SERVE_TIME_LAG = config.Debug ? (0.5 - Math.random()) * 50000 : 0;
 export class ServerWorld {
 
     constructor() {}
+    temp_vec = new Vector();
 
     get serverTime() {
         return Date.now() + SERVE_TIME_LAG;
@@ -343,9 +344,9 @@ export class ServerWorld {
     }
 
     // Create drop items
-    async createDropItems(player, pos, items) {
+    async createDropItems(player, pos, items, velocity) {
         try {
-            let drop_item = await DropItem.create(this, player, pos, items);
+            let drop_item = await DropItem.create(this, player, pos, items, velocity);
             this.chunks.get(drop_item.chunk_addr)?.addDropItem(drop_item);
             return true;
         } catch(e) {
@@ -481,7 +482,13 @@ export class ServerWorld {
         if(actions.drop_items.length > 0) {
             if(server_player.game_mode.isSurvival()) {
                 for(let di of actions.drop_items) {
-                    this.createDropItems(server_player, di.pos, di.items);
+                    // Add velocity for drop item
+                    this.temp_vec.set(
+                        0,
+                        .5,
+                        0,
+                    );
+                    this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }
         }
