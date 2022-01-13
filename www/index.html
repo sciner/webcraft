@@ -1,13 +1,25 @@
 <!doctype html>
-<html ng-app="gameApp">
+<html ng-app="gameApp" lang="en">
 <head>
+    <meta charset="UTF-8">
 	<title>MadCraft</title>
     <base href="/" target="_blank">
-    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <link rel="icon" type="image/png" href="/favicon.png" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.00, maximum-scale=2.50, minimum-scale=0.75">
+    <meta name="description" content="Minecraft game clone on JS">
+    <meta name="keywords" content="MadCraft, WebCraft, Minecraft, WebGL, WebGPU, Javascript">
+    <meta property="og:title" content="MadCraft - JS game in browser">
+    <meta property="og:description" content="Minecraft game clone on JS">
+    <meta property="og:image" content="https://madcraft.io/media/card.jpg">
+    <meta property="og:site_name" content="MadCraft">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://madcraft.io">
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:title" content="MadCraft - JS game in browser">
+    <meta property="twitter:url" content="https://madcraft.io">
+    <meta property="twitter:image" content="https://madcraft.io/media/card.jpg">
 	<!-- Stylesheet -->
     <link rel="stylesheet" href="vendors/animate.min.css" />
     <link href="style/main.less" rel="stylesheet/less" type="text/css">
@@ -29,7 +41,7 @@
             rootpath: ":/a.com/"
         };
     </script>
-    <script src="vendors/less.min.js"   ="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="vendors/less.min.js" ="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>
 
@@ -51,18 +63,18 @@
         <div id="btns-pad">
             <button class="btn2 btn-success visible_only_in_game_menu visible_in_game_menu" ng-click="shareGame.toggle()">
                 <span style="margin-right: 1em;">Invite</span>
-                <img src="/media/icons-share.svg" style="height: 2em;">
+                <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
-            <a href="https://discord.gg/QQw2zadu3T" target="_blank" class="btn2 btn-default visible_in_game_menu">
+            <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
                 <span style="margin-right: 1em;">Discord</span>
-                <img src="/media/discord.png" style="height: 32px;">
+                <img src="/media/discord.png" style="height: 32px;" alt="Discord">
             </a>
         </div>
 
         <div id="main-pictures" class="flex0">
-            <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'">
-            <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'">
-            <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'">
+            <img src="/media/design/logo.webp" class="logo-others" ng-if="current_window.id != 'hello' && current_window.id != 'not_supported_browser'" alt="MadCraft">
+            <img src="/media/design/art.webp" class="pic-art" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'" alt="Art">
+            <img src="/media/design/logo.webp" class="logo-main" ng-if="current_window.id == 'hello' || current_window.id == 'not_supported_browser'"  alt="MadCraft">
         </div>
 
         <!-- Hello -->
@@ -208,7 +220,7 @@
             <div ng-show="current_window.id == 'skin'" style="text-align: center;">
                 <h4>SELECT SKIN:</h4>
                 <div ng-repeat="k in skin.list">
-                    <img ng-src="/media/skins/preview/{{k.id}}.png" ng-if="$index == skin.index" style="height: 350px;">
+                    <img ng-src="/media/skins/preview/{{k.id}}.png" ng-if="$index == skin.index" style="height: 350px;" alt="player skin">
                 </div>
                 <div style="padding-bottom: 1em;">
                     {{skin.index + 1}} / {{skin.list.length}}
