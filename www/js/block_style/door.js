@@ -95,7 +95,7 @@ export default class style {
         //
         x_pos = .5;
         z_pos = thickness/2;
-        size = new Vector(1, thickness, 1);
+
         push_part(vertices, cardinal_direction,
             x + .5, y + .5, z + .5,
             x_pos - .5, y_pos - .5, z_pos - .5,
@@ -118,6 +118,8 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     let south_rotate    = [xs, 0, 0, 0, 0, ys];
     let west_rotate     = [0, -zs, 0, 0, 0, ys];
     let east_rotate     = [0, zs, 0, 0, 0, ys];
+
+    const orient = left ? 1 : -1;
 
     if(!left) {
         // @todo Need mirror and rotate textures
@@ -143,42 +145,42 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
         cx, cz, cy,
         x, z, y + ys,
         ...top_rotate,
-        tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
+        tex_up_down[0], tex_up_down[1], orient * tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b, flags | upFlags);
     // BOTTOM
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z, y,
         ...bottom_rotate,
-        tex_up_down[0], tex_up_down[1], tex_up_down[2], tex_up_down[3],
+        tex_up_down[0], tex_up_down[1], orient * tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b, flags);
     // SOUTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z - zs/2, y + ys/2,
         ...south_rotate,
-        tex_front[0], tex_front[1], tex_front[2], -tex_front[3],
+        tex_front[0], tex_front[1], orient * tex_front[2], -tex_front[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // NORTH
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x, z + zs/2, y + ys/2,
         ...north_rotate,
-        tex_front[0], tex_front[1], -tex_front[2], tex_front[3],
+        tex_front[0], tex_front[1], orient * -tex_front[2], tex_front[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // WEST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x - xs/2, z, y + ys/2,
         ...west_rotate,
-        tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
+        tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // EAST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
         x + xs/2, z, y + ys/2,
         ...east_rotate,
-        tex_side[0], tex_side[1], tex_side[2], -tex_side[3],
+        tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
 
 }
