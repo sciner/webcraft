@@ -2,6 +2,8 @@ import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
 import {BLOCK} from "../blocks.js";
 
+const Z_FIGHT_ERROR = 0.001;
+
 // Дверь
 export default class style {
 
@@ -94,7 +96,7 @@ export default class style {
         push_part(vertices, cardinal_direction,
             x + .5, y + .5, z + .5,
             x_pos - .5, y_pos - .5, z_pos - .5,
-            1, thickness * 0.99, 1,
+            1, thickness * (1 - Z_FIGHT_ERROR), 1,
             tex_up_down, tex_front, tex_side, block.extra_data.opened, block.extra_data.left);
 
     }
@@ -129,7 +131,7 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     // BOTTOM
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
-        x, z, y + 0.01,
+        x, z, y + Z_FIGHT_ERROR,
         ...bottom_rotate,
         tex_up_down[0], tex_up_down[1], orient * tex_up_down[2], tex_up_down[3],
         lm.r, lm.g, lm.b, flags);
@@ -150,14 +152,14 @@ function push_part(vertices, cardinal_direction, cx, cy, cz, x, y, z, xs, zs, ys
     // WEST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
-        x - xs/2 * 0.99, z, y + ys/2,
+        x - xs/2 * (1 - Z_FIGHT_ERROR), z, y + ys/2,
         ...west_rotate,
         tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
     // EAST
     pushSym(vertices, cardinal_direction,
         cx, cz, cy,
-        x + xs/2 * 0.99, z, y + ys/2,
+        x + xs/2 * (1 - Z_FIGHT_ERROR), z, y + ys/2,
         ...east_rotate,
         tex_side[0], tex_side[1], orient * tex_side[2], -tex_side[3],
         lm.r, lm.g, lm.b, flags | sideFlags);
