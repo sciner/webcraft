@@ -159,7 +159,7 @@ export class InHandOverlay {
 
         // change GU for valid in hand block drawings
         camera.use(globalUniforms, false);
-        globalUniforms.brightness = Math.max(0.4, render.brightness);
+        globalUniforms.brightness = Math.max(0.4, render.brightness * render.nightShift);
         globalUniforms.update();
 
         renderBackend.clear({

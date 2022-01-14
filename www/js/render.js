@@ -37,6 +37,7 @@ const FOV_WIDE                  = FOV_NORMAL * 1.15;
 const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
 const NEAR_DISTANCE             = 2 / 16;
 const RENDER_DISTANCE           = 800;
+const NIGHT_SHIFT_RANGE         = 16;
 
 let settings = {
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
@@ -69,6 +70,7 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
+        this.nightShift         = 1;
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -439,6 +441,7 @@ export class Renderer {
 
     // Render one frame of the world to the canvas.
     draw(delta) {
+
         this.frame++;
         const { gl, shader, renderBackend } = this;
         const { size } = renderBackend;
@@ -449,7 +452,22 @@ export class Renderer {
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
-        let fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : currentRenderState.fogColor;
+
+        //
+        let brightness = this.brightness;
+        let fogColor = [...currentRenderState.fogColor];
+
+        // Calculate nightShift
+        this.nightShift = 1;
+        if(player.pos.y < 20) {
+            this.nightShift = Math.round((1 - Math.min(NIGHT_SHIFT_RANGE - player.pos.y, NIGHT_SHIFT_RANGE) / NIGHT_SHIFT_RANGE) * 256) / 256;
+            fogColor[0] *= this.nightShift;
+            fogColor[1] *= this.nightShift;
+            fogColor[2] *= this.nightShift;
+        }
+        brightness *= this.nightShift;
+
+        fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : fogColor;
         renderBackend.beginFrame(fogColor);
 
         // apply camera state;
@@ -458,10 +476,10 @@ export class Renderer {
         // 1. Draw skybox
         if(this.skyBox) {
             if(this.skyBox.shader.uniforms) {
-                this.skyBox.shader.uniforms.u_textureOn.value = this.brightness == 1 && !player.eyes_in_water;
-                this.skyBox.shader.uniforms.u_brightness.value = this.brightness;
+                this.skyBox.shader.uniforms.u_textureOn.value = brightness == 1 && !player.eyes_in_water;
+                this.skyBox.shader.uniforms.u_brightness.value = brightness;
             } else {
-                this.skyBox.shader.brightness = this.brightness;
+                this.skyBox.shader.brightness = brightness;
             }
             this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
         }
@@ -484,12 +502,12 @@ export class Renderer {
             gu.fogColor         = fogColor;
             gu.chunkBlockDist   = 8;
             gu.fogAddColor      = settings.fogUnderWaterAddColor;
-            gu.brightness       = this.brightness;
+            gu.brightness       = brightness;
         } else {
             gu.fogColor         = fogColor;
             gu.chunkBlockDist   = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
             gu.fogAddColor      = currentRenderState.fogAddColor;
-            gu.brightness       = this.brightness;
+            gu.brightness       = brightness;
         }
         //
         gu.time                 = performance.now();
@@ -533,7 +551,7 @@ export class Renderer {
                     // 5. Draw drop items
                     this.drawDropItems(delta);
                     // draw isolated meshes after without AO
-                    this.globalUniforms.brightness = Math.max(0.3, this.brightness);
+                    this.globalUniforms.brightness = Math.max(0.3, brightness);
                     this.globalUniforms.update();
                     this.meshes.draw(this, delta);
                 }

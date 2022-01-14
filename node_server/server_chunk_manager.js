@@ -1,7 +1,7 @@
 import {ServerChunk} from "./server_chunk.js";
 
 import {BLOCK} from "../www/js/blocks.js";
-import {getChunkAddr} from "../www/js/chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 
@@ -137,7 +137,7 @@ export class ServerChunkManager {
             // Find new chunks
             for(let sm of spiral_moves_3d) {
                 let addr = player.chunk_addr.add(sm.pos);
-                if(addr.y >= 0) {
+                if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                     added_vecs.set(addr, true);
                     if(!player.nearby_chunk_addrs.has(addr)) {
                         let item = {

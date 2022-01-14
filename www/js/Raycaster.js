@@ -1,6 +1,6 @@
 import { Vector } from "./helpers.js";
 import { BLOCK } from "./blocks.js";
-
+import { ALLOW_NEGATIVE_Y } from "./chunk.js";
 const INF = 100000.0;
 const eps = 1e-3;
 const coord = ['x', 'y', 'z'];
@@ -172,7 +172,7 @@ export class Raycaster {
             }
 
             block = block.add(side);
-            if (/*block.y > CHUNK_SIZE_Y_MAX ||*/ block.y < 0) {
+            if (!ALLOW_NEGATIVE_Y && block.y < 0) {
                 break;
             }
         }

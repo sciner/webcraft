@@ -10,6 +10,7 @@ export const CHUNK_SIZE_Z                   = 16;
 export const CHUNK_BLOCKS                   = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
+export const ALLOW_NEGATIVE_Y               = true;
 
 // Возвращает адрес чанка по глобальным абсолютным координатам
 export function getChunkAddr(x, y, z, v = null) {

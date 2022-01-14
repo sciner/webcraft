@@ -7,7 +7,7 @@ import {ModelManager} from "./model_manager.js";
 
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
-import {getChunkAddr} from "../www/js/chunk.js";
+import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {doBlockAction} from "../www/js/block_action.js";
 
@@ -296,7 +296,7 @@ export class ServerWorld {
         // @todo Нужно разрешить в режиме спектатора посещать отрицательную высоту,
         // но если это сделать, то почему-то игрок зависает в точке контакта и после
         // этого никуда не может сместиться =(
-        if (params.pos.y < 0 /*&& !player.game_mode.isSpectator()*/) {
+        if (!ALLOW_NEGATIVE_Y && params.pos.y < 0) {
             this.teleportPlayer(player, {
                 place_id: 'spawn'
             })

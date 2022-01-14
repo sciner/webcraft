@@ -1,5 +1,5 @@
 import {SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
-import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord} from "./chunk.js";
+import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
@@ -345,7 +345,7 @@ export class ChunkManager {
                     }
                 }
                 for(let addr of chunk.addr_neighbors) {
-                    if(addr.y >= 0) {
+                    if(ALLOW_NEGATIVE_Y || addr.y >= 0) {
                         if(!this.getChunk(addr)) {
                             ok = false;
                             break;
