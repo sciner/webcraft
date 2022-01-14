@@ -6,6 +6,7 @@ import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
+import config from "./config.js";
 
 const PLAYER_HEIGHT = 1.7;
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 3;
@@ -20,6 +21,12 @@ export class NetworkMessage {
         this.name = name;
         this.data = data;
     }
+}
+
+const EMULATED_PING = config.Debug ? Math.random() * 100 : 0;
+
+async function waitPing() {
+    return new Promise((res) => setTimeout(res, EMULATED_PING));
 }
 
 export class ServerPlayer extends Player {
@@ -66,6 +73,11 @@ export class ServerPlayer extends Player {
      * @param {ServerWorld} world 
      */
     async onJoin(session_id, skin, conn, world) {
+        
+        if (EMULATED_PING) {
+            console.log('Connect user with emulated ping:', EMULATED_PING);
+        }
+
         this.conn               = conn;
         this.world              = world;
         this.raycaster          = new Raycaster(world);
@@ -87,6 +99,11 @@ export class ServerPlayer extends Player {
     }
 
     async onMessage(response) {
+
+        if (EMULATED_PING) {
+            await waitPing();
+        }
+
         const {
             skin,
             session_id,
@@ -320,7 +337,14 @@ export class ServerPlayer extends Player {
             e.time = this.world.serverTime;
         });
 
-        this.conn.send(JSON.stringify(packets));
+        if (!EMULATED_PING) {            
+            this.conn.send(JSON.stringify(packets));
+            return;
+        }
+
+        setTimeout(()=>{                
+            this.conn.send(JSON.stringify(packets));
+        }, EMULATED_PING);
     }
 
     // changePosSpawn...
