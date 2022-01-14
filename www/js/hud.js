@@ -296,6 +296,9 @@ export class HUD {
         if(player.world.server.ping_value) {
             this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
         }
+
+        this.text += '\nLAG: ' + Math.round(player.world.latency) + 'ms';
+
         let time = world.getTime();
         if(time) {
             this.text += '\nDay: ' + time.day + ', Time: ' + time.string;
