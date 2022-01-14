@@ -7,7 +7,7 @@ import {Resources} from "./resources.js";
 
 export class HUD {
 
-    zoom = 2.0;
+    zoom = UI_ZOOM;
 
     constructor(width, height) {
 
@@ -207,6 +207,7 @@ export class HUD {
             this.height = this.ctx.canvas.height  = new_height;
             this.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
             Game.hud.wm.resize(this.width, this.height);
+            this.refresh();
             // Vignette
             // this.makeVignette(this.width, this.height);
         }

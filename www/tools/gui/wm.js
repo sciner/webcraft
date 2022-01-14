@@ -8,7 +8,7 @@ export class Window {
     #_visible = true;
     #_tooltip = null;
 
-    zoom = 2.0;
+    zoom = UI_ZOOM;
 
     constructor(x, y, w, h, id, title, text) {
         this.list           = new Map();
@@ -197,7 +197,7 @@ export class Window {
                     break;
                 }
             }
-            
+
         }
         if(this.title || this.text) {
             this.applyStyle(ctx, ax, ay);
@@ -292,7 +292,7 @@ export class Window {
         let bg = new Image();
         bg.onload = function(e) {
             that.style.background.image = bg;
-            that.style.background.image_size_mode = image_size_mode ? image_size_mode : 'none';
+            that.style.background.image_size_mode = image_size_mode ? image_size_mode : that.style.background.image_size_mode;
             that.redraw();
         }
         bg.src = url;

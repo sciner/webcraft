@@ -3,7 +3,7 @@ import {Vector} from "./helpers.js";
 
 export class Hotbar {
 
-    zoom = 2.0;
+    zoom = UI_ZOOM;
 
     constructor(hud, inventory) {
         let that                = this;
@@ -44,21 +44,45 @@ export class Hotbar {
     };
     
     drawHUD(hud) {
+
         const player = this.inventory.player;
         if(player.game_mode.isSpectator()) {
             return false;
         }
-        const scale = 1;
-        let w = 546 * this.zoom; // this.image.width;
-        let h = 147 * this.zoom; // this.image.height;
-        const cell_size = 60 * this.zoom;
-        const live_bar_height = 81 * this.zoom;
-        let hud_pos = {
-            x: hud.width / 2 - w / 2,
-            y: hud.height - h
+
+        // Source image sizes
+        const sw                = 1092; // this.image.width;
+        const sh                = 294; // this.image.height;
+        const slive_bar_height  = 162;
+        const selector          = {x: 162, y: 300, width: 144, height: 138};
+        const src = {
+            icons: {
+                live: {x: 0, y: 300, width: 54, height: 54},
+                live_half: {x: 0, y: 354, width: 54, height: 54},
+                food: {x: 54, y: 300, width: 54, height: 54},
+                food_half: {x: 54, y: 354, width: 54, height: 54}
+            }
         };
-        const ss = 27 * this.zoom;
-        const mayGetDamaged = player.game_mode.mayGetDamaged();
+
+        // Target sizes
+        const dst = {
+            w: 546 * this.zoom,
+            h: 147 * this.zoom,
+            live_bar_height: 81 * this.zoom,
+            selector: {
+                width: 72 * this.zoom,
+                height: 69 * this.zoom
+            }
+        };
+        const hud_pos = {
+            x: (hud.width / 2 - dst.w / 2),
+            y: hud.height - dst.h
+        };
+
+        // Other sizes
+        const cell_size         = 60 * this.zoom;
+        const ss                = 27 * this.zoom;
+        const mayGetDamaged     = player.game_mode.mayGetDamaged();
 
         // Draw item name in hotbar
         let currentInventoryItem = player.currentInventoryItem;
@@ -96,14 +120,14 @@ export class Hotbar {
             // bar
             hud.ctx.drawImage(
                 this.image,
-                0,
-                0,
-                w,
-                h,
-                hud_pos.x,
-                hud_pos.y,
-                w,
-                h
+                0,           // sx
+                0,           // sy
+                sw,          // sw
+                sh,          // sh
+                hud_pos.x,   // dx
+                hud_pos.y,   // dy
+                dst.w,       // dw
+                dst.h        // dh
             );
             // Indicators
             let indicators = player.indicators;
@@ -113,10 +137,10 @@ export class Hotbar {
             for(let i = 0; i < Math.floor(live * 10); i++) {
                 hud.ctx.drawImage(
                     this.image,
-                    0,
-                    150 * this.zoom,
-                    ss,
-                    ss,
+                    src.icons.live.x,
+                    src.icons.live.y,
+                    src.icons.live.width,
+                    src.icons.live.height,
                     hud_pos.x + i * 24 * this.zoom,
                     hud_pos.y + 30 * this.zoom,
                     ss,
@@ -126,10 +150,10 @@ export class Hotbar {
             if(Math.round(live * 10) > Math.floor(live * 10)) {
                 hud.ctx.drawImage(
                     this.image,
-                    0,
-                    150 * this.zoom + ss,
-                    ss,
-                    ss,
+                    src.icons.live_half.x,
+                    src.icons.live_half.y,
+                    src.icons.live_half.width,
+                    src.icons.live_half.height,
                     hud_pos.x + Math.floor(live * 10) * (24 * this.zoom),
                     hud_pos.y + (30 * this.zoom),
                     ss,
@@ -137,14 +161,15 @@ export class Hotbar {
                 );
             }
             // foods
+            food = 0.55;
             for(let i = 0; i < Math.floor(food * 10); i++) {
                 hud.ctx.drawImage(
                     this.image,
-                    ss,
-                    150 * this.zoom,
-                    ss,
-                    ss,
-                    hud_pos.x + w - (i * 24 * this.zoom + ss),
+                    src.icons.food.x,
+                    src.icons.food.y,
+                    src.icons.food.width,
+                    src.icons.food.height,
+                    hud_pos.x + dst.w - (i * 24 * this.zoom + ss),
                     hud_pos.y + 30 * this.zoom,
                     ss,
                     ss
@@ -153,11 +178,11 @@ export class Hotbar {
             if(Math.round(food * 10) > Math.floor(food * 10)) {
                 hud.ctx.drawImage(
                     this.image,
-                    ss,
-                    150 * this.zoom + ss,
-                    ss,
-                    ss,
-                    hud_pos.x + w - (Math.floor(food * 10) * 24 * this.zoom + ss),
+                    src.icons.food_half.x,
+                    src.icons.food_half.y,
+                    src.icons.food_half.width,
+                    src.icons.food_half.height,
+                    hud_pos.x + dst.w - (Math.floor(food * 10) * 24 * this.zoom + ss),
                     hud_pos.y + 30 * this.zoom,
                     ss,
                     ss
@@ -168,26 +193,26 @@ export class Hotbar {
             hud.ctx.drawImage(
                 this.image,
                 0,
-                live_bar_height,
-                w,
-                h - live_bar_height,
+                slive_bar_height,
+                sw,
+                sh - slive_bar_height,
                 hud_pos.x,
-                hud_pos.y + live_bar_height,
-                w,
-                h - live_bar_height
+                hud_pos.y + dst.live_bar_height,
+                dst.w,
+                dst.h - dst.live_bar_height
             );
         }
         // inventory_selector
         hud.ctx.drawImage(
             this.image,
-            live_bar_height,
-            150 * this.zoom,
-            72 * this.zoom,
-            69 * this.zoom,
-            hud_pos.x - 3 + this.inventory.getRightIndex() * cell_size,
+            selector.x,
+            selector.y,
+            selector.width,
+            selector.height,
+            hud_pos.x - 3 * this.zoom + this.inventory.getRightIndex() * cell_size,
             hud_pos.y + (48 + 30) * this.zoom,
-            72 * this.zoom,
-            69 * this.zoom
+            dst.selector.width,
+            dst.selector.height
         );
         if(this.inventory) {
             this.inventory.drawHotbar(hud, cell_size, new Vector(hud_pos.x, hud_pos.y + (48 + 30) * this.zoom, 0), this.zoom);

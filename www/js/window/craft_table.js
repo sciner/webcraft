@@ -84,7 +84,7 @@ export class CraftTable extends BaseCraftWindow {
         const ct = this;
         let btnRecipes = new Button(10 * this.zoom, 68 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = 'Toggle recipes';
-        btnRecipes.setBackground('./media/gui/recipes.png');
+        btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
             let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);

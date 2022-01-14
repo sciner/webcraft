@@ -2,7 +2,7 @@ import {Window, Label, Button} from "../../tools/gui/wm.js";
 
 export default class MainMenu extends Window {
 
-    zoom = 2.0;
+    zoom = UI_ZOOM;
 
     constructor(x, y, w, h, id, title, text) {
 

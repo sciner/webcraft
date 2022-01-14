@@ -166,6 +166,7 @@ export class CreativeInventoryWindow extends Window {
         // Get window by ID
         const ct = this;
         ct.style.background.color = '#00000000';
+        ct.style.background.image_size_mode = 'stretch';
         ct.style.border.hidden = true;
         ct.setBackground('./media/gui/creative_inventory/tab_items.png');
         ct.hide();

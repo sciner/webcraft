@@ -9,6 +9,11 @@ import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
 
+const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
+globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
+
+console.log(UI_ZOOM, RES_SCALE);
+
 export class GameClass {
 
     constructor() {

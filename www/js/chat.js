@@ -1,5 +1,3 @@
-import { Vector } from "./helpers.js";
-import { BLOCK } from "./blocks.js";
 import {Mesh_Default} from "./mesh/default.js";
 import {ServerClient} from "./server_client.js";
 
@@ -9,7 +7,7 @@ const SYSTEM_NAME               = '<MadCraft>';
 
 export class Chat {
 
-    zoom = 2.0;
+    zoom = UI_ZOOM;
 
     constructor(player) {
         let that                    = this;

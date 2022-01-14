@@ -56,7 +56,7 @@ export class CraftTableSlot extends Label {
 
         // 
         const icon = BLOCK.getInventoryIconPos(mat.inventory_icon_id, size, frame);
-        const dest_icon_size = 64;
+        const dest_icon_size = 40 * this.zoom;
         ctx.drawImage(
             image,
             icon.x,
@@ -73,23 +73,23 @@ export class CraftTableSlot extends Label {
             ctx.textAlign           = 'right';
             ctx.font                = Math.round(18 * this.zoom) + 'px Ubuntu';
             ctx.fillStyle           = '#000000ff';
-            ctx.fillText(item.count, x + width + 2, y + height + 2);
+            ctx.fillText(item.count, x + width + 2 * this.zoom, y + height + 2 * this.zoom);
             ctx.fillStyle           = '#ffffffff';
             ctx.fillText(item.count, x + width, y + height);
         }
         // Draw instrument life
         if(mat.instrument_id && item.power < mat.power) {
             const power_normal = item.power / mat.power;
-            let cx = x + 4;
-            let cy = y + 3;
-            let cw = width - 8;
-            let ch = height - 6;
+            let cx = x + 4 * this.zoom;
+            let cy = y + 3 * this.zoom;
+            let cw = width - 8 * this.zoom;
+            let ch = height - 6 * this.zoom;
             ctx.fillStyle = '#000000ff';
-            ctx.fillRect(cx, cy + ch - 6, cw, 6);
+            ctx.fillRect(cx, cy + ch - 6 * this.zoom, cw, 6 * this.zoom);
             //
             let rgb = Helpers.getColorForPercentage(power_normal);
             ctx.fillStyle = rgb.toCSS();
-            ctx.fillRect(cx, cy + ch - 6, cw * power_normal | 0, 4);
+            ctx.fillRect(cx, cy + ch - 6 * this.zoom, cw * power_normal | 0, 4 * this.zoom);
         }
     }
 

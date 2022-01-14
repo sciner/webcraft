@@ -109,7 +109,7 @@ export default class InventoryWindow extends BaseCraftWindow {
         const ct = this;
         let btnRecipes = new Button(208 * this.zoom, 122 * this.zoom, 40 * this.zoom, 36 * this.zoom, 'btnRecipes', null);
         btnRecipes.tooltip = 'Toggle recipes';
-        btnRecipes.setBackground('./media/gui/recipes.png');
+        btnRecipes.setBackground('./media/gui/recipes.png', 'none');
         btnRecipes.onMouseDown = (e) => {
             let frmRecipe = Game.hud.wm.getWindow('frmRecipe');
             frmRecipe.assignCraftWindow(this);
