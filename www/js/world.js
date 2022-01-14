@@ -7,15 +7,42 @@ import {ServerClient} from "./server_client.js";
 
 // World container
 export class World {
+    static MIN_LATENCY = 60;
+    static TIME_SYNC_PERIOD = 10000;
 
     constructor(settings) {
         this.localPlayer = null;
         this.settings = settings;
         this.serverTimeShift = 0;
+        this.latency = 0;
+    }
+
+    get serverTimeWithLatency() {
+        return this.serverTime - Math.max(this.latency, World.MIN_LATENCY);
     }
 
     get serverTime() {
-        return Date.now() - this.serverTimeShift || 1;
+        return Date.now() - this.serverTimeShift || 0;
+    }
+
+    queryTimeSync() {
+        // SERVER MUST answer ASAP, because this is required for time-syncing
+        this.server.Send({name: ServerClient.CMD_SYNC_TIME, data: {clientTime: Date.now()}});
+
+        setTimeout(() => this.queryTimeSync(), World.TIME_SYNC_PERIOD);
+    }
+
+    onTimeSync(cmd) {
+        const { time, data } = cmd;
+        const { clientTime } = data;
+        const now     = Date.now();
+        const latency = (now - clientTime) / 2;
+        const timeLag = (now - time) + latency;
+
+        console.log('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
+
+        this.latency         = latency;
+        this.serverTimeShift = timeLag;
     }
 
     // Create server client and connect to world
@@ -26,6 +53,8 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
                 this.hello = cmd; 
                 console.log(cmd.data);
+
+                this.queryTimeSync();
             });
 
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
@@ -37,20 +66,11 @@ export class World {
                 Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
-            this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], (cmd) => {
-                const { time, data } = cmd;
-                const { clientTime } = data;
-                const latency = (Date.now() - clientTime) / 2;
-                const timeLag = (this.serverTime - time) + latency;
-
-                console.log('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
-
-                this.serverTimeShift = timeLag;
-            });
+            this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
             // Connect
             await this.server.connect(() => {
-                this.server.Send({name: ServerClient.CMD_SYNC_TIME, data: {clientTime: Date.now()}});
+
             }, () => {
                 location.reload();
             });
@@ -95,5 +115,4 @@ export class World {
     getBlock(x, y, z) {
         return this.chunkManager.getBlock(x, y, z);
     }
-
 }

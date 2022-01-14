@@ -16,7 +16,7 @@ export class NetworkPhysicObject {
 
         // Networking
         this.netBuffer = [];
-        this.latency = 200;
+        this.latency = 50;
         this.tPos = new Vector();
         this.tRot = new Vector();
 
@@ -24,6 +24,8 @@ export class NetworkPhysicObject {
          * @type {World}
          */
         this.world = null;
+
+        this.tracked = false;
     }
 
     get pos() {
@@ -52,10 +54,13 @@ export class NetworkPhysicObject {
     }
 
     get clientTime() {
-        return this.world ? this.world.serverTime : Date.now();
+        return this.world ? this.world.serverTimeWithLatency : Date.now();
     }
 
     applyNetState(data = {pos: null, time: 0, rotate: null}) {
+        if (data.tracked) {
+            this.tracked = true;
+        }
         this.netBuffer.push(data);
     }
 
@@ -72,10 +77,10 @@ export class NetworkPhysicObject {
             return;
         }
 
-        const correctedTime = this.clientTime - this.latency;
+        const correctedTime = this.clientTime;
 
-        while (this.netBuffer.length > 2 && correctedTime > this.netBuffer[1].time) {
-            this.netBuffer.shift()
+        while (this.netBuffer.length > 1 && correctedTime > this.netBuffer[1].time) {
+            this.netBuffer.shift();
         }
 
         if (this.netBuffer.length === 1) {
