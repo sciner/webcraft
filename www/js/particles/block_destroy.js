@@ -1,9 +1,10 @@
-import {DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector} from '../helpers.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
+import { DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector } from '../helpers.js';
+import { CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
-import {BLOCK} from "../blocks.js";
+import { BLOCK } from "../blocks.js";
 import { TBlock } from '../typed_blocks.js';
+import { ChunkManager } from '../chunk_manager.js';
 
 const push_plane = push_plane_style.getRegInfo().func;
 const {mat4} = glMatrix;
@@ -13,7 +14,7 @@ export default class Particles_Block_Destroy {
     // Constructor
     constructor(render, block, pos, small) {
         let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
-        let chunk       = Game.world.chunkManager.getChunk(chunk_addr);
+        let chunk       = ChunkManager.instance.getChunk(chunk_addr);
 
         //if(!chunk.map) {
         //    debugger;
@@ -25,19 +26,19 @@ export default class Particles_Block_Destroy {
         this.life       = .5;
         let lm          = MULTIPLY.COLOR.WHITE;
         this.texture    = BLOCK.fromId(block.id).texture;
-        let flags       = 0;
-        let sideFlags   = 0;
-        let upFlags     = QUAD_FLAGS.NORMAL_UP;
+        let flags       = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
             this.life = 0;
             return;
         }
+
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             // lm          = cell.biome.dirt_color;
             // lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
             const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
             lm          = {r: chunk.dirt_colors[index], g: chunk.dirt_colors[index + 1], b: 0, a: 0};
-            sideFlags   = QUAD_FLAGS.MASK_BIOME;
+            flags       = flags | QUAD_FLAGS.MASK_BIOME;
         }
 
         let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
@@ -68,7 +69,7 @@ export default class Particles_Block_Destroy {
             let x = (Math.random() - Math.random()) * .5;
             let y = (Math.random() - Math.random()) * .5;
             let z = (Math.random() - Math.random()) * .5;
-            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, sz, null, flags | upFlags | sideFlags);
+            push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, sz, null, flags);
             let p = {
                 x:              x,
                 y:              y,
@@ -111,6 +112,7 @@ export default class Particles_Block_Destroy {
 
     // Draw
     draw(render, delta) {
+        const light = this.chunk.getLightTexture(render.renderBackend);
         //
         this.life -= delta / 100000; 
         //
@@ -125,12 +127,9 @@ export default class Particles_Block_Destroy {
             idx += p.vertices_count;
             p.gravity -= delta / 250000;
         }
+
         this.buffer.updateInternal(this.vertices);
-        
-        const light = this.chunk.getLightTexture(render.renderBackend);
-        const mat = this.material;
-        const l = mat.lightTex;
-        mat.lightTex = light;
+        this.material.changeLighTex(light);
 
         render.renderBackend.drawMesh(
             this.buffer,
@@ -139,7 +138,7 @@ export default class Particles_Block_Destroy {
             this.modelMatrix
         );
 
-        mat.lightTex = l;
+        this.material.lightTex = null;
     }
 
     destroy(render) {
