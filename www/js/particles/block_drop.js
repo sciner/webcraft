@@ -1,4 +1,4 @@
-import {Color, Vector} from '../helpers.js';
+import {Color, QUAD_FLAGS, Vector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
 import { NetworkPhysicObject } from '../network_physic_object.js';
@@ -153,6 +153,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+            this.buffer.changeFlags(QUAD_FLAGS.NO_AO, 'or');
+
             Particles_Block_Drop.buffer_cache.set(block.id, this.buffer);
         }
 
@@ -200,8 +202,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.addY / 60);
 
-        // not working yet
-        //this.material.lightTex = this.lightTex;
+        this.material.changeLighTex(this.lightTex);
 
         render.renderBackend.drawMesh(
             this.buffer,
@@ -210,7 +211,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             this.modelMatrix
         );
 
-        //this.material.lightTex = null;
+        this.material.lightTex = null;
+        this.material.shader.unbind();
     }
 
     /**

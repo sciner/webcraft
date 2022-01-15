@@ -33,6 +33,27 @@ export default class GeometryTerrain {
         this.buffers = [];
     }
 
+    /**
+     * Change flags attribute in buffer
+     * @param {number} flag 
+     * @param {'or' | 'and' | 'replace'} mode 
+     */
+    changeFlags (flag, mode = 'or') {
+        let operation = (bufferFlag) =>  bufferFlag | flag;
+
+        if (mode === 'and')
+            operation = (bufferFlag) => bufferFlag & flag;
+        else if (mode === 'replace')
+            operation = (bufferFlag) => flag;
+
+        // flag located by 16 offset
+        for(let i = 0; i < this.data.length; i += this.strideFloats) {
+            this.data[i + 16] = operation(this.data[i + 16]);
+        }
+
+        this.updateID ++;
+    }
+
     createVao()
     {
         const { attribs, gl, stride } = this;

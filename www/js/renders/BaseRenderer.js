@@ -287,6 +287,10 @@ export class BaseMaterial {
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
     }
 
+    changeLighTex (light) {
+        this.lightTex = light;
+    } 
+
     getSubMat() {
         return null;
     }

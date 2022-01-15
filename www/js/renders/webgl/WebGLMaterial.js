@@ -4,6 +4,17 @@ import {TerrainTextureUniforms} from "../common.js";
 export class WebGLMaterial extends BaseMaterial {
     constructor(context, options) {
         super(context, options);
+
+        this._dirty = true;;
+    }
+
+    changeLighTex(tex) {
+        if (tex === this.lightTex) {
+            return;
+        }
+        this._dirty = true;
+
+        super.changeLighTex(tex);
     }
 
     bind() {
@@ -13,7 +24,7 @@ export class WebGLMaterial extends BaseMaterial {
         this.shader.bind();
 
         const prevMat = this.shader._material;
-        if (prevMat === this)
+        if (prevMat === this && !this._dirty)
         {
             return;
         }
@@ -55,11 +66,16 @@ export class WebGLMaterial extends BaseMaterial {
         }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {
-                case BLEND_MODES.ADD: gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); break;
-                case BLEND_MODES.MULTIPLY: gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
-                case BLEND_MODES.SCREEN: gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
+                case BLEND_MODES.ADD:
+                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE); break;
+                case BLEND_MODES.MULTIPLY:
+                    gl.blendFuncSeparate(gl.DST_COLOR, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
+                case BLEND_MODES.SCREEN:
+                    gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_COLOR, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); break;
             }
         }
+
+        this._dirty = false;
     }
 
     unbind() {

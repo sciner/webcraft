@@ -487,6 +487,7 @@ export class Renderer {
             }
             this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
         }
+
         // Clouds
         if(!this.clouds) {
             let pos = new Vector(player.pos);
