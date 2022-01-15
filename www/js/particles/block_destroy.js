@@ -13,20 +13,16 @@ export default class Particles_Block_Destroy {
 
     // Constructor
     constructor(render, block, pos, small) {
-        let chunk_addr  = getChunkAddr(pos.x, pos.y, pos.z);
-        let chunk       = ChunkManager.instance.getChunk(chunk_addr);
+        const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
+        const chunk      = ChunkManager.instance.getChunk(chunk_addr);
 
-        //if(!chunk.map) {
-        //    debugger;
-        //    return false;
-        //}
-
-        // let cell        = chunk.map.cells[pos.x - chunk.coord.x][pos.z - chunk.coord.z];
-        this.yaw        = -Game.player.rotate.z;
+        this.chunk = chunk;
+        this.yaw        = -render.player.rotate.z;
         this.life       = .5;
-        let lm          = MULTIPLY.COLOR.WHITE;
         this.texture    = BLOCK.fromId(block.id).texture;
+
         let flags       = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        let lm          = MULTIPLY.COLOR.WHITE;
 
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
             this.life = 0;
@@ -41,36 +37,41 @@ export default class Particles_Block_Destroy {
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
         }
 
-        let c           = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
+        const c         = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
+        //
+        const count = small ? 5 : 30;
+
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
             pos.y + .5,
             pos.z + .5 - Math.sin(this.yaw + Math.PI / 2) * .5
         );
+
         this.vertices   = [];
         this.particles  = [];
-        //
-        let count = small ? 5 : 30;
         
         for(let i = 0; i < count; i++) {
             const max_sz    = small ? .25 / 16 : 3 / 16;
             const sz        = Math.random() * max_sz + 1 / 16; // случайный размер текстуры
             const half      = sz / TX_CNT;
             // random tex coord (случайная позиция в текстуре)
-            let cx = c[0] + Math.random() * (half * 3);
-            let cy = c[1] + Math.random() * (half * 3);
-            let c_half = [
+            const cx        = c[0] + Math.random() * (half * 3);
+            const cy        = c[1] + Math.random() * (half * 3);
+            const c_half    = [
                 cx - c[2] / 2 + half / 2,
                 cy - c[3] / 2 + half / 2,
                 half,
                 half
             ];
+
             // случайная позиция частицы (в границах блока)
-            let x = (Math.random() - Math.random()) * .5;
-            let y = (Math.random() - Math.random()) * .5;
-            let z = (Math.random() - Math.random()) * .5;
+            const x = (Math.random() - Math.random()) * .5;
+            const y = (Math.random() - Math.random()) * .5;
+            const z = (Math.random() - Math.random()) * .5;
+
             push_plane(this.vertices, x, y, z, c_half, lm, true, false, sz, sz, null, flags);
-            let p = {
+
+            const p = {
                 x:              x,
                 y:              y,
                 z:              z,
@@ -78,14 +79,17 @@ export default class Particles_Block_Destroy {
                 gravity:        .06,
                 speed:          .00375
             };
-            let d = Math.sqrt(p.x * p.x + p.z * p.z);
+
+            this.particles.push(p);
+
+            const d = Math.sqrt(p.x * p.x + p.z * p.z);
             p.x = p.x / d * p.speed;
             p.z = p.z / d * p.speed;
-            this.particles.push(p);
         }
 
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
         this.modelMatrix = mat4.create();
+
         // for lighting
         mat4.translate(this.modelMatrix,this.modelMatrix, 
             [
@@ -96,7 +100,6 @@ export default class Particles_Block_Destroy {
         )
 
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
-        this.chunk = chunk;
 
         let b = block;
         if(b instanceof TBlock) {
@@ -105,9 +108,9 @@ export default class Particles_Block_Destroy {
         if(!('material_key' in b)) {
             b = BLOCK.fromId(b.id);
         }
+
         this.resource_pack = b.resource_pack;
         this.material = this.resource_pack.getMaterial(b.material_key);
-
     }
 
     // Draw

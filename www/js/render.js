@@ -594,18 +594,18 @@ export class Renderer {
 
     // destroyBlock
     destroyBlock(block, pos, small) {
-        this.meshes.add(new Particles_Block_Destroy(this.gl, block, pos, small));
+        this.meshes.add(new Particles_Block_Destroy(this, block, pos, small));
     }
 
     // rainDrop
     rainDrop(pos) {
-        this.meshes.add(new Particles_Raindrop(this.gl, pos));
+        this.meshes.add(new Particles_Raindrop(this, pos));
     }
 
     // createClouds
     createClouds(pos) {
         // @todo Переделать в связи с появлением TBlock
-        return this.meshes.add(new Particles_Clouds(this.gl, pos));
+        return this.meshes.add(new Particles_Clouds(this, pos));
     }
 
     // setRain
