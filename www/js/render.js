@@ -14,6 +14,7 @@ import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
+import { World } from "./world.js";
 // import {Vox_Loader} from "./vox/loader.js";
 // import {Vox_Mesh} from "./vox/mesh.js";
 // import Particles_Sun from "./particles/sun.js";
@@ -406,10 +407,13 @@ export class Renderer {
             ]
         });
     }
-
-    // Makes the renderer start tracking a new world and set up the chunk structure.
-    // world - The world object to operate on.
-    // chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
+    
+    /**
+     * Makes the renderer start tracking a new world and set up the chunk structure.
+     * world - The world object to operate on.
+     * chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
+     * @param {World} world 
+     */
     setWorld(world) {
         this.world = world;
     }
@@ -459,7 +463,7 @@ export class Renderer {
 
         // Calculate nightShift
         this.nightShift = 1;
-        if(player.pos.y < 20) {
+        if(player.pos.y < 20 && this.world.info.generator.id !== 'flat') {
             this.nightShift = Math.round((1 - Math.min(NIGHT_SHIFT_RANGE - player.pos.y, NIGHT_SHIFT_RANGE) / NIGHT_SHIFT_RANGE) * 256) / 256;
             fogColor[0] *= this.nightShift;
             fogColor[1] *= this.nightShift;
@@ -550,9 +554,7 @@ export class Renderer {
                     this.drawMobs(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
-                    // draw isolated meshes after without AO
-                    this.globalUniforms.brightness = Math.max(0.3, brightness);
-                    this.globalUniforms.update();
+
                     this.meshes.draw(this, delta);
                 }
             }
@@ -645,9 +647,9 @@ export class Renderer {
 
     // drawDropItems
     drawDropItems(delta) {
-        const {renderBackend, defaultShader} = this;
+        const {renderBackend, defaultShader} = this;     
         defaultShader.bind();
-        for(let [id, drop_item] of this.world.drop_items.list) {
+        for(let drop_item of this.world.drop_items.list.values()) {
             drop_item.draw(this, delta);
         }
     }

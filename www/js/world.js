@@ -5,12 +5,30 @@ import {Physics} from "./physics.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
 
+/**
+ * World generation unfo passed from server
+ * @typedef {Object} TWorldInfo
+ * @property {{id: string}} generator
+ * @property {string} game_mode 
+ * @property {string} guid
+ * @property {number} id
+ * @property {{x: number, y: number, z: number}} pos_spawn
+ * @property {string} seed
+ * @property {Object} state
+ * @property {string} title
+ * @property {number} user_id 
+ */
+
 // World container
 export class World {
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
     constructor(settings) {
+        /**
+         * @type {TWorldInfo}
+         */
+        this.info = null;
         this.localPlayer = null;
         this.settings = settings;
         this.serverTimeShift = 0;
