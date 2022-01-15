@@ -113,9 +113,12 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             ? b.material.inventory_style 
             : b.material.style;
 
+        let yBaseOffset = 1;
         // calc how many parts is exist
         for(let ib = b; !!ib; ib = ib.next) {
             this.parts ++;
+            if(ib.offset)
+                yBaseOffset += ib.offset.y;
         }
 
         this.material = resource_pack.getMaterial(b.material.material_key);
@@ -123,7 +126,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
         if(!this.buffer) {
             let x = -.5;
-            let y = -this.parts / 2;
+            let y = - yBaseOffset / 2;
             let z = isDoor ? -1 : -.5;
 
             if (draw_style ==='extruder') {

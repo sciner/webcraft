@@ -247,8 +247,7 @@ export class Renderer {
         const gu = this.globalUniforms;
         //
         const matrix_empty = mat4.create();
-        let scale = new Vector(0.8, 0.8, 0.8);
-        mat4.scale(matrix_empty, matrix_empty, scale.toArray());
+        mat4.scale(matrix_empty, matrix_empty, [0.75, 0.75, 0.75]);
         //
         const matrix = mat4.create();
         mat4.rotateX(matrix, matrix, Math.PI / 6);

@@ -4575,6 +4575,7 @@
         "sound": "madcraft:block.amethyst",
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "material": {
             "id": "amethyst"
         },
