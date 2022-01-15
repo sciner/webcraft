@@ -1,10 +1,9 @@
 import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color} from '../helpers.js';
-import { default as push_plane_style } from './plane.js';
+import { pushPlanedGeom } from './plane.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
-
-const push_plane = push_plane_style.getRegInfo().func;
+import { CubeSym } from '../core/CubeSym.js';
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -38,27 +37,47 @@ export default class style {
     };
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+        let cardinal_direction = block.getCardinalDirection();
+        const { rotate } = block;
+
+        if (rotate && rotate.y !== 1) {
+            cardinal_direction = CubeSym.add(CubeSym.ROT_X3, cardinal_direction);
+        }
+
+        let dx = 0, dy = 0, dz = 0;
         let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
+        let flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+
         style.lm.set(MULTIPLY.COLOR.WHITE);
-        let flags = QUAD_FLAGS.NORMAL_UP;
+
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.set(biome.dirt_color);
             flags |= QUAD_FLAGS.MASK_BIOME;
         }
         if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
-            y -= .15;
+            dy = -.15;
         }
+
         let sz = 1 / 1.41;
         let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         let r = 0;
+
         if([block.material.style].indexOf('sign') < 0) {
             r = randoms[index] * 4/16 - 2/16;
         }
-        x += 0.5 - 0.5 / 1.41 + r;
-        z += 0.5 - 0.5 / 1.41 + r;
+
+        dx = 0.5 - 0.5 + r;
+        dz = 0.5 - 0.5 + r;
+
         style.lm.b = style.getAnimations(block, 'up');
-        push_plane(vertices, x, y, z, c, style.lm, true, true, sz, undefined, sz, flags);
+        pushPlanedGeom(
+            vertices,
+            x, y, z, c,
+            style.lm, true, true, sz, undefined, sz, flags, 
+            cardinal_direction,
+            dx, dy, dz
+        );
     }
 
 }
