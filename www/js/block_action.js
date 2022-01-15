@@ -91,7 +91,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     }
                     cv.add(block.posworld, true);
                     resp.blocks.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
-                    // 1. Drop block if need
+                    // Drop block if need
                     const isSurvival = true; // player.game_mode.isSurvival()
                     if(isSurvival) {
                         if(block.material.spawnable && block.material.tags.indexOf('no_drop') < 0) {
@@ -99,33 +99,31 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
                         }
                     }
+                    // Destroy connected blocks
+                    for(let cn of ['next_part', 'previous_part']) {
+                        let part = block.material[cn];
+                        if(part) {
+                            let connected_pos = block.posworld.add(part.offset_pos);
+                            if(!cv.has(connected_pos)) {
+                                let block_connected = world.getBlock(connected_pos);
+                                if(block_connected.id == part.id) {
+                                    pushDestroyBlock(block_connected);
+                                }
+                            }
+                        }
+                    }
                 };
                 //
                 const block = world.getBlock(pos);
-                const blocks_for_destroy = [block];
                 pushDestroyBlock(block);
                 //
                 resp.decrement = {id: block.id};
                 // Destroyed block
                 pos = new Vector(pos);
-                // 2. destroy plants over this block
+                // destroy plants over this block
                 let block_over = world.getBlock(pos.add(Vector.YP));
                 if(BLOCK.isPlants(block_over.id)) {
-                    blocks_for_destroy.push(block_over);
                     pushDestroyBlock(block_over);
-                }
-                // 3. Destroy connected blocks
-                for(let block of blocks_for_destroy) {
-                    for(let cn of ['next_part', 'previous_part']) {
-                        let part = block.material[cn];
-                        if(part) {
-                            let connected_pos = block.posworld.add(part.offset_pos);
-                            let block_connected = world.getBlock(connected_pos);
-                            if(block_connected.id == part.id) {
-                                pushDestroyBlock(block_connected);
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -205,12 +203,24 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         })) {
             return resp;
         }
-        const new_pos = new Vector(pos);
         // 7. Проверка места, куда игрок пытается установить блок(и)
+        let new_pos = new Vector(pos);
         let check_poses = [new_pos];
+        // Если этот блок имеет "пару"
         if(matBlock.next_part) {
-            // Если этот блок имеет "пару"
-            check_poses.push(new_pos.add(matBlock.next_part.offset_pos));
+            let offset = matBlock.next_part.offset_pos;
+            let next = BLOCK.fromId(matBlock.next_part.id);
+            while(next) {
+                new_pos = new_pos.add(offset);
+                // console.log(new_pos.y);
+                check_poses.push(new_pos);
+                if(next.next_part) {
+                    offset = next.next_part.offset_pos;
+                    next = BLOCK.fromId(next.next_part.id);
+                } else {
+                    next = null;
+                }
+            }
         }
         for(let cp of check_poses) {
             let cp_block = world.getBlock(cp);
@@ -222,6 +232,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         // 8. Некоторые блоки можно ставить только на что-то сверху
         let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
         if(setOnlyToTop && pos.n.y != 1) {
+            return resp;
+        }
+        // 9. Некоторые блоки можно только подвешивать на потолок
+        let placeOnlyToCeil = matBlock.tags.indexOf('place_only_to_ceil') >= 0;
+        if(placeOnlyToCeil && pos.n.y != -1) {
             return resp;
         }
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)

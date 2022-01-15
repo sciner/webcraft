@@ -185,7 +185,15 @@ function init() {
 init();
 // perf = Date.now()-perf;
 // console.log(`matrices generated for ${perf} ms`);
-export function pushSym(vertices, sym, cx, cz, cy, x0, z0, y0, ux, uz, uy, vx, vz, vy, c0, c1, c2, c3, r, g, b, flags) {
+export function pushSym(
+        vertices, sym,
+        cx, cz, cy,
+        x0, z0, y0,
+        ux, uz, uy, vx, vz, vy,
+        c0, c1, c2, c3,
+        r, g, b,
+        flags
+    ) {
     const mat = CubeSym.matrices[sym];
     vertices.push(
         cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2],

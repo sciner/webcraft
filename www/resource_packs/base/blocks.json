@@ -926,8 +926,7 @@
         "texture": [
             15,
             0
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 13,
@@ -1007,7 +1006,7 @@
         "id": 201,
         "name": "SPONGE",
         "material": {
-            "id": "plant"
+            "id": "clay"
         },
         "texture": [
             0,
@@ -1132,8 +1131,7 @@
         "tags": [
             "no_drop",
             "mask_biome"
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 106,
@@ -1179,8 +1177,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 350,
@@ -1379,8 +1376,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 38,
@@ -1395,8 +1391,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 509,
@@ -1412,8 +1407,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 510,
@@ -1429,8 +1423,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 511,
@@ -1446,8 +1439,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 512,
@@ -1463,8 +1455,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 513,
@@ -1480,8 +1471,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 514,
@@ -1501,8 +1491,7 @@
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 515
-        },
-        "planting": true
+        }
     },
     {
         "id": 515,
@@ -1525,8 +1514,7 @@
         },
         "tags": [
             "no_drop"
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 516,
@@ -1547,8 +1535,7 @@
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 517
-        },
-        "planting": true
+        }
     },
     {
         "id": 517,
@@ -1571,8 +1558,7 @@
         },
         "tags": [
             "no_drop"
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 39,
@@ -1587,8 +1573,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 40,
@@ -1603,8 +1588,7 @@
         ],
         "material": {
             "id": "plant"
-        },
-        "planting": true
+        }
     },
     {
         "id": 43,
@@ -1689,8 +1673,7 @@
         "material": {
             "id": "plant"
         },
-        "spawnable": false,
-        "planting": true
+        "spawnable": false
     },
     {
         "id": 60,
@@ -1782,15 +1765,28 @@
         "id": 76,
         "name": "REDSTONE_TORCH_OFF",
         "passable": 1,
+        "width": 0.125,
+        "height": 0.6875,
         "transparent": true,
-        "style": "sign",
+        "style": "torch",
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
-        "texture": [
-            3,
-            7
-        ]
+        "texture": {
+            "up": [
+                0,
+                6
+            ],
+            "down": [
+                0,
+                7
+            ],
+            "side": [
+                3,
+                7
+            ]
+        }
     },
     {
         "id": 79,
@@ -1978,7 +1974,7 @@
         "id": 99,
         "name": "BROWN_MUSHROOM_BLOCK",
         "material": {
-            "id": "plant"
+            "id": "dirt"
         },
         "texture": [
             14,
@@ -1989,7 +1985,7 @@
         "id": 100,
         "name": "RED_MUSHROOM_BLOCK",
         "material": {
-            "id": "plant"
+            "id": "dirt"
         },
         "texture": [
             13,
@@ -2153,8 +2149,7 @@
             15,
             6
         ],
-        "spawnable": false,
-        "planting": true
+        "spawnable": false
     },
     {
         "id": 105,
@@ -2169,8 +2164,7 @@
             15,
             6
         ],
-        "spawnable": false,
-            "planting": true
+        "spawnable": false
     },
     {
         "id": 108,
@@ -2568,8 +2562,7 @@
         "texture": [
             11,
             5
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 142,
@@ -2584,8 +2577,7 @@
         "texture": [
             11,
             5
-        ],
-        "planting": true
+        ]
     },
     {
         "id": 155,
@@ -3932,8 +3924,7 @@
         "texture_animations": {
             "side": 18
         },
-        "spawnable": false,
-        "planting": true
+        "spawnable": false
     },
     {
         "id": 550,
@@ -3968,8 +3959,7 @@
         "next_part": {
             "offset_pos": {"x": 0, "y": 1, "z": 0},
             "id": 573
-        },
-        "planting": true
+        }
     },
     {
         "id": 573,
@@ -3993,25 +3983,8 @@
         "previous_part": {
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 572
-        },
-        "planting": true
+        }
     },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     {
         "id": 574,
         "name": "BIRCH_DOOR",
@@ -4530,10 +4503,18 @@
         "name": "DRIPSTONE1",
         "passable": 0,
         "transparent": true,
-        "style": "sign",
+        "style": "planting",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
+        },
+        "tags": [
+            "place_only_to_ceil",
+            "no_set_on_top"
+        ],
+        "next_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 594
         },
         "texture": [31, 1]
     },
@@ -4542,10 +4523,21 @@
         "name": "DRIPSTONE2",
         "passable": 0,
         "transparent": true,
-        "style": "sign",
+        "style": "planting",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
+        },
+        "next_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 595
+        },
+        "tags": [
+            "no_set_on_top"
+        ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 593
         },
         "texture": [31, 2]
     },
@@ -4554,11 +4546,48 @@
         "name": "DRIPSTONE3",
         "passable": 0,
         "transparent": true,
-        "style": "sign",
+        "style": "planting",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
         },
+        "tags": [
+            "no_set_on_top"
+        ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 594
+        },
         "texture": [31, 3]
+    },
+    {
+        "id": 596,
+        "name": "AMETHYST",
+        "sound": "madcraft:block.amethyst",
+        "material": {
+            "id": "amethyst"
+        },
+        "texture": [30, 0]
+    },
+    {
+        "id": 597,
+        "name": "AMETHYST_CLUSTER",
+        "sound": "madcraft:block.amethyst",
+        "transparent": true,
+        "style": "planting",
+        "material": {
+            "id": "amethyst"
+        },
+        "tags": [
+            "no_set_on_top"
+        ],
+        "texture": [30, 1],
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 128
+        },
+        "can_rotate": true
     }
 ]

@@ -375,7 +375,7 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
-        block.planting          = block?.style == 'planting';
+        block.planting          = block.material.id == 'plant';
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;

@@ -178,8 +178,9 @@ export class PlayerInventory {
         if(mat.id < 2 || mat.deprecated) {
             return false;
         }
-        if(mat.previous_part) {
-            mat = {id: mat.previous_part.id};
+        while(mat.previous_part) {
+            let b = BLOCK.fromId(mat.previous_part.id);
+            mat = {id: b.id, previous_part: b.previous_part};
         }
         mat = BLOCK.convertItemToInventoryItem(mat);
         // Search same material with count < max

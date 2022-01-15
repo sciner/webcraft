@@ -13,6 +13,7 @@
         "clay": {"mining": {"time": 4, "instruments": ["shovel"]}},
         "cobblestone": {"mining": {"time": 5, "instruments": ["pickaxe"]}},
         "diamond": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 7}},
+        "amethyst": {"mining": {"time": 2, "instruments": ["pickaxe"]}},
         "dirt": {"mining": {"time": 2, "instruments": ["shovel"]}},
         "glass": {"mining": {"time": 1, "instruments": []}},
         "gold": {"mining": {"time": 5, "instruments": ["pickaxe"], "instrument_boost": 8}},

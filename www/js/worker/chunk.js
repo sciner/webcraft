@@ -63,6 +63,7 @@ export class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.id = this.addr.toHash();
     }
 
     init() {

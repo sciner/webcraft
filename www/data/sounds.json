@@ -233,5 +233,42 @@
         "hit": [
             "Pop"
         ]
+    },
+    {
+        "type": "madcraft:block.amethyst",
+        "dig": [
+            "Amethyst_step1",
+            "Amethyst_step2",
+            "Amethyst_step3",
+            "Amethyst_step4",
+            "Amethyst_step5",
+            "Amethyst_step6",
+            "Amethyst_step7",
+            "Amethyst_step8",
+            "Amethyst_step9",
+            "Amethyst_step10",
+            "Amethyst_step11",
+            "Amethyst_step12"
+        ],
+        "place": [
+            "Amethyst_place1",
+            "Amethyst_place2",
+            "Amethyst_place3",
+            "Amethyst_place4"
+        ],
+        "hit": [
+            "Amethyst_step1",
+            "Amethyst_step2",
+            "Amethyst_step3",
+            "Amethyst_step4",
+            "Amethyst_step5",
+            "Amethyst_step6",
+            "Amethyst_step7",
+            "Amethyst_step8",
+            "Amethyst_step9",
+            "Amethyst_step10",
+            "Amethyst_step11",
+            "Amethyst_step12"
+        ]
     }
 ]

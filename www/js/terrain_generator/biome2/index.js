@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
+import {CHUNK_BLOCKS, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {BLOCK} from '../../blocks.js';
 import {Map} from './../map.js';
@@ -256,10 +256,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             chunk.tblocks.id[index] = block_id;
         };
 
+        //
+        const getBlock = (x, y, z) => {
+            temp_vec2.set(x, y, z);
+            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            return chunk.tblocks.id[index];
+        };
+
         // const noisefn = this.noisefn;
         const noise3d = noise.simplex3;
 
+        // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < 0) {
+
+            let fill_count = 0;
 
             //
             for(let x = 0; x < chunk.size.x; x++) {
@@ -345,6 +355,56 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         y_start                 = Infinity;
                         stalactite_height       = 0;
 
+                        fill_count++;
+
+                    }
+                }
+            }
+
+            // Amethyst room
+            if(fill_count > CHUNK_BLOCKS * .7) {
+                let chance = aleaRandom.double();
+                if(chance < .25) {
+                    let rad = chance * 4;
+                    const ROOM_RADIUS = 6;
+                    const room_pos = new Vector(chunk.size).divScalar(2);
+                    room_pos.y += Math.round((rad - 0.5) * 10);
+                    let temp_vec_amethyst = new Vector(0, 0, 0);
+                    for(let x = 0; x < chunk.size.x; x++) {
+                        for(let z = 0; z < chunk.size.z; z++) {
+                            let can_set_cluster_to = 0;
+                            for(let y = chunk.size.y - 1; y >= 0; y--) {
+                                temp_vec_amethyst.set(x, y, z);
+                                let dist = Math.round(room_pos.distance(temp_vec_amethyst));
+                                if(dist <= ROOM_RADIUS) {
+                                    if(dist > ROOM_RADIUS - 1.5) {
+                                        let b = getBlock(x, y, z);
+                                        if(b == 0) {
+                                            continue;
+                                        } else if (dist >= ROOM_RADIUS - 1.42) {
+                                            let gg = new Vector(x, y, z).addSelf(chunk.coord);
+                                            if(gg.y == -378) {
+                                                console.log(gg);
+                                            }
+                                            if(can_set_cluster_to == 1) {
+                                                // end air
+                                                can_set_cluster_to = 0;
+                                                chance = aleaRandom.double();
+                                                if(chance < .2) {
+                                                    setBlock(x, y + 1, z, BLOCK.AMETHYST_CLUSTER.id);
+                                                }
+                                            }
+                                            setBlock(x, y, z, BLOCK.AMETHYST.id);
+                                        }
+                                    } else {
+                                        setBlock(x, y, z, BLOCK.AIR.id);
+                                        if(can_set_cluster_to == 0) {
+                                            can_set_cluster_to = 1;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
