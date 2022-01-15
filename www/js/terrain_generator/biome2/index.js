@@ -302,7 +302,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 } else {
                                     stalactite_height++;
                                     if(stalactite_height == 5) {
-                                        setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE1.id);
+                                        setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
                                         setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
                                         setBlock(x, y_start - 2, z, BLOCK.DRIPSTONE3.id);
                                         // reset stalactite
@@ -382,10 +382,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         if(b == 0) {
                                             continue;
                                         } else if (dist >= ROOM_RADIUS - 1.42) {
-                                            let gg = new Vector(x, y, z).addSelf(chunk.coord);
-                                            if(gg.y == -378) {
-                                                console.log(gg);
-                                            }
                                             if(can_set_cluster_to == 1) {
                                                 // end air
                                                 can_set_cluster_to = 0;

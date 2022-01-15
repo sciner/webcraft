@@ -3205,6 +3205,7 @@
     {
         "id": 81,
         "name": "CACTUS",
+        "planting": false,
         "width": 0.875,
         "transparent": true,
         "sound": "madcraft:block.cloth",
@@ -3492,6 +3493,7 @@
     {
         "id": 86,
         "name": "PUMPKIN",
+        "planting": false,
         "material": {
             "id": "plant"
         },
@@ -3514,6 +3516,7 @@
     {
         "id": 91,
         "name": "LIT_PUMPKIN",
+        "planting": false,
         "material": {
             "id": "plant"
         },
@@ -3540,6 +3543,7 @@
     {
         "id": 110,
         "name": "MYCELIUM",
+        "planting": false,
         "material": {
             "id": "plant"
         },
@@ -4500,7 +4504,7 @@
     },
     {
         "id": 593,
-        "name": "DRIPSTONE1",
+        "name": "DRIPSTONE",
         "passable": 0,
         "transparent": true,
         "style": "planting",
@@ -4524,6 +4528,7 @@
         "passable": 0,
         "transparent": true,
         "style": "planting",
+        "spawnable": false,
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
@@ -4547,6 +4552,7 @@
         "passable": 0,
         "transparent": true,
         "style": "planting",
+        "spawnable": false,
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
