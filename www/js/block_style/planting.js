@@ -74,7 +74,7 @@ export default class style {
         pushPlanedGeom(
             vertices,
             x, y, z, c,
-            style.lm, true, true, sz, undefined, sz, flags, 
+            style.lm, true, true, 1, 1, 1, flags, 
             cardinal_direction,
             dx, dy, dz
         );

@@ -18,11 +18,17 @@ export function pushPlanedGeom (
     xp          = xp ? xp : 1;
     yp          = yp ? yp : 1;
     zp          = zp ? zp : 1;
-    flags = flags || 0;
+    flags       = flags || 0;
 
-    x += 0.5;
-    y += 0.5;
-    z += 0.5;
+    x += 0.5 * xp;
+    y += 0.5 * yp;
+    z += 0.5 * zp;
+
+    // because we have rotation, we should create xp and yp as diagonal
+    if (rot) {
+        xp /= 1.41;
+        yp /= 1.41;
+    }
 
     if (x_dir) {
         if(rot) {

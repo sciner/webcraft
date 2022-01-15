@@ -1,8 +1,7 @@
 import {DIRECTION, MULTIPLY, TX_CNT} from '../helpers.js';
-import { default as push_plane_style } from './plane.js';
+import {pushPlanedGeom } from './plane.js';
 import {BLOCK} from "../blocks.js";
 
-const push_plane = push_plane_style.getRegInfo().func;
 
 // Плита
 export default class style {
@@ -41,19 +40,19 @@ export default class style {
 
         // South
         let lm = MULTIPLY.COLOR.WHITE;
-        push_plane(vertices, x, yt, z - .5, c_half_bottom, lm, true, false, null, .5, null);
+        pushPlanedGeom(vertices, x, yt, z - .5, c_half_bottom, lm, true, false, null, .5, null);
 
         // North
         lm = MULTIPLY.COLOR.WHITE;
-        push_plane(vertices, x, yt, z + .5, c_half_bottom, lm, true, false, null, .5, null);
+        pushPlanedGeom(vertices, x, yt, z + .5, c_half_bottom, lm, true, false, null, .5, null);
 
         // East
         lm = MULTIPLY.COLOR.WHITE;
-        push_plane(vertices, x + 0.5, yt, z, c_half_bottom, lm, false, false, null, .5, null);
+        pushPlanedGeom(vertices, x + 0.5, yt, z, c_half_bottom, lm, false, false, null, .5, null);
 
         // West
         lm = MULTIPLY.COLOR.WHITE;
-        push_plane(vertices, x - 0.5, yt, z, c_half_bottom, lm, false, false, null, .5, null);
+        pushPlanedGeom(vertices, x - 0.5, yt, z, c_half_bottom, lm, false, false, null, .5, null);
 
         // Up and down
         c = BLOCK.calcTexture(texture, DIRECTION.DOWN);
