@@ -4632,7 +4632,7 @@
         "name": "CAVE_VINE_BERRY",
         "passable": 1,
         "transparent": true,
-        "spawnable": true,
+        "spawnable": false,
         "style": "planting",
         "sound": "madcraft:block.grass",
         "material": {
