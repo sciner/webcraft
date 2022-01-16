@@ -6,6 +6,8 @@ import {MapCell} from './../map_cell.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
+import {SimplexNoise} from "../../../vendors/simplex-noise.js";
+
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
@@ -36,6 +38,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
         //
         this.noisefn                = noise.perlin2;
+        this.simplex                = new SimplexNoise(this.seed);
         this.maps_cache             = new VectorCollector();
         // Сaves manager
         this.caveManager            = new CaveGenerator(this.seed);
@@ -237,6 +240,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
+        const DENSITY_COEFF         = .5 + (this.simplex.noise3D(chunk.addr.x / 10000, chunk.addr.y / 10000, chunk.addr.z / 10000) / 2 + .5) * 1;
 
         // Bedrock
         let min_y   = 0;
@@ -278,37 +282,74 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     let y_start                 = Infinity;
                     let stalactite_height       = 0;
                     let stalactite_can_start    = false;
+                    let dripstone_allow         = true;
 
                     for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                         xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
-                        let density = noise3d(xyz.x / 100, xyz.z / 100, xyz.y / 15) / 2 + .5;
-                        density += noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
-                        density /= 2;
+                        //let density = (
+                        //    noise3d(xyz.x / 100, xyz.z / 100, xyz.y / 15) / 2 + .5 +
+                        //    noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5
+                        //) / 2;
+
+                        let density = (
+                            this.simplex.noise3D(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
+                            this.simplex.noise3D(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
+                        ) / 2;
 
                         if(xyz.y > -ABS_CONCRETE) {
                             const dist = xyz.y / -ABS_CONCRETE + .2;
                             density += dist;
                         }
 
+                        // air
                         if(density < 0.5) {
-                            // air
+                            const MOSS_HUMIDITY = .75;
                             if(stalactite_can_start) {
+                                const humidity = this.simplex.noise3D(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
                                 if(y_start == Infinity) {
                                     // start stalactite
                                     y_start = y;
                                     stalactite_height = 0;
+                                    // MOSS_BLOCK
+                                    if(humidity > MOSS_HUMIDITY) {
+                                        setBlock(x, y + 1, z, BLOCK.MOSS_BLOCK.id);
+                                        dripstone_allow = false;
+                                    }
                                 } else {
                                     stalactite_height++;
-                                    if(stalactite_height == 5) {
-                                        setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
-                                        setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
-                                        setBlock(x, y_start - 2, z, BLOCK.DRIPSTONE3.id);
-                                        // reset stalactite
-                                        y_start = Infinity;
-                                        stalactite_height = 0;
-                                        stalactite_can_start = false;
+                                    if(stalactite_height >= 5) {
+                                        if(humidity > MOSS_HUMIDITY) {
+                                            if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
+                                                if(aleaRandom.double() < .3) {
+                                                    // CAVE_VINE_BODY,  CAVE_VINE_BERRY,  CAVE_VINE_END1,  CAVE_VINE_END2
+                                                    for(let yy = 0; yy < stalactite_height; yy++) {
+                                                        let vine_id = null;
+                                                        if(yy == stalactite_height - 1) {
+                                                            vine_id = BLOCK.CAVE_VINE_END1.id + (x + z + y + yy) % 2;
+                                                        } else {
+                                                            vine_id = BLOCK.CAVE_VINE_BODY.id + (aleaRandom.double() < .2 ? 1 : 0);
+                                                        }
+                                                        setBlock(x, y_start - yy, z, vine_id);
+                                                    }
+                                                }
+                                                // reset stalactite
+                                                y_start = Infinity;
+                                                stalactite_height = 0;
+                                                stalactite_can_start = false;
+                                            }
+                                        } else if(dripstone_allow) {
+                                            if(aleaRandom.double() < .3) {
+                                                setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
+                                                setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
+                                                setBlock(x, y_start - 2, z, BLOCK.DRIPSTONE3.id);
+                                            }
+                                            // reset stalactite
+                                            y_start = Infinity;
+                                            stalactite_height = 0;
+                                            stalactite_can_start = false;
+                                        }
                                     }
                                 }
                             }
@@ -351,7 +392,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         setBlock(x, y, z, stone_block_id);
 
                         // reset stalactite
-                        stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id && aleaRandom.double() < .3;
+                        stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;// && aleaRandom.double() < .3;
                         y_start                 = Infinity;
                         stalactite_height       = 0;
 

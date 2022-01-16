@@ -2,6 +2,7 @@
   "dependencies": {
     "compression": "^1.7.4",
     "express": "^4.17.1",
+    "simplex-noise": "^3.0.1",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "ws": "^8.2.3"

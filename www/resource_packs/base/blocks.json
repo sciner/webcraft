@@ -4596,5 +4596,86 @@
             "a": 128
         },
         "can_rotate": true
+    },
+
+
+
+
+
+
+
+
+    {
+        "id": 600,
+        "name": "MOSS_BLOCK",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "cobblestone"
+        },
+        "texture": [29, 0]
+    },
+    {
+        "id": 601,
+        "name": "CAVE_VINE_BODY",
+        "passable": 1,
+        "transparent": true,
+        "spawnable": false,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "texture": [29, 1]
+    },
+    {
+        "id": 602,
+        "name": "CAVE_VINE_BERRY",
+        "passable": 1,
+        "transparent": true,
+        "spawnable": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 200
+        },
+        "texture": [29, 2]
+    },
+    {
+        "id": 603,
+        "name": "CAVE_VINE_END1",
+        "passable": 1,
+        "transparent": true,
+        "spawnable": false,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "texture": [29, 3]
+    },
+    {
+        "id": 604,
+        "name": "CAVE_VINE_END2",
+        "passable": 1,
+        "transparent": true,
+        "spawnable": false,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 164
+        },
+        "texture": [29, 4]
     }
 ]
