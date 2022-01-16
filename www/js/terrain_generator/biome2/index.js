@@ -1,5 +1,6 @@
 import {CHUNK_BLOCKS, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
+import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
 import {Map} from './../map.js';
 import {MapCell} from './../map_cell.js';
@@ -407,25 +408,24 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(fill_count > CHUNK_BLOCKS * .7) {
                 let chance = aleaRandom.double();
                 if(chance < .25) {
-
                     const ROOM_RADIUS = 6;
                     const room_pos = new Vector(chunk.size).divScalar(2);
                     let temp_vec_amethyst = new Vector(0, 0, 0);
                     let sides = [
                         new Vector(1, 0, 0),
                         new Vector(-1, 0, 0),
-                        // new Vector(0, 1, 0),
+                        new Vector(0, 1, 0),
                         new Vector(0, -1, 0),
                         new Vector(0, 0, 1),
                         new Vector(0, 0, -1)
                     ];
                     let rotates = [
-                        new Vector(1, 0, 0), // ok
-                        new Vector(3, 0, 0), // ok
-                        // new Vector(0, 0, 0),
-                        new Vector(0, 1, 0), // ok
-                        new Vector(2, 0, 0), // ok
-                        new Vector(0, 0, 3) // ok
+                        new Vector(CubeSym.ROT_Z, 0, 0),
+                        new Vector(CubeSym.ROT_Z3, 0, 0),
+                        new Vector(CubeSym.NEG_Y, 0, 0),
+                        new Vector(CubeSym.ROT_Y3, 0, 0),
+                        new Vector(CubeSym.ROT_X, 0, 0),
+                        new Vector(CubeSym.ROT_X3, 0, 0)
                     ];
                     let temp_ar_vec = new Vector();
                     let rad = chance * 4;
@@ -451,11 +451,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
                         }
                     }
-
                     // Set clusters
                     let y_start = Math.max(room_pos.y - ROOM_RADIUS, 1);
                     let y_end = Math.min(room_pos.y + ROOM_RADIUS, chunk.size.y - 2);
-                    
                     for(let x = 1; x < chunk.size.x - 1; x++) {
                         for(let z = 1; z < chunk.size.z - 1; z++) {
                             for(let y = y_start; y < y_end; y++) {

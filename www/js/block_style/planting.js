@@ -37,12 +37,8 @@ export default class style {
     };
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
-        let cardinal_direction = 0;
-        const { rotate } = block;
 
-        if (rotate && rotate.y !== 1 && block.material.can_rotate) {
-            cardinal_direction = CubeSym.add(CubeSym.ROT_X3, block.getCardinalDirection());
-        }
+        let cardinal_direction = block.getCardinalDirection()
 
         let dx = 0, dy = 0, dz = 0;
         let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
