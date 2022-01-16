@@ -462,8 +462,8 @@ export class Renderer {
 
         // Calculate nightShift
         this.nightShift = 1;
-        if(player.pos.y < 20 && this.world.info.generator.id !== 'flat') {
-            this.nightShift = Math.round((1 - Math.min(NIGHT_SHIFT_RANGE - player.pos.y, NIGHT_SHIFT_RANGE) / NIGHT_SHIFT_RANGE) * 256) / 256;
+        if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
+            this.nightShift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
             fogColor[0] *= this.nightShift;
             fogColor[1] *= this.nightShift;
             fogColor[2] *= this.nightShift;

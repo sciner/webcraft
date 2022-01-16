@@ -14,7 +14,10 @@ import { AABB } from '../../core/AABB.js';
 
 //
 let vox_templates = {};
-const ABS_CONCRETE = 16;
+const ABS_CONCRETE              = 16;
+const MOSS_HUMIDITY             = .75;
+const AMETHYST_ROOM_RADIUS      = 6;
+const AMETHYST_CLUSTER_CHANCE   = 0.1;
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -38,6 +41,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
         //
         this.noisefn                = noise.perlin2;
+        this.noisefn3d              = noise.perlin3;
         this.maps_cache             = new VectorCollector();
         // Сaves manager
         this.caveManager            = new CaveGenerator(this.seed);
@@ -240,22 +244,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noise3d               = noise.simplex3;
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
-        const DENSITY_COEFF         = .5 + (noise3d(chunk.addr.x / 10000, chunk.addr.y / 10000, chunk.addr.z / 10000) / 2 + .5) * 1.5;
+        let DENSITY_COEFF           = 1;
+
+        // let addr2 = chunk.coord.mul(new Vector(100, 100, 100)).round().divScalar(100000);
+        // DENSITY_COEFF = 1 + (noise3d(addr2.x, addr2.y, addr2.z) / 2 + .5) * 2;
+        // DENSITY_COEFF = Math.round(DENSITY_COEFF * 100) / 100;
+        // console.log(addr2, DENSITY_COEFF);
 
         // Bedrock
-        let min_y   = 0;
-        if(chunk.coord.y == 0) {
-            min_y++;
-        }
+        let min_y = 0;
 
         //
         // this.temp_set_block = null;
         const setBlock = (x, y, z, block_id, rotate) => {
             temp_vec2.set(x, y, z);
-            // chunk.tblocks.delete(temp_vec2);
-            // this.temp_set_block = chunk.tblocks.get(temp_vec2, this.temp_set_block);
-            // this.temp_set_block.id = block_id;
-            // const index = BLOCK.getIndex(temp_vec2);
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
             if(rotate) {
                 chunk.tblocks.rotate.set(temp_vec2, rotate);
@@ -271,7 +273,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
 
         // Endless caves / Бесконечные пещеры нижнего уровня
-        if(chunk.addr.y < 0) {
+        if(chunk.addr.y < -1) {
 
             let fill_count = 0;
 
@@ -289,8 +291,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
                         //let density = (
-                        //    noise3d(xyz.x / 100, xyz.z / 100, xyz.y / 15) / 2 + .5 +
-                        //    noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5
+                        //    this.noisefn3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
+                        //    this.noisefn3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
                         //) / 2;
 
                         let density = (
@@ -305,7 +307,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // air
                         if(density < 0.5) {
-                            const MOSS_HUMIDITY = .75;
                             if(stalactite_can_start) {
                                 const humidity = noise3d(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
                                 if(y_start == Infinity) {
@@ -408,7 +409,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(fill_count > CHUNK_BLOCKS * .7) {
                 let chance = aleaRandom.double();
                 if(chance < .25) {
-                    const ROOM_RADIUS = 6;
                     const room_pos = new Vector(chunk.size).divScalar(2);
                     let temp_vec_amethyst = new Vector(0, 0, 0);
                     let sides = [
@@ -435,13 +435,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             for(let y = chunk.size.y - 1; y >= 0; y--) {
                                 temp_vec_amethyst.set(x, y, z);
                                 let dist = Math.round(room_pos.distance(temp_vec_amethyst));
-                                if(dist <= ROOM_RADIUS) {
-                                    if(dist > ROOM_RADIUS - 1.5) {
+                                if(dist <= AMETHYST_ROOM_RADIUS) {
+                                    if(dist > AMETHYST_ROOM_RADIUS - 1.5) {
                                         let b = getBlock(x, y, z);
                                         if(b == 0) {
                                             // air
                                             continue;
-                                        } else if (dist >= ROOM_RADIUS - 1.42) {
+                                        } else if (dist >= AMETHYST_ROOM_RADIUS - 1.42) {
                                             setBlock(x, y, z, BLOCK.AMETHYST.id);
                                         }
                                     } else {
@@ -452,18 +452,18 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                     }
                     // Set clusters
-                    let y_start = Math.max(room_pos.y - ROOM_RADIUS, 1);
-                    let y_end = Math.min(room_pos.y + ROOM_RADIUS, chunk.size.y - 2);
+                    let y_start = Math.max(room_pos.y - AMETHYST_ROOM_RADIUS, 1);
+                    let y_end = Math.min(room_pos.y + AMETHYST_ROOM_RADIUS, chunk.size.y - 2);
                     for(let x = 1; x < chunk.size.x - 1; x++) {
                         for(let z = 1; z < chunk.size.z - 1; z++) {
                             for(let y = y_start; y < y_end; y++) {
                                 let rnd = aleaRandom.double();
-                                if(rnd > .1) {
+                                if(rnd > AMETHYST_CLUSTER_CHANCE) {
                                     continue;
                                 }
                                 temp_vec_amethyst.set(x, y, z);
                                 let dist = Math.round(room_pos.distance(temp_vec_amethyst));
-                                if(dist < ROOM_RADIUS - 1.5) {
+                                if(dist < AMETHYST_ROOM_RADIUS - 1.5) {
                                     if(getBlock(x, y, z) == 0) {
                                         let set_vec     = null;
                                         let attempts    = 0;
@@ -553,7 +553,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     break;
                 }
             }
-    
+
             // caves
             // Соседние чанки в указанном радиусе, на наличие начала(головы) пещер
             let neighbours_caves = this.caveManager.getNeighbours(chunk.addr);
@@ -611,7 +611,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     // Bedrock
                     if(chunk.coord.y == 0) {
-                        // setBlock(x, 0, z, BLOCK.BEDROCK.id);
                         setBlock(x, 0, z, BLOCK.CONCRETE.id);
                     }
 
