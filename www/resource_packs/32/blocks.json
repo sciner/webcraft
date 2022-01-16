@@ -166,6 +166,18 @@
     {"id": 553, "name": "IRON_PICKAXE"},
     {"id": 554, "name": "GOLD_PICKAXE"},
     {"id": 555, "name": "DIAMOND_PICKAXE"},
-    {"id": 556, "name": "NETHERITE_PICKAXE"}
+    {"id": 556, "name": "NETHERITE_PICKAXE"},
+
+    {"id": 592, "name": "DRIPSTONE_BLOCK"},
+    {"id": 593, "name": "DRIPSTONE"},
+    {"id": 594, "name": "DRIPSTONE2"},
+    {"id": 595, "name": "DRIPSTONE3"},
+    {"id": 596, "name": "AMETHYST"},
+    {"id": 597, "name": "AMETHYST_CLUSTER"},
+    {"id": 600, "name": "MOSS_BLOCK"},
+    {"id": 601, "name": "CAVE_VINE_BODY"},
+    {"id": 602, "name": "CAVE_VINE_BERRY"},
+    {"id": 603, "name": "CAVE_VINE_END1"},
+    {"id": 604, "name": "CAVE_VINE_END2"}
 
 ]
