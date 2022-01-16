@@ -246,16 +246,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const aleaRandom            = new alea(seed);
         let DENSITY_COEFF           = 1;
 
-        // let addr2 = chunk.coord.mul(new Vector(100, 100, 100)).round().divScalar(100000);
-        // DENSITY_COEFF = 1 + (noise3d(addr2.x, addr2.y, addr2.z) / 2 + .5) * 2;
-        // DENSITY_COEFF = Math.round(DENSITY_COEFF * 100) / 100;
-        // console.log(addr2, DENSITY_COEFF);
-
         // Bedrock
         let min_y = 0;
 
         //
-        // this.temp_set_block = null;
         const setBlock = (x, y, z, block_id, rotate) => {
             temp_vec2.set(x, y, z);
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
@@ -279,6 +273,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             //
             for(let x = 0; x < chunk.size.x; x++) {
+
+                // let DENSITY_COEFF_X = Math.sin((chunk.coord.x + x) / 2000 * Math.PI * 2 / 10) + 2;
+
                 for(let z = 0; z < chunk.size.z; z++) {
 
                     let y_start                 = Infinity;
@@ -286,14 +283,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     let stalactite_can_start    = false;
                     let dripstone_allow         = true;
 
+                    // let DENSITY_COEFF_Z = Math.sin((chunk.coord.z + z) / 2000 * Math.PI * 2 / 10) + 2;
+
                     for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                         xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
-                        //let density = (
-                        //    this.noisefn3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
-                        //    this.noisefn3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
-                        //) / 2;
+                        // let DENSITY_COEFF_Y = Math.sin((chunk.coord.y + y) / 500 * Math.PI * 2 / 10) + 2;
+                        // let DENSITY_COEFF = (DENSITY_COEFF_X + DENSITY_COEFF_Y + DENSITY_COEFF_Z) / 3;
 
                         let density = (
                             noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
