@@ -6,7 +6,6 @@ import {MapCell} from './../map_cell.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
-import {SimplexNoise} from "../../../vendors/simplex-noise.js";
 
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
@@ -38,7 +37,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         };
         //
         this.noisefn                = noise.perlin2;
-        this.simplex                = new SimplexNoise(this.seed);
         this.maps_cache             = new VectorCollector();
         // Сaves manager
         this.caveManager            = new CaveGenerator(this.seed);
@@ -238,9 +236,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let temp_vec2               = new Vector(0, 0, 0);
         let ppos                    = new Vector(0, 0, 0);
 
+        const noise3d               = noise.simplex3;
         const seed                  = chunk.id;
         const aleaRandom            = new alea(seed);
-        const DENSITY_COEFF         = .5 + (this.simplex.noise3D(chunk.addr.x / 10000, chunk.addr.y / 10000, chunk.addr.z / 10000) / 2 + .5) * 1;
+        const DENSITY_COEFF         = .5 + (noise3d(chunk.addr.x / 10000, chunk.addr.y / 10000, chunk.addr.z / 10000) / 2 + .5) * 1.5;
 
         // Bedrock
         let min_y   = 0;
@@ -250,13 +249,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         //
         // this.temp_set_block = null;
-        const setBlock = (x, y, z, block_id) => {
+        const setBlock = (x, y, z, block_id, rotate) => {
             temp_vec2.set(x, y, z);
             // chunk.tblocks.delete(temp_vec2);
             // this.temp_set_block = chunk.tblocks.get(temp_vec2, this.temp_set_block);
             // this.temp_set_block.id = block_id;
             // const index = BLOCK.getIndex(temp_vec2);
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
+            if(rotate) {
+                chunk.tblocks.rotate.set(temp_vec2, rotate);
+            }
             chunk.tblocks.id[index] = block_id;
         };
 
@@ -266,9 +268,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
             return chunk.tblocks.id[index];
         };
-
-        // const noisefn = this.noisefn;
-        const noise3d = noise.simplex3;
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < 0) {
@@ -294,8 +293,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         //) / 2;
 
                         let density = (
-                            this.simplex.noise3D(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
-                            this.simplex.noise3D(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
+                            noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
+                            noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
                         ) / 2;
 
                         if(xyz.y > -ABS_CONCRETE) {
@@ -307,7 +306,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(density < 0.5) {
                             const MOSS_HUMIDITY = .75;
                             if(stalactite_can_start) {
-                                const humidity = this.simplex.noise3D(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
+                                const humidity = noise3d(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
                                 if(y_start == Infinity) {
                                     // start stalactite
                                     y_start = y;
@@ -320,6 +319,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 } else {
                                     stalactite_height++;
                                     if(stalactite_height >= 5) {
+                                        // Moss and vine
                                         if(humidity > MOSS_HUMIDITY) {
                                             if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
                                                 if(aleaRandom.double() < .3) {
@@ -340,6 +340,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                                 stalactite_can_start = false;
                                             }
                                         } else if(dripstone_allow) {
+                                            // Dripstone
                                             if(aleaRandom.double() < .3) {
                                                 setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
                                                 setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
@@ -392,7 +393,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         setBlock(x, y, z, stone_block_id);
 
                         // reset stalactite
-                        stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;// && aleaRandom.double() < .3;
+                        stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;
                         y_start                 = Infinity;
                         stalactite_height       = 0;
 
@@ -406,14 +407,31 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(fill_count > CHUNK_BLOCKS * .7) {
                 let chance = aleaRandom.double();
                 if(chance < .25) {
-                    let rad = chance * 4;
+
                     const ROOM_RADIUS = 6;
                     const room_pos = new Vector(chunk.size).divScalar(2);
-                    room_pos.y += Math.round((rad - 0.5) * 10);
                     let temp_vec_amethyst = new Vector(0, 0, 0);
+                    let sides = [
+                        new Vector(1, 0, 0),
+                        new Vector(-1, 0, 0),
+                        // new Vector(0, 1, 0),
+                        new Vector(0, -1, 0),
+                        new Vector(0, 0, 1),
+                        new Vector(0, 0, -1)
+                    ];
+                    let rotates = [
+                        new Vector(1, 0, 0), // ok
+                        new Vector(3, 0, 0), // ok
+                        // new Vector(0, 0, 0),
+                        new Vector(0, 1, 0), // ok
+                        new Vector(2, 0, 0), // ok
+                        new Vector(0, 0, 3) // ok
+                    ];
+                    let temp_ar_vec = new Vector();
+                    let rad = chance * 4;
+                    room_pos.y += Math.round((rad - 0.5) * 10);
                     for(let x = 0; x < chunk.size.x; x++) {
                         for(let z = 0; z < chunk.size.z; z++) {
-                            let can_set_cluster_to = 0;
                             for(let y = chunk.size.y - 1; y >= 0; y--) {
                                 temp_vec_amethyst.set(x, y, z);
                                 let dist = Math.round(room_pos.distance(temp_vec_amethyst));
@@ -421,22 +439,48 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     if(dist > ROOM_RADIUS - 1.5) {
                                         let b = getBlock(x, y, z);
                                         if(b == 0) {
+                                            // air
                                             continue;
                                         } else if (dist >= ROOM_RADIUS - 1.42) {
-                                            if(can_set_cluster_to == 1) {
-                                                // end air
-                                                can_set_cluster_to = 0;
-                                                chance = aleaRandom.double();
-                                                if(chance < .2) {
-                                                    setBlock(x, y + 1, z, BLOCK.AMETHYST_CLUSTER.id);
-                                                }
-                                            }
                                             setBlock(x, y, z, BLOCK.AMETHYST.id);
                                         }
                                     } else {
                                         setBlock(x, y, z, BLOCK.AIR.id);
-                                        if(can_set_cluster_to == 0) {
-                                            can_set_cluster_to = 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Set clusters
+                    let y_start = Math.max(room_pos.y - ROOM_RADIUS, 1);
+                    let y_end = Math.min(room_pos.y + ROOM_RADIUS, chunk.size.y - 2);
+                    
+                    for(let x = 1; x < chunk.size.x - 1; x++) {
+                        for(let z = 1; z < chunk.size.z - 1; z++) {
+                            for(let y = y_start; y < y_end; y++) {
+                                let rnd = aleaRandom.double();
+                                if(rnd > .1) {
+                                    continue;
+                                }
+                                temp_vec_amethyst.set(x, y, z);
+                                let dist = Math.round(room_pos.distance(temp_vec_amethyst));
+                                if(dist < ROOM_RADIUS - 1.5) {
+                                    if(getBlock(x, y, z) == 0) {
+                                        let set_vec     = null;
+                                        let attempts    = 0;
+                                        let rotate      = null;
+                                        while(!set_vec && ++attempts < 5) {
+                                            let i = Math.round(rnd * 10 * 5 + attempts) % 5;
+                                            temp_ar_vec.set(x + sides[i].x, y + sides[i].y, z + sides[i].z);
+                                            let b = getBlock(temp_ar_vec.x, temp_ar_vec.y, temp_ar_vec.z);
+                                            if(b != 0 && b != BLOCK.AMETHYST_CLUSTER.id) {
+                                                set_vec = sides[i];
+                                                rotate = rotates[i];
+                                            }
+                                        }
+                                        if(set_vec) {
+                                            setBlock(x, y, z, BLOCK.AMETHYST_CLUSTER.id, rotate);
                                         }
                                     }
                                 }
