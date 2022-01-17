@@ -21,6 +21,8 @@ let Vector = null;
 let DataChunk = null;
 let BaseChunk = null;
 let LightProcessor = null;
+// instance
+let lightProcessor = null;
 
 const world = {
     chunkManager: null,
@@ -949,7 +951,7 @@ async function importModules() {
         DataChunk = module.DataChunk;
     });
 
-    const lightProcessor = await import('./../wasm/light_processor.js').then(module => {
+    lightProcessor = await import('./../wasm/light_processor.js').then(module => {
         LightProcessor = module.LightProcessor;
         return LightProcessor.spawn(true);
     });

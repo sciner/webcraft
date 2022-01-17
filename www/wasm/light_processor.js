@@ -1,9 +1,12 @@
-// change it to more likenly directory
 import asLoader from "./asLoader.js";
 
 const DEBUG_MODULE = '/wasm/light_processor.debug.wasm';
 const RELEASE_MODULE = '/wasm/light_processor.release.wasm';
 
+/**
+ * Proxy class that will process data-tranfering between js and wasm
+ * @see https://www.assemblyscript.org/loader.html
+ */
 export class LightProcessor {
     /**
      * @type {LightProcessor}
@@ -15,8 +18,8 @@ export class LightProcessor {
 
         // trap all methods for allowing call it from runtime
         this.proxyInterface = new Proxy(this, {
-            get(_, prop) {
-                return (...args) => this[prop](...args);
+            get(r, prop) {
+                return (...args) => r[prop](...args);
             }
         });
     }
@@ -57,6 +60,7 @@ export class LightProcessor {
 
         return asLoader
             .instantiate(fetch(debug ? DEBUG_MODULE : RELEASE_MODULE), {
+                // MUST BE SAME NAME AS MODULE THAT IMPORTED (jsApi.ts)
                 jsApi: api.proxyInterface
             })
             .then(({ exports }) => {
