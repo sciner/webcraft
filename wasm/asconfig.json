@@ -1,14 +1,14 @@
 {
   "targets": {
     "debug": {
-      "binaryFile": "../www/wasm/ligh_processor.debug.wasm",
-      "textFile": "../www/wasm/ligh_processor.debug.wat",
+      "binaryFile": "../www/wasm/light_processor.debug.wasm",
+      "textFile": "../www/wasm/light_processor.debug.wat",
       "sourceMap": true,
       "debug": true
     },
     "release": {
-      "binaryFile": "../www/wasm/ligh_processor.wasm",
-      "textFile": "../www/wasm/ligh_processor.wat",
+      "binaryFile": "../www/wasm/light_processor.wasm",
+      "textFile": "../www/wasm/light_processor.wat",
       "sourceMap": true,
       "optimizeLevel": 3,
       "shrinkLevel": 0,

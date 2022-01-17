@@ -20,6 +20,8 @@ let VectorCollector = null;
 let Vector = null;
 let DataChunk = null;
 let BaseChunk = null;
+let LightProcessor = null;
+
 const world = {
     chunkManager: null,
     defDayLight: 0,
@@ -946,6 +948,14 @@ async function importModules() {
     await import('./core/DataChunk.js').then(module => {
         DataChunk = module.DataChunk;
     });
+
+    const lightProcessor = await import('./../wasm/light_processor.js').then(module => {
+        LightProcessor = module.LightProcessor;
+        return LightProcessor.spawn(true);
+    });
+
+    lightProcessor.sayHello();
+
     modulesReady = true;
 
     // if (!testDayLight()) {
