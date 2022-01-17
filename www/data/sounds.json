@@ -270,5 +270,29 @@
             "Amethyst_step11",
             "Amethyst_step12"
         ]
+    },
+    {
+        "type": "madcraft:block.cave_vine",
+        "dig": [
+            "Cave_Vines_break1",
+            "Cave_Vines_break2",
+            "Cave_Vines_break3",
+            "Cave_Vines_break4",
+            "Cave_Vines_break5"
+        ],
+        "place": [
+            "Cave_Vines_break1",
+            "Cave_Vines_break2",
+            "Cave_Vines_break3",
+            "Cave_Vines_break4",
+            "Cave_Vines_break5"
+        ],
+        "hit": [
+            "Cave_Vines_break1",
+            "Cave_Vines_break2",
+            "Cave_Vines_break3",
+            "Cave_Vines_break4",
+            "Cave_Vines_break5"
+        ]
     }
 ]

@@ -94,9 +94,19 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     // Drop block if need
                     const isSurvival = true; // player.game_mode.isSurvival()
                     if(isSurvival) {
-                        if(block.material.spawnable && block.material.tags.indexOf('no_drop') < 0) {
-                            const item = {id: block.id, count: 1};
-                            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                        if(block.material.drop_item) {
+                            const drop_block = BLOCK.fromName(block.material.drop_item?.name);
+                            if(drop_block) {
+                                const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
+                                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                            } else {
+                                console.error('error_invalid_drop_item', block.material.drop_item);
+                            }
+                        } else {
+                            if(block.material.spawnable && block.material.tags.indexOf('no_drop') < 0) {
+                                const item = {id: block.id, count: 1};
+                                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                            }
                         }
                     }
                     // Destroy connected blocks
@@ -112,18 +122,28 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
+                    // Destroy chain blocks to down
+                    if(block.material.destroy_to_down) {
+                        let npos = block.posworld.add(Vector.YN);
+                        let nblock = world.getBlock(npos);
+                        if(nblock && block.material.destroy_to_down.indexOf(nblock.material.name) >= 0) {
+                            pushDestroyBlock(nblock);
+                        }
+                    }
                 };
                 //
                 const block = world.getBlock(pos);
                 pushDestroyBlock(block);
                 //
                 resp.decrement = {id: block.id};
-                // Destroyed block
-                pos = new Vector(pos);
-                // destroy plants over this block
-                let block_over = world.getBlock(pos.add(Vector.YP));
-                if(BLOCK.isPlants(block_over.id)) {
-                    pushDestroyBlock(block_over);
+                if(!block.material.destroy_to_down) {
+                    // Destroyed block
+                    pos = new Vector(pos);
+                    // destroy plants over this block
+                    let block_over = world.getBlock(pos.add(Vector.YP));
+                    if(BLOCK.isPlants(block_over.id)) {
+                        pushDestroyBlock(block_over);
+                    }
                 }
             }
         }
