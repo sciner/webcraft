@@ -186,9 +186,6 @@ class LightQueue {
                         mask |= dmask[d];
                     }
                     val = Math.max(val, light - dlen[d]);
-                    // if (d >= 6 && val === 0) {
-                    //     break;
-                    // }
                 }
             }
             if (old === val && prev === val) {
@@ -198,10 +195,10 @@ class LightQueue {
             uint8View[coordBytes + OFFSET_PREV] = val;
             chunk.lastID++;
 
-            let waveBig = Math.max(Math.max(prev, old), val);
-
             //TODO: copy to neib chunks
 
+            // TODO: swap -1 to real -dlen
+            const waveNum = Math.max(Math.max(old, val) - 1, 0);
             if (safeAABB.contains(x, y, z)) {
                 // super fast case - we are inside data chunk
                 for (let d = 0; d < dirCount; d++) {
@@ -210,9 +207,8 @@ class LightQueue {
                     }
                     let coord2 = coord + dif26[d];
                     const light = uint8View[coord2 * strideBytes + qOffset + OFFSET_LIGHT];
-                    const waveNum = Math.max(waveBig - dlen[d], 0);
                     // a4fa-12 , not obvious optimization
-                    if (light >= waveNum) {
+                    if (light >= prev && light >= val && light >= old) {
                         continue;
                     }
                     wavesChunk[waveNum].push(chunk);
@@ -229,7 +225,7 @@ class LightQueue {
                     mask2 |= 1 << p;
                     chunk2.setUint8ByInd(chunk2.indexByWorld(x, y, z), qOffset + OFFSET_LIGHT, val);
                     chunk2.rev.lastID++;
-                    for (let d = 0; d < dirCount; d++) {
+                    for (let d = 0; d < DIR_COUNT; d++) {
                         if ((mask & (1 << d)) !== 0) {
                             continue;
                         }
@@ -240,9 +236,8 @@ class LightQueue {
                             const coord2 = chunk2.indexByWorld(x2, y2, z2);
                             const light = chunk2.uint8ByInd(coord2, qOffset + OFFSET_LIGHT);
                             mask |= 1 << d;
-                            const waveNum = Math.max(waveBig - dlen[d], 0);
                             // a4fa-12 , not obvious optimization
-                            if (light >= waveNum) {
+                            if (light >= prev && light >= val && light >= old) {
                                 continue;
                             }
                             wavesChunk[waveNum].push(chunk2.rev);
@@ -261,7 +256,6 @@ class LightQueue {
                         z2 = z + dz[d];
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        const waveNum = Math.max(waveBig - dlen[d], 0);
                         wavesChunk[waveNum].push(chunk);
                         wavesCoord[waveNum].push(coord2);
                         chunk.waveCounter++;
@@ -963,7 +957,6 @@ async function importModules() {
 
     //for now , its nothing
     world.chunkManager = new ChunkManager();
-    //TODO: switch light back to 26 when its optimized
     world.light = new LightQueue({offset: 0, dirCount: 6});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
