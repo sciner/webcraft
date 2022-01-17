@@ -42,6 +42,7 @@ export class Player {
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
             if(!mode.can_fly) {
+                this.lastBlockPos = this.getBlockPos();
                 this.setFlying(false);
             } else if(mode.id == GAME_MODE.SPECTATOR) {
                 this.setFlying(true);
