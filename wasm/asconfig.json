@@ -1,0 +1,20 @@
+{
+  "targets": {
+    "debug": {
+      "binaryFile": "../www/wasm/ligh_processor.debug.wasm",
+      "textFile": "../www/wasm/ligh_processor.debug.wat",
+      "sourceMap": true,
+      "debug": true
+    },
+    "release": {
+      "binaryFile": "../www/wasm/ligh_processor.wasm",
+      "textFile": "../www/wasm/ligh_processor.wat",
+      "sourceMap": true,
+      "optimizeLevel": 3,
+      "shrinkLevel": 0,
+      "converge": false,
+      "noAssert": false
+    }
+  },
+  "options": {}
+}
