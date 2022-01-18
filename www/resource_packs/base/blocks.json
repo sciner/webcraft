@@ -88,10 +88,10 @@
         "material": {
             "id": "wood"
         },
-        "texture": [
-            0,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [0, 2]
+        },
         "light": null
     },
     {
@@ -110,10 +110,10 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            1,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [1, 2]
+        },
         "light": null
     },
     {
@@ -132,10 +132,10 @@
         "material": {
             "id": "iron"
         },
-        "texture": [
-            2,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [2, 2]
+        },
         "light": null
     },
     {
@@ -154,10 +154,10 @@
         "material": {
             "id": "gold"
         },
-        "texture": [
-            3,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [3, 2]
+        },
         "light": null
     },
     {
@@ -176,10 +176,10 @@
         "material": {
             "id": "diamond"
         },
-        "texture": [
-            4,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [4, 2]
+        },
         "light": null
     },
     {
@@ -198,10 +198,10 @@
         "material": {
             "id": "netherite"
         },
-        "texture": [
-            5,
-            28
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [5, 2]
+        },
         "light": null
     },
     {
@@ -219,10 +219,10 @@
         "material": {
             "id": "wood"
         },
-        "texture": [
-            0,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [0, 3]
+        },
         "light": null
     },
     {
@@ -241,10 +241,10 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            1,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [1, 3]
+        },
         "light": null
     },
     {
@@ -263,10 +263,10 @@
         "material": {
             "id": "iron"
         },
-        "texture": [
-            2,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [2, 3]
+        },
         "light": null
     },
     {
@@ -285,10 +285,10 @@
         "material": {
             "id": "gold"
         },
-        "texture": [
-            3,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [3, 3]
+        },
         "light": null
     },
     {
@@ -307,10 +307,10 @@
         "material": {
             "id": "diamond"
         },
-        "texture": [
-            4,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [4, 3]
+        },
         "light": null
     },
     {
@@ -329,10 +329,10 @@
         "material": {
             "id": "netherite"
         },
-        "texture": [
-            5,
-            29
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [5, 3]
+        },
         "light": null
     },
     {
@@ -350,10 +350,10 @@
         "material": {
             "id": "wood"
         },
-        "texture": [
-            0,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [0, 4]
+        }
     },
     {
         "id": 557,
@@ -371,10 +371,10 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            1,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [1, 4]
+        }
     },
     {
         "id": 551,
@@ -392,10 +392,10 @@
         "material": {
             "id": "iron"
         },
-        "texture": [
-            2,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [2, 4]
+        }
     },
     {
         "id": 558,
@@ -413,10 +413,10 @@
         "material": {
             "id": "gold"
         },
-        "texture": [
-            3,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [3, 4]
+        }
     },
     {
         "id": 559,
@@ -434,10 +434,10 @@
         "material": {
             "id": "diamond"
         },
-        "texture": [
-            4,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [4, 4]
+        }
     },
     {
         "id": 560,
@@ -455,10 +455,10 @@
         "material": {
             "id": "netherite"
         },
-        "texture": [
-            5,
-            30
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [5, 4]
+        }
     },
     {
         "id": 131,
@@ -475,10 +475,10 @@
         "material": {
             "id": "wood"
         },
-        "texture": [
-            0,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [0, 5]
+        }
     },
     {
         "id": 500,
@@ -496,10 +496,10 @@
         "material": {
             "id": "stone"
         },
-        "texture": [
-            1,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [1, 5]
+        }
     },
     {
         "id": 553,
@@ -517,10 +517,10 @@
         "material": {
             "id": "iron"
         },
-        "texture": [
-            2,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [2, 5]
+        }
     },
     {
         "id": 554,
@@ -538,10 +538,10 @@
         "material": {
             "id": "gold"
         },
-        "texture": [
-            3,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [3, 5]
+        }
     },
     {
         "id": 555,
@@ -559,10 +559,10 @@
         "material": {
             "id": "diamond"
         },
-        "texture": [
-            4,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [4, 5]
+        }
     },
     {
         "id": 556,
@@ -580,10 +580,10 @@
         "material": {
             "id": "netherite"
         },
-        "texture": [
-            5,
-            31
-        ]
+        "texture": {
+            "id": "tool",
+            "side": [5, 5]
+        }
     },
     {
         "id": 552,
@@ -1090,10 +1090,10 @@
         "style": "extruder",
         "is_item": true,
         "diagonal": true,
-        "texture": [
-            6,
-            27
-        ],
+        "texture": {
+            "id": "tool",
+            "side": [1, 0]
+        },
         "material": {
             "id": "wood"
         }
@@ -4695,6 +4695,137 @@
             "a": 164
         },
         "texture": [29, 5]
+    },
+    {
+        "id": 606,
+        "name": "WOODEN_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [0, 1]
+        },
+        "light": null
+    },
+    {
+        "id": 607,
+        "name": "STONE_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "power": 2,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [1, 1]
+        },
+        "light": null
+    },
+    {
+        "id": 608,
+        "name": "IRON_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "power": 3,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [2, 1]
+        },
+        "light": null
+    },
+    {
+        "id": 609,
+        "name": "GOLD_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "power": 2,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "gold"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [3, 1]
+        },
+        "light": null
+    },
+    {
+        "id": 610,
+        "name": "DIAMOND_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "power": 5,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "diamond"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [4, 1]
+        },
+        "light": null
+    },
+    {
+        "id": 611,
+        "name": "NETHERITE_SWORD",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "is_item": true,
+        "diagonal": true,
+        "power": 10,
+        "instrument_id": "sword",
+        "tags": [
+            "sword"
+        ],
+        "material": {
+            "id": "netherite"
+        },
+        "texture": {
+            "id": "tool",
+            "side": [5, 1]
+        },
+        "light": null
     }
     
 ]

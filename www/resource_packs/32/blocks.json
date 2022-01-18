@@ -22,6 +22,8 @@
     {"id": 467, "name": "COARSE_DIRT"},
     {"id": 81, "name": "CACTUS"},
     {"id": 468, "name": "DIRT_PATH"},
+    {"id": 552, "name": "SHEARS"},
+    {"id": 130, "name": "STICK"},
 
     {"id": 5, "name": "BOOKCASE"},
     {"id": 61, "name": "FURNACE"},
@@ -167,6 +169,12 @@
     {"id": 554, "name": "GOLD_PICKAXE"},
     {"id": 555, "name": "DIAMOND_PICKAXE"},
     {"id": 556, "name": "NETHERITE_PICKAXE"},
+    {"id": 606, "name": "WOODEN_SWORD"},
+    {"id": 607, "name": "STONE_SWORD"},
+    {"id": 608, "name": "IRON_SWORD"},
+    {"id": 609, "name": "GOLD_SWORD"},
+    {"id": 610, "name": "DIAMOND_SWORD"},
+    {"id": 611, "name": "NETHERITE_SWORD"},
 
     {"id": 592, "name": "DRIPSTONE_BLOCK"},
     {"id": 593, "name": "DRIPSTONE"},

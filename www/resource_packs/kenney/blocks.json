@@ -214,5 +214,12 @@
     {
         "id": 54,
         "name": "CHEST"
-    }
+    },
+
+    {"id": 606, "name": "WOODEN_SWORD"},
+    {"id": 607, "name": "STONE_SWORD"},
+    {"id": 608, "name": "IRON_SWORD"},
+    {"id": 609, "name": "GOLD_SWORD"},
+    {"id": 610, "name": "DIAMOND_SWORD"},
+    {"id": 611, "name": "NETHERITE_SWORD"}
 ]

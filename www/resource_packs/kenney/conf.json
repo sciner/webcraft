@@ -7,6 +7,10 @@
         "default": {
             "image": "/textures/default.png",
             "tx_cnt": 32
+        },
+        "tool": {
+            "image": "/textures/tool.png",
+            "tx_cnt": 8
         }
     }
 }
