@@ -9,7 +9,8 @@ export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -387,7 +388,7 @@ export class BLOCK {
                                 break;
                             }
                             default: {
-                                console.log(block.name, block.material.id);
+                                // console.log(block.name, block.material.id);
                             }
                         }
                     }
@@ -398,6 +399,7 @@ export class BLOCK {
             }
         }
         //
+        block.has_window        = BLOCK_HAS_WINDOW.indexOf(block.name) >= 0;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;

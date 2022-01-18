@@ -1,8 +1,8 @@
 "use strict";
 
-import {DIRECTION, MULTIPLY, QUAD_FLAGS, ROTATE} from '../helpers.js';
+import {DIRECTION, MULTIPLY, QUAD_FLAGS} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK, NEIGHB_BY_SYM} from "../blocks.js";
+import {BLOCK} from "../blocks.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -10,6 +10,7 @@ const {mat3} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
+let DIRT_BLOCKS = null;
 
 export function pushTransformed(
     vertices, mat, pivot,
@@ -88,11 +89,11 @@ export default class style {
 
         // Can change height
         let bH = 1.0;
-        if(material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(block.id) >= 0) {
+        if(material.fluid || material.is_fluid) {
             bH = Math.min(block.power, .9)
             let blockOver = neighbours.UP;
             if(blockOver) {
-                let blockOverIsFluid = (blockOver.material.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(blockOver.id) >= 0);
+                let blockOverIsFluid = (blockOver.material.fluid || blockOver.material.is_fluid);
                 if(blockOverIsFluid) {
                     bH = 1.0;
                 }
@@ -144,8 +145,11 @@ export default class style {
         }
 
         // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
-        if([BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id].indexOf(block.id) >= 0) {
-            if(neighbours.UP && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || [BLOCK.DIRT_PATH.id].indexOf(neighbours.UP.id) >= 0)) {
+        if(!DIRT_BLOCKS) {
+            DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
+        }
+        if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
+            if(neighbours.UP && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                 DIRECTION_UP        = DIRECTION.DOWN;
                 DIRECTION_BACK      = DIRECTION.DOWN;
                 DIRECTION_RIGHT     = DIRECTION.DOWN;

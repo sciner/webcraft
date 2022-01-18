@@ -155,7 +155,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     // Create
     } else if(createBlock) {
         // 1. Если ткнули на предмет с собственным окном
-        if([BLOCK.CRAFTING_TABLE.id, BLOCK.CHEST.id, BLOCK.FURNACE.id, BLOCK.BURNING_FURNACE.id].indexOf(world_material.id) >= 0) {
+        if(world_material.has_window) {
             if(!e.shiftKey) {
                 switch(world_material.id) {
                     case BLOCK.CRAFTING_TABLE.id: {

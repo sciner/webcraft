@@ -27,6 +27,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
+        this.OCEAN_BIOMES = ['OCEAN', 'BEACH'];
     }
 
     async init() {
@@ -603,7 +604,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                     let rnd                 = aleaRandom.double();
                     let local_dirt_level    = value - (rnd < .005 ? 1 : 3);
-                    let in_ocean            = ['OCEAN', 'BEACH'].indexOf(biome.code) >= 0;
+                    let in_ocean            = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
 
                     // Bedrock
                     if(chunk.coord.y == 0) {
