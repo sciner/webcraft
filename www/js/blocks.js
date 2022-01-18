@@ -9,7 +9,8 @@ export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -366,7 +367,39 @@ export class BLOCK {
         }
         // Check block material
         await Block_Material.materials.checkBlock(resource_pack, block);
+        if(!block.sound) {
+            if(block.id > 0) {
+                if(!block.is_item) {
+                    let material_id = null;
+                    if(['stone', 'grass', 'wood', 'glass', 'sand'].indexOf(block.material.id) >= 0) {
+                        material_id = block.material.id;
+                    } else {
+                        switch(block.material.id) {
+                            case 'ice':
+                            case 'netherite':
+                            case 'terracota': {
+                                material_id = 'stone';
+                                break;
+                            }
+                            case 'plant':
+                            case 'dirt':
+                            case 'leaves': {
+                                material_id = 'grass';
+                                break;
+                            }
+                            default: {
+                                // console.log(block.name, block.material.id);
+                            }
+                        }
+                    }
+                    if(material_id) {
+                        block.sound = `madcraft:block.${material_id}`;
+                    }
+                }
+            }
+        }
         //
+        block.has_window        = BLOCK_HAS_WINDOW.indexOf(block.name) >= 0;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;

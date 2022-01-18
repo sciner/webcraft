@@ -469,11 +469,11 @@ export class Player {
             let hby                 = this.pos.y + this.height;
             this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
             this.eyes_in_water_o    = this.eyes_in_water;
-            this.eyes_in_water      = [BLOCK.STILL_WATER.id, BLOCK.FLOWING_WATER.id].indexOf(this.headBlock.id) >= 0;
+            this.eyes_in_water      = this.headBlock.material.is_fluid;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
-                let blockOverIsFluid = (headBlockOver.properties.fluid || [BLOCK.STILL_LAVA.id, BLOCK.STILL_WATER.id].indexOf(headBlockOver.id) >= 0);
+                let blockOverIsFluid = (headBlockOver.properties.fluid || headBlockOver.material.is_fluid);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
                     this.eyes_in_water = hby < (hby | 0) + power + .01;

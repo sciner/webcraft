@@ -11,6 +11,18 @@ import config from "./config.js";
 const PLAYER_HEIGHT = 1.7;
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 3;
 
+const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
+    new Vector(-1, 0, -1),
+    new Vector(0, 0, -1),
+    new Vector(1, 0, -1),
+    new Vector(-1, 0, 0),
+    new Vector(0, 0, 0),
+    new Vector(1, 0, 0),
+    new Vector(-1, 0, 1),
+    new Vector(0, 0, 1),
+    new Vector(1, 0, 1)
+];
+
 export class NetworkMessage {
     constructor({
         time = Date.now(),
@@ -36,16 +48,16 @@ export class ServerPlayer extends Player {
 
     constructor() {
         super();
-        this.position_changed   = false;
-        this.chunk_addr         = new Vector(0, 0, 0);
-        this.chunk_addr_o       = new Vector(0, 0, 0);
-        this._eye_pos           = new Vector(0, 0, 0);
-        this.#_rotateDegree     = new Vector(0, 0, 0);
-        this.chunks             = new VectorCollector();
-        this.nearby_chunk_addrs = new VectorCollector();
-        this.height             = PLAYER_HEIGHT;
-        this.#forward           = new Vector(0, 1, 0);
-        this.game_mode          = new GameMode(null, this);
+        this.position_changed       = false;
+        this.chunk_addr             = new Vector(0, 0, 0);
+        this.chunk_addr_o           = new Vector(0, 0, 0);
+        this._eye_pos               = new Vector(0, 0, 0);
+        this.#_rotateDegree         = new Vector(0, 0, 0);
+        this.chunks                 = new VectorCollector();
+        this.nearby_chunk_addrs     = new VectorCollector();
+        this.height                 = PLAYER_HEIGHT;
+        this.#forward               = new Vector(0, 1, 0);
+        this.game_mode              = new GameMode(null, this);
         this.game_mode.onSelect     = async (mode) => {
             await this.world.db.changeGameMode(this, mode.id);
             this.sendPackets([{name: ServerClient.CMD_GAMEMODE_SET, data: mode}]);
@@ -55,8 +67,10 @@ export class ServerPlayer extends Player {
          * @type {ServerWorld}
          */
         this.world;
-        this.session_id         = '';
-        this.skin               = '';
+        this.session_id             = '';
+        this.skin                   = '';
+        this.checkDropItemIndex     = 0;
+        this.checkDropItemTempVec   = new Vector();
     }
 
     init(init_info) {
@@ -461,7 +475,9 @@ export class ServerPlayer extends Player {
 
     // Check near drop items
     checkNearDropItems() {
-        let chunk = this.world.chunks.get(this.chunk_addr);
+        let offset = CHECK_DROP_ITEM_CHUNK_OFFSETS[this.checkDropItemIndex++ % CHECK_DROP_ITEM_CHUNK_OFFSETS.length];
+        this.checkDropItemTempVec.set(this.chunk_addr.x + offset.x, this.chunk_addr.y + offset.y, this.chunk_addr.z + offset.z);
+        let chunk = this.world.chunks.get(this.checkDropItemTempVec);
         if(!chunk) {
             return;
         }
