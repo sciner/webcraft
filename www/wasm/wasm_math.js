@@ -1,4 +1,4 @@
-import asLoader from "./asLoader.js";
+import * as asBind from "./as-bind.esm.js";
 
 const DEBUG_MODULE = '/wasm/bin/wasmMath.debug.wasm';
 const RELEASE_MODULE = '/wasm/bin/wasmMath.wasm';
@@ -21,7 +21,7 @@ export class WasmMath {
      * Debug method, wasm module should call back _asHello
      */
     sayHello() {
-        this.w.sayHello();
+        this.w.sayHello("FromJS");
     }
 
     /**
@@ -33,7 +33,7 @@ export class WasmMath {
 
     /**
      * wasm api method
-     * @param {number} data 
+     * @param {string} data 
      */
     _asHello (data) {
         console.log('Wasm hello!', data);
@@ -50,21 +50,20 @@ export class WasmMath {
         }
 
         const api = new WasmMath();
- 
-        // trap all methods for allowing call it from runtime
-        // otherwise this will missed
-        const jsApi = new Proxy(this, {
-            get(_, prop) {
-                if (typeof api[prop] !== 'function') {
-                    return api[prop]; // for getters
-                }
 
-                // for methods
-                return (...args) => api[prop](...args);
+        // we should bind all methods from prototype 
+        // because as-bind not support proxies
+        const jsApi = {};
+        const desc = Object.getOwnPropertyDescriptors(Object.getPrototypeOf(api));
+
+        // bound only methods
+        for(let key in desc) {
+            if (typeof desc[key].value === 'function') {    
+                jsApi[key] = desc[key].value.bind(api);
             }
-        });
+        }
 
-        return asLoader
+        return asBind
             .instantiate(fetch(debug ? DEBUG_MODULE : RELEASE_MODULE), {
                 // MUST BE SAME NAME AS MODULE THAT IMPORTED (jsApi.ts)
                 jsApi: jsApi

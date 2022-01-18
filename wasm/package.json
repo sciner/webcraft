@@ -10,6 +10,7 @@
     "@assemblyscript/loader": "^0.19.22"
   },
   "devDependencies": {
+    "as-bind": "^0.8.2",
     "assemblyscript": "^0.19.22"
   },
   "scripts": {

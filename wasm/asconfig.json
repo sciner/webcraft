@@ -16,5 +16,8 @@
       "noAssert": false
     }
   },
-  "options": {}
+  "options": {
+    "exportRuntime": true,
+    "transform": ["as-bind"]
+  }
 }
