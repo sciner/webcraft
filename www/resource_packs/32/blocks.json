@@ -25,6 +25,11 @@
     {"id": 552, "name": "SHEARS"},
     {"id": 130, "name": "STICK"},
 
+    {"id": 173, "name": "COAL"},
+    {"id": 612, "name": "CARROT"},
+    {"id": 613, "name": "APPLE"},
+    {"id": 614, "name": "CHICKEN_RAW"},
+
     {"id": 5, "name": "BOOKCASE"},
     {"id": 61, "name": "FURNACE"},
     {"id": 62, "name": "BURNING_FURNACE"},

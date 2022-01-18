@@ -32,6 +32,7 @@
         "terracota": {"mining": {"time": 5, "instruments": ["pickaxe"]}},
         "water": {"mining": {"time": -1, "instruments": []}},
         "wood": {"mining": {"time": 4, "instruments": ["axe"], "instrument_boost": 2}},
-        "wool": {"mining": {"time": 2, "instruments": ["shears"]}}
+        "wool": {"mining": {"time": 2, "instruments": ["shears"]}},
+        "food": {"mining": {"time": -1, "instruments": []}}
     }
 }

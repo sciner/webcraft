@@ -1104,6 +1104,7 @@
         "passable": 0.1,
         "transparent": true,
         "style": "planting",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.stone",
         "texture": [
             11,
@@ -1731,6 +1732,7 @@
     {
         "id": 75,
         "name": "REDSTONE_TORCH_ON",
+        "spawnable": false,
         "passable": 1,
         "width": 0.125,
         "height": 0.6875,
@@ -1764,6 +1766,7 @@
     {
         "id": 76,
         "name": "REDSTONE_TORCH_OFF",
+        "spawnable": false,
         "passable": 1,
         "width": 0.125,
         "height": 0.6875,
@@ -1774,18 +1777,9 @@
             "id": "wood"
         },
         "texture": {
-            "up": [
-                0,
-                6
-            ],
-            "down": [
-                0,
-                7
-            ],
-            "side": [
-                3,
-                7
-            ]
+            "up": [0, 6],
+            "down": [0, 7],
+            "side": [3, 7]
         }
     },
     {
@@ -1794,10 +1788,7 @@
         "material": {
             "id": "ice"
         },
-        "texture": [
-            3,
-            4
-        ]
+        "texture": [3, 4]
     },
     {
         "id": 80,
@@ -1806,10 +1797,7 @@
         "material": {
             "id": "snow"
         },
-        "texture": [
-            2,
-            4
-        ]
+        "texture": [2, 4]
     },
     {
         "id": 82,
@@ -1817,10 +1805,7 @@
         "material": {
             "id": "clay"
         },
-        "texture": [
-            8,
-            4
-        ]
+        "texture": [8, 4]
     },
     {
         "id": 189,
@@ -2237,6 +2222,7 @@
     {
         "id": 117,
         "name": "BREWING_STAND",
+        "inventory_style": "extruder",
         "transparent": true,
         "style": "sign",
         "material": {
@@ -2628,12 +2614,13 @@
         "id": 173,
         "name": "COAL",
         "is_item": true,
+        "style": "extruder",
         "material": {
-            "id": "stone"
+            "id": "wood"
         },
         "texture": [
-            5,
-            2
+            0,
+            31
         ]
     },
     {
@@ -4826,6 +4813,44 @@
             "side": [5, 1]
         },
         "light": null
+    },
+    {
+        "id": 612,
+        "name": "CARROT",
+        "is_item": true,
+        "style": "extruder",
+        "material": {
+            "id": "food"
+        },
+        "texture": [
+            1,
+            31
+        ]
+    },
+    {
+        "id": 613,
+        "name": "APPLE",
+        "is_item": true,
+        "style": "extruder",
+        "material": {
+            "id": "food"
+        },
+        "texture": [
+            2,
+            31
+        ]
+    },
+    {
+        "id": 614,
+        "name": "CHICKEN_RAW",
+        "is_item": true,
+        "style": "extruder",
+        "material": {
+            "id": "food"
+        },
+        "texture": [
+            3,
+            31
+        ]
     }
-    
 ]
