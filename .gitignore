@@ -10,3 +10,4 @@ Mickey Mouse.obj
 .DS_Store
 
 wasm/yarn.lock
+*.wat
