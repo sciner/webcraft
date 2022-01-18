@@ -91,21 +91,57 @@ function calcDif26(size, out) {
 initMasks();
 
 class LightQueue {
-    constructor({offset, dirCount}) {
-        this.wavesChunk = [];
+    constructor({offset, dirCount, capacity}) {
+        // deque structure
+        this.dequeChunk = [];
+        this.dequeCoord = new Int32Array(0);
+        this.capacity = 0;
+        this.filled = 0;
+        this.position = 0;
+        this.heads = [];
         for (let i = 0; i <= maxLight; i++) {
-            this.wavesChunk.push([]);
+            this.heads.push(-1);
         }
-        this.wavesCoord = [];
-        for (let i = 0; i <= maxLight; i++) {
-            this.wavesCoord.push([]);
-        }
+        this.resizeQueue(capacity || 32768);
+
+        // offset in data
         this.qOffset = offset || 0;
         this.dirCount = dirCount || DIR_COUNT;
     }
 
+    resizeQueue(newCap) {
+        const oldCoord = this.dequeCoord;
+        const newCoord = this.dequeCoord = new Int32Array(newCap * 2);
+        newCoord.set(oldCoord, 0);
+        this.dequeChunk.length = this.capacity = newCap;
+    }
+
+    /**
+     * @param chunk
+     * @param coord
+     * @param waveNum
+     */
+    add(chunk, coord, waveNum) {
+        if (this.filled * 3 > this.capacity * 2) {
+            this.resizeQueue(this.capacity * 2);
+        }
+        const cap = this.capacity;
+        const {dequeChunk} = this;
+        let {position} = this;
+        while (dequeChunk[position]) {
+            position = (position + 1) % cap;
+        }
+        dequeChunk[position] = chunk;
+        this.dequeCoord[position * 2] = coord;
+        this.dequeCoord[position * 2 + 1] = this.heads[waveNum];
+        this.heads[waveNum] = position;
+        this.position = (position + 1) % cap;
+        this.filled++;
+        chunk.waveCounter++;
+    }
+
     doIter(times) {
-        const {wavesChunk, wavesCoord, qOffset, dirCount} = this;
+        const {qOffset, dirCount, heads} = this;
         let wn = maxLight;
 
         let chunk = null;
@@ -120,15 +156,21 @@ class LightQueue {
         let sx = 0, sy = 0, sz = 0;
 
         for (let tries = 0; tries < times; tries++) {
-            while (wn >= 0 && wavesChunk[wn].length === 0) {
+            while (wn >= 0 && heads[wn] < 0) {
                 wn--;
             }
             if (wn < 0) {
                 return true;
             }
-            let newChunk = wavesChunk[wn].pop();
-            const coord = wavesCoord[wn].pop();
+            //that's a pop
+            const pos = heads[wn];
+            let newChunk = this.dequeChunk[pos];
+            this.dequeChunk[pos] = null;
+            const coord = this.dequeCoord[pos * 2];
+            heads[wn] = this.dequeCoord[pos * 2 + 1];
             newChunk.waveCounter--;
+            this.filled--;
+            // pop end
             if (newChunk.removed) {
                 continue;
             }
@@ -211,9 +253,7 @@ class LightQueue {
                     if (light >= prev && light >= val && light >= old) {
                         continue;
                     }
-                    wavesChunk[waveNum].push(chunk);
-                    wavesCoord[waveNum].push(coord2);
-                    chunk.waveCounter++;
+                    this.add(chunk, coord2, waveNum);
                 }
             } else {
                 let mask2 = 0;
@@ -240,10 +280,7 @@ class LightQueue {
                             if (light >= prev && light >= val && light >= old) {
                                 continue;
                             }
-                            wavesChunk[waveNum].push(chunk2.rev);
-                            wavesCoord[waveNum].push(coord2);
-
-                            chunk2.rev.waveCounter++;
+                            this.add(chunk2.rev, coord2, waveNum);
                         }
                     }
                 }
@@ -256,9 +293,7 @@ class LightQueue {
                         z2 = z + dz[d];
                     let coord2 = coord + dif26[d];
                     if (lightChunk.aabb.contains(x2, y2, z2)) {
-                        wavesChunk[waveNum].push(chunk);
-                        wavesCoord[waveNum].push(coord2);
-                        chunk.waveCounter++;
+                        this.add(chunk, coord2, waveNum);
                     }
                 }
             }
@@ -274,21 +309,6 @@ class LightQueue {
             this.doIter(1000);
             endTime = performance.now();
         } while (endTime < startTime + msLimit);
-    }
-
-    /**
-     * @param chunk
-     * @param coord
-     * @param waveNum
-     */
-    add(chunk, coord, waveNum) {
-        const {wavesChunk, wavesCoord} = this;
-        if (waveNum < 0 || waveNum > maxLight) {
-            waveNum = maxLight;
-        }
-        wavesChunk[waveNum].push(chunk);
-        wavesCoord[waveNum].push(coord);
-        chunk.waveCounter++;
     }
 }
 
@@ -642,7 +662,7 @@ class Chunk {
         let foundDay = false;
 
         // default value for daylight
-        const defLight = world.defDayLight;
+        const defLight = lightChunk.pos.y >= 0 ? world.defDayLight : 0;
         const disperse = world.dayLightSrc.disperse;
         if (defLight > 0) {
             let y = aabb.y_max;
@@ -957,7 +977,7 @@ async function importModules() {
 
     //for now , its nothing
     world.chunkManager = new ChunkManager();
-    world.light = new LightQueue({offset: 0, dirCount: 6});
+    world.light = new LightQueue({offset: 0, dirCount: 26});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
         disperse: DEFAULT_LIGHT_DAY_DISPERSE

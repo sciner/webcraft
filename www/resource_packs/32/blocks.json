@@ -175,9 +175,10 @@
     {"id": 596, "name": "AMETHYST"},
     {"id": 597, "name": "AMETHYST_CLUSTER"},
     {"id": 600, "name": "MOSS_BLOCK"},
-    {"id": 601, "name": "CAVE_VINE_BODY"},
-    {"id": 602, "name": "CAVE_VINE_BERRY"},
-    {"id": 603, "name": "CAVE_VINE_END1"},
-    {"id": 604, "name": "CAVE_VINE_END2"}
+    {"id": 601, "name": "CAVE_VINE_PART1"},
+    {"id": 602, "name": "CAVE_VINE_PART2"},
+    {"id": 603, "name": "CAVE_VINE_PART3"},
+    {"id": 604, "name": "CAVE_VINE_PART4"},
+    {"id": 605, "name": "CAVE_VINE_BERRY"}
 
 ]

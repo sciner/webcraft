@@ -322,13 +322,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                         if(humidity > MOSS_HUMIDITY) {
                                             if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
                                                 if(aleaRandom.double() < .3) {
-                                                    // CAVE_VINE_BODY,  CAVE_VINE_BERRY,  CAVE_VINE_END1,  CAVE_VINE_END2
                                                     for(let yy = 0; yy < stalactite_height; yy++) {
                                                         let vine_id = null;
                                                         if(yy == stalactite_height - 1) {
-                                                            vine_id = BLOCK.CAVE_VINE_END1.id + (x + z + y + yy) % 2;
+                                                            vine_id = BLOCK.CAVE_VINE_PART3.id + (x + z + y + yy) % 2;
                                                         } else {
-                                                            vine_id = BLOCK.CAVE_VINE_BODY.id + (aleaRandom.double() < .2 ? 1 : 0);
+                                                            vine_id = BLOCK.CAVE_VINE_PART1.id + (aleaRandom.double() < .2 ? 1 : 0);
                                                         }
                                                         setBlock(x, y_start - yy, z, vine_id);
                                                     }
