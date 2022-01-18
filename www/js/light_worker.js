@@ -662,7 +662,7 @@ class Chunk {
         let foundDay = false;
 
         // default value for daylight
-        const defLight = world.defDayLight;
+        const defLight = lightChunk.pos.y >= 0 ? world.defDayLight : 0;
         const disperse = world.dayLightSrc.disperse;
         if (defLight > 0) {
             let y = aabb.y_max;
@@ -977,7 +977,7 @@ async function importModules() {
 
     //for now , its nothing
     world.chunkManager = new ChunkManager();
-    world.light = new LightQueue({offset: 0, dirCount: 6});
+    world.light = new LightQueue({offset: 0, dirCount: 26});
     world.dayLight = new LightQueue({offset: OFFSET_DAY, dirCount: 6});
     world.dayLightSrc = new DirLightQueue({offset: OFFSET_DAY,
         disperse: DEFAULT_LIGHT_DAY_DISPERSE
