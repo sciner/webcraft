@@ -1,7 +1,7 @@
 {
   "name": "wasm",
   "version": "1.0.0",
-  "description": "Wasm light implementation for MadCraft",
+  "description": "Wasm math module for expensive operations for MadCraft",
   "main": "lib/index.ts",
   "author": "eXponenta",
   "license": "MIT",

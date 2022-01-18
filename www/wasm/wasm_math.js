@@ -1,27 +1,20 @@
 import asLoader from "./asLoader.js";
 
-const DEBUG_MODULE = '/wasm/light_processor.debug.wasm';
-const RELEASE_MODULE = '/wasm/light_processor.release.wasm';
+const DEBUG_MODULE = '/wasm/bin/wasmMath.debug.wasm';
+const RELEASE_MODULE = '/wasm/bin/wasmMath.wasm';
 
 /**
  * Proxy class that will process data-tranfering between js and wasm
  * @see https://www.assemblyscript.org/loader.html
  */
-export class LightProcessor {
+export class WasmMath {
     /**
-     * @type {LightProcessor}
+     * @type {WasmMath}
      */
     static instance = null;
 
     constructor () {
         this.w = null;
-
-        // trap all methods for allowing call it from runtime
-        this.proxyInterface = new Proxy(this, {
-            get(r, prop) {
-                return (...args) => r[prop](...args);
-            }
-        });
     }
 
     /**
@@ -49,23 +42,36 @@ export class LightProcessor {
     /**
      * Spawn new WASM proxy class
      * @param {boolean} debug 
-     * @returns {Promise<LightProcessor>}
+     * @returns {Promise<WasmMath>}
      */
     static async spawn(debug = true) {
         if (this.instance) {
             return this.instance;
         }
 
-        const api = new LightProcessor();
+        const api = new WasmMath();
+ 
+        // trap all methods for allowing call it from runtime
+        // otherwise this will missed
+        const jsApi = new Proxy(this, {
+            get(_, prop) {
+                if (typeof api[prop] !== 'function') {
+                    return api[prop]; // for getters
+                }
+
+                // for methods
+                return (...args) => api[prop](...args);
+            }
+        });
 
         return asLoader
             .instantiate(fetch(debug ? DEBUG_MODULE : RELEASE_MODULE), {
                 // MUST BE SAME NAME AS MODULE THAT IMPORTED (jsApi.ts)
-                jsApi: api.proxyInterface
+                jsApi: jsApi
             })
             .then(({ exports }) => {
                 api.w = exports;
-                LightProcessor.instance = api;
+                WasmMath.instance = api;
                 return api;
             });
     }

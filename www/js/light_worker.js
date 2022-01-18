@@ -20,9 +20,9 @@ let VectorCollector = null;
 let Vector = null;
 let DataChunk = null;
 let BaseChunk = null;
-let LightProcessor = null;
+let WasmMath = null;
 // instance
-let lightProcessor = null;
+let wasmMath = null;
 
 const world = {
     chunkManager: null,
@@ -951,12 +951,12 @@ async function importModules() {
         DataChunk = module.DataChunk;
     });
 
-    lightProcessor = await import('./../wasm/light_processor.js').then(module => {
-        LightProcessor = module.LightProcessor;
-        return LightProcessor.spawn(true);
+    wasmMath = await import('../wasm/wasm_math.js').then(module => {
+        WasmMath = module.WasmMath;
+        return WasmMath.spawn(true);
     });
 
-    lightProcessor.sayHello();
+    wasmMath.sayHello();
 
     modulesReady = true;
 
