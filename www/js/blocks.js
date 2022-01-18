@@ -366,6 +366,37 @@ export class BLOCK {
         }
         // Check block material
         await Block_Material.materials.checkBlock(resource_pack, block);
+        if(!block.sound) {
+            if(block.id > 0) {
+                if(!block.is_item) {
+                    let material_id = null;
+                    if(['stone', 'grass', 'wood', 'glass', 'sand'].indexOf(block.material.id) >= 0) {
+                        material_id = block.material.id;
+                    } else {
+                        switch(block.material.id) {
+                            case 'ice':
+                            case 'netherite':
+                            case 'terracota': {
+                                material_id = 'stone';
+                                break;
+                            }
+                            case 'plant':
+                            case 'dirt':
+                            case 'leaves': {
+                                material_id = 'grass';
+                                break;
+                            }
+                            default: {
+                                console.log(block.name, block.material.id);
+                            }
+                        }
+                    }
+                    if(material_id) {
+                        block.sound = `madcraft:block.${material_id}`;
+                    }
+                }
+            }
+        }
         //
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];

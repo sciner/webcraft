@@ -2205,6 +2205,7 @@
     {
         "id": 112,
         "name": "NETHER_BRICK",
+        "sound": "madcraft:block.stone",
         "deprecated": true,
         "spawnable": false,
         "material": {
@@ -2218,6 +2219,7 @@
     {
         "id": 114,
         "name": "NETHER_STAIRS",
+        "sound": "madcraft:block.stone",
         "style": "stairs",
         "material": {
             "id": "netherite"
@@ -2389,6 +2391,7 @@
     {
         "id": 128,
         "name": "SANDSTONE_STAIRS",
+        "sound": "madcraft:block.stone",
         "style": "stairs",
         "material": {
             "id": "stone"

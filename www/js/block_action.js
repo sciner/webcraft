@@ -338,6 +338,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     new_item.rotate = orientation; // rotate_orig;
                     resp.create_chest = {pos: new Vector(pos), item: new_item};
                     resp.decrement = true;
+                    if(matBlock.sound) {
+                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                    }
                     return resp;
                     break;
                 }
