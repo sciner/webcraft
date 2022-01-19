@@ -4,6 +4,10 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
+import { AABB } from '../core/AABB.js';
+
+const aabb = new AABB();
+const pivotObj = {x: 0.5, y: .5, z: 0.5};
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -19,8 +23,22 @@ export default class style {
     static getRegInfo() {
         return {
             styles: ['planting', 'sign'],
-            func: this.func
+            func: this.func,
+            aabb: this.computeAABB
         };
+    }
+
+    // computeAABB
+    static computeAABB(block) {
+        let cardinal_direction = block.getCardinalDirection();
+        let hw = (4/16) / 2;
+        let sign_height = 1;
+        aabb.set(
+            .5-hw, 0, .5-hw,
+            .5+hw, sign_height, .5+hw
+        );
+        aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
+        return aabb;
     }
 
     // getAnimations...

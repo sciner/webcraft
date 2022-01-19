@@ -643,17 +643,8 @@ export class BLOCK {
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
         let f = !!expanded ? .001 : 0;
-        if(!b.properties.passable && (b.properties.style != 'planting' && b.properties.style)) {
+        if(!b.properties.passable && (b.properties.style != 'planting' /*&& b.properties.style != 'sign'*/)) {
             switch(b.properties.style) {
-                case 'sign': {
-                    let hw = (4/16) / 2;
-                    let sign_height = 1;
-                    shapes.push([
-                        .5-hw, 0, .5-hw,
-                        .5+hw, sign_height, .5+hw
-                    ]);
-                    break;
-                }
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
                     //
@@ -823,18 +814,25 @@ export class BLOCK {
                     break;
                 }
                 default: {
-                    let height = b.properties.height ? b.properties.height : 1;
-                    // Высота наслаеваемых блоков хранится в extra_data
-                    if(b.properties.tags.indexOf('layering') >= 0) {
-                        if(b.extra_data) {
-                            height = b.extra_data?.height || height;
-                        }
-                    }
-                    if(b.properties.width) {
-                        let hw = b.properties.width / 2;
-                        shapes.push([.5-hw, 0, .5-hw, .5+hw, height, .5+hw]);
+                    const styleVariant = BLOCK.styles.get(b.properties.style);
+                    if (styleVariant && styleVariant.aabb) {
+                        shapes.push(
+                            styleVariant.aabb(b).toArray()
+                        );
                     } else {
-                        shapes.push([0, 0, 0, 1, height, 1]);
+                        let height = b.properties.height ? b.properties.height : 1;
+                        // Высота наслаеваемых блоков хранится в extra_data
+                        if(b.properties.tags.indexOf('layering') >= 0) {
+                            if(b.extra_data) {
+                                height = b.extra_data?.height || height;
+                            }
+                        }
+                        if(b.properties.width) {
+                            let hw = b.properties.width / 2;
+                            shapes.push([.5-hw, 0, .5-hw, .5+hw, height, .5+hw]);
+                        } else {
+                            shapes.push([0, 0, 0, 1, height, 1]);
+                        }
                     }
                     break;
                 }
@@ -848,17 +846,6 @@ export class BLOCK {
                     );
                 } else {
                     switch(b.properties.style) {
-                        /*case 'column': {
-                            let torch_height = 10/16;
-                            let hw = (2/16) / 2;
-                            shapes.push(
-                                aabb.set(
-                                    .5-hw + px, 0 + py, .5-hw + pz,
-                                    .5+hw, torch_height, .5+hw
-                                ).toArray()
-                            );
-                            break;
-                        }*/
                         case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 1;

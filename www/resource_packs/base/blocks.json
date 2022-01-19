@@ -1791,6 +1791,21 @@
         "texture": [3, 4]
     },
     {
+        "id": 469,
+        "name": "SNOW",
+        "height": 0.125,
+        "transparent": true,
+        "sound": "madcraft:block.snow",
+        "texture": [2, 4],
+        "material": {
+            "id": "snow"
+        },
+        "tags": [
+            "layering",
+            "no_drop_ao"
+        ]
+    },
+    {
         "id": 80,
         "name": "SNOW_BLOCK",
         "sound": "madcraft:block.snow",
@@ -3176,21 +3191,6 @@
             "ladder"
         ],
         "can_rotate": true
-    },
-    {
-        "id": 469,
-        "name": "SNOW",
-        "height": 0.125,
-        "transparent": true,
-        "sound": "madcraft:block.snow",
-        "texture": [2, 4],
-        "material": {
-            "id": "snow"
-        },
-        "tags": [
-            "layering",
-            "no_drop_ao"
-        ]
     },
     {
         "id": 81,
