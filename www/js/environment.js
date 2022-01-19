@@ -1,6 +1,7 @@
+import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
 
-const SETTINGS = {
+export const SETTINGS = {
     skyColor:               [0, 0, 0.8],
     fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
     // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
@@ -79,12 +80,20 @@ export class Environment {
 
         this.underwater = false;
         this.brightness = 1.;
+        this.nightshift = 1.;
 
         this.skyBox = null;
     }
 
     get time() {
         return performance.now();
+    }
+
+    /**
+    * State relative color interpolated with brightness, time and underwater knowledge
+    */
+    get actualFogColor() {
+        return this.underwater ? SETTINGS.fogUnderWaterColor : this.fogColorBrigtness;
     }
 
     /**
@@ -98,6 +107,10 @@ export class Environment {
 
         this.skyBox = renderBackend.createCubeMap({
             code: Resources.codeSky,
+            uniforms: {
+                u_brightness: 1.0,
+                u_textureOn: true
+            },
             sides: [
                 Resources.sky.posx,
                 Resources.sky.negx,
@@ -110,7 +123,7 @@ export class Environment {
     }
 
     setBrightness(value) {
-        const mult = Math.min(1, value * 2)
+        const mult = Math.min(1, value * 2) * this.nightshift;
 
         this.brightness = value;
         this.fogColorBrigtness = [
@@ -134,9 +147,13 @@ export class Environment {
         const factor = 0.5 * (1. + dir[1]);
         const color = interpolateGrad(ENV_GRAD_COLORS, factor, this.fogColor);
 
-        this.fogColor[3] = 1;
 
         const lum = luminance(color) / luminance(ENV_GRAD_COLORS[ENV_GRAD_COLORS.length - 1].value);
+        
+        this.fogColor[0] *= this.nightshift;
+        this.fogColor[1] *= this.nightshift;
+        this.fogColor[2] *= this.nightshift;        
+        this.fogColor[3] = 1;
 
         this.fogColorBrigtness = this.fogColor;
         this.brightness = lum * lum;
@@ -144,11 +161,13 @@ export class Environment {
 
     setEnvState ({
         underwater = this.underwater,
-        fogDensity = this.fogColor,
+        fogDensity = this.fogDensity,
         fogColor = this.fogColor,
         fogAddColor = this.fogAddColor,
         chunkBlockDist = this.chunkBlockDist,
+        nightshift = this.nightshift,
     }) {
+        this.nightshift = nightshift;
         this.underwater = underwater;
         this.fogDensity = fogDensity;
         this.fogColor = [...fogColor];
@@ -160,25 +179,23 @@ export class Environment {
 
     /**
      * Sync environment state with uniforms
-     * @param {Renderer} render 
+     * @param {GlobalUniformGroup} render 
      */
-    sync (render) {
-        const gu                 = render.globalUniforms;
-        const { width, height }  = render.renderBackend;
+    sync (gu) {
 
         gu.chunkBlockDist       = this.chunkBlockDist;
 
         gu.fogAddColor          = this.underwater ? SETTINGS.fogUnderWaterAddColor : this.fogAddColor;
-        gu.fogColor             = this.underwater ? SETTINGS.fogUnderWaterColor : this.fogColorBrigtness;
-        gu.brightness           = this.brightness;
-        //
+        gu.fogColor             = this.actualFogColor;
+        gu.brightness           = this.brightness * this.nightshift;
+
         gu.time                 = this.time;
         gu.fogDensity           = this.fogDensity;
-        gu.resolution           = [width, height];
+        //gu.resolution           = [width, height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
         
-        gu.update();
+        //gu.update();
     }
 
     /**
@@ -190,7 +207,14 @@ export class Environment {
             return;
         }
  
-        const { width, height }  = render.renderBackend;
+        const { width, height }  = render.renderBackend.size;
+
+        if(this.skyBox.shader.uniforms) {
+            this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && !this.underwater;
+            this.skyBox.shader.uniforms.u_brightness.value = this.brightness * this.nightshift;
+        } else {
+            this.skyBox.shader.brightness = this.brightness * this.nightshift;
+        }
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }

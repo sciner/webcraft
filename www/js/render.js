@@ -15,10 +15,7 @@ import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { World } from "./world.js";
-// import {Vox_Loader} from "./vox/loader.js";
-// import {Vox_Mesh} from "./vox/mesh.js";
-// import Particles_Sun from "./particles/sun.js";
-// import { Particle_Hand } from "./particles/block_hand.js";
+import { Environment, SETTINGS as ENV_SET } from "./environment.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -40,22 +37,6 @@ const NEAR_DISTANCE             = 2 / 16;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 
-let settings = {
-    fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
-    // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
-    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
-    fogAddColor:            [0, 0, 0, 0],
-    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],
-    fogDensity:             2.52 / 320,
-    fogDensityUnderWater:   0.1
-};
-
-let currentRenderState = {
-    fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
-    fogDensity:         0.02,
-    underWater:         false
-};
-
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
 
@@ -73,6 +54,8 @@ export class Renderer {
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
         this.nightShift         = 1;
+        this.env                = new Environment();
+
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -149,14 +132,16 @@ export class Renderer {
     // todo
     // GO TO PROMISE
     async _init(world, settings, callback) {
-
         this.setWorld(world);
+
         const {renderBackend} = this;
+
         await renderBackend.init({
             blocks: Resources.shaderBlocks
         });
 
-        this.skyBox             = null;
+        this.env.init(this);
+
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
@@ -195,11 +180,6 @@ export class Renderer {
         this.camPos             = this.globalUniforms.camPos;
 
         this.setPerspective(FOV_NORMAL, NEAR_DISTANCE, RENDER_DISTANCE);
-
-        if (renderBackend) {
-            // SkyBox
-            this.initSky();
-        }
 
         // HUD
         // Build main HUD
@@ -277,7 +257,7 @@ export class Renderer {
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
         gu.testLightOn = true;
-        gu.fogColor = settings.fogColor;
+        gu.fogColor = ENV_SET.fogColor;
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
@@ -410,24 +390,6 @@ export class Renderer {
         target.destroy();
     }
 
-    initSky() {
-        return this.skyBox = this.renderBackend.createCubeMap({
-            code: Resources.codeSky,
-            uniforms: {
-                u_brightness: 1.0,
-                u_textureOn: true
-            },
-            sides: [
-                Resources.sky.posx,
-                Resources.sky.negx,
-                Resources.sky.posy,
-                Resources.sky.negy,
-                Resources.sky.posz,
-                Resources.sky.negz
-            ]
-        });
-    }
-    
     /**
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
@@ -442,21 +404,17 @@ export class Renderer {
         this.player = player;
     }
 
-    // setBrightness...
+    /**
+     * @deprecated use a this.env.setBrightness
+     * @param {number} value 
+     */
     setBrightness(value) {
-        this.brightness = value;
-        let mult = Math.min(1, value * 2)
-        currentRenderState.fogColor = [
-            settings.fogColor[0] * (value * mult),
-            settings.fogColor[1] * (value * mult),
-            settings.fogColor[2] * (value * mult),
-            settings.fogColor[3]
-        ];
+        this.env.setBrightness(value);
     }
 
     // toggleNight...
     toggleNight() {
-        if(this.brightness == 1) {
+        if(this.env.brightness == 1) {
             this.setBrightness(0);
         } else {
             this.setBrightness(1);
@@ -465,51 +423,37 @@ export class Renderer {
 
     update (delta, ...args) {
         this.frame++;
-
-        const { renderBackend, player } = this;
-        const { size } = renderBackend;
-
-        renderBackend.stat.drawcalls = 0;
-        renderBackend.stat.drawquads = 0;
-
-        currentRenderState.fogDensity   = settings.fogDensity;
-        currentRenderState.fogAddColor  = settings.fogAddColor;
-
+        
+        // this.env.computeFogRelativeSun();
         // todo - refact this
         // viewport is context-dependent
         this.updateViewport();
 
-        //
-        let brightness = this.brightness;
-        let fogColor = [...currentRenderState.fogColor];
+        const { renderBackend, player } = this;
+        const { size, globalUniforms } = renderBackend;
 
-        // Calculate nightShift
-        this.nightShift = 1;
+        globalUniforms.resolution       = [size.width, size.height];
+        globalUniforms.localLigthRadius = 0;
+
+        renderBackend.stat.drawcalls = 0;
+        renderBackend.stat.drawquads = 0;
+
+        const blockDist = 
+            player.eyes_in_water 
+                ? 8 
+                : player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+
+
+        let nightShift = 1.
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-            this.nightShift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
-            fogColor[0] *= this.nightShift;
-            fogColor[1] *= this.nightShift;
-            fogColor[2] *= this.nightShift;
+            nightShift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
-
-        brightness *= this.nightShift;
-
-        fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : fogColor;
-
-        this.computedState.fogColor = fogColor;
-        this.brightness = brightness;
-
-        // 1. Draw skybox
-        if(this.skyBox) {
-            if(this.skyBox.shader.uniforms) {
-                this.skyBox.shader.uniforms.u_textureOn.value = brightness == 1 && !player.eyes_in_water;
-                this.skyBox.shader.uniforms.u_brightness.value = brightness;
-            } else {
-                this.skyBox.shader.brightness = brightness;
-            }
-            // migrated to draw
-            //this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
-        }
+        
+        this.env.setEnvState({
+            underwater: !!player.eyes_in_water,
+            chunkBlockDist: blockDist,
+            nightshift: nightShift
+        });
 
         // Clouds
         if(!this.clouds) {
@@ -517,33 +461,12 @@ export class Renderer {
             pos.y = 128.1;
             this.clouds = this.createClouds(pos);
         }
+
         //
         if(this.frame % 3 == 0) {
             this.world.chunkManager.rendered_chunks.fact = 0;
             this.world.chunkManager.prepareRenderList(this);
         }
-
-        //updating global uniforms
-        let gu                  = this.globalUniforms;
-        // In water
-        if(player.eyes_in_water) {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = 8;
-            gu.fogAddColor      = settings.fogUnderWaterAddColor;
-            gu.brightness       = brightness;
-        } else {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-            gu.fogAddColor      = currentRenderState.fogAddColor;
-            gu.brightness       = brightness;
-        }
-        //
-        gu.time                 = performance.now();
-        gu.fogDensity           = currentRenderState.fogDensity;
-        gu.resolution           = [size.width, size.height];
-        gu.testLightOn          = this.testLightOn;
-        gu.sunDir               = this.sunDir;
-        gu.localLigthRadius     = 0;
         
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
@@ -551,7 +474,7 @@ export class Renderer {
 
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
-            gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
         }
 
         this.defaultShader.texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture;
@@ -560,22 +483,20 @@ export class Renderer {
     // Render one frame of the world to the canvas.
     draw (delta, ...args) {
         const { renderBackend, camera, player } = this;
-        const { globalUniforms, size } = renderBackend;
-        
+        const { globalUniforms } = renderBackend;
+
+        // upload GU data from environment
+        this.env.sync(renderBackend.globalUniforms);
+
         // apply camera state;
         // it can depend of passes count
         camera.use(renderBackend.globalUniforms, true);
 
         globalUniforms.update();
 
-        renderBackend.beginFrame(this.computedState.fogColor);
+        renderBackend.beginFrame(this.env.actualFogColor);
 
-        this.skyBox.draw(
-            camera.viewMatrix,
-            camera.projMatrix, 
-            size.width,
-            size.height
-        );
+        this.env.draw(this);
 
         this.defaultShader.bind(true);
 
