@@ -71,7 +71,7 @@ const GL_TYPE_FUNC = {
     }
 }
 
-export class UnifromBinding {
+export class UniformBinding {
     /**
      * @param {WebGLActiveInfo} info 
      * @param {WebGLUniformLocation} location
@@ -103,7 +103,11 @@ export class UnifromBinding {
      * @returns 
      */
     fill(value) {
-        if ('value' in value) {
+        if (value == void 0) {
+            return;
+        }
+
+        if (typeof value === 'object' && 'value' in value) {
             const {
                 value = this.value,
                 isolate = this.isolate,
@@ -200,7 +204,7 @@ export class WebGLUniversalShader extends BaseShader {
          */
         this._attrsFlat = [];
         /**
-         * @type {UnifromBinding[]}
+         * @type {UniformBinding[]}
          */
         this._uniformsFlat = [];
 
@@ -213,7 +217,7 @@ export class WebGLUniversalShader extends BaseShader {
         this.attrs = {};
 
         /**
-         * @type {{[key: string] : UnformLoaderInfo}}
+         * @type {{[key: string] : UniformBinding}}
          */
         this.uniforms = {};
 
@@ -253,7 +257,7 @@ export class WebGLUniversalShader extends BaseShader {
         for(let i = 0; i < uniformCount; i ++) {
             const info = gl.getActiveUniform(p, i);
             const loc = gl.getUniformLocation(p, info.name);
-            const record = new UnifromBinding(info, loc, this);
+            const record = new UniformBinding(info, loc, this);
 
             this.uniforms[record.name] = record;
             // for easy lookup
@@ -275,13 +279,7 @@ export class WebGLUniversalShader extends BaseShader {
                 continue;
             }
 
-            // we already know loaders
-            if (this.uniforms[name].func) {
-                this.uniforms[name].value = uniforms[name];
-                continue;
-            }
-
-            console.log('Unknow uniform loader for', name, this.uniforms[name]);
+            this.uniforms[name].fill(uniforms[name]);
         }
     }
 
