@@ -56,7 +56,7 @@ export class PlayerInventory {
             index = 0;
         }
         this.current.index = index;
-        this.refresh(false);
+        this.refresh(true);
         this.onSelect(this.current_item);
     }
 
