@@ -91,6 +91,11 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+
+        this.computedState = {
+            fogColor: [0,0,0,0],
+            brightness: 0,
+        }
     }
 
     /**
@@ -459,21 +464,19 @@ export class Renderer {
     }
 
     update (delta, ...args) {
-
-    }
-
-    // Render one frame of the world to the canvas.
-    draw (delta, ...args) {
-
         this.frame++;
-        const { gl, shader, renderBackend } = this;
+
+        const { renderBackend, player } = this;
         const { size } = renderBackend;
 
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
-        let player = this.player;
+
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
+
+        // todo - refact this
+        // viewport is context-dependent
         this.updateViewport();
 
         //
@@ -488,13 +491,13 @@ export class Renderer {
             fogColor[1] *= this.nightShift;
             fogColor[2] *= this.nightShift;
         }
+
         brightness *= this.nightShift;
 
         fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : fogColor;
-        renderBackend.beginFrame(fogColor);
 
-        // apply camera state;
-        this.camera.use(renderBackend.globalUniforms, true);
+        this.computedState.fogColor = fogColor;
+        this.brightness = brightness;
 
         // 1. Draw skybox
         if(this.skyBox) {
@@ -504,7 +507,8 @@ export class Renderer {
             } else {
                 this.skyBox.shader.brightness = brightness;
             }
-            this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
+            // migrated to draw
+            //this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
         }
 
         // Clouds
@@ -550,11 +554,33 @@ export class Renderer {
             gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
         }
 
-        gu.update();
-
         this.defaultShader.texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture;
+    }
+
+    // Render one frame of the world to the canvas.
+    draw (delta, ...args) {
+        const { renderBackend, camera, player } = this;
+        const { globalUniforms, size } = renderBackend;
+        
+        // apply camera state;
+        // it can depend of passes count
+        camera.use(renderBackend.globalUniforms, true);
+
+        globalUniforms.update();
+
+        renderBackend.beginFrame(this.computedState.fogColor);
+
+        this.skyBox.draw(
+            camera.viewMatrix,
+            camera.projMatrix, 
+            size.width,
+            size.height
+        );
+
         this.defaultShader.bind(true);
 
+        // layers??
+        // maybe we will create a real layer group
         for(let transparent of [false, true]) {
             for(let [_, rp] of BLOCK.resource_pack_manager.list) {
                 // 2. Draw chunks
@@ -595,7 +621,6 @@ export class Renderer {
         }
  
         renderBackend.endFrame();
-
     }
 
     //
