@@ -1,4 +1,4 @@
-import { BaseShader, BaseTexture } from "../BaseRenderer.js";
+import { BaseShader, BaseTexture, GlobalUniformGroup } from "../BaseRenderer.js";
 import WebGLRenderer, { WebGLTexture } from "./index.js";
 
 const p = WebGLRenderingContext.prototype;
@@ -24,7 +24,8 @@ const p = WebGLRenderingContext.prototype;
  * @property {WebGLActiveInfo} info
  */
 
-const U_LOADER = {
+
+ const U_LOADER = {
     'uniformMatrix4fv': (gl, ptr, value) => gl.uniformMatrix4fv(ptr, false, value)
 }
 
@@ -70,6 +71,114 @@ const GL_TYPE_FUNC = {
     }
 }
 
+export class UnifromBinding {
+    /**
+     * @param {WebGLActiveInfo} info 
+     * @param {WebGLUniformLocation} location
+     * @param {WebGLUniversalShader} shader
+     */
+    constructor (info, location, shader) {
+        this.shader = shader;
+        this.location = location;
+        this.info = info;
+        this.name = info.name;
+        this.trimmedName = this.name.replace('u_', '').replace('[]', '');
+        this.isolated = false;
+
+        this.value = undefined;
+        this.type = undefined;
+        this.func = undefined;
+
+        const rec = GL_TYPE_FUNC[this.info.type];
+
+        if (rec) {
+            this.type = rec.type;
+            this.func = rec.func;
+        }
+    }
+
+    /**
+     * fill from declaration if makeUniform
+     * @param {} value 
+     * @returns 
+     */
+    fill(value) {
+        if ('value' in value) {
+            const {
+                value = this.value,
+                isolate = this.isolate,
+            } = value;
+
+            this.value = value;
+            this.isolate = isolate;
+
+            return;
+        }
+
+        this.value = value;
+    }
+
+    upload () {
+        let  {
+            name,
+            trimmedName,
+            value,
+            shader,
+            isolate
+        } = this;
+
+        const globalUniforms = shader.context.globalUniforms;
+        const gl = shader.context.gl;
+
+        // try upload from GU
+        // redefine base value
+        if (shader.useGlobalUniforms && !isolate) {
+            if (trimmedName in globalUniforms) {
+                value = globalUniforms[trimmedName];
+            } else if (name in globalUniforms) {
+                value = globalUniforms[name];
+            }
+        }
+
+        // bind texture to slot
+        if (value instanceof WebGLTexture) {
+            const slot = shader.getTextureSlot();
+
+            value.bind(slot);
+            value = slot;
+        }
+
+        if (typeof value === 'undefined') {
+            console.log('Uniform value missing for ', name, this.shader.constructor.name);
+            return;
+        }
+        
+        if (typeof this.func === 'function') {
+            this.func(gl, this.location, value);
+            return;
+        }
+
+        if (!this.func || !(this.func in gl)) {
+            console.log('Uniform load method missing for ', name, this.shader.constructor.name);
+            return;
+        }
+
+        if (this.type === 'vec3' && this.value && ('x' in value)) {
+            gl[this.func](this.location, [value.x, value.y, value.z]);
+        } else {
+            gl[this.func](this.location, value);
+        }
+    }
+
+    valueOf() {
+        return this.value;
+    }
+
+    toString() {
+        return `[Uniform ${this.name}] : ${this.value}`;
+    }
+}
+
 export class WebGLUniversalShader extends BaseShader {
     /**
      * 
@@ -91,9 +200,12 @@ export class WebGLUniversalShader extends BaseShader {
          */
         this._attrsFlat = [];
         /**
-         * @type {UnformLoaderInfo[]}
+         * @type {UnifromBinding[]}
          */
         this._uniformsFlat = [];
+
+        // Temp value. Unfifrom call getTextureSlot when need bind texture
+        this._textureSlot = 0;
 
         /**
          * @type {{[key: string] : AttrLoaderInfo }}
@@ -139,22 +251,13 @@ export class WebGLUniversalShader extends BaseShader {
         const uniformCount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
 
         for(let i = 0; i < uniformCount; i ++) {
-            const uniform = gl.getActiveUniform(p, i);
+            const info = gl.getActiveUniform(p, i);
+            const loc = gl.getUniformLocation(p, info.name);
+            const record = new UnifromBinding(info, loc, this);
 
-            const record = this.uniforms[uniform.name] = {
-                location: gl.getUniformLocation(p, uniform.name),
-                info: uniform,
-                name: uniform.name,
-                isolate: false,
-                trimmedName: uniform.name.replace('u_', '').replace('[]', '') // trim u_ and []
-            };
-
-            if (uniform.type in GL_TYPE_FUNC) {
-                Object.assign(this.uniforms[uniform.name], GL_TYPE_FUNC[uniform.type]);
-            }
-
+            this.uniforms[record.name] = record;
             // for easy lookup
-            this.uniforms[uniform.trimmedName] = record;
+            this.uniforms[record.trimmedName] = record;
 
             this._uniformsFlat.push(record);
         }
@@ -183,57 +286,13 @@ export class WebGLUniversalShader extends BaseShader {
     }
 
     _applyUniforms() {
-        const { gl, globalUniforms } = this.context;
-        gl.useProgram(this.program);
+        for(let u of this._uniformsFlat) {
+            u.upload();
+        } 
+    }
 
-        // fixme: get occured texture slots
-        // to reduce rebound
-        let textureSlot = 0;
-
-        // Bind custom uniforms
-        for(const unf of this._uniformsFlat) {
-            const name = unf.name;
-            const trimmed = unf.trimmedName;
-
-            let value = unf.value;
-
-            // try upload from GU
-            // redefine base value
-            if (this.useGlobalUniforms && !unf.isolate) {
-                if (trimmed in globalUniforms) {
-                    value = globalUniforms[trimmed];
-                } else if (name in globalUniforms) {
-                    value = globalUniforms[name];
-                }
-            }
-
-            // bind texture to slot
-            if (value instanceof WebGLTexture) {
-                value.bind(textureSlot);
-                value = textureSlot;
-                textureSlot ++;
-            }
-
-            if (typeof value === 'undefined') {
-                console.log('Uniform value missing for ', name, this.constructor.name);
-                continue;
-            }
-            
-            if (typeof unf.func === 'function') {
-                unf.func(gl, unf.location, unf.value);
-                continue;
-            }
-
-            if (!unf.func || !(unf.func in gl)) {
-                continue;
-            }
-
-            if (unf.type === 'vec3' && unf.value && ('x' in unf.value)) {
-                gl[unf.func](unf.location, [unf.value.x, unf.value.y, unf.value.z]);
-            } else {
-                gl[unf.func](unf.location, unf.value);
-            }
-        }
+    getTextureSlot() {
+        return this._textureSlot ++;
     }
 
     bind(force = false) {
@@ -254,6 +313,7 @@ export class WebGLUniversalShader extends BaseShader {
 
         gl.useProgram(this.program);
 
+        this._textureSlot = 0;
         this.update();
     }
 
