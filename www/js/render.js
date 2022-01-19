@@ -272,6 +272,7 @@ export class Renderer {
         gu.update();
         
         this.renderBackend.setTarget(target);
+        this.renderBackend.clear({depth: true, color: true});
 
         regular.forEach((block, i) => {
             const pos = block.block_material.inventory_icon_id;
