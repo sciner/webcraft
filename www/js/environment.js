@@ -209,12 +209,8 @@ export class Environment {
  
         const { width, height }  = render.renderBackend.size;
 
-        if(this.skyBox.shader.uniforms) {
-            this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && !this.underwater;
-            this.skyBox.shader.uniforms.u_brightness.value = this.brightness * this.nightshift;
-        } else {
-            this.skyBox.shader.brightness = this.brightness * this.nightshift;
-        }
+        // other will updated from GU
+        this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && !this.underwater;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }
