@@ -48,7 +48,7 @@ export class BaseRenderTarget {
 
     /**
      * Read pixels from framebuffer
-     * @returns {Uint8Array}
+     * @returns {Uint8Array | Promise<Uint8Array>}
      */
     toRawPixels() {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
@@ -59,7 +59,11 @@ export class BaseRenderTarget {
      * @returns {Promise<Image | ImageBitmap | HTMLCanvasElement>}
      */
     async toImage(mode = 'image') {
-        const buffer = this.toRawPixels();
+        let buffer = this.toRawPixels();
+
+        if (buffer instanceof Promise) {
+            buffer = await buffer;
+        }
 
         for (let i = 0; i < buffer.length; i += 4) {
             const a = buffer[i + 3] / 0xff;

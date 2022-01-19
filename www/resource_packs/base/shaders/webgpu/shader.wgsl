@@ -1,22 +1,22 @@
-[[block]] struct VExtendUniform {
+struct VExtendUniform {
     ModelMatrix : mat4x4<f32>;
     add_pos : vec3<f32>;
 };
 
-[[block]] struct VUniforms {
+struct VUniforms {
     ProjMatrix : mat4x4<f32>;
     worldView : mat4x4<f32>;
     fogOn : f32;
     brightness : f32;
 };
 
-[[block]] struct TextureUniforms {
+struct TextureUniforms {
     pixelSize : f32;
     blockSize: f32;
     mipmap: f32;
 };
 
-[[block]] struct FUniforms {
+struct FUniforms {
     // Fog
     fogColor : vec4<f32>;
     fogAddColor : vec4<f32>;
