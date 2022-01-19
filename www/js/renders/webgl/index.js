@@ -7,6 +7,7 @@ import {Helpers} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
+import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 
 const TEXTURE_TYPE_FORMAT = {
     'rgba8u': {
@@ -27,98 +28,57 @@ const TEXTURE_MODE = {
     'cube': 'TEXTURE_CUBE_MAP'
 }
 
-export class WebGLCubeShader extends BaseCubeShader {
+export class WebGLCubeShader extends WebGLUniversalShader {
 
     constructor(context, options) {
         super(context, options);
-        //
-        const { gl } = this.context;        
 
-        this.program  = context.createProgram(options.code, {});
+        /**
+         *
+         * @type {WebGLTexture}
+         */
+        this.texture = context.createTexture({
+            source: options.sides
+        });
 
-        this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
-        this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
-        this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
-        // this.u_brightness = gl.getUniformLocation(this.program, 'u_brightness');
-        this.u_resolution = gl.getUniformLocation(this.program, 'u_resolution');
-        this.u_TestLightOn = gl.getUniformLocation(this.program, 'u_TestLightOn');
-        this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
-        // Make custom uniforms
-        if(options && 'uniforms' in options) {
-            this.makeUniforms(options.uniforms);
-        }
+        this.texture.bind();        
+        // we already can use uniforms
+        // make only set default values
+        this._makeUniforms({
+            'u_texture': this.texture, // load default texture to 0 slot
+            'u_viewMatrix': new Float32Array(16),
+            'u_projMatrix': new Float32Array(16),
+            'u_resolution': [1, 1],
+        });
+
     }
 
-    //
-    makeUniforms(uniforms) {
-        const {
-            gl
-        } = this.context;
-        this.uniforms = {};
-        for(let name of Object.keys(uniforms)) {
-            let value = uniforms[name];
-            let type = null;
-            let func = null;
-            switch(typeof value) {
-                case 'boolean': {
-                    type = 'bool';
-                    func = 'uniform1f';
-                    break;
-                }
-                case 'object': {
-                    type = 'vec3';
-                    func = 'uniform3fv';
-                    break;
-                }
-                case 'number': {
-                    type = 'float';
-                    func = 'uniform1f';
-                    break;
-                }
-                default: {
-                    throw 'Unsupported uniform type ' + (typeof value);
-                }
-            }
-            this.uniforms[name] = {
-                name: name,
-                type: type,
-                func: func,
-                value: value,
-                ptr: gl.getUniformLocation(this.program, name),
-                set: (v) => this.value = v,
-                get: () => this.value
-            };
-        }
+    set resolution(v) {
+        this.uniforms['u_resolution'].value = v;
     }
 
-    applyUniforms() {
-        const { gl } = this.context;
-        gl.useProgram(this.program);
-        // Bind custom uniforms
-        for(let name of Object.keys(this.uniforms)) {
-            let unf = this.uniforms[name];
-            gl[unf.func](unf.ptr, unf.value);
-        }
+    get resolution() {
+        return this.uniforms['u_resolution'];
     }
 
-    bind() {
+    /**
+     * @deprecated
+     */
+    get lookAt() {
+        return this.uniforms['u_viewMatrix'].value;
+    }
 
+    /**
+     * @deprecated
+     */
+    get proj() {
+        return this.uniforms['u_projMatrix'].value;
+    }
+
+    bind(force = false) {
         this.texture.bind(0);
-        const { gl } = this.context;
 
-        gl.useProgram(this.program);
-
-        // gl.uniform1f(this.u_brightness, this.brightness);
-        gl.uniform2fv(this.u_resolution, this.resolution);
-        gl.uniform1f(this.u_TestLightOn, this.testLightOn);
-
-        gl.uniform1i(this.u_texture, 0);
-
-        gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
-        gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
-
-        this.applyUniforms();
-
+        super.bind(force);
     }
 
 }
@@ -144,8 +104,8 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
         this.vertex.bind();
         this.index.bind();
 
-        gl.vertexAttribPointer(shader.a_vertex, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shader.a_vertex);
+        gl.vertexAttribPointer(shader.attrs['a_vertex'].location, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shader.attrs['a_vertex'].location);
     }
 
     unbind() {
@@ -223,9 +183,6 @@ export class WebGLTexture extends BaseTexture {
                     this.source
                 );
             } else {
-
-                console.log(formats);
-
                 gl.texImage2D(
                     type,
                     0,
