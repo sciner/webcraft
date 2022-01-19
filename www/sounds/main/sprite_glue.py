@@ -10,9 +10,14 @@ def get_name_no_ext(filename):
 
 filelist = os.listdir("../")
 
-offset = 0
+silence_duration = 50
+silence = AudioSegment.silent(duration=silence_duration)
+
 sprite = dict()
-sound_final = None
+
+offset = silence_duration
+sound_final = silence
+
 for file in filelist:
     print(file)
     if '.ogg' == file[-4:]:
@@ -22,12 +27,12 @@ for file in filelist:
     else:
         continue
     if not sound_final:
-        sound_final = sound
+        sound_final = sound + silence
     else:
-        sound_final = sound_final + sound
+        sound_final = sound_final + sound + silence
     sound_len = len(sound)
-    sprite[get_name_no_ext(file)] = [offset, sound_len - 5]
-    offset = offset + sound_len
+    sprite[get_name_no_ext(file)] = [offset - silence_duration / 2, sound_len + silence_duration]
+    offset = offset + sound_len + silence_duration
 sound_final.export("./sprite.ogg", format="ogg")
 sound_final.export("./sprite.mp3", format="mp3")
 io = StringIO()

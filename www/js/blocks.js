@@ -199,9 +199,9 @@ export class BLOCK {
         }
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
-        let is_slab = block.tags.indexOf('slab') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
-        if(is_trapdoor || is_stairs || is_slab || is_door) {
+        let is_slab = block.layering && block.layering.slab;
+        if(is_trapdoor || is_stairs || is_door || is_slab) {
             extra_data = {
                 point: new Vector(pos.point.x, pos.point.y, pos.point.z)
             };
@@ -280,7 +280,7 @@ export class BLOCK {
         if(block.fluid) {
             return true;
         }
-        if(block.tags.indexOf('layering') >= 0) {
+        if(block.layering) {
             let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
             return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
         }
@@ -610,7 +610,7 @@ export class BLOCK {
     }
 
     static isOnCeil(block) {
-        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька)
+        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
     }
 
     static isOpened(block) {
@@ -646,7 +646,7 @@ export class BLOCK {
         if(!b.properties.passable && (b.properties.style != 'planting' /*&& b.properties.style != 'sign'*/)) {
             switch(b.properties.style) {
                 case 'fence': {
-                    let fence_height = for_physic ? 1.35 : 1;
+                    let fence_height = for_physic ? 1.5 : 1;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
@@ -680,7 +680,7 @@ export class BLOCK {
                     break;
                 }
                 case 'pane': {
-                    let fence_height = 1;
+                    let height = 1;
                     let canConnect = (block) => {
                         return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
                     };
@@ -697,33 +697,33 @@ export class BLOCK {
                     //
                     if(con_s && con_n) {
                         // remove_center = true;
-                        shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+.5]);
+                        shapes.push([.5-w2, 0, 0, .5+w2, height, .5+.5]);
                     } else {
                         // South z--
                         if(con_s) {
-                            shapes.push([.5-w2, 0, 0, .5+w2, fence_height, .5+w2]);
+                            shapes.push([.5-w2, 0, 0, .5+w2, height, .5+w2]);
                         }
                         // North z++
                         if(con_n) {
-                            shapes.push([.5-w2,0, .5-w2, .5+w2, fence_height, 1]);
+                            shapes.push([.5-w2,0, .5-w2, .5+w2, height, 1]);
                         }
                     }
                     if(con_w && con_e) {
                         // remove_center = true;
-                        shapes.push([0, 0, .5-w2, 1, fence_height, .5+w2]);
+                        shapes.push([0, 0, .5-w2, 1, height, .5+w2]);
                     } else {
                         // West x--
                         if(con_w) {
-                            shapes.push([0, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                            shapes.push([0, 0, .5-w2, .5+w2, height, .5+w2]);
                         }
                         // East x++
                         if(con_e) {
-                            shapes.push([.5-w2, 0, .5-w2, 1, fence_height, .5+w2]);
+                            shapes.push([.5-w2, 0, .5-w2, 1, height, .5+w2]);
                         }
                     }
                     // Central
                     if(!remove_center) {
-                        shapes.push([.5-w2, 0, .5-w2, .5+w2, fence_height, .5+w2]);
+                        shapes.push([.5-w2, 0, .5-w2, .5+w2, height, .5+w2]);
                     }
                     break;
                 }
@@ -804,15 +804,6 @@ export class BLOCK {
                     shapes.push(aabb.set(0, 0, 0, 1, 1, sz).rotate(cardinal_direction, shapePivot).toArray());
                     break;
                 }
-                case 'slab': {
-                    let on_ceil = this.isOnCeil(b);
-                    if(on_ceil) {
-                        shapes.push([0, .5 - f, 0, 1, 1, 1]);
-                    } else {
-                        shapes.push([0, 0, 0, 1, .5 + f, 1]);
-                    }
-                    break;
-                }
                 default: {
                     const styleVariant = BLOCK.styles.get(b.properties.style);
                     if (styleVariant && styleVariant.aabb) {
@@ -820,18 +811,25 @@ export class BLOCK {
                             styleVariant.aabb(b).toArray()
                         );
                     } else {
+                        let shift_y = 0;
                         let height = b.properties.height ? b.properties.height : 1;
                         // Высота наслаеваемых блоков хранится в extra_data
-                        if(b.properties.tags.indexOf('layering') >= 0) {
+                        if(b.properties.layering) {
                             if(b.extra_data) {
                                 height = b.extra_data?.height || height;
+                            }
+                            if(b.properties.layering.slab) {
+                                let on_ceil = this.isOnCeil(b);
+                                if(on_ceil) {
+                                    shift_y = b.properties.layering.height;
+                                }
                             }
                         }
                         if(b.properties.width) {
                             let hw = b.properties.width / 2;
-                            shapes.push([.5-hw, 0, .5-hw, .5+hw, height, .5+hw]);
+                            shapes.push([.5-hw, shift_y - f, .5-hw, .5+hw, shift_y + height + f, .5+hw]);
                         } else {
-                            shapes.push([0, 0, 0, 1, height, 1]);
+                            shapes.push([0, shift_y - f, 0, 1, shift_y + height + f, 1]);
                         }
                     }
                     break;

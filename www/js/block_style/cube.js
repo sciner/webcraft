@@ -57,6 +57,10 @@ export default class style {
         };
     }
 
+    static isOnCeil(block) {
+        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
+    }
+
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null, force_tex) {
 
@@ -138,9 +142,15 @@ export default class style {
             height = 1;
         }
 
-        if(material.tags.indexOf('layering') >= 0) {
+        if(material.layering) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
+            }
+            if(block.properties.layering.slab) {
+                let on_ceil = style.isOnCeil(block);
+                if(on_ceil) {
+                    y += block.properties.layering.height;
+                }
             }
         }
 

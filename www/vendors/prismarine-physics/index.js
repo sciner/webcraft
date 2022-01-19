@@ -57,7 +57,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        stepHeight: typeof stepHeight === 'undefined' ? 0.6 : stepHeight, // how much height can the bot step on without jump
+        stepHeight: typeof stepHeight === 'undefined' ? 0.65 : stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
         honeyblockSpeed: 0.4,

@@ -942,6 +942,7 @@
     {
         "id": 69,
         "name": "GOLD",
+        "sound": "madcraft:block.stone",
         "texture": [
             7,
             1
@@ -1595,25 +1596,27 @@
         "id": 43,
         "name": "DOUBLE_SLAB",
         "sound": "madcraft:block.stone",
-        "texture": [
-            5,
-            0
-        ],
+        "texture": {
+            "side": [5, 0],
+            "up": [6, 0]
+        },
         "material": {
             "id": "stone"
         }
     },
     {
         "id": 44,
-        "name": "SLAB",
+        "name": "SMOOTH_STONE_SLAB",
         "transparent": true,
         "sound": "madcraft:block.stone",
-        "style": "slab",
-        "tags": [
-            "slab"
-        ],
         "material": {
             "id": "stone"
+        },
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "SMOOTH_STONE"
         },
         "texture": [
             6,
@@ -1799,6 +1802,10 @@
         "texture": [2, 4],
         "material": {
             "id": "snow"
+        },
+        "layering": {
+            "height": 0.125,
+            "full_block_name": "SNOW_BLOCK"
         },
         "tags": [
             "layering",
@@ -2275,13 +2282,15 @@
         "name": "BRICK_SLAB",
         "transparent": true,
         "sound": "madcraft:block.stone",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "BRICK"
+        },
         "material": {
             "id": "stone"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             7,
             0
@@ -2292,13 +2301,15 @@
         "name": "OAK_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "OAK_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             21,
             19
@@ -2309,13 +2320,15 @@
         "name": "DARK_OAK_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "DARK_OAK_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             24,
             19
@@ -2326,13 +2339,15 @@
         "name": "JUNGLE_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "JUNGLE_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             25,
             19
@@ -2343,13 +2358,15 @@
         "name": "BIRCH_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "BIRCH_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             20,
             19
@@ -2360,13 +2377,15 @@
         "name": "ACACIA_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "ACACIA_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             22,
             19
@@ -2377,13 +2396,15 @@
         "name": "SPRUCE_SLAB",
         "transparent": true,
         "sound": "madcraft:block.wood",
-        "style": "slab",
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "SPRUCE_PLANK"
+        },
         "material": {
             "id": "wood"
         },
-        "tags": [
-            "slab"
-        ],
         "texture": [
             23,
             19

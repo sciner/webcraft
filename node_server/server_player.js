@@ -260,7 +260,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_INVENTORY_SELECT: {
-                    this.inventory.setIndexes(cmd.data);
+                    this.inventory.setIndexes(cmd.data, false);
                     break;
                 }
 

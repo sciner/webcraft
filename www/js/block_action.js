@@ -301,7 +301,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 8. Некоторые блоки можно ставить только на что-то сверху
-        let setOnlyToTop = matBlock.tags.indexOf('layering') >= 0;
+        let setOnlyToTop = !!matBlock.layering && !matBlock.layering.slab;
         if(setOnlyToTop && pos.n.y != 1) {
             return resp;
         }
@@ -311,23 +311,25 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return resp;
         }
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-        let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.tags.indexOf('layering') >= 0;
+        let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.layering;
         if(isLayering) {
+            const layering = world_material.layering;
             let new_extra_data = null;
             pos.y--;
             if(extra_data) {
                 new_extra_data = JSON.parse(JSON.stringify(extra_data));
             } else {
-                new_extra_data = {height: world_material.height};
+                new_extra_data = {height: layering.height};
             }
-            new_extra_data.height += world_material.height;
+            new_extra_data.height += layering.height;
             if(new_extra_data.height < 1) {
                 resp.reset_target_pos = true;
                 resp.blocks.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: new_extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 resp.decrement = true;
             } else {
+                const full_block = BLOCK.fromName(layering.full_block_name);
                 resp.reset_target_pos = true;
-                resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.SNOW_BLOCK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                resp.blocks.push({pos: new Vector(pos), item: {id: full_block.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                 resp.decrement = true;
             }
             return resp;

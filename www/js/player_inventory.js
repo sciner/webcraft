@@ -15,7 +15,7 @@ export class PlayerInventory {
         this.onSelect       = (item) => {};
     }
 
-    refresh() {
+    refresh(send_state) {
         const data = {
             current: this.current,
             items: this.items
@@ -30,14 +30,16 @@ export class PlayerInventory {
         }];
         this.player.world.sendAll(packets, [this.player.session.user_id]);
         // Send new inventory to player
-        this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
+        if(send_state) {
+            this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
+        }
     }
 
     //
-    setIndexes(data) {
+    setIndexes(data, send_state) {
         this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_count - 1);
-        this.refresh();
+        this.refresh(send_state);
     }
 
     // Return current active item in hotbar

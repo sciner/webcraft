@@ -71,6 +71,7 @@ export class Player {
                 this.pickAt.resetProgress();
             }
             this.world.server.InventorySelect(this.inventory.current);
+            Game.hud.refresh();
         };
         this.inventory.setState(data.inventory);
         Game.hotbar.setInventory(this.inventory);
@@ -168,7 +169,7 @@ export class Player {
         if(f > 0) {
             const pos = player.getBlockPos().clone();
             let world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            const isLayering = world_block && world_block.material.tags.indexOf('layering') >= 0;
+            const isLayering = world_block && world_block.material.layering;
             if(!isLayering) {
                 pos.y--;
                 world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);

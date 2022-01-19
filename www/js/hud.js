@@ -152,6 +152,7 @@ export class HUD {
 
     refresh() {
         this.need_refresh = true;
+        this.prepareText();
     }
 
     clear() {
