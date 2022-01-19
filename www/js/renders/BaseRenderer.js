@@ -15,7 +15,7 @@ export class BaseRenderTarget {
          * @type {BaseTexture}
          */
         this.depthTexture = null;
-        this.valid = false;        
+        this.valid = false;
     }
 
     get width() {
@@ -81,7 +81,7 @@ export class BaseRenderTarget {
                 buffer.subarray(invi * this.width * 4, (invi + 1) * this.width * 4),
                 i * this.width * 4);
         }
-        
+
         if (mode === 'bitmap') {
             return self.createImageBitmap(data);
         }
@@ -95,7 +95,7 @@ export class BaseRenderTarget {
         if (mode === 'canvas') {
             return Promise.resolve(canvas);
         }
-        
+
         const img = new Image(this.width, this.height);
 
         return new Promise(res => {
@@ -304,7 +304,7 @@ export class BaseMaterial {
 
     changeLighTex (light) {
         this.lightTex = light;
-    } 
+    }
 
     getSubMat() {
         return null;
@@ -565,6 +565,12 @@ export default class BaseRenderer {
          * Shader blocks
          */
         this.blocks = {};
+
+        /**
+         * @type {{[key: string]: string}}
+         */
+        this.global_defines = Object.assign({}, options.defines || {});
+
     }
 
     get kind() {
@@ -573,7 +579,7 @@ export default class BaseRenderer {
 
     async init({blocks} = {}) {
         this.blocks = blocks || {};
-        
+
         if (Object.keys(this.blocks).length === 0) {
             console.warn('Shader blocks is empty');
         }
@@ -584,7 +590,7 @@ export default class BaseRenderer {
             blocks
         } = this;
 
-        const [key, ...argsKeys] = replace.split(',').map((e) => e.trim());
+        const key = replace.trim();
 
         if (!(key in blocks)) {
             throw '[Preprocess] Block for ' + key + 'not found';
@@ -594,7 +600,7 @@ export default class BaseRenderer {
         let pad = 0;
         for(pad = 0; pad < 32; pad ++) {
             if (string[offset - pad - 1] !== ' ') {
-                break;                
+                break;
             }
         }
 
@@ -604,31 +610,27 @@ export default class BaseRenderer {
             .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
             .join('\n');
 
-        const blockArgs = args[key];
+        const defines = args[key] || {};
 
-        if (blockArgs && typeof blockArgs === 'object') {
-            if (blockArgs.skip) {
-                return '// skip block ' + key;
-            }
+        if (defines.skip) {
+            return '// skip block ' + key;
+        }
 
-            for(const argkey of argsKeys) {
-                if (!(argkey in blockArgs)) {
-                    throw '[Preprocess] Argument value for ' + argkey + ' not found';
-                }
+        for(const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
 
-                block = block.replaceAll(argkey, '' + blockArgs[argkey]);
-            }
+            block = block.replaceAll(r, `#define ${argkey} ${defines[argkey]} // default:`);
         }
 
         return block;
     }
-    
+
     /***
      * Preprocess shader
      * You can define args to block that was replaced if needed
      * pass a `skip: true` for block - ignore block compilation
      * @param {string} shaderText
-     * @param {{[key: string]: {skip?: boolean, [key: string]: number } }} args
+     * @param {{[key: string]: {skip?: boolean, [key: string]: string } }} args
      */
     preprocess (shaderText, args = {}) {
         if (!shaderText) {
@@ -636,10 +638,19 @@ export default class BaseRenderer {
         }
 
         const pattern = /#include<([^>]+)>/g;
-        const out = shaderText
+
+        let out = shaderText
             .replaceAll(pattern, (_, r, offset, string) => {
                 return this._onReplace(r, offset, string, args || {});
             });
+
+        const defines = this.global_defines || {};
+
+        for (const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
+
+            out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
+        }
 
         console.debug('Preprocess result:\n', out);
 
@@ -647,8 +658,8 @@ export default class BaseRenderer {
     }
 
     /**
-     * 
-     * @param {BaseRenderTarget} target 
+     *
+     * @param {BaseRenderTarget} target
      */
     setTarget(target) {
         if (target && !target.valid) {
@@ -686,16 +697,16 @@ export default class BaseRenderer {
     clear({
         depth, color
     }) {
-        
+
     }
 
     /**
      * Blit one render target to another size-to-size
-     * @param {BaseRenderTarget} fromTarget 
-     * @param {BaseRenderTarget} toTarget 
+     * @param {BaseRenderTarget} fromTarget
+     * @param {BaseRenderTarget} toTarget
      */
     blit(fromTarget = null, toTarget = null) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass'); 
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     /**
@@ -712,7 +723,7 @@ export default class BaseRenderer {
      * @return {BaseRenderTarget}
      */
     createRenderTarget(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass'); 
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     /**
@@ -741,8 +752,8 @@ export default class BaseRenderer {
     }
 
     /**
-     * 
-     * @param {*} options 
+     *
+     * @param {*} options
      * @returns {Promise<any>}
      */
     async createResourcePackShader(options) {
