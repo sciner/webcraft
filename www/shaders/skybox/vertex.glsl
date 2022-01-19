@@ -11,7 +11,13 @@ uniform bool u_textureOn;
 out vec3 v_texCoord;
 
 void main() {
+	// remove translation factor from matrix
+	mat4 lookMatrix = u_viewMatrix;
+	lookMatrix[3] = vec4(0., 0., 0., 1.);
 
-	gl_Position = u_projMatrix * u_viewMatrix * vec4(a_vertex, 1.0);
+	// flip axes
+	vec4 corrPos = vec4(a_vertex.xzy, 1.0);
+
+	gl_Position = u_projMatrix * lookMatrix * corrPos;
 	v_texCoord = a_vertex;
 }
