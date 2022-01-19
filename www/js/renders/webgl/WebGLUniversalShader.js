@@ -1,5 +1,5 @@
-import { BaseShader } from "../BaseRenderer.js";
-import WebGLRenderer from "./index.js";
+import { BaseShader, BaseTexture } from "../BaseRenderer.js";
+import WebGLRenderer, { WebGLTexture } from "./index.js";
 
 const p = WebGLRenderingContext.prototype;
 
@@ -13,6 +13,7 @@ const p = WebGLRenderingContext.prototype;
  * @property {string} func
  * @property {string} type
  * @property {boolean} isolate isolate inoform, it will not upploaded from GU
+ * @property {number} slot - for textures
  */
 
 /**
@@ -185,6 +186,10 @@ export class WebGLUniversalShader extends BaseShader {
         const { gl, globalUniforms } = this.context;
         gl.useProgram(this.program);
 
+        // fixme: get occured texture slots
+        // to reduce rebound
+        let textureSlot = 0;
+
         // Bind custom uniforms
         for(const unf of this._uniformsFlat) {
             const name = unf.name;
@@ -200,6 +205,13 @@ export class WebGLUniversalShader extends BaseShader {
                 } else if (name in globalUniforms) {
                     value = globalUniforms[name];
                 }
+            }
+
+            // bind texture to slot
+            if (value instanceof WebGLTexture) {
+                value.bind(textureSlot);
+                value = textureSlot;
+                textureSlot ++;
             }
 
             if (typeof value === 'undefined') {
