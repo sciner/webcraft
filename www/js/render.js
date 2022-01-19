@@ -60,6 +60,7 @@ let currentRenderState = {
 export class Renderer {
 
     constructor(renderSurfaceId) {
+        this.xrMode             = false;
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;
         this.testLightOn        = false;
@@ -90,6 +91,21 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+    }
+
+    /**
+     * Request animation frame
+     * This method depend of mode which we runs
+     * for XR raf will be provided from session
+     * @param {(time, ...args) => void} callback 
+     * @returns {number}
+     */
+    requestAnimationFrame(callback) {
+        if (this.xrMode) {
+            console.log('Not supported yet');
+        }
+
+        return self.requestAnimationFrame(callback);
     }
 
     /**
@@ -442,8 +458,12 @@ export class Renderer {
         }
     }
 
+    update (delta, ...args) {
+
+    }
+
     // Render one frame of the world to the canvas.
-    draw(delta) {
+    draw (delta, ...args) {
 
         this.frame++;
         const { gl, shader, renderBackend } = this;

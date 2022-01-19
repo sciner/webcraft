@@ -64,7 +64,8 @@ export class GameClass {
         bodyClassList.add('started');
         // Run render loop
         this.loop = this.loop.bind(this);
-        window.requestAnimationFrame(this.loop);
+
+        this.render.requestAnimationFrame(this.loop);
     }
 
     // Set the canvas the renderer uses for some input operations.
@@ -342,10 +343,16 @@ export class GameClass {
         }
     }
 
-    // Render loop
-    loop() {
+    /**
+     * Main loop
+     * @param {number} time 
+     * @param  {...any} args - args from raf, because it necessary for XR
+     */
+    loop(time = 0, ...args) {
         let player  = this.player;
         let tm      = performance.now();
+        let delta   = this.hud.FPS.delta;
+
         if(this.player.controls.enabled && !this.hud.splash.loading) {
             // Simulate physics
             this.world.physics.simulate();
@@ -354,20 +361,37 @@ export class GameClass {
         } else {
             player.lastUpdate = null;
         }
+
         this.world.chunkManager.update(player.pos);
+
         // Picking target
         if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
         }
-        // Draw world
+
+        // change camera location
         this.render.setCamera(player, player.getEyePos(), player.rotate);
-        this.render.draw(this.hud.FPS.delta);
+
+        // Update world
+        // this is necessary
+        // because there are a cases when we should call draw without update
+        // or update without draw
+        // like XR, it quiery frame more that 60 fps (90, 120) and we shpuld render each frame
+        // but update can be called slowly
+        this.render.update(delta, args);
+
+        // Draw world
+        this.render.draw(delta, args);
+
         // Send player state
         this.sendPlayerState(player);
+
         // Счетчик FPS
         this.hud.FPS.incr();
         this.averageClockTimer.add(performance.now() - tm);
-        window.requestAnimationFrame(this.loop);
+
+        // we must request valid loop
+        this.render.requestAnimationFrame(this.loop);
     }
 
     // Отправка информации о позиции и ориентации игрока на сервер
