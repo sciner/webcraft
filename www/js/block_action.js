@@ -1,9 +1,60 @@
 import {ROTATE, Vector, VectorCollector} from "./helpers.js";
 import { AABB } from './core/AABB.js';
+import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 
 const _createBlockAABB = new AABB();
+    
+const sides = [
+    new Vector(1, 0, 0),
+    new Vector(-1, 0, 0),
+    new Vector(0, 1, 0),
+    new Vector(0, -1, 0),
+    new Vector(0, 0, 1),
+    new Vector(0, 0, -1)
+];
+
+const rotates = [
+    new Vector(CubeSym.ROT_Z3, 0, 0),
+    new Vector(CubeSym.ROT_Z, 0, 0),
+    new Vector(CubeSym.ROT_Y3, 0, 0),
+    new Vector(CubeSym.NEG_Y, 0, 0),
+    new Vector(CubeSym.ROT_X3, 0, 0),
+    new Vector(CubeSym.ROT_X, 0, 0)
+];
+
+function calcRotateByPosN(pos_n) {
+    for(let i in sides) {
+        let side = sides[i];
+        if(side.equal(pos_n)) {
+            return rotates[i];
+        }
+    }
+    throw 'error_invalid_pos_n';
+
+}
+
+// Calc rotate
+function calcRotate(rot, pos_n) {
+    rot = new Vector(rot);
+    rot.x = 0;
+    rot.y = 0;
+    // top normal
+    if (Math.abs(pos_n.y) === 1) {                        
+        rot.x = BLOCK.getCardinalDirection(rot);
+        rot.z = 0;
+        rot.y = pos_n.y; // mark that is up
+    } else {
+        rot.z = 0;
+        if (pos_n.x !== 0) {
+            rot.x = pos_n.x > 0 ? ROTATE.E : ROTATE.W;
+        } else {
+            rot.x = pos_n.z > 0 ? ROTATE.N : ROTATE.S;
+        }
+    }
+    return rot;
+};
 
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, currentInventoryItem) {
@@ -322,27 +373,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 return resp;
             }
         } else {
-            // Calc rotate
-            const calcRotate = (rot, pos_n) => {
-                rot = new Vector(rot);
-                rot.x = 0;
-                rot.y = 0;
-                // top normal
-                if (Math.abs(pos_n.y) === 1) {                        
-                    rot.x = BLOCK.getCardinalDirection(rot);
-                    rot.z = 0;
-                    rot.y = pos_n.y; // mark that is up
-                } else {
-                    rot.z = 0;
-                    if (pos_n.x !== 0) {
-                        rot.x = pos_n.x > 0 ? ROTATE.E : ROTATE.W;
-                    } else {
-                        rot.x = pos_n.z > 0 ? ROTATE.N : ROTATE.S;
-                    }
-                }
-                return rot;
-            };
-            const orientation = calcRotate(player.rotate, pos.n);
+            const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(pos.n) : calcRotate(player.rotate, pos.n);
             //
             const new_item = {
                 id: matBlock.id

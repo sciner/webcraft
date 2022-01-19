@@ -643,8 +643,17 @@ export class BLOCK {
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
         let f = !!expanded ? .001 : 0;
-        if(!b.properties.passable && (b.properties.style != 'planting' && b.properties.style != 'sign')) {
+        if(!b.properties.passable && (b.properties.style != 'planting' && b.properties.style)) {
             switch(b.properties.style) {
+                case 'sign': {
+                    let hw = (4/16) / 2;
+                    let sign_height = 1;
+                    shapes.push([
+                        .5-hw, 0, .5-hw,
+                        .5+hw, sign_height, .5+hw
+                    ]);
+                    break;
+                }
                 case 'fence': {
                     let fence_height = for_physic ? 1.35 : 1;
                     //
@@ -852,7 +861,7 @@ export class BLOCK {
                         }*/
                         case 'sign': {
                             let hw = (4/16) / 2;
-                            let sign_height = 10/16;
+                            let sign_height = 1;
                             shapes.push([
                                 .5-hw, 0, .5-hw,
                                 .5+hw, sign_height, .5+hw

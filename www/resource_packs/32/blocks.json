@@ -24,6 +24,7 @@
     {"id": 468, "name": "DIRT_PATH"},
     {"id": 552, "name": "SHEARS"},
     {"id": 130, "name": "STICK"},
+    {"id": 617, "name": "CHAIN"},
 
     {"id": 173, "name": "COAL"},
     {"id": 612, "name": "CARROT"},
@@ -106,6 +107,7 @@
     {"id": 534, "name": "DARK_OAK_STAIRS"},
     {"id": 109, "name": "STONE_STAIRS"},
     {"id": 67, "name": "COBBLESTONE_STAIRS"},
+    {"id": 615, "name": "STONE_BRICK_STAIRS"},
     
     {"id": 350, "name": "WOOL_BLACK"},
     {"id": 351, "name": "WOOL_BLUE"},
