@@ -8,6 +8,15 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 
+const TEXTURE_TYPE_FORMAT = {
+    'rgba8u': {
+        format: 'RGBA', type : 'UNSIGNED_BYTE'
+    },
+    'depth24stencil8': {
+        format: 'DEPTH_STENCIL', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
+    }
+}
+
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
     'nearest': 'NEAREST'
@@ -146,7 +155,6 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 }
 
 export class WebGLTexture extends BaseTexture {
-
     _applyStyle() {
         const {
             gl
@@ -189,31 +197,54 @@ export class WebGLTexture extends BaseTexture {
     }
 
     upload() {
-        const { gl } = this.context;
         /**
-         * @type {WebGLTexture}
+         * @type {WebGL2RenderingContext}
          */
-
+        const gl = this.context.gl;
         const mode = Array.isArray(this.source) ? 'cube' : '2d';
+
         this.mode = mode;
 
         const t = this.texture = this.texture || gl.createTexture();
         const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
+        const formats = TEXTURE_TYPE_FORMAT[this.type] || TEXTURE_TYPE_FORMAT.rgba8u;
 
         gl.bindTexture(type, t);
-
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
         if (mode === '2d') {
             if (this.source) {
-                gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+                gl.texImage2D(
+                    type,
+                    0, 
+                    gl[formats.internal || formats.format],
+                    gl[formats.format], 
+                    gl[formats.type],
+                    this.source
+                );
             } else {
-                gl.texImage2D(type, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+                console.log(formats);
+
+                gl.texImage2D(
+                    type,
+                    0,
+                    gl[formats.internal || formats.format],
+                    this.width,
+                    this.height,
+                    0,
+                    gl[formats.format],
+                    gl[formats.type],
+                    null
+                );
             }
 
             this._applyStyle();
             super.upload();
             return;
         }
+
+        // cube is only RGBA
         for(let i = 0; i < 6; i ++) {
             const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -277,7 +308,7 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', this.options);
+        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
@@ -430,7 +461,11 @@ export default class WebGLRenderer extends BaseRenderer {
         this.setTarget(null);
     }
 
-    // flisth active buffer onto canvas
+    /**
+     * Blit color from current attached framebuffer to specific area of canvas
+     * @param {{x?: number, y?: number, w?: number, h?: number}} param0 
+     * @returns 
+     */
     blitRenderTarget({x = 0, y = 0, w = null, h = null} = {}) {
         /**
          * @type {WebGLRenderTarget}
@@ -455,6 +490,46 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+    }
+
+    /**
+     * Blit one render target to another size-to-size
+     * @param {WebGLRenderTarget} fromTarget 
+     * @param {WebGLRenderTarget} toTarget 
+    */
+    blit(fromTarget = null, toTarget = null) {
+        fromTarget = fromTarget || null;
+        toTarget = toTarget || null;
+
+        if (fromTarget === toTarget) {
+            throw new TypeError('fromTarget and toTarget should be different');
+        }
+
+        /**
+         * @type {WebGLRenderTarget}
+         */
+        const target = this._target;
+        const gl = this.gl;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fromTarget ? fromTarget.framebuffer : null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, toTarget ? toTarget.framebuffer : null);
+
+        const fromSize = fromTarget ? fromTarget : this.size;
+        const toSize = toTarget ? toTarget : this.size;
+        const fromDepth = fromTarget ? fromTarget.options.depth : true;
+        const toDepth = toTarget ? toTarget.options.depth : true;
+        const bits = (toDepth && fromDepth) 
+            ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT) 
+            : gl.COLOR_BUFFER_BIT;
+
+
+        gl.blitFramebuffer(
+            0, 0, fromSize.width, fromSize.height,
+            0, 0, toSize.width, toSize.height,
+            bits, gl.LINEAR
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.framebuffer : null);
     }
 
     createCubeMap(options) {
