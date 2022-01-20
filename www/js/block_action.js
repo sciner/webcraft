@@ -37,6 +37,12 @@ function calcRotateByPosN(pos_n) {
 
 // installPainting...
 function installPainting(world, pos, resp) {
+    if(pos.n.x == -1) {
+        pos.z--;
+    }
+    if(pos.n.z == 1) {
+        pos.x--;
+    }
     const center_pos = new Vector(pos);
     let field = null;
     let fixed_field = null;
@@ -54,6 +60,7 @@ function installPainting(world, pos, resp) {
         // 4x4
         {
             name: '4x4',
+            move: {y : 1},
             list: [
                 {y: 2, f: -1}, {y: 2, f: 0}, {y: 2, f: 1}, {y: 2, f: 2},
                 {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
@@ -64,6 +71,7 @@ function installPainting(world, pos, resp) {
         // 4x3
         {
             name: '4x3',
+            move: {y : 1},
             list: [
                 {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
                 {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2},
@@ -73,6 +81,7 @@ function installPainting(world, pos, resp) {
         // 4x2
         {
             name: '4x2',
+            move: {y : 1},
             list: [
                 {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
                 {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2}
@@ -81,6 +90,7 @@ function installPainting(world, pos, resp) {
         // 2x2
         {
             name: '2x2',
+            move: {y : 2},
             list: [
                 {y: 0, f: 0}, {y: 1, f: 0},
                 {y: 0, f: 1}, {y: 1, f: 1}
@@ -89,6 +99,7 @@ function installPainting(world, pos, resp) {
         // 2x1
         {
             name: '2x1',
+            move: {y : 1},
             list: [
                 {y: 0, f: 0}, {y: 0, f: 1}
             ]
@@ -96,6 +107,7 @@ function installPainting(world, pos, resp) {
         // 1x2
         {
             name: '1x2',
+            move: {y : 2},
             list: [
                 {y: 0, f: 0}, {y: 1, f: 0}
             ]
@@ -103,30 +115,47 @@ function installPainting(world, pos, resp) {
         // 1x1
         {
             name: '1x1',
+            move: {y : 1},
             list: [
                 {y: 0, f: 0}
             ]
         }
     ];
     let blocks = new VectorCollector();
+    let blocks_back = new VectorCollector();
     let bpos = new Vector(center_pos);
+    let bpos_back = new Vector(center_pos);
     for(let item of painting_sizes) {
+        item.size = item.name.split('x').map(x => parseInt(x));
         let ok = true;
         let painting_pos = null;
         for(let pp of item.list) {
-            bpos.y = center_pos.y + pp.y + 1;
+            bpos.y = center_pos.y + pp.y;
             bpos[field] = center_pos[field] + pp.f;
             bpos[fixed_field] = center_pos[fixed_field];
+            //
+            if(item.size[0] == 1) {
+                if(pos.n.x == -1) bpos.z++;
+                if(pos.n.z == 1) bpos.x++;
+            }
             if(!painting_pos) {
                 painting_pos = new Vector(bpos);
             }
             let pb = blocks.get(bpos);
+            //
+            bpos_back.set(bpos.x, bpos.y, bpos.z);
+            bpos_back[fixed_field] -= pos.n[fixed_field];
+            let pb_back = blocks_back.get(bpos_back);
             if(!pb) {
                 pb = world.getBlock(bpos);
                 blocks.set(bpos, pb);
+                //
+                pb_back = world.getBlock(bpos_back);
+                blocks_back.set(bpos_back, pb_back);
                 // resp.blocks.push({pos: new Vector(bpos), item: {id: BLOCK.BRICK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                // resp.blocks.push({pos: new Vector(bpos_back), item: {id: BLOCK.CONCRETE.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
             }
-            if(pb.id == 0 || pb.material.planting) {
+            if((pb.id == 0 || pb.material.planting) && pb_back.id != 0) {
                 // ok
             } else {
                 ok = false;
@@ -136,9 +165,13 @@ function installPainting(world, pos, resp) {
         if(ok) {
             const size = item.name.split('x').map(x => parseInt(x));
             let aabb = new AABB();
+            const w = 2/16;
+            painting_pos.y += item.move.y;
+            if(pos.n.x < 0) painting_pos.x += 1 - w;
+            if(pos.n.z < 0) painting_pos.z += 1 - w;
             const second_corner = new Vector(painting_pos);
             second_corner[field] += size[0];
-            second_corner[fixed_field] += 4/16;
+            second_corner[fixed_field] += w;
             second_corner.y -= size[1];
             aabb.set(painting_pos.x, second_corner.y, painting_pos.z, second_corner.x, painting_pos.y, second_corner.z);
             resp.install_painting = {

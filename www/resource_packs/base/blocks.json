@@ -74,6 +74,17 @@
         ]
     },
     {
+        "id": 619,
+        "name": "PAINTING_FRAME",
+        "max_in_stack": 1,
+        "spawnable": false,
+        "material": {"id": "wood"},
+        "texture": {
+            "id": "paintintg_frame",
+            "side": [1.5, 1.5]
+        }
+    },
+    {
         "id": 137,
         "name": "WOODEN_SHOVEL",
         "transparent": true,

@@ -39,6 +39,10 @@
         "tool": {
             "image": "/textures/tool.png",
             "tx_cnt": 16
+        },
+        "paintintg_frame": {
+            "image": "/textures/paintintg_frame.png",
+            "tx_cnt": 4
         }
     }
 }
