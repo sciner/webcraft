@@ -296,7 +296,7 @@ export class Renderer {
 
         });
 
-        this.renderBackend.endFrame();
+        this.renderBackend.endPass();
 
         // render target to Canvas
         target.toImage('canvas').then((data) => {
