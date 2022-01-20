@@ -3,11 +3,13 @@ import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture, CubeMesh} f
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
-import {Helpers} from "../../helpers.js";
+import {Helpers, Mth} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
+
+const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
 const TEXTURE_TYPE_FORMAT = {
     'rgba8u': {
@@ -41,7 +43,7 @@ export class WebGLCubeShader extends WebGLUniversalShader {
             source: options.sides
         });
 
-        this.texture.bind();        
+        this.texture.bind();
         // we already can use uniforms
         // make only set default values
         this._makeUniforms({
@@ -176,9 +178,9 @@ export class WebGLTexture extends BaseTexture {
             if (this.source) {
                 gl.texImage2D(
                     type,
-                    0, 
+                    0,
                     gl[formats.internal || formats.format],
-                    gl[formats.format], 
+                    gl[formats.format],
                     gl[formats.type],
                     this.source
                 );
@@ -224,7 +226,7 @@ export class WebGLTexture extends BaseTexture {
 
         super.destroy();
 
-        // not destroy shared texture that used 
+        // not destroy shared texture that used
         if(this.isUsed) {
             return;
         }
@@ -300,31 +302,22 @@ export default class WebGLRenderer extends BaseRenderer {
         */
     }
 
-    /**
-     * 
-     * @param {WebGLRenderTarget} target 
-     */
-    setTarget(target) {
-        super.setTarget(target);
-
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target ?  target.framebuffer : null);
-
-        const { gl, fogColor } = this;
+    clear({clearDepth = true, clearColor = true} = {}) 
+    {
         const {
-            width, height
-        } = target ? target : this.size;
+            gl, _clearColor
+        } = this;
 
-        gl.viewport(0, 0, width, height);
-    }
+        const mask = (~~clearDepth * (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) | (~~clearColor * gl.COLOR_BUFFER_BIT);
 
-    clear( { depth, color } = {depth: true, color: true}) {
-        const gl = this.gl;
+        _clearColor && gl.clearColor(
+            _clearColor[0],
+            _clearColor[1],
+            _clearColor[2],
+            _clearColor[3]
+        );
 
-        const mask = (depth ? gl.DEPTH_BUFFER_BIT : 0) | (color ? gl.COLOR_BUFFER_BIT : 0);
-
-        if (mask) {
-            gl.clear(mask);
-        }
+        mask && gl.clear(mask);        
     }
 
     createRenderTarget(options) {
@@ -403,25 +396,47 @@ export default class WebGLRenderer extends BaseRenderer {
         this.stat.drawcalls++;
     }
 
-    beginFrame(fogColor) {
-        // debug only
-        const { gl } = this;
-        this.setTarget(null); // or null to init viewport
+    /**
+     *
+     * @param {import("../BaseRenderer.js").PassOptions} options
+     */
+    beginPass(options = {}) {
+        super.beginPass(options);
 
-        gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        const {
+            gl, _target, _viewport
+        } = this;
+
+        gl.bindFramebuffer(
+            gl.FRAMEBUFFER,
+            _target ? _target.framebuffer : null
+        );
+
+        gl.viewport(..._viewport);
+ 
+        this.clear(options);
     }
 
+    /**
+     * @deprecated
+     * @param {} fogColor 
+     */
+    beginFrame(fogColor) {
+        this.beginPass({fogColor})
+    }
+
+    /**
+     * @deprecated
+     */
     endFrame() {
         // this.blitRenderTarget();
         // reset framebufer
-        this.setTarget(null);
     }
 
     /**
      * Blit color from current attached framebuffer to specific area of canvas
-     * @param {{x?: number, y?: number, w?: number, h?: number}} param0 
-     * @returns 
+     * @param {{x?: number, y?: number, w?: number, h?: number}} param0
+     * @returns
      */
     blitRenderTarget({x = 0, y = 0, w = null, h = null} = {}) {
         /**
@@ -442,7 +457,7 @@ export default class WebGLRenderer extends BaseRenderer {
             x, y, (w || this.size.width) + x, (h || this.size.height) + y,
             gl.COLOR_BUFFER_BIT, gl.LINEAR
         );
-        
+
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
@@ -451,8 +466,8 @@ export default class WebGLRenderer extends BaseRenderer {
 
     /**
      * Blit one render target to another size-to-size
-     * @param {WebGLRenderTarget} fromTarget 
-     * @param {WebGLRenderTarget} toTarget 
+     * @param {WebGLRenderTarget} fromTarget
+     * @param {WebGLRenderTarget} toTarget
     */
     blit(fromTarget = null, toTarget = null) {
         fromTarget = fromTarget || null;
@@ -475,8 +490,8 @@ export default class WebGLRenderer extends BaseRenderer {
         const toSize = toTarget ? toTarget : this.size;
         const fromDepth = fromTarget ? fromTarget.options.depth : true;
         const toDepth = toTarget ? toTarget.options.depth : true;
-        const bits = (toDepth && fromDepth) 
-            ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT) 
+        const bits = (toDepth && fromDepth)
+            ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
             : gl.COLOR_BUFFER_BIT;
 
 

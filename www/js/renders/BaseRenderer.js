@@ -3,6 +3,14 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 
 const {mat4} = glMatrix;
 
+/**
+ * @typedef {Object} PassOptions
+ * @property {[number, number, number, number]} [fogColor]
+ * @property {boolean} [clearColor]
+ * @property {boolean} [clearDepth]
+ * @property {BaseRenderTarget} [target]
+ * @property {[number, number, number, number]} [viewport]
+ */
 export class BaseRenderTarget {
     constructor (context, options = {width: 1, height: 1, depth: true}) {
         this.context = context;
@@ -541,7 +549,22 @@ export default class BaseRenderer {
             drawcalls: 0,
             drawquads: 0
         };
-        this.fogColor = [0,0,0,0];
+
+        /**
+         * @type {[number, number, number, number]}
+         */
+        this._clearColor = [0,0,0,0];
+
+        /**
+         * @type {[number, number, number, number]}
+         */
+        this._viewport = [0,0,0,0];
+
+        /**
+         * @type {BaseRenderTarget}
+         */
+        this._target = null;
+
         this._activeTextures = {};
 
         /**
@@ -554,10 +577,6 @@ export default class BaseRenderer {
             data: new Uint8Array(255)
         })
 
-        /**
-         * @type {BaseRenderTarget}
-         */
-        this._target = null;
 
         this.globalUniforms = new GlobalUniformGroup();
 
@@ -658,7 +677,8 @@ export default class BaseRenderer {
     }
 
     /**
-     *
+     * @deprecated 
+     * @see beginPass
      * @param {BaseRenderTarget} target
      */
     setTarget(target) {
@@ -685,17 +705,84 @@ export default class BaseRenderer {
     _configure() {
 
     }
+ 
+    /**
+     * Begin render pass to specific target 
+     * @param {PassOptions} param0 
+     */
+    beginPass({
+        fogColor = [0,0,0,0],
+        clearDepth = true,
+        clearColor = true,
+        target = null,
+        viewport = null
+    }) {
+        if (target && !target.valid) {
+            throw 'Try bound invalid RenderTarget';
+        }
 
+        this._target = target;
+
+        const { size } = this;
+
+        const limit = target 
+            ? target 
+            : size;
+
+        const x = viewport
+            ? clamp(0, limit.width, viewport[0] || 0)
+            : 0;
+
+        const y = viewport
+            ? clamp(0, limit.height, viewport[1] || 0)
+            : 0;
+
+        const width = viewport
+            ? clamp(0, limit.width, viewport[2] || limit.width)
+            : limit.width;
+
+
+        const height = viewport
+            ? clamp(0, limit.height, viewport[3] || limit.height)
+            : limit.height;
+
+        this._viewport[0] = x;
+        this._viewport[1] = y;
+        this._viewport[2] = width;
+        this._viewport[3] = height; 
+
+        this._clearColor[0] = fogColor[0] | 0;
+        this._clearColor[1] = fogColor[1] | 0;
+        this._clearColor[2] = fogColor[2] | 0;
+        this._clearColor[3] = fogColor[3] | 0;        
+    }
+
+    /**
+     * Execute render and close current pass
+     */
+    endPass() {
+
+    }
+
+    /**
+     * @deprecated 
+     * @see beginPass
+     * @param {} fogColor 
+     */
     beginFrame(fogColor) {
 
     }
 
+    /**
+     * @deprecated 
+     * @see endPass
+     */
     endFrame() {
 
     }
 
     clear({
-        depth, color
+        clearDepth, clearColor
     }) {
 
     }

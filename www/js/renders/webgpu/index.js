@@ -104,27 +104,35 @@ export default class WebGPURenderer extends BaseRenderer{
         return new CubeMesh(new WebGPUCubeShader(this, options), new BaseCubeGeometry(this, options));
     }
 
-    beginFrame(fogColor = [0,0,0,0]) {
-        super.beginFrame(fogColor);
+    beginPass(options) {
+        super.beginPass(options);
 
         this.encoder = this.device.createCommandEncoder();
         this.passEncoder = this.encoder.beginRenderPass({
             colorAttachments: [
                 {
                     view: this.currentBackTexture,
-                    loadValue: fogColor,
-                    storeOp: 'store',
+                    loadValue: this._clearColor,
+                    storeOp: options.clearColor ? 'store' : 'keep',
                 }
             ],
             depthStencilAttachment: {
                 view: this.depth.createView(),
 
                 depthLoadValue: 1.0,
-                depthStoreOp: 'store',
+                depthStoreOp: options.clearDepth ? 'store' : 'keep',
                 stencilLoadValue: 0,
-                stencilStoreOp: 'store',
+                stencilStoreOp: options.clearDepth ? 'store' : 'keep',
             },
         });
+
+        this.passEncoder.setViewport(
+            this._viewport[0],
+            this._viewport[1],
+            this._viewport[2],
+            this._viewport[3],
+            0, 1
+        );
     }
 
     /**
@@ -183,7 +191,7 @@ export default class WebGPURenderer extends BaseRenderer{
         this.passEncoder.drawIndexed(36);
     }
 
-    endFrame() {
+    endPass() {
         this.passEncoder.endPass();
         this.device.queue.submit([this.encoder.finish()]);
 

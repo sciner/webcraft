@@ -271,8 +271,9 @@ export class Renderer {
         camera.use(gu, true);
         gu.update();
         
-        this.renderBackend.setTarget(target);
-        this.renderBackend.clear({depth: true, color: true});
+        this.renderBackend.beginPass({
+            target
+        });
 
         regular.forEach((block, i) => {
             const pos = block.block_material.inventory_icon_id;
@@ -382,11 +383,11 @@ export class Renderer {
 
             Resources.inventory.image = data;
         });
+        
+        this.renderBackend.endPass();
 
         // disable
         gu.useSunDir = false;
-
-        this.renderBackend.setTarget(null);
 
         target.destroy();
     }
@@ -495,7 +496,9 @@ export class Renderer {
 
         globalUniforms.update();
 
-        renderBackend.beginFrame(this.env.actualFogColor);
+        renderBackend.beginPass({
+            fogColor : this.env.actualFogColor
+        });
 
         this.env.draw(this);
 
@@ -541,8 +544,8 @@ export class Renderer {
             this.make_screenshot = false;
             this.renderBackend.screenshot();
         }
- 
-        renderBackend.endFrame();
+
+        renderBackend.endPass();
     }
 
     //

@@ -162,9 +162,9 @@ export class InHandOverlay {
         globalUniforms.brightness = Math.max(0.4, render.brightness * render.nightShift);
         globalUniforms.update();
 
-        renderBackend.clear({
-            depth: true,
-            color: false
+        renderBackend.beginPass({
+            clearDepth: true,
+            clearColor: false
         });
 
         const animMatrix = mat4.identity(tmpMatrix);
@@ -214,5 +214,7 @@ export class InHandOverlay {
 
             inHandItemMesh.drawDirectly(render, animMatrix);
         }
+
+        renderBackend.endPass();
     }
 }
