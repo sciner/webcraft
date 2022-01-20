@@ -28,11 +28,9 @@ export class WebGPUTexture extends BaseTexture {
 
         const isCube = Array.isArray(this.source) && this.source.length === 6;
 
-        const isRTT = !this.source;
-
-        const format = this.type === TEXTURE_TYPE_FORMAT.rgba8u && isRTT 
-            ? this.context.format 
-            : TEXTURE_TYPE_FORMAT[this.type].format;
+        const format = this.type in TEXTURE_TYPE_FORMAT 
+            ? TEXTURE_TYPE_FORMAT[this.type].format
+            : this.type;
 
         /**
          *

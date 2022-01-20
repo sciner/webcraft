@@ -384,6 +384,9 @@ export class BaseTerrainShader extends BaseShader {
 
     bind() {
     }
+    unbind() {
+        
+    }
 
     update() {
     }
@@ -662,7 +665,7 @@ export default class BaseRenderer {
     }
 
     /**
-     *
+     * @deprecated Use beginPass
      * @param {BaseRenderTarget} target
      */
     setTarget(target) {
@@ -687,6 +690,15 @@ export default class BaseRenderer {
     }
 
     _configure() {
+
+    }
+
+    /**
+     * 
+     * @param {BaseRenderTarget} target 
+     * @param {{fogColor?: number[], clearDepth?: boolean, clearColor?: boolean}} param1 
+     */
+    beginPass(target, {fogColor, clearDepth, clearColor}) {
 
     }
 

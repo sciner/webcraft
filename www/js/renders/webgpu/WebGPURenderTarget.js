@@ -8,8 +8,18 @@ export class WebGPURenderTarget extends BaseRenderTarget {
         super(context, options);
 
         this.init();
+    }
+
+    init() {
+        this.texture = this.context.createTexture({...this.options, type: this.context.format});
         this.texture.bind();
-        this.depthTexture && this.depthTexture.bind();
+
+        if (this.options.depth) {
+            this.depthTexture = this.context.createTexture({ ...this.options, type: 'depth24plus' });
+            this.depthTexture.bind();
+        }
+
+        this.valid = true;
     }
 
     toRawPixels() {

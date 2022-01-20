@@ -406,7 +406,7 @@ export default class WebGLRenderer extends BaseRenderer {
     beginFrame(fogColor) {
         // debug only
         const { gl } = this;
-        this.setTarget(null); // or null to init viewport
+        this.setTarget(this._target); // or null to init viewport
 
         gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

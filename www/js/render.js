@@ -270,9 +270,9 @@ export class Renderer {
         camera.use(gu, true);
         gu.update();
         
-        this.renderBackend.setTarget(target);
+        this.renderBackend.setTarget(target);        
+        this.renderBackend.beginFrame([0,0,0,0]);
         this.renderBackend.clear({depth: true, color: true});
-        this.renderBackend.beginFrame([0,0,0, 1]);
 
         regular.forEach((block, i) => {
             const pos = block.block_material.inventory_icon_id;
