@@ -515,16 +515,17 @@ export class GameClass {
 
     drawInstruments() {
         let instruments = [];
-        for(let i of this.block_manager.getAll().values()) {
-            if(i.instrument_id) {
+        for(let block of this.block_manager.getAll().values()) {
+            if(block.item?.instrument_id) {
                 instruments.push({
-                    id: i.id,
-                    name: i.name,
-                    material: i.material.id,
-                    instrument_id: i.instrument_id,
-                    instrument_boost: i.material.mining.instrument_boost,
-                    power: i.power,
-                    texture: JSON.stringify(i.texture)
+                    id:                 block.id,
+                    name:               block.name,
+                    material:           block.material.id,
+                    instrument_id:      block.item.instrument_id,
+                    instrument_boost:   block.material.mining.instrument_boost,
+                    power:              block.power,
+                    item:               JSON.stringify(block.item),
+                    texture:            JSON.stringify(block.texture)
                 });
             }
         }

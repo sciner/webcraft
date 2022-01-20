@@ -35,6 +35,122 @@ function calcRotateByPosN(pos_n) {
 
 }
 
+// installPainting...
+function installPainting(world, pos, resp) {
+    const center_pos = new Vector(pos);
+    let field = null;
+    let fixed_field = null;
+    if(pos.n.x) {
+        field = 'z';
+        fixed_field = 'x';
+    } else if(pos.n.z) {
+        field = 'x';
+        fixed_field = 'z';
+    }
+    if(!field) {
+        return false;
+    }
+    let painting_sizes = [
+        // 4x4
+        {
+            name: '4x4',
+            list: [
+                {y: 2, f: -1}, {y: 2, f: 0}, {y: 2, f: 1}, {y: 2, f: 2},
+                {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
+                {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2},
+                {y: -1, f: -1}, {y: -1, f: 0}, {y: -1, f: 1}, {y: -1, f: 2}
+            ]
+        },
+        // 4x3
+        {
+            name: '4x3',
+            list: [
+                {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
+                {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2},
+                {y: -1, f: -1}, {y: -1, f: 0}, {y: -1, f: 1}, {y: -1, f: 2}
+            ]
+        },
+        // 4x2
+        {
+            name: '4x2',
+            list: [
+                {y: 1, f: -1}, {y: 1, f: 0}, {y: 1, f: 1}, {y: 1, f: 2},
+                {y: 0, f: -1}, {y: 0, f: 0}, {y: 0, f: 1}, {y: 0, f: 2}
+            ]
+        },
+        // 2x2
+        {
+            name: '2x2',
+            list: [
+                {y: 0, f: 0}, {y: 1, f: 0},
+                {y: 0, f: 1}, {y: 1, f: 1}
+            ]
+        },
+        // 2x1
+        {
+            name: '2x1',
+            list: [
+                {y: 0, f: 0}, {y: 0, f: 1}
+            ]
+        },
+        // 1x2
+        {
+            name: '1x2',
+            list: [
+                {y: 0, f: 0}, {y: 1, f: 0}
+            ]
+        },
+        // 1x1
+        {
+            name: '1x1',
+            list: [
+                {y: 0, f: 0}
+            ]
+        }
+    ];
+    let blocks = new VectorCollector();
+    let bpos = new Vector(center_pos);
+    for(let item of painting_sizes) {
+        let ok = true;
+        let painting_pos = null;
+        for(let pp of item.list) {
+            bpos.y = center_pos.y + pp.y + 1;
+            bpos[field] = center_pos[field] + pp.f;
+            bpos[fixed_field] = center_pos[fixed_field];
+            if(!painting_pos) {
+                painting_pos = new Vector(bpos);
+            }
+            let pb = blocks.get(bpos);
+            if(!pb) {
+                pb = world.getBlock(bpos);
+                blocks.set(bpos, pb);
+                // resp.blocks.push({pos: new Vector(bpos), item: {id: BLOCK.BRICK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+            }
+            if(pb.id == 0 || pb.material.planting) {
+                // ok
+            } else {
+                ok = false;
+                break;
+            }
+        }
+        if(ok) {
+            const size = item.name.split('x').map(x => parseInt(x));
+            let aabb = new AABB();
+            const second_corner = new Vector(painting_pos);
+            second_corner[field] += size[0];
+            second_corner[fixed_field] += 4/16;
+            second_corner.y -= size[1];
+            aabb.set(painting_pos.x, second_corner.y, painting_pos.z, second_corner.x, painting_pos.y, second_corner.z);
+            resp.install_painting = {
+                aabb:   aabb.toArray(),
+                size:   size,
+                pos_n:  pos.n
+            };
+            break;
+        }
+    }
+}
+
 // Calc rotate
 function calcRotate(rot, pos_n) {
     rot = new Vector(rot);
@@ -73,7 +189,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         reset_target_event: false,
         decrement:          false,
         drop_items:         [],
-        blocks:             []
+        blocks:             [],
+        install_painting:   null
     };
     if(e.pos == false) {
         return resp;
@@ -349,30 +466,41 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 12. Запрет на списание инструментов как блоков
-        if(matBlock.instrument_id) {
-            switch(matBlock.instrument_id) {
+        if(matBlock.item && matBlock.item) {
+            switch(matBlock.item.name) {
                 case 'shovel': {
-                    if(world_material.id == BLOCK.DIRT.id) {
-                        const extra_data = null;
-                        pos.x -= pos.n.x;
-                        pos.y -= pos.n.y;
-                        pos.z -= pos.n.z;
-                        resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
-                        resp.decrement = true;
+                    switch(matBlock.item.instrument_id) {
+                        case 'shovel': {
+                            if(world_material.id == BLOCK.DIRT.id) {
+                                const extra_data = null;
+                                pos.x -= pos.n.x;
+                                pos.y -= pos.n.y;
+                                pos.z -= pos.n.z;
+                                resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                                resp.decrement = true;
+                            }
+                            break;
+                        }
                     }
                     break;
                 }
-            }
-        } else if(matBlock.tags.indexOf('bucket') >= 0) {
-            if(matBlock.emit_on_set) {
-                const emitBlock = BLOCK.fromName(matBlock.emit_on_set);
-                const extra_data = BLOCK.makeExtraData(emitBlock, pos);
-                resp.blocks.push({pos: new Vector(pos), item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
-                resp.decrement = true;
-                if(emitBlock.sound) {
-                    resp.play_sound = {tag: emitBlock.sound, action: 'place'};
+                case 'bucket': {
+                    if(matBlock.item.emit_on_set) {
+                        const emitBlock = BLOCK.fromName(matBlock.item.emit_on_set);
+                        const extra_data = BLOCK.makeExtraData(emitBlock, pos);
+                        resp.blocks.push({pos: new Vector(pos), item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
+                        resp.decrement = true;
+                        if(emitBlock.sound) {
+                            resp.play_sound = {tag: emitBlock.sound, action: 'place'};
+                        }
+                        return resp;
+                    }
+                    break;
                 }
-                return resp;
+                case 'painting': {
+                    installPainting(world, pos, resp);
+                    break;
+                }
             }
         } else {
             const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(pos.n) : calcRotate(player.rotate, pos.n);
@@ -429,7 +557,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             //
             if(replaceBlock) {
                 // Replace block
-                if(matBlock.is_item || matBlock.is_entity) {
+                if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
                         pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
@@ -445,7 +573,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 if(BLOCK.isPlants(matBlock.id) && (!underBlock || underBlock.id != BLOCK.DIRT.id)) {
                     return resp;
                 }
-                if(matBlock.is_item || matBlock.is_entity) {
+                if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
                         pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;

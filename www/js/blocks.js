@@ -29,7 +29,6 @@ NEIGHB_BY_SYM[DIRECTION.UP] = 'UP';
 // id (int)                     - Unique ID
 // instrument_id (string)       - Unique code of instrument type
 // inventory_icon_id (int)      - Position in inventory atlas
-// is_item (bool)               - ?
 // max_in_stack (int)           - Max count in inventory or other stack
 // name (string)                - Unique name
 // passable (float)             - Passable value 0...1
@@ -62,8 +61,8 @@ class Block_Material {
                 throw 'error_block_has_no_material|' + resource_pack.id + '.' + block.name;
             }
             //
-            if(block.instrument_id && !this.data.instruments[block.instrument_id]) {
-                throw 'error_unknown_instrument|' + block.instrument_id;
+            if(block.item?.instrument_id && !this.data.instruments[block.item.instrument_id]) {
+                throw 'error_unknown_instrument|' + block.item.instrument_id;
             }
             //
             const block_material_id = block.material.id;
@@ -93,7 +92,7 @@ class Block_Material {
         if(force) {
             mining_time = 0;
         } else if(instrument && instrument.material) {
-            const instrument_id = instrument.material.instrument_id;
+            const instrument_id = instrument.material.item?.instrument_id;
             if(instrument_id) {
                 if(this.mining.instruments.indexOf(instrument_id) >= 0) {
                     const instrument_boost = instrument.material.material.mining.instrument_boost;
@@ -369,7 +368,7 @@ export class BLOCK {
         await Block_Material.materials.checkBlock(resource_pack, block);
         if(!block.sound) {
             if(block.id > 0) {
-                if(!block.is_item) {
+                if(!block.item) {
                     let material_id = null;
                     if(['stone', 'grass', 'wood', 'glass', 'sand'].indexOf(block.material.id) >= 0) {
                         material_id = block.material.id;

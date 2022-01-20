@@ -11,6 +11,7 @@ import {Chat} from "./chat.js";
 import {PlayerControl} from "./player_control.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
+import {Particles_Painting} from "./particles/painting.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -299,6 +300,9 @@ export class Player {
         if(actions.clone_block && this.game_mode.canBlockClone()) {
             this.world.server.CloneBlock(e.pos);
         }
+        if(actions.install_painting) {
+            Game.render.meshes.add(new Particles_Painting(actions.install_painting));
+        }
         for(let mod of actions.blocks) {
             const pos = mod.pos;
             const item = mod.item;
@@ -328,7 +332,7 @@ export class Player {
     getCurrentInstrument() {
         let currentInventoryItem = this.currentInventoryItem;
         let instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
-        if(currentInventoryItem && currentInventoryItem.instrument_id) {
+        if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
             // instrument = new Instrument_Hand();
         }
         return instrument;
