@@ -116,6 +116,11 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     beginPass(options) {
+        // if we has pass, close it
+        if (this.encoder) {
+            this.endPass();
+        }
+
         super.beginPass(options);
 
         this.encoder = this.device.createCommandEncoder();
@@ -123,18 +128,18 @@ export default class WebGPURenderer extends BaseRenderer{
             colorAttachments: [
                 {
                     view: this.currentBackTexture,
-                    loadValue: this._clearColor,
-                    storeOp: options.clearColor ? 'store' : 'keep',
+                    loadValue: options.clearColor ? this._clearColor : 'load',
+                    storeOp: 'store',
                 }
             ]
             ,
             depthStencilAttachment: {
                 view: this.currentDepth,
 
-                depthLoadValue: 1.0,
-                depthStoreOp: options.clearDepth ? 'store' : 'keep',
+                depthLoadValue: options.clearDepth ? 1.0 : 'load',
+                depthStoreOp: 'store',
                 stencilLoadValue: 0,
-                stencilStoreOp: options.clearDepth ? 'store' : 'keep',
+                stencilStoreOp: 'discard',
             },
         });
 
@@ -204,11 +209,18 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     endPass() {
+        if (!this.encoder) {
+            return;
+        }
+
         this.passEncoder.endPass();
         this.device.queue.submit([this.encoder.finish()]);
 
         this.subMats.forEach(e => e.destroy());
         this.subMats.length = 0;
+
+        this.passEncoder = null;
+        this.encoder = null;
     }
 
     async init(args) {
