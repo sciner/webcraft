@@ -26,7 +26,7 @@ const {mat4, quat, vec3} = glMatrix;
 * elements in the specified world.
 **/
 export const ZOOM_FACTOR        = 0.25;
-const BACKEND                   = 'webgpu'; // disable webgpu temporary because require update to follow webgl
+const BACKEND                   = 'webgl'; // disable webgpu temporary because require update to follow webgl
 const FOV_CHANGE_SPEED          = 75;
 const FOV_FLYING_CHANGE_SPEED   = 35;
 const FOV_NORMAL                = 75;
