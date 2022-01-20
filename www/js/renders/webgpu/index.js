@@ -1,4 +1,6 @@
 //@ts-check
+/// <reference path="./../../../types/index.d.ts" />
+
 import BaseRenderer, {BaseCubeGeometry, CubeMesh} from "../BaseRenderer.js";
 import {WebGPUTerrainShader} from "./WebGPUTerrainShader.js";
 import {WebGPUMaterial} from "./WebGPUMaterial.js";
@@ -7,6 +9,7 @@ import {WebGPUTexture3D} from "./WebGPUTexture3D.js";
 import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
 import {Resources} from "../../resources.js";
+import { WebGPURenderTarget } from "./WebGPURenderTarget.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -58,7 +61,15 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     get currentBackTexture() {
-        return this.context.getCurrentTexture().createView();
+        return this._target 
+            ? this._target.texture.view
+            : this.context.getCurrentTexture().createView();
+    }
+
+    get currentDepth() {
+        return this._target 
+            ? this._target.depthTexture.view 
+            : this.depth.createView();
     }
 
     createShader(options = {}) {
@@ -115,9 +126,10 @@ export default class WebGPURenderer extends BaseRenderer{
                     loadValue: this._clearColor,
                     storeOp: options.clearColor ? 'store' : 'keep',
                 }
-            ],
+            ]
+            ,
             depthStencilAttachment: {
-                view: this.depth.createView(),
+                view: this.currentDepth,
 
                 depthLoadValue: 1.0,
                 depthStoreOp: options.clearDepth ? 'store' : 'keep',
@@ -240,6 +252,19 @@ export default class WebGPURenderer extends BaseRenderer{
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         });
     }
+
+    createRenderTarget(options) {
+        return new WebGPURenderTarget(this, options);
+    }
+
+    /**
+     * 
+     * @param {WebGPURenderTarget} target 
+     */
+    setTarget(target) {
+        super.setTarget(target);
+    }
+
 }
 
 /**

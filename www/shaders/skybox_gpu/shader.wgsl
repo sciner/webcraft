@@ -1,4 +1,4 @@
-[[block]] struct Uniforms {
+struct Uniforms {
   lookAt : mat4x4<f32>;
   proj : mat4x4<f32>;
   brightness: f32;
