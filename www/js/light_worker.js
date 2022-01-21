@@ -122,6 +122,9 @@ class LightQueue {
      * @param waveNum
      */
     add(chunk, coord, waveNum) {
+        if (waveNum < 0 || waveNum > maxLight) {
+            waveNum = maxLight;
+        }
         if (this.filled * 3 > this.capacity * 2) {
             this.resizeQueue(this.capacity * 2);
         }
