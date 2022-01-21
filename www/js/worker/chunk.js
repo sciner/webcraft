@@ -331,10 +331,12 @@ export class Chunk {
 
         const cache = BLOCK_CACHE;
         const blockIter = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
+        let material = null;
 
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
-            if(block.id == BLOCK.AIR.id || !block.material) {
+            material = block.material;
+            if(block.id == BLOCK.AIR.id || !material || material.item) {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
@@ -346,18 +348,18 @@ export class Chunk {
             /*
             // if block with gravity
             // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-            if(block.material.gravity && block.pos.y > 0 && block.falling) {
+            if(material.gravity && block.pos.y > 0 && block.falling) {
                 let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
                 if([BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block_under.id) >= 0) {
                     this.gravity_blocks.push(block.pos);
                 }
             }
             // if block is fluid
-            if(block.material.fluid) {
+            if(material.fluid) {
                 this.fluid_blocks.push(block.pos);
             }
             */
-            if(block.material.id == 202
+            if(material.id == 202
                 && (neighbours.UP?.id || 0) == 202
                 && (neighbours.DOWN?.id || 0) == 202
                 && (neighbours.SOUTH?.id || 0) == 202
@@ -368,7 +370,7 @@ export class Chunk {
             }
             if(block.vertices === null) {
                 block.vertices = [];
-                block.material.resource_pack.pushVertices(
+                material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
                     this,
@@ -381,12 +383,12 @@ export class Chunk {
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices.has(block.material.material_key)) {
-                    // {...group_templates[block.material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
-                    this.vertices.set(block.material.material_key, JSON.parse(JSON.stringify(group_templates[block.material.group])));
+                if(!this.vertices.has(material.material_key)) {
+                    // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                    this.vertices.set(material.material_key, JSON.parse(JSON.stringify(group_templates[material.group])));
                 }
                 // Push vertices
-                this.vertices.get(block.material.material_key).list.push(...block.vertices);
+                this.vertices.get(material.material_key).list.push(...block.vertices);
             }
         }
 
