@@ -531,7 +531,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
             for (cursor.z = Math.floor(bb.minZ); cursor.z <= Math.floor(bb.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(bb.minX); cursor.x <= Math.floor(bb.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
+                    if (block && block.material && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
                         const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
                         if (Math.ceil(bb.maxY) >= waterLevel) waterBlocks.push(block)
                     }

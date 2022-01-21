@@ -154,10 +154,16 @@ export class Chunk {
         let prev_block_id = Infinity;
         let light_power_number = 0;
         let blocks_count = size.x * size.y * size.z;
+        let block_material = null;
         for(let i = 0; i < blocks_count; i++) {
             const block_id = ids[ind];
             if(block_id != prev_block_id) {
-                light_power_number = BLOCK.BLOCK_BY_ID.get(block_id).light_power_number;
+                block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                if(block_material) {
+                    light_power_number = block_material.light_power_number;
+                } else {
+                    console.error('Block not found', block_id);
+                }
                 prev_block_id = block_id;
             }
             light_source[ind] = light_power_number;

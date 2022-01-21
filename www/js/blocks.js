@@ -645,9 +645,13 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
+        const material = b.properties;
+        if(!material) {
+            return shapes;
+        }
         let f = !!expanded ? .001 : 0;
-        if(!b.properties.passable && (b.properties.style != 'planting' /*&& b.properties.style != 'sign'*/)) {
-            switch(b.properties.style) {
+        if(!material.passable && (material.style != 'planting' /*&& material.style != 'sign'*/)) {
+            switch(material.style) {
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;
                     //
@@ -767,7 +771,7 @@ export class BLOCK {
                     let n = this.autoNeighbs(world.chunkManager, pos, cardinal_direction, neighbours);
                     //
                     let checkIfSame = (b) => {
-                        return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('stairs') >= 0;
+                        return b.id > 0 && material.tags && material.tags.indexOf('stairs') >= 0;
                     };
                     //
                     let on_ceil = this.isOnCeil(b);
@@ -840,28 +844,28 @@ export class BLOCK {
                     break;
                 }
                 default: {
-                    const styleVariant = BLOCK.styles.get(b.properties.style);
+                    const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
                             styleVariant.aabb(b).toArray()
                         );
                     } else {
                         let shift_y = 0;
-                        let height = b.properties.height ? b.properties.height : 1;
+                        let height = material.height ? material.height : 1;
                         // Высота наслаеваемых блоков хранится в extra_data
-                        if(b.properties.layering) {
+                        if(material.layering) {
                             if(b.extra_data) {
                                 height = b.extra_data?.height || height;
                             }
-                            if(b.properties.layering.slab) {
+                            if(material.layering.slab) {
                                 let on_ceil = this.isOnCeil(b);
                                 if(on_ceil) {
-                                    shift_y = b.properties.layering.height;
+                                    shift_y = material.layering.height;
                                 }
                             }
                         }
-                        if(b.properties.width) {
-                            let hw = b.properties.width / 2;
+                        if(material.width) {
+                            let hw = material.width / 2;
                             shapes.push([.5-hw, shift_y - f, .5-hw, .5+hw, shift_y + height + f, .5+hw]);
                         } else {
                             shapes.push([0, shift_y - f, 0, 1, shift_y + height + f, 1]);
@@ -872,13 +876,13 @@ export class BLOCK {
             }
         } else {
             if(!for_physic) {
-                const styleVariant = BLOCK.styles.get(b.properties.style);
+                const styleVariant = BLOCK.styles.get(material.style);
                 if (styleVariant && styleVariant.aabb) {
                     shapes.push(
                         styleVariant.aabb(b).toArray()
                     );
                 } else {
-                    switch(b.properties.style) {
+                    switch(material.style) {
                         case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 1;

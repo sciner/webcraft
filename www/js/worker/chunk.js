@@ -334,7 +334,7 @@ export class Chunk {
 
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
-            if(block.id == BLOCK.AIR.id) {
+            if(block.id == BLOCK.AIR.id || !block.material) {
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет

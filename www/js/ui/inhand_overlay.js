@@ -56,7 +56,7 @@ export class InHandOverlay {
 
         const block = BLOCK.BLOCK_BY_ID.get(targetId);
 
-        if (!block.spawnable) {
+        if (!block || !block.spawnable) {
             return;
         }
 
