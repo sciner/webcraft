@@ -583,8 +583,11 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
                 vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-                vel.y = Math.fround(0.42) * ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1)
+                vel.y = Math.fround(0.42)
+                if(honeyblockId != BLOCK_NOT_EXISTS) {
+                    const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+                    vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
+                }
                 if (entity.jumpBoost > 0) {
                     vel.y += 0.1 * entity.jumpBoost
                 }

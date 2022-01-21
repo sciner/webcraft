@@ -167,6 +167,19 @@ export class ServerChat {
                 }
                 break;
             }
+            case '/sysstat': {
+                const stat = {
+                    mobs_count: this.world.mobs.size,
+                    drop_items: this.world.all_drop_items.size,
+                    players: this.world.players.size,
+                };
+                let temp = [];
+                for(let [k, v] of Object.entries(stat)) {
+                    temp.push(k + ': ' + v);
+                }
+                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                break;
+            }
             case '/spawnpoint': {
                 player.changePosSpawn({pos: player.state.pos.clone().multiplyScalar(1000).floored().divScalar(1000)});
                 break;
