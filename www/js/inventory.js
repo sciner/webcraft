@@ -119,7 +119,7 @@ export class Inventory extends PlayerInventory {
                     hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size - 2 * zoom);
                 }
                 // Draw instrument life
-                if(mat.instrument_id && item.power < mat.power) {
+                if(mat.item?.instrument_id && item.power < mat.power) {
                     const power_normal = item.power / mat.power;
                     let cx = hud_pos.x + 14 * zoom;
                     let cy = hud_pos.y + 14 * zoom;

@@ -150,6 +150,7 @@ export class AABB {
         this.z_max += z;
         return this;
     }
+
 }
 
 export class AABBPool {

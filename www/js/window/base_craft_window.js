@@ -78,7 +78,7 @@ export class CraftTableSlot extends Label {
             ctx.fillText(item.count, x + width, y + height);
         }
         // Draw instrument life
-        if(mat.instrument_id && item.power < mat.power) {
+        if(mat.item?.instrument_id && item.power < mat.power) {
             const power_normal = item.power / mat.power;
             let cx = x + 4 * this.zoom;
             let cy = y + 3 * this.zoom;

@@ -130,7 +130,7 @@ export class PlayerInventory {
             return;
         }
         const current_item_material = BLOCK.fromId(this.current_item.id);
-        if(current_item_material.instrument_id) {
+        if(current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - .01, 0);
             if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
@@ -139,8 +139,8 @@ export class PlayerInventory {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {
                 let matBlock = BLOCK.fromId(this.current_item.id);
-                if(matBlock.tags.indexOf('bucket') >= 0) {
-                    if(matBlock.emit_on_set) {
+                if(matBlock.item && matBlock.item?.name == 'bucket') {
+                    if(matBlock.item.emit_on_set) {
                         const emptyBucket = BLOCK.BUCKET_EMPTY;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }

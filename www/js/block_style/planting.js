@@ -31,8 +31,12 @@ export default class style {
     // computeAABB
     static computeAABB(block) {
         let cardinal_direction = block.getCardinalDirection();
-        let hw = (4/16) / 2;
+        let hw = (4.5/16) / 2;
         let sign_height = 1;
+        if(block.material.planting) {
+            hw = 12/16 / 2;
+            sign_height = 12/16;
+        }
         aabb.set(
             .5-hw, 0, .5-hw,
             .5+hw, sign_height, .5+hw
@@ -52,7 +56,7 @@ export default class style {
             return block.material.texture_animations['side'];
         }
         return 1;
-    };
+    }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
 
@@ -92,6 +96,7 @@ export default class style {
             cardinal_direction,
             dx, dy, dz
         );
+
     }
 
 }

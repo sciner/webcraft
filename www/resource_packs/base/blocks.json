@@ -79,12 +79,8 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "wood"
         },
@@ -100,13 +96,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "stone"
         },
@@ -122,13 +114,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
         "power": 3,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "iron"
         },
@@ -144,13 +132,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "gold"
         },
@@ -166,13 +150,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
         "power": 5,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "diamond"
         },
@@ -188,13 +168,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
         "power": 10,
-        "instrument_id": "shovel",
-        "tags": [
-            "shovel"
-        ],
         "material": {
             "id": "netherite"
         },
@@ -210,12 +186,8 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "wood"
         },
@@ -231,13 +203,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "stone"
         },
@@ -253,13 +221,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
         "power": 3,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "iron"
         },
@@ -275,13 +239,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "gold"
         },
@@ -297,13 +257,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
         "power": 5,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "diamond"
         },
@@ -319,13 +275,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
         "power": 10,
-        "instrument_id": "hoe",
-        "tags": [
-            "hoe"
-        ],
         "material": {
             "id": "netherite"
         },
@@ -341,12 +293,8 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "wood"
         },
@@ -361,13 +309,9 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "stone"
         },
@@ -382,13 +326,9 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
         "power": 3,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "iron"
         },
@@ -403,13 +343,9 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "gold"
         },
@@ -424,13 +360,9 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
         "power": 5,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "diamond"
         },
@@ -445,13 +377,9 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
         "power": 10,
-        "instrument_id": "axe",
-        "tags": [
-            "axe"
-        ],
         "material": {
             "id": "netherite"
         },
@@ -466,12 +394,8 @@
         "style": "extruder",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "wood"
         },
@@ -485,14 +409,10 @@
         "name": "STONE_PICKAXE",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
         "power": 2,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "stone"
         },
@@ -506,14 +426,10 @@
         "name": "IRON_PICKAXE",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
         "power": 3,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "iron"
         },
@@ -527,14 +443,10 @@
         "name": "GOLD_PICKAXE",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
         "power": 2,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "gold"
         },
@@ -548,14 +460,10 @@
         "name": "DIAMOND_PICKAXE",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
         "power": 5,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "diamond"
         },
@@ -569,14 +477,10 @@
         "name": "NETHERITE_PICKAXE",
         "transparent": true,
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
         "power": 10,
-        "instrument_id": "pickaxe",
-        "tags": [
-            "pickaxe"
-        ],
         "material": {
             "id": "netherite"
         },
@@ -592,11 +496,7 @@
         "max_in_stack": 1,
         "style": "extruder",
         "diagonal": true,
-        "is_item": true,
-        "instrument_id": "shears",
-        "tags": [
-            "shears"
-        ],
+        "item": {"name": "instrument", "instrument_id": "shears"},
         "material": {
             "id": "iron"
         },
@@ -1089,7 +989,7 @@
         "id": 130,
         "name": "STICK",
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "stick"},
         "diagonal": true,
         "texture": {
             "id": "tool",
@@ -2649,7 +2549,7 @@
     {
         "id": 173,
         "name": "COAL",
-        "is_item": true,
+        "item": {"name": "coal"},
         "style": "extruder",
         "material": {
             "id": "wood"
@@ -3695,13 +3595,10 @@
         "name": "BUCKET_EMPTY",
         "style": "extruder",
         "max_in_stack": 1,
-        "is_item": true,
+        "item": {"name": "bucket"},
         "material": {
             "id": "iron"
         },
-        "tags": [
-            "bucket"
-        ],
         "texture": {
             "id": "item",
             "side": [0, 0]
@@ -3712,14 +3609,10 @@
         "name": "BUCKET_LAVA",
         "style": "extruder",
         "max_in_stack": 1,
-        "is_item": true,
-        "emit_on_set": "FLOWING_LAVA",
+        "item": {"name": "bucket", "emit_on_set": "FLOWING_LAVA"},
         "material": {
             "id": "iron"
         },
-        "tags": [
-            "bucket"
-        ],
         "texture": {
             "id": "item",
             "side": [1, 0]
@@ -3730,14 +3623,10 @@
         "name": "BUCKET_WATER",
         "style": "extruder",
         "max_in_stack": 1,
-        "is_item": true,
-        "emit_on_set": "FLOWING_WATER",
+        "item": {"name": "bucket", "emit_on_set": "FLOWING_WATER"},
         "material": {
             "id": "iron"
         },
-        "tags": [
-            "bucket"
-        ],
         "texture": {
             "id": "item",
             "side": [3, 0]
@@ -3748,14 +3637,10 @@
         "name": "BUCKET_POWDER_SNOW",
         "style": "extruder",
         "max_in_stack": 1,
-        "is_item": true,
-        "emit_on_set": "SNOW_BLOCK",
+        "item": {"name": "bucket", "emit_on_set": "SNOW_BLOCK"},
         "material": {
             "id": "iron"
         },
-        "tags": [
-            "bucket"
-        ],
         "texture": {
             "id": "item",
             "side": [4, 0]
@@ -4711,12 +4596,8 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "wood"
         },
@@ -4732,13 +4613,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "stone"
         },
@@ -4754,13 +4631,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
         "power": 3,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "iron"
         },
@@ -4776,13 +4649,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
         "power": 2,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "gold"
         },
@@ -4798,13 +4667,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
         "power": 5,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "diamond"
         },
@@ -4820,13 +4685,9 @@
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
-        "is_item": true,
+        "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
         "power": 10,
-        "instrument_id": "sword",
-        "tags": [
-            "sword"
-        ],
         "material": {
             "id": "netherite"
         },
@@ -4839,7 +4700,7 @@
     {
         "id": 612,
         "name": "CARROT",
-        "is_item": true,
+        "item": {"name": "food"},
         "style": "extruder",
         "material": {
             "id": "food"
@@ -4852,7 +4713,7 @@
     {
         "id": 613,
         "name": "APPLE",
-        "is_item": true,
+        "item": {"name": "food"},
         "style": "extruder",
         "material": {
             "id": "food"
@@ -4865,7 +4726,7 @@
     {
         "id": 614,
         "name": "CHICKEN_RAW",
-        "is_item": true,
+        "item": {"name": "food"},
         "style": "extruder",
         "material": {
             "id": "food"
@@ -4892,6 +4753,7 @@
     {
         "id": 616,
         "name": "FRAME",
+        "spawnable": false,
         "inventory_style": "extruder",
         "sound": "madcraft:block.wood",
         "material": {
@@ -4921,5 +4783,30 @@
         ],
         "texture": [28, 0],
         "can_rotate": true
+    },
+    {
+        "id": 618,
+        "name": "PAINTING",
+        "style": "extruder",
+        "spawnable": false,
+        "item": {"name": "painting"},
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "id": "default",
+            "side": [7, 2]
+        }
+    },
+    {
+        "id": 619,
+        "name": "PAINTING_FRAME",
+        "max_in_stack": 1,
+        "spawnable": false,
+        "material": {"id": "wood"},
+        "texture": {
+            "id": "paintintg_frame",
+            "side": [29.5, 29.5]
+        }
     }
 ]

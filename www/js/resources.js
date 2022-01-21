@@ -87,6 +87,9 @@ export class Resources {
             );
         }
 
+        // Painting
+        all.push[Resources.loadPainting()];
+
         // Physics features
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
 
@@ -341,6 +344,32 @@ export class Resources {
     // Load materials
     static async loadMaterials() {
         return  Helpers.fetchJSON('../data/materials.json');
+    }
+
+    // Load painting
+    static async loadPainting() {
+        if(Resources._painting) {
+            return Resources._painting;
+        }
+        let resp = null;
+        await Helpers.fetchJSON('../data/painting.json').then(json => {
+            json.sizes = new Map();
+            for(const [k, item] of Object.entries(json.frames)) {
+                let sz_w = item.w / json.one_width;
+                let sz_h = item.h / json.one_height;
+                item.x /= json.sprite_width;
+                item.y /= json.sprite_height;
+                item.w /= json.sprite_width;
+                item.h /= json.sprite_height;
+                const key = `${sz_w}x${sz_h}`;
+                if(!json.sizes.has(key)) {
+                    json.sizes.set(key, new Map());
+                }
+                json.sizes.get(key).set(k, item);
+            }
+            resp = json;
+        });
+        return Resources._painting = resp;
     }
 
 }

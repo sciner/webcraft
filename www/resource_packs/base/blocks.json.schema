@@ -45,8 +45,8 @@
                 "max_in_stack": {
                     "type": "integer"
                 },
-                "is_item": {
-                    "type": "boolean"
+                "item": {
+                    "type": "string"
                 },
                 "diagonal": {
                     "type": "boolean"

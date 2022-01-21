@@ -4,6 +4,7 @@ import {DropItemManager} from "./drop_item_manager.js";
 import {Physics} from "./physics.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
+import {Particles_Painting} from "./particles/painting.js";
 
 /**
  * World generation unfo passed from server
@@ -85,6 +86,12 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
+
+            this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
+                for(let params of cmd.data) {
+                    Game.render.meshes.add(new Particles_Painting(params));
+                }
+            });
 
             // Connect
             await this.server.connect(() => {

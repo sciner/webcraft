@@ -3,6 +3,7 @@ import express from "express";
 import compression from "compression";
 import fs from 'fs';
 import {Worker} from "worker_threads";
+import uuid from 'uuid';
 
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
@@ -21,6 +22,9 @@ global.BLOCK_CHEST      = 54;
 global.GAME_ONE_SECOND  = 72;
 global.GAME_DAY_SECONDS = 24000;
 global.config           = config;
+global.randomUUID       = () => {
+    return uuid();
+};
 
 console.log('Server config', config);
 

@@ -222,7 +222,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
      * Push draw task directly without any pre-computation.
      * Any matrix updates should be applied manually
      * Allow prepend matrix to modelMatrix
-     * @param {Rendere} render 
+     * @param {Render} render 
      * @param {mat4} prePendMatrix 
      */
      drawDirectly(render, prePendMatrix = null) {
