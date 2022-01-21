@@ -40,18 +40,20 @@ const NEAR_DISTANCE             = 2 / 16;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
 
-let settings = {
-    fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
-    // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
-    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
+const settings = {
+    fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [192 / 255, 216 / 255, 255 / 255, 1] | [185 / 255, 210 / 255, 255 / 255, 1],
     fogAddColor:            [0, 0, 0, 0],
-    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],
+    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
+    fogUnderLavaColor:      [255 / 255, 100 / 255, 20 / 255, 1],
+    fogUnderWaterAddColor:  null,
+    fogUnderLavaAddColor:   null,
     fogDensity:             2.52 / 320,
     fogDensityUnderWater:   0.1
 };
 
-let currentRenderState = {
-    fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
+const currentRenderState = {
+    fogColor:           null, // [118 / 255, 194 / 255, 255 / 255, 1],
+    fogAddColor:        null, // [118 / 255, 194 / 255, 255 / 255, 1],
     fogDensity:         0.02,
     underWater:         false
 };
@@ -90,6 +92,13 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+
+        //
+        settings.fogUnderWaterAddColor = [...settings.fogUnderWaterColor];
+        settings.fogUnderWaterAddColor[3] = .45;
+        settings.fogUnderLavaAddColor = [...settings.fogUnderLavaColor];
+        settings.fogUnderLavaAddColor[3] = .45;
+
     }
 
     /**
@@ -139,7 +148,7 @@ export class Renderer {
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
-        this.brightness         = 1;
+        this.setBrightness(1); // this.brightness = 1;
         renderBackend.resize(this.canvas.width, this.canvas.height);
 
         // Init shaders for all resource packs
@@ -318,15 +327,14 @@ export class Renderer {
                 const x = (pos % GRID) * w;
                 const y = ((pos / GRID) | 0) * h;
 
-                const resource_pack = material.resource_pack;
+                // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
 
+                const resource_pack = material.resource_pack;
                 let texture_id = 'default';
                 if(typeof material.texture == 'object' && 'id' in material.texture) {
                     texture_id = material.texture.id;
                 }
-
                 const tex = resource_pack.textures.get(texture_id);
-
                 // let imageData = tex.imageData;
                 const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
 
@@ -445,20 +453,31 @@ export class Renderer {
     // Render one frame of the world to the canvas.
     draw(delta) {
 
-        this.frame++;
-        const { gl, shader, renderBackend } = this;
-        const { size } = renderBackend;
+        const player                    = this.player;
+        const { renderBackend }         = this;
+        const { size }                  = renderBackend;
 
-        renderBackend.stat.drawcalls = 0;
-        renderBackend.stat.drawquads = 0;
-        let player = this.player;
+        renderBackend.stat.drawcalls    = 0;
+        renderBackend.stat.drawquads    = 0;
         currentRenderState.fogDensity   = settings.fogDensity;
         currentRenderState.fogAddColor  = settings.fogAddColor;
         this.updateViewport();
 
+        this.frame++;
+
         //
         let brightness = this.brightness;
         let fogColor = [...currentRenderState.fogColor];
+        let fogAddColor = [...currentRenderState.fogAddColor];
+        if(player.eyes_in_water) {
+            if(player.eyes_in_water.is_water) {
+                fogColor = settings.fogUnderWaterColor
+                fogAddColor = settings.fogUnderWaterAddColor;
+            } else {
+                fogColor = settings.fogUnderLavaColor;
+                fogAddColor = settings.fogUnderLavaAddColor;
+            }
+        }
 
         // Calculate nightShift
         this.nightShift = 1;
@@ -469,8 +488,6 @@ export class Renderer {
             fogColor[2] *= this.nightShift;
         }
         brightness *= this.nightShift;
-
-        fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : fogColor;
         renderBackend.beginFrame(fogColor);
 
         // apply camera state;
@@ -499,23 +516,14 @@ export class Renderer {
             this.world.chunkManager.prepareRenderList(this);
         }
 
-        //updating global uniforms
+        // Updating global uniforms
         let gu                  = this.globalUniforms;
-        // In water
-        if(player.eyes_in_water) {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = 8;
-            gu.fogAddColor      = settings.fogUnderWaterAddColor;
-            gu.brightness       = brightness;
-        } else {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-            gu.fogAddColor      = currentRenderState.fogAddColor;
-            gu.brightness       = brightness;
-        }
-        //
-        gu.time                 = performance.now();
+        gu.brightness           = brightness;
+        gu.fogColor             = fogColor;
+        gu.fogAddColor          = fogAddColor;
         gu.fogDensity           = currentRenderState.fogDensity;
+        gu.chunkBlockDist       = player.eyes_in_water ? 8 : player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        gu.time                 = performance.now();
         gu.resolution           = [size.width, size.height];
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
@@ -524,7 +532,6 @@ export class Renderer {
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
             const power = BLOCK.getLightPower(block);
-
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
             gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
@@ -569,6 +576,7 @@ export class Renderer {
             this.HUD.draw();
         }
 
+        // 5. Screenshot
         if(this.make_screenshot) {
             this.make_screenshot = false;
             this.renderBackend.screenshot();
