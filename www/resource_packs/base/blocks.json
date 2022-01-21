@@ -74,17 +74,6 @@
         ]
     },
     {
-        "id": 619,
-        "name": "PAINTING_FRAME",
-        "max_in_stack": 1,
-        "spawnable": false,
-        "material": {"id": "wood"},
-        "texture": {
-            "id": "paintintg_frame",
-            "side": [29.5, 29.5]
-        }
-    },
-    {
         "id": 137,
         "name": "WOODEN_SHOVEL",
         "transparent": true,
@@ -4764,6 +4753,7 @@
     {
         "id": 616,
         "name": "FRAME",
+        "spawnable": false,
         "inventory_style": "extruder",
         "sound": "madcraft:block.wood",
         "material": {
@@ -4798,6 +4788,7 @@
         "id": 618,
         "name": "PAINTING",
         "style": "extruder",
+        "spawnable": false,
         "item": {"name": "painting"},
         "material": {
             "id": "wood"
@@ -4805,6 +4796,17 @@
         "texture": {
             "id": "default",
             "side": [7, 2]
+        }
+    },
+    {
+        "id": 619,
+        "name": "PAINTING_FRAME",
+        "max_in_stack": 1,
+        "spawnable": false,
+        "material": {"id": "wood"},
+        "texture": {
+            "id": "paintintg_frame",
+            "side": [29.5, 29.5]
         }
     }
 ]
