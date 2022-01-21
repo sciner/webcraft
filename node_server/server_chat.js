@@ -150,9 +150,21 @@ export class ServerChat {
             case '/tps': {
                 let temp = [];
                 for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    temp.push(k + ': ' + Math.round(v*1000)/1000);
+                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end'].indexOf(k) >= 0) continue;
+                    temp.push(k + ': ' + Math.round(v * 1000) / 1000);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                break;
+            }
+            case '/tps2': {
+                console.log(this.world.ticks_stat);
+                for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
+                    let temp = [];
+                    for(let [vk, vv] of Object.entries(v)) {
+                        temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
+                    }
+                    this.sendSystemChatMessageToSelectedPlayers(k + ': ' + temp.join('; '), [player.session.user_id]);
+                }
                 break;
             }
             case '/spawnpoint': {

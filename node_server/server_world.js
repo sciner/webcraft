@@ -44,11 +44,46 @@ export class ServerWorld {
         this.models         = new ModelManager();
         this.models.init();
         this.ticks_stat     = {
+            pn: null,
             last: 0,
             total: 0,
             count: 0,
             min: Number.MAX_SAFE_INTEGER,
-            max: 0
+            max: 0,
+            values: {
+                chunks: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                players: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                mobs: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+            },
+            start() {
+                this.pn = performance.now();
+                this.pn_values = performance.now();
+            },
+            add(field) {
+                const value = this.values[field];
+                if(value) {
+                    const elapsed = performance.now() - this.pn_values;
+                    value.sum += elapsed;
+                    if(elapsed < value.min) value.min = elapsed;
+                    if(elapsed > value.max) value.max = elapsed;
+                    value.avg = value.sum / this.count;
+                } else {
+                    console.error('invalid tick stat value: ' + field);
+                }
+                this.pn_values = performance.now();
+            },
+            end() {
+                if(this.pn !== null) {
+                    // Calculate stats of elapsed time for ticks
+                    this.last = performance.now() - this.pn;
+                    this.total += this.last;
+                    this.count++;
+                    if(this.last < this.min) this.min = this.last;
+                    if(this.last > this.max) this.max = this.last;
+                }
+            }
         };
         //
         this.admins = new WorldAdminManager(this);
@@ -58,14 +93,7 @@ export class ServerWorld {
         await this.chunks.initWorker();
         //
         this.tickerWorldTimer = setInterval(() => {
-            let pn = performance.now();
             this.tick();
-            // Calculate stats of elapsed time for ticks
-            this.ticks_stat.total += this.ticks_stat.last = performance.now() - pn;
-            this.ticks_stat.count++;
-            if(this.ticks_stat.last < this.ticks_stat.min) this.ticks_stat.min = this.ticks_stat.last;
-            if(this.ticks_stat.last > this.ticks_stat.max) this.ticks_stat.max = this.ticks_stat.last;
-            // console.log('Tick took %sms', Math.round((performance.now() - pn) * 1000) / 1000);
         }, 50);
         //
         this.saveWorldTimer = setInterval(() => {
@@ -110,22 +138,31 @@ export class ServerWorld {
             delta = (performance.now() - this.pn) / 1000;
         }
         this.pn = performance.now();
+        //
+        this.ticks_stat.start();
         // 1.
         this.chunks.tick(delta);
+        this.ticks_stat.add('chunks');
         // 2.
         for(let player of this.players.values()) {
             player.tick(delta);
         }
+        this.ticks_stat.add('players');
         // 3.
         for(let [entity_id, mob] of this.mobs) {
             mob.tick(delta);
         }
+        this.ticks_stat.add('mobs');
         // 4.
         for(let [entity_id, drop_item] of this.all_drop_items) {
             drop_item.tick(delta);
         }
+        this.ticks_stat.add('drop_items');
         // 5.
         this.pickat_action_queue.run();
+        this.ticks_stat.add('pickat_action_queue');
+        //
+        this.ticks_stat.end();
     }
 
     save() {
