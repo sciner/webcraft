@@ -11,7 +11,7 @@ import {Chat} from "./chat.js";
 import {PlayerControl} from "./player_control.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {Particles_Painting} from "./particles/painting.js";
+// import {Particles_Painting} from "./particles/painting.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -265,7 +265,7 @@ export class Player {
         return true;
     }
 
-    // Ограничение частоты выолнения данного действия
+    // Ограничение частоты выполнения данного действия
     limitBlockActionFrequency(e) {
         let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
         if(!resp) {
@@ -300,9 +300,9 @@ export class Player {
         if(actions.clone_block && this.game_mode.canBlockClone()) {
             this.world.server.CloneBlock(e.pos);
         }
-        if(actions.install_painting) {
-            Game.render.meshes.add(new Particles_Painting(actions.install_painting));
-        }
+        //if(actions.create_painting) {
+        //    Game.render.meshes.add(new Particles_Painting(actions.create_painting));
+        //}
         for(let mod of actions.blocks) {
             const pos = mod.pos;
             const item = mod.item;

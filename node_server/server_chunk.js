@@ -20,6 +20,7 @@ export class ServerChunk {
         this.preq           = new Map();
         this.modify_list    = new Map();
         this.mobs           = new Map();
+        this.painting       = new Map();
         this.drop_items     = new Map();
         this.setState(CHUNK_STATE_NEW);
     }
@@ -78,6 +79,7 @@ export class ServerChunk {
         if(this.load_state > CHUNK_STATE_LOADED) {
             this.sendMobs([player.session.user_id]);
             this.sendDropItems([player.session.user_id]);
+            this.sendPaintings([player.session.user_id]);
         }
     }
 
@@ -129,6 +131,20 @@ export class ServerChunk {
         this.sendAll(packets);
     }
 
+    // Add paintings
+    addPaintings(painting_list, notify_all) {
+        for(let painting of painting_list) {
+            this.painting.set(painting.entity_id, painting);
+        }
+        if(notify_all) {
+            let packets = [{
+                name: ServerClient.CMD_CREATE_PAINTING,
+                data: painting_list
+            }];
+            this.sendAll(packets);
+        }
+    }
+
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
@@ -173,6 +189,21 @@ export class ServerChunk {
         this.world.sendSelected(packets, player_user_ids, []);
     }
 
+    sendPaintings(player_user_ids) {
+        // Send all drop items in this chunk
+        if (this.painting.size < 1) {
+            return;
+        }
+        let packets = [{
+            name: ServerClient.CMD_CREATE_PAINTING,
+            data: []
+        }];
+        for(const [_, painting] of this.painting) {
+            packets[0].data.push(painting);
+        }
+        this.world.sendSelected(packets, player_user_ids, []);
+    }
+
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
         this.tblocks            = new TypedBlocks(this.coord);
@@ -190,13 +221,19 @@ export class ServerChunk {
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        this.painting = await this.world.db.loadPaintings(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
-        if(this.connections.size > 0 && this.mobs.size > 0) {
-            this.sendMobs(Array.from(this.connections.keys()));
-        }
-        if(this.connections.size > 0 && this.drop_items.size > 0) {
-            this.sendDropItems(Array.from(this.connections.keys()));
+        if(this.connections.size > 0) {
+            if(this.mobs.size > 0) {
+                this.sendMobs(Array.from(this.connections.keys()));
+            }
+            if(this.drop_items.size > 0) {
+                this.sendDropItems(Array.from(this.connections.keys()));
+            }
+            if(this.painting.size > 0) {
+                this.sendPaintings(Array.from(this.connections.keys()));
+            }
         }
     }
 

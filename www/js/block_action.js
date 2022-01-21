@@ -3,6 +3,7 @@ import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
 import {ServerClient} from "./server_client.js";
+import { Resources } from "./resources.js";
 
 const _createBlockAABB = new AABB();
     
@@ -35,8 +36,8 @@ function calcRotateByPosN(pos_n) {
 
 }
 
-// installPainting...
-function installPainting(world, pos, resp) {
+// createPainting...
+async function createPainting(world, pos) {
     if(pos.n.x == -1) {
         pos.z--;
     }
@@ -174,14 +175,23 @@ function installPainting(world, pos, resp) {
             second_corner[fixed_field] += w;
             second_corner.y -= size[1];
             aabb.set(painting_pos.x, second_corner.y, painting_pos.z, second_corner.x, painting_pos.y, second_corner.z);
-            resp.install_painting = {
-                aabb:   aabb.toArray(),
-                size:   size,
-                pos_n:  pos.n
+            // Find image_name
+            const paintings = await Resources.loadPainting();
+            const col = paintings.sizes.get(item.name);
+            const keys = Array.from(col.keys());
+            const image_name = keys[Math.floor(Math.random() * keys.length)];
+            //
+            return {
+                entity_id:  randomUUID(),
+                aabb:       aabb.toArray(),
+                size:       size,
+                image_name: image_name,
+                pos_n:      pos.n
             };
             break;
         }
     }
+    return null;
 }
 
 // Calc rotate
@@ -223,7 +233,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         decrement:          false,
         drop_items:         [],
         blocks:             [],
-        install_painting:   null
+        create_painting:    null
     };
     if(e.pos == false) {
         return resp;
@@ -531,7 +541,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     break;
                 }
                 case 'painting': {
-                    installPainting(world, pos, resp);
+                    resp.create_painting = await createPainting(world, pos);
                     break;
                 }
             }

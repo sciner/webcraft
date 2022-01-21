@@ -457,6 +457,20 @@ export class ServerWorld {
     // ]
     async applyActions(server_player, actions) {
         let chunks_packets = new VectorCollector();
+        //
+        const getChunkPackets = (pos) => {
+            let chunk_addr = getChunkAddr(pos);
+            let chunk = this.chunks.get(chunk_addr);
+            if(!chunk) {
+                return null;
+            }
+            let cps = chunks_packets.get(chunk_addr);
+            if(!cps) {
+                cps = {packets: [], chunk: chunk};
+                chunks_packets.set(chunk_addr, cps);
+            }
+            return cps;
+        };
         // Send message to chat
         if(actions.chat_message) {
             this.chat.sendMessage(server_player, actions.chat_message);
@@ -477,6 +491,20 @@ export class ServerWorld {
         // Decrement item
         if(actions.decrement) {
             server_player.inventory.decrement(actions.decrement);
+        }
+        // Create painting
+        if(actions.create_painting) {
+            const params = actions.create_painting;
+            const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
+            await this.db.createPainting(this, server_player, pos, params);
+            const cps = getChunkPackets(pos);
+            if(cps) {
+                cps.chunk.addPaintings([params], false);
+                cps.packets.push({
+                    name: ServerClient.CMD_CREATE_PAINTING,
+                    data: [params]
+                });
+            }
         }
         // Create drop items
         if(actions.drop_items.length > 0) {
@@ -501,11 +529,7 @@ export class ServerWorld {
                 await this.db.blockSet(this, null, params);
                 const block_pos = new Vector(params.pos).floored();
                 const block_pos_in_chunk = block_pos.sub(chunk.coord);
-                let cps = chunks_packets.get(chunk_addr);
-                if(!cps) {
-                    cps = {packets: [], chunk: chunk};
-                    chunks_packets.set(chunk_addr, cps);
-                }
+                const cps = getChunkPackets(params.pos);
                 cps.packets.push({
                     name: ServerClient.CMD_BLOCK_SET,
                     data: params

@@ -41,8 +41,8 @@
             "tx_cnt": 16
         },
         "paintintg_frame": {
-            "image": "/textures/paintintg_frame.png",
-            "tx_cnt": 4
+            "image": "/textures/painting.png",
+            "tx_cnt": 32
         }
     }
 }

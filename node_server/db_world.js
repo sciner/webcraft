@@ -11,6 +11,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
+import { ServerWorld } from './server_world.js';
 
 export class DBWorld {
 
@@ -233,6 +234,18 @@ export class DBWorld {
         migrations.push({version: 13, queries: [`alter table user add column "game_mode" TEXT DEFAULT NULL`]});
         migrations.push({version: 14, queries: [`UPDATE user SET inventory = replace(inventory, '"index2":0', '"index2":-1')`]});
         migrations.push({version: 15, queries: [`UPDATE entity SET x = json_extract(pos_spawn, '$.x'), y = json_extract(pos_spawn, '$.y'), z = json_extract(pos_spawn, '$.z')`]});
+        migrations.push({version: 16, queries: [`CREATE TABLE "painting" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "user_id" integer NOT NULL,
+            "dt" integer NOT NULL,
+            "params" TEXT,
+            "x" integer NOT NULL,
+            "y" integer NOT NULL,
+            "z" integer NOT NULL,
+            "image_name" TEXT,
+            "entity_id" TEXT,
+            "world_id" INTEGER
+        );`]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -457,6 +470,48 @@ export class DBWorld {
             ':z':               pos.z
         });
         return result.lastID;
+    }
+
+    /**
+     * Create painting
+     * @param {ServerWorld} world 
+     * @param {ServerPlayer} player 
+     * @param {Object} params
+     * @return {number}
+     */
+    async createPainting(world, player, pos, params) {
+        const result = await this.db.run('INSERT INTO painting(user_id, dt, params, x, y, z, entity_id, image_name, world_id) VALUES(:user_id, :dt, :params, :x, :y, :z, :entity_id, :image_name, :world_id)', {
+            ':user_id':         player.session.user_id,
+            ':dt':              ~~(Date.now() / 1000),
+            ':params':          JSON.stringify(params),
+            ':x':               pos.x,
+            ':y':               pos.y,
+            ':z':               pos.z,
+            ':entity_id':       params.entity_id,
+            ':image_name':      params.image_name,
+            ':world_id':        world.info.id
+        });
+        return result.lastID;
+    }
+
+    // Load paintings
+    async loadPaintings(addr, size) {
+        let rows = await this.db.all('SELECT * FROM painting WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = JSON.parse(row.params);
+            // pos:        new Vector(row.x, row.y, row.z),
+            item.entity_id = row.entity_id;
+            resp.set(item.entity_id, item);
+        }
+        return resp;
     }
 
     // saveChestSlots...

@@ -95,6 +95,10 @@ globalThis.KEY = {};
     KEY.SLASH       = 191;
     KEY.F11         = 122;
 
+globalThis.randomUUID = () => {
+    return crypto.randomUUID();
+};
+
 let app = angular.module('gameApp', []);
 
 let injectParams = ['$scope', '$timeout'];

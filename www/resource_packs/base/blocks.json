@@ -81,7 +81,7 @@
         "material": {"id": "wood"},
         "texture": {
             "id": "paintintg_frame",
-            "side": [1.5, 1.5]
+            "side": [29.5, 29.5]
         }
     },
     {
