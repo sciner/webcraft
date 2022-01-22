@@ -428,7 +428,7 @@ export class BLOCK {
             }
         }
         // Add to ao_invisible_blocks list
-        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
+        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'pane' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
                 this.ao_invisible_blocks.push(block.id);
             }

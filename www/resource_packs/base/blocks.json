@@ -1943,6 +1943,7 @@
         "name": "BLUE_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -1958,6 +1959,7 @@
         "name": "BLACK_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -1973,6 +1975,7 @@
         "name": "PINK_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -1988,6 +1991,7 @@
         "name": "RED_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -2003,6 +2007,7 @@
         "name": "WHITE_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -2018,6 +2023,7 @@
         "name": "YELLOW_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -2033,6 +2039,7 @@
         "name": "GREEN_STAINED_GLASS",
         "transparent": true,
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.glass",
         "material": {
             "id": "glass"
@@ -4903,8 +4910,8 @@
         "id": 626,
         "name": "IRON_BARS",
         "transparent": true,
-        "inventory_style": "extruder",
         "style": "pane",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
