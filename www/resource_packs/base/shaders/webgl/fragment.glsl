@@ -48,6 +48,23 @@ void main() {
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
 
+        /*
+        if (v_color.r >= 0.0) {
+            vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize, texc.y) * mipScale + mipOffset);
+            vec4 color_mult = texture(u_texture, biome);
+            // color.rgb += color_mask.rgb * color_mult.rgb;
+            color += mix(vec4(color_mask.rgb * color_mult.rgb, 0.), color_mask, 1. - color.a);
+        }
+
+        if(color.a < 0.1) discard;
+        if (u_opaqueThreshold > 0.1) {
+            if (color.a < u_opaqueThreshold) {
+                discard;
+            } else {
+                color.a = 1.0;
+            }
+        }*/
+
         #include<local_light_pass>
 
         #include<ao_light_pass>

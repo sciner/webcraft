@@ -65,6 +65,8 @@
     {"id": 233, "name": "OAK_LEAVES"},
     {"id": 220, "name": "ACACIA_LEAVES"},
     {"id": 190, "name": "SPRUCE_LEAVES"},
+    {"id": 526, "name": "DARK_OAK_LEAVES"},
+    {"id": 527, "name": "JUNGLE_LEAVES"},
 
     {"id": 456, "name": "BIRCH_PLANK"},
     {"id": 7, "name": "OAK_PLANK"},

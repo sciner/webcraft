@@ -591,14 +591,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            24,
-            18
+            10,
+            16
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -608,14 +609,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            25,
-            18
+            10,
+            17
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
