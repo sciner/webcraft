@@ -418,7 +418,7 @@ export class Renderer {
         }
     }
 
-    update (delta, ...args) {
+    update (delta, args) {
         this.frame++;
         
         // this.env.computeFogRelativeSun();
@@ -462,6 +462,8 @@ export class Renderer {
             preset: preset
         });
 
+        this.env.update(delta, args);
+
         // Clouds
         if(!this.clouds) {
             let pos = new Vector(player.pos);
@@ -487,7 +489,7 @@ export class Renderer {
     }
 
     // Render one frame of the world to the canvas.
-    draw (delta, ...args) {
+    draw (delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
 

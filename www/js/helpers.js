@@ -14,7 +14,69 @@ export const TX_CNT = 32;
     }
 });*/
 
+/**
+ * Lerp any value between
+ * @param {*} a 
+ * @param {*} b 
+ * @param {number} t 
+ * @param {*} res 
+ * @returns 
+ */
+export function lerpComplex (a, b, t, res) {
+    const typeA = typeof a;
+    const typeB = typeof b;
+
+    if (typeA !== typeB) {
+        return res; // no emit
+    }
+
+    if (a == null || b == null) {
+        return null;
+    }
+
+    if (typeA == 'boolean' || typeA === 'string') {
+        return t > 0.5 ? b : a; // if < 0.5 return a, or b
+    }
+
+    if (typeA === 'number') {
+        return a * (1 - t) + b * t;
+    }
+
+    if (Array.isArray(a)) {
+        res = res || [];
+
+        for (let i = 0; i < Math.min(a.length, b.length); i ++) {
+            res[i] = a[i] * (1 - t) + b[i] * t;            
+        }
+
+        return res;
+    }
+
+    res = res || {};
+
+    for (const key in a) {
+        
+        res[key] = lerpComplex(
+            a[key],
+            b[key],
+            t,
+            res[key]
+        );
+    }
+
+    return res;
+}
+
 export class Mth {
+    /**
+     * Lerp any value between
+     * @param {*} a 
+     * @param {*} b 
+     * @param {number} t 
+     * @param {*} res 
+     * @returns 
+     */
+    static lerpComplex = lerpComplex;
 
     static lerp(amount, value1, value2) {
         amount = amount < 0 ? 0 : amount;
