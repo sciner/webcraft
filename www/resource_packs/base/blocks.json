@@ -4903,6 +4903,7 @@
         "id": 626,
         "name": "IRON_BARS",
         "transparent": true,
+        "inventory_style": "extruder",
         "style": "pane",
         "sound": "madcraft:block.stone",
         "material": {
