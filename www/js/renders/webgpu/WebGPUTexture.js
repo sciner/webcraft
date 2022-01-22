@@ -1,5 +1,14 @@
 import {BaseTexture} from "../BaseRenderer.js";
 
+const TEXTURE_TYPE_FORMAT = {
+    'rgba8u': {
+        format: 'rgba8unorm' , type : 'UNSIGNED_BYTE'
+    },
+    'depth24stencil8': {
+        format: 'depth24plus', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
+    }
+}
+
 export class WebGPUTexture extends BaseTexture {
     bind() {
         if (this.dirty) {
@@ -18,15 +27,20 @@ export class WebGPUTexture extends BaseTexture {
         } = this.context;
 
         const isCube = Array.isArray(this.source) && this.source.length === 6;
+
+        const format = this.type in TEXTURE_TYPE_FORMAT 
+            ? TEXTURE_TYPE_FORMAT[this.type].format
+            : this.type;
+
         /**
          *
          * @type {GPUTexture}
          */
         this.texture = this.texture || device.createTexture({
-            format: 'rgba8unorm',
+            format: format,
             dimension: '2d',
             size: [ this.width, this.height, isCube ? 6 : 1 ],
-            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT
+            usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC
         });
 
         /**

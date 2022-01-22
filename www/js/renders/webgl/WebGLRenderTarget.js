@@ -1,4 +1,5 @@
 import { BaseRenderTarget, BaseTerrainShader } from "../BaseRenderer.js";
+import { WebGLTexture } from "./index.js";
 
 export class WebGLRenderTarget extends BaseRenderTarget {
     constructor(context, options) {
@@ -8,11 +9,6 @@ export class WebGLRenderTarget extends BaseRenderTarget {
          * @type {WebGLFramebuffer}
          */
         this.framebuffer = null; 
-
-        /**
-         * @type {WebGLRenderbuffer}
-         */
-        this.depthBuffer = null;
 
         this.init();
     }
@@ -58,25 +54,19 @@ export class WebGLRenderTarget extends BaseRenderTarget {
             0
         );
         
-        if (this.options.depth) {
-            this.depthBuffer = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
-            gl.renderbufferStorage(
-                gl.RENDERBUFFER,
-                gl.DEPTH_STENCIL,
-                this.width,
-                this.height
-            );
-            gl.framebufferRenderbuffer(
+        if (this.depthTexture) {
+            this.depthTexture.upload();
+
+            gl.framebufferTexture2D(
                 gl.FRAMEBUFFER,
-                gl.DEPTH_ATTACHMENT,
-                gl.RENDERBUFFER,
-                this.depthBuffer
+                gl.DEPTH_STENCIL_ATTACHMENT,
+                gl.TEXTURE_2D,
+                this.depthTexture.texture,
+                0
             );
         }
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 
     destroy() {
@@ -87,8 +77,8 @@ export class WebGLRenderTarget extends BaseRenderTarget {
         super.destroy();
 
         this.framebuffer && this.context.gl.deleteFramebuffer(this.framebuffer);
-        this.depthBuffer && this.context.gl.deleteRenderbuffer(this.depthBuffer);
+        this.depthTexture && this.context.gl.deleteRenderbuffer(this.depthTexture);
         this.framebuffer = null;
-        this.depthBuffer = null;
+        this.depthTexture = null;
     }
 }

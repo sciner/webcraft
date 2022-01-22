@@ -159,12 +159,12 @@ export class InHandOverlay {
 
         // change GU for valid in hand block drawings
         camera.use(globalUniforms, false);
-        globalUniforms.brightness = Math.max(0.4, render.brightness * render.nightShift);
+        globalUniforms.brightness = Math.max(0.4, render.env.fullBrightness);
         globalUniforms.update();
 
-        renderBackend.clear({
-            depth: true,
-            color: false
+        renderBackend.beginPass({
+            clearDepth: true,
+            clearColor: false
         });
 
         const animMatrix = mat4.identity(tmpMatrix);
@@ -214,5 +214,7 @@ export class InHandOverlay {
 
             inHandItemMesh.drawDirectly(render, animMatrix);
         }
+
+        renderBackend.endPass();
     }
 }

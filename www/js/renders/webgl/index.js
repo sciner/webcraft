@@ -3,10 +3,22 @@ import BaseRenderer, {BaseCubeGeometry, BaseCubeShader, BaseTexture, CubeMesh} f
 import {WebGLMaterial} from "./WebGLMaterial.js";
 import {WebGLTerrainShader} from "./WebGLTerrainShader.js";
 import {WebGLBuffer} from "./WebGLBuffer.js";
-import {Helpers} from "../../helpers.js";
+import {Helpers, Mth} from "../../helpers.js";
 import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
+import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
+
+const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
+
+const TEXTURE_TYPE_FORMAT = {
+    'rgba8u': {
+        format: 'RGBA', type : 'UNSIGNED_BYTE'
+    },
+    'depth24stencil8': {
+        format: 'DEPTH_STENCIL', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
+    }
+}
 
 const TEXTURE_FILTER_GL = {
     'linear': 'LINEAR',
@@ -18,98 +30,57 @@ const TEXTURE_MODE = {
     'cube': 'TEXTURE_CUBE_MAP'
 }
 
-export class WebGLCubeShader extends BaseCubeShader {
+export class WebGLCubeShader extends WebGLUniversalShader {
 
     constructor(context, options) {
         super(context, options);
-        //
-        const { gl } = this.context;        
 
-        this.program  = context.createProgram(options.code, {});
+        /**
+         *
+         * @type {WebGLTexture}
+         */
+        this.texture = context.createTexture({
+            source: options.sides
+        });
 
-        this.u_texture =  gl.getUniformLocation(this.program, 'u_texture');
-        this.u_lookAtMatrix = gl.getUniformLocation(this.program, 'u_lookAtMatrix');
-        this.u_projectionMatrix = gl.getUniformLocation(this.program, 'u_projectionMatrix');
-        // this.u_brightness = gl.getUniformLocation(this.program, 'u_brightness');
-        this.u_resolution = gl.getUniformLocation(this.program, 'u_resolution');
-        this.u_TestLightOn = gl.getUniformLocation(this.program, 'u_TestLightOn');
-        this.a_vertex = gl.getAttribLocation(this.program, 'a_vertex');
-        // Make custom uniforms
-        if(options && 'uniforms' in options) {
-            this.makeUniforms(options.uniforms);
-        }
+        this.texture.bind();
+        // we already can use uniforms
+        // make only set default values
+        this._makeUniforms({
+            'u_texture': this.texture, // load default texture to 0 slot
+            'u_viewMatrix': new Float32Array(16),
+            'u_projMatrix': new Float32Array(16),
+            'u_resolution': [1, 1],
+        });
+
     }
 
-    //
-    makeUniforms(uniforms) {
-        const {
-            gl
-        } = this.context;
-        this.uniforms = {};
-        for(let name of Object.keys(uniforms)) {
-            let value = uniforms[name];
-            let type = null;
-            let func = null;
-            switch(typeof value) {
-                case 'boolean': {
-                    type = 'bool';
-                    func = 'uniform1f';
-                    break;
-                }
-                case 'object': {
-                    type = 'vec3';
-                    func = 'uniform3fv';
-                    break;
-                }
-                case 'number': {
-                    type = 'float';
-                    func = 'uniform1f';
-                    break;
-                }
-                default: {
-                    throw 'Unsupported uniform type ' + (typeof value);
-                }
-            }
-            this.uniforms[name] = {
-                name: name,
-                type: type,
-                func: func,
-                value: value,
-                ptr: gl.getUniformLocation(this.program, name),
-                set: (v) => this.value = v,
-                get: () => this.value
-            };
-        }
+    set resolution(v) {
+        this.uniforms['u_resolution'].value = v;
     }
 
-    applyUniforms() {
-        const { gl } = this.context;
-        gl.useProgram(this.program);
-        // Bind custom uniforms
-        for(let name of Object.keys(this.uniforms)) {
-            let unf = this.uniforms[name];
-            gl[unf.func](unf.ptr, unf.value);
-        }
+    get resolution() {
+        return this.uniforms['u_resolution'];
     }
 
-    bind() {
+    /**
+     * @deprecated
+     */
+    get lookAt() {
+        return this.uniforms['u_viewMatrix'].value;
+    }
 
+    /**
+     * @deprecated
+     */
+    get proj() {
+        return this.uniforms['u_projMatrix'].value;
+    }
+
+    bind(force = false) {
         this.texture.bind(0);
-        const { gl } = this.context;
 
-        gl.useProgram(this.program);
-
-        // gl.uniform1f(this.u_brightness, this.brightness);
-        gl.uniform2fv(this.u_resolution, this.resolution);
-        gl.uniform1f(this.u_TestLightOn, this.testLightOn);
-
-        gl.uniform1i(this.u_texture, 0);
-
-        gl.uniformMatrix4fv(this.u_lookAtMatrix, false, this.lookAt);
-        gl.uniformMatrix4fv(this.u_projectionMatrix, false, this.proj);
-
-        this.applyUniforms();
-
+        super.bind(force);
     }
 
 }
@@ -135,8 +106,8 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
         this.vertex.bind();
         this.index.bind();
 
-        gl.vertexAttribPointer(shader.a_vertex, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shader.a_vertex);
+        gl.vertexAttribPointer(shader.attrs['a_vertex'].location, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shader.attrs['a_vertex'].location);
     }
 
     unbind() {
@@ -146,7 +117,6 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 }
 
 export class WebGLTexture extends BaseTexture {
-
     _applyStyle() {
         const {
             gl
@@ -189,31 +159,51 @@ export class WebGLTexture extends BaseTexture {
     }
 
     upload() {
-        const { gl } = this.context;
         /**
-         * @type {WebGLTexture}
+         * @type {WebGL2RenderingContext}
          */
-
+        const gl = this.context.gl;
         const mode = Array.isArray(this.source) ? 'cube' : '2d';
+
         this.mode = mode;
 
         const t = this.texture = this.texture || gl.createTexture();
         const type = gl[TEXTURE_MODE[mode]] || gl.TEXTURE_2D;
+        const formats = TEXTURE_TYPE_FORMAT[this.type] || TEXTURE_TYPE_FORMAT.rgba8u;
 
         gl.bindTexture(type, t);
-
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+
         if (mode === '2d') {
             if (this.source) {
-                gl.texImage2D(type, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.source);
+                gl.texImage2D(
+                    type,
+                    0,
+                    gl[formats.internal || formats.format],
+                    gl[formats.format],
+                    gl[formats.type],
+                    this.source
+                );
             } else {
-                gl.texImage2D(type, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+                gl.texImage2D(
+                    type,
+                    0,
+                    gl[formats.internal || formats.format],
+                    this.width,
+                    this.height,
+                    0,
+                    gl[formats.format],
+                    gl[formats.type],
+                    null
+                );
             }
 
             this._applyStyle();
             super.upload();
             return;
         }
+
+        // cube is only RGBA
         for(let i = 0; i < 6; i ++) {
             const start = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
@@ -236,7 +226,7 @@ export class WebGLTexture extends BaseTexture {
 
         super.destroy();
 
-        // not destroy shared texture that used 
+        // not destroy shared texture that used
         if(this.isUsed) {
             return;
         }
@@ -277,7 +267,7 @@ export default class WebGLRenderer extends BaseRenderer {
     async init(args) {
         super.init(args);
 
-        const gl = this.gl = this.view.getContext('webgl2', this.options);
+        const gl = this.gl = this.view.getContext('webgl2', {...this.options, stencil: true});
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
@@ -312,31 +302,22 @@ export default class WebGLRenderer extends BaseRenderer {
         */
     }
 
-    /**
-     * 
-     * @param {WebGLRenderTarget} target 
-     */
-    setTarget(target) {
-        super.setTarget(target);
-
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, target ?  target.framebuffer : null);
-
-        const { gl, fogColor } = this;
+    clear({clearDepth = true, clearColor = true} = {}) 
+    {
         const {
-            width, height
-        } = target ? target : this.size;
+            gl, _clearColor
+        } = this;
 
-        gl.viewport(0, 0, width, height);
-    }
+        const mask = (~~clearDepth * (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) | (~~clearColor * gl.COLOR_BUFFER_BIT);
 
-    clear( { depth, color } = {depth: true, color: true}) {
-        const gl = this.gl;
+        mask && gl.clearColor(
+            _clearColor[0],
+            _clearColor[1],
+            _clearColor[2],
+            _clearColor[3]
+        );
 
-        const mask = (depth ? gl.DEPTH_BUFFER_BIT : 0) | (color ? gl.COLOR_BUFFER_BIT : 0);
-
-        if (mask) {
-            gl.clear(mask);
-        }
+        mask && gl.clear(mask);        
     }
 
     createRenderTarget(options) {
@@ -415,22 +396,48 @@ export default class WebGLRenderer extends BaseRenderer {
         this.stat.drawcalls++;
     }
 
-    beginFrame(fogColor) {
-        // debug only
-        const { gl } = this;
-        this.setTarget(null); // or null to init viewport
+    /**
+     *
+     * @param {import("../BaseRenderer.js").PassOptions} options
+     */
+    beginPass(options = {}) {
+        super.beginPass(options);
 
-        gl.clearColor(fogColor[0], fogColor[1], fogColor[2], fogColor[3]);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        const {
+            gl, _target, _viewport
+        } = this;
+
+        gl.bindFramebuffer(
+            gl.FRAMEBUFFER,
+            _target ? _target.framebuffer : null
+        );
+
+        gl.viewport(..._viewport);
+ 
+        this.clear(options);
     }
 
+    /**
+     * @deprecated
+     * @param {} fogColor 
+     */
+    beginFrame(fogColor) {
+        this.beginPass({fogColor})
+    }
+
+    /**
+     * @deprecated
+     */
     endFrame() {
         // this.blitRenderTarget();
         // reset framebufer
-        this.setTarget(null);
     }
 
-    // flisth active buffer onto canvas
+    /**
+     * Blit color from current attached framebuffer to specific area of canvas
+     * @param {{x?: number, y?: number, w?: number, h?: number}} param0
+     * @returns
+     */
     blitRenderTarget({x = 0, y = 0, w = null, h = null} = {}) {
         /**
          * @type {WebGLRenderTarget}
@@ -450,11 +457,51 @@ export default class WebGLRenderer extends BaseRenderer {
             x, y, (w || this.size.width) + x, (h || this.size.height) + y,
             gl.COLOR_BUFFER_BIT, gl.LINEAR
         );
-        
+
         gl.bindFramebuffer(gl.READ_FRAMEBUFFER, null);
         gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, target.framebuffer);
+    }
+
+    /**
+     * Blit one render target to another size-to-size
+     * @param {WebGLRenderTarget} fromTarget
+     * @param {WebGLRenderTarget} toTarget
+    */
+    blit(fromTarget = null, toTarget = null) {
+        fromTarget = fromTarget || null;
+        toTarget = toTarget || null;
+
+        if (fromTarget === toTarget) {
+            throw new TypeError('fromTarget and toTarget should be different');
+        }
+
+        /**
+         * @type {WebGLRenderTarget}
+         */
+        const target = this._target;
+        const gl = this.gl;
+
+        gl.bindFramebuffer(gl.READ_FRAMEBUFFER, fromTarget ? fromTarget.framebuffer : null);
+        gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, toTarget ? toTarget.framebuffer : null);
+
+        const fromSize = fromTarget ? fromTarget : this.size;
+        const toSize = toTarget ? toTarget : this.size;
+        const fromDepth = fromTarget ? fromTarget.options.depth : true;
+        const toDepth = toTarget ? toTarget.options.depth : true;
+        const bits = (toDepth && fromDepth)
+            ? (gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
+            : gl.COLOR_BUFFER_BIT;
+
+
+        gl.blitFramebuffer(
+            0, 0, fromSize.width, fromSize.height,
+            0, 0, toSize.width, toSize.height,
+            bits, gl.LINEAR
+        );
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.framebuffer : null);
     }
 
     createCubeMap(options) {

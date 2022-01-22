@@ -3,6 +3,14 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 
 const {mat4} = glMatrix;
 
+/**
+ * @typedef {Object} PassOptions
+ * @property {[number, number, number, number]} [fogColor]
+ * @property {boolean} [clearColor]
+ * @property {boolean} [clearDepth]
+ * @property {BaseRenderTarget} [target]
+ * @property {[number, number, number, number]} [viewport]
+ */
 export class BaseRenderTarget {
     constructor (context, options = {width: 1, height: 1, depth: true}) {
         this.context = context;
@@ -11,6 +19,10 @@ export class BaseRenderTarget {
          * @type {BaseTexture}
          */
         this.texture = null;
+        /**
+         * @type {BaseTexture}
+         */
+        this.depthTexture = null;
         this.valid = false;
     }
 
@@ -32,6 +44,9 @@ export class BaseRenderTarget {
 
     init() {
         this.texture = this.context.createTexture(this.options);
+        if (this.options.depth) {
+            this.depthTexture = this.context.createTexture({ ...this.options, type: 'depth24stencil8' });
+        }
         this.valid = true;
     }
 
@@ -41,7 +56,7 @@ export class BaseRenderTarget {
 
     /**
      * Read pixels from framebuffer
-     * @returns {Uint8Array}
+     * @returns {Uint8Array | Promise<Uint8Array>}
      */
     toRawPixels() {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
@@ -52,7 +67,11 @@ export class BaseRenderTarget {
      * @returns {Promise<Image | ImageBitmap | HTMLCanvasElement>}
      */
     async toImage(mode = 'image') {
-        const buffer = this.toRawPixels();
+        let buffer = this.toRawPixels();
+
+        if (buffer instanceof Promise) {
+            buffer = await buffer;
+        }
 
         for (let i = 0; i < buffer.length; i += 4) {
             const a = buffer[i + 3] / 0xff;
@@ -74,7 +93,7 @@ export class BaseRenderTarget {
                 buffer.subarray(invi * this.width * 4, (invi + 1) * this.width * 4),
                 i * this.width * 4);
         }
-        
+
         if (mode === 'bitmap') {
             return self.createImageBitmap(data);
         }
@@ -88,7 +107,7 @@ export class BaseRenderTarget {
         if (mode === 'canvas') {
             return Promise.resolve(canvas);
         }
-        
+
         const img = new Image(this.width, this.height);
 
         return new Promise(res => {
@@ -105,7 +124,12 @@ export class BaseRenderTarget {
             this.texture.destroy();
         }
 
+        if (this.depthTexture) {
+            this.depthTexture.destroy();
+        }
+
         this.texture = null;
+        this.depthTexture = null;
     }
 }
 
@@ -154,6 +178,7 @@ export class BaseTexture {
      * @param {'linear' | 'nearest'} magFilter
      * @param {'linear' | 'nearest'} minFilter
      * @param {TerrainTextureUniforms} style
+     * @param {'rgba8u' | 'depth24stencil8'} type
      * @param { HTMLCanvasElement | HTMLImageElement | ImageBitmap | Array<HTMLCanvasElement | HTMLImageElement | ImageBitmap> } source
      */
     constructor(context, {
@@ -163,6 +188,7 @@ export class BaseTexture {
         minFilter = 'linear',
         style = null,
         source = null,
+        type = 'rgba8u'
     } = {}) {
         this.width = width;
         this.height = height;
@@ -171,6 +197,7 @@ export class BaseTexture {
         this.source = source;
         this.style = style;
         this.context = context;
+        this.type = type;
 
         this.id = BaseRenderer.ID++;
         this.usage = 0;
@@ -289,7 +316,7 @@ export class BaseMaterial {
 
     changeLighTex (light) {
         this.lightTex = light;
-    } 
+    }
 
     getSubMat() {
         return null;
@@ -364,6 +391,9 @@ export class BaseTerrainShader extends BaseShader {
     }
 
     bind() {
+    }
+    unbind() {
+        
     }
 
     update() {
@@ -526,7 +556,22 @@ export default class BaseRenderer {
             drawcalls: 0,
             drawquads: 0
         };
-        this.fogColor = [0,0,0,0];
+
+        /**
+         * @type {[number, number, number, number]}
+         */
+        this._clearColor = [0,0,0,0];
+
+        /**
+         * @type {[number, number, number, number]}
+         */
+        this._viewport = [0,0,0,0];
+
+        /**
+         * @type {BaseRenderTarget}
+         */
+        this._target = null;
+
         this._activeTextures = {};
 
         /**
@@ -539,10 +584,6 @@ export default class BaseRenderer {
             data: new Uint8Array(255)
         })
 
-        /**
-         * @type {BaseRenderTarget}
-         */
-        this._target = null;
 
         this.globalUniforms = new GlobalUniformGroup();
 
@@ -550,6 +591,12 @@ export default class BaseRenderer {
          * Shader blocks
          */
         this.blocks = {};
+
+        /**
+         * @type {{[key: string]: string}}
+         */
+        this.global_defines = Object.assign({}, options.defines || {});
+
     }
 
     get kind() {
@@ -558,7 +605,7 @@ export default class BaseRenderer {
 
     async init({blocks} = {}) {
         this.blocks = blocks || {};
-        
+
         if (Object.keys(this.blocks).length === 0) {
             console.warn('Shader blocks is empty');
         }
@@ -569,7 +616,7 @@ export default class BaseRenderer {
             blocks
         } = this;
 
-        const [key, ...argsKeys] = replace.split(',').map((e) => e.trim());
+        const key = replace.trim();
 
         if (!(key in blocks)) {
             throw '[Preprocess] Block for ' + key + 'not found';
@@ -579,7 +626,7 @@ export default class BaseRenderer {
         let pad = 0;
         for(pad = 0; pad < 32; pad ++) {
             if (string[offset - pad - 1] !== ' ') {
-                break;                
+                break;
             }
         }
 
@@ -589,31 +636,27 @@ export default class BaseRenderer {
             .map((e, i) => (' '.repeat(i === 0 ? 0 : pad) + e))
             .join('\n');
 
-        const blockArgs = args[key];
+        const defines = args[key] || {};
 
-        if (blockArgs && typeof blockArgs === 'object') {
-            if (blockArgs.skip) {
-                return '// skip block ' + key;
-            }
+        if (defines.skip) {
+            return '// skip block ' + key;
+        }
 
-            for(const argkey of argsKeys) {
-                if (!(argkey in blockArgs)) {
-                    throw '[Preprocess] Argument value for ' + argkey + ' not found';
-                }
+        for(const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
 
-                block = block.replaceAll(argkey, '' + blockArgs[argkey]);
-            }
+            block = block.replaceAll(r, `#define ${argkey} ${defines[argkey]} // default:`);
         }
 
         return block;
     }
-    
+
     /***
      * Preprocess shader
      * You can define args to block that was replaced if needed
      * pass a `skip: true` for block - ignore block compilation
      * @param {string} shaderText
-     * @param {{[key: string]: {skip?: boolean, [key: string]: number } }} args
+     * @param {{[key: string]: {skip?: boolean, [key: string]: string } }} args
      */
     preprocess (shaderText, args = {}) {
         if (!shaderText) {
@@ -621,10 +664,19 @@ export default class BaseRenderer {
         }
 
         const pattern = /#include<([^>]+)>/g;
-        const out = shaderText
+
+        let out = shaderText
             .replaceAll(pattern, (_, r, offset, string) => {
                 return this._onReplace(r, offset, string, args || {});
             });
+
+        const defines = this.global_defines || {};
+
+        for (const argkey in defines) {
+            const r = new RegExp(`#define[^\\S]+(${argkey}\\s+)`, 'gmi');
+
+            out = out.replaceAll(r, `#define ${argkey} ${defines[argkey]} //default: `);
+        }
 
         console.debug('Preprocess result:\n', out);
 
@@ -632,8 +684,9 @@ export default class BaseRenderer {
     }
 
     /**
-     * 
-     * @param {BaseRenderTarget} target 
+     * @deprecated 
+     * @see beginPass
+     * @param {BaseRenderTarget} target
      */
     setTarget(target) {
         if (target && !target.valid) {
@@ -659,19 +712,103 @@ export default class BaseRenderer {
     _configure() {
 
     }
+ 
+    /**
+     * Begin render pass to specific target 
+     * @param {PassOptions} param0 
+     */
+    beginPass({
+        fogColor = [0,0,0,0],
+        clearDepth = true,
+        clearColor = true,
+        target = null,
+        viewport = null
+    }) {
+        if (target && !target.valid) {
+            throw 'Try bound invalid RenderTarget';
+        }
 
+        this._target = target;
+
+        const { size } = this;
+
+        const limit = target 
+            ? target 
+            : size;
+
+        const x = viewport
+            ? clamp(0, limit.width, viewport[0] || 0)
+            : 0;
+
+        const y = viewport
+            ? clamp(0, limit.height, viewport[1] || 0)
+            : 0;
+
+        const width = viewport
+            ? clamp(0, limit.width, viewport[2] || limit.width)
+            : limit.width;
+
+
+        const height = viewport
+            ? clamp(0, limit.height, viewport[3] || limit.height)
+            : limit.height;
+
+        this._viewport[0] = x;
+        this._viewport[1] = y;
+        this._viewport[2] = width;
+        this._viewport[3] = height; 
+
+        this._clearColor[0] = fogColor[0] || 0;
+        this._clearColor[1] = fogColor[1] || 0;
+        this._clearColor[2] = fogColor[2] || 0;
+        this._clearColor[3] = fogColor[3] || 0;        
+    }
+
+    /**
+     * Execute render and close current pass
+     */
+    endPass() {
+
+    }
+
+    /**
+     * @deprecated 
+     * @see beginPass
+     * @param {} fogColor 
+     */
     beginFrame(fogColor) {
 
     }
 
+    /**
+     * @deprecated 
+     * @see endPass
+     */
     endFrame() {
 
     }
 
     clear({
-        depth, color
+        clearDepth, clearColor
     }) {
-        
+
+    }
+
+    /**
+     * Blit one render target to another size-to-size
+     * @param {BaseRenderTarget} fromTarget
+     * @param {BaseRenderTarget} toTarget
+     */
+    blit(fromTarget = null, toTarget = null) {
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    }
+
+    /**
+     * Blit active render target to another, can be used for blitting canvas too
+     * @param {BaseRenderTarget} toTarget
+     */
+    blitActiveTo(toTarget) {
+        this.blit(this._target, toTarget);
     }
 
     /**
@@ -680,7 +817,7 @@ export default class BaseRenderer {
      * @return {BaseRenderTarget}
      */
     createRenderTarget(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass'); 
+        throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
     /**
@@ -709,8 +846,8 @@ export default class BaseRenderer {
     }
 
     /**
-     * 
-     * @param {*} options 
+     *
+     * @param {*} options
      * @returns {Promise<any>}
      */
     async createResourcePackShader(options) {
