@@ -758,10 +758,10 @@ export default class BaseRenderer {
         this._viewport[2] = width;
         this._viewport[3] = height; 
 
-        this._clearColor[0] = fogColor[0] | 0;
-        this._clearColor[1] = fogColor[1] | 0;
-        this._clearColor[2] = fogColor[2] | 0;
-        this._clearColor[3] = fogColor[3] | 0;        
+        this._clearColor[0] = fogColor[0] || 0;
+        this._clearColor[1] = fogColor[1] || 0;
+        this._clearColor[2] = fogColor[2] || 0;
+        this._clearColor[3] = fogColor[3] || 0;        
     }
 
     /**

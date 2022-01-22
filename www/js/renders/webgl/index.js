@@ -310,7 +310,7 @@ export default class WebGLRenderer extends BaseRenderer {
 
         const mask = (~~clearDepth * (gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)) | (~~clearColor * gl.COLOR_BUFFER_BIT);
 
-        _clearColor && gl.clearColor(
+        mask && gl.clearColor(
             _clearColor[0],
             _clearColor[1],
             _clearColor[2],
