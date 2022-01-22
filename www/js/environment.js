@@ -13,7 +13,7 @@ import { Resources } from "./resources.js";
 export const PRESET_NAMES = {
     NORMAL: 'normal',
     WATER: 'water',
-    LAVA: 'lava'    
+    LAVA: 'lava'
 }
 
 const ENV_GRAD_COLORS = Object.entries({
@@ -67,6 +67,10 @@ export const SETTINGS = {
     interpoateTime:         300,
 };
 
+function deepClone(obj, target = {}) {
+    return lerpComplex(obj, obj, 0, target);
+}
+
 function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
 }
@@ -88,15 +92,23 @@ function interpolateColor (a, b, factor = 0, target = []) {
 }
 
 class InterpolateTask {
-    constructor(from, to, duration, easy = null) {
-        this.name = '';
+    constructor({
+        from,
+        to,
+        duration,
+        ease = null,
+        context,
+        name = ''
+    }) {
+        this.name = name;
         this.from = from;
         this.to = to;
-        this.value = null;
-        this.easy = easy || ((x) => x);
-        this.t = 0;
+        this.ease = ease || ((x) => x);
         this.dur = duration;
+        this.context = context;
 
+        this.value = null;
+        this.t = 0;
         this.update(0);
     }
 
@@ -104,12 +116,20 @@ class InterpolateTask {
         return this.t >= 1;
     }
 
-    update(delta) {
+    update(delta = 0) {
+        if (this.t >= 1) {
+            return;
+        }
+
         this.t += delta / this.dur;
-        
-        const lim = this.easy(Mth.clamp(this.t, 0, 1));
+
+        const lim = this.ease(Mth.clamp(this.t, 0, 1));
 
         this.value = Mth.lerpComplex(this.from, this.to, lim, this.value);
+
+        if (this.context) {
+            this.context[this.name] = this.value;
+        }
     }
 }
 
@@ -148,14 +168,13 @@ export class Environment {
 
         this.skyBox = null;
 
-        this._lastPresetName = PRESET_NAMES.NORMAL;
         this._currentPresetName = PRESET_NAMES.NORMAL;
         this._fogInterpolationTime = 0;
 
         /***
          * @type {FogPreset}
          */
-        this._interpolatedPreset = lerpComplex(FOG_PRESETS[PRESET_NAMES.NORMAL], FOG_PRESETS[PRESET_NAMES.NORMAL], 0);
+        this._interpolatedPreset = deepClone(FOG_PRESETS[PRESET_NAMES.NORMAL]);
 
         // fog color before apply brightness factor
         this._computedFogRaw = [0,0,0,0];
@@ -199,11 +218,11 @@ export class Environment {
         }
 
         const from = this._currentPresetName;
-        this._lastPresetName = from;
+
         this._currentPresetName = v;
         this._fogDirty = true;
 
-        this._pushTask('_interpolatedPreset', FOG_PRESETS[from], FOG_PRESETS[v]);
+        this._runInterpolation('_interpolatedPreset', FOG_PRESETS[from], FOG_PRESETS[v]);
     }
 
     get time() {
@@ -218,8 +237,8 @@ export class Environment {
     }
 
     /**
-     * 
-     * @param {Renderer} render 
+     *
+     * @param {Renderer} render
      */
     init (render) {
         const  {
@@ -252,7 +271,12 @@ export class Environment {
         this._fogDirty = true;
     }
 
+    /**
+     * @todo Atm we can't use computed sun and state interpolation
+     * Fix this case
+     */
     _computeFogRelativeSun() {
+        return;
         this.sunDir = [
             0, Math.cos(this.time / 10000), -Math.sin(this.time / 10000)
         ];
@@ -271,7 +295,7 @@ export class Environment {
         this._fogDirty = true;
     }
 
-    _pushTask(key, from, to) {
+    _runInterpolation(key, from, to) {
         const old = this._tasks.get(key);
 
         if (old) {
@@ -283,8 +307,14 @@ export class Environment {
             return;
         }
 
-        const task = new InterpolateTask(from, to, SETTINGS.interpoateTime, easeOutCubic);
-        task.name = key;
+        const task = new InterpolateTask({
+            from,
+            to,
+            duration: SETTINGS.interpoateTime,
+            ease: easeOutCubic,
+            name: key,
+            context: this
+        });
 
         this._tasks.set(key, task);
     }
@@ -304,8 +334,6 @@ export class Environment {
             if (t.done) {
                 this._taskDone(t);
             }
-            
-            this[t.name] = t.value;
             this._fogDirty = true;
         }
     }
@@ -320,13 +348,17 @@ export class Environment {
         let fogColor = p.color;
         let fogAdd = p.addColor;
 
+        /*
+        // not supported yet because we use interpolated state.
+        // We should interpolate and color and states, but, need resolve wich state will have computed fog
+
         if (p.computed) {
             // compute color
             this._computeFogRelativeSun();
 
-            // our fog color is computed, use it 
+            // our fog color is computed, use it
             fogColor = this._computedFogRaw;
-        }
+        }*/
 
         const value = this.brightness * this._computedBrightness;
         const mult = Math.min(1, value * 2) * this.nightshift * value;
@@ -335,9 +367,9 @@ export class Environment {
             this.actualFog[i] = fogColor[i] * mult;
             this.actualFogAdd[i] = fogAdd[i];
         }
-        
+
         this.actualFog[3] = 1;
-        this.actualFogAdd[3] = fogAdd[3];    
+        this.actualFogAdd[3] = fogAdd[3];
 
         this._fogDirty = false;
     }
@@ -365,7 +397,7 @@ export class Environment {
 
         if (this.chunkBlockDist !== chunkBlockDist) {
             this._fogDirty = true;
-            this._pushTask('chunkBlockDist', this.chunkBlockDist, chunkBlockDist);
+            this._runInterpolation('chunkBlockDist', this.chunkBlockDist, chunkBlockDist);
         }
         this.chunkBlockDist = chunkBlockDist;
 
@@ -381,7 +413,7 @@ export class Environment {
 
     /**
      * Sync environment state with uniforms
-     * @param {GlobalUniformGroup} render 
+     * @param {GlobalUniformGroup} render
      */
     sync (gu) {
         const fogPreset = this.fogPresetRes;
@@ -399,14 +431,14 @@ export class Environment {
     }
 
     /**
-     * 
-     * @param {Renderer} render 
+     *
+     * @param {Renderer} render
      */
     draw (render) {
         if (!this.skyBox) {
             return;
         }
- 
+
         const { width, height }  = render.renderBackend.size;
 
         // other will updated from GU
