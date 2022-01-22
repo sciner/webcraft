@@ -207,9 +207,9 @@
     // sun light pass
     if (u_SunDir.w < 0.5) {
         if(v_normal.x != 0.) {
-            light = light * .7;
+            light = light * .95;
         } else if(v_normal.y != 0.) {
-            light = light * .85;
+            light = light * .6;
         }
     } else {
         // limit brightness to 0.2
