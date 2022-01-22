@@ -435,24 +435,21 @@ export class Renderer {
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
 
-        const blockDist = 
-            player.eyes_in_water 
-                ? 8 
-                : player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-
-
+        let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
 
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
-        
+  
         if(player.eyes_in_water) {
             if(player.eyes_in_water.is_water) {
                 preset = PRESET_NAMES.WATER;
+                blockDist = 8; //
             } else {
                 preset = PRESET_NAMES.LAVA;
+                blockDist = 4; //
             }
         }
 

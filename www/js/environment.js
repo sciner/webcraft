@@ -36,6 +36,7 @@ const ENV_GRAD_COLORS = Object.entries({
 
 export const FOG_PRESETS = {
     [PRESET_NAMES.NORMAL]: {
+        // PLZ, not enable yet
         computed: false, // disable temporary, for computed a color shpuld be ENV_GRAD_COLORS
         color: [118 / 255, 194 / 255, 255 / 255, 1],
         addColor: [0, 0, 0, 0],
@@ -53,6 +54,7 @@ export const FOG_PRESETS = {
         computed: false,
         color: [255 / 255, 100 / 255, 20 / 255, 1],
         addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
+        density: 0.5
     }
 };
 
@@ -62,8 +64,12 @@ export const SETTINGS = {
     fogDensity:             1, // multiplication
     fogDensityUnderWater:   0.1,
     chunkBlockDist:         8,
-    interpoateTime:         200,
+    interpoateTime:         300,
 };
+
+function easeOutCubic(x) {
+    return 1 - Math.pow(1 - x, 3);
+}
 
 function luminance (color) {
     const r = color[0]
@@ -79,6 +85,32 @@ function interpolateColor (a, b, factor = 0, target = []) {
     target[2] = a[2] * (1 - factor) + b[2] * factor;
 
     return target;
+}
+
+class InterpolateTask {
+    constructor(from, to, duration, easy = null) {
+        this.name = '';
+        this.from = from;
+        this.to = to;
+        this.value = null;
+        this.easy = easy || ((x) => x);
+        this.t = 0;
+        this.dur = duration;
+
+        this.update(0);
+    }
+
+    get done() {
+        return this.t >= 1;
+    }
+
+    update(delta) {
+        this.t += delta / this.dur;
+        
+        const lim = this.easy(Mth.clamp(this.t, 0, 1));
+
+        this.value = Mth.lerpComplex(this.from, this.to, lim, this.value);
+    }
 }
 
 function interpolateGrad (pattern, factor = 0,target = []) {
@@ -123,7 +155,7 @@ export class Environment {
         /***
          * @type {FogPreset}
          */
-        this._interpolatedPreset = false;
+        this._interpolatedPreset = lerpComplex(FOG_PRESETS[PRESET_NAMES.NORMAL], FOG_PRESETS[PRESET_NAMES.NORMAL], 0);
 
         // fog color before apply brightness factor
         this._computedFogRaw = [0,0,0,0];
@@ -132,6 +164,7 @@ export class Environment {
 
         this._fogDirty = false;
 
+        this._tasks = new Map();
         this._interpolate(0);
     }
 
@@ -165,10 +198,12 @@ export class Environment {
             return;
         }
 
-        this._lastPresetName = this._currentPresetName;
+        const from = this._currentPresetName;
+        this._lastPresetName = from;
         this._currentPresetName = v;
-        this._fogInterpolationTime = 0;
         this._fogDirty = true;
+
+        this._pushTask('_interpolatedPreset', FOG_PRESETS[from], FOG_PRESETS[v]);
     }
 
     get time() {
@@ -236,29 +271,43 @@ export class Environment {
         this._fogDirty = true;
     }
 
+    _pushTask(key, from, to) {
+        const old = this._tasks.get(key);
+
+        if (old) {
+            from = old.value;
+            this._tasks.delete(key);
+        }
+
+        if (from == to) {
+            return;
+        }
+
+        const task = new InterpolateTask(from, to, SETTINGS.interpoateTime, easeOutCubic);
+        task.name = key;
+
+        this._tasks.set(key, task);
+    }
+
+    _taskDone(task) {
+        const t = task;
+
+        this._tasks.delete(t.name);
+
+        this[t.name] = t.value;
+    }
+
     _interpolate(delta = 0) {
-        if (this._lastPresetName === this._currentPresetName && this._interpolatedPreset) {
-            return;
+        for(const t of this._tasks.values()) {
+            t.update(delta / 60);
+
+            if (t.done) {
+                this._taskDone(t);
+            }
+            
+            this[t.name] = t.value;
+            this._fogDirty = true;
         }
-
-        const from = FOG_PRESETS[this._lastPresetName];
-        const to = FOG_PRESETS[this._currentPresetName];
-
-        if (from === to && this._interpolatedPreset) {
-            return;
-        }
-
-        this._fogInterpolationTime += delta / 60;
-
-        const t = Mth.clamp(this._fogInterpolationTime / SETTINGS.interpoateTime, 0, 1);
-
-        if (t === 1) {
-            this._lastPresetName = this._currentPresetName;
-            this._fogInterpolationTime = 0;
-        }
-
-        this._interpolatedPreset = Mth.lerpComplex(from, to, t, this._interpolatedPreset);
-        this._fogDirty = true;
     }
 
     updateFogState() {
@@ -310,8 +359,13 @@ export class Environment {
         }
         this.fogDensity = fogDensity;
 
-        if (this.chunkBlockDist !== this.chunkBlockDist) {
+        if (!isFinite(chunkBlockDist)) {
+            chunkBlockDist = 10000 * Math.sign(chunkBlockDist);
+        }
+
+        if (this.chunkBlockDist !== chunkBlockDist) {
             this._fogDirty = true;
+            this._pushTask('chunkBlockDist', this.chunkBlockDist, chunkBlockDist);
         }
         this.chunkBlockDist = chunkBlockDist;
 
