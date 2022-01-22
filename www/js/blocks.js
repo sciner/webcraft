@@ -720,8 +720,8 @@ export class BLOCK {
                 }
                 case 'pane': {
                     let height = 1;
-                    let canConnect = (block) => {
-                        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
+                    let canConnect = (checked_block) => {
+                        return checked_block.id > 0 && (!checked_block.properties.transparent || checked_block.properties.style == 'pane');
                     };
                     let w = 2/16;
                     let w2 = w/2;
@@ -770,8 +770,8 @@ export class BLOCK {
                     let cardinal_direction = b.getCardinalDirection();
                     let n = this.autoNeighbs(world.chunkManager, pos, cardinal_direction, neighbours);
                     //
-                    let checkIfSame = (b) => {
-                        return b.id > 0 && material.tags && material.tags.indexOf('stairs') >= 0;
+                    let checkIfSame = (checked_block) => {
+                        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.indexOf('stairs') >= 0;
                     };
                     //
                     let on_ceil = this.isOnCeil(b);
