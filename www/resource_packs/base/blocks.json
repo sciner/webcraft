@@ -4898,5 +4898,20 @@
             7,
             0
         ]
+    },
+    {
+        "id": 626,
+        "name": "IRON_BARS",
+        "transparent": true,
+        "style": "pane",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            5,
+            5
+        ],
+        "can_rotate": true
     }
 ]
