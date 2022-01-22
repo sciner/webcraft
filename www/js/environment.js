@@ -1,17 +1,19 @@
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
 
-export const SETTINGS = {
-    skyColor:               [0, 0, 0.8],
-    fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
-    // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
-    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
-    fogAddColor:            [0, 0, 0, 0],
-    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],
-    fogDensity:             2.52 / 320,
-    fogDensityUnderWater:   0.1,
-    chunkBlockDist:         8,
-};
+/**
+ * @typedef {object} FogPreset
+ * @property {boolean} [computed] compute fog value from env gradient
+ * @property {[number,number, number, number ]} color
+ * @property {[number,number, number, number ]} addColor
+ * @property {number} density
+ */
+
+export const PRESET_NAMES = {
+    NORMAL: 'normal',
+    WATER: 'water',
+    LAVA: 'lava'    
+}
 
 const ENV_GRAD_COLORS = Object.entries({
     [0]: 0x020202,
@@ -30,6 +32,36 @@ const ENV_GRAD_COLORS = Object.entries({
         ]
     })
 );
+
+export const FOG_PRESETS = {
+    [PRESET_NAMES.NORMAL]: {
+        computed: false, // disable temporary, for computed a color shpuld be ENV_GRAD_COLORS
+        color: [118 / 255, 194 / 255, 255 / 255, 1],
+        addColor: [0, 0, 0, 0],
+        density: 2.52 / 320,
+    },
+
+    [PRESET_NAMES.WATER]: {
+        computed: false,
+        color: [55 / 255, 100 / 255, 230 / 255, 1],
+        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
+        density: 0.1
+    },
+
+    [PRESET_NAMES.LAVA]: {
+        computed: false,
+        color: [255 / 255, 100 / 255, 20 / 255, 1],
+        addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
+    }
+};
+
+export const SETTINGS = {
+    skyColor:               [0, 0, 0.8],
+    fog:                    'base', //for preset
+    fogDensity:             1, // multiplication
+    fogDensityUnderWater:   0.1,
+    chunkBlockDist:         8,
+};
 
 function luminance (color) {
     const r = color[0]
@@ -70,19 +102,52 @@ function interpolateGrad (pattern, factor = 0,target = []) {
 
 export class Environment {
     constructor() {
-        this.fogColor = [...SETTINGS.fogColor];
-        this.fogColorBrigtness = [...this.fogColor];
-        this.fogAddColor = [...SETTINGS.fogAddColor];
+        this.computedFog = [0,0,0,0];
         this.skyColor = [...SETTINGS.skyColor];
         this.fogDensity = SETTINGS.fogDensity;
         this.chunkBlockDist = SETTINGS.chunkBlockDist;
         this.sunDir = [0.9593, 1.0293, 0.6293];
-
-        this.underwater = false;
         this.brightness = 1.;
         this.nightshift = 1.;
 
         this.skyBox = null;
+
+        this._fogPresetName = PRESET_NAMES.NORMAL;
+    }
+
+    get fullBrightness() {
+        return this.brightness * this.nightshift
+    }
+
+    /**
+     * @returns {FogPreset}
+     */
+    get fogPresetRes() {
+        return FOG_PRESETS[this._fogPresetName];
+    }
+
+    /**
+     * Set fog preset state
+     */
+    set fogPreset(v) {
+        if (v === this._fogPresetName) {
+            return;
+        }
+
+        if (v in FOG_PRESETS) {
+            this._fogPresetName = v;
+        }
+
+        this._fogPresetName = v;
+
+        this.updateFogState();
+    }
+
+    /**
+     * Return actual used fog
+     */
+    get fogPreset() {
+        return this._fogPresetName;
     }
 
     get time() {
@@ -93,7 +158,7 @@ export class Environment {
     * State relative color interpolated with brightness, time and underwater knowledge
     */
     get actualFogColor() {
-        return this.underwater ? SETTINGS.fogUnderWaterColor : this.fogColorBrigtness;
+        return this.computedFog;
     }
 
     /**
@@ -123,18 +188,12 @@ export class Environment {
     }
 
     setBrightness(value) {
-        const mult = Math.min(1, value * 2) * this.nightshift;
-
         this.brightness = value;
-        this.fogColorBrigtness = [
-            this.fogColor[0] * (value * mult),
-            this.fogColor[1] * (value * mult),
-            this.fogColor[2] * (value * mult),
-            this.fogColor[3]
-        ];
+
+        this.updateFogState();
     }
 
-    computeFogRelativeSun() {
+    _computeFogRelativeSun() {
         this.sunDir = [
             0, Math.cos(this.time / 10000), -Math.sin(this.time / 10000)
         ];
@@ -159,22 +218,39 @@ export class Environment {
         this.brightness = lum * lum;
     }
 
+    updateFogState() {
+        const p = this.fogPresetRes;
+
+        if (p.computed) {
+            this._computeFogRelativeSun();
+            return;
+        }
+
+        const value = this.brightness;
+        const mult = Math.min(1, value * 2) * this.nightshift;
+
+        this.computedFog[0] = p.color[0] * (value * mult);
+        this.computedFog[1] = p.color[1] * (value * mult);
+        this.computedFog[2] = p.color[2] * (value * mult);
+        this.computedFog[3] = p.color[3];
+    
+    }
+
     setEnvState ({
-        underwater = this.underwater,
         fogDensity = this.fogDensity,
-        fogColor = this.fogColor,
-        fogAddColor = this.fogAddColor,
         chunkBlockDist = this.chunkBlockDist,
         nightshift = this.nightshift,
+        preset = this._fogPresetName,
+        brightness = this.brightness
     }) {
         this.nightshift = nightshift;
-        this.underwater = underwater;
         this.fogDensity = fogDensity;
-        this.fogColor = [...fogColor];
-        this.fogAddColor = [...fogAddColor];
         this.chunkBlockDist = chunkBlockDist;
+        this.brightness = brightness;
 
-        this.setBrightness(this.brightness);
+        this._fogPresetName = preset;
+
+        this.updateFogState();
     }
 
     /**
@@ -182,20 +258,18 @@ export class Environment {
      * @param {GlobalUniformGroup} render 
      */
     sync (gu) {
+        const fogPreset = this.fogPresetRes;
 
         gu.chunkBlockDist       = this.chunkBlockDist;
 
-        gu.fogAddColor          = this.underwater ? SETTINGS.fogUnderWaterAddColor : this.fogAddColor;
-        gu.fogColor             = this.actualFogColor;
+        gu.fogAddColor          = fogPreset.addColor;
+        gu.fogColor             = this.computedFog;
         gu.brightness           = this.brightness * this.nightshift;
 
         gu.time                 = this.time;
-        gu.fogDensity           = this.fogDensity;
-        //gu.resolution           = [width, height];
+        gu.fogDensity           = this.fogDensity * fogPreset.density;
         gu.testLightOn          = this.testLightOn;
         gu.sunDir               = this.sunDir;
-        
-        //gu.update();
     }
 
     /**
@@ -211,7 +285,7 @@ export class Environment {
 
         // other will updated from GU
         if (this.skyBox.shader.uniforms) {
-            this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && !this.underwater;
+            this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && this._fogPresetName === PRESET_NAMES.NORMAL;
         }
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
