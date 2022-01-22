@@ -428,7 +428,7 @@ export class BLOCK {
             }
         }
         // Add to ao_invisible_blocks list
-        if(block.planting || block.style == 'fence' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
+        if(block.planting || block.style == 'fence' || block.style == 'wall' || block.style == 'ladder' || block.light_power || block.tags.indexOf('no_drop_ao') >= 0) {
             if(this.ao_invisible_blocks.indexOf(block.id) < 0) {
                 this.ao_invisible_blocks.push(block.id);
             }
@@ -620,6 +620,10 @@ export class BLOCK {
         return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence');
     }
 
+    static canWallConnect(block) {
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall');
+    }
+
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
         const mat = CubeSym.matrices[cardinal_direction];
         if (!neighbours) {
@@ -641,34 +645,70 @@ export class BLOCK {
     // getShapes
     static getShapes(pos, b, world, for_physic, expanded, neighbours) {
         let shapes = []; // x1 y1 z1 x2 y2 z2
+        const material = b.properties;
+        if(!material) {
+            return shapes;
+        }
         let f = !!expanded ? .001 : 0;
-        if(!b.properties.passable && (b.properties.style != 'planting' /*&& b.properties.style != 'sign'*/)) {
-            switch(b.properties.style) {
+        if(!material.passable && (material.style != 'planting' /*&& material.style != 'sign'*/)) {
+            switch(material.style) {
                 case 'fence': {
-                    let fence_height = for_physic ? 1.5 : 1;
+                    let height = for_physic ? 1.5 : 1;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canFenceConnect(n.SOUTH)) {
-                        shapes.push([.5-2/16, 5/16, 0, .5+2/16, fence_height, .5+2/16]);
+                        shapes.push([.5-2/16, 5/16, 0, .5+2/16, height, .5+2/16]);
                     }
                     // North z++
                     if(this.canFenceConnect(n.NORTH)) {
-                        shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, fence_height, 1]);
+                        shapes.push([.5-2/16, 5/16, .5-2/16, .5+2/16, height, 1]);
                     }
                     // West x--
                     if(this.canFenceConnect(n.WEST)) {
-                        shapes.push([0, 5/16, .5-2/16, .5+2/16, fence_height, .5+2/16]);
+                        shapes.push([0, 5/16, .5-2/16, .5+2/16, height, .5+2/16]);
                     }
                     // East x++
                     if(this.canFenceConnect(n.EAST)) {
-                        shapes.push([.5-2/16, 5/16, .5-2/16, 1, fence_height, .5+2/16]);
+                        shapes.push([.5-2/16, 5/16, .5-2/16, 1, height, .5+2/16]);
                     }
                     // Central
                     shapes.push([
                         .5-2/16, 0, .5-2/16,
-                        .5+2/16, fence_height, .5+2/16
+                        .5+2/16, height, .5+2/16
+                    ]);
+                    break;
+                }
+                case 'wall': {
+                    const height            = for_physic ? 1.5 : 1;
+                    const CENTER_WIDTH      = 8 / 16;
+                    const CONNECT_WIDTH     = 6 / 16;
+                    const CONNECT_HEIGHT    = 14 / 16;
+                    const CONNECT_BOTTOM    = 0 / 16;
+                    //
+                    let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
+                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // South z--
+                    if(this.canWallConnect(n.SOUTH)) {
+                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, 0, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                    }
+                    // North z++
+                    if(this.canWallConnect(n.NORTH)) {
+                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, 1]);
+                    }
+                    // West x--
+                    if(this.canWallConnect(n.WEST)) {
+                        shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                    }
+                    // East x++
+                    if(this.canWallConnect(n.EAST)) {
+                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, 1, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                    }
+                    // Central
+                    shapes.push([
+                        .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                        .5+CENTER_WIDTH/2, height, .5+CENTER_WIDTH/2
                     ]);
                     break;
                 }
@@ -680,8 +720,8 @@ export class BLOCK {
                 }
                 case 'pane': {
                     let height = 1;
-                    let canConnect = (block) => {
-                        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
+                    let canConnect = (checked_block) => {
+                        return checked_block.id > 0 && (!checked_block.properties.transparent || checked_block.properties.style == 'pane');
                     };
                     let w = 2/16;
                     let w2 = w/2;
@@ -730,8 +770,8 @@ export class BLOCK {
                     let cardinal_direction = b.getCardinalDirection();
                     let n = this.autoNeighbs(world.chunkManager, pos, cardinal_direction, neighbours);
                     //
-                    let checkIfSame = (b) => {
-                        return b.id > 0 && b.properties.tags && b.properties.tags.indexOf('stairs') >= 0;
+                    let checkIfSame = (checked_block) => {
+                        return checked_block.id > 0 && checked_block.material.tags && checked_block.material.tags.indexOf('stairs') >= 0;
                     };
                     //
                     let on_ceil = this.isOnCeil(b);
@@ -804,28 +844,28 @@ export class BLOCK {
                     break;
                 }
                 default: {
-                    const styleVariant = BLOCK.styles.get(b.properties.style);
+                    const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
                             styleVariant.aabb(b).toArray()
                         );
                     } else {
                         let shift_y = 0;
-                        let height = b.properties.height ? b.properties.height : 1;
+                        let height = material.height ? material.height : 1;
                         // Высота наслаеваемых блоков хранится в extra_data
-                        if(b.properties.layering) {
+                        if(material.layering) {
                             if(b.extra_data) {
                                 height = b.extra_data?.height || height;
                             }
-                            if(b.properties.layering.slab) {
+                            if(material.layering.slab) {
                                 let on_ceil = this.isOnCeil(b);
                                 if(on_ceil) {
-                                    shift_y = b.properties.layering.height;
+                                    shift_y = material.layering.height;
                                 }
                             }
                         }
-                        if(b.properties.width) {
-                            let hw = b.properties.width / 2;
+                        if(material.width) {
+                            let hw = material.width / 2;
                             shapes.push([.5-hw, shift_y - f, .5-hw, .5+hw, shift_y + height + f, .5+hw]);
                         } else {
                             shapes.push([0, shift_y - f, 0, 1, shift_y + height + f, 1]);
@@ -836,13 +876,13 @@ export class BLOCK {
             }
         } else {
             if(!for_physic) {
-                const styleVariant = BLOCK.styles.get(b.properties.style);
+                const styleVariant = BLOCK.styles.get(material.style);
                 if (styleVariant && styleVariant.aabb) {
                     shapes.push(
                         styleVariant.aabb(b).toArray()
                     );
                 } else {
-                    switch(b.properties.style) {
+                    switch(material.style) {
                         case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 1;

@@ -74,9 +74,12 @@ export default class style {
         }
 
         let tex = resource_pack.textures.get(texture_id);
+        // Texture
+        const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+        if(!tex) {
+            console.log(block.id);
+        }
 
-        // let imageData = tex.imageData;
-        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
         let world = new FakeCloudWorld();
         let tex_w = Math.round(c[2] * tex.width);
         let tex_h = Math.round(c[3] * tex.height);

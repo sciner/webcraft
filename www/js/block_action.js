@@ -498,8 +498,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         let isTorch = matBlock.style == 'torch';
         if(isTorch) {
             if(!replaceBlock && (
-                        ['default', 'fence'].indexOf(world_material.style) < 0 ||
+                        ['default', 'fence', 'wall'].indexOf(world_material.style) < 0 ||
                         (world_material.style == 'fence' && pos.n.y != 1) ||
+                        (world_material.style == 'wall' && pos.n.y != 1) ||
                         (pos.n.y < 0) ||
                         (world_material.width && world_material.width != 1) ||
                         (world_material.height && world_material.height != 1)

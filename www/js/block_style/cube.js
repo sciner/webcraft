@@ -82,7 +82,7 @@ export default class style {
             if(!neighbourBlock) {
                 return true;
             }
-            let resp = drawAllSides || neighbourBlock.material.transparent;
+            let resp = drawAllSides || neighbourBlock.material?.transparent;
             if(resp) {
                 if(block.id == neighbourBlock.id && material.selflit) {
                     resp = false;
@@ -159,7 +159,7 @@ export default class style {
             DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
         }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
-            if(neighbours.UP && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+            if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                 DIRECTION_UP        = DIRECTION.DOWN;
                 DIRECTION_BACK      = DIRECTION.DOWN;
                 DIRECTION_RIGHT     = DIRECTION.DOWN;

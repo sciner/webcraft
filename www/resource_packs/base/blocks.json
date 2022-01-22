@@ -2463,18 +2463,6 @@
         ]
     },
     {
-        "id": 139,
-        "name": "COBBLESTONE_WALL",
-        "sound": "madcraft:block.stone",
-        "material": {
-            "id": "cobblestone"
-        },
-        "texture": [
-            0,
-            1
-        ]
-    },
-    {
         "id": 141,
         "name": "CARROTS",
         "spawnable": false,
@@ -4808,5 +4796,107 @@
             "id": "paintintg_frame",
             "side": [29.5, 29.5]
         }
+    },
+
+
+
+
+    {
+        "id": 139,
+        "name": "COBBLESTONE_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "cobblestone"
+        },
+        "texture": [
+            0,
+            1
+        ]
+    },
+    {
+        "id": 620,
+        "name": "MOSS_STONE_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            4,
+            2
+        ]
+    },
+    {
+        "id": 621,
+        "name": "ANDESITE_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "id": "stone",
+            "side": [0, 0]
+        }
+    },
+    {
+        "id": 622,
+        "name": "DIORITE_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "id": "stone",
+            "side": [1, 0]
+        }
+    },
+    {
+        "id": 623,
+        "name": "GRANITE_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "id": "stone",
+            "side": [2, 0]
+        }
+    },
+    {
+        "id": 624,
+        "name": "SANDSTONE_WALL",
+        "sound": "madcraft:block.gravel",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            0,
+            12
+        ]
+    },
+    {
+        "id": 625,
+        "name": "BRICK_WALL",
+        "sound": "madcraft:block.stone",
+        "style": "wall",
+        "transparent": true,
+        "material": {
+            "id": "stone"
+        },
+        "texture": [
+            7,
+            0
+        ]
     }
 ]

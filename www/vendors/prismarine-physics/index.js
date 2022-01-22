@@ -531,7 +531,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
             for (cursor.z = Math.floor(bb.minZ); cursor.z <= Math.floor(bb.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(bb.minX); cursor.x <= Math.floor(bb.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
+                    if (block && block.material && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
                         const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
                         if (Math.ceil(bb.maxY) >= waterLevel) waterBlocks.push(block)
                     }
@@ -583,8 +583,11 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
                 vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-                vel.y = Math.fround(0.42) * ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1)
+                vel.y = Math.fround(0.42)
+                if(honeyblockId != BLOCK_NOT_EXISTS) {
+                    const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+                    vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
+                }
                 if (entity.jumpBoost > 0) {
                     vel.y += 0.1 * entity.jumpBoost
                 }
