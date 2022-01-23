@@ -621,8 +621,12 @@ export class BLOCK {
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall');
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane');
     }
+
+    static canPaneConnect(block) {
+        return this.canWallConnect(block);
+    };
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
         const mat = CubeSym.matrices[cardinal_direction];
@@ -766,18 +770,15 @@ export class BLOCK {
                 }
                 case 'pane': {
                     let height = 1;
-                    let canConnect = (checked_block) => {
-                        return checked_block.id > 0 && (!checked_block.properties.transparent || checked_block.properties.style == 'pane');
-                    };
                     let w = 2/16;
                     let w2 = w/2;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    let con_s = canConnect(n.SOUTH);
-                    let con_n = canConnect(n.NORTH);
-                    let con_w = canConnect(n.WEST);
-                    let con_e = canConnect(n.EAST);
+                    let con_s = this.canPaneConnect(n.SOUTH);
+                    let con_n = this.canPaneConnect(n.NORTH);
+                    let con_w = this.canPaneConnect(n.WEST);
+                    let con_e = this.canPaneConnect(n.EAST);
                     let remove_center = con_s || con_n || con_w || con_e;
                     //
                     if(con_s && con_n) {

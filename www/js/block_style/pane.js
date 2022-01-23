@@ -69,14 +69,11 @@ export default class style {
         let connect_u       = 7/16;
         let connect_v       = 2/16;
         let tex             = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let canConnect = (block) => {
-            return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
-        };
 
-        let con_s = canConnect(neighbours.SOUTH);
-        let con_n = canConnect(neighbours.NORTH);
-        let con_w = canConnect(neighbours.WEST);
-        let con_e = canConnect(neighbours.EAST);
+        let con_s = BLOCK.canPaneConnect(neighbours.SOUTH);
+        let con_n = BLOCK.canPaneConnect(neighbours.NORTH);
+        let con_w = BLOCK.canPaneConnect(neighbours.WEST);
+        let con_e = BLOCK.canPaneConnect(neighbours.EAST);
 
         let no_draw_center_sides = [];
         if(con_s) no_draw_center_sides.push(ROTATE.S);
