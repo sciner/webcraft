@@ -199,6 +199,8 @@ export class WebGLUniversalShader extends BaseShader {
          */
         this.program = context.createProgram(options.code, options.defines || {});
 
+        this.boundID = 0;
+
         /**
          * @type {AttrLoaderInfo[]}
          */
@@ -307,11 +309,10 @@ export class WebGLUniversalShader extends BaseShader {
             prevShader.unbind();
         }
 
-        this.context._shader = this;
-
-        gl.useProgram(this.program);
+        this.context.useShader(this)
 
         this._textureSlot = 0;
+
         this.update();
     }
 

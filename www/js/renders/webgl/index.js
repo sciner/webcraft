@@ -9,7 +9,12 @@ import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 
-const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
+/**
+ * Shader interface
+ * @typedef {Object} IWebGLShader
+ * @property {WebGLProgram} program
+ * @property {number} boundID
+ */
 
 const TEXTURE_TYPE_FORMAT = {
     'rgba8u': {
@@ -250,6 +255,10 @@ export default class WebGLRenderer extends BaseRenderer {
          */
         this.gl = null;
         this._activeTextures = {};
+
+        /**
+         * @type {IWebGLShader}
+         */
         this._shader = null;
 
         // test only
@@ -538,6 +547,24 @@ export default class WebGLRenderer extends BaseRenderer {
         const buffer = new Uint8Array(this.view.width * this.view.height * 4);
         this.gl.readPixels(0,0, this.view.width, this.view.height, this.gl.RGBA, this.gl.UNSIGNED_BYTE, buffer);
         return buffer;
+    }
+
+    /**
+     * Push shader to active slot
+     * @internal
+     * @param { IWebGLShader } shader
+     * @returns {boolean} true when shader bounded firstly
+     */
+    useShader(shader) {
+        if (shader == this._shader) {
+            return false;
+        }
+
+        this._shader = shader;
+        this._shader.boundID = this._shader.boundID | 0 + 1;
+        this.gl.useProgram(shader.program);
+
+        return true;
     }
 
     async screenshot() {

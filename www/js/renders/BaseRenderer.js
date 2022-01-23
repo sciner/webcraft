@@ -339,6 +339,7 @@ export class BaseShader {
          */
         this.code = options.code;
         this.bindings = [];
+        this.boundID = 0;
     }
 
     bind() {

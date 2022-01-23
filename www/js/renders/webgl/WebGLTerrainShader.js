@@ -4,13 +4,11 @@ import WebGLRenderer from "./index.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
     /**
-     * 
      * @param {WebGLRenderer} context 
      * @param {*} options 
      */
     constructor(context, options) {
         super(context, options);
-
         const { gl } = context;
         const program  = context.createProgram(options.code, {
             // for ex, skip mip block
@@ -18,7 +16,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
                 //skip: true
             }
         });
-
         this.uProjMat           = gl.getUniformLocation(program, 'uProjMatrix');
         this.uModelMatrix       = gl.getUniformLocation(program, 'u_worldView');
         this.uModelMat          = gl.getUniformLocation(program, 'uModelMatrix');
@@ -61,21 +58,24 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         this.globalID = -1;
         this.program = program;
+        this.boundID = 0;
     }
 
     bind(force = false) {
         const {gl} = this.context;
         const prevShader = this.context._shader;
+
         if (prevShader === this && !force)
         {
             this.update();
             return;
         }
+
         if (prevShader) {
             prevShader.unbind();
         }
-        this.context._shader = this;
-        gl.useProgram(this.program);
+
+        this.context.useShader(this);
         this.update();
     }
 
