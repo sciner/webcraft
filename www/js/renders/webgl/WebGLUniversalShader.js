@@ -85,9 +85,13 @@ export class UniformBinding {
         this.trimmedName = this.name.replace('u_', '').replace('[]', '');
         this.isolated = false;
 
-        this.value = undefined;
         this.type = undefined;
         this.func = undefined;
+
+        this._value = null;
+        this._lastLoadedValue = null;
+        this._isDirty = true;
+        this._shaderBoundID = -1;
 
         const rec = GL_TYPE_FUNC[this.info.type];
 
@@ -95,6 +99,18 @@ export class UniformBinding {
             this.type = rec.type;
             this.func = rec.func;
         }
+    }
+
+    get value () {
+        return this._value;
+    }
+
+    set value(v) {
+        if (v !== this._value) {
+            this._isDirty = true;
+        }
+
+        this._value = v;
     }
 
     /**
@@ -122,17 +138,20 @@ export class UniformBinding {
         this.value = value;
     }
 
-    upload () {
+    upload (force = false) {
         let  {
             name,
             trimmedName,
-            value,
+            _value: value,
             shader,
             isolate
         } = this;
 
         const globalUniforms = shader.context.globalUniforms;
         const gl = shader.context.gl;
+        const isShaderRebound = shader.boundID === this._shaderBoundID;
+
+        let needLoad = force || isShaderRebound;
 
         // try upload from GU
         // redefine base value
@@ -144,12 +163,25 @@ export class UniformBinding {
             }
         }
 
+        if (typeof value !== 'object' && !needLoad) {
+            // check that last value is same
+            needLoad = this._lastLoadedValue !== value;
+        }
+
+        this._lastLoadedValue = value;
+
         // bind texture to slot
+        // @todo
+        // we should track texture bound value and re-upload uniform
         if (value instanceof WebGLTexture) {
             const slot = shader.getTextureSlot();
 
             value.bind(slot);
             value = slot;
+
+        } else if(!needLoad) {
+            // skip uniform if not require to upload
+            return;
         }
 
         if (typeof value === 'undefined') {
