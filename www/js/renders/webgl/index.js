@@ -14,6 +14,7 @@ import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
  * @typedef {Object} IWebGLShader
  * @property {WebGLProgram} program
  * @property {number} boundID
+ * @property {Function} unbind
  */
 
 const TEXTURE_TYPE_FORMAT = {
@@ -553,11 +554,16 @@ export default class WebGLRenderer extends BaseRenderer {
      * Push shader to active slot
      * @internal
      * @param { IWebGLShader } shader
+     * @param {boolean} [force] force rebound 
      * @returns {boolean} true when shader bounded firstly
      */
-    useShader(shader) {
-        if (shader == this._shader) {
+    useShader(shader, force) {
+        if (shader == this._shader && !force) {
             return false;
+        }
+
+        if (this._shader && this._shader.unbind) {
+            this._shader.unbind();
         }
 
         this._shader = shader;

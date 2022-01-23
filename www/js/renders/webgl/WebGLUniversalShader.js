@@ -296,20 +296,7 @@ export class WebGLUniversalShader extends BaseShader {
     }
 
     bind(force = false) {
-        const gl = this.context.gl;
-        const prevShader = this.context._shader;
-
-        if (prevShader === this && !force)
-        {
-            this.update();
-            return;
-        }
-
-        if (prevShader) {
-            prevShader.unbind();
-        }
-
-        this.context.useShader(this)
+        this.context.useShader(this, force)
 
         this._textureSlot = 0;
 

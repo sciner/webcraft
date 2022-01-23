@@ -62,20 +62,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
     }
 
     bind(force = false) {
-        const {gl} = this.context;
-        const prevShader = this.context._shader;
-
-        if (prevShader === this && !force)
-        {
-            this.update();
-            return;
-        }
-
-        if (prevShader) {
-            prevShader.unbind();
-        }
-
-        this.context.useShader(this);
+        this.context.useShader(this, force);
         this.update();
     }
 
@@ -85,7 +72,6 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             this._material.unbind();
             this._material = null;
         }
-        this.context._shader = null;
     }
 
     update() {
