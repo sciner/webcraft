@@ -25,6 +25,8 @@
     {"id": 552, "name": "SHEARS"},
     {"id": 130, "name": "STICK"},
     {"id": 617, "name": "CHAIN"},
+    {"id": 60, "name": "FARMLAND"},
+    {"id": 626, "name": "IRON_BARS"},
 
     {"id": 173, "name": "COAL"},
     {"id": 612, "name": "CARROT"},

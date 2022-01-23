@@ -249,7 +249,7 @@ export default class style {
                 1, 0, 0,
                 0, -1, 0,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         const H = (bH - 1 + height);

@@ -681,35 +681,81 @@ export class BLOCK {
                     break;
                 }
                 case 'wall': {
-                    const height            = for_physic ? 1.5 : 1;
                     const CENTER_WIDTH      = 8 / 16;
                     const CONNECT_WIDTH     = 6 / 16;
                     const CONNECT_HEIGHT    = 14 / 16;
                     const CONNECT_BOTTOM    = 0 / 16;
+                    const CONNECT_X         = 6 / 16;
+                    const CONNECT_Z         = 8 / 16;
+                    const height            = for_physic ? 1.5 : CONNECT_HEIGHT;
+                    //
+                    let zconnects = 0;
+                    let xconnects = 0;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canWallConnect(n.SOUTH)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, 0, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z]);
+                        zconnects++;
                     }
                     // North z++
                     if(this.canWallConnect(n.NORTH)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, 1]);
+                        if(zconnects) {
+                            shapes.pop();
+                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1]);
+                        } else {
+                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, .5, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z]);
+                        }
+                        zconnects++;
                     }
                     // West x--
                     if(this.canWallConnect(n.WEST)) {
-                        shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        shapes.push([
+                            0,
+                            CONNECT_BOTTOM,
+                            .5-CONNECT_X/2, 
+                            CONNECT_Z,
+                            height,
+                            .5-CONNECT_X/2 + CONNECT_X
+                        ]);
+                        xconnects++;
                     }
                     // East x++
                     if(this.canWallConnect(n.EAST)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, 1, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        if(xconnects) {
+                            shapes.pop();
+                            shapes.push([
+                                0,
+                                CONNECT_BOTTOM,
+                                .5-CONNECT_X/2,
+                                1,
+                                height,
+                                .5-CONNECT_X/2 + CONNECT_X
+                            ]);
+                        } else {
+                            shapes.push([
+                                .5,
+                                CONNECT_BOTTOM,
+                                .5-CONNECT_X/2,
+                                .5+CONNECT_Z,
+                                height,
+                                .5-CONNECT_X/2 + CONNECT_X
+                            ]);
+                        }
+                        xconnects++;
                     }
-                    // Central
-                    shapes.push([
-                        .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
-                        .5+CENTER_WIDTH/2, height, .5+CENTER_WIDTH/2
-                    ]);
+                    if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
+                        // do nothing
+                    } else {
+                        if(!for_physic) {
+                            // Central
+                            shapes.push([
+                                .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                                .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
+                            ]);
+                        }
+                    }
                     break;
                 }
                 case 'thin': {
