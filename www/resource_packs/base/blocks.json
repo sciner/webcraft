@@ -47,18 +47,9 @@
             "id": "dirt"
         },
         "texture": {
-            "up": [
-                0,
-                16
-            ],
-            "down": [
-                2,
-                0
-            ],
-            "side": [
-                2,
-                16
-            ]
+            "up": [0, 16],
+            "down": [2, 0],
+            "side": [2, 16]
         }
     },
     {
@@ -76,6 +67,7 @@
     {
         "id": 137,
         "name": "WOODEN_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -93,6 +85,7 @@
     {
         "id": 561,
         "name": "STONE_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -111,6 +104,7 @@
     {
         "id": 562,
         "name": "IRON_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -129,6 +123,7 @@
     {
         "id": 563,
         "name": "GOLD_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -147,6 +142,7 @@
     {
         "id": 564,
         "name": "DIAMOND_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -165,6 +161,7 @@
     {
         "id": 565,
         "name": "NETHERITE_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -183,6 +180,7 @@
     {
         "id": 566,
         "name": "WOODEN_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -200,6 +198,7 @@
     {
         "id": 567,
         "name": "STONE_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -218,6 +217,7 @@
     {
         "id": 568,
         "name": "IRON_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -236,6 +236,7 @@
     {
         "id": 569,
         "name": "GOLD_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -254,6 +255,7 @@
     {
         "id": 570,
         "name": "DIAMOND_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -272,6 +274,7 @@
     {
         "id": 571,
         "name": "NETHERITE_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -1584,10 +1587,12 @@
     {
         "id": 60,
         "name": "FARMLAND",
-        "texture": [
-            7,
-            5
-        ],
+        "transparent": true,
+        "height": 0.9375,
+        "texture": {
+            "up": [7, 5],
+            "side": [2, 0]
+        },
         "material": {
             "id": "dirt"
         }
@@ -2670,18 +2675,9 @@
             "dirt"
         ],
         "texture": {
-            "up": [
-                4,
-                5
-            ],
-            "down": [
-                2,
-                0
-            ],
-            "side": [
-                4,
-                6
-            ]
+            "up": [4, 5],
+            "down": [2, 0],
+            "side": [4, 6]
         }
     },
     {

@@ -302,6 +302,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     }
                     cv.add(block.posworld, true);
                     resp.blocks.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                    //
+                    if(block.material.sound) {
+                        resp.play_sound = {tag: block.material.sound, action: 'dig'};
+                    }
                     // Drop block if need
                     const isSurvival = true; // player.game_mode.isSurvival()
                     if(isSurvival) {
@@ -512,7 +516,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         // 12. Запрет на списание инструментов как блоков
         if(matBlock.item && matBlock.item) {
             switch(matBlock.item.name) {
-                case 'shovel': {
+                case 'instrument': {
                     switch(matBlock.item.instrument_id) {
                         case 'shovel': {
                             if(world_material.id == BLOCK.DIRT.id) {
@@ -522,6 +526,23 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 pos.z -= pos.n.z;
                                 resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                                 resp.decrement = true;
+                                if(matBlock.sound) {
+                                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                                }
+                            }
+                            break;
+                        }
+                        case 'hoe': {
+                            if(world_material.id == BLOCK.DIRT.id || world_material.id == BLOCK.DIRT_PATH.id) {
+                                const extra_data = null;
+                                pos.x -= pos.n.x;
+                                pos.y -= pos.n.y;
+                                pos.z -= pos.n.z;
+                                resp.blocks.push({pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
+                                resp.decrement = true;
+                                if(matBlock.sound) {
+                                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                                }
                             }
                             break;
                         }
@@ -543,6 +564,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
                 case 'painting': {
                     resp.create_painting = await createPainting(world, pos);
+                    if(resp.create_painting) {
+                        resp.play_sound = {tag: 'madcraft:block.wood', action: 'place'};
+                    }
                     break;
                 }
             }
@@ -609,6 +633,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 } else {
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
                     resp.decrement = true;
+                }
+                if(matBlock.sound) {
+                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
                 }
             } else {
                 // Create block
@@ -677,6 +704,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         }
                     }
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    if(matBlock.sound) {
+                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                    }
                     resp.decrement = true;
                 }
             }

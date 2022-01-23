@@ -392,16 +392,8 @@ export class ChunkManager {
             entity_id:  entity_id,
             extra_data: extra_data ? extra_data : null
         };
+        /*
         if(is_modify) {
-            /*// @server Отправляем на сервер инфу об установке блока
-            this.world.server.Send({
-                name: ServerClient.CMD_BLOCK_SET,
-                data: {
-                    pos: pos,
-                    item: item,
-                    action_id: action_id
-                }
-            });*/
             let material = BLOCK.fromId(item.id);
             if(material.spawn_egg) {
                 return;
@@ -427,7 +419,7 @@ export class ChunkManager {
                     Game.sounds.play(b.sound, action);
                 }
             }
-        }
+        }*/
         // устанавливаем блок
         return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
     }

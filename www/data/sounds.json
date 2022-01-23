@@ -294,5 +294,17 @@
             "Cave_Vines_break4",
             "Cave_Vines_break5"
         ]
+    },
+    {
+        "type": "madcraft:block.shovel",
+        "place": [
+            "Shovel_flatten1",
+            "Shovel_flatten2",
+            "Shovel_flatten3",
+            "Shovel_flatten4"
+        ],
+        "break": [
+            "Random_break"
+        ]
     }
 ]
