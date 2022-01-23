@@ -638,6 +638,13 @@ export class Vector {
         return this;
     }
 
+    volume(vec) {
+        const volx = Math.abs(this.x - vec.x) + 1;
+        const voly = Math.abs(this.y - vec.y) + 1;
+        const volz = Math.abs(this.z - vec.z) + 1;
+        return volx * voly * volz;
+    }
+
 }
 
 export class Vec3 extends Vector {}

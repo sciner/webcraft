@@ -262,6 +262,18 @@ export class DBWorld {
 
     }
 
+    async TransactionBegin() {        
+        await this.db.get('begin transaction');
+    }
+
+    async TransactionCommit() {
+        await this.db.get('commit');
+    }
+
+    async TransactionRollback() {
+        await this.db.get('rollback');
+    }
+
     // getDefaultPlayerIndicators...
     getDefaultPlayerIndicators() {
         return {

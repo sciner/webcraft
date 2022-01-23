@@ -518,7 +518,7 @@ export class ServerWorld {
             const chest = await this.chests.create(server_player, params);
             const new_item = chest.item;
             const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
-            actions.blocks.push(b_params);
+            actions.blocks.list.push(b_params);
         }
         // Delete chest
         if(actions.delete_chest) {
@@ -544,7 +544,7 @@ export class ServerWorld {
             }
         }
         // Create drop items
-        if(actions.drop_items.length > 0) {
+        if(actions.drop_items && actions.drop_items.length > 0) {
             if(server_player.game_mode.isSurvival()) {
                 for(let di of actions.drop_items) {
                     // Add velocity for drop item
@@ -558,49 +558,70 @@ export class ServerWorld {
             }
         }
         // Modify blocks
-        for(let params of actions.blocks) {
-            params.item = BLOCK.convertItemToInventoryItem(params.item);
-            let chunk_addr = getChunkAddr(params.pos);
-            let chunk = this.chunks.get(chunk_addr);
-            if(chunk) {
-                await this.db.blockSet(this, null, params);
-                const block_pos = new Vector(params.pos).floored();
-                const block_pos_in_chunk = block_pos.sub(chunk.coord);
-                const cps = getChunkPackets(params.pos);
-                cps.packets.push({
-                    name: ServerClient.CMD_BLOCK_SET,
-                    data: params
-                });
-                // 0. Play particle animation on clients
-                if(params.item.id == BLOCK.AIR.id) {
-                    let tblock = chunk.tblocks.get(block_pos_in_chunk);
-                    if(tblock.id > 0) {
-                        let destroy_data = {
-                            pos: params.pos,
-                            item: {id: tblock.id}
+        if(actions.blocks && actions.blocks.list) {
+            let chunk_addr = new Vector(0, 0, 0);
+            let prev_chunk_addr = new Vector(Infinity, Infinity, Infinity);
+            let chunk = null;
+            const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
+            const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
+            await this.db.TransactionBegin();
+            try {
+                for(let params of actions.blocks.list) {
+                    params.item = BLOCK.convertItemToInventoryItem(params.item);
+                    chunk_addr = getChunkAddr(params.pos, chunk_addr);
+                    if(!prev_chunk_addr.equal(chunk_addr)) {
+                        chunk = this.chunks.get(chunk_addr);
+                        prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                    }
+                    if(chunk) {
+                        await this.db.blockSet(this, null, params);
+                        const block_pos = new Vector(params.pos).floored();
+                        const block_pos_in_chunk = block_pos.sub(chunk.coord);
+                        const cps = getChunkPackets(params.pos);
+                        cps.packets.push({
+                            name: ServerClient.CMD_BLOCK_SET,
+                            data: params
+                        });
+                        // 0. Play particle animation on clients
+                        if(!ignore_check_air) {
+                            if(params.item.id == BLOCK.AIR.id) {
+                                let tblock = chunk.tblocks.get(block_pos_in_chunk);
+                                if(tblock.id > 0) {
+                                    let destroy_data = {
+                                        pos: params.pos,
+                                        item: {id: tblock.id}
+                                    }
+                                    let packet = {
+                                        name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
+                                        data: destroy_data
+                                    };
+                                    cps.packets.push(packet);
+                                }
+                            }
                         }
-                        let packet = {
-                            name: ServerClient.CMD_PARTICLE_BLOCK_DESTROY,
-                            data: destroy_data
-                        };
-                        cps.packets.push(packet);
+                        // 2. Mark as became modifieds
+                        this.chunkBecameModified(chunk_addr);
+                        // 3. Store in chunk tblocks
+                        chunk.tblocks.delete(block_pos_in_chunk);
+                        let tblock           = chunk.tblocks.get(block_pos_in_chunk);
+                        tblock.id            = params.item.id;
+                        tblock.extra_data    = params.item?.extra_data || null;
+                        tblock.entity_id     = params.item?.entity_id || null;
+                        tblock.power         = params.item?.power || null;
+                        tblock.rotate        = params.item?.rotate || null;
+                        // 1. Store in modify list
+                        chunk.modify_list.set(block_pos.toHash(), params.item);
+                        if(on_block_set) {
+                            chunk.onBlockSet(block_pos.clone(), params.item)
+                        }
+                    } else {
+                        console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
-                // 2. Mark as became modifieds
-                this.chunkBecameModified(chunk_addr);
-                // 3. Store in chunk tblocks
-                chunk.tblocks.delete(block_pos_in_chunk);
-                let tblock           = chunk.tblocks.get(block_pos_in_chunk);
-                tblock.id            = params.item.id;
-                tblock.extra_data    = params.item?.extra_data || null;
-                tblock.entity_id     = params.item?.entity_id || null;
-                tblock.power         = params.item?.power || null;
-                tblock.rotate        = params.item?.rotate || null;
-                // 1. Store in modify list
-                chunk.modify_list.set(block_pos.toHash(), params.item);
-                chunk.onBlockSet(block_pos.clone(), params.item)
-            } else {
-                console.error('Chunk not found in pos', chunk_addr, params);
+                await this.db.TransactionCommit();
+            } catch(e) {
+                await this.db.TransactionRollback();
+                throw e;
             }
         }
         for(let cp of chunks_packets) {
