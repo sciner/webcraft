@@ -214,6 +214,12 @@ export class ServerChat {
                     throw 'error_not_permitted';
                 }
                 player.pos1 = player.state.pos.floored();
+                let msg = `pos1 = ${player.pos1.x}, ${player.pos1.y}, ${player.pos1.z}`;
+                if(player.pos2) {
+                    const volume = player.pos1.volume(player.pos2);
+                    msg += `. Selected ${volume} blocks`;
+                }
+                this.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
                 break;
             }
             case '//pos2': {
@@ -221,6 +227,12 @@ export class ServerChat {
                     throw 'error_not_permitted';
                 }
                 player.pos2 = player.state.pos.floored();
+                let msg = `pos2 = ${player.pos2.x}, ${player.pos2.y}, ${player.pos2.z}`;
+                if(player.pos1) {
+                    const volume = player.pos1.volume(player.pos2);
+                    msg += `. Selected ${volume} blocks`;
+                }
+                this.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
                 break;
             }
             case '//set': {

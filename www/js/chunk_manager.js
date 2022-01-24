@@ -240,7 +240,11 @@ export class ChunkManager {
         return true;
     }
 
-    // Get
+    /**
+     * Return chunk by address
+     * @param {*} addr 
+     * @returns Chunk
+     */
     getChunk(addr) {
         return this.chunks.get(addr);
     }
@@ -392,53 +396,9 @@ export class ChunkManager {
             entity_id:  entity_id,
             extra_data: extra_data ? extra_data : null
         };
-        /*
-        if(is_modify) {
-            let material = BLOCK.fromId(item.id);
-            if(material.spawn_egg) {
-                return;
-            }
-            // заменяемый блок
-            let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
-            let b = null;
-            let action = null;
-            if(block.id == BLOCK.AIR.id) {
-                // dig
-                action = 'dig';
-                b = world_block;
-            } else if(world_block && world_block.id == block.id) {
-                // do nothing
-            } else {
-                // place
-                action = 'place';
-                b = block;
-            }
-            if(action) {
-                b = BLOCK.BLOCK_BY_ID.get(b.id);
-                if(b.hasOwnProperty('sound')) {
-                    Game.sounds.play(b.sound, action);
-                }
-            }
-        }*/
         // устанавливаем блок
         return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
     }
-
-    /*
-    // destroyBlock
-    destroyBlock(pos) {
-        let render = Game.render;
-        let block = this.getBlock(pos.x, pos.y, pos.z);
-        if(block.id == BLOCK.TULIP.id) {
-            render.setBrightness(.15);
-        } else if(block.id == BLOCK.DANDELION.id) {
-            render.setBrightness(1);
-        } else if(block.id == BLOCK.CACTUS.id) {
-            render.setRain(true);
-        }
-        render.destroyBlock(block, pos);
-        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true, null, null, null, null, ServerClient.BLOCK_ACTION_DESTROY);
-    }*/
 
     // Set nearby chunks
     updateNearby(data) {
