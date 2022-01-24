@@ -498,9 +498,9 @@ export class ServerWorld {
         const getChunkPackets = (pos) => {
             let chunk_addr = getChunkAddr(pos);
             let chunk = this.chunks.get(chunk_addr);
-            if(!chunk) {
-                return null;
-            }
+            //if(!chunk) {
+            //    return null;
+            //}
             let cps = chunks_packets.get(chunk_addr);
             if(!cps) {
                 cps = {packets: [], chunk: chunk};
@@ -536,6 +536,9 @@ export class ServerWorld {
             await this.db.createPainting(this, server_player, pos, params);
             const cps = getChunkPackets(pos);
             if(cps) {
+                if(!cps.chunk) {
+                    throw 'error_chunk_not_loaded';
+                }
                 cps.chunk.addPaintings([params], false);
                 cps.packets.push({
                     name: ServerClient.CMD_CREATE_PAINTING,
@@ -573,8 +576,8 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
+                    await this.db.blockSet(this, null, params);
                     if(chunk) {
-                        await this.db.blockSet(this, null, params);
                         const block_pos = new Vector(params.pos).floored();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
                         const cps = getChunkPackets(params.pos);
@@ -625,8 +628,9 @@ export class ServerWorld {
             }
         }
         for(let cp of chunks_packets) {
-            let packets = cp.packets;
-            cp.chunk.sendAll(packets, []);
+            if(cp.chunk) {
+                cp.chunk.sendAll(cp.packets, []);
+            }
         }
     }
 
