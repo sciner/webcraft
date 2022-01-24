@@ -14,6 +14,12 @@ export default class WorldEdit {
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
             switch (cmd) {
+                case '//desel': {
+                    player.pos1 = null;
+                    player.pos2 = null;
+                    return true;
+                    break;
+                }
                 case '//pos1': {
                     if(!chat.world.admins.checkIsAdmin(player)) {
                         throw 'error_not_permitted';
@@ -75,14 +81,14 @@ export default class WorldEdit {
                         }
                     }
                     let b = BLOCK.fromId(block_id);
-                    if(!b) {
+                    if(!b || b.id < 0) {
                         throw 'error_invalid_block';
-                    }
-                    if(b.item) {
-                        throw 'error_block_is_item';
                     }
                     if(b.deprecated) {
                         throw 'error_block_is_deprecated';
+                    }
+                    if(b.item || b.can_rotate || b.is_fluid || b.extra_data || (b.style == 'planting' && b.material.id == 'plant')) {
+                        throw 'error_this_block_cannot_be_setted';
                     }
                     let actions = {blocks: {
                         list: [],
