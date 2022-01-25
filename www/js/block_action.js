@@ -641,7 +641,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 // Create block
                 // Посадить растения можно только на блок земли
                 let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-                if(BLOCK.isPlants(matBlock.id) && (!underBlock || underBlock.id != BLOCK.DIRT.id)) {
+                if(BLOCK.isPlants(matBlock.id) && (!underBlock || (underBlock.id != BLOCK.DIRT.id && underBlock.id != BLOCK.FARMLAND.id))) {
                     return resp;
                 }
                 if(matBlock.item || matBlock.is_entity) {
@@ -703,6 +703,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
+                    console.log(matBlock.name, extra_data);
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     if(matBlock.sound) {
                         resp.play_sound = {tag: matBlock.sound, action: 'place'};

@@ -604,5 +604,56 @@
             "item": "madcraft:coarse_dirt",
             "count": 2
         }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "",
+            "WWW"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:wheat"
+            }
+        },
+        "result": {
+            "item": "madcraft:bread",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "WWW",
+            "WWW",
+            "WWW"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:wheat"
+            }
+        },
+        "result": {
+            "item": "madcraft:hay_block",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "",
+            "H"
+        ],
+        "key": {
+            "H": {
+                "item": "madcraft:hay_block"
+            }
+        },
+        "result": {
+            "item": "madcraft:wheat",
+            "count": 9
+        }
     }
 ]

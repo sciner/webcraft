@@ -193,9 +193,6 @@ export class BLOCK {
     static makeExtraData(block, pos, orientation) {
         block = BLOCK.BLOCK_BY_ID.get(block.id);
         let extra_data = null;
-        if(!block.tags) {
-            return extra_data;
-        }
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
@@ -236,6 +233,8 @@ export class BLOCK {
             } else if(pos.n.y == -1) {
                 extra_data.point.y = 1;
             }
+        } else if(block.extra_data) {
+            extra_data = JSON.parse(JSON.stringify(block.extra_data));
         }
         return extra_data;
     }
@@ -490,7 +489,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height) {
+    static calcMaterialTexture(material, dir, width, height, block) {
         let tx_cnt = TX_CNT;
         // Get tx_cnt from resource pack texture
         if (typeof material.texture === 'object' && 'id' in material.texture) {
@@ -499,7 +498,16 @@ export class BLOCK {
                 tx_cnt = tex.tx_cnt;
             }
         }
-        let c = this.calcTexture(material.texture, dir, tx_cnt);
+        let texture = material.texture;
+        if(material.stage_textures && block && 'extra_data' in block) {
+            if('stage' in block.extra_data) {
+                let stage = block.extra_data.stage;
+                stage = Math.max(stage, 0);
+                stage = Math.min(stage, material.stage_textures.length - 1);
+                texture = material.stage_textures[stage];
+            }
+        }
+        let c = this.calcTexture(texture, dir, tx_cnt);
         if(height && height < 1) {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;

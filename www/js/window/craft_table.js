@@ -10,6 +10,7 @@ export class CraftTable extends BaseCraftWindow {
         super(x, y, w, h, id, title, text);
         this.width *= this.zoom;
         this.height *= this.zoom;
+        this.style.background.image_size_mode = 'stretch';
 
         this.recipes = recipes;
         this.inventory = inventory;

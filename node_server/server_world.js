@@ -463,35 +463,12 @@ export class ServerWorld {
         return this.chunks;
     }
 
-    /*
     //
-    async setBlock(player, params) {
-        // @ParamBlockSet
-        // Ignore bedrock for non admin
-        let is_admin = this.admins.checkIsAdmin(player);
-        if (params.item.id != 1 || is_admin) {
-            let dist = player.state.pos.distance(params.pos);
-            if(dist > MAX_BLOCK_PLACE_DIST) {
-                console.log('dist', dist);
-                throw 'error_unreachable_coordinate';
-            }
-            this.pickat_action_queue.add(player, params);
-            this.pickat_action_queue.run();
-        }
-    }*/
-
     pickAtAction(server_player, params) {
         this.pickat_action_queue.add(server_player, params);
     }
 
-    // setBlocksApply
-    // @example:
-    // [
-    //      {
-    //          "pos": {"x": 0, "y": 0, "z": 0},
-    //          "item": {"id": 2}
-    //      }
-    // ]
+    //
     async applyActions(server_player, actions) {
         let chunks_packets = new VectorCollector();
         //
