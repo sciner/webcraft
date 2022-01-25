@@ -8,8 +8,10 @@ export default class ChestWindow extends Window {
     constructor(x, y, w, h, id, title, text, inventory) {
 
         super(x, y, w, h, id, title, text);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
+        this.style.background.image_size_mode = 'stretch';
 
         this.inventory  = inventory;
         this.loading    = false;

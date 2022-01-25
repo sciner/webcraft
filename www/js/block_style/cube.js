@@ -256,6 +256,7 @@ export default class style {
 
         // South | Front/Forward
         if(canDrawSOUTH) {
+            let animations_south = getAnimations('south');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -264,11 +265,12 @@ export default class style {
                 1, 0, 0,
                 0, 0, H,
                 c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_south, flags | sideFlags);
         }
 
         // North
         if(canDrawNORTH) {
+            let animations_north = getAnimations('north');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -277,11 +279,12 @@ export default class style {
                 1, 0, 0,
                 0, 0, -H,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_north, flags | sideFlags);
         }
 
         // West
         if(canDrawWEST) {
+            let animations_west = getAnimations('west');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -290,11 +293,12 @@ export default class style {
                 0, 1, 0,
                 0, 0, -H,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_west, flags | sideFlags);
         }
 
         // East
         if(canDrawEAST) {
+            let animations_east = getAnimations('east');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -303,7 +307,7 @@ export default class style {
                 0, 1, 0,
                 0, 0, H,
                 c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_east, flags | sideFlags);
         }
 
     }

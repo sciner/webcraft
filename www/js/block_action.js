@@ -246,14 +246,14 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     //
     let world_block     = world.getBlock(pos);
     let world_material  = world_block && world_block.id > 0 ? world_block.material : null;
-    let extra_data      = world_block.extra_data;
-    let rotate          = world_block.rotate;
-    let entity_id       = world_block.entity_id;
     //
     if(!world_material && (cloneBlock || createBlock)) {
         console.log('empty world_material', world_block.id, pos);
         return resp;
     }
+    let extra_data      = world_block ? world_block.extra_data : null;
+    let rotate          = world_block ? world_block.rotate : null;
+    let entity_id       = world_block ? world_block.entity_id : null;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
     // Edit trapdoor

@@ -526,7 +526,7 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            20,
+            10,
             18
         ],
         "material": {
@@ -534,6 +534,7 @@
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -543,14 +544,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            21,
-            18
+            10,
+            19
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -560,14 +562,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            22,
-            18
+            10,
+            20
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -577,14 +580,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            23,
-            18
+            10,
+            21
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -595,7 +599,7 @@
         "sound": "madcraft:block.grass",
         "texture": [
             10,
-            16
+            22
         ],
         "material": {
             "id": "leaves"
@@ -613,7 +617,7 @@
         "sound": "madcraft:block.grass",
         "texture": [
             10,
-            17
+            23
         ],
         "material": {
             "id": "leaves"
@@ -829,8 +833,8 @@
             "id": "plant"
         },
         "texture": [
-            15,
-            0
+            21,
+            13
         ]
     },
     {
@@ -1668,8 +1672,8 @@
                 7
             ],
             "side": [
-                3,
-                6
+                2,
+                5
             ]
         }
     },
@@ -1689,7 +1693,7 @@
         "texture": {
             "up": [0, 6],
             "down": [0, 7],
-            "side": [3, 7]
+            "side": [1, 5]
         }
     },
     {
@@ -1830,8 +1834,8 @@
             "id": "wood"
         },
         "texture": [
-            8,
-            13
+            0,
+            14
         ]
     },
     {
@@ -2133,8 +2137,8 @@
             "id": "netherite"
         },
         "texture": [
-            7,
-            6
+            0,
+            14
         ]
     },
     {
@@ -2345,14 +2349,13 @@
     {
         "id": 129,
         "name": "EMERALD_ORE",
-        "deprecated": true,
-        "spawnable": false,
+        "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
         },
         "texture": [
-            9,
-            11
+            0,
+            4
         ]
     },
     {
@@ -2514,8 +2517,8 @@
             "id": "quartz"
         },
         "texture": [
-            10,
-            14
+            12,
+            10
         ]
     },
     {
@@ -2530,8 +2533,8 @@
             "stairs"
         ],
         "texture": [
-            10,
-            14
+            12,
+            10
         ],
         "can_rotate": true,
         "transparent": true
@@ -2539,7 +2542,8 @@
     {
         "id": 161,
         "name": "LEAVES2",
-        "transparent": true,
+        "deprecated": true,
+        "spawnable": false,
         "material": {
             "id": "leaves"
         },
@@ -2907,6 +2911,7 @@
         "id": 29,
         "name": "STICKY_PISTON",
         "spawnable": false,
+        "deprecated": true,
         "material": {
             "id": "stone"
         },
@@ -2928,6 +2933,8 @@
     {
         "id": 33,
         "name": "PISTON",
+        "spawnable": false,
+        "deprecated": true,
         "material": {
             "id": "stone"
         },
@@ -4919,5 +4926,21 @@
             5
         ],
         "can_rotate": true
+    },
+    {
+        "id": 627,
+        "name": "WARPED_STEM",
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "up": [26, 17],
+            "down": [26, 17],
+            "side": [28, 1]
+        },
+        "texture_animations": {
+            "up": null,
+            "side": 5
+        }
     }
 ]
