@@ -4942,5 +4942,63 @@
             "up": null,
             "side": 5
         }
+    },
+    {
+        "id": 628,
+        "name": "DEEPSLATE",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [12, 11]
+        }
+    },
+    {
+        "id": 629,
+        "name": "DEEPSLATE_BRICKS",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [13, 11]
+        }
+    },
+    {
+        "id": 630,
+        "name": "DEEPSLATE_BRICKS_STAIRS",
+        "style": "stairs",
+        "sound": "madcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [13, 11],
+        "can_rotate": true
+    },
+    {
+        "id": 631,
+        "name": "HAY_BLOCK",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "side": [10, 6],
+            "up": [11, 6],
+            "down": [11, 6]
+        }
+    },
+    {
+        "id": 632,
+        "name": "MOSSY_STONE_BRICKS",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [5, 3]
+        }
     }
 ]
