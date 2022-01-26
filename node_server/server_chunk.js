@@ -8,7 +8,7 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
-export const STAGE_TIME_MUL                = 20;
+export const STAGE_TIME_MUL                = 5; // 20;
 
 export class ServerChunk {
 
@@ -364,23 +364,28 @@ export class ServerChunk {
                 this.deleteTickingBlock(v.pos);
                 continue;
             }
-            if(!m.ticks) {
-                m.ticks = 0;
-            }
-            m.ticks++;
-            const ticking = v.block.ticking;
-            switch(ticking.type) {
-                case 'stage': {
-                    if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
-                        if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
-                            m.extra_data.stage++;
-                            updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            if(Math.random() > .33) {
+                if(!m.ticks) {
+                    m.ticks = 0;
+                }
+                m.ticks++;
+                const ticking = v.block.ticking;
+                switch(ticking.type) {
+                    case 'stage': {
+                        if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
+                            if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
+                                m.extra_data.stage++;
+                                if(m.extra_data.stage == ticking.max_stage) {
+                                    m.extra_data.complete = true;
+                                }
+                                updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                            }
+                        } else {
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
                         }
-                    } else {
-                        // Delete completed block from tickings
-                        this.deleteTickingBlock(v.pos);
+                        break;
                     }
-                    break;
                 }
             }
         }

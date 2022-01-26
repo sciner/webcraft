@@ -123,9 +123,8 @@ export class PlayerInventory {
             }
         }
     }
-    
-    // Decrement
-    decrement(mining_block) {
+
+    decrement_instrument(mined_block) {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
         }
@@ -135,6 +134,17 @@ export class PlayerInventory {
             if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
             }
+        }
+    }
+    
+    // Decrement
+    decrement() {
+        if(!this.current_item || this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        if(current_item_material.item?.instrument_id) {
+            this.decrement_instrument();
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {

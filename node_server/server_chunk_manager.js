@@ -77,7 +77,7 @@ export class ServerChunkManager {
         this.all.set(chunk.addr, chunk);
     }
 
-    tick(delta) {
+    async tick(delta) {
         this.unloadInvalidChunks();
         //
         for(let chunk of this.all) {
@@ -92,7 +92,7 @@ export class ServerChunkManager {
                 this.ticking_chunks.delete(addr);
                 continue;
             }
-            chunk.tick(delta);
+            await chunk.tick(delta);
         }
     }
 

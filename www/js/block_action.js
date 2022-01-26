@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector} from "./helpers.js";
+import {ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
@@ -34,6 +34,27 @@ function calcRotateByPosN(pos_n) {
     }
     throw 'error_invalid_pos_n';
 
+}
+
+// Calc rotate
+function calcRotate(rot, pos_n) {
+    rot = new Vector(rot);
+    rot.x = 0;
+    rot.y = 0;
+    // top normal
+    if (Math.abs(pos_n.y) === 1) {                        
+        rot.x = BLOCK.getCardinalDirection(rot);
+        rot.z = 0;
+        rot.y = pos_n.y; // mark that is up
+    } else {
+        rot.z = 0;
+        if (pos_n.x !== 0) {
+            rot.x = pos_n.x > 0 ? ROTATE.E : ROTATE.W;
+        } else {
+            rot.x = pos_n.z > 0 ? ROTATE.N : ROTATE.S;
+        }
+    }
+    return rot;
 }
 
 // createPainting...
@@ -194,46 +215,84 @@ async function createPainting(world, pos) {
     return null;
 }
 
-// Calc rotate
-function calcRotate(rot, pos_n) {
-    rot = new Vector(rot);
-    rot.x = 0;
-    rot.y = 0;
-    // top normal
-    if (Math.abs(pos_n.y) === 1) {                        
-        rot.x = BLOCK.getCardinalDirection(rot);
-        rot.z = 0;
-        rot.y = pos_n.y; // mark that is up
-    } else {
-        rot.z = 0;
-        if (pos_n.x !== 0) {
-            rot.x = pos_n.x > 0 ? ROTATE.E : ROTATE.W;
+function dropBlock(player, block, resp) {
+    const isSurvival = true; // player.game_mode.isSurvival()
+    if(!isSurvival) {
+        return;
+    }
+    if(block.material.tags.indexOf('no_drop') >= 0) {
+        return;
+    }
+    if(block.material.drop_item) {
+        const drop_block = BLOCK.fromName(block.material.drop_item?.name);
+        if(drop_block) {
+            let ok = true;
+            // check chance
+            if('chance' in block.material.drop_item) {
+                if(Math.random() > block.material.drop_item.chance) {
+                    ok = false;
+                }
+            }
+            if(ok) {
+                const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
+                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+            }
         } else {
-            rot.x = pos_n.z > 0 ? ROTATE.N : ROTATE.S;
+            console.error('error_invalid_drop_item', block.material.drop_item);
+        }
+    } else {
+        let items = [];
+        // check if seeds
+        if(block.material.seeds) {
+            let result = null;
+            if(block.extra_data.complete) {
+                result = block.material.seeds.result?.complete;
+            } else {
+                result = block.material.seeds.result?.incomplete;
+            }
+            if(result) {
+                for(let r of result) {
+                    const count = Helpers.getRandomInt(r.count.min, r.count.max);
+                    if(count > 0) {
+                        const result_block = BLOCK.fromName(r.name.toUpperCase());
+                        if(!result_block || result_block.id < 0) {
+                            throw 'error_invalid_result_block|' + r.name;
+                        }
+                        items.push({id: result_block.id, count: count});
+                    }
+                }
+            }
+        // default drop item
+        } else if(block.material.spawnable) {
+            items.push({id: block.id, count: 1});
+        }
+        for(let item of items) {
+            console.log(item);
+            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
         }
     }
-    return rot;
-};
+}
 
 // Called to perform an action based on the player's block selection and input.
 export async function doBlockAction(e, world, player, currentInventoryItem) {
     const NO_DESTRUCTABLE_BLOCKS = [BLOCK.BEDROCK.id, BLOCK.STILL_WATER.id];
     const resp = {
-        id:                 e.id,
-        error:              null,
-        chat_message:       null,
-        create_chest:       null,
-        delete_chest:       null,
-        play_sound:         null,
-        load_chest:         null,
-        open_window:        null,
-        clone_block:        false,
-        reset_target_pos:   false,
-        reset_target_event: false,
-        decrement:          false,
-        drop_items:         [],
-        blocks:             {list: []},
-        create_painting:    null
+        id:                     e.id,
+        error:                  null,
+        chat_message:           null,
+        create_chest:           null,
+        delete_chest:           null,
+        play_sound:             null,
+        load_chest:             null,
+        open_window:            null,
+        clone_block:            false,
+        reset_target_pos:       false,
+        reset_target_event:     false,
+        decrement:              false,
+        decrement_instrument:   false,
+        drop_items:             [],
+        blocks:                 {list: []},
+        create_painting:        null
     };
     if(e.pos == false) {
         return resp;
@@ -307,31 +366,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.play_sound = {tag: block.material.sound, action: 'dig'};
                     }
                     // Drop block if need
-                    const isSurvival = true; // player.game_mode.isSurvival()
-                    if(isSurvival) {
-                        if(block.material.drop_item) {
-                            const drop_block = BLOCK.fromName(block.material.drop_item?.name);
-                            if(drop_block) {
-                                let ok = true;
-                                if('chance' in block.material.drop_item) {
-                                    if(Math.random() > block.material.drop_item.chance) {
-                                        ok = false;
-                                    }
-                                }
-                                if(ok) {
-                                    const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
-                                    resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
-                                }
-                            } else {
-                                console.error('error_invalid_drop_item', block.material.drop_item);
-                            }
-                        } else {
-                            if(block.material.spawnable && block.material.tags.indexOf('no_drop') < 0) {
-                                const item = {id: block.id, count: 1};
-                                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
-                            }
-                        }
-                    }
+                    dropBlock(player, block, resp);
                     // Destroy connected blocks
                     for(let cn of ['next_part', 'previous_part']) {
                         let part = block.material[cn];
@@ -358,7 +393,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 const block = world.getBlock(pos);
                 pushDestroyBlock(block);
                 //
-                resp.decrement = {id: block.id};
+                resp.decrement_instrument = {id: block.id};
                 if(!block.material.destroy_to_down) {
                     // Destroyed block
                     pos = new Vector(pos);
@@ -657,7 +692,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         return resp;
                     }
                     // Посадить семена можно только на вспаханную землю
-                    const is_seeds = matBlock.tags.indexOf('seeds') >= 0;
+                    const is_seeds = !!matBlock.seeds;
                     if(is_seeds && underBlock.id != BLOCK.FARMLAND.id) {
                         return resp;
                     }

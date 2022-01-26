@@ -19,7 +19,6 @@ export class Instrument_Hand {
                 if(inventory_item.power <= 0) {
                     // @todo inventory
                     console.error('Нужно перенести на сервер');
-                    // this.inventory.decrement();
                 }
             }
         }

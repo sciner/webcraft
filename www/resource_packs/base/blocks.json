@@ -2466,21 +2466,6 @@
         ]
     },
     {
-        "id": 141,
-        "name": "CARROTS",
-        "spawnable": false,
-        "passable": 1,
-        "transparent": true,
-        "style": "planting",
-        "material": {
-            "id": "plant"
-        },
-        "texture": [
-            11,
-            5
-        ]
-    },
-    {
         "id": 142,
         "name": "POTATOS",
         "spawnable": false,
@@ -4991,9 +4976,17 @@
         "style": "planting",
         "inventory_style": "extruder",
         "transparent": true,
-        "tags": [
-            "seeds"
-        ],
+        "seeds": {
+            "result": {
+                "incomplete": [
+                    {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 1}}
+                ],
+                "complete": [
+                    {"name": "WHEAT_SEEDS", "count": {"min": 0, "max": 3}},
+                    {"name": "WHEAT", "count": {"min": 1, "max": 2}}
+                ]
+            }
+        },
         "extra_data": {
             "stage": 0
         },
@@ -5044,9 +5037,17 @@
         "style": "planting",
         "inventory_style": "extruder",
         "transparent": true,
-        "tags": [
-            "seeds"
-        ],
+        "seeds": {
+            "result": {
+                "incomplete": [
+                    {"name": "CARROT_SEEDS", "count": {"min": 1, "max": 1}}
+                ],
+                "complete": [
+                    {"name": "CARROT_SEEDS", "count": {"min": 0, "max": 3}},
+                    {"name": "CARROT", "count": {"min": 1, "max": 2}}
+                ]
+            }
+        },
         "extra_data": {
             "stage": 0
         },

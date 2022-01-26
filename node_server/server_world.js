@@ -141,7 +141,7 @@ export class ServerWorld {
         //
         this.ticks_stat.start();
         // 1.
-        this.chunks.tick(delta);
+        await this.chunks.tick(delta);
         this.ticks_stat.add('chunks');
         // 2.
         for(let player of this.players.values()) {
@@ -505,6 +505,10 @@ export class ServerWorld {
         // Decrement item
         if(actions.decrement) {
             server_player.inventory.decrement(actions.decrement);
+        }
+        // Decrement instrument
+        if(actions.decrement_instrument) {
+            server_player.inventory.decrement_instrument(actions.decrement_instrument);
         }
         // Create painting
         if(actions.create_painting) {
