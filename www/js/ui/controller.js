@@ -105,11 +105,7 @@ let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
 
     window.Game                     = new GameClass();
-
     $scope.App                      = Game.App = new UIApp();
-    $scope.skin                     = new SkinManager($scope);
-    $scope.texture_pack             = new TexturePackManager($scope);
-    await $scope.texture_pack.init();
 
     //
     $scope.App.onLogin = (e) => {};
@@ -480,13 +476,19 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    $scope.Game = window.Game;
-
-    $scope.settings.load();
-    $scope.boot.init();
-    $scope.login.init();
-    $scope.skin.init();
-    $scope.mygames.checkInvite();
+    $scope.Game         = window.Game;
+    $scope.skin         = new SkinManager($scope);
+    $scope.texture_pack = new TexturePackManager($scope);
+    
+    $scope.texture_pack.init().then(() => {
+        $timeout(() => {
+            $scope.settings.load();
+            $scope.boot.init();
+            $scope.login.init();
+            $scope.skin.init();
+            $scope.mygames.checkInvite();
+        });
+    });
 
 }
 
