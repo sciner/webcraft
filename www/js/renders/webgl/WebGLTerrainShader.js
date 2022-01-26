@@ -59,6 +59,16 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.globalID = -1;
         this.program = program;
         this.boundID = 0;
+
+        this.globalBindingPoint = gl.getUniformBlockIndex(this.program, 'GlobalUniforms');
+
+        if (this.getUniformBlockIndex >= 0) {
+            gl.uniformBlockBinding(
+                this.program,
+                this.context.globalUbo.bindingIndex,
+                this.globalBindingPoint
+            );
+        }
     }
 
     bind(force = false) {

@@ -1,7 +1,7 @@
 #include<header>
 #include<constants>
 
-#include<global_uniforms>
+#include<global_uniforms_ubo>
 #include<global_uniforms_vert>
 
 #include<terrain_attrs_vert>

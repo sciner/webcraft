@@ -1,5 +1,10 @@
 import { BaseBuffer } from "../BaseRenderer.js";
 
+const GL_BUFFER_TYPE = {
+    'index': 'ELEMENT_ARRAY_BUFFER',
+    'vertex': 'ARRAY_BUFFER',
+    'uniform': 'UNIFORM_BUFFER'
+}
 export class WebGLBuffer extends BaseBuffer {
     /**
      *
@@ -10,10 +15,10 @@ export class WebGLBuffer extends BaseBuffer {
         super(context, options);
 
         this.buffer = null;
-        this.lastLenght = 0;
+        this.lastLength = 0;
     }
 
-    update() {
+    update(data, start, end) {
         const  {
             /**
              * @type {WebGL2RenderingContext}
@@ -25,15 +30,45 @@ export class WebGLBuffer extends BaseBuffer {
             this.buffer = gl.createBuffer();
         }
 
-        const type = this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
+        data = data || this._data;
+
+        if (!data) {
+            return;
+        }
+
+        start = start || 0;
+        end = end || data.length
+        length = end - start;
+
+        let full = false;
+
+        if (length <= 0 || this.lastLength < end) {
+            start = 0;
+            length = data.length;
+            full = true;
+        }
+
+        const type = gl[GL_BUFFER_TYPE[this.type]] || gl.ARRAY_BUFFER;
 
         gl.bindBuffer(type, this.buffer);
 
-        if (this.lastLenght < this.data.length) {
-            gl.bufferData(type, this.data, this.options.usage === 'static' ? gl.STATIC_DRAW : gl.DYNAMIC_DRAW);
-            this.lastLenght = this.data.length
+        if (full) {
+            gl.bufferData(type, data, 
+                this.options.usage === 'static' 
+                    ? gl.STATIC_DRAW 
+                    : gl.DYNAMIC_DRAW,
+                0, end
+            );
+
+            this.lastLength = end;
         } else {
-            gl.bufferSubData(type, 0, this.data);
+            gl.bufferSubData(
+                type,
+                start * data.BYTES_PER_ELEMENT, 
+                data,
+                start,
+                length
+            );
         }
 
         super.update();
@@ -51,8 +86,10 @@ export class WebGLBuffer extends BaseBuffer {
             this.update();
             return;
         }
+        
+        const type = gl[GL_BUFFER_TYPE[this.type]] || gl.ARRAY_BUFFER;
 
-        gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
+        gl.bindBuffer(type, this.buffer);
     }
 
     destroy() {

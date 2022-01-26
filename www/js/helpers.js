@@ -843,7 +843,7 @@ export class Helpers {
         // Finish program
         gl.linkProgram(program);
         if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw 'Could not link the shader program!';
+            throw 'Could not link the shader program!\n' + gl.getProgramInfoLog(program);
         }
 
         callback && callback({

@@ -8,6 +8,7 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
+import { WebGLAbstractionUBO } from "./WebGLAbstractionUBO.js";
 
 /**
  * Shader interface
@@ -272,6 +273,8 @@ export default class WebGLRenderer extends BaseRenderer {
             write: true,
             test: true,
         }
+
+        this.globalUbo = new WebGLAbstractionUBO(this, {bindingIndex: 0});
     }
 
     async init(args) {
@@ -282,7 +285,11 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        this._emptyTex3D.bind(5)
+        this._emptyTex3D.bind(5);
+
+        this.globalUbo.init(this.globalUniforms.ubo);
+        this.globalUniforms.nativeUBO = this.globalUbo;
+
         return Promise.resolve(this);
     }
 

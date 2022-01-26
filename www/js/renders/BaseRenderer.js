@@ -140,6 +140,11 @@ export class BaseBuffer {
         this.options = options;
         this._data = options.data;
         this.index = options.index;
+        this.type = options.type == void 0 
+            ? this.index 
+                ? 'index' 
+                : 'vertex' 
+            : options.type;
 
         this.dirty = true;
     }
@@ -157,7 +162,7 @@ export class BaseBuffer {
         return this._data;
     }
 
-    update() {
+    update(data = null, start = 0, end = 0) {
         this.dirty = false;
     }
 
@@ -399,13 +404,19 @@ export class GlobalUniformGroup {
             aoDisaturateFactor: {
                 value: 0,
             },
+            /*
             shift: {
                 value: new Vector(),
             },
             testLightOn: {
                 value: 0, // legacy
-            }
+            }*/
         });
+
+        /**
+         * Store native UBO Buffer implementation
+         */
+        this.nativeUBO = null;
 
         /*
         this.projMatrix         = mat4.create();
@@ -545,15 +556,15 @@ export class GlobalUniformGroup {
     /**
      * @deprecated
      */
-     get testLightOn() {
-        return this.ubo.fields['testLightOn'].value;
+     get fogOn() {
+        return this.ubo.fields['fogOn'].value;
     }
 
     /**
      * @deprecated
      */
-    set testLightOn(v) {
-        this.ubo.fields['testLightOn'].value = v;
+    set fogOn(v) {
+        this.ubo.fields['fogOn'].value = v;
     }
     
     /**
@@ -622,6 +633,10 @@ export class GlobalUniformGroup {
 
     update() {
         this.updateID++;
+
+        if (this.nativeUBO) {
+            this.nativeUBO.update()
+        }
     }
 }
 

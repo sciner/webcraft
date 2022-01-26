@@ -129,7 +129,7 @@ export class UniversalUniform {
 
     constructor ({
         name,
-        type = UNIFORM_TYPE.VEC4,
+        type = null,
         value = null,
         array = false, // array of uniforms
         offset = 0,
@@ -139,7 +139,7 @@ export class UniversalUniform {
         }
 
         // try eval type
-        if (!type && !array && value) {
+        if (!type && !array && value !== null) {
             if(typeof value !== 'object') {
                 type = UNIFORM_TYPE.FLOAT;
                 value = +value || 0;
@@ -151,7 +151,7 @@ export class UniversalUniform {
         }
 
         if (!type || !(type in KNOWN_TYPES)) {
-            throw new Error('[UniversalUniform] Unknow type:' + type);
+            throw new Error('[UniversalUniform] Unknow type:' + type + ' for ' + name    );
         }
 
         this.name = name;
@@ -163,9 +163,11 @@ export class UniversalUniform {
             ? this.arraySize * Math.max(ARRAY_ALLIGMENT, TYPE_TO_ALLIGMENT[type]) // array always aligned to 4 WEBGL
             : TYPE_TO_ALLIGMENT[type];
 
-        this._dirty = false;
+        this._dirty = true;
 
-        this._updateId = 0;
+        this._mapId = -2;
+
+        this._updateId = -1;
 
         this._value = value;
 
@@ -199,8 +201,9 @@ export class UniversalUniform {
      */
     needUpdate() {
         this._dirty = true;
+        this._mapId ++;
 
-        if (!this.lazyMap || this.locateToView) {
+        if (!this.lazyMap) {
             this._mapValue();
         }
     }
@@ -223,6 +226,15 @@ export class UniversalUniform {
      * Map value onto view and back
      */
     _mapValue() {
+        if (this._mapId === this._updateId) {
+            return;
+        }
+
+        if (this.locateToView) {
+            this._mapId = this._updateId;
+            return;
+        }
+
         const {
             type, view, arraySize, _value
         } = this;
@@ -231,6 +243,8 @@ export class UniversalUniform {
         if (arraySize === 0) {
             // more universal way
             mapField(view, type, _value, 0);
+
+            this._mapId = this._updateId;
             return;
         }
 
@@ -244,6 +258,8 @@ export class UniversalUniform {
 
             offset += Math.min(wrote, 4);
         }
+
+        this._mapId = this._updateId;
     }
 
     /**
@@ -254,11 +270,13 @@ export class UniversalUniform {
         const dirty = this._dirty;
 
         // map value if changed
-        if (this.lazyMap && dirty) {
+        if (dirty) {
             this._mapValue();
         }
 
         this._dirty = false;
+        this._updateId ++;
+        this._mapId = this._updateId;
 
         return dirty;
     }
@@ -378,13 +396,16 @@ export class BaseUBO {
         }
 
         if (end === 0) {
-            start = this.size;
+            end = this.size;
         }
 
+        /*if (changed) {
+            
+        }*/
         this.updateId ++;
 
         return {
-            start, end, changed, updateId
+            start, end, changed, updateId : this.updateId
         }
     }
 }
