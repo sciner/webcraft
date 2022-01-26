@@ -151,7 +151,7 @@ export class UniformBinding {
         const gl = shader.context.gl;
         const isShaderRebound = shader.boundID === this._shaderBoundID;
 
-        let needLoad = force || isShaderRebound;
+        let needLoad = force || isShaderRebound || this._isDirty;
 
         // try upload from GU
         // redefine base value
@@ -163,9 +163,9 @@ export class UniformBinding {
             }
         }
 
-        if (typeof value !== 'object' && !needLoad) {
+        if (typeof value !== 'object') {
             // check that last value is same
-            needLoad = this._lastLoadedValue !== value;
+            needLoad = this._lastLoadedValue !== value || needLoad;
         }
 
         this._lastLoadedValue = value;

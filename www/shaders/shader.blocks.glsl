@@ -16,6 +16,38 @@
 
 #endif
 
+#ifdef global_uniforms_ubo
+    uniform GlobalUniforms {
+        // global uniform block base
+        // PLZ! Not change field positions and structure
+
+        mat4 uProjMatrix;          // 0 + 16 = 16          
+        mat4 u_worldView;          // 16 + 16 = 32
+
+        vec3 u_camera_pos;         // 32 + 3 = 35 (align)
+        //                         // 35 + 1 = 36 pad
+        // Fog
+        vec4 u_fogColor;           // 36 + 4 = 40
+        vec4 u_fogAddColor;        // 40 + 4 = 44
+        
+        bool u_fogOn;             // 44 + 1 = 45
+        float u_chunkBlockDist;    // 45 + 1 = 46
+
+        float u_brightness;        // 46 + 1 = 47
+        float u_time;              // 47 + 1 = 48
+        
+        vec4 u_SunDir;             // 48 + 4 = 52
+        
+        vec2 u_resolution;         // 52 + 2 = 54
+        
+        float u_localLightRadius;  // 54 + 1 = 55 
+        float u_aoDisaturateFactor;// 55 + 1 = 56
+
+        //                         // UBO is 56 float point values
+        //--
+    };
+#endif
+
 #ifdef global_uniforms
     // global uniform block base
     uniform vec3 u_camera_pos;
