@@ -499,7 +499,7 @@ export class BLOCK {
             }
         }
         let texture = material.texture;
-        if(material.stage_textures && block && 'extra_data' in block) {
+        if(material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
                 let stage = block.extra_data.stage;
                 stage = Math.max(stage, 0);
