@@ -1032,6 +1032,7 @@
         "style": "planting",
         "sound": "madcraft:block.grass",
         "inventory_style": "extruder",
+        "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
         "texture": [
             4,
             16
@@ -3830,6 +3831,7 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.75},
         "texture": [
             8,
             17
@@ -4989,13 +4991,16 @@
         "style": "planting",
         "inventory_style": "extruder",
         "transparent": true,
+        "tags": [
+            "seeds"
+        ],
         "extra_data": {
             "stage": 0
         },
         "ticking": {
             "type": "stage",
             "max_stage": 7,
-            "ticks_per_stage": 40
+            "times_per_stage": 8
         },
         "texture": [4, 31],
         "stage_textures": [
@@ -5031,5 +5036,38 @@
             "id": "food"
         },
         "texture": [6, 31]
+    },
+    {
+        "id": 635,
+        "name": "CARROT_SEEDS",
+        "passable": 1,
+        "style": "planting",
+        "inventory_style": "extruder",
+        "transparent": true,
+        "tags": [
+            "seeds"
+        ],
+        "extra_data": {
+            "stage": 0
+        },
+        "ticking": {
+            "type": "stage",
+            "max_stage": 7,
+            "times_per_stage": 4
+        },
+        "texture": [8, 31],
+        "stage_textures": [
+            [16, 5],
+            [16, 5],
+            [16, 5],
+            [17, 5],
+            [17, 5],
+            [18, 5],
+            [18, 5],
+            [19, 5]
+        ],
+        "material": {
+            "id": "plant"
+        }
     }
 ]

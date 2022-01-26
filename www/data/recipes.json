@@ -655,5 +655,47 @@
             "item": "madcraft:wheat",
             "count": 9
         }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " S",
+            " S"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:oak_plank"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+            
+        },
+        "result": {
+            "item": "madcraft:wooden_hoe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " S",
+            " S"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:cobblestone"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+            
+        },
+        "result": {
+            "item": "madcraft:stone_hoe",
+            "count": 1
+        }
     }
 ]

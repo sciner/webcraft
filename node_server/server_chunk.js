@@ -8,6 +8,7 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+export const STAGE_TIME_MUL                = 20;
 
 export class ServerChunk {
 
@@ -371,7 +372,7 @@ export class ServerChunk {
             switch(ticking.type) {
                 case 'stage': {
                     if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
-                        if(m.ticks % ticking.ticks_per_stage == 0) {
+                        if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
                             m.extra_data.stage++;
                             updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                         }

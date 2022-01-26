@@ -312,8 +312,16 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         if(block.material.drop_item) {
                             const drop_block = BLOCK.fromName(block.material.drop_item?.name);
                             if(drop_block) {
-                                const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
-                                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                                let ok = true;
+                                if('chance' in block.material.drop_item) {
+                                    if(Math.random() > block.material.drop_item.chance) {
+                                        ok = false;
+                                    }
+                                }
+                                if(ok) {
+                                    const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
+                                    resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                                }
                             } else {
                                 console.error('error_invalid_drop_item', block.material.drop_item);
                             }
@@ -640,9 +648,19 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             } else {
                 // Create block
                 // Посадить растения можно только на блок земли
-                let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
-                if(BLOCK.isPlants(matBlock.id) && (!underBlock || (underBlock.id != BLOCK.DIRT.id && underBlock.id != BLOCK.FARMLAND.id))) {
-                    return resp;
+                if(BLOCK.isPlants(matBlock.id)) {
+                    let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
+                    if(!underBlock) {
+                        return resp;
+                    }
+                    if(underBlock.id != BLOCK.DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
+                        return resp;
+                    }
+                    // Посадить семена можно только на вспаханную землю
+                    const is_seeds = matBlock.tags.indexOf('seeds') >= 0;
+                    if(is_seeds && underBlock.id != BLOCK.FARMLAND.id) {
+                        return resp;
+                    }
                 }
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
