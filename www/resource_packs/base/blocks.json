@@ -4992,6 +4992,11 @@
         "extra_data": {
             "stage": 0
         },
+        "ticking": {
+            "type": "stage",
+            "max_stage": 7,
+            "ticks_per_stage": 40
+        },
         "texture": [4, 31],
         "stage_textures": [
             [8, 5],

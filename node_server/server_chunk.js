@@ -19,6 +19,7 @@ export class ServerChunk {
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = new Map();
+        this.ticking_blocks = new Map();
         this.mobs           = new Map();
         this.painting       = new Map();
         this.drop_items     = new Map();
@@ -38,13 +39,23 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_LOADING);
         if(this.world.chunkHasModifiers(this.addr)) {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
+            this.ticking = new Map();
+            let block = null;
+            let pos = new Vector(0, 0, 0);
             for(let k of this.modify_list.keys()) {
-                let pos = k.split(',');
-                pos = new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0);
+                let temp = k.split(',');
+                pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
                 // If chest
                 let chest = this.world.chests.getOnPos(pos);
                 if(chest) {
                     this.modify_list.set(k, chest.entity.item);
+                }
+                const m = this.modify_list.get(k);
+                if(!block || block.id != m.id) {
+                    block = BLOCK.fromId(m.id);
+                }
+                if(block.ticking) {
+                    this.addTickingBlock(pos, block);
                 }
             }
         }
@@ -313,6 +324,71 @@ export class ServerChunk {
         }
     }
 
+    // Store in modify list
+    addModifiedBlock(pos, item) {
+        this.modify_list.set(pos.toHash(), item);
+        if(item && item.id) {
+            let block = BLOCK.fromId(item.id);
+            if(block.ticking) {
+                this.addTickingBlock(pos, block);
+            }
+        }
+    }
+
+    //
+    addTickingBlock(pos, block) {
+        const k = pos.toHash();
+        this.ticking_blocks.set(k, {
+            pos: pos.clone(),
+            block: block
+        });
+        this.world.chunks.addTickingChunk(this.addr);
+    }
+
+    //
+    deleteTickingBlock(pos) {
+        const k = pos.toHash();
+        this.ticking_blocks.delete(k);
+        if(this.ticking_blocks.size == 0) {
+            this.world.chunks.removeTickingChunk(this.addr);
+        }
+    }
+
+    // On world tick
+    async tick() {
+        let updated_blocks = [];
+        for(let [k, v] of this.ticking_blocks.entries()) {
+            const m = this.modify_list.get(k);
+            if(!m || m.id != v.block.id) {
+                this.deleteTickingBlock(v.pos);
+                continue;
+            }
+            if(!m.ticks) {
+                m.ticks = 0;
+            }
+            m.ticks++;
+            const ticking = v.block.ticking;
+            switch(ticking.type) {
+                case 'stage': {
+                    if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
+                        if(m.ticks % ticking.ticks_per_stage == 0) {
+                            m.extra_data.stage++;
+                            updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                        }
+                    } else {
+                        // Delete completed block from tickings
+                        this.deleteTickingBlock(v.pos);
+                    }
+                    break;
+                }
+            }
+        }
+        if(updated_blocks.length > 0) {
+            const actions = {blocks: {list: updated_blocks}};
+            await this.world.applyActions(null, actions);
+        }
+    }
+
     // Before unload chunk
     async onUnload() {
         // Unload mobs
@@ -327,6 +403,7 @@ export class ServerChunk {
                 drop_item.onUnload();
             }
         }
+        this.world.chunks.removeTickingChunk(this.addr);
     }
 
 }

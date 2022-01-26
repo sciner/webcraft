@@ -590,7 +590,7 @@ export class ServerWorld {
                         tblock.power         = params.item?.power || null;
                         tblock.rotate        = params.item?.rotate || null;
                         // 1. Store in modify list
-                        chunk.modify_list.set(block_pos.toHash(), params.item);
+                        chunk.addModifiedBlock(block_pos, params.item);
                         if(on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }

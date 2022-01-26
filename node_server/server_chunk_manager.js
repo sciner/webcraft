@@ -14,6 +14,7 @@ export class ServerChunkManager {
     constructor(world) {
         this.world                  = world;
         this.all                    = new VectorCollector();
+        this.ticking_chunks         = new VectorCollector();
         this.invalid_chunks_queue   = [];
         //
         this.DUMMY = {
@@ -76,7 +77,7 @@ export class ServerChunkManager {
         this.all.set(chunk.addr, chunk);
     }
 
-    tick() {
+    tick(delta) {
         this.unloadInvalidChunks();
         //
         for(let chunk of this.all) {
@@ -84,6 +85,23 @@ export class ServerChunkManager {
                 chunk.load();
             }
         }
+        // Tick for chunks
+        for(let addr of this.ticking_chunks) {
+            let chunk = this.get(addr);
+            if(!chunk) {
+                this.ticking_chunks.delete(addr);
+                continue;
+            }
+            chunk.tick(delta);
+        }
+    }
+
+    addTickingChunk(addr) {
+        this.ticking_chunks.set(addr, addr);
+    }
+
+    removeTickingChunk(addr) {
+        this.ticking_chunks.delete(addr);
     }
 
     // Add to invalid queue

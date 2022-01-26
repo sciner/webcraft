@@ -246,6 +246,7 @@ export class DBWorld {
             "entity_id" TEXT,
             "world_id" INTEGER
         );`]});
+        migrations.push({version: 17, queries: [`alter table world_modify add column "ticks" INTEGER DEFAULT NULL`]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -658,7 +659,7 @@ export class DBWorld {
     async loadChunkModifiers(addr, size) {
         const mul = new Vector(10, 10, 10); // 116584
         let resp = new Map();
-        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -673,6 +674,9 @@ export class DBWorld {
                 id: params && ('id' in params) ? params.id : 0
             };
             if(item.id > 2) {
+                if(row.ticks) {
+                    item.ticks = row.ticks;
+                }
                 if('rotate' in params && params.rotate) {
                     if(BLOCK.fromId(item.id)?.can_rotate) {
                         item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);
