@@ -62,7 +62,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         this.globalBindingPoint = gl.getUniformBlockIndex(this.program, 'GlobalUniforms');
 
-        if (this.getUniformBlockIndex >= 0) {
+        if (this.globalBindingPoint >= 0) {
+            console.log(this.globalBindingPoint);
             gl.uniformBlockBinding(
                 this.program,
                 this.context.globalUbo.bindingIndex,
@@ -94,27 +95,32 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         if (this.globalID === gu.updateID) {
             return;
         }
+
         this.globalID = gu.updateID;
 
-        gl.uniformMatrix4fv(this.uModelMatrix, false, gu.viewMatrix);
-        gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);
         gl.uniformMatrix4fv(this.uModelMat, false, this.modelMatrix);
         this.hasModelMatrix = false;
-        // gl.uniform1f(this.u_fogDensity, this.fogDensity);
-        gl.uniform4fv(this.u_fogColor, gu.fogColor);
-        gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
-        gl.uniform1f(this.u_brightness, gu.brightness);
-        gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
-        gl.uniform3f(this.u_camera_pos, gu.camPos.x, gu.camPos.z, gu.camPos.y);
 
-        gl.uniform2fv(this.u_resolution, gu.resolution);
-        gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
-        gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
-        gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
-        // gl.uniform1f(this.u_opaqueThreshold, 0.0);
+        if (this.globalBindingPoint < 0) {
+            gl.uniformMatrix4fv(this.uModelMatrix, false, gu.viewMatrix);
+            gl.uniformMatrix4fv(this.uProjMat, false, gu.projMatrix);    
+        
+            // gl.uniform1f(this.u_fogDensity, this.fogDensity);
+            gl.uniform4fv(this.u_fogColor, gu.fogColor);
+            gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
+            gl.uniform1f(this.u_brightness, gu.brightness);
+            gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
+            gl.uniform3f(this.u_camera_pos, gu.camPos.x, gu.camPos.z, gu.camPos.y);
 
-        gl.uniform1i(this.u_fogOn, true);
-        gl.uniform1f(this.u_time, gu.time);
+            gl.uniform2fv(this.u_resolution, gu.resolution);
+            gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
+            gl.uniform4fv(this.u_SunDir, [...gu.sunDir, gu.useSunDir ? 1 : 0]);
+            gl.uniform1f(this.u_localLightRadius, gu.localLigthRadius);
+            // gl.uniform1f(this.u_opaqueThreshold, 0.0);
+
+            gl.uniform1i(this.u_fogOn, true);
+            gl.uniform1f(this.u_time, gu.time);
+        }
     }
 
     updatePos(pos, modelMatrix) {

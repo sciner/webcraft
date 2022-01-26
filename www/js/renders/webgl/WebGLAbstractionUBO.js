@@ -81,7 +81,7 @@ export class WebGLAbstractionUBO {
         // we can partial update UBO buffer
         // because minor diff 
 
-        if (partial && false) {
+        if (partial) {
             this._buffer.update(
                 this._model.data,
                 state.start,

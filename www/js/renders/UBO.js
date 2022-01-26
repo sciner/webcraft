@@ -133,6 +133,7 @@ export class UniversalUniform {
         value = null,
         array = false, // array of uniforms
         offset = 0,
+        autoupdate = true,
     }) {
         if (!name) {
             throw new Error('[UniversalUniform] Unifrom should has name');
@@ -194,6 +195,8 @@ export class UniversalUniform {
          * Lazy maping a setter onto view in update call
          */
         this.lazyMap = false;
+
+        this.autoupdate = autoupdate || this.locateToView;
     }
 
     /**
@@ -226,7 +229,7 @@ export class UniversalUniform {
      * Map value onto view and back
      */
     _mapValue() {
-        if (this._mapId === this._updateId) {
+        if (this._mapId === this._updateId && !this.autoupdate) {
             return;
         }
 
@@ -267,7 +270,7 @@ export class UniversalUniform {
      * @returns {boolean} true when something changed
      */
     upload() {
-        const dirty = this._dirty;
+        const dirty = this._dirty || this.autoupdate;
 
         // map value if changed
         if (dirty) {
