@@ -49,6 +49,9 @@
 #endif
 
 #ifdef global_uniforms
+    uniform mat4 uProjMatrix;
+    uniform mat4 u_worldView;
+
     // global uniform block base
     uniform vec3 u_camera_pos;
     // Fog
@@ -61,8 +64,6 @@
     uniform float u_brightness;
     uniform float u_time;
     uniform vec2 u_resolution;
-    uniform vec3 u_shift;
-    uniform bool u_TestLightOn;
     uniform vec4 u_SunDir;
     uniform float u_localLightRadius;
     uniform float u_aoDisaturateFactor;
@@ -83,8 +84,6 @@
 
 #ifdef global_uniforms_vert
     // global uniforms vertex part
-    uniform mat4 uProjMatrix;
-    uniform mat4 u_worldView;
     uniform mat4 uModelMatrix;
     uniform vec3 u_add_pos;
     uniform float u_pixelSize;
