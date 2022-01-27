@@ -58,7 +58,7 @@ export class World {
         const latency = (now - clientTime) / 2;
         const timeLag = (now - time) + latency;
 
-        console.log('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
+        console.debug('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
 
         this.latency         = latency;
         this.serverTimeShift = timeLag;

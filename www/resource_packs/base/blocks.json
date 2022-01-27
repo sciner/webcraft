@@ -47,18 +47,9 @@
             "id": "dirt"
         },
         "texture": {
-            "up": [
-                0,
-                16
-            ],
-            "down": [
-                2,
-                0
-            ],
-            "side": [
-                2,
-                16
-            ]
+            "up": [0, 16],
+            "down": [2, 0],
+            "side": [2, 16]
         }
     },
     {
@@ -76,6 +67,7 @@
     {
         "id": 137,
         "name": "WOODEN_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -93,6 +85,7 @@
     {
         "id": 561,
         "name": "STONE_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -111,6 +104,7 @@
     {
         "id": 562,
         "name": "IRON_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -129,6 +123,7 @@
     {
         "id": 563,
         "name": "GOLD_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -147,6 +142,7 @@
     {
         "id": 564,
         "name": "DIAMOND_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -165,6 +161,7 @@
     {
         "id": 565,
         "name": "NETHERITE_SHOVEL",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -183,6 +180,7 @@
     {
         "id": 566,
         "name": "WOODEN_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -200,6 +198,7 @@
     {
         "id": 567,
         "name": "STONE_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -218,6 +217,7 @@
     {
         "id": 568,
         "name": "IRON_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -236,6 +236,7 @@
     {
         "id": 569,
         "name": "GOLD_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -254,6 +255,7 @@
     {
         "id": 570,
         "name": "DIAMOND_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -272,6 +274,7 @@
     {
         "id": 571,
         "name": "NETHERITE_HOE",
+        "sound": "madcraft:block.shovel",
         "transparent": true,
         "max_in_stack": 1,
         "style": "extruder",
@@ -523,7 +526,7 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            20,
+            10,
             18
         ],
         "material": {
@@ -531,6 +534,7 @@
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -540,14 +544,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            21,
-            18
+            10,
+            19
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -557,14 +562,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            22,
-            18
+            10,
+            20
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -574,14 +580,15 @@
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
-            23,
-            18
+            10,
+            21
         ],
         "material": {
             "id": "leaves"
         },
         "tags": [
             "no_drop",
+            "mask_biome",
             "leaves"
         ]
     },
@@ -592,7 +599,7 @@
         "sound": "madcraft:block.grass",
         "texture": [
             10,
-            16
+            22
         ],
         "material": {
             "id": "leaves"
@@ -610,7 +617,7 @@
         "sound": "madcraft:block.grass",
         "texture": [
             10,
-            17
+            23
         ],
         "material": {
             "id": "leaves"
@@ -826,8 +833,8 @@
             "id": "plant"
         },
         "texture": [
-            15,
-            0
+            21,
+            13
         ]
     },
     {
@@ -1025,6 +1032,7 @@
         "style": "planting",
         "sound": "madcraft:block.grass",
         "inventory_style": "extruder",
+        "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.2},
         "texture": [
             4,
             16
@@ -1567,27 +1575,14 @@
         }
     },
     {
-        "id": 59,
-        "name": "WHEAT",
-        "passable": 1,
-        "transparent": true,
-        "style": "planting",
-        "texture": [
-            15,
-            5
-        ],
-        "material": {
-            "id": "plant"
-        },
-        "spawnable": false
-    },
-    {
         "id": 60,
         "name": "FARMLAND",
-        "texture": [
-            7,
-            5
-        ],
+        "transparent": true,
+        "height": 0.9375,
+        "texture": {
+            "up": [7, 5],
+            "side": [2, 0]
+        },
         "material": {
             "id": "dirt"
         }
@@ -1663,8 +1658,8 @@
                 7
             ],
             "side": [
-                3,
-                6
+                2,
+                5
             ]
         }
     },
@@ -1684,7 +1679,7 @@
         "texture": {
             "up": [0, 6],
             "down": [0, 7],
-            "side": [3, 7]
+            "side": [1, 5]
         }
     },
     {
@@ -1825,8 +1820,8 @@
             "id": "wood"
         },
         "texture": [
-            8,
-            13
+            0,
+            14
         ]
     },
     {
@@ -2128,8 +2123,8 @@
             "id": "netherite"
         },
         "texture": [
-            7,
-            6
+            0,
+            14
         ]
     },
     {
@@ -2340,14 +2335,13 @@
     {
         "id": 129,
         "name": "EMERALD_ORE",
-        "deprecated": true,
-        "spawnable": false,
+        "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
         },
         "texture": [
-            9,
-            11
+            0,
+            4
         ]
     },
     {
@@ -2472,21 +2466,6 @@
         ]
     },
     {
-        "id": 141,
-        "name": "CARROTS",
-        "spawnable": false,
-        "passable": 1,
-        "transparent": true,
-        "style": "planting",
-        "material": {
-            "id": "plant"
-        },
-        "texture": [
-            11,
-            5
-        ]
-    },
-    {
         "id": 142,
         "name": "POTATOS",
         "spawnable": false,
@@ -2509,8 +2488,8 @@
             "id": "quartz"
         },
         "texture": [
-            10,
-            14
+            12,
+            10
         ]
     },
     {
@@ -2525,8 +2504,8 @@
             "stairs"
         ],
         "texture": [
-            10,
-            14
+            12,
+            10
         ],
         "can_rotate": true,
         "transparent": true
@@ -2534,7 +2513,8 @@
     {
         "id": 161,
         "name": "LEAVES2",
-        "transparent": true,
+        "deprecated": true,
+        "spawnable": false,
         "material": {
             "id": "leaves"
         },
@@ -2670,18 +2650,9 @@
             "dirt"
         ],
         "texture": {
-            "up": [
-                4,
-                5
-            ],
-            "down": [
-                2,
-                0
-            ],
-            "side": [
-                4,
-                6
-            ]
+            "up": [4, 5],
+            "down": [2, 0],
+            "side": [4, 6]
         }
     },
     {
@@ -2911,6 +2882,7 @@
         "id": 29,
         "name": "STICKY_PISTON",
         "spawnable": false,
+        "deprecated": true,
         "material": {
             "id": "stone"
         },
@@ -2932,6 +2904,8 @@
     {
         "id": 33,
         "name": "PISTON",
+        "spawnable": false,
+        "deprecated": true,
         "material": {
             "id": "stone"
         },
@@ -3842,6 +3816,7 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "WHEAT_SEEDS", "count": 1, "chance": 0.75},
         "texture": [
             8,
             17
@@ -4806,10 +4781,6 @@
             "side": [29.5, 29.5]
         }
     },
-
-
-
-
     {
         "id": 139,
         "name": "COBBLESTONE_WALL",
@@ -4923,5 +4894,181 @@
             5
         ],
         "can_rotate": true
+    },
+    {
+        "id": 627,
+        "name": "WARPED_STEM",
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "up": [26, 17],
+            "down": [26, 17],
+            "side": [28, 1]
+        },
+        "texture_animations": {
+            "up": null,
+            "side": 5
+        }
+    },
+    {
+        "id": 628,
+        "name": "DEEPSLATE",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [12, 11]
+        }
+    },
+    {
+        "id": 629,
+        "name": "DEEPSLATE_BRICKS",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [13, 11]
+        }
+    },
+    {
+        "id": 630,
+        "name": "DEEPSLATE_BRICKS_STAIRS",
+        "style": "stairs",
+        "sound": "madcraft:block.stone",
+        "tags": [
+            "stairs"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": [13, 11],
+        "can_rotate": true
+    },
+    {
+        "id": 631,
+        "name": "HAY_BLOCK",
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "side": [10, 6],
+            "up": [11, 6],
+            "down": [11, 6]
+        }
+    },
+    {
+        "id": 632,
+        "name": "MOSSY_STONE_BRICKS",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [5, 3]
+        }
+    },
+    {
+        "id": 59,
+        "name": "WHEAT_SEEDS",
+        "passable": 1,
+        "style": "planting",
+        "inventory_style": "extruder",
+        "transparent": true,
+        "seeds": {
+            "result": {
+                "incomplete": [
+                    {"name": "WHEAT_SEEDS", "count": {"min": 1, "max": 1}}
+                ],
+                "complete": [
+                    {"name": "WHEAT_SEEDS", "count": {"min": 0, "max": 3}},
+                    {"name": "WHEAT", "count": {"min": 1, "max": 2}}
+                ]
+            }
+        },
+        "extra_data": {
+            "stage": 0
+        },
+        "ticking": {
+            "type": "stage",
+            "max_stage": 7,
+            "times_per_stage": 8
+        },
+        "texture": [4, 31],
+        "stage_textures": [
+            [8, 5],
+            [9, 5],
+            [10, 5],
+            [11, 5],
+            [12, 5],
+            [13, 5],
+            [14, 5],
+            [15, 5]
+        ],
+        "material": {
+            "id": "plant"
+        }
+    },
+    {
+        "id": 633,
+        "name": "WHEAT",
+        "item": {"name": "food"},
+        "style": "extruder",
+        "material": {
+            "id": "food"
+        },
+        "texture": [5, 31]
+    },
+    {
+        "id": 634,
+        "name": "BREAD",
+        "item": {"name": "food"},
+        "style": "extruder",
+        "material": {
+            "id": "food"
+        },
+        "texture": [6, 31]
+    },
+    {
+        "id": 635,
+        "name": "CARROT_SEEDS",
+        "passable": 1,
+        "style": "planting",
+        "inventory_style": "extruder",
+        "transparent": true,
+        "seeds": {
+            "result": {
+                "incomplete": [
+                    {"name": "CARROT_SEEDS", "count": {"min": 1, "max": 1}}
+                ],
+                "complete": [
+                    {"name": "CARROT_SEEDS", "count": {"min": 0, "max": 3}},
+                    {"name": "CARROT", "count": {"min": 1, "max": 2}}
+                ]
+            }
+        },
+        "extra_data": {
+            "stage": 0
+        },
+        "ticking": {
+            "type": "stage",
+            "max_stage": 7,
+            "times_per_stage": 4
+        },
+        "texture": [8, 31],
+        "stage_textures": [
+            [16, 5],
+            [16, 5],
+            [16, 5],
+            [17, 5],
+            [17, 5],
+            [18, 5],
+            [18, 5],
+            [19, 5]
+        ],
+        "material": {
+            "id": "plant"
+        }
     }
 ]

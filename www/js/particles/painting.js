@@ -2,11 +2,10 @@ import {DIRECTION, MULTIPLY, Vector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
 import {Resources} from "../resources.js";
-import { getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
-// import {fillCube} from "../bedrockJsonParser.js";
+import { ChunkManager } from '../chunk_manager.js';
+import { getChunkAddr } from "../chunk.js";
 
 const {mat4} = glMatrix;
-const tmpMatrix = mat4.create();
 
 export class Particles_Painting {
 
@@ -23,16 +22,26 @@ export class Particles_Painting {
         let lm                  = MULTIPLY.COLOR.WHITE;
         let flags               = 0, sideFlags = 0, upFlags = 0;
         this.pos                = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]);
-        // this._chunk_addr     = new Vector(0, 0, 0);
+ 
+        // Chunk
+        const chunk_addr        = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
+        this.chunk              = ChunkManager.instance.getChunk(chunk_addr);
 
         //
-        this.lightTex           = null;
         this.life               = 1.0;
         this.vertices           = [];
 
+        // for lighting
+        mat4.translate(this.modelMatrix, this.modelMatrix, 
+            [
+                (this.pos.x - this.chunk.coord.x),
+                (this.pos.z - this.chunk.coord.z),
+                (this.pos.y - this.chunk.coord.y)
+            ]
+        )
+
         // Find image for painting
         const size_key = params.size.join('x');
-        // const paintings = Resources._painting; // loadPainting();
         const col = Resources._painting.sizes.get(size_key);
         if(!col) {
             throw 'error_invalid_painting_size|' + size_key;
@@ -125,35 +134,21 @@ export class Particles_Painting {
 
     }
 
-    /*
-    get chunk_addr() {
-        return getChunkAddr(this.pos, this._chunk_addr);
-    }
-
-    updateLightTex(render) {
-        const chunk = render.world.chunkManager.getChunk(this.chunk_addr);
-        if (!chunk) {
-            return;
-        }
-        this.chunk = chunk;
-        this.lightTex = chunk.getLightTexture(render.renderBackend);
-    }
-    */
-
     // Draw
     draw(render, delta) {
 
-        // this.updateLightTex(render);
-        // this.material.changeLighTex(this.lightTex);
+        const light = this.chunk.getLightTexture(render.renderBackend);
+        this.material.changeLighTex(light);
 
         render.renderBackend.drawMesh(
             this.buffer,
             this.material,
-            this.pos,
+            // this.pos,
+            this.chunk.coord,
             this.modelMatrix
         );
 
-        // this.material.lightTex = null;
+        this.material.lightTex = null;
         this.material.shader.unbind();
 
     }

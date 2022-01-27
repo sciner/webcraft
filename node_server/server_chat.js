@@ -6,6 +6,12 @@ export class ServerChat {
 
     constructor(world) {
         this.world = world;
+        this.onCmdCallbacks = [];
+        plugins.initPlugins('chat', this);
+    }
+
+    onCmd(callback) {
+        this.onCmdCallbacks.push(callback)
     }
 
     // Send message
@@ -210,7 +216,15 @@ export class ServerChat {
                break;
             }
             default: {
-                throw 'error_invalid_command';
+                let ok = false;
+                for(let plugin_callback of this.onCmdCallbacks) {
+                    if(await plugin_callback(player, cmd, args)) {
+                        ok = true;
+                    }
+                }
+                if(!ok) {
+                    throw 'error_invalid_command';
+                }
                 break;
             }
         }

@@ -63,10 +63,18 @@ export default class style {
         let cardinal_direction = block.getCardinalDirection()
 
         let dx = 0, dy = 0, dz = 0;
-        let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
+        let c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         let flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
+
+        //
+        if(neighbours && neighbours.DOWN) {
+            const under_height = neighbours.DOWN.material.height;
+            if(under_height && under_height < 1) {
+                y -= 1 - under_height;
+            }
+        }
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {

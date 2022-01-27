@@ -207,10 +207,6 @@
         "id": 58,
         "name": "CRAFTING_TABLE"
     },
-    {
-        "id": 54,
-        "name": "CHEST"
-    },
 
     {"id": 606, "name": "WOODEN_SWORD"},
     {"id": 607, "name": "STONE_SWORD"},

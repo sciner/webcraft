@@ -193,9 +193,6 @@ export class BLOCK {
     static makeExtraData(block, pos, orientation) {
         block = BLOCK.BLOCK_BY_ID.get(block.id);
         let extra_data = null;
-        if(!block.tags) {
-            return extra_data;
-        }
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
@@ -236,6 +233,8 @@ export class BLOCK {
             } else if(pos.n.y == -1) {
                 extra_data.point.y = 1;
             }
+        } else if(block.extra_data) {
+            extra_data = JSON.parse(JSON.stringify(block.extra_data));
         }
         return extra_data;
     }
@@ -490,7 +489,7 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height) {
+    static calcMaterialTexture(material, dir, width, height, block) {
         let tx_cnt = TX_CNT;
         // Get tx_cnt from resource pack texture
         if (typeof material.texture === 'object' && 'id' in material.texture) {
@@ -499,7 +498,16 @@ export class BLOCK {
                 tx_cnt = tex.tx_cnt;
             }
         }
-        let c = this.calcTexture(material.texture, dir, tx_cnt);
+        let texture = material.texture;
+        if(material.stage_textures && block && block.extra_data) {
+            if('stage' in block.extra_data) {
+                let stage = block.extra_data.stage;
+                stage = Math.max(stage, 0);
+                stage = Math.min(stage, material.stage_textures.length - 1);
+                texture = material.stage_textures[stage];
+            }
+        }
+        let c = this.calcTexture(texture, dir, tx_cnt);
         if(height && height < 1) {
             c[1] += 0.5 / tx_cnt - height / tx_cnt / 2;
             c[3] *= height;
@@ -621,8 +629,12 @@ export class BLOCK {
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall');
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane');
     }
+
+    static canPaneConnect(block) {
+        return this.canWallConnect(block);
+    };
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
         const mat = CubeSym.matrices[cardinal_direction];
@@ -681,35 +693,81 @@ export class BLOCK {
                     break;
                 }
                 case 'wall': {
-                    const height            = for_physic ? 1.5 : 1;
                     const CENTER_WIDTH      = 8 / 16;
                     const CONNECT_WIDTH     = 6 / 16;
                     const CONNECT_HEIGHT    = 14 / 16;
                     const CONNECT_BOTTOM    = 0 / 16;
+                    const CONNECT_X         = 6 / 16;
+                    const CONNECT_Z         = 8 / 16;
+                    const height            = for_physic ? 1.5 : CONNECT_HEIGHT;
+                    //
+                    let zconnects = 0;
+                    let xconnects = 0;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canWallConnect(n.SOUTH)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, 0, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z]);
+                        zconnects++;
                     }
                     // North z++
                     if(this.canWallConnect(n.NORTH)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, 1]);
+                        if(zconnects) {
+                            shapes.pop();
+                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, 1]);
+                        } else {
+                            shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, .5, .5-CONNECT_X/2 + CONNECT_X, height, .5+CONNECT_Z]);
+                        }
+                        zconnects++;
                     }
                     // West x--
                     if(this.canWallConnect(n.WEST)) {
-                        shapes.push([0, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, .5+CONNECT_WIDTH/2, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        shapes.push([
+                            0,
+                            CONNECT_BOTTOM,
+                            .5-CONNECT_X/2, 
+                            CONNECT_Z,
+                            height,
+                            .5-CONNECT_X/2 + CONNECT_X
+                        ]);
+                        xconnects++;
                     }
                     // East x++
                     if(this.canWallConnect(n.EAST)) {
-                        shapes.push([.5-CONNECT_WIDTH/2, CONNECT_BOTTOM, .5-CONNECT_WIDTH/2, 1, CONNECT_HEIGHT, .5+CONNECT_WIDTH/2]);
+                        if(xconnects) {
+                            shapes.pop();
+                            shapes.push([
+                                0,
+                                CONNECT_BOTTOM,
+                                .5-CONNECT_X/2,
+                                1,
+                                height,
+                                .5-CONNECT_X/2 + CONNECT_X
+                            ]);
+                        } else {
+                            shapes.push([
+                                .5,
+                                CONNECT_BOTTOM,
+                                .5-CONNECT_X/2,
+                                .5+CONNECT_Z,
+                                height,
+                                .5-CONNECT_X/2 + CONNECT_X
+                            ]);
+                        }
+                        xconnects++;
                     }
-                    // Central
-                    shapes.push([
-                        .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
-                        .5+CENTER_WIDTH/2, height, .5+CENTER_WIDTH/2
-                    ]);
+                    if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
+                        // do nothing
+                    } else {
+                        if(!for_physic) {
+                            // Central
+                            shapes.push([
+                                .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                                .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
+                            ]);
+                        }
+                    }
                     break;
                 }
                 case 'thin': {
@@ -720,18 +778,15 @@ export class BLOCK {
                 }
                 case 'pane': {
                     let height = 1;
-                    let canConnect = (checked_block) => {
-                        return checked_block.id > 0 && (!checked_block.properties.transparent || checked_block.properties.style == 'pane');
-                    };
                     let w = 2/16;
                     let w2 = w/2;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
                     world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-                    let con_s = canConnect(n.SOUTH);
-                    let con_n = canConnect(n.NORTH);
-                    let con_w = canConnect(n.WEST);
-                    let con_e = canConnect(n.EAST);
+                    let con_s = this.canPaneConnect(n.SOUTH);
+                    let con_n = this.canPaneConnect(n.NORTH);
+                    let con_w = this.canPaneConnect(n.WEST);
+                    let con_e = this.canPaneConnect(n.EAST);
                     let remove_center = con_s || con_n || con_w || con_e;
                     //
                     if(con_s && con_n) {

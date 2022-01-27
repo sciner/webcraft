@@ -10,10 +10,6 @@ export class Hotbar {
         this.hud                = hud;
         this.image              = new Image(); // new Image(40, 40); // Размер изображения
         //
-        this.sounds = {
-            hit3: new Howl({src: ['/sounds/hit3.ogg'], volume: .5})
-        };
-        //
         this.image.onload = function() {
             that.hud.add(that, 0);
         }
@@ -33,7 +29,8 @@ export class Hotbar {
         if(damage_value > 0) {
             Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
-            this.sounds.hit3.play();
+            // Play hit sound
+            Game.sounds.play('madcraft:block.player', 'hit')
         }
     }
 

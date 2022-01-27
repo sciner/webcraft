@@ -638,6 +638,13 @@ export class Vector {
         return this;
     }
 
+    volume(vec) {
+        const volx = Math.abs(this.x - vec.x) + 1;
+        const voly = Math.abs(this.y - vec.y) + 1;
+        const volz = Math.abs(this.z - vec.z) + 1;
+        return volx * voly * volz;
+    }
+
 }
 
 export class Vec3 extends Vector {}
@@ -691,6 +698,12 @@ export class Helpers {
 
     static fetch;
     static fs;
+
+    static getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     // clamp
     static clamp(x, min, max) {

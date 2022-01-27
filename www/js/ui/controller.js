@@ -105,11 +105,7 @@ let injectParams = ['$scope', '$timeout'];
 let gameCtrl = async function($scope, $timeout) {
 
     window.Game                     = new GameClass();
-
     $scope.App                      = Game.App = new UIApp();
-    $scope.skin                     = new SkinManager($scope);
-    $scope.texture_pack             = new TexturePackManager($scope);
-    $scope.texture_pack.init();
 
     //
     $scope.App.onLogin = (e) => {};
@@ -309,10 +305,14 @@ let gameCtrl = async function($scope, $timeout) {
                 this.form = Object.assign(this.form, JSON.parse(form));
                 // fix texture_pack id
                 if('texture_pack' in this.form) {
-                    if(['terrain', 'default'].indexOf(this.form.texture_pack) >= 0) {
-                        this.form.texture_pack = 'base';
-                    } else if(['terrain_hd'].indexOf(this.form.texture_pack) >= 0) {
-                        this.form.texture_pack = '32';
+                    let found = false;
+                    for(let tp of $scope.texture_pack.list) {
+                        if(tp.id == this.form.texture_pack) {
+                            found = true;
+                        }
+                    }
+                    if(!found) {
+                        this.form.texture_pack = $scope.texture_pack.list[0].id;
                     }
                 }
                 // add default render_distance
@@ -476,13 +476,19 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    $scope.Game = window.Game;
-
-    $scope.settings.load();
-    $scope.boot.init();
-    $scope.login.init();
-    $scope.skin.init();
-    $scope.mygames.checkInvite();
+    $scope.Game         = window.Game;
+    $scope.skin         = new SkinManager($scope);
+    $scope.texture_pack = new TexturePackManager($scope);
+    
+    $scope.texture_pack.init().then(() => {
+        $timeout(() => {
+            $scope.settings.load();
+            $scope.boot.init();
+            $scope.login.init();
+            $scope.skin.init();
+            $scope.mygames.checkInvite();
+        });
+    });
 
 }
 

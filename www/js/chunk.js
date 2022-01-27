@@ -360,10 +360,10 @@ export class Chunk {
             update_vertices         = true;
             if (oldLight !== light) {
                 // updating light here
-                const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
-                const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
-                const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
-                const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
+                // const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
+                // const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
+                // const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
+                // const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
                 chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
                     x:          x + this.coord.x,
                     y:          y + this.coord.y,

@@ -604,5 +604,98 @@
             "item": "madcraft:coarse_dirt",
             "count": 2
         }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "",
+            "WWW"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:wheat"
+            }
+        },
+        "result": {
+            "item": "madcraft:bread",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "WWW",
+            "WWW",
+            "WWW"
+        ],
+        "key": {
+            "W": {
+                "item": "madcraft:wheat"
+            }
+        },
+        "result": {
+            "item": "madcraft:hay_block",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "",
+            "",
+            "H"
+        ],
+        "key": {
+            "H": {
+                "item": "madcraft:hay_block"
+            }
+        },
+        "result": {
+            "item": "madcraft:wheat",
+            "count": 9
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " S",
+            " S"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:oak_plank"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+            
+        },
+        "result": {
+            "item": "madcraft:wooden_hoe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " S",
+            " S"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:cobblestone"
+            },
+            "S": {
+                "item": "madcraft:stick"
+            }
+            
+        },
+        "result": {
+            "item": "madcraft:stone_hoe",
+            "count": 1
+        }
     }
 ]

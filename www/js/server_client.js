@@ -1,4 +1,6 @@
+import { getChunkAddr } from "./chunk.js";
 import {Vector} from "./helpers.js";
+import {BLOCK} from "./blocks.js";
 
 export class ServerClient {
 
@@ -158,6 +160,95 @@ export class ServerClient {
     // New commands from server
     _onMessage(event) {
         let cmds = JSON.parse(event.data);
+        // @hack optimizations
+        let only_set_blocks = true;
+        for(let c of cmds) {
+            if(c.name != ServerClient.CMD_BLOCK_SET) {
+                only_set_blocks = false;
+                break;
+            }
+        }
+        if(only_set_blocks) {
+            let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
+            let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
+            let chunk_key           = null;
+            let chunk               = null;
+            let set_block_list      = [];
+            let tblock              = null;
+            let tblock_pos          = new Vector(Infinity, Infinity, Infinity);
+            let material            = null;
+            const chunkManager      = Game.world.chunkManager;
+            for(let cmd of cmds) {
+                let pos = cmd.data.pos;
+                let item = cmd.data.item;
+                //
+                chunk_addr = getChunkAddr(pos, chunk_addr);
+                if(!prev_chunk_addr.equal(chunk_addr)) {
+                    prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                    chunk_key = chunk_addr.toChunkKey();
+                    chunk = chunkManager.getChunk(chunk_addr);
+                    if(!chunk) {
+                        continue;
+                    }
+                }
+                //
+                if(!chunk) {
+                    console.error('empty chunk');
+                }
+                if(!chunk.tblocks) {
+                    console.error('empty chunk tblocks');
+                }
+                //
+                if(!material || material.id != item.id) {
+                    material = BLOCK.fromId(item.id);
+                }
+                //
+                // let tblock_pos = new Vector(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
+                tblock_pos.set(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
+                chunk.tblocks.delete(tblock_pos);
+                tblock = chunk.tblocks.get(tblock_pos, tblock);
+                // let tblock = chunk.tblocks.get(tblock_pos);
+                tblock.id = item.id;
+                const extra_data = ('extra_data' in item) ? item.extra_data : null;
+                const entity_id = ('entity_id' in item) ? item.entity_id : null;
+                const rotate = ('rotate' in item) ? item.rotate : null;
+                const power = ('power' in item) ? item.power : 1;
+                tblock.extra_data   = extra_data;
+                tblock.entity_id    = entity_id;
+                tblock.rotate       = rotate;
+                tblock.power        = power;
+                // tblock.falling       = !!material.gravity;
+                //
+                set_block_list.push({
+                    key:        chunk_key,
+                    addr:       chunk_addr,
+                    x:          pos.x,
+                    y:          pos.y,
+                    z:          pos.z,
+                    type:       item,
+                    is_modify:  false,
+                    power:      power,
+                    rotate:     rotate,
+                    extra_data: extra_data
+                });
+                //
+                const oldLight = chunk.light_source[tblock.index];
+                const light = chunk.light_source[tblock.index] = material.light_power_number;
+                if (oldLight !== light) {
+                    // updating light here
+                    chunkManager.postLightWorkerMessage(['setBlock', {
+                        addr:           chunk.addr,
+                        x:              pos.x,
+                        y:              pos.y,
+                        z:              pos.z,
+                        light_source: light
+                    }]);
+                }
+            }
+            chunkManager.postWorkerMessage(['setBlock', set_block_list]);
+            return;
+        }
+        //
         for(let cmd of cmds) {
             // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat

@@ -1,10 +1,11 @@
 import {DIRECTION, MULTIPLY} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 
-const CENTER_WIDTH = 8 / 16;
-const CONNECT_WIDTH = 6 / 16;
-const CONNECT_HEIGHT = 14 / 16;
-const CONNECT_BOTTOM = 0 / 16;
+const CENTER_WIDTH      = 8 / 16;
+const CONNECT_X         = 6 / 16;
+const CONNECT_Z         = 8 / 16;
+const CONNECT_HEIGHT    = 14 / 16;
+const CONNECT_BOTTOM    = 0 / 16;
 
 const fake_neighbour = {
     id: 1,
@@ -33,23 +34,37 @@ export default class style {
         // Texture
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
 
-        push_part(vertices, c, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
+        let zconnects = 0;
+        let xconnects = 0;
 
         // South
         if(BLOCK.canWallConnect(neighbours.SOUTH)) {
-            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 - 5/16, CONNECT_WIDTH, 6/16, CONNECT_HEIGHT);
+            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 - CONNECT_Z/2, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
+            zconnects++;
         }
         // North
         if(BLOCK.canWallConnect(neighbours.NORTH)) {
-            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 + 5/16, CONNECT_WIDTH, 6/16, CONNECT_HEIGHT);
+            push_part(vertices, c, x + .5, y + CONNECT_BOTTOM, z + .5 + CONNECT_Z/2, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
+            zconnects++;
         }
         // West
         if(BLOCK.canWallConnect(neighbours.WEST)) {
-            push_part(vertices, c, x + .5 - 5/16, y + CONNECT_BOTTOM, z + .5, 6/16, CONNECT_WIDTH, CONNECT_HEIGHT);
+            push_part(vertices, c, x + .5 - CONNECT_Z/2, y + CONNECT_BOTTOM, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
+            xconnects++;
         }
         // East
         if(BLOCK.canWallConnect(neighbours.EAST)) {
-            push_part(vertices, c, x + .5 + 5/16, y + CONNECT_BOTTOM, z + .5, 6/16, CONNECT_WIDTH, CONNECT_HEIGHT);
+            push_part(vertices, c, x + .5 + CONNECT_Z/2, y + CONNECT_BOTTOM, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
+            xconnects++;
+        }
+
+        let draw_center = !(zconnects == 2 && xconnects == 0 || zconnects == 0 && xconnects == 2);
+        if(!draw_center) {
+            draw_center = neighbours.UP && neighbours.UP.id > 0;
+        }
+
+        if(draw_center) {
+            push_part(vertices, c, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
         }
 
     }
