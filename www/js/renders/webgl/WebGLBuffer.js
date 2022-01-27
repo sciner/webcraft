@@ -15,69 +15,76 @@ export class WebGLBuffer extends BaseBuffer {
         super(context, options);
 
         this.size = options.size | 0;
-        this.buffer = null;
-        this.lastLength = 0;
+
+        // can be allocated or not, but buffer is exist
+        this._allocated = false;
+
+        // preallocated buffer can change size
+        this._fixed = this.size > 0;
     }
 
+    /**
+     * 
+     * @param {Float32Array | Uint16Array} data 
+     * @param {number} [start] - start of partial update 
+     * @param {number} [end] - end of partial update 
+     * @returns 
+     */
     update(data, start, end) {
-        const  {
-            /**
-             * @type {WebGL2RenderingContext}
-             */
-            gl
-        } = this.context;
-
+        /**
+         * @type {WebGL2RenderingContext}
+         */
+        const gl = this.context.gl;
         const type = gl[GL_BUFFER_TYPE[this.type]] || gl.ARRAY_BUFFER;
-
-        if (!this.buffer) {
-            this.buffer = gl.createBuffer();
-
-            if (this.size) {
-                gl.bindBuffer(type, this.buffer);
-                gl.bufferData(type, 
-                    this.size,
-                    this.options.usage === 'static' 
-                    ? gl.STATIC_DRAW 
-                    : gl.DYNAMIC_DRAW
-                );
-            }
-        }
 
         data = data || this._data;
 
-        if (!data) {
-            return;
+        if (!this.buffer) {
+            this.buffer = gl.createBuffer();
+        }
+
+        // when size is 
+        if (this._fixed && !this._allocated) {
+            
+            gl.bindBuffer(type, this.buffer);
+            // allocate buffer
+            gl.bufferData(type, this.size, gl.DYNAMIC_DRAW);
+
+            this._allocated = true;
+
+            if (!data) {
+                return;
+            }
         }
 
         start = start || 0;
-        end = end || data.length
-        length = end - start;
+        end = end || data.length;
 
-        let full = false;
+        let length = end - start;
 
-        if (length <= 0 || this.lastLength < end) {
+        if (length <= 0 || this.size < end) {
             start = 0;
             length = data.length;
-            full = true;
         }
 
-        // we can't load bufferData when size of buffer and data not same
-        // UBO has strude 256, this important
-        if (this.size && length * data.BYTES_PER_ELEMENT !== this.size) {
-            full = false;
+        if (this._fixed && length > this.size) {
+            throw new Error('[GlBuffer] Preallocated buffer cant be grown up');
         }
 
         gl.bindBuffer(type, this.buffer);
 
-        if (full) {
+        // if buffer not allocated
+        // allocate it from buffer data 
+        if (!this._allocated) {
             gl.bufferData(type, data, 
                 this.options.usage === 'static' 
                     ? gl.STATIC_DRAW 
-                    : gl.DYNAMIC_DRAW,
-                0, end
+                    : gl.DYNAMIC_DRAW
             );
 
-            this.lastLength = end;
+            this.size = length;
+            this._allocated = true;
+        // sub data is fast but need will shure that buffer is not overflow
         } else {
             gl.bufferSubData(
                 type,
@@ -119,5 +126,8 @@ export class WebGLBuffer extends BaseBuffer {
         this.buffer = null;
         this.options = null;
         this.data = null;
+
+        this._allocated = false;
+        this._fixed = false;
     }
 }

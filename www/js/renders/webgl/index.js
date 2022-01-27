@@ -50,38 +50,40 @@ export class WebGLCubeShader extends WebGLUniversalShader {
             source: options.sides
         });
 
+        this._dummy = new Float32Array(16);
+
         this.texture.bind();
         // we already can use uniforms
         // make only set default values
         this._makeUniforms({
             'u_texture': this.texture, // load default texture to 0 slot
-            'u_viewMatrix': new Float32Array(16),
-            'u_projMatrix': new Float32Array(16),
-            'u_resolution': [1, 1],
+            //'u_viewMatrix': new Float32Array(16),
+            //'u_projMatrix': new Float32Array(16),
+            //'u_resolution': [1, 1],
         });
 
     }
 
     set resolution(v) {
-        this.uniforms['u_resolution'].value = v;
+        //this.uniforms['u_resolution'].value = v;
     }
 
     get resolution() {
-        return this.uniforms['u_resolution'];
+        return [0,0];//this.uniforms['u_resolution'];
     }
 
     /**
      * @deprecated
      */
     get lookAt() {
-        return this.uniforms['u_viewMatrix'].value;
+        return this._dummy ;//this.uniforms['u_viewMatrix'].value;
     }
 
     /**
      * @deprecated
      */
     get proj() {
-        return this.uniforms['u_projMatrix'].value;
+        return this._dummy;// this.uniforms['u_projMatrix'].value;
     }
 
     bind(force = false) {

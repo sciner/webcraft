@@ -224,8 +224,6 @@ export class WebGLUniversalShader extends BaseShader {
     constructor (context, options) {
         super(context, options);
 
-        this.useGlobalUniforms = options && options.useGlobalUniforms === false ? false : true;
-
         /**
          * @type {WebGLProgram}
          */
@@ -255,7 +253,10 @@ export class WebGLUniversalShader extends BaseShader {
          */
         this.uniforms = {};
 
+        this.globalBindingPoint = -1;
+
         this._queryAttrs();
+
 
         if (options.uniforms) {
             this._makeUniforms(options.uniforms);
@@ -268,6 +269,13 @@ export class WebGLUniversalShader extends BaseShader {
          */
         const gl = this.context.gl;
         const p = this.program;
+
+        const guIndex = gl.getUniformBlockIndex(p, 'GlobalUniforms');
+
+        if (guIndex) {
+            const guBind = this.context.globalUbo.bindingIndex;
+            gl.uniformBlockBinding(guBind, guIndex);
+        }
 
         const attrsCount = gl.getProgramParameter(p, gl.ACTIVE_ATTRIBUTES);
 
@@ -288,7 +296,14 @@ export class WebGLUniversalShader extends BaseShader {
 
         const uniformCount = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
 
+        const blockIdxs = gl.getActiveUniforms(p, Array.from({length: uniformCount}, (_, i) => i), gl.UNIFORM_BLOCK_INDEX);
+
         for(let i = 0; i < uniformCount; i ++) {
+            // uniform in block, skip load
+            if (blockIdxs[i] !== -1) {
+                continue;
+            }
+
             const info = gl.getActiveUniform(p, i);
             const loc = gl.getUniformLocation(p, info.name);
             const record = new UniformBinding(info, loc, this);

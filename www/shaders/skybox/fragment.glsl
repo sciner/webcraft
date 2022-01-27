@@ -2,9 +2,13 @@
 
 //
 uniform samplerCube u_texture;
+uniform bool u_textureOn;
+
+#include<global_uniforms_ubo>
+/*
 uniform float u_brightness;
 uniform vec2 u_resolution;
-uniform bool u_textureOn;
+*/
 
 in vec3 v_texCoord;
 out vec4 outColor;
