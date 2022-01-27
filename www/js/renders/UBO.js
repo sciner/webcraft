@@ -1,12 +1,12 @@
 export const UNIFORM_TYPE = {
-    MAT4: 'mat4',
-    MAT3: 'mat3',
-    VEC3: 'vec3',
-    VEC2: 'vec2',
-    VEC3_OBJ: 'vec3_obj',
-    VEC4: 'vec4',
-    FLOAT: 'float',
-    SAMPLER: 'int',
+    STRUCT   :'struct',
+    MAT4     : 'mat4',
+    MAT3     : 'mat3',
+    VEC3     : 'vec3',
+    VEC2     : 'vec2',
+    VEC3_OBJ : 'vec3_obj', // same as vec3, but mark that value is  {x, y, z}
+    VEC4     : 'vec4',
+    FLOAT    : 'float',
 }
 
 const KNOWN_TYPES = Object.fromEntries(
@@ -27,14 +27,68 @@ export const VALUE_SIZE_TO_TYPE = {
 }
 
 export const TYPE_TO_ALLIGMENT = {
-    [UNIFORM_TYPE.MAT4] : 16, // std140
-    [UNIFORM_TYPE.MAT3] : 12, // std140
-    [UNIFORM_TYPE.VEC2] : 2,  //
-    [UNIFORM_TYPE.VEC3] : 4,  // std140
+    [UNIFORM_TYPE.STRUCT]   : 16, // std140
+    [UNIFORM_TYPE.MAT4]     : 16, // std140
+    [UNIFORM_TYPE.MAT3]     : 12, // std140
+    [UNIFORM_TYPE.VEC2]     : 2,  //
+    [UNIFORM_TYPE.VEC3]     : 4,  // std140
     [UNIFORM_TYPE.VEC3_OBJ] : 4,
-    [UNIFORM_TYPE.VEC4] : 4,
-    [UNIFORM_TYPE.FLOAT]: 1,
-    [UNIFORM_TYPE.SAMPLER]: 1,
+    [UNIFORM_TYPE.VEC4]     : 4,
+    [UNIFORM_TYPE.FLOAT]    : 1,
+}
+
+const MAP_MAT3 = (buffer, offset, value) => {
+    for(let i = 0; i < 3; i ++) {
+        buffer[i * 4 + 0 + offset] = value[i * 3 + 0];
+        buffer[i * 4 + 1 + offset] = value[i * 3 + 1];
+        buffer[i * 4 + 2 + offset] = value[i * 3 + 2];
+    }
+
+    return TYPE_TO_ALLIGMENT[UNIFORM_TYPE.MAT3];
+};
+
+// map value and return alligned size
+const MAP_VEC3_OBJ = (buffer, offset, value) => {
+    buffer[offset + 0] = +value.x || 0;
+    buffer[offset + 1] = +value.y || 0;
+    buffer[offset + 2] = +value.z || 0;
+
+    return TYPE_TO_ALLIGMENT[UNIFORM_TYPE.VEC3];
+};
+
+// map value and return alligned size
+const MAP_VEC3 = (buffer, offset, value) => {
+    buffer[offset + 0] = +value[0] || 0;
+    buffer[offset + 1] = +value[1] || 0;
+    buffer[offset + 2] = +value[2] || 0;
+
+    return TYPE_TO_ALLIGMENT[UNIFORM_TYPE.VEC3];
+};
+
+const MAP_FLOAT = (buffer, offset, value) => {
+    buffer[offset + 0] = +value || 0;
+
+    return TYPE_TO_ALLIGMENT[UNIFORM_TYPE.FLOAT];
+};
+
+const MAP_ALLIGNED = (buffer, offset, value) => {
+    buffer.set(value, offset);
+    
+    return value.length;
+};
+
+export const FIELD_MAPPERS = {
+    [UNIFORM_TYPE.STRUCT]   : MAP_ALLIGNED,
+    [UNIFORM_TYPE.MAT4]     : MAP_ALLIGNED,
+    [UNIFORM_TYPE.VEC4]     : MAP_ALLIGNED,
+    [UNIFORM_TYPE.VEC2]     : MAP_ALLIGNED,
+   
+    [UNIFORM_TYPE.MAT3]     : MAP_MAT3,
+    [UNIFORM_TYPE.VEC3_OBJ] : MAP_VEC3_OBJ,
+    [UNIFORM_TYPE.VEC3]     : MAP_VEC3,
+
+    [UNIFORM_TYPE.FLOAT]    : MAP_FLOAT
+
 }
 
 function validateUniformArray (value) {
@@ -86,117 +140,246 @@ function validateUniformArray (value) {
  * @returns {number} size of writed to buffer
  */
 function mapField(view, type, value, offset) {
-    if (type === UNIFORM_TYPE.MAT3) {
-        for(let i = 0; i < 3; i ++) {
-            view[i * ARRAY_ALLIGMENT + 0 + offset] = value[i * 3 + 0];
-            view[i * ARRAY_ALLIGMENT + 1 + offset] = value[i * 3 + 1];
-            view[i * ARRAY_ALLIGMENT + 2 + offset] = value[i * 3 + 2];
-        }
-
-        return TYPE_TO_ALLIGMENT[type];
+    if (!(type in FIELD_MAPPERS)) {
+        throw new Error('Unknown mapper for ' + type);
     }
 
-    if (typeof value !== 'object') {
-        view[0 + offset] = +value;
-
-        return TYPE_TO_ALLIGMENT[type];
-    // is object Vector
-    } else if ('x' in value) {
-        view[0 + offset] = value.x;
-        view[1 + offset] = value.y;
-        view[2 + offset] = value.z;
-
-        return TYPE_TO_ALLIGMENT[type];
-    } else {
-        view.set(value, offset);
-
-        return TYPE_TO_ALLIGMENT[type];
-    }
+    return FIELD_MAPPERS[type](view, offset, value);
 }
 
 /**
- * @typedef {Object} UniformModel
+ * @typedef {Object} StrictFieldModel
  * @property {string} [name]
  * @property {string} [type]
  * @property {*} [value]
- * @property {boolean} [array]
+ * @property {number} [arraySize]
  * @property {number} [offset]
  * @property {number} [size]
+ * @property {boolean} [mapToView]
  */
 
-export class UniversalUniform {
-    static UNIFORM_ID = 0;
+/**
+ * 
+ * @param {StrictFieldModel} model 
+ */
+const reconstructTypeSize = (model) => {
+    if (model.type in KNOWN_TYPES && model.type !== UNIFORM_TYPE.STRUCT) {
+        return {
+            type: model.type,
+            size: TYPE_TO_ALLIGMENT[model.type]
+        };
+    }
 
-    constructor ({
-        name,
-        type = null,
-        value = null,
-        array = false, // array of uniforms
-        offset = 0,
-        autoupdate = true,
-    }) {
-        if (!name) {
-            throw new Error('[UniversalUniform] Unifrom should has name');
+    if (model.type === UNIFORM_TYPE.STRUCT) {
+        if (!model.value) {
+            throw new Error('Structed subfield should have value layout');
         }
 
-        // try eval type
-        if (!type && !array && value !== null) {
-            if(typeof value !== 'object') {
-                type = UNIFORM_TYPE.FLOAT;
-                value = +value || 0;
-            } else if ('x' in value) {
-                type = UNIFORM_TYPE.VEC3_OBJ;
-            } else if (value.length) {
-                type = VALUE_SIZE_TO_TYPE[value.length];
+        if (model.value instanceof StructField) {
+            return model.value;
+        }
+
+        return {
+            type: UNIFORM_TYPE.STRUCT,
+            size: -1, // pass for evaluate after
+        }
+    }
+
+    if (model.value !== null) {
+
+        const val = model.array ? model.value[0] : model.value;
+
+        if (typeof val !== 'object') {
+            return {
+                type: UNIFORM_TYPE.FLOAT,
+                size: TYPE_TO_ALLIGMENT[UNIFORM_TYPE.FLOAT]
+            };
+        }
+
+        if ('x' in val) {
+            return {
+                type: UNIFORM_TYPE.VEC3_OBJ,
+                size: TYPE_TO_ALLIGMENT[UNIFORM_TYPE.VEC3_OBJ]
+            };
+        }
+
+        if (val.length) {
+            const type = VALUE_SIZE_TO_TYPE[val.length];
+            
+            if (type) {
+                return {
+                    type: type,
+                    size: TYPE_TO_ALLIGMENT[type]
+                };
             }
         }
 
-        if (!type || !(type in KNOWN_TYPES)) {
-            throw new Error('[UniversalUniform] Unknow type:' + type + ' for ' + name    );
-        }
+        throw new Error('Unknown size or type for ', model.name, model.type);
+    }
+}
 
-        this.name = name;
-        this.vecObject = false;
-        this.arraySize = array ? value.length : 0;
+export class StructField {
+    /**
+     * @type {typeof Struct}
+     */
+    static STRUCT_CTOR = null;// Struct;
+    /**
+     * 
+     * @param {StrictFieldModel} model 
+     */
+    constructor (model) {
+        this.model = model;
 
-        // internal for UBO
-        this.size = array
-            ? this.arraySize * Math.max(ARRAY_ALLIGMENT, TYPE_TO_ALLIGMENT[type]) // array always aligned to 4 WEBGL
-            : TYPE_TO_ALLIGMENT[type];
-
-        this._dirty = true;
-
-        this._mapId = -2;
-
-        this._updateId = -1;
-
-        this._value = value;
-
-        // internal for UBO
-        // std140
-        this.offset = offset;
+        let value = model.value;
+        let {
+            type, size
+        } = reconstructTypeSize(model);
 
         this.type = type;
 
-        this.id = UniversalUniform.UNIFORM_ID ++;
+        this.name = model.name;
 
         /**
-         * View for UBO array, attached by UBO
+         * View to typed array struct
          * @type {Float32Array}
          */
         this.view = null;
 
-        this.locateToView = this._value == null
-            && type !== UNIFORM_TYPE.MAT3
-            // we can direcly locate value to view when possible and not require remap
-            && (!array || array && TYPE_TO_ALLIGMENT[type] % 4 === 0);
+        this.arraySize = model.arraySize || 0; // to simple use
+
+        this.offset = model.offset || 0;
+
+        // nested struct 
+        if (this.type === UNIFORM_TYPE.STRUCT) {
+            value = new this.constructor.STRUCT_CTOR(model.value);
+            size = Math.ceil(this._value.fullSize / 4) * 4; // aligned to 16 bytes, we use size of floart
+        } else {
+            value = model.value || null;
+        }
 
         /**
-         * Lazy maping a setter onto view in update call
+         * SIZE of TYPE (with aligments)
+         * For arrayed or full structed size read fullSize
          */
-        this.lazyMap = false;
+        this.size = size;
+        this._value = value;
 
-        this.autoupdate = autoupdate || this.locateToView;
+        // map to view allowed only for 4 paded structures
+        this._mapToView = (model.mapToView || model.value == null) 
+            && TYPE_TO_ALLIGMENT[this.type] % 4 == 0 
+            && this.arraySize === 0;
+    }
+
+    /**
+     * Attach or reactach view 
+     * @param {Float32Array} view
+     * @param {boolean} clone
+     */
+    attach(view, clone = true) {
+        if (view.length !== this.fullSize) {
+            throw new Error(`[Field ${this.name}] Attached view should be same size as struct field `)
+        }
+
+        const oldView = this.view;
+
+        this.view = view;
+
+        if (this.type === UNIFORM_TYPE.STRUCT) {
+            // clone subStruct when a view was detached 
+            this._value.attach(view, clone || this._value.view.buffer !== oldView.buffer);
+        } else if(clone && oldView) {
+            view.set(oldView);
+        } else if (!oldView && this._value != null) {
+            this._map(this._value);
+        } 
+
+    }
+
+    get fullSize() {
+        if (this.arraySize > 0) {
+            return Math.ceil(this.arraySize * this.size / 4) * 4; // allign to 4
+        }
+
+        return this.size;
+    }
+
+    get mapToView() {
+        return this._mapToView;
+    }
+
+    // alliased to get
+    get value() {
+        return this.get();
+    }
+
+    // alliased to get
+    set value(v) {
+        this.set(v);
+    }
+
+    set (value) {
+        if (this.type === UNIFORM_TYPE.STRUCT) {
+            throw new Error(`[Field ${this.name}] Can't load value directly to structs field `)
+            return false;
+        }
+
+        this._map(value);
+
+        return true;
+    }
+
+    get () {
+        return this._mapToView ? this.view : this._value;
+    }
+
+    /**
+     * Map value to buffer
+     * @param {*} value 
+     */
+    _map(value) {
+        this._value = value;
+
+        if (this.arraySize === 0) {
+            return FIELD_MAPPERS[this.type](this.view, 0, value);
+        }
+
+        let offset = 0;
+
+        for(let i = 0; i < Math.min(this._value.length, this.arraySize); i ++) {
+            const wrote = FIELD_MAPPERS[this.type](view, offset, value[i]);
+
+            offset += Math.ceil(wrote / 4) * 4;
+        }
+    }
+}
+
+export class UniversalUniform extends StructField {
+    static UNIFORM_ID = 0;
+
+    /**
+     * @type {typeof Struct}
+     */
+    static STRUCT_CTOR = null;// Struct;
+
+    /**
+     * 
+     * @param {StrictFieldModel} model 
+     */
+    constructor (model) {
+        super(model);
+
+        if (!this.name) {
+            throw new Error('[UniversalUniform] Unifrom should has name');
+        }
+
+        this.id = UniversalUniform.UNIFORM_ID ++;
+
+        this._dirty = true;
+    }
+
+    set(v) {
+        super.set(v);
+        this.needUpdate();
     }
 
     /**
@@ -204,65 +387,6 @@ export class UniversalUniform {
      */
     needUpdate() {
         this._dirty = true;
-        this._mapId ++;
-
-        if (!this.lazyMap) {
-            this._mapValue();
-        }
-    }
-
-    get value() {
-        return this.locateToView
-            ? this.view
-            : this._value;
-    }
-
-    // check
-    set value(v) {
-
-        this._value = v;
-
-        this.needUpdate();
-    }
-
-    /**
-     * Map value onto view and back
-     */
-    _mapValue() {
-        if (this._mapId === this._updateId && !this.autoupdate) {
-            return;
-        }
-
-        if (this.locateToView) {
-            this._mapId = this._updateId;
-            return;
-        }
-
-        const {
-            type, view, arraySize, _value
-        } = this;
-
-        // not array, map maybe fast
-        if (arraySize === 0) {
-            // more universal way
-            mapField(view, type, _value, 0);
-
-            this._mapId = this._updateId;
-            return;
-        }
-
-        // array map case
-        // offset is alligned of 4,
-        // [1, 2, 3] will be => [1, -, -, -, 2, -, -, -, 3, -, -, -]
-        let offset = 0;
-
-        for(let i = 0; i < arraySize; i ++) {
-            const wrote = mapField(view, type, _value[i], offset);
-
-            offset += Math.min(wrote, 4);
-        }
-
-        this._mapId = this._updateId;
     }
 
     /**
@@ -270,54 +394,114 @@ export class UniversalUniform {
      * @returns {boolean} true when something changed
      */
     upload() {
-        const dirty = this._dirty || this.autoupdate;
-
-        // map value if changed
-        if (dirty) {
-            this._mapValue();
-        }
+        const dirty = this._dirty;
 
         this._dirty = false;
-        this._updateId ++;
-        this._mapId = this._updateId;
 
         return dirty;
     }
 }
 
-export class BaseUBO {
+export class Struct {
+    /**
+     * @type {typeof StructField}
+     */
+    static FIELD_CTOR = null;// StructField;
+
     /**
      *
-     * @param {{[key: string]: UniformModel}} uboModel
+     * @param {{[key: string]: StrictFieldModel}} model
      */
-    constructor (uboModel) {
+    constructor (model) {
+        this.model = model;
+
+        this.name = model.name || '';
+
         /**
          * @type {Float32Array}
          */
-        this.data = null;
+        this.view = null;
 
         /**
-         * @type {{[key: string]: UniversalUniform}}
+         * @type {{[key: string]: StructField}}
          */
         this.fields = Object.create({});
 
-        this.init(uboModel);
-
         this.updateId = -1;
+
+        this.size = 0;
+
+        this.init(model);
+    }
+    /**
+     * Set value to Struct field, return true is all ok
+     * @param {string} fieldName 
+     * @param {*} value 
+     * @returns {boolean}
+     */
+    set (fieldName, value) {
+        if (!(fieldName in this.fields)) {
+            return false;
+        }
+
+        return this.fields[fieldName].set(value);
     }
 
-    get size() {
-        return this.data.length;
+    /**
+     * Get field name, if field not preset will be null
+     * @param {string} filedName 
+     * @returns 
+     */
+    get (filedName) {
+        const f = this.fields[filedName];
+
+        return f ? f.get() : null;
+    }
+
+    // for struct is same
+    get fullSize() {
+        return this.size;
+    }
+
+    /**
+     * Attach struct to data buffer
+     * NOTE - data can be loosed
+     * @param {Float32Array} view
+     * @param {boolean} clone - try to clone older value to new
+     */
+    attach(view, clone) {
+        if (this.fullSize !== view.length) {
+            throw new Error(`[Struct ${this.name}] Struct size should mach to view size and must be:` + this.fullSize);
+        }
+
+        this.view = view;
+
+        const oldView = this.view;
+
+        if (clone && oldView) {
+            oldView.set(oldView);
+
+            // we clone buffer for views at once of all
+            clone = false;
+        }
+
+        for(let key in this.fields) {
+            const field = this.fields[key];
+            const sub = view.subarray(field.offset, (field.offset + field.size));
+
+            field.attach(sub, clone);
+        }
     }
 
     /**
      *
-     * @param {{[key: string]: UniformModel}} dataModel
+     * @param {{[key: string]: StrictFieldModel}} dataModel
      */
     init(dataModel) {
         //parse and apply
 
         const fields = [];
+        const FieldCtor = this.constructor.FIELD_CTOR;
 
         let pos = 0;
 
@@ -330,7 +514,10 @@ export class BaseUBO {
                 u.name = key;
             }
 
-            const filed = new UniversalUniform(u);
+            /**
+             * @type {StructField}
+             */
+            const filed = new FieldCtor(u);
 
             fields.push(filed);
 
@@ -364,13 +551,10 @@ export class BaseUBO {
         // align up to 4
         pos = Math.ceil(pos / 4) * 4;
 
-        // buffer size
-        this.data = new Float32Array(pos);
+        this.size = pos;
 
-        // create view
-        for(let field of fields) {
-            field.view = this.data.subarray(field.offset, (field.offset + field.size));
-        }
+        // attach buffer
+        this.attach(new Float32Array(this.fullSize))
     }
 
     /**
@@ -403,7 +587,7 @@ export class BaseUBO {
         }
 
         /*if (changed) {
-            
+
         }*/
         this.updateId ++;
 
@@ -412,3 +596,14 @@ export class BaseUBO {
         }
     }
 }
+
+export class BaseUBO extends Struct {
+    static FIELD_CTOR = UniversalUniform;
+};
+
+StructField.STRUCT_CTOR = Struct;
+UniversalUniform.STRUCT_CTOR = Struct;
+
+Struct.FIELD_CTOR = StructField;
+BaseUBO.FIELD_CTOR = UniversalUniform;
+

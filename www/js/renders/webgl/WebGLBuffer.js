@@ -14,6 +14,7 @@ export class WebGLBuffer extends BaseBuffer {
     constructor(context, options) {
         super(context, options);
 
+        this.size = options.size | 0;
         this.buffer = null;
         this.lastLength = 0;
     }
@@ -26,8 +27,20 @@ export class WebGLBuffer extends BaseBuffer {
             gl
         } = this.context;
 
+        const type = gl[GL_BUFFER_TYPE[this.type]] || gl.ARRAY_BUFFER;
+
         if (!this.buffer) {
             this.buffer = gl.createBuffer();
+
+            if (this.size) {
+                gl.bindBuffer(type, this.buffer);
+                gl.bufferData(type, 
+                    this.size,
+                    this.options.usage === 'static' 
+                    ? gl.STATIC_DRAW 
+                    : gl.DYNAMIC_DRAW
+                );
+            }
         }
 
         data = data || this._data;
@@ -48,7 +61,11 @@ export class WebGLBuffer extends BaseBuffer {
             full = true;
         }
 
-        const type = gl[GL_BUFFER_TYPE[this.type]] || gl.ARRAY_BUFFER;
+        // we can't load bufferData when size of buffer and data not same
+        // UBO has strude 256, this important
+        if (this.size && length * data.BYTES_PER_ELEMENT !== this.size) {
+            full = false;
+        }
 
         gl.bindBuffer(type, this.buffer);
 

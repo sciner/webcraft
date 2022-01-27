@@ -48,10 +48,13 @@ export class WebGLAbstractionUBO {
 
         this._size = model.size;
 
+        this.alligment = this.context.gl.getParameter(this.context.gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
+
         if (!this._buffer) {
             this._buffer = this.context.createBuffer({
                 type: 'uniform',
                 usage: 'dynamic',
+                size: Math.ceil(4 * model.fullSize / this.alligment) * this.alligment
             });
         }
 
@@ -83,13 +86,13 @@ export class WebGLAbstractionUBO {
 
         if (partial) {
             this._buffer.update(
-                this._model.data,
+                this._model.view,
                 state.start,
                 state.end
             )
         } else {
             this._buffer.update(
-                this._model.data,
+                this._model.view,
                 0,
                 0
             )
