@@ -1618,18 +1618,6 @@
         }
     },
     {
-        "id": 73,
-        "name": "REDSTONE_ORE",
-        "sound": "madcraft:block.stone",
-        "texture": [
-            3,
-            3
-        ],
-        "material": {
-            "id": "stone"
-        }
-    },
-    {
         "id": 75,
         "name": "REDSTONE_TORCH_ON",
         "spawnable": false,
@@ -5070,5 +5058,41 @@
         "material": {
             "id": "plant"
         }
+    },
+    {
+        "id": 73,
+        "name": "REDSTONE_ORE",
+        "sound": "madcraft:block.stone",
+        "drop_item": {"name": "REDSTONE_DUST", "count": 2, "chance": 1},
+        "texture": [3, 3],
+        "material": {
+            "id": "stone"
+        }
+    },
+    {
+        "id": 636,
+        "name": "REDSTONE_DUST",
+        "sound": "madcraft:block.stone",
+        "style": "redstone",
+        "inventory_style": "extruder",
+        "transparent": true,
+        "passable": 1,
+        "texture": [21, 0],
+        "redstone": {
+            "is_dust": true,
+            "textures": {
+                "dot": [[22, 0]],
+                "line": [[24, 0], [26, 0]]
+            }
+        }, 
+        "extra_data": {
+            "signal": 0
+        },
+        "material": {
+            "id": "stone"
+        },
+        "tags": [
+            "no_drop_ao"
+        ]
     }
 ]

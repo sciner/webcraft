@@ -534,7 +534,7 @@ export class ServerWorld {
                     // Add velocity for drop item
                     this.temp_vec.set(
                         0,
-                        .5,
+                        .375,
                         0,
                     );
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);

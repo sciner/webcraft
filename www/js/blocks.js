@@ -316,7 +316,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door') {
+        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
             group = 'doubleface';
         }
         return group;
@@ -499,6 +499,7 @@ export class BLOCK {
             }
         }
         let texture = material.texture;
+        // Stages
         if(material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
                 let stage = block.extra_data.stage;
@@ -635,6 +636,10 @@ export class BLOCK {
     static canPaneConnect(block) {
         return this.canWallConnect(block);
     };
+
+    static canRedstoneDustConnect(block) {
+        return block.id > 0 && ('redstone' in block.properties);
+    }
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
         const mat = CubeSym.matrices[cardinal_direction];
