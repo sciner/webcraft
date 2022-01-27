@@ -101,6 +101,7 @@ export class GameClass {
                     let z = e.movementX;
                     let x = e.movementY;
                     // @todo Hack for chrome bug
+                    /*
                     if(Math.abs(z) > 100) {
                         if(that.preve) {
                             z = that.preve.movementX;
@@ -114,7 +115,7 @@ export class GameClass {
                         }
                     } else {
                         that.preve = e;
-                    }
+                    }*/
                     if(that.hud.wm.hasVisibleWindow()) {
                         if(controls.enabled) {
                             controls.mouseY += x;
@@ -145,6 +146,7 @@ export class GameClass {
                         }
                         that.player.addRotate(add_mouse_rotate.divScalar(900));
                     }
+                    return true;
                 }
                 if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {
                     return false
