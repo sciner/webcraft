@@ -29,8 +29,8 @@ export class Hotbar {
         if(damage_value > 0) {
             Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
-            // @todo fix play hit sound
-            this.sounds.hit3.play();
+            // Play hit sound
+            Game.sounds.play('madcraft:block.player', 'hit')
         }
     }
 

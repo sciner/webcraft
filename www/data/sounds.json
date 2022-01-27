@@ -1,5 +1,11 @@
 [
     {
+        "type": "madcraft:block.player",
+        "hit": [
+            "hit3"
+        ]
+    },
+    {
         "type": "madcraft:block.chest",
         "dig": [
             "wood1",
