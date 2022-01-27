@@ -10,6 +10,7 @@ import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
 import {Resources} from "../../resources.js";
 import { WebGPURenderTarget } from "./WebGPURenderTarget.js";
+import { WebGPUUBO } from "./WebGPUUBO.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -58,6 +59,8 @@ export default class WebGPURenderer extends BaseRenderer{
         this.depth = null;
 
         this.subMats = [];
+
+        this.globalUbo = new WebGPUUBO(this, {bindingIndex: 0});
     }
 
     get currentBackTexture() {
@@ -122,7 +125,8 @@ export default class WebGPURenderer extends BaseRenderer{
         }
 
         super.beginPass(options);
-
+        
+        this.globalUbo.update();
         this.encoder = this.device.createCommandEncoder();
         this.passEncoder = this.encoder.beginRenderPass({
             colorAttachments: [
@@ -161,6 +165,8 @@ export default class WebGPURenderer extends BaseRenderer{
         if (geom.size === 0) {
             return;
         }
+
+        this.globalUbo.update();
 
         material.shader.bind();
         geom.bind(material.shader);
@@ -230,6 +236,8 @@ export default class WebGPURenderer extends BaseRenderer{
         this.context = this.view.getContext('webgpu');
         this.format = this.context.getPreferredFormat(this.adapter);
         this._emptyTex3D.upload();
+
+        this.globalUbo.attach(this.globalUniforms);
     }
 
     resize(w, h) {

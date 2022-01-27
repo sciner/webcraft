@@ -1,5 +1,10 @@
 import {BaseBuffer} from "../BaseRenderer.js";
 
+const GPU_BUFFER_TYPE = {
+    'index'   : 16,//GPUBufferUsage.INDEX,
+    'vertex'  : 32,//GPUBufferUsage.VERTEX,
+    'uniform' : 64,//GPUBufferUsage.UNIFORM
+}
 export class WebGPUBuffer extends BaseBuffer {
     /**
      *
@@ -14,7 +19,6 @@ export class WebGPUBuffer extends BaseBuffer {
          * @type {GPUBuffer}
          */
         this.buffer = null;
-        this.lastLength = null;
     }
 
     update() {
@@ -29,7 +33,9 @@ export class WebGPUBuffer extends BaseBuffer {
             device
         } = this.context;
 
-        if(!this.buffer || this.lastLength < this._data.length) {
+        if(!this.buffer || this.size < this._data.length) {
+            
+            const type = GPU_BUFFER_TYPE[this.type];
 
             if (this.buffer) {
                 this.buffer.destroy();
@@ -37,17 +43,17 @@ export class WebGPUBuffer extends BaseBuffer {
 
             this.buffer = device.createBuffer({
                 size: this._data.byteLength,
-                usage: (this.index ? GPUBufferUsage.INDEX : GPUBufferUsage.VERTEX) | GPUBufferUsage.COPY_DST,
+                usage: type | GPUBufferUsage.COPY_DST,
                 mappedAtCreation: true
             });
 
-            if (this.index) {
+            if (this.type === 'index') {
                 new Uint16Array(this.buffer.getMappedRange()).set(this._data);
             } else {
                 new Float32Array(this.buffer.getMappedRange()).set(this._data);
             }
 
-            this.lastLength = this._data.length;
+            this.size = this._data.length;
             this.buffer.unmap();
             return;
         }

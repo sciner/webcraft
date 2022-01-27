@@ -34,6 +34,10 @@ export class WebGLUBO extends BaseDataModelHandler {
         this.onInvalidate = this.onInvalidate.bind(this);
     }
 
+    get size() {
+        return this._model.fullSize;
+    }
+
     get nativeBuffer() {
         return this._buffer.buffer;
     }
@@ -42,17 +46,17 @@ export class WebGLUBO extends BaseDataModelHandler {
      * 
      * @param {BaseUBO} model 
      */
-    init(model) {
+    attach(model) {        
         if (model == this._model) {
             return;
         }
+
+        super.attach(model);
 
         if (model === null) {
             this.dispose();
             return;
         }
-
-        this._size = model.size;
 
         this.alligment = this.context.gl.getParameter(this.context.gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
 
@@ -68,7 +72,6 @@ export class WebGLUBO extends BaseDataModelHandler {
 
         this._valid = true;
 
-        this.attach(model);
         this.update();
 
         const gl = this.context.gl;

@@ -146,6 +146,7 @@ export class BaseBuffer {
                 : 'vertex' 
             : options.type;
 
+        this.size = options.size | 0;
         this.dirty = true;
     }
 

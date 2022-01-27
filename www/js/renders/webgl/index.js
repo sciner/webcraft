@@ -8,7 +8,7 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
-import { WebGLUBO } from "./WebGLAbstractionUBO.js";
+import { WebGLUBO } from "./WebGLUBO.js";
 
 /**
  * Shader interface
@@ -289,7 +289,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         this._emptyTex3D.bind(5);
 
-        this.globalUbo.init(this.globalUniforms);
+        this.globalUbo.attach(this.globalUniforms);
 
         return Promise.resolve(this);
     }

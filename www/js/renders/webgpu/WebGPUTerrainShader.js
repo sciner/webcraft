@@ -11,11 +11,6 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         super(context, options);
 
         /**
-         * @type {Float32Array}
-         */
-        this.globalData = context.globalUniforms.view;
-
-        /**
          *
          * @type {GPURenderPipelineDescriptor}
          */
@@ -141,26 +136,10 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
     }
 
     update() {
-        // vertex data UBO
-        //this.vertexData.set(gu.projMatrix, 0);
-        //this.vertexData.set(gu.viewMatrix, 16);
-        //fog
-        //this.vertexData.set([1], 32);
-        //this.vertexData.set([gu.brightness], 32 + 1);
-
         // ModelMatrix
         this.positionData.set(this.modelMatrix, 0);
         // add_pos
         this.positionData.set(this.addPos, 16);
-
-        //fragment data UBO
-
-        // fog color
-        ///this.fragmentData.set(gu.fogColor, 0);
-        // fog add color
-        //this.fragmentData.set(gu.fogAddColor, 4);
-        //this.fragmentData.set([gu.chunkBlockDist], 8);
-        // opaqueThreshold
 
         const style = this.texture && this.texture.style 
             ? this.texture.style 

@@ -32,11 +32,6 @@ export class WebGPUMaterial extends BaseMaterial {
          */
         this._layouts = [];
 
-        /**
-         *
-         * @type {GPUBuffer}
-         */
-        this.globalUbo = null;
         this.positionUbo = null;
 
         this.lastState = {
@@ -163,11 +158,6 @@ export class WebGPUMaterial extends BaseMaterial {
             }
         });
 
-        this.globalUbo = device.createBuffer({
-            size: globalData.byteLength,
-            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
-        });
-
         this._layouts[0] = this._pipeline.getBindGroupLayout(0);
         this._layouts[1] = this._pipeline.getBindGroupLayout(1);
     }
@@ -210,11 +200,6 @@ export class WebGPUMaterial extends BaseMaterial {
             this.bindPosGroup();
         }
 
-        // sync uniforms
-        device.queue.writeBuffer(
-            this.globalUbo, 0, globalData.buffer, globalData.byteOffset, globalData.byteLength
-        );
-
         const l = this.lastState;
         // no rebuild group
         if (
@@ -238,8 +223,8 @@ export class WebGPUMaterial extends BaseMaterial {
                 {
                     binding: 0,
                     resource: {
-                        buffer: this.globalUbo,
-                        size: globalData.byteLength
+                        buffer: this.context.globalUbo.nativeBuffer,
+                        size: this.context.globalUbo.size * 4, //in bytes
                     }
                 }
             ]
@@ -385,7 +370,6 @@ export class WebGPUMaterial extends BaseMaterial {
         this.lastState = {};
         this._group = null;
         this.fragmentUbo.destroy();
-        this.vertexUbo.destroy();
 
         super.destroy();
     }
