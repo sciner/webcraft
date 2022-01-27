@@ -102,12 +102,16 @@ export class GameClass {
                     let x = e.movementY;
                     // @todo Hack for chrome bug
                     if(Math.abs(z) > 100) {
-                        z = that.preve.movementX;
+                        if(that.preve) {
+                            z = that.preve.movementX;
+                        }
                     } else {
                         that.preve = e;
                     }
                     if(Math.abs(x) > 100) {
-                        x = that.preve.movementY;
+                        if(that.preve) {
+                            x = that.preve.movementY;
+                        }
                     } else {
                         that.preve = e;
                     }
