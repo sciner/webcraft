@@ -50,6 +50,8 @@ export class WebGLAbstractionUBO {
 
         this.alligment = this.context.gl.getParameter(this.context.gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
 
+        console.log('Ubo buffer aligment', this.alligment);
+
         if (!this._buffer) {
             this._buffer = this.context.createBuffer({
                 type: 'uniform',
@@ -83,8 +85,9 @@ export class WebGLAbstractionUBO {
 
         // we can partial update UBO buffer
         // because minor diff 
-
-        if (partial) {
+        // not workin yet for any cases
+        // 
+        if (partial && false) {
             this._buffer.update(
                 this._model.view,
                 state.start,

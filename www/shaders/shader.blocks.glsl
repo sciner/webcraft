@@ -17,7 +17,7 @@
 #endif
 
 #ifdef global_uniforms_ubo
-    uniform GlobalUniforms {
+    layout(std140) uniform GlobalUniforms {
         // global uniform block base
         // PLZ! Not change field positions and structure
 
