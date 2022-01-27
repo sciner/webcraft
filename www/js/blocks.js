@@ -316,7 +316,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign' || block.style == 'door') {
+        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door') {
             group = 'doubleface';
         }
         return group;
@@ -662,7 +662,7 @@ export class BLOCK {
             return shapes;
         }
         let f = !!expanded ? .001 : 0;
-        if(!material.passable && (material.style != 'planting' /*&& material.style != 'sign'*/)) {
+        if(!material.passable && (material.style != 'planting')) {
             switch(material.style) {
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;

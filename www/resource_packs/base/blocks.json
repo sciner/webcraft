@@ -4742,7 +4742,7 @@
     {
         "id": 617,
         "name": "CHAIN",
-        "style": "sign",
+        "style": "chain",
         "transparent": true,
         "passable": 0,
         "sound": "madcraft:block.stone",
