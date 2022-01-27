@@ -289,8 +289,7 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         this._emptyTex3D.bind(5);
 
-        this.globalUbo.init(this.globalUniforms.ubo);
-        this.globalUniforms.nativeUBO = this.globalUbo;
+        this.globalUbo.init(this.globalUniforms);
 
         return Promise.resolve(this);
     }

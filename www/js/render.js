@@ -250,7 +250,6 @@ export class Renderer {
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
-        gu.testLightOn = true;
         gu.fogColor = [0, 0, 0, 1];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
@@ -259,8 +258,8 @@ export class Renderer {
         // when use a sun dir, brightness is factor how many of sunfactor is applied
         // sun light is additive
         gu.brightness = 0.55;
-        gu.sunDir = [-1, -1, 1];
-        gu.useSunDir = true;
+        // 3 value is flag, 1 = use sun, 0 = not use
+        gu.sunDir = [-1, -1, 1, 1];
 
         camera.use(gu, true);
         gu.update();
@@ -382,7 +381,7 @@ export class Renderer {
         this.renderBackend.endPass();
 
         // disable
-        gu.useSunDir = false;
+        gu.sunDir = [...this.sunDir, 0];
 
         target.destroy();
     }

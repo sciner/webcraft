@@ -1,6 +1,6 @@
 import {Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-import { BaseUBO, UNIFORM_TYPE } from './UBO.js';
+import { BaseUBO, Struct, UNIFORM_TYPE } from './UBO.js';
 
 const {mat4} = glMatrix;
 
@@ -356,11 +356,11 @@ export class BaseShader {
 
 }
 
-export class GlobalUniformGroup {
-    constructor(options) {
+export class GlobalUniformGroup extends Struct {
+    constructor() {
         // see shader.blocks.glsl
         // alligments is same
-        this.ubo = new BaseUBO({
+        super({
             projMatrix: {
                 value: null, // will direcly use a view on it
                 type: UNIFORM_TYPE.MAT4,
@@ -404,14 +404,7 @@ export class GlobalUniformGroup {
             aoDisaturateFactor: {
                 value: 0,
             },
-            /*
-            shift: {
-                value: new Vector(),
-            },
-            testLightOn: {
-                value: 0, // legacy
-            }*/
-        });
+        }, {name: 'GlobaUniforms', inferProps: true});
 
         /**
          * Store native UBO Buffer implementation
@@ -437,206 +430,6 @@ export class GlobalUniformGroup {
 
         this.localLigthRadius = 0;
         */
-
-        this.updateID = 0;
-        this._sunDir = [0,0,0,0];
-        this._useSunDir = 0;
-    }
-
-    /**
-     * @deprecated
-     */
-    get projMatrix() {
-        return this.ubo.fields['projMatrix'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set projMatrix(v) {
-        this.ubo.fields['projMatrix'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-    get viewMatrix() {
-        return this.ubo.fields['viewMatrix'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set viewMatrix(v) {
-        this.ubo.fields['viewMatrix'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-    get chunkBlockDist() {
-        return this.ubo.fields['chunkBlockDist'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set chunkBlockDist(v) {
-        this.ubo.fields['chunkBlockDist'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-    get brightness() {
-        return this.ubo.fields['brightness'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set brightness(v) {
-        this.ubo.fields['brightness'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-     get resolution() {
-        return this.ubo.fields['resolution'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set resolution(v) {
-        this.ubo.fields['resolution'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-     get fogAddColor() {
-        return this.ubo.fields['fogAddColor'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set fogAddColor(v) {
-        this.ubo.fields['fogAddColor'].value = v;
-    }
-    /**
-     * @deprecated
-     */
-     get fogColor() {
-        return this.ubo.fields['fogColor'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set fogColor(v) {
-        this.ubo.fields['fogColor'].value = v;
-    }
-    /**
-     * @deprecated
-     */
-     get time() {
-        return this.ubo.fields['time'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set time(v) {
-        this.ubo.fields['time'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-     get fogOn() {
-        return this.ubo.fields['fogOn'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set fogOn(v) {
-        this.ubo.fields['fogOn'].value = v;
-    }
-    
-    /**
-     * @deprecated
-     */
-    get sunDir() {
-        return this._sunDir;// this.ubo.fields['sunDir'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set sunDir(v) {
-        this._sunDir = v;
-
-        this.ubo.fields['sunDir'].value = [
-            ...this._sunDir,
-            this._useSunDir
-        ];
-    }
-
-    /**
-     * @deprecated
-     */
-     get useSunDir() {
-        return this._useSunDir;// this.ubo.fields['sunDir'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set useSunDir(v) {
-        this._useSunDir = v;
-        this.ubo.fields['sunDir'].value = [
-            ...this._sunDir,
-            this._useSunDir
-        ];
-    }
-    /**
-     * @deprecated
-     */
-    get camPos() {
-        return this.ubo.fields['camPos'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set camPos(v) {
-        this.ubo.fields['camPos'].value = v;
-    }
-
-    /**
-     * @deprecated
-     */
-     get localLigthRadius() {
-        return this.ubo.fields['localLigthRadius'].value;
-    }
-
-    /**
-     * @deprecated
-     */
-    set localLigthRadius(v) {
-        this.ubo.fields['localLigthRadius'].value = v;
-    }
-
-    update() {
-        this.updateID++;
-
-        if (this.nativeUBO) {
-            this.nativeUBO.update()
-        }
     }
 }
 

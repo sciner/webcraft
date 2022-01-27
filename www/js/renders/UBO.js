@@ -1,3 +1,5 @@
+import { BaseDataModel } from "./BaseDataModel.js";
+
 export const UNIFORM_TYPE = {
     STRUCT   :'struct',
     MAT4     : 'mat4',
@@ -218,7 +220,7 @@ const reconstructTypeSize = (model) => {
     }
 }
 
-export class StructField {
+export class StructField extends BaseDataModel {
     /**
      * @type {typeof Struct}
      */
@@ -228,6 +230,7 @@ export class StructField {
      * @param {StrictFieldModel} model 
      */
     constructor (model) {
+        super();
         this.model = model;
 
         let value = model.value;
@@ -251,7 +254,7 @@ export class StructField {
 
         // nested struct 
         if (this.type === UNIFORM_TYPE.STRUCT) {
-            value = new this.constructor.STRUCT_CTOR(model.value);
+            value = new this.constructor.STRUCT_CTOR(model.value, {name: this.name, inferProps: true});
             size = Math.ceil(this._value.fullSize / 4) * 4; // aligned to 16 bytes, we use size of floart
         } else {
             value = model.value || null;
@@ -324,7 +327,6 @@ export class StructField {
         }
 
         this._map(value);
-
         return true;
     }
 
@@ -350,11 +352,18 @@ export class StructField {
 
             offset += Math.ceil(wrote / 4) * 4;
         }
+
+        // emit event
+        this.invalidate();
+    }
+
+    // nothing
+    update() {
+
     }
 }
 
 export class UniversalUniform extends StructField {
-    static UNIFORM_ID = 0;
 
     /**
      * @type {typeof Struct}
@@ -371,8 +380,6 @@ export class UniversalUniform extends StructField {
         if (!this.name) {
             throw new Error('[UniversalUniform] Unifrom should has name');
         }
-
-        this.id = UniversalUniform.UNIFORM_ID ++;
 
         this._dirty = true;
     }
@@ -393,7 +400,7 @@ export class UniversalUniform extends StructField {
      *
      * @returns {boolean} true when something changed
      */
-    upload() {
+    update() {
         const dirty = this._dirty;
 
         this._dirty = false;
@@ -402,7 +409,7 @@ export class UniversalUniform extends StructField {
     }
 }
 
-export class Struct {
+export class Struct extends BaseDataModel {
     /**
      * @type {typeof StructField}
      */
@@ -411,9 +418,12 @@ export class Struct {
     /**
      *
      * @param {{[key: string]: StrictFieldModel}} model
+     * @param {{name: string, inferProps: boolean}} opts - name of struct, inferProps - struct can define get/set for props in body to easy lookup
      */
-    constructor (model) {
+    constructor (model, opts = {name: '', inferProps: true}) {
+        super();
         this.model = model;
+        this.options = opts || {};
 
         this.name = model.name || '';
 
@@ -430,6 +440,8 @@ export class Struct {
         this.updateId = -1;
 
         this.size = 0;
+
+        this.lastDiff = {start: 0, end: 0, updateId: -1, changed: false};
 
         this.init(model);
     }
@@ -493,6 +505,27 @@ export class Struct {
         }
     }
 
+    _infer (key) {
+        // 
+        if (this[key] != null) {
+            console.warn(`[Struct ${this.name}] Field cant be infered because collided with already existed`, key, this[key]);
+            return;
+        }
+
+        const that = this;
+        const fields = this.fields;
+
+        // infer 
+        Object.defineProperty(this, key, {
+            get() {
+                return fields[key].get();
+            },
+            set(v) {
+                return fields[key].set(v);
+            }
+        });
+    }
+
     /**
      *
      * @param {{[key: string]: StrictFieldModel}} dataModel
@@ -522,6 +555,10 @@ export class Struct {
             fields.push(filed);
 
             this.fields[filed.name] = filed;
+
+            if (this.options.inferProps) {
+                this._infer(filed.name);
+            }
 
             if (filed.offset > 0) {
                 pos = Math.max(size, filed.size + filed.offset);
@@ -571,7 +608,7 @@ export class Struct {
 
             const f = this.fields[key];
 
-            if(f.upload()) {
+            if(f.update()) {
                 start = Math.min(start, f.offset);
                 end = Math.max(end, f.offset + f.size);
                 changed = true;
@@ -591,9 +628,13 @@ export class Struct {
         }*/
         this.updateId ++;
 
-        return {
+        this.lastDiff = {
             start, end, changed, updateId : this.updateId
-        }
+        };
+
+        this.invalidate();
+
+        return this.lastDiff;
     }
 }
 

@@ -24,6 +24,8 @@ export class WebGLAbstractionUBO {
         this.updateId = -1;
 
         this.bindingIndex = bindingIndex;
+
+        this.onInvalidate = this.onInvalidate.bind(this);
     }
 
     get nativeBuffer() {
@@ -68,6 +70,8 @@ export class WebGLAbstractionUBO {
 
         // bind UBO
         gl.bindBufferBase(gl.UNIFORM_BUFFER, this.bindingIndex, this._buffer.buffer);
+
+        this._model.addEventListener('invalidate', this.onInvalidate);
     }
 
     update() {
@@ -75,7 +79,13 @@ export class WebGLAbstractionUBO {
             return;
         }
 
-        const state = this._model.update();
+        this._updateInternal(this._model.update());
+    }
+
+    _updateInternal(state) {
+        if(!this._valid) {
+            return;
+        }
 
         if (state.updateId === this.updateId) {
             return;
@@ -102,6 +112,12 @@ export class WebGLAbstractionUBO {
         }
 
         this.updateId = state.updateId;
+    }
+
+    onInvalidate () {
+        // invaliadate emit update, we can track it and update a soon as possible
+        // need use lazy update, becuase every update will emit re-uppload
+        this._updateInternal(this._model.lastDiff);
     }
 
     dispose() {
