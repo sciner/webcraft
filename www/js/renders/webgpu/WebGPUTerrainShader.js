@@ -11,25 +11,28 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         super(context, options);
 
         /**
+         * @type {Float32Array}
+         */
+        this.globalData = context.globalUniforms.view;
+
+        /**
          *
          * @type {GPURenderPipelineDescriptor}
          */
         this.description = null;
-        this.vertexData = new Float32Array((16 + 16 + 1 + 1));
         this.positionData = new Float32Array((16 + 3));
-        this.fragmentData = new Float32Array((4 + 4 + 1 + 1));
-        this.textureData = new Float32Array(1 + 1 + 1);
+        this.textureData = new Float32Array(1 + 1 + 1 + 1);
         this.globalID = -1;
 
         this._init();
     }
 
     set opaqueThreshold(v) {
-        this.fragmentData[9] = v;
+        this.textureData[3] = v;
     }
 
     get opaqueThreshold() {
-        return this.fragmentData[9];
+        return this.fragmentData[3];
     }
 
     _init() {
@@ -138,18 +141,12 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
     }
 
     update() {
-        const gu = this.globalUniforms;
-        if (this.globalID === gu.updateID) {
-            return;
-        }
-        this.globalID = gu.updateID;
-
         // vertex data UBO
-        this.vertexData.set(gu.projMatrix, 0);
-        this.vertexData.set(gu.viewMatrix, 16);
+        //this.vertexData.set(gu.projMatrix, 0);
+        //this.vertexData.set(gu.viewMatrix, 16);
         //fog
-        this.vertexData.set([1], 32);
-        this.vertexData.set([gu.brightness], 32 + 1);
+        //this.vertexData.set([1], 32);
+        //this.vertexData.set([gu.brightness], 32 + 1);
 
         // ModelMatrix
         this.positionData.set(this.modelMatrix, 0);
@@ -159,16 +156,21 @@ export class WebGPUTerrainShader extends BaseTerrainShader{
         //fragment data UBO
 
         // fog color
-        this.fragmentData.set(gu.fogColor, 0);
+        ///this.fragmentData.set(gu.fogColor, 0);
         // fog add color
-        this.fragmentData.set(gu.fogAddColor, 4);
-        this.fragmentData.set([gu.chunkBlockDist], 8);
+        //this.fragmentData.set(gu.fogAddColor, 4);
+        //this.fragmentData.set([gu.chunkBlockDist], 8);
         // opaqueThreshold
 
-        const style = this.texture && this.texture.style ? this.texture.style : TerrainTextureUniforms.default;
-        this.textureData.set(style.pixelSize, 0);
-        this.textureData.set(style.blockSize, 1);
-        this.textureData.set(style.mipmap, 2);
+        const style = this.texture && this.texture.style 
+            ? this.texture.style 
+            : TerrainTextureUniforms.default;
+
+        this.textureData.set([
+            style.pixelSize,
+            style.blockSize,
+            style.mipmap
+        ]);
 
         this.hasModelMatrix = false;
     }

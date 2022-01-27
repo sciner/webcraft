@@ -1,70 +1,67 @@
 struct VExtendUniform {
-    ModelMatrix : mat4x4<f32>;
-    add_pos : vec3<f32>;
+    modelMatrix : mat4x4<f32>;
+    addPos : vec3<f32>;
 };
 
-struct VUniforms {
-    ProjMatrix : mat4x4<f32>;
-    worldView : mat4x4<f32>;
-    fogOn : f32;
-    brightness : f32;
+struct GlobalUniforms {
+    projMatrix           : mat4x4<f32>;
+    worldView            : mat4x4<f32>;
+    cameraPos            : vec3<f32>;
+    fogColor             : vec4<f32>;
+    fogAddColor          : vec4<f32>;
+    fogOn                : f32;
+    chunkBlockDist       : f32;
+    brightness           : f32;
+    time                 : f32;
+    sunDir               : vec4<f32>;
+    resolution           : vec2<f32>;
+    localLightRadius     : f32;
+    aoDisaturateFactor   : f32;
 };
 
 struct TextureUniforms {
-    pixelSize : f32;
-    blockSize: f32;
-    mipmap: f32;
-};
-
-struct FUniforms {
-    // Fog
-    fogColor : vec4<f32>;
-    fogAddColor : vec4<f32>;
-    //fogDensity : f32;
-    //fogOn: bool;
-    chunkBlockDist: f32;
-    //
-    // brightness : f32;
+    pixelSize       : f32;
+    blockSize       : f32;
+    mipmap          : f32;
     opaqueThreshold : f32;
 };
 
 struct Attrs {
-    [[location(0)]] position : vec3<f32>;
-    [[location(1)]] axisX : vec3<f32>;
-    [[location(2)]] axisY : vec3<f32>;
+    @location(0) position : vec3<f32>;
+    @location(1) axisX    : vec3<f32>;
+    @location(2) axisY    : vec3<f32>;
 
-    [[location(3)]] uvCenter : vec2<f32>;
-    [[location(4)]] uvSize : vec2<f32>;
+    @location(3) uvCenter : vec2<f32>;
+    @location(4) uvSize   : vec2<f32>;
 
-    [[location(5)]] color : vec3<f32>;
+    @location(5) color    : vec3<f32>;
 
-    [[location(6)]] flags : f32;
+    @location(6) flags    : f32;
 
-    [[location(7)]] quad : vec2<f32>;
+    @location(7) quad     : vec2<f32>;
 };
 
 struct VertexOutput {
-    [[builtin(position)]] VPos : vec4<f32>;
-    [[location(0)]] position : vec3<f32>;
-    [[location(1)]] texcoord : vec2<f32>;
-    [[location(2)]] texClamp : vec4<f32>;
-    [[location(3)]] color : vec4<f32>;
-    [[location(4)]] normal : vec3<f32>;
-    [[location(5)]] chunk_pos : vec3<f32>;
+    @builtin(position) VPos : vec4<f32>;
+    @location(0) position : vec3<f32>;
+    @location(1) texcoord : vec2<f32>;
+    @location(2) texClamp : vec4<f32>;
+    @location(3) color : vec4<f32>;
+    @location(4) normal : vec3<f32>;
+    @location(5) chunk_pos : vec3<f32>;
 };
 
-[[group(0), binding(0)]] var<uniform> u : VUniforms;
-[[group(0), binding(1)]] var<uniform> fu : FUniforms;
+@group(0) @binding(0) var<uniform> gu       : GlobalUniforms;
+//@group(0) @binding(1) var<uniform> fu       : FUniforms;
 
-[[group(1), binding(0)]] var<uniform> eu : VExtendUniform;
-[[group(1), binding(1)]] var u_sampler: sampler;
-[[group(1), binding(2)]] var u_texture: texture_2d<f32>;
-[[group(1), binding(3)]] var<uniform> tu : TextureUniforms;
-[[group(1), binding(4)]] var lightTexSampler: sampler;
-[[group(1), binding(5)]] var lightTex: texture_3d<f32>;
+@group(1) @binding(0) var<uniform> mu       : VExtendUniform;
+@group(1) @binding(1) var u_sampler         : sampler;
+@group(1) @binding(2) var u_texture         : texture_2d<f32>;
+@group(1) @binding(3) var<uniform> tu       : TextureUniforms;
+@group(1) @binding(4) var lightTexSampler   : sampler;
+@group(1) @binding(5) var lightTex          : texture_3d<f32>;
 
-
-[[stage(vertex)]]
+@stage(vertex)
 fn main_vert(a : Attrs) -> VertexOutput {
     var v: VertexOutput;
 
@@ -81,28 +78,28 @@ fn main_vert(a : Attrs) -> VertexOutput {
         v.normal = normalize(cross(a.axisX, a.axisY));
     }
 
-    v.normal = (eu.ModelMatrix * vec4<f32>(v.normal, 0.0)).xyz;
+    v.normal = (mu.modelMatrix * vec4<f32>(v.normal, 0.0)).xyz;
 
     var pos : vec3<f32> = a.position + (a.axisX * a.quad.x) + (a.axisY * a.quad.y);
     v.texcoord = a.uvCenter + (a.uvSize * a.quad);
     v.texClamp = vec4<f32>(a.uvCenter - abs(a.uvSize * 0.5) + tu.pixelSize * 0.5, a.uvCenter + abs(a.uvSize * 0.5) - tu.pixelSize * 0.5);
 
-    if(u.fogOn > 0.0) {
+    if(gu.fogOn > 0.0) {
         if (flagBiome < 0.5) {
             v.color.r = -1.0;
         }
     }
 
     // 1. Pass the view position to the fragment shader
-    v.chunk_pos = (eu.ModelMatrix * vec4<f32>(pos, 1.0)).xyz;
-    v.position = v.chunk_pos + eu.add_pos;
-    v.VPos = u.ProjMatrix * u.worldView * vec4<f32>(v.position, 1.0);
+    v.chunk_pos = (mu.modelMatrix * vec4<f32>(pos, 1.0)).xyz;
+    v.position = v.chunk_pos + mu.addPos;
+    v.VPos = gu.projMatrix * gu.worldView * vec4<f32>(v.position, 1.0);
 
     return v;
 }
 
-[[stage(fragment)]]
-fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
+@stage(fragment)
+fn main_frag(v : VertexOutput) -> @location(0) vec4<f32>{
     var outColor: vec4<f32>;
     var texCoord : vec2<f32> = clamp(v.texcoord, v.texClamp.xy, v.texClamp.zw);
     var texc : vec2<f32> = vec2<f32>(texCoord.x, texCoord.y);
@@ -129,7 +126,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
     }
 
     // Game
-    if(u.fogOn > 0.0) {
+    if(gu.fogOn > 0.0) {
         // Read texture
         var color : vec4<f32> = textureSampleLevel(u_texture, u_sampler, texc * mipScale + mipOffset, 0.0);
 
@@ -137,8 +134,8 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
             discard;
         }
 
-        if (fu.opaqueThreshold > 0.1) {
-            if (color.a < fu.opaqueThreshold) {
+        if (tu.opaqueThreshold > 0.1) {
+            if (color.a < tu.opaqueThreshold) {
                 discard;
             } else {
                 color.a = 1.0;
@@ -156,19 +153,19 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         }
 
         /*
-    var n : vec3<f32> = normalize(v.normal);
-    var dayLight: f32 = max(.5, dot(n, sun_dir) - v.color.a);
+            var n : vec3<f32> = normalize(v.normal);
+            var dayLight: f32 = max(.5, dot(n, gu.sunDir) - v.color.a);
 
-    var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
-    lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
-    lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 44.0);
-    var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).r;
-    var nightLight: f32 = min(lightSample * 16.0, 1.0) * (1.0 - v.color.a);
+            var lightCoord: vec3<f32> =  pos + v.normal.xzy * 0.5;
+            lightCoord = lightCoord + vec3<f32>(1.0, 1.0, 1.0);
+            lightCoord = lightCoord / vec3<f32>(20.0, 20.0, 44.0);
+            var lightSample: f32 = textureSampleLevel(lightTex, lightTexSampler, lightCoord, 0.0).r;
+            var nightLight: f32 = min(lightSample * 16.0, 1.0) * (1.0 - v.color.a);
 
-    v.light = dayLight * u.brightness + nightLight * (1.0 - u.brightness);
+            v.light = dayLight * gu.brightness + nightLight * (1.0 - gu.brightness);
         */
 
-        var sun_dir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
+        var sunDir : vec3<f32> = vec3<f32>(0.7, 1.0, 0.85);
 
         var lightCoord: vec3<f32> = (v.chunk_pos + 0.5) / vec3<f32>(18.0, 18.0, 84.0);
         var absNormal: vec3<f32> = abs(v.normal);
@@ -183,7 +180,7 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         caveSample = caveSample * (1.0 - aoSample);
         daySample = daySample * (1.0 - aoSample - max(-v.normal.z, 0.0) * 0.2);
 
-        var light: f32 = max(min(caveSample + daySample * u.brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
+        var light: f32 = max(min(caveSample + daySample * gu.brightness, 0.8 - aoSample), 0.2 * (1.0 - aoSample));
         // Apply light
         color = vec4<f32>(
             color.rgb * light,
@@ -196,17 +193,17 @@ fn main_frag(v : VertexOutput) -> [[location(0)]] vec4<f32>{
         var fogDistance : f32 = length(v.position.xy);
         var fogAmount : f32 = 0.0;
 
-        if(fogDistance > fu.chunkBlockDist) {
-            fogAmount = clamp(0.05 * (fogDistance - fu.chunkBlockDist), 0., 1.);
+        if(fogDistance > gu.chunkBlockDist) {
+            fogAmount = clamp(0.05 * (fogDistance - gu.chunkBlockDist), 0., 1.);
         }
 
         // Apply fog
-        outColor = mix(outColor, fu.fogColor, fogAmount);
+        outColor = mix(outColor, gu.fogColor, fogAmount);
 
         outColor = vec4<f32>(
-            (outColor.r * (1. - fu.fogAddColor.a) + fu.fogAddColor.r * fu.fogAddColor.a),
-            (outColor.g * (1. - fu.fogAddColor.a) + fu.fogAddColor.g * fu.fogAddColor.a),
-            (outColor.b * (1. - fu.fogAddColor.a) + fu.fogAddColor.b * fu.fogAddColor.a),
+            (outColor.r * (1. - gu.fogAddColor.a) + gu.fogAddColor.r * gu.fogAddColor.a),
+            (outColor.g * (1. - gu.fogAddColor.a) + gu.fogAddColor.g * gu.fogAddColor.a),
+            (outColor.b * (1. - gu.fogAddColor.a) + gu.fogAddColor.b * gu.fogAddColor.a),
             outColor.a
         );
 

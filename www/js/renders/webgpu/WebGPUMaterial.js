@@ -28,12 +28,16 @@ export class WebGPUMaterial extends BaseMaterial {
         this._pipeline = null;
 
         /**
+         * @type {GPUBindGroupLayout}
+         */
+        this._layouts = [];
+
+        /**
          *
          * @type {GPUBuffer}
          */
-        this.vertexUbo = null;
+        this.globalUbo = null;
         this.positionUbo = null;
-        this.fragmentUbo = null;
 
         this.lastState = {
             shader: null,
@@ -96,10 +100,14 @@ export class WebGPUMaterial extends BaseMaterial {
         const { style } = mat.texture;
         if (style) {
             mat.textureData = new Float32Array(this.shader.textureData);
-            mat.textureData[0] = style.pixelSize;
-            mat.textureData[1] = style.blockSize;
-            mat.textureData[2] = style.mipmap;
+            mat.textureData.set([
+                style.pixelSize,
+                style.blockSize,
+                style.mipmap
+            ])
         }
+
+        mat._layouts = this._layouts;
         return mat;
     }
 
@@ -130,8 +138,7 @@ export class WebGPUMaterial extends BaseMaterial {
         } = this;
 
         const {
-            fragmentData,
-            vertexData,
+            globalData,
         } = shader;
 
         const base = shader.description;
@@ -156,15 +163,13 @@ export class WebGPUMaterial extends BaseMaterial {
             }
         });
 
-        this.vertexUbo = device.createBuffer({
-            size: vertexData.byteLength,
+        this.globalUbo = device.createBuffer({
+            size: globalData.byteLength,
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
         });
 
-        this.fragmentUbo = device.createBuffer({
-            size: fragmentData.byteLength,
-            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM
-        });
+        this._layouts[0] = this._pipeline.getBindGroupLayout(0);
+        this._layouts[1] = this._pipeline.getBindGroupLayout(1);
     }
 
     bind(render, supressExtend) {
@@ -191,8 +196,7 @@ export class WebGPUMaterial extends BaseMaterial {
         } = this;
 
         const  {
-            vertexData,
-            fragmentData,
+            globalData,
             textureData
         } = shader;
 
@@ -208,11 +212,7 @@ export class WebGPUMaterial extends BaseMaterial {
 
         // sync uniforms
         device.queue.writeBuffer(
-            this.vertexUbo, 0, vertexData.buffer, vertexData.byteOffset, vertexData.byteLength
-        );
-
-        device.queue.writeBuffer(
-            this.fragmentUbo, 0, fragmentData.buffer, fragmentData.byteOffset, fragmentData.byteLength
+            this.globalUbo, 0, globalData.buffer, globalData.byteOffset, globalData.byteLength
         );
 
         const l = this.lastState;
@@ -233,22 +233,15 @@ export class WebGPUMaterial extends BaseMaterial {
         this._group = device.createBindGroup({
             // we should restricted know group and layout
             // will think that always 0
-            layout: this.pipeline.getBindGroupLayout(0),
+            layout: this._layouts[0],
             entries: [
                 {
                     binding: 0,
                     resource: {
-                        buffer: this.vertexUbo,
-                        size: vertexData.byteLength
+                        buffer: this.globalUbo,
+                        size: globalData.byteLength
                     }
-                },
-                {
-                    binding: 1,
-                    resource: {
-                        buffer: this.fragmentUbo,
-                        size: fragmentData.byteLength
-                    }
-                },
+                }
             ]
         });
     }
@@ -290,11 +283,15 @@ export class WebGPUMaterial extends BaseMaterial {
         );
 
         if (!this._skinGroup || texture !== this.lastState.texture
-            || lightTex !== this.lastState.lightTex) {
+            || lightTex !== this.lastState.lightTex
+        ) {
             texture.bind();
             lightTex.bind();
+
+            const layout = this._layouts[1] || this.parent._layouts[1];
+
             this._skinGroup = device.createBindGroup({
-                layout: this.pipeline.getBindGroupLayout(1),
+                layout: layout,
                 entries: [
                     {
                         binding: 0,
