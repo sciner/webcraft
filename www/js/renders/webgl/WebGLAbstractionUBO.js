@@ -1,13 +1,19 @@
 import WebGLRenderer from "./index.js";
 import { BaseUBO } from "../UBO.js";
 import { WebGLBuffer } from "./WebGLBuffer.js";
+import { BaseDataModelHandler } from "../BaseDataModel.js";
 
-export class WebGLAbstractionUBO {
+/**
+ * WebGL UBO implementation
+ */
+export class WebGLUBO extends BaseDataModelHandler {
     /**
      * 
      * @param {WebGLRenderer} context 
      */
     constructor (context, {bindingIndex = 0} = {}) {
+        super();
+
         this.context = context;
 
         /**
@@ -46,8 +52,6 @@ export class WebGLAbstractionUBO {
             return;
         }
 
-        this._model = model;
-
         this._size = model.size;
 
         this.alligment = this.context.gl.getParameter(this.context.gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT);
@@ -64,14 +68,13 @@ export class WebGLAbstractionUBO {
 
         this._valid = true;
 
+        this.attach(model);
         this.update();
 
         const gl = this.context.gl;
 
         // bind UBO
         gl.bindBufferBase(gl.UNIFORM_BUFFER, this.bindingIndex, this._buffer.buffer);
-
-        this._model.addEventListener('invalidate', this.onInvalidate);
     }
 
     update() {
@@ -112,15 +115,20 @@ export class WebGLAbstractionUBO {
         }
 
         this.updateId = state.updateId;
+
+        super.update();
     }
 
     onInvalidate () {
+        super.onInvalidate();
         // invaliadate emit update, we can track it and update a soon as possible
         // need use lazy update, becuase every update will emit re-uppload
         this._updateInternal(this._model.lastDiff);
     }
 
     dispose() {
+        this.attach(null);
+
         if (this._buffer) {
             this._buffer.destroy();
             this._buffer = null;

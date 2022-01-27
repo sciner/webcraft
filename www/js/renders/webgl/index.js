@@ -8,7 +8,7 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
-import { WebGLAbstractionUBO } from "./WebGLAbstractionUBO.js";
+import { WebGLUBO } from "./WebGLAbstractionUBO.js";
 
 /**
  * Shader interface
@@ -276,7 +276,7 @@ export default class WebGLRenderer extends BaseRenderer {
             test: true,
         }
 
-        this.globalUbo = new WebGLAbstractionUBO(this, {bindingIndex: 0});
+        this.globalUbo = new WebGLUBO(this, {bindingIndex: 0});
     }
 
     async init(args) {
