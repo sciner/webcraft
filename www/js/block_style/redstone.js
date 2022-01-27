@@ -67,15 +67,13 @@ export default class style {
 
     // computeAABB
     static computeAABB(block) {
-        // let cardinal_direction = block.getCardinalDirection();
         let hw = 1 / 2;
         let sign_height = .05;
         aabb.set(
             .5-hw, 0, .5-hw,
             .5+hw, sign_height, .5+hw
         );
-        // aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
-        return aabb;
+        return [aabb];
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
@@ -106,12 +104,13 @@ export default class style {
         // Texture color multiplier
         // @todo from extra_data.signal
         const lm                = new Color(20.5 / tx_cnt, 1 / 16 / tx_cnt, 0, 0);
+        const posworld          = block.posworld;
 
         const upper_neighbours_connect = {
-            south: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(x + chunk.coord.x, y + chunk.coord.y+1, z + chunk.coord.z-1)), // z--
-            north: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(x + chunk.coord.x, y + chunk.coord.y+1, z + chunk.coord.z+1)), // z++
-            west: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(x + chunk.coord.x-1, y + chunk.coord.y+1, z + chunk.coord.z)), // x--
-            east: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(x + chunk.coord.x+1, y + chunk.coord.y+1, z + chunk.coord.z)) // x++
+            south: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z - 1)), // z--
+            north: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x, posworld.y + 1, posworld.z + 1)), // z++
+            west: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x - 1, posworld.y + 1, posworld.z)), // x--
+            east: BLOCK.canRedstoneDustConnect(chunk.chunkManager.getBlock(posworld.x + 1, posworld.y + 1, posworld.z)) // x++
         };
 
         const neighbours_connect = {

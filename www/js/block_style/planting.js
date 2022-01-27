@@ -42,7 +42,7 @@ export default class style {
             .5+hw, sign_height, .5+hw
         );
         aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
-        return aabb;
+        return [aabb];
     }
 
     // getAnimations...

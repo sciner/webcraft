@@ -907,7 +907,7 @@ export class BLOCK {
                     const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
-                            styleVariant.aabb(b).toArray()
+                            ...styleVariant.aabb(b).map(aabb => aabb.toArray())
                         );
                     } else {
                         let shift_y = 0;
@@ -939,7 +939,7 @@ export class BLOCK {
                 const styleVariant = BLOCK.styles.get(material.style);
                 if (styleVariant && styleVariant.aabb) {
                     shapes.push(
-                        styleVariant.aabb(b).toArray()
+                        ...styleVariant.aabb(b).map(aabb => aabb.toArray())
                     );
                 } else {
                     switch(material.style) {
