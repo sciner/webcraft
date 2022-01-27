@@ -267,7 +267,6 @@ function dropBlock(player, block, resp) {
             items.push({id: block.id, count: 1});
         }
         for(let item of items) {
-            console.log(item);
             resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
         }
     }
@@ -756,7 +755,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
-                    console.log(matBlock.name, extra_data);
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     if(matBlock.sound) {
                         resp.play_sound = {tag: matBlock.sound, action: 'place'};
