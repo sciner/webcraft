@@ -1,7 +1,7 @@
 import { BaseShader, BaseTexture, GlobalUniformGroup } from "../BaseRenderer.js";
 import WebGLRenderer, { WebGLTexture } from "./index.js";
 
-const p = WebGLRenderingContext.prototype;
+const p = WebGL2RenderingContext.prototype;
 
 /**
  * @typedef UnformLoaderInfo
@@ -49,7 +49,10 @@ const GL_TYPE_FUNC = {
         type : 'int',
         func : 'uniform1i' 
     },
-
+    [p.SAMPLER_3D] : {
+        type : 'int',
+        func : 'uniform1i' 
+    },
     [p.FLOAT_VEC2] : {
         type: 'vec2',
         func: 'uniform2fv'
@@ -118,16 +121,16 @@ export class UniformBinding {
      * @param {} value 
      * @returns 
      */
-    fill(value) {
-        if (value == void 0) {
+    fill(_value) {
+        if (_value == void 0) {
             return;
         }
 
-        if (typeof value === 'object' && 'value' in value) {
+        if (typeof _value === 'object' && 'value' in _value) {
             const {
                 value = this.value,
                 isolate = this.isolate,
-            } = value;
+            } = _value;
 
             this.value = value;
             this.isolate = isolate;
@@ -135,7 +138,7 @@ export class UniformBinding {
             return;
         }
 
-        this.value = value;
+        this.value = _value;
     }
 
     upload (force = false) {
@@ -274,6 +277,7 @@ export class WebGLUniversalShader extends BaseShader {
 
         if (guIndex) {
             const guBind = this.context.globalUbo.bindingIndex;
+            this.globalBindingPoint = guIndex;
             gl.uniformBlockBinding(guBind, guIndex);
         }
 
@@ -333,6 +337,11 @@ export class WebGLUniversalShader extends BaseShader {
     }
 
     _applyUniforms() {
+        // skip upload not own shader
+        if (this.context._shader !== this) {
+            return;
+        }
+
         for(let u of this._uniformsFlat) {
             u.upload();
         } 

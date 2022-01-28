@@ -9,6 +9,7 @@ import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
 import { WebGLUBO } from "./WebGLUBO.js";
+import { WebGLTerrainShaderNew } from "./WebGLTerrainShaderNew.js";
 
 /**
  * Shader interface
@@ -376,7 +377,7 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
     createShader(options) {
-        return new WebGLTerrainShader(this, options);
+        return new WebGLTerrainShaderNew(this, options);
     }
 
     async createResourcePackShader(options) {

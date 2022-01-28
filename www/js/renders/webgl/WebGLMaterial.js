@@ -1,11 +1,13 @@
 import {BaseMaterial, BLEND_MODES} from "../BaseRenderer.js";
 import {TerrainTextureUniforms} from "../common.js";
+import { WebGLTerrainShaderNew } from "./WebGLTerrainShaderNew.js";
 
 export class WebGLMaterial extends BaseMaterial {
     constructor(context, options) {
         super(context, options);
 
-        this._dirty = true;;
+        this._dirty = true;
+        this._newShader = this.shader instanceof WebGLTerrainShaderNew;
     }
 
     changeLighTex(tex) {
@@ -20,6 +22,8 @@ export class WebGLMaterial extends BaseMaterial {
     bind() {
         const { gl } = this.context;
         const { shader } = this;
+
+        let upload = false;
 
         this.shader.bind();
 
@@ -37,11 +41,18 @@ export class WebGLMaterial extends BaseMaterial {
         if (!this.cullFace) {
             gl.disable(gl.CULL_FACE);
         }
-        if (this.opaque) {
-            gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
+        
+        if (this._newShader) {
+            shader.uniforms['u_opaqueThreshold'].value = this.opaque ?  0.5 : 0;
+            upload = true;
         } else {
-            gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
+            if (this.opaque) {
+                gl.uniform1f(this.shader.u_opaqueThreshold, 0.5);
+            } else {
+                gl.uniform1f(this.shader.u_opaqueThreshold, 0.0);
+            }
         }
+
         if (this.ignoreDepth) {
             gl.disable(gl.DEPTH_TEST);
         }
@@ -55,9 +66,18 @@ export class WebGLMaterial extends BaseMaterial {
         {
             const style = tex.style || TerrainTextureUniforms.default;
 
-            gl.uniform1f(shader.u_blockSize, style.blockSize);
-            gl.uniform1f(shader.u_pixelSize, style.pixelSize);
-            gl.uniform1f(shader.u_mipmap, style.mipmap);
+            if (this._newShader) {
+                upload = true;
+
+                shader.uniforms['u_blockSize'].value = style.blockSize;
+                shader.uniforms['u_pixelSize'].value = style.pixelSize;
+                shader.uniforms['u_mipmap'].value = style.mipmap;
+                
+            } else {
+                gl.uniform1f(shader.u_blockSize, style.blockSize);
+                gl.uniform1f(shader.u_pixelSize, style.pixelSize);
+                gl.uniform1f(shader.u_mipmap, style.mipmap);
+            }
         }
         if (WebGLMaterial.lightState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
@@ -76,6 +96,10 @@ export class WebGLMaterial extends BaseMaterial {
         }
 
         this._dirty = false;
+
+        if (this._newShader && upload) {
+            shader._applyUniforms();
+        }
     }
 
     unbind() {
@@ -101,23 +125,6 @@ export class WebGLMaterial extends BaseMaterial {
         // nothing
         return this.context.createMaterial({texture: this.texture, lightTex, shader: this.shader,
             cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
-    }
-
-    updatePos(addPos, modelMatrix = null) {
-        const { gl } = this.context;
-        const { camPos } = this.shader;
-
-        if (addPos) {
-            gl.uniform3f(this.u_add_pos, pos.x - camPos.x, pos.y - camPos.y, pos.z - camPos.z);
-        } else {
-            gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
-        }
-
-        gl.uniform3f(this.u_add_pos, -camPos.x,  -camPos.y, -camPos.z);
-
-        if (modelMatrix) {
-            gl.uniformMatrix4fv(this.uModelMatrix, false, modelMatrix);
-        }
     }
 
     static texState = null;
