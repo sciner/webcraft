@@ -696,6 +696,13 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         return resp;
                     }
                 }
+                // Можно поставить только на полный (непрозрачный блок, снизу)
+                if(matBlock.tags.indexOf('set_only_fullface') >= 0) {
+                    let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
+                    if(!underBlock || underBlock.material.transparent) {
+                        return resp;
+                    }
+                }
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
                         pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});

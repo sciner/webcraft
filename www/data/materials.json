@@ -33,6 +33,7 @@
         "water": {"mining": {"time": -1, "instruments": []}},
         "wood": {"mining": {"time": 4, "instruments": ["axe"], "instrument_boost": 2}},
         "wool": {"mining": {"time": 2, "instruments": ["shears"]}},
-        "food": {"mining": {"time": -1, "instruments": []}}
+        "food": {"mining": {"time": -1, "instruments": []}},
+        "dust": {"mining": {"time": 0, "instruments": []}}
     }
 }

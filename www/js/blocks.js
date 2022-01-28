@@ -938,8 +938,12 @@ export class BLOCK {
             if(!for_physic) {
                 const styleVariant = BLOCK.styles.get(material.style);
                 if (styleVariant && styleVariant.aabb) {
+                    let aabbs = styleVariant.aabb(b);
+                    if(!Array.isArray(aabbs)) {
+                        aabbs = [aabbs];
+                    }
                     shapes.push(
-                        ...styleVariant.aabb(b).map(aabb => aabb.toArray())
+                        ...aabbs.map(aabb => aabb.toArray())
                     );
                 } else {
                     switch(material.style) {

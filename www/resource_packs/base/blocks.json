@@ -5089,9 +5089,10 @@
             "signal": 0
         },
         "material": {
-            "id": "stone"
+            "id": "dust"
         },
         "tags": [
+            "set_only_fullface",
             "no_drop_ao"
         ]
     }
