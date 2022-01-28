@@ -342,6 +342,7 @@ export class StructField extends BaseDataModel {
         this._value = value;
 
         if (this.arraySize === 0) {
+            this.invalidate();
             return FIELD_MAPPERS[this.type](this.view, 0, value);
         }
 
