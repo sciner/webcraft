@@ -250,6 +250,7 @@ export class WebGLTexture extends BaseTexture {
 }
 
 export default class WebGLRenderer extends BaseRenderer {
+    static kind = 'webgl';
 
     constructor(view, options) {
         super(view, options);
@@ -614,17 +615,3 @@ export default class WebGLRenderer extends BaseRenderer {
     }
 
 }
-
-/**
- *
- * @param {HTMLCanvasElement} view
- */
-WebGLRenderer.test = function(view, options = {}) {
-    /**
-     * @type {*}
-     */
-    const context = view.getContext('webgl2', options);
-    return !!context;
-}
-
-WebGLRenderer.kind = 'webgl';

@@ -16,6 +16,7 @@ import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { World } from "./world.js";
 import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js";
+import BaseRenderer from "./renders/BaseRenderer.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -55,13 +56,20 @@ export class Renderer {
         this.frame              = 0;
         this.env                = new Environment();
 
-        this.renderBackend = rendererProvider.getRenderer(
+        /**
+         * Should be a BaseRenderer subclass, but on this line is loader. Replace it after init!
+         * @type {BaseRenderer}
+         */
+        this.renderBackend = rendererProvider.getRendererLoader(
             this.canvas,
-            BACKEND, {
+            BACKEND, 
+            {
                 antialias: false,
                 depth: true,
                 premultipliedAlpha: false
-            });
+            }
+        );
+
         this.meshes = new MeshManager();
 
         this.camera = new Camera({
@@ -127,13 +135,15 @@ export class Renderer {
     // todo
     // GO TO PROMISE
     async _init(world, settings, callback) {
-        this.setWorld(world);
-
-        const {renderBackend} = this;
-
-        await renderBackend.init({
+        // realy was a RenderLoader
+        // after init it will be a BaseRenderer
+        const renderBackend = await this.renderBackend.init({
             blocks: Resources.shaderBlocks
         });
+        
+        this.renderBackend = renderBackend;
+        
+        this.setWorld(world);
 
         this.env.init(this);
 

@@ -1,43 +1,80 @@
-import WebGLRenderer from './webgl/index.js';
-import WebGPURenderer from './webgpu/index.js';
-
-const RENDERS =  [
-    WebGPURenderer,
-    WebGLRenderer
+// out of render module
+// needed for lazy load
+const RENDERS = [
+    {
+        kind: 'webgpu',
+        path: './webgpu/index.js',
+        test: (view, options) => {
+            const context = navigator.gpu && view.getContext('webgpu');
+            return !!context;
+        }
+    },
+    {
+        kind: 'webgl',
+        path: './webgl/index.js',
+        test: (view, options) => {
+            const context = view.getContext('webgl2', options);
+            return !!context;       }
+    }
 ];
+
+/**
+ * Loader class, provide lazy render loading but inited sync
+ * We can't use async instansing because should know rendere type on constructor phase
+ */
+class RenderLoader {
+    constructor(info, view, options = {}) {
+        this.kind = info.kind;
+        this.path = info.path;
+
+        this.renderBackend = null;
+
+        // spawn promise and load module
+        this._loadPromise = import(this.path)
+            .then(({default: Ctor}) => {
+                return this.renderBackend = new Ctor(view, options);
+            });
+    }
+
+    async init (...args) {
+        const backend = await this._loadPromise;
+
+        backend.init(...args);
+
+        return backend;
+    }
+}
 
 export default {
     /**
-     * Query evailable renderer
+     * Query specific render loader, on this stage real rendere not constructed
      * @param {HTMLCanvasElement} view 
      * @param {'webgl' | 'webgpu' | 'auto'} type
      * @param {*} options 
+     * @returns {RenderLoader}
      */
-    getRenderer(view, type = 'webgl', options = {}) {
-
+    getRendererLoader(view, type = 'webgl', options = {}) {
         if (type === 'auto') {
-            for(let Ctor of RENDERS) {
-                if(Ctor.test(view, options)) {
-                    console.debug('[Renderer] Select renderer:', Ctor.kind);
-                    return this.currentRenderer = new Ctor(view, options);
+            for(let renderInfo of RENDERS) {
+                if(renderInfo.test(view, options)) {
+                    console.debug('[Renderer] Select renderer:', renderInfo.kind);
+                    return new RenderLoader(renderInfo, view, options);
                 }
             }
 
             throw new Error('Your device not support any renders:' + RENDERS.map(e => e.kind).join(','));
         }
 
-        const Ctor = RENDERS.find(e => e.kind === type);
+        const info = RENDERS.find(e => e.kind === type);
 
-        if (!Ctor) {
+        if (!info) {
             throw new Error('Unknown renderer type:' + type);
         }
 
-        if (!Ctor.test(view, options)) {
-            throw new Error('Your device not support render:' + Ctor.kind);
+        if (!info.test(view, options)) {
+            throw new Error('Your device not support render:' + info.kind);
         }
 
-        return this.currentRenderer = new Ctor(view, options);
-    },
-
-    currentRenderer: null
+        return new RenderLoader(info, view, options);
+    }
 }

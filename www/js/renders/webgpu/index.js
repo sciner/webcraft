@@ -13,6 +13,8 @@ import { WebGPURenderTarget } from "./WebGPURenderTarget.js";
 import { WebGPUUBO } from "./WebGPUUBO.js";
 
 export default class WebGPURenderer extends BaseRenderer{
+    static kind = 'webgpu';
+
     constructor(view, options) {
         super(view, options);
         /**
@@ -286,14 +288,3 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
 }
-
-/**
- *
- * @param {HTMLCanvasElement} view
- */
-WebGPURenderer.test = function(view, options = {}) {
-    const context = navigator.gpu && view.getContext('webgpu');
-    return !!context;
-}
-
-WebGPURenderer.kind = 'webgpu';
