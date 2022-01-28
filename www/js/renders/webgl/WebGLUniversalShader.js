@@ -26,46 +26,51 @@ const p = WebGL2RenderingContext.prototype;
 
 
  const U_LOADER = {
-    'uniformMatrix4fv': (gl, ptr, value) => gl.uniformMatrix4fv(ptr, false, value)
+    'uniformMatrix4fv': (gl, ptr, value) => gl.uniformMatrix4fv(ptr, false, value),
+    'uniform1i'       : (gl, ptr, value) => gl.uniform1i(ptr, value),
+    'uniform1f'       : (gl, ptr, value) => gl.uniform1f(ptr, value),
+    'uniform2fv'      : (gl, ptr, value) => gl.uniform2fv(ptr, value),
+    'uniform3fv'      : (gl, ptr, value) => gl.uniform3fv(ptr, 'x' in value ? [value.x, value.y, value.z] : value),
+    'uniform4fv'      : (gl, ptr, value) => gl.uniform3fv(ptr, value),
 }
 
 const GL_TYPE_FUNC = {
     [p.BOOL] : {
         type : 'int',
-        func : 'uniform1i'
+        func : U_LOADER['uniform1i'],
     },
 
     [p.FLOAT] : {
         type : 'float',
-        func : 'uniform1f' 
+        func : U_LOADER['uniform1f'], 
     },
 
     [p.SAMPLER_CUBE]: {
         type : 'int',
-        func : 'uniform1i' 
+        func : U_LOADER['uniform1i'],
     },
 
     [p.SAMPLER_2D] : {
         type : 'int',
-        func : 'uniform1i' 
+        func : U_LOADER['uniform1i'],
     },
     [p.SAMPLER_3D] : {
         type : 'int',
-        func : 'uniform1i' 
+        func : U_LOADER['uniform1i'],
     },
     [p.FLOAT_VEC2] : {
         type: 'vec2',
-        func: 'uniform2fv'
+        func: U_LOADER['uniform2fv'],
     },
 
     [p.FLOAT_VEC3] : {
         type: 'vec3',
-        func: 'uniform3fv'
+        func: U_LOADER['uniform3fv']
     },
 
     [p.FLOAT_VEC4] : {
         type: 'vec4',
-        func: 'uniform4fv'
+        func: U_LOADER['uniform4fv']
     },
 
     [p.FLOAT_MAT4] : {
@@ -144,27 +149,14 @@ export class UniformBinding {
     upload (force = false) {
         let  {
             name,
-            trimmedName,
             _value: value,
             shader,
-            isolate
         } = this;
 
-        const globalUniforms = shader.context.globalUniforms;
         const gl = shader.context.gl;
         const isShaderRebound = shader.boundID === this._shaderBoundID;
 
         let needLoad = force || isShaderRebound || this._isDirty;
-
-        // try upload from GU
-        // redefine base value
-        if (shader.useGlobalUniforms && !isolate) {
-            if (trimmedName in globalUniforms) {
-                value = globalUniforms[trimmedName];
-            } else if (name in globalUniforms) {
-                value = globalUniforms[name];
-            }
-        }
 
         if (typeof value !== 'object') {
             // check that last value is same
@@ -187,26 +179,14 @@ export class UniformBinding {
             return;
         }
 
-        if (typeof value === 'undefined') {
+        if (value == null) {
             console.log('Uniform value missing for ', name, this.shader.constructor.name);
             return;
         }
         
-        if (typeof this.func === 'function') {
-            this.func(gl, this.location, value);
-            return;
-        }
+        this.func(gl, this.location, value);
 
-        if (!this.func || !(this.func in gl)) {
-            console.log('Uniform load method missing for ', name, this.shader.constructor.name);
-            return;
-        }
-
-        if (this.type === 'vec3' && this.value && ('x' in value)) {
-            gl[this.func](this.location, [value.x, value.y, value.z]);
-        } else {
-            gl[this.func](this.location, value);
-        }
+        this._isDirty = false;
     }
 
     valueOf() {

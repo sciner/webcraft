@@ -97,8 +97,10 @@ export class WebGLMaterial extends BaseMaterial {
 
         this._dirty = false;
 
+        // we not should upload shader in this case
+        // renderer do this in updatePos
         if (this._newShader && upload) {
-            shader._applyUniforms();
+            //shader._applyUniforms();
         }
     }
 
