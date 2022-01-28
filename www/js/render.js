@@ -272,25 +272,34 @@ export class Renderer {
             target
         });
 
-        regular.forEach((block, i) => {
-            const pos = block.block_material.inventory_icon_id;
+        regular.forEach((drop, i) => {
+            const pos = drop.block_material.inventory_icon_id;
             const x = -GRID_X + 1 + (pos % GRID_X) * 2;
             const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
-            const multipart = block.multipart;
+            const multipart = drop.mesh_group.multipart;
 
-            // use linear for inventory
-            block.material.texture.minFilter = 'linear';
-            block.material.texture.magFilter = 'linear';
-            
-            this.renderBackend.drawMesh(
-                block.buffer,
-                block.material,
-                new Vector(x, y, 0),
-                multipart ? matrix_empty : matrix
-            );
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
 
-            block.material.texture.minFilter = 'nearest';
-            block.material.texture.magFilter = 'nearest';
+                if(!mesh.material) {
+                    console.log(mesh)
+                    debugger;
+                }
+
+                // use linear for inventory
+                mesh.material.texture.minFilter = 'linear';
+                mesh.material.texture.magFilter = 'linear';
+
+                this.renderBackend.drawMesh(
+                    mesh.buffer,
+                    mesh.material,
+                    new Vector(x, y, 0),
+                    multipart ? matrix_empty : matrix
+                );
+
+                mesh.material.texture.minFilter = 'nearest';
+                mesh.material.texture.magFilter = 'nearest';
+
+            });
 
         });
 
