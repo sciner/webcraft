@@ -2672,6 +2672,7 @@
         "material": {
             "id": "stone"
         },
+        "redstone": {}, 
         "texture": {
             "up": [
                 9,
