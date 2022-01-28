@@ -162,7 +162,7 @@ export class Chunk {
                 if(block_material) {
                     light_power_number = block_material.light_power_number;
                 } else {
-                    console.error('Block not found', block_id);
+                    console.error(`Block not found ${block_id}`);
                 }
                 prev_block_id = block_id;
             }

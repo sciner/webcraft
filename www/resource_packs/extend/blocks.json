@@ -9,7 +9,6 @@
         "texture": {
             "id": "lodestone",
             "side": [0, 0]
-        },
-        "selflit": false
+        }
     }
 ]

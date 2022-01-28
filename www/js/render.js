@@ -276,9 +276,9 @@ export class Renderer {
             const pos = block.block_material.inventory_icon_id;
             const x = -GRID_X + 1 + (pos % GRID_X) * 2;
             const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
-            const multipart = block.parts > 1;
+            const multipart = block.multipart;
 
-            // use linera for inventory
+            // use linear for inventory
             block.material.texture.minFilter = 'linear';
             block.material.texture.magFilter = 'linear';
             
@@ -329,7 +329,7 @@ export class Renderer {
                 }
                 const tex = resource_pack.textures.get(texture_id);
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
+                const c = BLOCK.calcTexture(material.texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);

@@ -638,7 +638,7 @@ export class BLOCK {
     };
 
     static canRedstoneDustConnect(block) {
-        return block.id > 0 && ('redstone' in block.properties);
+        return block.id > 0 && (block.properties && 'redstone' in block.properties);
     }
 
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {

@@ -1,29 +1,27 @@
-import {Color, QUAD_FLAGS, Vector} from '../helpers.js';
+import {Color, QUAD_FLAGS, Vector, VectorCollector} from '../helpers.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {BLOCK} from "../blocks.js";
 import { NetworkPhysicObject } from '../network_physic_object.js';
+import { AABB } from '../core/AABB.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
 
+let air_block = null;
+
+let neighbours_map = [
+    {side: 'UP', offset: new Vector(0, 1, 0)},
+    {side: 'DOWN', offset: new Vector(0, -1, 0)},
+    {side: 'NORTH', offset: new Vector(0, 0, 1)},
+    {side: 'SOUTH', offset: new Vector(0, 0, -1)},
+    {side: 'EAST', offset: new Vector(1, 0, 0)},
+    {side: 'WEST', offset: new Vector(-1, 0, 0)}
+];
+
 class FakeTBlock {
 
-    constructor(id) {
+    constructor(id, next_stop) {
         this.id = id;
-        this.offset = null;
-        /**
-         * @type {FakeTBlock}
-         */
-        this.next = null;
-
-        if (this.material.next_part) {
-            const {
-                id, offset_pos
-            } = this.material.next_part;
-
-            this.next = new FakeTBlock(id);
-            this.next.offset = new Vector(offset_pos);
-        }
     }
 
     get material() {
@@ -83,16 +81,8 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
         };
 
-        if(!Particles_Block_Drop.neighbours) {
-            let air = new FakeTBlock(BLOCK.AIR.id);
-            Particles_Block_Drop.neighbours = {
-                UP:     air,
-                DOWN:   air,
-                NORTH:  air,
-                SOUTH:  air,
-                WEST:   air,
-                EAST:   air
-            };
+        if(!air_block) {
+            air_block = new FakeTBlock(BLOCK.AIR.id);
         }
 
         this.scale          = new Vector(.2, .2, .2);
@@ -103,60 +93,122 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.vertices       = [];
         this.block          = new FakeTBlock(block.id);
         this.block_material = this.block.material;
-        this.parts          = 0;
+        this.multipart      = false;
 
-        let b               = this.block;
-        
-        const isDoor        = this.block_material.tags.indexOf('door') > -1;
-        const resource_pack = b.material.resource_pack
-        const draw_style    = b.material.inventory_style
-            ? b.material.inventory_style 
-            : b.material.style;
+        const resource_pack = this.block.material.resource_pack
+        const draw_style    = this.block.material.inventory_style
+            ? this.block.material.inventory_style 
+            : this.block.material.style;
 
-        let yBaseOffset = 1;
-        // calc how many parts is exist
-        for(let ib = b; !!ib; ib = ib.next) {
-            this.parts ++;
-            if(ib.offset)
-                yBaseOffset += ib.offset.y;
-        }
-
-        this.material = resource_pack.getMaterial(b.material.material_key);
+        this.material = resource_pack.getMaterial(this.block.material.material_key);
         this.buffer = Particles_Block_Drop.buffer_cache.get(block.id);
 
-        if(!this.buffer) {
-            let x = -.5;
-            let y = - yBaseOffset / 2;
-            let z = isDoor ? -1 : -.5;
+        if(this.buffer) {
+            this.multipart = this.buffer.multipart;
+        } else {
+
+            let x = 0;
+            let y = 0;
+            let z = 0;
 
             if (draw_style ==='extruder') {
-                x = y = z = 0;
-            } 
+                x = y = z = 0.5;
+            }
 
-            while(b) {
-                if(b.offset) {
-                    x += b.offset.x;
-                    y += b.offset.y;
-                    z += b.offset.z;
+            // Blocks collection (like a size free chunk)
+            let vc = new VectorCollector();
+
+            // 1. First main block
+            vc.set(new Vector(0, 0, 0), {
+                block: this.block,
+                neighbours: null
+            });
+
+            // 2. Add couples block 
+            if(this.block.material.style == 'fence' || this.block.material.style == 'wall') {
+                vc.set(new Vector(1, 0, 0), {
+                    block: new FakeTBlock(block.id),
+                    neighbours: null
+                });
+            }
+
+            // 3. Add all block parts
+            let pos = new Vector(0, 0, 0);
+            let next_part = this.block.material.next_part
+            while(next_part) {
+                const next = new FakeTBlock(next_part.id);
+                pos = pos.add(next_part.offset_pos);
+                vc.set(pos, {
+                    block: next,
+                    neighbours: null
+                });
+                next_part = next.material.next_part;
+                this.multipart = true;
+            }
+
+            // 4. Find all blocks neighbours
+            for(let pos of vc.keys()) {
+                const item = vc.get(pos);
+                item.neighbours = {
+                    UP:     air_block,
+                    DOWN:   air_block,
+                    NORTH:  air_block,
+                    SOUTH:  air_block,
+                    WEST:   air_block,
+                    EAST:   air_block
+                };
+                for(let n of neighbours_map) {
+                    const nb = vc.get(pos.add(n.offset));
+                    if(nb) {
+                        item.neighbours[n.side] = nb.block;
+                    }
                 }
+            }
 
+            let aabb = new AABB();
+            let points = 0;
+            // 5. Calculate aabb
+            for(let k of vc.keys()) {
+                const item = vc.get(k);
+                if(points++ == 0) {
+                    aabb.set(
+                        x + k.x + .5, y + k.y + .5, z + k.z + .5,
+                        x + k.x + .5, y + k.y + .5, z + k.z + .5
+                    );
+                } else {
+                    aabb.addPoint(x + k.x + .5, y + k.y + .5, z + k.z + .5);
+                }
+            }
+            aabb.pad(.5);
+
+            if(aabb.y_min < 0) {
+                y -= aabb.y_min;
+            }
+
+            x -= aabb.width / 2;
+            y -= aabb.height / 2;
+            z -= aabb.depth / 2;
+
+            // 6. Draw all blocks
+            for(let k of vc.keys()) {
+                const item = vc.get(k);
                 resource_pack.pushVertices(
                     this.vertices,
-                    b,
+                    item.block,
                     FakeWorld,
-                    x,
-                    y,
-                    z,
-                    Particles_Block_Drop.neighbours,
+                    x + k.x,
+                    y + k.y,
+                    z + k.z,
+                    item.neighbours,
                     biome,
                     draw_style
                 );
-
-                b = b.next;
             }
 
             this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
             this.buffer.changeFlags(QUAD_FLAGS.NO_AO, 'or');
+            this.buffer.aabb = aabb;
+            this.buffer.multipart = this.multipart;
 
             Particles_Block_Drop.buffer_cache.set(block.id, this.buffer);
         }
@@ -190,7 +242,13 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             return;
         }
 
-        this.posFact.set(this.pos.x, this.pos.y + (this.parts / 2) * this.scale.x, this.pos.z);
+        // console.log(this.buffer.aabb.width, this.buffer.aabb.height, this.buffer.aabb.depth)
+        // this.posFact.set(this.pos.x, this.pos.y + (this.parts / 2) * this.scale.x, this.pos.z);
+        this.posFact.set(
+            this.pos.x,
+            this.pos.y,
+            this.pos.z,
+        );
         this.addY = (performance.now() - this.pn) / 10;
         this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
 
