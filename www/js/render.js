@@ -204,11 +204,14 @@ export class Renderer {
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
             width: 2048,
-            height: 2048,
+            height: 2048 + 1024,
             depth: true
         });
+
+        const ASPECT = target.height / target.width;
         const ZERO = new Vector();
-        const GRID = 16;
+        const GRID_X = 16;
+        const GRID_Y = GRID_X * ASPECT;
         const all_blocks = BLOCK.getAll();
 
         let inventory_icon_id = 0;
@@ -245,8 +248,8 @@ export class Renderer {
             min: 0.01,
             fov: 60,
             renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
-            width: GRID * 2, // block size is 2
-            height: GRID * 2,
+            width: GRID_X * 2, // block size is 2
+            height: GRID_Y * 2,
         });
         //
         const gu = this.globalUniforms;
@@ -280,8 +283,8 @@ export class Renderer {
 
         regular.forEach((block, i) => {
             const pos = block.block_material.inventory_icon_id;
-            const x = -GRID + 1 + (pos % GRID) * 2;
-            const y = GRID - 1 - ((pos / GRID) | 0) * 2;
+            const x = -GRID_X + 1 + (pos % GRID_X) * 2;
+            const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
             const multipart = block.parts > 1;
 
             // use linera for inventory
@@ -311,8 +314,8 @@ export class Renderer {
 
             const tmpCanvas = document.createElement('canvas');
             const tmpContext = tmpCanvas.getContext('2d');
-            tmpCanvas.width = target.width / GRID;
-            tmpCanvas.height = target.height / GRID;
+            tmpCanvas.width = target.width / GRID_X;
+            tmpCanvas.height = target.height / GRID_Y;
 
             tmpContext.imageSmoothingEnabled = false;
             ctx.imageSmoothingEnabled = false;
@@ -321,10 +324,10 @@ export class Renderer {
             // and can be draw directly
             extruded.forEach((material) => {
                 const pos = material.inventory_icon_id;
-                const w = target.width / GRID;
-                const h = target.height / GRID;
-                const x = (pos % GRID) * w;
-                const y = ((pos / GRID) | 0) * h;
+                const w = target.width / GRID_X;
+                const h = target.height / (GRID_Y);
+                const x = (pos % GRID_X) * w;
+                const y = ((pos / GRID_X) | 0) * h;
 
                 // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
 
