@@ -1,5 +1,5 @@
 import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color} from '../helpers.js';
-import { pushPlanedGeom } from './plane.js';
+import { pushPlanedGeomCorrect } from './plane.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
@@ -22,7 +22,7 @@ export default class style {
 
     static getRegInfo() {
         return {
-            styles: ['planting', 'sign'],
+            styles: ['chain'],
             func: this.func,
             aabb: this.computeAABB
         };
@@ -61,46 +61,35 @@ export default class style {
     static func(block, vertices, chunk, x, y, z, neighbours, biome) {
 
         let cardinal_direction = block.getCardinalDirection()
+        if(cardinal_direction == CubeSym.NEG_Y) {
+            cardinal_direction = CubeSym.ROT_Y;
+        }
 
         let dx = 0, dy = 0, dz = 0;
         let c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         let flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
-
-        //
-        if(neighbours && neighbours.DOWN) {
-            const under_height = neighbours.DOWN.material.height;
-            if(under_height && under_height < 1) {
-                y -= 1 - under_height;
-            }
-        }
-
-        // Texture color multiplier
-        if(block.hasTag('mask_biome')) {
-            style.lm.set(biome.dirt_color);
-            flags |= QUAD_FLAGS.MASK_BIOME;
-        }
-
-        if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
-            dy = -.15;
-        }
-
-        let r = 0;
-
-        if(block.material.style == 'planting') {
-            let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-            r = randoms[index] * 4/16 - 2/16;
-        }
-
-        dx = 0.5 - 0.5 + r;
-        dz = 0.5 - 0.5 + r;
-
         style.lm.b = style.getAnimations(block, 'up');
-        pushPlanedGeom(
+
+        const full_tex_size = c[2];
+
+        c[0] = c[0] - full_tex_size/2 + (full_tex_size * (3/16) / 2);
+        c[2] = full_tex_size * (3/16);
+
+        pushPlanedGeomCorrect(
             vertices,
             x, y, z, c,
-            style.lm, true, true, 1, 1, 1, flags, 
+            style.lm, true, false, 3/16, 1, 1, flags, 
+            cardinal_direction,
+            dx, dy, dz
+        );
+
+        c[0] += c[2]
+        pushPlanedGeomCorrect(
+            vertices,
+            x, y, z, c,
+            style.lm, false, false, 1, 1, 3/16, flags, 
             cardinal_direction,
             dx, dy, dz
         );

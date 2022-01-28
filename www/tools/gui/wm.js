@@ -21,6 +21,7 @@ export class Window {
         this.title          = title;
         this.id             = id;
         this.text           = text || null;
+        this.word_wrap      = false;
         this.hover          = false;
         this.catchEvents    = true;
         this.parent         = null;
@@ -436,25 +437,31 @@ export class Window {
         const y             = this.y + this.ay + this.style.padding.top;
         const lineHeight    = 20;
         let currentLine     = 0;
-        let words           = (text + '').split(' ');
-        let idx             = 1;
-        while(words.length > 0 && idx <= words.length) {
-            let str = words.slice(0, idx).join(' ');
-            let w = this.ctx.measureText(str).width;
-            if(w > this.width) {
-                if(idx == 1) {
-                    idx = 2;
+        if(this.word_wrap) {
+            let words           = (text + '').split(' ');
+            let idx             = 1;
+            if(words.length > 1) {
+                while(words.length > 0 && idx <= words.length) {
+                    let str = words.slice(0, idx).join(' ');
+                    let w = this.ctx.measureText(str).width;
+                    if(w > this.width) {
+                        if(idx == 1) {
+                            idx = 2;
+                        }
+                        this.ctx.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
+                        currentLine++;
+                        words = words.splice(idx - 1);
+                        idx = 1;
+                    } else {
+                        idx++;
+                    }
                 }
-                this.ctx.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
-                currentLine++;
-                words = words.splice(idx - 1);
-                idx = 1;
-            } else {
-                idx++;
             }
-        }
-        if(idx > 0) {
-            this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+            if(idx > 0) {
+                this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+            }
+        } else {
+            this.ctx.fillText(text, x, y + (lineHeight * currentLine));
         }
     }
     loadCloseButtonImage(callback) {

@@ -12,7 +12,7 @@ import {Hotbar} from "./hotbar.js";
 const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
 
-console.log(UI_ZOOM, RES_SCALE);
+// console.log(UI_ZOOM, RES_SCALE);
 
 export class GameClass {
 
@@ -72,6 +72,9 @@ export class GameClass {
     setInputCanvas(element_id) {
         let player = this.player;
         let canvas = document.getElementById(element_id);
+        const add_mouse_rotate = new Vector();
+        const that = this;
+        const controls = that.player.controls;
         let kb = this.kb = new Kb(canvas, {
             onPaste: (e) => {
                 let clipboardData = e.clipboardData || window.clipboardData;
@@ -94,6 +97,56 @@ export class GameClass {
                         offsetY:    this.player.controls.mouseY * (this.hud.height / this.render.canvas.height)
                     });
                     return false;
+                } else if(type == MOUSE.MOVE) {
+                    let z = e.movementX;
+                    let x = e.movementY;
+                    // @todo Hack for chrome bug
+                    /*
+                    if(Math.abs(z) > 100) {
+                        if(that.preve) {
+                            z = that.preve.movementX;
+                        }
+                    } else {
+                        that.preve = e;
+                    }
+                    if(Math.abs(x) > 100) {
+                        if(that.preve) {
+                            x = that.preve.movementY;
+                        }
+                    } else {
+                        that.preve = e;
+                    }*/
+                    if(that.hud.wm.hasVisibleWindow()) {
+                        if(controls.enabled) {
+                            controls.mouseY += x;
+                            controls.mouseX += z;
+                            controls.mouseX = Math.max(controls.mouseX, 0);
+                            controls.mouseY = Math.max(controls.mouseY, 0);
+                            controls.mouseX = Math.min(controls.mouseX, that.hud.width);
+                            controls.mouseY = Math.min(controls.mouseY, that.hud.height);
+                        } else {
+                            controls.mouseY = e.offsetY * window.devicePixelRatio;
+                            controls.mouseX = e.offsetX * window.devicePixelRatio;
+                        }
+                        //
+                        that.hud.wm.mouseEventDispatcher({
+                            type:       e.type,
+                            shiftKey:   e.shiftKey,
+                            button:     e.button,
+                            offsetX:    controls.mouseX * (that.hud.width / that.render.canvas.width),
+                            offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
+                        });
+                    } else {
+                        x *= -1;
+                        add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
+                        add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
+                        if(that.player.zoom) {
+                            add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
+                            add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
+                        }
+                        that.player.addRotate(add_mouse_rotate.divScalar(900));
+                    }
+                    return true;
                 }
                 if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {
                     return false
@@ -498,43 +551,6 @@ export class GameClass {
                 }
             }
         });
-        // Mouse move
-        let add_mouse_rotate = new Vector();
-        document.addEventListener('mousemove', function(e) {
-            let controls = that.player.controls;
-            let z = e.movementX;
-            let x = e.movementY;
-            if(that.hud.wm.hasVisibleWindow()) {
-            	if(controls.enabled) {
-                    controls.mouseY += x;
-                    controls.mouseX += z;
-                    controls.mouseX = Math.max(controls.mouseX, 0);
-                    controls.mouseY = Math.max(controls.mouseY, 0);
-                    controls.mouseX = Math.min(controls.mouseX, that.hud.width);
-                    controls.mouseY = Math.min(controls.mouseY, that.hud.height);
-                } else {
-                    controls.mouseY = e.offsetY * window.devicePixelRatio;
-                    controls.mouseX = e.offsetX * window.devicePixelRatio;
-                }
-                //
-                that.hud.wm.mouseEventDispatcher({
-                    type:       e.type,
-                    shiftKey:   e.shiftKey,
-                    button:     e.button,
-                    offsetX:    controls.mouseX * (that.hud.width / that.render.canvas.width),
-                    offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
-                });
-            } else {
-                x *= -1;
-                add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
-                add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
-                if(that.player.zoom) {
-                    add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
-                    add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
-                }
-                that.player.addRotate(add_mouse_rotate.divScalar(900));
-            }
-        }, false);
     }
 
     drawInstruments() {

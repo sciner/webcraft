@@ -101,7 +101,14 @@ export class Hotbar {
                 hud.ctx.textBaseline = 'bottom';
                 hud.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
                 const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
-                const textWidth = hud.ctx.measureText(itemName).width;
+                // Measure text
+                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemName) {
+                    this.prevItemMeasure = {
+                        text: itemName,
+                        measure: hud.ctx.measureText(itemName)
+                    };
+                }
+                const textWidth = this.prevItemMeasure.measure.width;
                 hud.ctx.fillStyle = '#000000' + aa;
                 hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
                 hud.ctx.fillStyle = '#ffffff' + aa;

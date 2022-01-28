@@ -316,7 +316,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'ladder' || block.style == 'sign' || block.style == 'door') {
+        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
             group = 'doubleface';
         }
         return group;
@@ -499,6 +499,7 @@ export class BLOCK {
             }
         }
         let texture = material.texture;
+        // Stages
         if(material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
                 let stage = block.extra_data.stage;
@@ -636,6 +637,10 @@ export class BLOCK {
         return this.canWallConnect(block);
     };
 
+    static canRedstoneDustConnect(block) {
+        return block.id > 0 && ('redstone' in block.properties);
+    }
+
     static autoNeighbs(chunkManager, pos, cardinal_direction, neighbours) {
         const mat = CubeSym.matrices[cardinal_direction];
         if (!neighbours) {
@@ -662,7 +667,7 @@ export class BLOCK {
             return shapes;
         }
         let f = !!expanded ? .001 : 0;
-        if(!material.passable && (material.style != 'planting' /*&& material.style != 'sign'*/)) {
+        if(!material.passable && (material.style != 'planting')) {
             switch(material.style) {
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;
@@ -902,7 +907,7 @@ export class BLOCK {
                     const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
-                            styleVariant.aabb(b).toArray()
+                            ...styleVariant.aabb(b).map(aabb => aabb.toArray())
                         );
                     } else {
                         let shift_y = 0;
@@ -933,8 +938,12 @@ export class BLOCK {
             if(!for_physic) {
                 const styleVariant = BLOCK.styles.get(material.style);
                 if (styleVariant && styleVariant.aabb) {
+                    let aabbs = styleVariant.aabb(b);
+                    if(!Array.isArray(aabbs)) {
+                        aabbs = [aabbs];
+                    }
                     shapes.push(
-                        styleVariant.aabb(b).toArray()
+                        ...aabbs.map(aabb => aabb.toArray())
                     );
                 } else {
                     switch(material.style) {

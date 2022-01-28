@@ -99,8 +99,15 @@ export class HUD {
                 let padding = 15;
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
+                // Measure text
+                if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
+                    this.prevSplashTextMeasure = {
+                        text: txt,
+                        measure: ctx.measureText(txt)
+                    };
+                }
                 // get width of text
-                let mt = ctx.measureText(txt);
+                let mt = this.prevSplashTextMeasure.measure;
                 let width = mt.width;
                 let height = mt.actualBoundingBoxDescent;
                 // color for background
@@ -366,19 +373,27 @@ export class HUD {
     drawText(str, x, y) {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
+        if(!this.strMeasures || this.strMeasures.length != str.length) {
+            this.strMeasures = new Array(str.length);
+        }
         for(let i in str) {
-            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i);
+            if(!this.strMeasures[i] || this.strMeasures[i].text != str[i]) {
+                this.strMeasures[i] = {
+                    text: str[i],
+                    measure: this.ctx.measureText(str[i] + '|')
+                };
+            }
+            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, this.strMeasures[i].measure);
         }
     }
 
     // Напечатать текст с фоном
-    drawTextBG(txt, x, y) {
-        /// lets save current state as we make a lot of changes
+    drawTextBG(txt, x, y, mt) {
+        // lets save current state as we make a lot of changes
         this.ctx.save();
-        /// draw text from top - makes life easier at the moment
+        // draw text from top - makes life easier at the moment
         this.ctx.textBaseline = 'top';
         // get width of text
-        let mt = this.ctx.measureText(txt+'|');
         let width = mt.width;
         let height = mt.actualBoundingBoxDescent;
         // color for background

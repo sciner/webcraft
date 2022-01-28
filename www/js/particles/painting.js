@@ -14,31 +14,15 @@ export class Particles_Painting {
 
         const block_material    = BLOCK.PAINTING_FRAME;
         const resource_pack     = block_material.resource_pack;
-        const material_key      = block_material.material_key; // 'base/regular/paintintg_frame';
-        const c                 = BLOCK.calcTexture(block_material.texture, DIRECTION.UP); // полная текстура
+        const material_key      = block_material.material_key;
+        const c                 = BLOCK.calcTexture(block_material.texture, DIRECTION.UP);
+        const lm                = MULTIPLY.COLOR.WHITE;
 
-        this.modelMatrix        = mat4.create();
+        this.life               = 1.0;
         this.material           = resource_pack.getMaterial(material_key);
-        let lm                  = MULTIPLY.COLOR.WHITE;
         let flags               = 0, sideFlags = 0, upFlags = 0;
         this.pos                = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]);
- 
-        // Chunk
-        const chunk_addr        = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
-        this.chunk              = ChunkManager.instance.getChunk(chunk_addr);
-
-        //
-        this.life               = 1.0;
         this.vertices           = [];
-
-        // for lighting
-        mat4.translate(this.modelMatrix, this.modelMatrix, 
-            [
-                (this.pos.x - this.chunk.coord.x),
-                (this.pos.z - this.chunk.coord.z),
-                (this.pos.y - this.chunk.coord.y)
-            ]
-        )
 
         // Find image for painting
         const size_key = params.size.join('x');
@@ -108,25 +92,25 @@ export class Particles_Painting {
             this.vertices.push(xpos, zpos + zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, -yw,
-                ...sides_c.north, // c[0], c[1], -c[2] * xw, c[3] * yw,
+                ...sides_c.north,
                 lm.r, lm.g, lm.b, flags | sideFlags);
             // South | Forward | z-- (XZY)
             this.vertices.push(xpos, zpos - zw/2, y_bottom + yw/2,
                 xw, 0, 0,
                 0, 0, yw,
-                ...sides_c.south, // c[0], c[1], c[2] * xw, -c[3] * yw,
+                ...sides_c.south,
                 lm.r, lm.g, lm.b, flags | sideFlags);
             // West | Left | x--
             this.vertices.push(xpos - xw/2, zpos, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, -yw,
-                ...sides_c.west, // c[0], c[1], -c[2] * zw, c[3] * yw,
+                ...sides_c.west,
                 lm.r, lm.g, lm.b, flags | sideFlags);
             // East | Right | x++
             this.vertices.push(xpos + xw/2, zpos, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, yw,
-                ...sides_c.east, // c[0], c[1], -c[2] * zw, c[3] * yw,
+                ...sides_c.east,
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
@@ -137,13 +121,28 @@ export class Particles_Painting {
     // Draw
     draw(render, delta) {
 
-        const light = this.chunk.getLightTexture(render.renderBackend);
-        this.material.changeLighTex(light);
+        // For lighting
+        if(!this.chunk) {
+            const chunk_addr = getChunkAddr(this.pos.x, this.pos.y, this.pos.z);
+            this.chunk = ChunkManager.instance.getChunk(chunk_addr);
+            if(!this.chunk) {false;
+                return 
+            }
+            this.modelMatrix = mat4.create();
+            mat4.translate(this.modelMatrix, this.modelMatrix, 
+                [
+                    (this.pos.x - this.chunk.coord.x),
+                    (this.pos.z - this.chunk.coord.z),
+                    (this.pos.y - this.chunk.coord.y)
+                ]
+            )
+            const light = this.chunk.getLightTexture(render.renderBackend);
+            this.material.changeLighTex(light);
+        }
 
         render.renderBackend.drawMesh(
             this.buffer,
             this.material,
-            // this.pos,
             this.chunk.coord,
             this.modelMatrix
         );
