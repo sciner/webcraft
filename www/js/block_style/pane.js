@@ -85,19 +85,31 @@ export default class style {
 
         // South
         if(con_s) {
-            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, [ROTATE.N, ROTATE.S]);
+            let ndcs = [];
+            if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
+            if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
+            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, ndcs);
         }
         // North
         if(con_n) {
-            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, [ROTATE.N, ROTATE.S]);
+            let ndcs = [];
+            if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
+            if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
+            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, ndcs);
         }
         // West
         if(con_w) {
-            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, [ROTATE.E, ROTATE.W]);
+            let ndcs = [];
+            if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
+            if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
+            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
         }
         // East
         if(con_e) {
-            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, [ROTATE.E, ROTATE.W]);
+            let ndcs = [];
+            if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
+            if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
+            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
         }
 
     }

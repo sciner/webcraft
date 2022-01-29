@@ -75,7 +75,7 @@ export default class style {
 
         let tex = resource_pack.textures.get(texture_id);
         // Texture
-        const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+        const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD);
         if(!tex) {
             console.log(block.id);
         }

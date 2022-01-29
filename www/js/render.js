@@ -9,6 +9,7 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
+import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
@@ -281,25 +282,34 @@ export class Renderer {
             target
         });
 
-        regular.forEach((block, i) => {
-            const pos = block.block_material.inventory_icon_id;
+        regular.forEach((drop, i) => {
+            const pos = drop.block_material.inventory_icon_id;
             const x = -GRID_X + 1 + (pos % GRID_X) * 2;
             const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
-            const multipart = block.parts > 1;
+            const multipart = drop.mesh_group.multipart;
 
-            // use linera for inventory
-            block.material.texture.minFilter = 'linear';
-            block.material.texture.magFilter = 'linear';
-            
-            this.renderBackend.drawMesh(
-                block.buffer,
-                block.material,
-                new Vector(x, y, 0),
-                multipart ? matrix_empty : matrix
-            );
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
 
-            block.material.texture.minFilter = 'nearest';
-            block.material.texture.magFilter = 'nearest';
+                if(!mesh.material) {
+                    console.log(mesh)
+                    debugger;
+                }
+
+                // use linear for inventory
+                mesh.material.texture.minFilter = 'linear';
+                mesh.material.texture.magFilter = 'linear';
+
+                this.renderBackend.drawMesh(
+                    mesh.buffer,
+                    mesh.material,
+                    new Vector(x, y, 0),
+                    multipart ? matrix_empty : matrix
+                );
+
+                mesh.material.texture.minFilter = 'nearest';
+                mesh.material.texture.magFilter = 'nearest';
+
+            });
 
         });
 
@@ -338,7 +348,7 @@ export class Renderer {
                 }
                 const tex = resource_pack.textures.get(texture_id);
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
+                const c = BLOCK.calcTexture(material.texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
@@ -585,6 +595,11 @@ export class Renderer {
     // rainDrop
     rainDrop(pos) {
         this.meshes.add(new Particles_Raindrop(this, pos));
+    }
+
+    // addAsteroid
+    addAsteroid(pos, rad) {
+        this.meshes.add(new Particles_Asteroid(this, pos, rad));
     }
 
     // createClouds

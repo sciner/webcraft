@@ -3,14 +3,12 @@
         "id": -1,
         "name": "DUMMY",
         "spawnable": false,
-        "sound": "madcraft:block.wood",
+        "transparent": true,
+        "sound": "madcraft:block.stone",
         "material": {
             "id": "bedrock"
         },
-        "texture": [
-            9,
-            9
-        ]
+        "texture": [0, 0]
     },
     {
         "id": 0,
@@ -1618,17 +1616,21 @@
         }
     },
     {
-        "id": 75,
-        "name": "REDSTONE_TORCH_ON",
-        "spawnable": false,
+        "id": 76,
+        "name": "REDSTONE_TORCH",
+        "spawnable": true,
         "passable": 1,
         "width": 0.125,
-        "height": 0.6875,
+        "height": 0.625,
         "transparent": true,
+        "inventory_style": "extruder",
         "style": "torch",
         "can_rotate": true,
         "material": {
             "id": "wood"
+        },
+        "extra_data": {
+            "on": 0
         },
         "light_power": {
             "r": 253,
@@ -1637,36 +1639,13 @@
             "a": 128
         },
         "texture": {
-            "up": [
-                0,
-                6
-            ],
-            "down": [
-                0,
-                7
-            ],
-            "side": [
-                2,
-                5
-            ]
-        }
-    },
-    {
-        "id": 76,
-        "name": "REDSTONE_TORCH_OFF",
-        "spawnable": false,
-        "passable": 1,
-        "width": 0.125,
-        "height": 0.6875,
-        "transparent": true,
-        "style": "torch",
-        "can_rotate": true,
-        "material": {
-            "id": "wood"
+            "up": [2, 6],
+            "down": [2, 7],
+            "side": [2, 5]
         },
-        "texture": {
-            "up": [0, 6],
-            "down": [0, 7],
+        "texture_off": {
+            "up": [1, 6],
+            "down": [1, 7],
             "side": [1, 5]
         }
     },
@@ -2921,6 +2900,7 @@
         "passable": 1,
         "transparent": true,
         "style": "torch",
+        "inventory_style": "extruder",
         "sound": "madcraft:block.wood",
         "material": {
             "id": "wood"
@@ -5096,5 +5076,17 @@
             "set_only_fullface",
             "no_drop_ao"
         ]
+    },
+    {
+        "id": 518,
+        "name": "LODESTONE",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "up": [3, 7],
+            "side": [3, 6]
+        }
     }
 ]

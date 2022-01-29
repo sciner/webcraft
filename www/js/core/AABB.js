@@ -151,6 +151,15 @@ export class AABB {
         return this;
     }
 
+    addPoint(x, y, z) {
+        if(x < this.x_min) this.x_min = x;
+        if(x > this.x_max) this.x_max = x;
+        if(y < this.y_min) this.y_min = y;
+        if(y > this.y_max) this.y_max = y;
+        if(z < this.z_min) this.z_min = z;
+        if(z > this.z_max) this.z_max = z;
+    }
+
 }
 
 export class AABBPool {

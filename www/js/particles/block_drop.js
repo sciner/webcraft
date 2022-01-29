@@ -1,69 +1,16 @@
-import {Color, QUAD_FLAGS, Vector} from '../helpers.js';
-import GeometryTerrain from "../geometry_terrain.js";
-import {BLOCK} from "../blocks.js";
+import {Vector} from '../helpers.js';
 import { NetworkPhysicObject } from '../network_physic_object.js';
+import { MeshGroup, FakeTBlock } from '../mesh/group.js';
 
 const {mat4} = glMatrix;
 const tmpMatrix = mat4.create();
 
-class FakeTBlock {
-
-    constructor(id) {
-        this.id = id;
-        this.offset = null;
-        /**
-         * @type {FakeTBlock}
-         */
-        this.next = null;
-
-        if (this.material.next_part) {
-            const {
-                id, offset_pos
-            } = this.material.next_part;
-
-            this.next = new FakeTBlock(id);
-            this.next.offset = new Vector(offset_pos);
-        }
-    }
-
-    get material() {
-        return BLOCK.BLOCK_BY_ID.get(this.id);
-    }
-
-    get properties() {
-        return this.material;
-    }
-
-    get extra_data() {
-        return this.material.extra_data;
-    }
-
-    hasTag(tag) {
-        let mat = this.material;
-        return mat.tags && mat.tags.indexOf(tag) >= 0;
-    }
-
-    getCardinalDirection() {
-        return 0;
-    }
-
-}
-
-// World
-const FakeWorld = {
-    blocks_pushed: 0,
-    chunkManager: {
-        getBlock: function(x, y, z) {
-            return new FakeTBlock(BLOCK.AIR.id);
-        }
-    }
-}
-
+// Particles_Block_Drop
 export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     static neighbours = null;
 
-    static buffer_cache = new Map();
+    static mesh_groups_cache = new Map();
 
     // Constructor
     constructor(gl, entity_id, items, pos) {
@@ -76,89 +23,72 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         this.entity_id = entity_id;
         const block = items[0];
 
-        // BIOMES.GRASSLAND
-        const biome = {
-            code:       'GRASSLAND',
-            color:      '#98a136',
-            dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
-        };
-
-        if(!Particles_Block_Drop.neighbours) {
-            let air = new FakeTBlock(BLOCK.AIR.id);
-            Particles_Block_Drop.neighbours = {
-                UP:     air,
-                DOWN:   air,
-                NORTH:  air,
-                SOUTH:  air,
-                WEST:   air,
-                EAST:   air
-            };
-        }
-
         this.scale          = new Vector(.2, .2, .2);
         this.pn             = performance.now() + Math.random() * 2000; // рандом, чтобы одновременно сгенерированные дропы крутились не одинаково
         this.life           = 1.0;
         this.posFact        = this.pos.clone();
-        this.addY           = 0;
-        this.vertices       = [];
         this.block          = new FakeTBlock(block.id);
         this.block_material = this.block.material;
-        this.parts          = 0;
 
-        let b               = this.block;
-        
-        const isDoor        = this.block_material.tags.indexOf('door') > -1;
-        const resource_pack = b.material.resource_pack
-        const draw_style    = b.material.inventory_style
-            ? b.material.inventory_style 
-            : b.material.style;
+        const draw_style    = this.block_material.inventory_style
+            ? this.block_material.inventory_style 
+            : this.block_material.style;
 
-        let yBaseOffset = 1;
-        // calc how many parts is exist
-        for(let ib = b; !!ib; ib = ib.next) {
-            this.parts ++;
-            if(ib.offset)
-                yBaseOffset += ib.offset.y;
-        }
+        // Get from cache
+        this.mesh_group = Particles_Block_Drop.mesh_groups_cache.get(block.id);
 
-        this.material = resource_pack.getMaterial(b.material.material_key);
-        this.buffer = Particles_Block_Drop.buffer_cache.get(block.id);
+        if(this.mesh_group) {
+            // do nothing
 
-        if(!this.buffer) {
-            let x = -.5;
-            let y = - yBaseOffset / 2;
-            let z = isDoor ? -1 : -.5;
+        } else {
 
-            if (draw_style ==='extruder') {
-                x = y = z = 0;
-            } 
+            let x = 0;
+            let y = 0;
+            let z = 0;
 
-            while(b) {
-                if(b.offset) {
-                    x += b.offset.x;
-                    y += b.offset.y;
-                    z += b.offset.z;
-                }
-
-                resource_pack.pushVertices(
-                    this.vertices,
-                    b,
-                    FakeWorld,
-                    x,
-                    y,
-                    z,
-                    Particles_Block_Drop.neighbours,
-                    biome,
-                    draw_style
-                );
-
-                b = b.next;
+            if (draw_style === 'extruder') {
+                x = y = z = 0.5;
             }
 
-            this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
-            this.buffer.changeFlags(QUAD_FLAGS.NO_AO, 'or');
+            // MeshGroup
+            this.mesh_group = new MeshGroup();
 
-            Particles_Block_Drop.buffer_cache.set(block.id, this.buffer);
+            // 1. First main block
+            this.mesh_group.addBlock(new Vector(0, 0, 0), this.block);
+
+            // 2. Add couples block 
+            if(this.block.material.style == 'fence' || this.block.material.style == 'wall') {
+                this.mesh_group.addBlock(new Vector(1, 0, 0), new FakeTBlock(block.id));
+            }
+
+            // 3. Add all block parts
+            let pos = new Vector(0, 0, 0);
+            let next_part = this.block.material.next_part
+            while(next_part) {
+                const next = new FakeTBlock(next_part.id);
+                pos = pos.add(next_part.offset_pos);
+                this.mesh_group.addBlock(pos, next);
+                next_part = next.material.next_part;
+                this.mesh_group.multipart = true;
+            }
+
+            // 4. Finalize mesh group (recalculate aabb and find blocks neighbours)
+            this.mesh_group.finalize();
+
+            // 5.
+            this.mesh_group.aabb.translate(x, y, z).pad(.5);
+            x -= this.mesh_group.aabb.width / 2;
+            y -= this.mesh_group.aabb.height / 2;
+            z -= this.mesh_group.aabb.depth / 2;
+            if(this.mesh_group.aabb.y_min < 0) {
+                y -= this.mesh_group.aabb.y_min;
+            }
+
+            // 6. Draw all blocks
+            this.mesh_group.buildVertices(x, y, z, true);
+
+            // 7.
+            Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
         }
 
         this.modelMatrix = mat4.create();
@@ -169,13 +99,12 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
 
     }
 
+    // Update light texture from chunk
     updateLightTex(render) {
         const chunk = render.world.chunkManager.getChunk(this.chunk_addr);
-
         if (!chunk) {
             return;
         }
-
         this.chunk = chunk;
         this.lightTex = chunk.getLightTexture(render.renderBackend);
     }
@@ -190,10 +119,16 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             return;
         }
 
-        this.posFact.set(this.pos.x, this.pos.y + (this.parts / 2) * this.scale.x, this.pos.z);
-        this.addY = (performance.now() - this.pn) / 10;
-        this.posFact.y += Math.sin(this.addY / 35) / Math.PI * .2;
+        // Calc position
+        this.posFact.set(
+            this.pos.x,
+            this.pos.y,
+            this.pos.z,
+        );
+        const addY = (performance.now() - this.pn) / 10;
+        this.posFact.y += Math.sin(addY / 35) / Math.PI * .2;
 
+        // Calc matrices
         mat4.identity(this.modelMatrix);
         mat4.translate(this.modelMatrix, this.modelMatrix, 
             [
@@ -203,19 +138,11 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             ]
         );
         mat4.scale(this.modelMatrix, this.modelMatrix, this.scale.toArray());
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.addY / 60);
+        mat4.rotateZ(this.modelMatrix, this.modelMatrix, addY / 60);
 
-        this.material.changeLighTex(this.lightTex);
+        // Draw mesh group
+        this.mesh_group.draw(render, this.chunk.coord, this.modelMatrix, this.lightTex);
 
-        render.renderBackend.drawMesh(
-            this.buffer,
-            this.material,
-            this.chunk.coord,
-            this.modelMatrix
-        );
-
-        this.material.lightTex = null;
-        this.material.shader.unbind();
     }
 
     /**
@@ -229,17 +156,12 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
         if (prePendMatrix) {
             mat4.mul(tmpMatrix, prePendMatrix, this.modelMatrix);
         }
-
-        render.renderBackend.drawMesh(
-            this.buffer,
-            this.material,
-            this.pos,
-            prePendMatrix ? tmpMatrix : this.modelMatrix
-        );
+        // Draw mesh group
+        this.mesh_group.draw(render, this.pos, prePendMatrix ? tmpMatrix : this.modelMatrix, null);
     }
 
     destroy() {
-        // this.buffer.destroy();
+        // this.mesh_group.destroy();
     }
 
     isAlive() {
