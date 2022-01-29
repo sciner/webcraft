@@ -626,11 +626,11 @@ export class BLOCK {
     }
 
     static canFenceConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence');
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'fence' || block.properties.style == 'wall' || block.properties.style == 'pane');
     }
 
     static canWallConnect(block) {
-        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane');
+        return block.id > 0 && (!block.properties.transparent || block.properties.style == 'wall' || block.properties.style == 'pane' || block.properties.style == 'fence');
     }
 
     static canPaneConnect(block) {
