@@ -112,8 +112,14 @@ export class MeshGroup {
         }
     }
 
-    // Build vertices
-    buildVertices(tx, ty, tz) {
+    /**
+     * Build vertices
+     * @param {*} tx 
+     * @param {*} ty 
+     * @param {*} tz 
+     * @param {bool} force_inventory_style 
+     */
+    buildVertices(tx, ty, tz, force_inventory_style) {
         const biome = {
             code:       'GRASSLAND',
             color:      '#98a136',
@@ -122,9 +128,10 @@ export class MeshGroup {
         for(let k of this.vc.keys()) {
             const item = this.vc.get(k);
             const rp = item.block.material.resource_pack;
-            const ds = item.block.material.inventory_style
-                ? item.block.material.inventory_style 
-                : item.block.material.style;
+            let ds = item.block.material.style;
+            if(force_inventory_style && item.block.material.inventory_style) {
+                ds = item.block.material.inventory_style;
+            }
             const mat_key = item.block.material.material_key;
             //
             let mesh = this.meshes.get(mat_key);

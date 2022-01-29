@@ -85,7 +85,7 @@ export default class Particles_Block_Drop extends NetworkPhysicObject {
             }
 
             // 6. Draw all blocks
-            this.mesh_group.buildVertices(x, y, z);
+            this.mesh_group.buildVertices(x, y, z, true);
 
             // 7.
             Particles_Block_Drop.mesh_groups_cache.set(block.id, this.mesh_group);
