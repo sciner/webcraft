@@ -655,6 +655,21 @@ export default class BaseRenderer {
          */
         this.global_defines = Object.assign({}, options.defines || {});
 
+        this.overrides = {
+            draw_type: null,
+        };
+    }
+
+    get hasRenderOverrides() {
+        return this.overrides && this.overrides.draw_type;
+    }
+
+    setDrawOverride ({draw_type} = {draw_type: null}) {
+        this.overrides.draw_type = draw_type;
+    }
+
+    resetDrawOverride () {
+        this.overrides = {};
     }
 
     get kind() {

@@ -248,7 +248,13 @@ export class GameClass {
                     // [F6] (Test light)
                     case KEY.F6: {
                         if(!e.down) {
-                            this.render.testLightOn = !this.render.testLightOn;
+                            if (!this.render.renderBackend.hasRenderOverrides) {
+                                this.render.renderBackend.setDrawOverride({
+                                    draw_type: 'line_loop'
+                                });
+                            } else {
+                                this.render.renderBackend.resetDrawOverride();
+                            }
                         }
                         return true;
                         break;

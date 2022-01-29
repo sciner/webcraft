@@ -394,19 +394,25 @@ export default class WebGLRenderer extends BaseRenderer {
             return;
         }
         let gl = this.gl;
+
         if(!draw_type) {
             draw_type = 'triangles';
         }
+
+        if (this.overrides.draw_type) {
+            draw_type = this.overrides.draw_type;
+        }
+
         switch(draw_type) {
-            case 'triangles': {
-                draw_type = gl.TRIANGLES;
-                break;
-            }
             case 'line_loop': {
                 draw_type = gl.LINE_LOOP;
                 break;
             }
+            default: {
+                draw_type = gl.TRIANGLES;
+            }
         }
+
         material.bind();
         geom.bind(material.shader);
         material.shader.updatePos(a_pos, modelMatrix);
