@@ -249,11 +249,6 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
-                /*case ServerClient.CMD_BLOCK_SET: {
-                    await this.world.setBlock(this, cmd.data);
-                    break;
-                }*/
-
                 case ServerClient.CMD_PICKAT_ACTION: {
                     this.world.pickAtAction(this, cmd.data);
                     break;

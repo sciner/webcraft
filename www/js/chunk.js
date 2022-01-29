@@ -271,16 +271,18 @@ export class Chunk {
 
     // destruct chunk
     destruct() {
-        if(this.buffer) {
-            this.buffer.destroy();
+        // Destroy buffers
+        for(let [_, v] of this.vertices) {
+            if(v.buffer) {
+                v.buffer.destroy();
+            }
         }
         const { lightTex } = this;
         if (lightTex) {
             this.getChunkManager().lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
-            this.getChunkManager().lightmap_count --;
+            this.getChunkManager().lightmap_count--;
             lightTex.destroy();
         }
-        this.buffer = null;
         this.lightTex = null;
         // Run webworker method
         this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);

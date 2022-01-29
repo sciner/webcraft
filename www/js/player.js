@@ -305,19 +305,12 @@ export class Player {
         //}
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
-                const pos = mod.pos;
-                const item = mod.item;
-                const rotate = item.rotate;
-                const extra_data = item.extra_data;
                 switch(mod.action_id) {
                     case ServerClient.BLOCK_ACTION_CREATE:
                     case ServerClient.BLOCK_ACTION_REPLACE:
-                    case ServerClient.BLOCK_ACTION_MODIFY: {
-                        this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                        break;
-                    }
+                    case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                        this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }
                 }

@@ -168,6 +168,7 @@ export class ServerClient {
                 break;
             }
         }
+        // Only set blocks
         if(only_set_blocks) {
             let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
             let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
@@ -217,7 +218,6 @@ export class ServerClient {
                 tblock.entity_id    = entity_id;
                 tblock.rotate       = rotate;
                 tblock.power        = power;
-                // tblock.falling       = !!material.gravity;
                 //
                 set_block_list.push({
                     key:        chunk_key,
