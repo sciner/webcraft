@@ -53,7 +53,7 @@ class FakeWorld {
     // getBlock...
     getBlock(pos) {
         this._pos.copyFrom(pos).flooredSelf();
-        let b = this.world.chunkManager.getBlock(this._pos.x, this._pos.y, this._pos.z, this.block_pos);
+        let b = this.world.chunkManager.getBlock(this._pos.x, this._pos.y, this._pos.z);
         if (b.shapes === null) {
             b.position = this._pos.clone();
             b.shapes = (b.id > 0) ? BLOCK.getShapes(this._pos, b, this.world, true, false) : [];
