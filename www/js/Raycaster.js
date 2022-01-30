@@ -80,10 +80,7 @@ export class Raycaster {
         check.zero();
 
         let res = null;
-        if(!this._block_vec) {
-            this._block_vec = new Vector(0, 0, 0);
-        }
-        let block = this._block_vec.copyFrom(startBlock);
+        let block = new Vector(startBlock.x, startBlock.y, startBlock.z);
 
         while (Math.abs(block.x - startBlock.x) < pickat_distance
             && Math.abs(block.y - startBlock.y) < pickat_distance
