@@ -244,7 +244,7 @@ export class FrustumProxy extends Frustum {
 
 	//
 	setFromProjectionMatrix(matrix, camPos) {
-		this.camPos = camPos;
+		this.camPos.copyFrom(camPos);
 		return super.setFromProjectionMatrix(matrix);
 	}
 

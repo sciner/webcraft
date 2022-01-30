@@ -43,7 +43,7 @@ export class Player {
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
             if(!mode.can_fly) {
-                this.lastBlockPos = this.getBlockPos();
+                this.lastBlockPos = this.getBlockPos().clone();
                 this.setFlying(false);
             } else if(mode.id == GAME_MODE.SPECTATOR) {
                 this.setFlying(true);
@@ -57,9 +57,10 @@ export class Player {
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
-        this.chunkAddr              = getChunkAddr(this.pos);
-        this.blockPos               = this.getBlockPos();
+        this._block_pos             = new Vector(0, 0, 0);
+        this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
+        this.chunkAddr              = getChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
@@ -351,7 +352,7 @@ export class Player {
 
     // getBlockPos
     getBlockPos() {
-        return this.pos.floored();
+        return this._block_pos.copyFrom(this.pos).floored();
     }
 
     //

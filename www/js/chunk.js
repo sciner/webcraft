@@ -88,7 +88,7 @@ export class Chunk {
         // Light
         this.lightTex = null;
         this.lightData = null;
-        this.lightMats = {};
+        this.lightMats = new Map();
 
         // Objects & variables
         this.inited                     = false;
@@ -204,11 +204,11 @@ export class Chunk {
         if (this.lightData) {
             this.getLightTexture(render);
 
-            if (!this.lightMats[key]) {
-                this.lightMats[key] = texMat.getLightMat(this.lightTex)
+            if (!this.lightMats.has(key)) {
+                this.lightMats.set(key, texMat.getLightMat(this.lightTex));
             }
 
-            render.drawMesh(v.buffer, this.lightMats[key], this.coord);
+            render.drawMesh(v.buffer, this.lightMats.get(key), this.coord);
         } else {
             render.drawMesh(v.buffer, texMat, this.coord);
         }
@@ -303,7 +303,7 @@ export class Chunk {
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(x, y, z) {
+    getBlock(x, y, z, v) {
         if(!this.inited) {
             return this.getChunkManager().DUMMY;
         }
@@ -313,7 +313,12 @@ export class Chunk {
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return this.getChunkManager().DUMMY;
         }
-        let block = this.tblocks.get(new Vector(x, y, z));
+        if(v instanceof Vector) {
+            v.set(x, y, z);
+        } else {
+            v = new Vector(x, y, z);
+        }
+        let block = this.tblocks.get(v);
         return block;
     }
 

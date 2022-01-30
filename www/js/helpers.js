@@ -428,6 +428,17 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
+    subSelf(vec) {
+        this.x -= vec.x;
+        this.y -= vec.y;
+        this.z -= vec.z;
+        return this;
+    }
+
+    /**
+     * @param {Vector} vec
+     * @return {Vector}
+     */
     mul(vec) {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
@@ -597,6 +608,16 @@ export class Vector {
             Math.floor(this.y),
             Math.floor(this.z)
         );
+    }
+
+    /**
+     * @return {Vector}
+     */
+    flooredSelf() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        this.z = Math.floor(this.z);
+        return this;
     }
 
     translate(x, y, z) {

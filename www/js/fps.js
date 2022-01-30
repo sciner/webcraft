@@ -9,9 +9,11 @@ export class FPSCounter {
         this.walkDistO  = 0;
         this.speed      = 0;
         this.t          = performance.now();
+        this.frames     = 0;
     }
 
     incr() {
+        this.frames++;
         this.cnt++;
         let now = performance.now();
         let player = Game.player;
