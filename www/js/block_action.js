@@ -390,16 +390,18 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 };
                 //
                 const block = world.getBlock(pos);
-                pushDestroyBlock(block);
-                //
-                resp.decrement_instrument = {id: block.id};
-                if(!block.material.destroy_to_down) {
-                    // Destroyed block
-                    pos = new Vector(pos);
-                    // destroy plants over this block
-                    let block_over = world.getBlock(pos.add(Vector.YP));
-                    if(BLOCK.isPlants(block_over.id)) {
-                        pushDestroyBlock(block_over);
+                if(block.id >= 0) {
+                    pushDestroyBlock(block);
+                    //
+                    resp.decrement_instrument = {id: block.id};
+                    if(!block.material.destroy_to_down) {
+                        // Destroyed block
+                        pos = new Vector(pos);
+                        // destroy plants over this block
+                        let block_over = world.getBlock(pos.add(Vector.YP));
+                        if(BLOCK.isPlants(block_over.id)) {
+                            pushDestroyBlock(block_over);
+                        }
                     }
                 }
             }
