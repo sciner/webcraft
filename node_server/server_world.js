@@ -92,9 +92,10 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.chunks.initWorker();
         //
-        this.tickerWorldTimer = setInterval(() => {
-            this.tick();
-        }, 50);
+        //this.tickerWorldTimer = setInterval(() => {
+        //    this.tick();
+        //}, 50);
+        this.tick();
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -133,6 +134,7 @@ export class ServerWorld {
 
     // World tick
     async tick() {
+        let started = performance.now();
         let delta = 0;
         if(this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -163,6 +165,13 @@ export class ServerWorld {
         this.ticks_stat.add('pickat_action_queue');
         //
         this.ticks_stat.end();
+        //
+        let elapsed = performance.now() - started;
+        setTimeout(() => {
+                this.tick()
+            }, 
+            elapsed < 50 ? (50 - elapsed) : 0    
+        ); 
     }
 
     save() {
