@@ -16,10 +16,12 @@ export default class Particles_Block_Destroy {
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
 
+        block = BLOCK.fromId(block.id);
+
         this.chunk = chunk;
         this.yaw        = -render.player.rotate.z;
         this.life       = .5;
-        this.texture    = BLOCK.fromId(block.id).texture;
+        this.texture    = block.texture;
 
         let flags       = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         let lm          = MULTIPLY.COLOR.WHITE;
@@ -28,6 +30,9 @@ export default class Particles_Block_Destroy {
             this.life = 0;
             return;
         }
+
+        this.resource_pack = block.resource_pack;
+        this.material = this.resource_pack.getMaterial(block.material_key);
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             // lm          = cell.biome.dirt_color;
@@ -49,11 +54,11 @@ export default class Particles_Block_Destroy {
 
         this.vertices   = [];
         this.particles  = [];
-        
+
         for(let i = 0; i < count; i++) {
             const max_sz    = small ? .25 / 16 : 3 / 16;
             const sz        = Math.random() * max_sz + 1 / 16; // случайный размер текстуры
-            const half      = sz / TX_CNT;
+            const half      = sz / block.tx_cnt;
             // random tex coord (случайная позиция в текстуре)
             const cx        = c[0] + Math.random() * (half * 3);
             const cy        = c[1] + Math.random() * (half * 3);
@@ -101,16 +106,7 @@ export default class Particles_Block_Destroy {
 
         mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
 
-        let b = block;
-        if(b instanceof TBlock) {
-            b = b.material;
-        }
-        if(!('material_key' in b)) {
-            b = BLOCK.fromId(b.id);
-        }
 
-        this.resource_pack = b.resource_pack;
-        this.material = this.resource_pack.getMaterial(b.material_key);
     }
 
     // Draw

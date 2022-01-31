@@ -567,6 +567,8 @@ export class ServerWorld {
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
                     await this.db.blockSet(this, null, params);
+                    // 2. Mark as became modifieds
+                    this.chunkBecameModified(chunk_addr);
                     if(chunk) {
                         const block_pos = new Vector(params.pos).floored();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
@@ -592,8 +594,6 @@ export class ServerWorld {
                                 }
                             }
                         }
-                        // 2. Mark as became modifieds
-                        this.chunkBecameModified(chunk_addr);
                         // 3. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
                         let tblock           = chunk.tblocks.get(block_pos_in_chunk);

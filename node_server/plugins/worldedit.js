@@ -73,23 +73,7 @@ export default class WorldEdit {
                     const signx = player.pos1.x > player.pos2.x ? -1 : 1;
                     const signy = player.pos1.y > player.pos2.y ? -1 : 1;
                     const signz = player.pos1.z > player.pos2.z ? -1 : 1;
-                    let block_id = args[1];
-                    if(isNaN(block_id) && typeof block_id === 'string') {
-                        let b = BLOCK.fromName(block_id.toUpperCase());
-                        if(b) {
-                            block_id = b.id;
-                        }
-                    }
-                    let b = BLOCK.fromId(block_id);
-                    if(!b || b.id < 0) {
-                        throw 'error_invalid_block';
-                    }
-                    if(b.deprecated) {
-                        throw 'error_block_is_deprecated';
-                    }
-                    if(b.item || b.can_rotate || b.is_fluid || b.extra_data || (b.style == 'planting' && b.material.id == 'plant')) {
-                        throw 'error_this_block_cannot_be_setted';
-                    }
+                    const palette = this.createBlocksPalette(args[1]);
                     let actions = {blocks: {
                         list: [],
                         options: {
@@ -104,7 +88,7 @@ export default class WorldEdit {
                                 bpos.x += x * signx;
                                 bpos.y += y * signy;
                                 bpos.z += z * signz;
-                                actions.blocks.list.push({pos: bpos, item: b});
+                                actions.blocks.list.push({pos: bpos, item: {id: palette.next().block_id}});
                             }
                         }
                     }
@@ -117,6 +101,79 @@ export default class WorldEdit {
             }
             return false;
         });
+    }
+
+    //set 10%0,20%dirt
+    //set 10%dirt,gold
+    createBlocksPalette(args) {
+        //
+        args = new String(args);
+        let blocks = args.trim().split(',');
+        let blockChances = [];
+        // Parse blocks pattern
+        for(let a of blocks) {
+            let chance = 1;
+            let name = null;
+            if(/[0-9]+(\\.[0-9]*)?%.*/.test(a)) {
+                a = a.split('%');
+                chance = parseFloat(a[0]);
+                name = a[1];
+            } else {
+                name = a;
+            }
+            blockChances.push({
+                chance: chance,
+                name: name
+            });
+        }
+        // Check names and validate blocks
+        for(let item of blockChances) {
+            let block_id = null;
+            if(isNaN(item.name)) {
+                let b = BLOCK.fromName(item.name.toUpperCase());
+                if(b) {
+                    block_id = b.id;
+                }
+            } else {
+                block_id = parseInt(item.name);
+            }
+            let b = BLOCK.fromId(block_id);
+            if(!b || b.id < 0) {
+                throw 'error_invalid_block';
+            }
+            if(b.deprecated) {
+                throw 'error_block_is_deprecated';
+            }
+            if(b.item || b.can_rotate || b.is_fluid || b.extra_data || (b.style == 'planting' && b.material.id == 'plant')) {
+                throw 'error_this_block_cannot_be_setted';
+            }
+            item.block_id = block_id;
+            item.name = b.name;
+        }
+        // Random fill
+        let max = 0;
+        for(let block of blockChances) {
+            max += block.chance;
+        }
+        let i = 0;
+        for(let block of blockChances) {
+            let v = block.chance / max;
+            i += v;
+            block.chance = i;
+        }
+        //
+        return {
+            blocks: blockChances,
+            next: function() {
+                const r = Math.random();
+                for(let block of this.blocks) {
+                    if (r <= block.chance) {
+                        return block;
+                    }
+                }
+                throw 'Proportional fill pattern';
+            }
+        };
     }
 
 }

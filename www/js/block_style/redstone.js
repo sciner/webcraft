@@ -86,20 +86,7 @@ export default class style {
 
         const material          = block.material;
         const redstone_textures = material.redstone.textures;
-
-        // Calc tx_cnt
-        let tx_cnt = TX_CNT;
-        if (typeof material.texture === 'object' && 'id' in material.texture) {
-            let tex = material.resource_pack.conf.textures[material.texture.id];
-            if(tex && 'tx_cnt' in tex) {
-                tx_cnt = tex.tx_cnt;
-            }
-        } else {
-            let tex = material.resource_pack.conf.textures['default'];
-            if(tex && 'tx_cnt' in tex) {
-                tx_cnt = tex.tx_cnt;
-            }
-        }
+        const tx_cnt            = material.tx_cnt;
 
         // Texture color multiplier
         // @todo from extra_data.signal

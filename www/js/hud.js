@@ -287,7 +287,7 @@ export class HUD {
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
-            this.text += '\nRenderer: ' + vci.renderer + '\n';
+            this.text += 'Renderer: ' + vci.renderer + '\n';
         }
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
