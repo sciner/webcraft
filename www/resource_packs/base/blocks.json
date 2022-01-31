@@ -863,6 +863,7 @@
         "id": 14,
         "name": "GOLD_ORE",
         "sound": "madcraft:block.stone",
+        "drop_item": {"name": "GOLD_INGOT", "count": 1, "chance": 1},
         "texture": [
             0,
             2
@@ -873,7 +874,7 @@
     },
     {
         "id": 150,
-        "name": "DIAMOND",
+        "name": "DIAMOND_BLOCK",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "diamond"
@@ -927,6 +928,7 @@
         "id": 15,
         "name": "IRON_ORE",
         "sound": "madcraft:block.stone",
+        "drop_item": {"name": "IRON_INGOT", "count": 1, "chance": 1},
         "texture": [
             1,
             2
@@ -1566,6 +1568,7 @@
         "id": 56,
         "name": "DIAMOND_ORE",
         "sound": "madcraft:block.stone",
+        "drop_item": {"name": "DIAMOND", "count": 1, "chance": 1},
         "texture": [
             2,
             3
@@ -5090,5 +5093,70 @@
             "up": [3, 7],
             "side": [3, 6]
         }
+    },
+    {
+        "id": 637,
+        "name": "IRON_INGOT",
+        "item": {"name": "ingot"},
+        "style": "extruder",
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            0,
+            30
+        ]
+    },
+    {
+        "id": 638,
+        "name": "GOLD_INGOT",
+        "item": {"name": "ingot"},
+        "style": "extruder",
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            1,
+            30
+        ]
+    },
+    {
+        "id": 639,
+        "name": "COPPER_INGOT",
+        "item": {"name": "ingot"},
+        "style": "extruder",
+        "material": {
+            "id": "iron"
+        },
+        "texture": [
+            2,
+            30
+        ]
+    },
+    {
+        "id": 640,
+        "name": "NETHERITE_INGOT",
+        "item": {"name": "ingot"},
+        "style": "extruder",
+        "material": {
+            "id": "netherite"
+        },
+        "texture": [
+            3,
+            30
+        ]
+    },
+    {
+        "id": 641,
+        "name": "DIAMOND",
+        "item": {"name": "ingot"},
+        "style": "extruder",
+        "material": {
+            "id": "diamond"
+        },
+        "texture": [
+            4,
+            30
+        ]
     }
 ]

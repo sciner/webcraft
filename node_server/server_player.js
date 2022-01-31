@@ -284,6 +284,11 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
+                case ServerClient.CMD_INVENTORY_DECREMENT: {
+                    this.inventory.decrementByItemID(cmd.data.item_id, cmd.data.count);
+                    break;
+                }
+
                 case ServerClient.CMD_INVENTORY_SET_ITEM: {
                     this.inventory.setItem(cmd.data.index, cmd.data.item);
                     break;

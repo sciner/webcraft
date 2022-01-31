@@ -697,5 +697,305 @@
             "item": "madcraft:stone_hoe",
             "count": 1
         }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "#|",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_axe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "###",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_pickaxe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_shovel",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "#",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_sword",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_hoe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "#|",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_axe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "###",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_pickaxe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_shovel",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "#",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_sword",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:gold_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:gold_hoe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "#|",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_axe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "###",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_pickaxe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_shovel",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "#",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_sword",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            " |",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:diamond"
+            }
+        },
+        "result": {
+            "item": "madcraft:diamond_hoe",
+            "count": 1
+        }
     }
 ]
