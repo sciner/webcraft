@@ -13,7 +13,7 @@ export default class WorldEdit {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            switch (cmd) {
+            switch(cmd) {
                 case '//desel': {
                     player.pos1 = null;
                     player.pos2 = null;
@@ -48,59 +48,98 @@ export default class WorldEdit {
                     return true;
                     break;
                 }
-                case '//set': {
-                    const pn_set = performance.now();
+                case '//set':
+                case '//walls':
+                case '//faces': {
                     if(!chat.world.admins.checkIsAdmin(player)) {
                         throw 'error_not_permitted';
                     }
+                    let types = ['//set', '//walls', '//faces'];
+                    let quboid_fill_type_id = types.indexOf(cmd) + 1;
+                    const qi = this.getCuboidInfo(player);
                     args = chat.parseCMD(args, ['string', 'string']);
-                    if(!player.pos1) {
-                        throw 'error_pos1_not_defined';
-                    }
-                    if(!player.pos2) {
-                        throw 'error_pos2_not_defined';
-                    }
-                    const volume = player.pos1.volume(player.pos2);
-                    if(volume < 1) {
-                        throw 'error_volume_0';
-                    }
-                    if(volume > MAX_SET_BLOCK) {
-                        throw 'error_volume_max_' + MAX_SET_BLOCK;
-                    }
-                    const volx = Math.abs(player.pos1.x - player.pos2.x) + 1;
-                    const voly = Math.abs(player.pos1.y - player.pos2.y) + 1;
-                    const volz = Math.abs(player.pos1.z - player.pos2.z) + 1;
-                    const signx = player.pos1.x > player.pos2.x ? -1 : 1;
-                    const signy = player.pos1.y > player.pos2.y ? -1 : 1;
-                    const signz = player.pos1.z > player.pos2.z ? -1 : 1;
                     const palette = this.createBlocksPalette(args[1]);
-                    let actions = {blocks: {
-                        list: [],
-                        options: {
-                            ignore_check_air: true,
-                            on_block_set: false
-                        }}};
-                    const pos1 = player.pos1.clone();
-                    for(let x = 0; x < volx; x++) {
-                        for(let y = 0; y < voly; y++) {
-                            for(let z = 0; z < volz; z++) {
-                                let bpos = new Vector(pos1.x, pos1.y, pos1.z);
-                                bpos.x += x * signx;
-                                bpos.y += y * signy;
-                                bpos.z += z * signz;
-                                actions.blocks.list.push({pos: bpos, item: {id: palette.next().block_id}});
-                            }
-                        }
-                    }
-                    await chat.world.applyActions(null, actions, false);
-                    chat.sendSystemChatMessageToSelectedPlayers(`${volume} blocks changed`, [player.session.user_id]);
-                    console.log('Time took: ' + (performance.now() - pn_set));
+                    await this.fillQuboid(chat, player, qi, palette, quboid_fill_type_id);
                     return true;
                     break;
                 }
             }
             return false;
         });
+    }
+
+    //
+    async fillQuboid(chat, player, qi, palette, quboid_fill_type_id) {
+        const pn_set = performance.now();
+        let actions = {blocks: {
+            list: [],
+            options: {
+                ignore_check_air: true,
+                on_block_set: false
+            }
+        }};
+        for(let x = 0; x < qi.volx; x++) {
+            for(let y = 0; y < qi.voly; y++) {
+                for(let z = 0; z < qi.volz; z++) {
+                    switch(quboid_fill_type_id) {
+                        // full
+                        case 1: {
+                            // do nothing
+                            break;
+                        }
+                        // only walls
+                        case 2: {
+                            if((x > 0 && y >= 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly && z < qi.volz - 1)) {
+                                continue;
+                            }
+                            break;
+                        }
+                        // only faces
+                        case 3: {
+                            if((x > 0 && y > 0 && z > 0) && (x < qi.volx - 1 && y < qi.voly - 1 && z < qi.volz - 1)) {
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                    let bpos = new Vector(qi.pos1.x, qi.pos1.y, qi.pos1.z);
+                    bpos.x += x * qi.signx;
+                    bpos.y += y * qi.signy;
+                    bpos.z += z * qi.signz;
+                    actions.blocks.list.push({pos: bpos, item: {id: palette.next().block_id}});
+                }
+            }
+        }
+        await chat.world.applyActions(null, actions, false);
+        chat.sendSystemChatMessageToSelectedPlayers(`${qi.volume} blocks changed`, [player.session.user_id]);
+        console.log('Time took: ' + (performance.now() - pn_set));
+    }
+
+    // Return quboid info
+    getCuboidInfo(player) {
+        if(!player.pos1) {
+            throw 'error_pos1_not_defined';
+        }
+        if(!player.pos2) {
+            throw 'error_pos2_not_defined';
+        }
+        const volume = player.pos1.volume(player.pos2);
+        if(volume < 1) {
+            throw 'error_volume_0';
+        }
+        if(volume > MAX_SET_BLOCK) {
+            throw 'error_volume_max_' + MAX_SET_BLOCK;
+        }
+        return {
+            pos1: player.pos1.clone(),
+            volume: volume,
+            volx: Math.abs(player.pos1.x - player.pos2.x) + 1,
+            voly: Math.abs(player.pos1.y - player.pos2.y) + 1,
+            volz: Math.abs(player.pos1.z - player.pos2.z) + 1,
+            signx: player.pos1.x > player.pos2.x ? -1 : 1,
+            signy: player.pos1.y > player.pos2.y ? -1 : 1,
+            signz: player.pos1.z > player.pos2.z ? -1 : 1
+        };
     }
 
     //set 10%0,20%dirt

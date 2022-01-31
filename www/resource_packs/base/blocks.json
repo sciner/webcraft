@@ -738,6 +738,7 @@
         "id": 9,
         "name": "CONCRETE",
         "sound": "madcraft:block.stone",
+        "drop_item": {"name": "COBBLESTONE", "count": 1, "chance": 1},
         "material": {
             "id": "stone"
         },
@@ -938,6 +939,7 @@
         "id": 16,
         "name": "COAL_ORE",
         "sound": "madcraft:block.stone",
+        "drop_item": {"name": "COAL", "count": 1, "chance": 1},
         "texture": [
             2,
             2
