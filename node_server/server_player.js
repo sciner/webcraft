@@ -249,11 +249,6 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
-                /*case ServerClient.CMD_BLOCK_SET: {
-                    await this.world.setBlock(this, cmd.data);
-                    break;
-                }*/
-
                 case ServerClient.CMD_PICKAT_ACTION: {
                     this.world.pickAtAction(this, cmd.data);
                     break;
@@ -286,6 +281,11 @@ export class ServerPlayer extends Player {
 
                 case ServerClient.CMD_INVENTORY_INCREMENT: {
                     this.inventory.increment(cmd.data);
+                    break;
+                }
+
+                case ServerClient.CMD_INVENTORY_DECREMENT: {
+                    this.inventory.decrementByItemID(cmd.data.item_id, cmd.data.count);
                     break;
                 }
 

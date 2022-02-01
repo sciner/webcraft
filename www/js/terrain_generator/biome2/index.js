@@ -65,9 +65,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 };
                 vox_templates.monu10 = {chunk: chunks[0], palette: palette};
             });
-            await Vox_Loader.load(root_dir + '/data/vox/small_castle.vox', (chunks) => {
-                vox_templates.small_castle = {chunk: chunks[0], palette: {}};
-            });
             await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
                 let palette = {
                     93: BLOCK.GRAVEL,

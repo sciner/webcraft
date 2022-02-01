@@ -22,7 +22,7 @@ export class RaycasterResult {
         this.y = leftTop.y;
         this.z = leftTop.z;
         this.n = side;
-        this.point = new Vector(pos.x, pos.y, pos.z).sub(leftTop);
+        this.point = new Vector(pos.x, pos.y, pos.z).subSelf(leftTop);
         if(point_precision != 1) {
             this.point.x = Math.round(this.point.x * point_precision) / point_precision;
             this.point.y = Math.round(this.point.y * point_precision) / point_precision;
@@ -38,6 +38,7 @@ export class Raycaster {
         this.world = world;
         this._dir = new Vector(0, 0, 0);
         this._pos = new Vector(0, 0, 0);
+        this._blk = new Vector(0, 0, 0);
     }
 
     /**
@@ -79,7 +80,10 @@ export class Raycaster {
         check.zero();
 
         let res = null;
-        let block = new Vector(startBlock);
+        if(!this._block_vec) {
+            this._block_vec = new Vector(0, 0, 0);
+        }
+        let block = this._block_vec.copyFrom(startBlock);
 
         while (Math.abs(block.x - startBlock.x) < pickat_distance
             && Math.abs(block.y - startBlock.y) < pickat_distance
@@ -103,7 +107,7 @@ export class Raycaster {
             leftTop.x = Math.floor(block.x);
             leftTop.y = Math.floor(block.y);
             leftTop.z = Math.floor(block.z);
-            let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z);
+            let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
             let hitShape = b.id > BLOCK.AIR.id && b.id !== BLOCK.STILL_WATER.id;
 
@@ -171,7 +175,7 @@ export class Raycaster {
                 break;
             }
 
-            block = block.add(side);
+            block.addSelf(side);
             if (!ALLOW_NEGATIVE_Y && block.y < 0) {
                 break;
             }

@@ -6,6 +6,9 @@ import {BLOCK} from "./blocks.js";
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
 
+export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
+
 const CC = [
     {x:  0, y:  1, z:  0},
     {x:  0, y: -1, z:  0},
@@ -211,22 +214,17 @@ export class ChunkManager {
         if(!this.worker_inited || !this.nearby) {
             return;
         }
-        let groups = [];
-        if(transparent) {
-            groups = ['transparent', 'doubleface_transparent'];
-        } else {
-            groups = ['regular', 'doubleface'];
-        }
         const rpList = this.renderList.get(resource_pack.id);
         if (!rpList) {
             return true;
         }
+        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
         for(let group of groups) {
-            const mat = resource_pack.shader.materials[group];
             const list = rpList.get(group);
             if (!list) {
                 continue;
             }
+            const mat = resource_pack.shader.materials[group];
             for (let i = 0; i < list.length; i += 2) {
                 const chunk = list[i];
                 const vertices = list[i + 1];
@@ -364,16 +362,16 @@ export class ChunkManager {
     }
 
     // Возвращает блок по абслютным координатам
-    getBlock(x, y, z) {
+    getBlock(x, y, z, v) {
         if(x instanceof Vector || typeof x == 'object') {
             y = x.y;
             z = x.z;
             x = x.x;
         }
-        let addr = getChunkAddr(x, y, z);
-        let chunk = this.chunks.get(addr);
+        this.get_block_chunk_addr = getChunkAddr(x, y, z, this.get_block_chunk_addr);
+        let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
-            return chunk.getBlock(x, y, z);
+            return chunk.getBlock(x, y, z, v);
         }
         return this.DUMMY;
     }

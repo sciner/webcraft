@@ -410,6 +410,8 @@ export class BLOCK {
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
         block.can_rotate        = 'can_rotate' in block ? block.can_rotate : block.tags.filter(x => ['trapdoor', 'stairs', 'door'].indexOf(x) >= 0).length > 0;
+        block.tx_cnt            = BLOCK.calcTxCnt(block);
+        //
         if(block.planting && !('inventory_style' in block)) {
             block.inventory_style = 'extruder';
         }
@@ -439,6 +441,7 @@ export class BLOCK {
         if(replace_block) {
             original_props.push('resource_pack');
             original_props.push('material_key');
+            original_props.push('tx_cnt');
             for(let prop_name of original_props) {
                 existing_block[prop_name] = block[prop_name];
             }
@@ -479,6 +482,23 @@ export class BLOCK {
         return `${resource_pack.id}/${mat_group}/${texture_id}`;
     }
 
+    // Return tx_cnt from resource pack texture
+    static calcTxCnt(material) {
+        let tx_cnt = TX_CNT;
+        if (typeof material.texture === 'object' && 'id' in material.texture) {
+            let tex = material.resource_pack.conf.textures[material.texture.id];
+            if(tex && 'tx_cnt' in tex) {
+                tx_cnt = tex.tx_cnt;
+            }
+        } else {
+            let tex = material.resource_pack.conf.textures['default'];
+            if(tex && 'tx_cnt' in tex) {
+                tx_cnt = tex.tx_cnt;
+            }
+        }
+        return tx_cnt;
+    }
+
     // getAll
     static getAll() {
         return this.list;
@@ -490,14 +510,7 @@ export class BLOCK {
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
     static calcMaterialTexture(material, dir, width, height, block) {
-        let tx_cnt = TX_CNT;
-        // Get tx_cnt from resource pack texture
-        if (typeof material.texture === 'object' && 'id' in material.texture) {
-            let tex = material.resource_pack.conf.textures[material.texture.id];
-            if('tx_cnt' in tex) {
-                tx_cnt = tex.tx_cnt;
-            }
-        }
+        let tx_cnt = material.tx_cnt;
         let texture = material.texture;
         // Stages
         if(material.stage_textures && block && block.extra_data) {
@@ -673,7 +686,7 @@ export class BLOCK {
                     let height = for_physic ? 1.5 : 1;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canFenceConnect(n.SOUTH)) {
                         shapes.push([.5-2/16, 5/16, 0, .5+2/16, height, .5+2/16]);
@@ -710,7 +723,7 @@ export class BLOCK {
                     let xconnects = 0;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     // South z--
                     if(this.canWallConnect(n.SOUTH)) {
                         shapes.push([.5-CONNECT_X/2, CONNECT_BOTTOM, 0, .5-CONNECT_X/2 + CONNECT_X, height, CONNECT_Z]);
@@ -787,7 +800,7 @@ export class BLOCK {
                     let w2 = w/2;
                     //
                     let n = this.autoNeighbs(world.chunkManager, pos, 0, neighbours);
-                    world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+                    // world.chunkManager.getBlock(pos.x, pos.y, pos.z);
                     let con_s = this.canPaneConnect(n.SOUTH);
                     let con_n = this.canPaneConnect(n.NORTH);
                     let con_w = this.canPaneConnect(n.WEST);

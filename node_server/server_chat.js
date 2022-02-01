@@ -283,11 +283,10 @@ export class ServerChat {
                     break;
                 }
                 case 'string': {
-                    let value = parseFloat(ch);
-                    if (isNaN(value)) {
+                    if (isNaN(ch)) {
                         resp.push(ch);
                     } else {
-                        resp.push(value);
+                        resp.push(parseFloat(ch));
                     }
                     break;
                 }

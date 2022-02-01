@@ -92,9 +92,10 @@ export class ServerWorld {
         await this.restoreModifiedChunks();
         await this.chunks.initWorker();
         //
-        this.tickerWorldTimer = setInterval(() => {
-            this.tick();
-        }, 50);
+        //this.tickerWorldTimer = setInterval(() => {
+        //    this.tick();
+        //}, 50);
+        this.tick();
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -133,6 +134,7 @@ export class ServerWorld {
 
     // World tick
     async tick() {
+        let started = performance.now();
         let delta = 0;
         if(this.pn) {
             delta = (performance.now() - this.pn) / 1000;
@@ -163,6 +165,13 @@ export class ServerWorld {
         this.ticks_stat.add('pickat_action_queue');
         //
         this.ticks_stat.end();
+        //
+        let elapsed = performance.now() - started;
+        setTimeout(() => {
+                this.tick()
+            }, 
+            elapsed < 50 ? (50 - elapsed) : 0    
+        ); 
     }
 
     save() {
@@ -558,6 +567,8 @@ export class ServerWorld {
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
                     await this.db.blockSet(this, null, params);
+                    // 2. Mark as became modifieds
+                    this.chunkBecameModified(chunk_addr);
                     if(chunk) {
                         const block_pos = new Vector(params.pos).floored();
                         const block_pos_in_chunk = block_pos.sub(chunk.coord);
@@ -583,8 +594,6 @@ export class ServerWorld {
                                 }
                             }
                         }
-                        // 2. Mark as became modifieds
-                        this.chunkBecameModified(chunk_addr);
                         // 3. Store in chunk tblocks
                         chunk.tblocks.delete(block_pos_in_chunk);
                         let tblock           = chunk.tblocks.get(block_pos_in_chunk);

@@ -287,7 +287,7 @@ export class HUD {
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
-            this.text += '\nRenderer: ' + vci.renderer;
+            this.text += 'Renderer: ' + vci.renderer + '\n';
         }
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
@@ -362,7 +362,7 @@ export class HUD {
 
     // Draw game technical info
     drawInfo() {
-        if(!this.draw_info) {
+        if(!this.draw_info || !this.text) {
             return;
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);

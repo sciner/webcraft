@@ -43,7 +43,7 @@ export class Player {
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
             if(!mode.can_fly) {
-                this.lastBlockPos = this.getBlockPos();
+                this.lastBlockPos = this.getBlockPos().clone();
                 this.setFlying(false);
             } else if(mode.id == GAME_MODE.SPECTATOR) {
                 this.setFlying(true);
@@ -57,9 +57,10 @@ export class Player {
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
-        this.chunkAddr              = getChunkAddr(this.pos);
-        this.blockPos               = this.getBlockPos();
+        this._block_pos             = new Vector(0, 0, 0);
+        this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
+        this.chunkAddr              = getChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
@@ -305,19 +306,12 @@ export class Player {
         //}
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
-                const pos = mod.pos;
-                const item = mod.item;
-                const rotate = item.rotate;
-                const extra_data = item.extra_data;
                 switch(mod.action_id) {
                     case ServerClient.BLOCK_ACTION_CREATE:
                     case ServerClient.BLOCK_ACTION_REPLACE:
-                    case ServerClient.BLOCK_ACTION_MODIFY: {
-                        this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                        break;
-                    }
+                    case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
-                        this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
+                        this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }
                 }
@@ -358,7 +352,7 @@ export class Player {
 
     // getBlockPos
     getBlockPos() {
-        return this.pos.floored();
+        return this._block_pos.copyFrom(this.pos).floored();
     }
 
     //

@@ -183,6 +183,7 @@ export class PlayerInventory {
                 }
             }
         }
+        this.refresh(true);
     }
 
     // Клонирование материала в инвентарь

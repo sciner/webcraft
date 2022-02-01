@@ -186,6 +186,7 @@ export class Renderer {
         this.camPos             = this.globalUniforms.camPos;
 
         this.setPerspective(FOV_NORMAL, NEAR_DISTANCE, RENDER_DISTANCE);
+        this.updateViewport();
 
         // HUD
         // Build main HUD
@@ -454,9 +455,6 @@ export class Renderer {
         globalUniforms.resolution       = [size.width, size.height];
         globalUniforms.localLigthRadius = 0;
 
-        renderBackend.stat.drawcalls = 0;
-        renderBackend.stat.drawquads = 0;
-
         let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
         let nightshift = 1.;
         let preset = PRESET_NAMES.NORMAL;
@@ -491,10 +489,10 @@ export class Renderer {
         }
 
         //
-        if(this.frame % 3 == 0) {
-            this.world.chunkManager.rendered_chunks.fact = 0;
-            this.world.chunkManager.prepareRenderList(this);
-        }
+        //if(this.frame % 3 == 0) {
+        this.world.chunkManager.rendered_chunks.fact = 0;
+        this.world.chunkManager.prepareRenderList(this);
+        //}
 
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
@@ -504,13 +502,20 @@ export class Renderer {
             globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
         }
 
-        this.defaultShader.texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture;
+        // Base texture
+        if(!this._base_texture) {
+            this._base_texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture
+        }
     }
 
     // Render one frame of the world to the canvas.
     draw (delta, args) {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
+
+        renderBackend.stat.drawcalls = 0;
+        renderBackend.stat.drawquads = 0;
+        this.defaultShader.texture = this._base_texture;
 
         // upload GU data from environment
         this.env.sync(renderBackend.globalUniforms);
@@ -550,7 +555,7 @@ export class Renderer {
                     this.drawMobs(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
-
+                    // 6. Draw meshes
                     this.meshes.draw(this, delta);
                 }
             }
@@ -627,6 +632,9 @@ export class Renderer {
 
     // drawPlayers
     drawPlayers(delta) {
+        if(this.world.players.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
@@ -639,6 +647,9 @@ export class Renderer {
 
     // drawMobs
     drawMobs(delta) {
+        if(this.world.mobs.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, mob] of this.world.mobs.list) {
@@ -648,9 +659,12 @@ export class Renderer {
 
     // drawDropItems
     drawDropItems(delta) {
+        if(this.world.drop_items.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;     
         defaultShader.bind();
-        for(let drop_item of this.world.drop_items.list.values()) {
+        for(let [id, drop_item] of this.world.drop_items.list) {
             drop_item.draw(this, delta);
         }
     }
@@ -762,10 +776,11 @@ export class Renderer {
                 vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
                 renderer:  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
             };
+        } else {
+            resp = {
+                error: 'no WEBGL_debug_renderer_info',
+            };
         }
-        resp = {
-            error: 'no WEBGL_debug_renderer_info',
-        };
         this.videoCardInfoCache = resp;
         return resp;
     }

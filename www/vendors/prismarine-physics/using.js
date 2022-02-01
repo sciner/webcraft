@@ -2,7 +2,7 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3} from "../../js/helpers.js";
+import {Vec3, Vector} from "../../js/helpers.js";
 import {BLOCK} from "../../js/blocks.js";
 import {Physics, PlayerState} from "./index.js";
 import {Resources} from "../../js/resources.js";
@@ -46,15 +46,17 @@ class FakeWorld {
 
     constructor(world) {
         this.world = world;
+        this.block_pos = new Vector(0, 0, 0);
+        this._pos = new Vector(0, 0, 0);
     }
 
     // getBlock...
     getBlock(pos) {
-        pos = pos.floored();
-        let b = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        this._pos.copyFrom(pos).flooredSelf();
+        let b = this.world.chunkManager.getBlock(this._pos.x, this._pos.y, this._pos.z);
         if (b.shapes === null) {
-            b.position = pos;
-            b.shapes = (b.id > 0) ? BLOCK.getShapes(pos, b, this.world, true, false) : [];
+            b.position = this._pos.clone();
+            b.shapes = (b.id > 0) ? BLOCK.getShapes(this._pos, b, this.world, true, false) : [];
         }
         return b;
     }

@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer} from "./helpers.js";
+import {Vector, AverageClockTimer, Mth} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -64,6 +64,11 @@ export class GameClass {
         bodyClassList.add('started');
         // Run render loop
         this.loop = this.loop.bind(this);
+
+        // Send player state
+        this.sendStateInterval = setInterval(() => {
+            this.sendPlayerState(player);
+        }, 50);
 
         this.render.requestAnimationFrame(this.loop);
     }
@@ -413,8 +418,6 @@ export class GameClass {
         let delta   = this.hud.FPS.delta;
 
         if(this.player.controls.enabled && !this.hud.splash.loading) {
-            // Simulate physics
-            this.world.physics.simulate();
             // Update local player
             player.update();
         } else {
@@ -437,13 +440,12 @@ export class GameClass {
         // or update without draw
         // like XR, it quiery frame more that 60 fps (90, 120) and we shpuld render each frame
         // but update can be called slowly
-        this.render.update(delta, args);
+        if(this.hud.FPS.frames % 3 == 0) {
+            this.render.update(delta, args);
+        }
 
         // Draw world
         this.render.draw(delta, args);
-
-        // Send player state
-        this.sendPlayerState(player);
 
         // Счетчик FPS
         this.hud.FPS.incr();

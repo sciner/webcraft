@@ -51,6 +51,7 @@ export class ServerClient {
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79;
     static CMD_INVENTORY_INCREMENT      = 82;
+    static CMD_INVENTORY_DECREMENT      = 90;
     static CMD_INVENTORY_SET_ITEM       = 83;
 
     // Mobs    
@@ -168,6 +169,7 @@ export class ServerClient {
                 break;
             }
         }
+        // Only set blocks
         if(only_set_blocks) {
             let prev_chunk_addr     = new Vector(Infinity, Infinity, Infinity);
             let chunk_addr          = new Vector(Infinity, Infinity, Infinity);
@@ -217,7 +219,6 @@ export class ServerClient {
                 tblock.entity_id    = entity_id;
                 tblock.rotate       = rotate;
                 tblock.power        = power;
-                // tblock.falling       = !!material.gravity;
                 //
                 set_block_list.push({
                     key:        chunk_key,
@@ -401,6 +402,14 @@ export class ServerClient {
     // @temporarly
     sendInventoryIncrement(item) {
         this.Send({name: ServerClient.CMD_INVENTORY_INCREMENT, data: item});
+    }
+
+    // @temporarly
+    sendInventoryDecrement(item_id, count) {
+        this.Send({name: ServerClient.CMD_INVENTORY_DECREMENT, data: {
+            item_id: item_id,
+            count: count
+        }});
     }
 
     // @temporarly

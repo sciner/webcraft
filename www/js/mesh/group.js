@@ -60,6 +60,7 @@ export class MeshGroup {
         this.aabb       = new AABB();
         this.multipart  = false;
         this.air_block  = new FakeTBlock(BLOCK.AIR.id);
+        this.find_beighbours_pos = new Vector(0, 0, 0);
     }
 
     // Add block
@@ -89,7 +90,8 @@ export class MeshGroup {
                 EAST:   this.air_block
             };
             for(let n of neighbours_map) {
-                const nb = this.vc.get(pos.add(n.offset));
+                this.find_beighbours_pos.copyFrom(pos).addSelf(n.offset);
+                const nb = this.vc.get(this.find_beighbours_pos);
                 if(nb) {
                     item.neighbours[n.side] = nb.block;
                 }
