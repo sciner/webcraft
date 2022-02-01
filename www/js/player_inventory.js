@@ -343,7 +343,7 @@ export class PlayerInventory {
                     power:      item.power
                 };
                 // Individual properties
-                for(let prop of ['entity_id', 'entity_name']) {
+                for(let prop of ['entity_id', 'entity_name', 'extra_data']) {
                     t[prop] = null;
                     if(item.hasOwnProperty(prop)) {
                         t[prop] = item[prop];
