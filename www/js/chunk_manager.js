@@ -27,7 +27,8 @@ export class ChunkManager {
     static instance;
 
     constructor(world) {
-        let that                    = this;
+        ChunkManager.instance = this;
+
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
@@ -49,6 +50,12 @@ export class ChunkManager {
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+
+    }
+
+    init () {
+        const world                   = this.world;
+        const that                    = this;
         //
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
@@ -133,7 +140,6 @@ export class ChunkManager {
         this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
         this.postLightWorkerMessage(['init', null]);
 
-        ChunkManager.instance = this;
     }
 
     //

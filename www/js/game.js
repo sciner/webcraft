@@ -21,6 +21,8 @@ export class GameClass {
         this.hud        = new HUD(0, 0);
         this.hotbar     = new Hotbar(this.hud);
         this.render     = new Renderer('renderSurface');
+        this.world      = new World();
+
         this.current_player_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
@@ -32,18 +34,25 @@ export class GameClass {
     async Start(server_url, world_guid, settings, resource_loading_progress) {
         // Load resources
         Resources.onLoading = resource_loading_progress;
+
         await Resources.load({
             imageBitmap:    true,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
+
         //
         await BLOCK.init(settings);
+
+        this.world.init(settings);
+
         // Create world
-        this.world = new World(settings);
         await this.render.init(this.world, settings);
+
         let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+
         await this.world.connectToServer(ws);
+
         return this.world;
     }
 
