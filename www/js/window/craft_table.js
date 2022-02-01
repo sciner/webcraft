@@ -55,6 +55,8 @@ export class CraftTable extends BaseCraftWindow {
             // Close recipe window
             Game.hud.wm.getWindow('frmRecipe').hide();
             this.clearCraft();
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems());
         }
 
         // Add labels to window

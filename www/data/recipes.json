@@ -12,7 +12,7 @@
             }
         },
         "result": {
-            "item": "madcraft:oak_plank",
+            "item": "madcraft:birch_plank",
             "count": 4
         }
     },
@@ -53,9 +53,7 @@
     {
         "type": "madcraft:crafting_shaped",
         "pattern": [
-            "   ",
-            "   ",
-            "W  "
+            "W"
         ],
         "key": {
             "W": {
@@ -995,6 +993,125 @@
         },
         "result": {
             "item": "madcraft:diamond_hoe",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:oak_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:oak_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:acacia_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:acacia_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:spruce_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:spruce_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:birch_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:birch_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:dark_oak_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:dark_oak_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:jungle_plank"
+            }
+        },
+        "result": {
+            "item": "madcraft:jungle_door",
+            "count": 1
+        }
+    },
+    {
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "##",
+            "##"
+        ],
+        "key": {
+            "#": {
+                "item": "madcraft:iron_ingot"
+            }
+        },
+        "result": {
+            "item": "madcraft:iron_door",
             "count": 1
         }
     }

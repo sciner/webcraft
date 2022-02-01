@@ -160,7 +160,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item) {
+    static convertItemToInventoryItem(item, b) {
         if(!item || !('id' in item) || item.id < 0) {
             return null;
         }
@@ -168,6 +168,17 @@ export class BLOCK {
             id: item.id
         };
         for(let k of ITEM_INVENTORY_PROPS) {
+            if(b) {
+                if(k in b) {
+                    if(k == 'power' && b.power == 1) {
+                        continue;
+                    }
+                } else {
+                    if(k != 'count') {
+                        continue;
+                    }
+                }
+            }
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;
