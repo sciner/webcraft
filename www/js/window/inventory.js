@@ -62,7 +62,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             // Drag
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
-                this.inventory.sendInventoryIncrement(dragItem.item);
+                this.inventory.increment(dragItem.item);
             }
             this.getRoot().drag.clear();
             // Clear result
@@ -70,10 +70,12 @@ export default class InventoryWindow extends BaseCraftWindow {
             //
             for(let slot of this.craft.slots) {
                 if(slot && slot.item) {
-                    this.inventory.sendInventoryIncrement(slot.item);
-                    slot.item = null;
+                    this.inventory.increment(slot.item);
+                    slot.setItem(null);
                 }
             }
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems());
         }
 
         // Add labels to window

@@ -560,7 +560,7 @@ export class ServerWorld {
             await this.db.TransactionBegin();
             try {
                 for(let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToInventoryItem(params.item);
+                    params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if(!prev_chunk_addr.equal(chunk_addr)) {
                         chunk = this.chunks.get(chunk_addr);

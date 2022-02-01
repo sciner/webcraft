@@ -18,7 +18,7 @@ export class Inventory extends PlayerInventory {
         //
         this.select(this.current.index);
         // Recipe manager
-        this.recipes = new RecipeManager();
+        this.recipes = new RecipeManager(true);
     }
 
     setState(inventory_state) {
@@ -154,20 +154,6 @@ export class Inventory extends PlayerInventory {
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         this.hud.wm.add(this.frmChest);
-    }
-
-    // sendIncrement...
-    sendInventoryIncrement(item) {
-        // @todo inventory
-        console.error('Нужно перенести на сервер');
-        this.player.world.server.sendInventoryIncrement(BLOCK.convertItemToInventoryItem(item));
-    }
-    
-    //
-    setItem(index, item) {
-        // @todo inventory
-        console.error('Нужно перенести на сервер');
-        this.player.world.server.setInventoryItem(index, BLOCK.convertItemToInventoryItem(item));
     }
 
 }

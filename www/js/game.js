@@ -451,11 +451,13 @@ export class GameClass {
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState(player) {
-        this.current_player_state.rotate.set(player.rotate.x, player.rotate.y, player.rotate.z);
-        this.current_player_state.pos.set(Math.round(player.lerpPos.x * 1000) / 1000, Math.round(player.lerpPos.y * 1000) / 1000, Math.round(player.lerpPos.z * 1000) / 1000);
+        // this.current_player_state.rotate.set(player.rotate.x, player.rotate.y, player.rotate.z);
+        this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
+        this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
         this.ping = Math.round(this.player.world.server.ping_value);
         let current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {
+            console.log('diff')
             this.prev_player_state = current_player_state_json;
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,

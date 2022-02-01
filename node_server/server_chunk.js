@@ -291,7 +291,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        return BLOCK.convertItemToInventoryItem(block);
+        return BLOCK.convertItemToDBItem(block);
     }
 
     // onBlockSet

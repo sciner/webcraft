@@ -10,6 +10,7 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
+export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'entity_name', 'extra_data', 'power'];
 const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
@@ -142,7 +143,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item) {
+    static convertItemToDBItem(item) {
         if(!item || !('id' in item)) {
             return null;
         }
@@ -150,6 +151,23 @@ export class BLOCK {
             id: item.id
         };
         for(let k of ITEM_DB_PROPS) {
+            let v = item[k];
+            if(v !== undefined && v !== null) {
+                resp[k] = v;
+            }
+        }
+        return resp;
+    }
+
+    // Return new simplified item
+    static convertItemToInventoryItem(item) {
+        if(!item || !('id' in item) || item.id < 0) {
+            return null;
+        }
+        const resp = {
+            id: item.id
+        };
+        for(let k of ITEM_INVENTORY_PROPS) {
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;

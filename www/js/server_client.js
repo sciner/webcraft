@@ -49,10 +49,8 @@ export class ServerClient {
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
-    static CMD_INVENTORY_SELECT         = 79;
-    static CMD_INVENTORY_INCREMENT      = 82;
-    static CMD_INVENTORY_DECREMENT      = 90;
-    static CMD_INVENTORY_SET_ITEM       = 83;
+    static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
+    static CMD_INVENTORY_NEW_STATE      = 90;
 
     // Mobs    
 	static CMD_MOB_ADD                  = 70;
@@ -384,6 +382,11 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_INVENTORY_SELECT, data: data});
     }
 
+    // Save inventory
+    InventoryNewState(state) {
+        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, data: state});
+    }
+
     // Switch to next game mode
     GameModeNext() {
         this.Send({name: ServerClient.CMD_GAMEMODE_NEXT, data: null});
@@ -397,27 +400,6 @@ export class ServerClient {
     // Clone block from pos
     CloneBlock(pos) {
         this.Send({name: ServerClient.CMD_BLOCK_CLONE, data: pos});
-    }
-
-    // @temporarly
-    sendInventoryIncrement(item) {
-        this.Send({name: ServerClient.CMD_INVENTORY_INCREMENT, data: item});
-    }
-
-    // @temporarly
-    sendInventoryDecrement(item_id, count) {
-        this.Send({name: ServerClient.CMD_INVENTORY_DECREMENT, data: {
-            item_id: item_id,
-            count: count
-        }});
-    }
-
-    // @temporarly
-    setInventoryItem(index, item) {
-        this.Send({name: ServerClient.CMD_INVENTORY_SET_ITEM, data: {
-            index: index,
-            item: item
-        }});
     }
 
     DropItem() {

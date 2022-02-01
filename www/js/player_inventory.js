@@ -1,6 +1,7 @@
-import {BLOCK} from "./blocks.js";
+import {BLOCK, ITEM_INVENTORY_PROPS} from "./blocks.js";
 import {Helpers, Vector} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
+import {InventoryComparator} from "./inventory_comparator.js";
 
 export class PlayerInventory {
 
@@ -40,6 +41,30 @@ export class PlayerInventory {
         this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_count - 1);
         this.refresh(send_state);
+    }
+
+    // Игрок прислал новое состояние инвентаря, нужно его провалидировать и применить
+    async newState(state) {
+        if('current' in state) {
+            // @todo
+        }
+        // New state
+        if('items' in state) {
+            if(await InventoryComparator.checkEqual(this.items, state.items)) {
+                // apply new
+                for(let i in state.items) {
+                    state.items[i] = BLOCK.convertItemToInventoryItem(state.items[i]);
+                }
+                this.items = state.items;
+                // send current to player
+                this.refresh(true);
+                console.log('Applied new state');
+            } else {
+                // send current to player
+                this.refresh(true);
+                console.log('Ignore new state');
+            }
+        }
     }
 
     // Return current active item in hotbar
@@ -321,7 +346,7 @@ export class PlayerInventory {
                 for(let prop of ['entity_id', 'entity_name']) {
                     t[prop] = null;
                     if(item.hasOwnProperty(prop)) {
-                        t.entity_id = item[prop];
+                        t[prop] = item[prop];
                     }
                 }
             }

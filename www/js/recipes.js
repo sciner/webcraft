@@ -4,7 +4,7 @@ import {BLOCK} from "./blocks.js";
 
 export class RecipeManager {
 
-    constructor() {
+    constructor(force_load) {
         this.all = [];
         this.crafting_shaped = {
             list: [],
@@ -19,13 +19,29 @@ export class RecipeManager {
                 return null;
             }
         };
-        this.load(() => {
-            if(!Game.is_server) {
-                // Recipe window
-                this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
-                Game.hud.wm.add(this.frmRecipe);
+        if(force_load) {
+            this.load(() => {
+                if(!Game.is_server) {
+                    // Recipe window
+                    this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
+                    Game.hud.wm.add(this.frmRecipe);
+                }
+            });
+        }
+    }
+
+    // Return item recipe
+    getRecipe(item_id) {
+        let b = BLOCK.fromId(item_id);
+        for(let r of this.crafting_shaped.list) {
+            let n = r.result.item.split(':');
+            if(n.length == 2) {
+                if(n[1] == b.name.toLowerCase()) {
+                    return r;
+                }
             }
-        });
+        }
+        return null;
     }
 
     add(recipe) {

@@ -510,7 +510,7 @@ export class BaseCraftWindow extends Window {
         // Drag
         let dragItem = this.getRoot().drag.getItem();
         if(dragItem) {
-            this.inventory.sendInventoryIncrement(dragItem.item);
+            this.inventory.increment(dragItem.item);
         }
         this.getRoot().drag.clear();
         // Clear result
@@ -520,7 +520,7 @@ export class BaseCraftWindow extends Window {
             if(slot) {
                 let item = slot.getItem();
                 if(item) {
-                    this.inventory.sendInventoryIncrement(slot.item);
+                    this.inventory.increment(slot.item);
                     slot.setItem(null);
                 }
             }
@@ -581,7 +581,7 @@ export class BaseCraftWindow extends Window {
                 }
                 let count = 1;
                 item.count += count;
-                Game.world.server.sendInventoryDecrement(item_id, count);
+                // Game.world.server.sendInventoryDecrement(item_id, count);
             } else {
                 item = null;
             }
