@@ -524,6 +524,7 @@ export class ServerWorld {
             const params = actions.create_painting;
             const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
             await this.db.createPainting(this, server_player, pos, params);
+            server_player.inventory.decrement();
             const cps = getChunkPackets(pos);
             if(cps) {
                 if(!cps.chunk) {

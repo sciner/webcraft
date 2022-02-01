@@ -110,14 +110,6 @@ export class Inventory extends PlayerInventory {
                     DEST_SIZE,
                     DEST_SIZE
                     );
-                if(item.count > 1) {
-                    hud.ctx.textBaseline    = 'bottom';
-                    hud.ctx.font            = Math.round(18 * zoom) + 'px Ubuntu';
-                    hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size);
-                    hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size - 2 * zoom);
-                }
                 // Draw instrument life
                 if(mat.item?.instrument_id && item.power < mat.power) {
                     const power_normal = item.power / mat.power;
@@ -131,6 +123,19 @@ export class Inventory extends PlayerInventory {
                     let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
                     hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw * power_normal | 0, 4 * zoom);
+                }
+                // Draw label
+                let label = item.count > 1 ? item.count : null;
+                if(!label && 'power' in item) {
+                    label = item.power;
+                }
+                if(label) {
+                    hud.ctx.textBaseline = 'bottom';
+                    hud.ctx.font = Math.round(18 * zoom) + 'px Ubuntu';
+                    hud.ctx.fillStyle = '#000000ff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size);
+                    hud.ctx.fillStyle = '#ffffffff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size - 2 * zoom);
                 }
             }
             hud_pos.x += cell_size;

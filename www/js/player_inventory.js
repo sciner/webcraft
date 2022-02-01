@@ -53,7 +53,11 @@ export class PlayerInventory {
             if(await InventoryComparator.checkEqual(this.items, state.items)) {
                 // apply new
                 for(let i in state.items) {
-                    state.items[i] = BLOCK.convertItemToInventoryItem(state.items[i]);
+                    let b = null;
+                    if(state.items[i]) {
+                        b = BLOCK.fromId(state.items[i].id)
+                    }
+                    state.items[i] = BLOCK.convertItemToInventoryItem(state.items[i], b);
                 }
                 this.items = state.items;
                 // send current to player
@@ -156,9 +160,11 @@ export class PlayerInventory {
         const current_item_material = BLOCK.fromId(this.current_item.id);
         if(current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - .01, 0);
+            this.current_item.power = Math.round(this.current_item.power * 1000) / 1000;
             if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
             }
+            this.refresh(true);
         }
     }
     

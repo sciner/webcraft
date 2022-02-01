@@ -12,9 +12,19 @@ export class InventoryComparator {
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
-        for(let [k, v] of new_simple.entries()) {
-            console.log(k, JSON.stringify(v));
-        }
+        /*
+            console.log('>>>>>>>>>>>>>>>>>>>');
+            for(let [k, v] of new_simple.entries()) {
+                console.log(' ' + k, JSON.stringify(v));
+            }
+            console.log('<<<<<<<<<<<<<<<<<<<');
+
+            console.log('>>>>>>>>>>>>>>>>>>>');
+            for(let [k, v] of old_simple.entries()) {
+                console.log(' ' + k, JSON.stringify(v));
+            }
+            console.log('<<<<<<<<<<<<<<<<<<<');
+        */
 
         // 1. Check full equal
         let equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
@@ -23,6 +33,7 @@ export class InventoryComparator {
         if(!equal) {
             // Find crafted items
             const crafts = [];
+            // console.log('\n' + Array.from(old_simple.keys()).join('\n -') + '\n');
             for(let [key, item] of new_simple) {
                 if(!old_simple.has(key)) {
                     // new item, not exists in old state
@@ -48,10 +59,10 @@ export class InventoryComparator {
                     if(b.power !== 1) {
                         if('power' in cr.item) {
                             if(b.power != cr.item.power) {
-                                throw 'error_invalid_power';
+                                throw 'error_invalid_start_power';
                             }
                         } else {
-                            throw 'error_empty_power';
+                            throw 'error_empty_sytart_power';
                         }
                     }
                     // Проверка extra_data (если это используется в скрафченном предмете)
@@ -72,7 +83,8 @@ export class InventoryComparator {
                     for(let nr of cr.recipe.need_resources) {
                         let used_item = new_simple.get(nr.item_id);
                         if(!used_item) {
-                            used_item = BLOCK.convertItemToInventoryItem(BLOCK.fromId(nr.item_id));
+                            let cb = BLOCK.fromId(nr.item_id);
+                            used_item = BLOCK.convertItemToInventoryItem(cb, cb);
                             used_item.count = 0;
                             new_simple.set(nr.item_id, used_item);
                         }
@@ -83,7 +95,7 @@ export class InventoryComparator {
                 }
             } catch(e) {
                 equal = false;
-                console.log('- ', e);
+                console.log(`* ${e}`);
             }
         }
 
@@ -168,7 +180,8 @@ export class InventoryComparator {
                         if(prop in b) {
                             if(prop != 'power' || b.power != 1) {
                                 if(prop in new_item) {
-                                    key += `|${prop}:${new_item[prop]}`;
+                                    let jvalue = JSON.stringify(new_item[prop]);
+                                    key += `|${prop}:${jvalue}`;
                                     entity_key = new_item.id;
                                 }
                             }
