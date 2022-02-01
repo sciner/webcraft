@@ -3,6 +3,8 @@ import {Helpers} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 
+let tmpCanvas;
+
 export class BaseResourcePack {
 
     constructor(location, id) {
@@ -64,46 +66,78 @@ export class BaseResourcePack {
         return this.shader;
     }
 
-    async initTextures(renderBackend, settings) {
-        let that = this;
-        const loadImage = async (url) => Resources.loadImage(url, true);
-        if('textures' in this.conf) {
-            for(let [k, v] of Object.entries(this.conf.textures)) {
-                // Image
-                await loadImage(this.dir + v.image).then(async (image) => {
-                    v.texture = renderBackend.createTexture({
-                        source: await that.genMipMapTexture(image, settings),
-                        style: this.genTextureStyle(image, settings),
-                        minFilter: 'nearest',
-                        magFilter: 'nearest',
-                    });
-                    v.width = image.width;
-                    v.height = image.height;
-                    // Get image bytes
-                    let canvas          = document.createElement('canvas');
-                    canvas.width        = image.width;
-                    canvas.height       = image.height;
-                    let ctx             = canvas.getContext('2d');
-                    ctx.drawImage(image, 0, 0, image.width, image.height, 0, 0, image.width, image.height);
-                    v.imageData = ctx.getImageData(0, 0, image.width, image.height);
+    async _loadTexture (url, settings, renderBackend) {
+        const image = await Resources.loadImage(url, true);
 
-                    canvas.width = canvas.height = 0;
-                });
-                // Image N
-                v.texture_n = null;
-                if('image_n' in v) {
-                    await loadImage(this.dir + v.image_n).then(async (image_n) => {
-                        v.texture_n = renderBackend.createTexture({
-                            source: await that.genMipMapTexture(image_n, settings),
-                            style: this.genTextureStyle(image_n, settings),
-                            minFilter: 'nearest',
-                            magFilter: 'nearest',
-                        });
-                    });
-                }
-                this.textures.set(k, v);
-            }
+        const texture = renderBackend.createTexture({
+            source: await this.genMipMapTexture(image, settings),
+            style: this.genTextureStyle(image, settings),
+            minFilter: 'nearest',
+            magFilter: 'nearest',
+        });
+
+        return {
+            image, texture
         }
+    }
+
+    async _processTexture (textureInfo, renderBackend, settings) {
+        const {image, texture} = await this._loadTexture(
+            this.dir + textureInfo.image,
+            settings,
+            renderBackend
+        );
+
+        textureInfo.texture = texture;
+        textureInfo.width   = image.width;
+        textureInfo.height  = image.height;
+        textureInfo.texture_n = null;
+
+        // Get image bytes
+        const canvas        = tmpCanvas;
+        const ctx           = canvas.getContext('2d');
+        
+        canvas.width        = image.width;
+        canvas.height       = image.height;
+
+        ctx.drawImage(
+            image, 0, 0,
+            image.width,
+            image.height, 0, 0, 
+            image.width, image.height
+        );
+        
+        textureInfo.imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+        canvas.width = canvas.height = 0;
+
+        if ('image_n' in textureInfo) {
+            const { texture } = await this._loadTexture(
+                this.dir + textureInfo.image_n,
+                settings,
+                renderBackend
+            );
+
+            textureInfo.texture_n = texture;
+        }
+    }
+
+    async initTextures(renderBackend, settings) {
+        if (!this.conf.textures) {
+            return;
+        }
+        
+        const tasks = [];
+
+        tmpCanvas = tmpCanvas || document.createElement('canvas');
+
+        for(let [k, v] of Object.entries(this.conf.textures)) {
+            tasks.push(this._processTexture(v, renderBackend, settings));
+
+            this.textures.set(k, v);
+        }
+
+        return Promise.all(tasks)
     }
 
     genTextureStyle(image, settings) {
