@@ -39,6 +39,7 @@ export default class MainMenu extends Window {
         this.addReturnButton();
         this.addCloseButton();
         
+        /*
         // Load buttons background image
         let image = new Image();
         image.onload = function(e) {
@@ -49,6 +50,7 @@ export default class MainMenu extends Window {
             ct.btnClose.style.background.image_size_mode = 'stretch';
         }
         image.src = '../../media/gui/button_center.png';
+        */
 
     }
 
