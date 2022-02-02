@@ -35,14 +35,17 @@ export class GameClass {
         // Load resources
         Resources.onLoading = resource_loading_progress;
 
-        await Resources.load({
+        // we can use it both
+        const resourceTask = Resources.load({
             imageBitmap:    true,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
 
         //
-        await BLOCK.init(settings);
+        const blockTask = BLOCK.init(settings);
+
+        await Promise.all([resourceTask, blockTask]);
 
         this.world.init(settings);
 
