@@ -66,7 +66,7 @@ export default class InventoryWindow extends BaseCraftWindow {
             }
             this.getRoot().drag.clear();
             // Clear result
-            this.resultSlot.setItem(null);
+            this.lblResultSlot.setItem(null);
             //
             for(let slot of this.craft.slots) {
                 if(slot && slot.item) {
@@ -75,7 +75,7 @@ export default class InventoryWindow extends BaseCraftWindow {
                 }
             }
             // Save inventory
-            Game.world.server.InventoryNewState(this.inventory.exportItems());
+            Game.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
         }
 
         // Add labels to window
@@ -165,13 +165,14 @@ export default class InventoryWindow extends BaseCraftWindow {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        let craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array);
+        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array);
+        let craft_result = this.lblResultSlot.recipe?.result || null;
         if(!craft_result) {
-            return this.resultSlot.setItem(null);
+            return this.lblResultSlot.setItem(null);
         }
         let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
-        this.resultSlot.setItem(block);
+        this.lblResultSlot.setItem(block);
     }
 
     getSlots() {

@@ -44,13 +44,14 @@ export class PlayerInventory {
     }
 
     // Игрок прислал новое состояние инвентаря, нужно его провалидировать и применить
-    async newState(state) {
-        if('current' in state) {
-            // @todo
+    async newState(params) {
+        if(!('state' in params && 'used_recipes' in params)) {
+            throw 'error_invalid_inventory_state_params';
         }
         // New state
+        const state = params.state;
         if('items' in state) {
-            if(await InventoryComparator.checkEqual(this.items, state.items)) {
+            if(await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes)) {
                 // apply new
                 for(let i in state.items) {
                     let b = null;

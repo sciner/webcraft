@@ -5,97 +5,53 @@ export class InventoryComparator {
 
     static rm = null;
 
-    static async checkEqual(old_items, new_items) {
+    static async checkEqual(old_items, new_items, used_recipes) {
 
         const rm = await InventoryComparator.getRecipeManager();
 
         let old_simple = InventoryComparator.groupToSimpleItems(old_items);
         let new_simple = InventoryComparator.groupToSimpleItems(new_items);
 
-        /*
-            console.log('>>>>>>>>>>>>>>>>>>>');
-            for(let [k, v] of new_simple.entries()) {
-                console.log(' ' + k, JSON.stringify(v));
-            }
-            console.log('<<<<<<<<<<<<<<<<<<<');
-
-            console.log('>>>>>>>>>>>>>>>>>>>');
-            for(let [k, v] of old_simple.entries()) {
-                console.log(' ' + k, JSON.stringify(v));
-            }
-            console.log('<<<<<<<<<<<<<<<<<<<');
-        */
-
         // 1. Check full equal
         let equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
 
-        // 2. Check if converted|crafted
-        if(!equal) {
-            // Find crafted items
-            const crafts = [];
-            // console.log('\n' + Array.from(old_simple.keys()).join('\n -') + '\n');
-            for(let [key, item] of new_simple) {
-                if(!old_simple.has(key)) {
-                    // new item, not exists in old state
-                    const recipe = rm.getRecipe(item.id);
-                    // if item has no recipe
-                    if(!recipe) {
-                        break;
-                    }
-                    crafts.push({item, recipe});
-                    new_simple.delete(key);
-                }
-            }
-            // Compare crafted items with recipes
-            equal = true;
+        if(!equal && Array.isArray(used_recipes)) {
             try {
-                for(let cr of crafts) {
-                    // Проверка количества нового предмета оно должно быть кратным количеству указанному в рецепте
-                    if(cr.item.count < 1 || cr.item.count % cr.recipe.result.count != 0) {
-                        throw 'error_invalid_count';
+                // Apply all recipes
+                for(let recipe_id of used_recipes) {
+                    // Get recipe by ID
+                    const recipe = rm.getRecipe(recipe_id);
+                    if(!recipe) {
+                        throw 'error_recipe_not_found|' + recipe_id;
                     }
-                    // Проверка мощности (если это используется в скрафченном предмете)
-                    let b = BLOCK.fromId(cr.item.id);
-                    if(b.power !== 1) {
-                        if('power' in cr.item) {
-                            if(b.power != cr.item.power) {
-                                throw 'error_invalid_start_power';
-                            }
-                        } else {
-                            throw 'error_empty_sytart_power';
-                        }
-                    }
-                    // Проверка extra_data (если это используется в скрафченном предмете)
-                    if('extra_data' in b) {
-                        if('extra_data' in cr.item && typeof cr.item.extra_data == 'object') {
-                            if(!InventoryComparator.itemsIsEqual(b.extra_data, cr.item.extra_data)) {
-                                throw 'error_invalid_extra_data';
-                            }
-                        } else {
-                            throw 'error_empty_extra_data';
-                        }
-                    } else {
-                        if('extra_data' in cr.item) {
-                            throw 'error_nonempty_extra_data';
-                        }
-                    }
-                    // Восстанавливаем использованные для крафта ресурсы
-                    for(let nr of cr.recipe.need_resources) {
-                        let used_item = new_simple.get(nr.item_id);
+                    // Spending resources
+                    for(let nr of recipe.need_resources) {
+                        let used_item = old_simple.get(nr.item_id);
                         if(!used_item) {
-                            let cb = BLOCK.fromId(nr.item_id);
-                            used_item = BLOCK.convertItemToInventoryItem(cb, cb);
-                            used_item.count = 0;
-                            new_simple.set(nr.item_id, used_item);
+                            throw 'error_recipe_item_not_found_in_inventory';
                         }
-                        used_item.count += nr.count;
+                        used_item.count -= nr.count;
+                        if(used_item.count < 0) {
+                            throw 'error_recipe_item_not_enough';
+                        }
+                        if(used_item.count == 0) {
+                            old_simple.delete(nr.item_id);
+                        }
                     }
-                    // Еще раз перепроверяем новое(но уже восстановленное с учетов обратного отката крафта) состояние инвентаря с прошлым
-                    equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
+                    // Append result item
+                    let result_item = BLOCK.fromId(recipe.result.item_id);
+                    result_item = BLOCK.convertItemToInventoryItem(result_item, result_item);
+                    result_item.count = recipe.result.count;
+                    // Generate next simple state of inventory previous state
+                    old_items = Array.from(old_simple.values());
+                    old_items.push(result_item);
+                    // Group items to simple form
+                    old_simple = InventoryComparator.groupToSimpleItems(old_items);
                 }
+                equal = InventoryComparator.compareSimpleItems(old_simple, new_simple);
             } catch(e) {
                 equal = false;
-                console.log(`* ${e}`);
+                console.log('error', e);
             }
         }
 

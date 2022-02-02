@@ -1,5 +1,6 @@
 [
     {
+        "id": "0b3e921f-2bac-4c25-8a31-0ad9b8c9bede",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -17,6 +18,7 @@
         }
     },
     {
+        "id": "77dc7330-edca-4f64-b47f-b597bf30de56",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -34,6 +36,7 @@
         }
     },
     {
+        "id": "73092f82-07a3-46ab-9ada-117f61f7930f",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -51,6 +54,7 @@
         }
     },
     {
+        "id": "2446ee61-379a-4068-b2ef-2737835f7829",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "W"
@@ -66,6 +70,7 @@
         }
     },
     {
+        "id": "d6838b56-ab15-4393-bfde-06133639b24b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -83,6 +88,7 @@
         }
     },
     {
+        "id": "b0a2245f-155d-4311-886f-d111993a0240",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -100,6 +106,7 @@
         }
     },
     {
+        "id": "e893a548-473c-4e73-a402-51c1bf1a091b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -117,6 +124,7 @@
         }
     },
     {
+        "id": "b1c4ce26-1c70-495d-848f-4dfa3c20401c",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -134,6 +142,7 @@
         }
     },
     {
+        "id": "40b903c0-087e-48e6-a7df-31cfebd549c7",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "B  ",
@@ -151,6 +160,7 @@
         }
     },
     {
+        "id": "e9ceaa46-7667-441b-ac52-c362bfd0a223",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "P  ",
@@ -168,6 +178,7 @@
         }
     },
     {
+        "id": "d453c7cd-03dc-493b-bea2-770b432ded2c",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -185,6 +196,7 @@
         }
     },
     {
+        "id": "94ea9b4b-ca81-4ef4-88ae-d33ec9df6823",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "   ",
@@ -202,6 +214,7 @@
         }
     },
     {
+        "id": "11183f08-2d57-45b6-bba5-6335db8a1c6b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "SSS",
@@ -219,6 +232,7 @@
         }
     },
     {
+        "id": "a0d106e6-f8d3-4003-ba6a-b6029dcb6326",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
@@ -235,6 +249,7 @@
         }
     },
     {
+        "id": "3f56edb0-4d7c-49ee-a9e4-159ec6be846f",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
@@ -251,6 +266,7 @@
         }
     },
     {
+        "id": "6e836768-df1d-492b-9567-3ab744a49b99",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
@@ -267,6 +283,7 @@
         }
     },
     {
+        "id": "4dcbf2f1-e7bf-4c1a-a396-78fcaecd3ea6",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "P",
@@ -283,6 +300,7 @@
         }
     },
     {
+        "id": "cea6c9da-2577-4dbc-bc4a-bbe616497074",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "X",
@@ -302,6 +320,7 @@
         }
     },
     {
+        "id": "ea4c7244-4875-4c09-aec6-b25a9954cf2c",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "# #",
@@ -319,6 +338,7 @@
         }
     },
     {
+        "id": "e703625e-4db8-4ab6-8c9a-3fbc01dff7a6",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -339,6 +359,7 @@
         }
     },
     {
+        "id": "6c437456-61fe-4f35-a8c3-102f786af237",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -359,6 +380,7 @@
         }
     },
     {
+        "id": "75e1efbe-f431-456b-aef1-7d50091483af",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -379,6 +401,7 @@
         }
     },
     {
+        "id": "f46c66b3-6d4b-4e49-b01e-19ccc1aa53c8",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -399,6 +422,7 @@
         }
     },
     {
+        "id": "bd2447ca-6731-4f09-b192-2245aaa51a80",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -416,6 +440,7 @@
         }
     },
     {
+        "id": "6963bc48-3b26-42cf-afcf-121670aaea12",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -436,6 +461,7 @@
         }
     },
     {
+        "id": "c13046d2-427a-447c-be69-1ff3ffd4e94b",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -456,6 +482,7 @@
         }
     },
     {
+        "id": "0d6f4808-95d1-4c99-a3c1-19fa5651614e",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -476,6 +503,7 @@
         }
     },
     {
+        "id": "5e572c96-d9c4-4856-a5db-653532293780",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -496,6 +524,7 @@
         }
     },
     {
+        "id": "763a5d78-c7a9-4916-b408-38b94a9caedd",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -513,6 +542,7 @@
         }
     },
     {
+        "id": "0c62a90f-d126-43bb-a66a-89974b6a0c9c",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -530,6 +560,7 @@
         }
     },
     {
+        "id": "4e7cc47f-e8b4-4329-957f-b6035caa7104",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -547,6 +578,7 @@
         }
     },
     {
+        "id": "67ca9e36-294c-4460-9154-6e6418aabec6",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -564,6 +596,7 @@
         }
     },
     {
+        "id": "43f7b696-88ce-4835-9542-0b2f415a2baf",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -584,6 +617,7 @@
         }
     },
     {
+        "id": "ef4f6528-b87e-40bd-9796-0c180d02fcfe",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -604,6 +638,7 @@
         }
     },
     {
+        "id": "1d87a267-d3f5-4c60-930f-02c8f0197677",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -621,6 +656,7 @@
         }
     },
     {
+        "id": "dafda2fa-d01e-426e-ab7f-12190fe7b5e8",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "WWW",
@@ -638,6 +674,7 @@
         }
     },
     {
+        "id": "b1ef267f-dd80-4045-b41b-f2dbe4762dfd",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "",
@@ -655,6 +692,7 @@
         }
     },
     {
+        "id": "5857efa1-7997-4ce7-a769-5625d5d26f3e",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -668,7 +706,6 @@
             "S": {
                 "item": "madcraft:stick"
             }
-            
         },
         "result": {
             "item": "madcraft:wooden_hoe",
@@ -676,6 +713,7 @@
         }
     },
     {
+        "id": "72d9e895-f64d-4b95-80c5-9c56f27356af",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -689,7 +727,6 @@
             "S": {
                 "item": "madcraft:stick"
             }
-            
         },
         "result": {
             "item": "madcraft:stone_hoe",
@@ -697,6 +734,7 @@
         }
     },
     {
+        "id": "d95fd5f4-1839-487a-9071-228b1eec61c5",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -717,6 +755,7 @@
         }
     },
     {
+        "id": "28d23d88-939b-4cfa-aff9-c6c4ff93844a",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -737,6 +776,7 @@
         }
     },
     {
+        "id": "820fcac5-c7dd-45f9-a208-85788e2b2b16",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -757,6 +797,7 @@
         }
     },
     {
+        "id": "1321738a-3828-44df-b6d6-507578c8abbc",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -777,6 +818,7 @@
         }
     },
     {
+        "id": "4f2e9e47-6273-484c-b3d3-27eee4f135c0",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -797,6 +839,7 @@
         }
     },
     {
+        "id": "7ebc112d-bbc9-457d-9613-2bd827d7dd40",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -817,6 +860,7 @@
         }
     },
     {
+        "id": "74add87a-3092-467b-90a0-62abfffca8d9",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -837,6 +881,7 @@
         }
     },
     {
+        "id": "b1b475dc-be62-4b51-961e-0e986d85bb2d",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -857,6 +902,7 @@
         }
     },
     {
+        "id": "280ed192-94b5-4732-87aa-192458d0c7ab",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -877,6 +923,7 @@
         }
     },
     {
+        "id": "7c7cba58-7ea4-4070-8d67-51d7e12df9e4",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -897,6 +944,7 @@
         }
     },
     {
+        "id": "ec07e795-40a3-45ad-9259-c708d6833f97",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -917,6 +965,7 @@
         }
     },
     {
+        "id": "ce230709-fb3f-4db4-ad96-33f05d9326ba",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "###",
@@ -937,6 +986,7 @@
         }
     },
     {
+        "id": "ab1cba2e-9887-45f1-900e-6646a3fd1976",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -957,6 +1007,7 @@
         }
     },
     {
+        "id": "a4386f50-21dd-490d-8b5e-ac114db69160",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "#",
@@ -977,6 +1028,7 @@
         }
     },
     {
+        "id": "5a3f2214-092a-46e1-86f7-42f66e491aab",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -997,6 +1049,7 @@
         }
     },
     {
+        "id": "13fb9342-1a5c-4e14-8463-8428dcbafb3a",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1014,6 +1067,7 @@
         }
     },
     {
+        "id": "11f8b8c2-bdb8-40e9-b845-86f86f9769ba",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1031,6 +1085,7 @@
         }
     },
     {
+        "id": "bfa2c40a-1bda-4c29-bdf5-1c3c6b013468",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1048,6 +1103,7 @@
         }
     },
     {
+        "id": "5c502aaf-2217-4a5a-8867-40eece978c7f",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1065,6 +1121,7 @@
         }
     },
     {
+        "id": "a8a868a4-37d0-4558-af2d-0ed27ceeaacc",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1082,6 +1139,7 @@
         }
     },
     {
+        "id": "8169861c-092b-466b-96bf-9a3150a7b5a0",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",
@@ -1099,6 +1157,7 @@
         }
     },
     {
+        "id": "63689732-4ffd-44e9-8af4-11bdbdfb5d70",
         "type": "madcraft:crafting_shaped",
         "pattern": [
             "##",

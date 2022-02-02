@@ -103,9 +103,25 @@ export class CraftTableSlot extends Label {
 export class CraftTableResultSlot extends CraftTableSlot {
 
     constructor(x, y, w, h, id, title, text, ct) {
-
         super(x, y, w, h, id, title, text, ct, null);
+        this.recipe = null;
+        this.used_recipes = [];
+        this.setupHandlers();
+    }
 
+    // Return used recipes and clear list
+    getUsedRecipes() {
+        const resp = this.used_recipes;
+        this.used_recipes = [];
+        return resp;
+    }
+
+    // setupHandlers...
+    setupHandlers() {
+
+        let that = this;
+
+        // onDrop
         this.onDrop = function(e) {
             let dragItem = this.getItem();
             let dropItem = e.drag.getItem().item;
@@ -120,6 +136,8 @@ export class CraftTableResultSlot extends CraftTableSlot {
             if(dropItem.count + dragItem.count > item_max_count) {
                 return;
             }
+            //
+            let recipe_id = that.recipe?.id || null;
             // decrement craft slots
             for(let slot of this.parent.craft.slots) {
                 let item = slot.getItem();
@@ -140,12 +158,15 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 dropItem.count = item_max_count;
                 dragItem.count = remains;
             }
-            this.parent.checkRecipe();
+            //
+            that.used_recipes.push(recipe_id);
+            that.parent.checkRecipe();
         }
 
         // Drag & drop
         this.onMouseDown = function(e) {
             let that = this;
+            let recipe_id = that.recipe?.id || null;
             let dragItem = this.getItem();
             if(!dragItem) {
                 return;
@@ -169,7 +190,9 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 },
                 item: dragItem
             });
-            this.parent.checkRecipe();
+            //
+            that.used_recipes.push(recipe_id);
+            that.parent.checkRecipe();
         }
     
     }
@@ -465,7 +488,7 @@ export class BaseCraftWindow extends Window {
      createResultSlot(x, y) {
         const ct = this;
         // x, y, w, h, id, title, text, ct, slot_index
-        let lblResultSlot = this.resultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
+        let lblResultSlot = this.lblResultSlot = new CraftTableResultSlot(x, y, this.cell_size, this.cell_size, 'lblCraftResultSlot', null, null, ct);
         lblResultSlot.onMouseEnter = function() {
             this.style.background.color = '#ffffff33';
         }
@@ -514,7 +537,7 @@ export class BaseCraftWindow extends Window {
         }
         this.getRoot().drag.clear();
         // Clear result
-        this.resultSlot.setItem(null);
+        this.lblResultSlot.setItem(null);
         //
         for(let slot of this.craft.slots) {
             if(slot) {
