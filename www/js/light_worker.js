@@ -958,7 +958,11 @@ const worker = {
 
 worker.init();
 
-async function importModules() {
+preLoad().then();
+
+async function preLoad() {
+    const start = performance.now();
+
     await import("./helpers.js").then(module => {
         Vector = module.Vector;
         VectorCollector = module.VectorCollector;
@@ -970,6 +974,15 @@ async function importModules() {
         DataChunk = module.DataChunk;
     });
     modulesReady = true;
+
+    console.debug('[LightWorker] Preloaded, load time:', performance.now() - start);
+}
+
+async function initWorld() {
+
+    if (!modulesReady) {
+        await preLoad();
+    }
 
     // if (!testDayLight()) {
     //     console.log("day test failed");
@@ -1003,7 +1016,7 @@ async function onMessageFunc(e) {
     const args = data[1];
     if (cmd == 'init') {
         // Init modules
-        importModules();
+        initWorld();
         return;
     }
     if (!modulesReady) {

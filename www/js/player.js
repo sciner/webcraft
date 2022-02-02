@@ -5,13 +5,11 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
-import {SpectatorPlayerControl} from "./spectator-physics.js";
+import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
-import {PlayerControl} from "./player_control.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-// import {Particles_Painting} from "./particles/painting.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -301,9 +299,6 @@ export class Player {
         if(actions.clone_block && this.game_mode.canBlockClone()) {
             this.world.server.CloneBlock(e.pos);
         }
-        //if(actions.create_painting) {
-        //    Game.render.meshes.add(new Particles_Painting(actions.create_painting));
-        //}
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
                 switch(mod.action_id) {
