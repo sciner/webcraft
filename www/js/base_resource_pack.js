@@ -23,8 +23,8 @@ export class BaseResourcePack {
         let dir = this.dir;
 
         return Promise.all([
-            Helpers.fetchJSON(dir + '/conf.json'),
-            Helpers.fetchJSON(dir + '/blocks.json')
+            Helpers.fetchJSON(dir + '/conf.json', true, 'rp'),
+            Helpers.fetchJSON(dir + '/blocks.json', true, 'rp')
         ]).then(async ([conf, json]) => {
             this.conf = conf;
             for(let b of json) {

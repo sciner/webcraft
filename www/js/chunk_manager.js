@@ -1,7 +1,8 @@
-import {SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
+import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
 import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
+import { Resources } from "./resources.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
@@ -137,7 +138,15 @@ export class ChunkManager {
         const world_seed = world_info.seed;
         const world_guid = world_info.guid;
         const settings = world.settings;
-        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
+        const resource_cache = Helpers.getCache();
+
+        this.postWorkerMessage(['init', {
+            generator,
+            world_seed,
+            world_guid,
+            settings,
+            resource_cache
+        }]);
         this.postLightWorkerMessage(['init', null]);
 
     }
