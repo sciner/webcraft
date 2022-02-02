@@ -50,6 +50,8 @@ export default class ChestWindow extends Window {
             }
             this.getRoot().drag.clear();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
         // Add labels to window
