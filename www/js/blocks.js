@@ -1028,14 +1028,20 @@ BLOCK.init = async function(settings) {
 
     BLOCK.reset();
 
-    // Block styles
-    let block_styles = await Resources.loadBlockStyles();
-    for(let style of block_styles.values()) {
-        BLOCK.registerStyle(style);
-    }
-
     // Resource packs
     BLOCK.resource_pack_manager = new ResourcePackManager();
-    await BLOCK.resource_pack_manager.init(settings);
 
+    // block styles and resorce styles is independent (should)
+    // block styles is how blocks is generated
+    // resource styles is textures for it
+
+    return Promise.all([
+        Resources.loadBlockStyles(),
+        BLOCK.resource_pack_manager.init(settings)
+    ]).then(([block_styles, _])=>{
+        // Block styles
+        for(let style of block_styles.values()) {
+            BLOCK.registerStyle(style);
+        }    
+    });
 };

@@ -2,8 +2,7 @@ import {CHUNK_BLOCKS, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chun
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
-import {Map} from './../map.js';
-import {MapCell} from './../map_cell.js';
+import {Map, MapCell} from './../map.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";

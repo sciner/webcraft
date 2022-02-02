@@ -2,7 +2,6 @@ import "./../vendors/gl-matrix-3.3.min.js";
 import { Helpers } from "./helpers.js";
 
 export class Resources {
-
     static async getModelAsset(key) {
         if (!this.models[key]) {
             return;
@@ -294,11 +293,7 @@ export class Resources {
 
     // loadResourcePacks...
     static async loadResourcePacks() {
-        let resp = null;
-        await Helpers.fetchJSON('../data/resource_packs.json').then(json => {
-            resp = json;
-        });
-        return resp;
+        return Helpers.fetchJSON('../data/resource_packs.json', true, 'rp')
     }
 
     // Load supported block styles
@@ -306,7 +301,7 @@ export class Resources {
         let resp = new Set();
         let all = [];
         let json_url = '../data/block_style.json';
-        await Helpers.fetchJSON(json_url).then((json) => {
+        await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module
                 all.push(import('./block_style/' + code + '.js').then(module => {
@@ -333,7 +328,7 @@ export class Resources {
 
     // Load recipes
     static async loadRecipes() {
-        return  Helpers.fetchJSON('../data/recipes.json');
+        return  Helpers.fetchJSON('../data/recipes.json', true);
     }
 
     // Load models
@@ -343,7 +338,7 @@ export class Resources {
 
     // Load materials
     static async loadMaterials() {
-        return  Helpers.fetchJSON('../data/materials.json');
+        return  Helpers.fetchJSON('../data/materials.json', true);
     }
 
     // Load painting

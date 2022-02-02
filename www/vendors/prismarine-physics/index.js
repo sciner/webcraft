@@ -1,6 +1,5 @@
 import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
-import { math } from "./lib/math.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
 
@@ -8,6 +7,12 @@ const BLOCK_NOT_EXISTS = -2;
 
 function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
+}
+
+class math {
+    static clamp(min, x, max) {
+        return Math.max(min, Math.min(x, max))
+    }
 }
 
 export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSlipperiness) {

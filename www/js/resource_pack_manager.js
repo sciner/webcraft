@@ -65,8 +65,12 @@ export class ResourcePackManager {
 
     // Init textures
     async initTextures(renderBackend, options) {
+        const tasks = [];
+
         for (let value of this.list.values()) {
-            await value.initTextures(renderBackend, options);
+            tasks.push(value.initTextures(renderBackend, options));
         }
+
+        return Promise.all(tasks);
     }
 }

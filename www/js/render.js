@@ -118,16 +118,12 @@ export class Renderer {
     }
 
     async init(world, settings) {
-        return new Promise(resolve => {
-            (async () => {
-                await this._init(world, settings, resolve);
-            })();
-        })
+        return this._init(world, settings);
     }
 
     // todo
     // GO TO PROMISE
-    async _init(world, settings, callback) {
+    async _init(world, settings) {
         this.setWorld(world);
 
         const {renderBackend} = this;
@@ -189,8 +185,6 @@ export class Renderer {
         }
 
         this.generatePrev();
-        callback();
-
     }
 
     generatePrev() {

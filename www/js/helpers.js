@@ -727,8 +727,17 @@ export let DIRECTION_NAME = {};
 
 export class Helpers {
 
+    static cache = new Map();
     static fetch;
     static fs;
+
+    static setCache(cache) {
+        Helpers.cache = cache;
+    }
+
+    static getCache() {
+        return Helpers.cache;
+    }
 
     static getRandomInt(min, max) {
         min = Math.ceil(min);
@@ -936,7 +945,28 @@ if(typeof fetch === 'undefined') {
     };`);
 } else {
     Helpers.fetch = async (url) => fetch(url);
-    Helpers.fetchJSON = async (url) => fetch(url).then(response => response.json());
+    Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
+        const cacheKey = namespace + '|' + url;
+
+        if (useCache && Helpers.cache.has(cacheKey)) {
+            return Promise.resolve(JSON.parse(Helpers.cache.get(cacheKey)));
+        }
+
+        const respt = await fetch(url);
+
+        // if cache is presented - store text response
+        // then we can use this inside a worker
+        if (useCache) {
+            const text = await respt.text();
+            
+            Helpers.cache.set(cacheKey, text);
+
+            return JSON.parse(text);
+        }
+
+        return respt.json()
+    };
+
     Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
 }
 

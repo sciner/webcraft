@@ -33,6 +33,11 @@ export class World {
         this.settings = settings;
         this.serverTimeShift = 0;
         this.latency = 0;
+
+        this.chunkManager           = new ChunkManager(this);
+        this.mobs                   = new MobManager(this);
+        this.drop_items             = new DropItemManager(this)
+        this.players                = new PlayerManager(this);
     }
 
     get serverTimeWithLatency() {
@@ -101,15 +106,18 @@ export class World {
         });
     }
 
+    init (settings) {
+        this.settings = settings;
+    }
+
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
     setInfo(info) {
         this.info                   = info;
         this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
-        this.chunkManager           = new ChunkManager(this);
-        this.mobs                   = new MobManager(this);
-        this.drop_items             = new DropItemManager(this)
-        this.players                = new PlayerManager(this);
+ 
         // Init
+        this.players.init();
+        this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();
     }

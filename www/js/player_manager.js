@@ -7,6 +7,9 @@ export class PlayerManager {
     constructor(world) {
         this.world = world;
         this.list = new Map();
+    }
+
+    init() {
         // On server message
         this.world.server.AddCmdListener([ServerClient.CMD_PLAYER_JOIN, ServerClient.CMD_PLAYER_LEAVE, ServerClient.CMD_PLAYER_STATE], (cmd) => {
             switch(cmd.name) {
