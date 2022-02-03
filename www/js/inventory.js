@@ -138,9 +138,9 @@ export class Inventory extends PlayerInventory {
                     hud.ctx.textBaseline = 'bottom';
                     hud.ctx.font = Math.round(18 * zoom) + 'px Ubuntu';
                     hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * zoom);
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * (zoom / 2));
                     hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + (shift_y - 2) * zoom);
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + (shift_y - 2) * (zoom / 2));
                 }
             }
             hud_pos.x += cell_size;

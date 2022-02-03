@@ -1,6 +1,11 @@
 import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
+const live_shift_random = new Array(1024);
+for(let i = 0; i < live_shift_random.length; i++) {
+    live_shift_random[i] = Math.round(Math.random());
+}
+
 export class Hotbar {
 
     zoom = UI_ZOOM;
@@ -17,6 +22,7 @@ export class Hotbar {
         //
         this.itemNameO = null;
         this.itemNameChangeTime = performance.now();
+        this.last_damage_time = null;
     }
 
     //
@@ -30,7 +36,8 @@ export class Hotbar {
             Game.player.world.server.ModifyIndicator('live', -damage_value, reason_text);
             console.log('Damage ' + damage_value + ', reason: ' + reason_text);
             // Play hit sound
-            Game.sounds.play('madcraft:block.player', 'hit')
+            Game.sounds.play('madcraft:block.player', 'hit');
+            this.last_damage_time = performance.now();
         }
     }
 
@@ -137,8 +144,41 @@ export class Hotbar {
             let indicators = player.indicators;
             let live = indicators.live.value / 20;
             let food = indicators.food.value / 20;
+            //
+            let spn = Math.round(performance.now() / 75);
+            let calcShiftY = (i, live) => {
+                let shift_y = 0;
+                if(live < .35) {
+                    shift_y = live_shift_random[(spn + i) % live_shift_random.length] * 5;
+                }
+                return shift_y;
+            };
             // live
+            // backgrounds
+            const damage_time = 1000;
+            if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < damage_time) {
+                let diff = performance.now() - Game.hotbar.last_damage_time;
+                if(diff % 200 < 100) {
+                    hud.ctx.filter = 'opacity(.5)';
+                }
+            }
+            for(let i = 0; i < 10; i++) {
+                let shift_y = calcShiftY(i, live);
+                hud.ctx.drawImage(
+                    this.image,
+                    src.icons.live.x,
+                    src.icons.live_half.y + src.icons.live_half.height,
+                    src.icons.live.width,
+                    src.icons.live.height,
+                    hud_pos.x + i * 24 * this.zoom,
+                    hud_pos.y + 30 * this.zoom + shift_y,
+                    ss,
+                    ss
+                );
+            }
+            hud.ctx.filter = 'none';
             for(let i = 0; i < Math.floor(live * 10); i++) {
+                let shift_y = calcShiftY(i, live);
                 hud.ctx.drawImage(
                     this.image,
                     src.icons.live.x,
@@ -146,12 +186,13 @@ export class Hotbar {
                     src.icons.live.width,
                     src.icons.live.height,
                     hud_pos.x + i * 24 * this.zoom,
-                    hud_pos.y + 30 * this.zoom,
+                    hud_pos.y + 30 * this.zoom + shift_y,
                     ss,
                     ss
                 );
             }
             if(Math.round(live * 10) > Math.floor(live * 10)) {
+                let shift_y = calcShiftY(Math.floor(live * 10), live);
                 hud.ctx.drawImage(
                     this.image,
                     src.icons.live_half.x,
@@ -159,7 +200,7 @@ export class Hotbar {
                     src.icons.live_half.width,
                     src.icons.live_half.height,
                     hud_pos.x + Math.floor(live * 10) * (24 * this.zoom),
-                    hud_pos.y + (30 * this.zoom),
+                    hud_pos.y + (30 * this.zoom) + shift_y,
                     ss,
                     ss
                 );

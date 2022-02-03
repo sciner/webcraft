@@ -588,8 +588,8 @@ export class WindowManager extends Window {
             draw: function() {
                 that.drag.draw({
                     ctx: this.parent.ctx,
-                    x: this.x,
-                    y: this.y
+                    x: this.x - 18 * UI_ZOOM,
+                    y: this.y - 18 * UI_ZOOM
                 });
                 if(this.image && this.visible) {
                     ctx.imageSmoothingEnabled = true;
@@ -622,7 +622,7 @@ export class WindowManager extends Window {
             draw: function(e) {
                 if(this.item) {
                     if(typeof this.item.draw === 'function') {
-                        this.item.draw(e);
+                        this.item.draw(e, true);
                     }
                 }
             }

@@ -222,7 +222,7 @@ export class HUD {
 
         // Make info for draw
         let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
             return false;
         }
         this.need_refresh = false;
@@ -244,7 +244,7 @@ export class HUD {
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
 
-        this.ctx.save();
+        // this.ctx.save();
 
         if(this.isActive()) {
             // Draw game technical info
@@ -252,7 +252,7 @@ export class HUD {
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
-                    this.ctx.restore();
+                    // this.ctx.restore();
                     e.item.drawHUD(this);
                 }
             }
