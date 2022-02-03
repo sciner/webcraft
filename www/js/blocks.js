@@ -778,13 +778,13 @@ export class BLOCK {
                     if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
                         // do nothing
                     } else {
-                        if(!for_physic) {
-                            // Central
-                            shapes.push([
-                                .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
-                                .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
-                            ]);
-                        }
+                        //if(!for_physic) {
+                        // Central
+                        shapes.push([
+                            .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                            .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
+                        ]);
+                        //}
                     }
                     break;
                 }
