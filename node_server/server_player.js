@@ -231,13 +231,8 @@ export class ServerPlayer extends Player {
                     break;
                 }
             
-                case ServerClient.CMD_CHEST_SLOT_ACTION: {
-                    const chest = this.world.chests.get(cmd.data.entity_id);
-                    if(chest) {
-                        this.world.chest_action_queue.add(this, chest, cmd.data);
-                    } else {
-                        throw `Chest ${cmd.data.entity_id} not found`;
-                    }
+                case ServerClient.CMD_CHEST_CONFIRM: {
+                    this.world.chest_confirm_queue.add(this, cmd.data);
                     break;
                 }
                     
