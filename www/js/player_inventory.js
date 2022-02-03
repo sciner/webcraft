@@ -8,15 +8,18 @@ export class PlayerInventory {
     temp_vec = new Vector();
 
     constructor(player, state) {
+        this.count          = state.items.length;
         this.player         = player;
         this.current        = state.current;
-        this.items          = state.items;
+        this.items          = new Array(this.count); // state.items;
         this.max_count      = 36;
         this.hotbar_count   = 9;
         this.drag_item      = null;
         this.onSelect       = (item) => {};
+        this.applyNewItems(state.items, false);
     }
 
+    // Refresh
     refresh(send_state) {
         const data = {
             current: this.current,
@@ -35,6 +38,7 @@ export class PlayerInventory {
         if(send_state) {
             this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
         }
+        return true;
     }
 
     //
@@ -54,14 +58,7 @@ export class PlayerInventory {
         if('items' in state) {
             if(await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes)) {
                 // apply new
-                for(let i in state.items) {
-                    let b = null;
-                    if(state.items[i]) {
-                        b = BLOCK.fromId(state.items[i].id)
-                    }
-                    state.items[i] = BLOCK.convertItemToInventoryItem(state.items[i], b);
-                }
-                this.items = state.items;
+                this.applyNewItems(state.items, true);
                 // send current to player
                 this.refresh(true);
                 console.log('Applied new state');
@@ -70,6 +67,28 @@ export class PlayerInventory {
                 this.refresh(true);
                 console.log('Ignore new state');
             }
+        }
+    }
+
+    //
+    applyNewItems(items, refresh) {
+        if(!Array.isArray(items)) {
+            throw 'error_items_must_be_array';
+        }
+        if(items.length != this.count) {
+            throw 'error_items_invalid_count|' + `${items.length} != ${this.count}`;
+        }
+        let new_items = [];
+        for(let i in items) {
+            let b = null;
+            if(items[i]) {
+                b = BLOCK.fromId(items[i].id)
+            }
+            new_items[i] = BLOCK.convertItemToInventoryItem(items[i], b);
+        }
+        this.items = new_items;
+        if(refresh) {
+            this.refresh(true);
         }
     }
 
@@ -120,13 +139,12 @@ export class PlayerInventory {
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
-                            this.refresh(true);
-                            return;
+                            return this.refresh(true);
                         } else {
                             let remains = (item.count + mat.count) - item_max_count;
                             item.count = item_max_count;
                             mat.count = remains;
-                            this.refresh(true);
+                            return this.refresh(true);
                         }
                     }
                 }
@@ -149,10 +167,10 @@ export class PlayerInventory {
                 if(mat.count > 0) {
                     this.increment(mat);
                 }
-                this.refresh(true);
-                return;
+                return this.refresh(true);
             }
         }
+        return false;
     }
 
     decrement_instrument(mined_block) {

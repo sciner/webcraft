@@ -41,18 +41,18 @@ export default class ChestWindow extends Window {
             Game.releaseMousePointer();
             Game.sounds.play(BLOCK.CHEST.sound, 'open');
         }
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
-            // Drag
+            // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
+            // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
                 this.inventory.increment(dragItem.item);
             }
             this.getRoot().drag.clear();
+            this.confirmAction();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');
-            // @todo send close chest
-            Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
         // Add labels to window
@@ -79,24 +79,24 @@ export default class ChestWindow extends Window {
             ct.add(btnClose);
         });
 
-        //
+        // Catch action
         this.catchActions();
 
     }
 
-    //
+    // Catch action
     catchActions() {
-
+        //
         const handlerMouseDown = function(e) {
             this._originalMouseDown(e);
             this.parent.confirmAction();
         };
-
+        //
         const handlerOnDrop = function(e) {
             this._originalOnDrop(e);
             this.parent.confirmAction();
         };
-
+        //
         for(let slots of [this.chest.slots, this.inventory_slots]) {
             for(let slot of slots) {
                 // mouse down
@@ -107,29 +107,27 @@ export default class ChestWindow extends Window {
                 slot.onDrop = handlerOnDrop;
             }
         }
-    
     }
 
     // Confirm action
     confirmAction() {
         const params = {
-            drag: Game.hud.wm.drag?.item?.item,
-            chest: {entity_id: this.entity_id, slots: []},
+            drag_item: Game.hud.wm.drag?.item?.item,
+            chest: {entity_id: this.entity_id, slots: {}},
             inventory_slots: []
         };
-        params.drag = params.drag ? BLOCK.convertItemToInventoryItem(params.drag) : null;
+        params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
         // chest
-        for(let slot of this.chest.slots) {
+        for(let k in this.chest.slots) {
+            let slot = this.chest.slots[k];
             if(slot.item) {
-                params.chest.slots.push(BLOCK.convertItemToInventoryItem(slot.item));
+                params.chest.slots[k] = BLOCK.convertItemToInventoryItem(slot.item);
             }
         }
         // inventory
         for(let slot of this.inventory_slots) {
             let item = slot.getItem();
-            if(item) {
-                params.inventory_slots.push(BLOCK.convertItemToInventoryItem(item));
-            }
+            params.inventory_slots.push(item ? BLOCK.convertItemToInventoryItem(item) : null);
         }
         // Send to server
         this.server.ChestConfirm(params);

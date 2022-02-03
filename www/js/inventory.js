@@ -56,6 +56,7 @@ export class Inventory extends PlayerInventory {
                 // do nothing
             }
         }
+        return true;
     }
 
     // drawHUD

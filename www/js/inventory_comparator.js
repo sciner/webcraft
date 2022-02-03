@@ -1,4 +1,4 @@
-import {BLOCK, ITEM_INVENTORY_PROPS} from "./blocks.js";
+import {BLOCK, ITEM_INVENTORY_PROPS, ITEM_INVENTORY_KEY_PROPS} from "./blocks.js";
 import {RecipeManager} from "./recipes.js";
 
 export class InventoryComparator {
@@ -66,7 +66,7 @@ export class InventoryComparator {
             for(let [key, item] of new_simple) {
                 let old_item = old_simple.get(key);
                 if(!old_item) {
-                    console.log('* Item not found', JSON.stringify(item));
+                    console.log(`* Item not found (${key}); item: ` + JSON.stringify(item));
                     equal = false;
                     break;
                 }
@@ -99,11 +99,14 @@ export class InventoryComparator {
         //
         function deepEqual(object1, object2) {
             const keys1 = Object.keys(object1);
-            const keys2 = Object.keys(object2);
-            if (keys1.length !== keys2.length) {
+            // const keys2 = Object.keys(object2);
+            /*if (keys1.length !== keys2.length) {
                 return false;
-            }
+            }*/
             for (const key of keys1) {
+                if(ITEM_INVENTORY_KEY_PROPS.indexOf(key) < 0) {
+                    continue;
+                }
                 const val1 = object1[key];
                 const val2 = object2[key];
                 const areObjects = isObject(val1) && isObject(val2);
@@ -132,7 +135,7 @@ export class InventoryComparator {
                     // generate key
                     let key = new_item.id;
                     let entity_key = false;
-                    for(let prop of ['entity_name', 'entity_id', 'power', 'extra_data']) {
+                    for(let prop of ITEM_INVENTORY_KEY_PROPS) {
                         if(prop in b) {
                             if(prop != 'power' || b.power != 1) {
                                 if(prop in new_item) {

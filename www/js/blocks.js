@@ -9,9 +9,10 @@ export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
-export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'entity_name', 'extra_data', 'power'];
-const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
+export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
+export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
+export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
+export const BLOCK_HAS_WINDOW               = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);

@@ -115,9 +115,11 @@ export class ServerWorld {
                     const queue_item = this.list.shift();
                     const chest = that.chests.get(queue_item.params.chest.entity_id);
                     if(chest) {
-                        chest.confirmPlayerAction(queue_item.player, queue_item.params);
+                        console.log('Chest state from ' + queue_item.player.session.username);
+                        await chest.confirmPlayerAction(queue_item.player, queue_item.params);
                     } else {
-                        throw `Chest ${cmd.data.entity_id} not found`;
+                        queue_item.player.inventory.refresh(true);
+                        throw `Chest ${queue_item.params.chest.entity_id} not found`;
                     }
                 }
             }
@@ -183,7 +185,11 @@ export class ServerWorld {
         this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
         // 6. Chest confirms
-        this.chest_confirm_queue.run();
+        try {
+            await this.chest_confirm_queue.run();
+        } catch(e) {
+            // do nothing
+        }
         this.ticks_stat.add('chest_confirm_queue');
         //
         this.ticks_stat.end();
