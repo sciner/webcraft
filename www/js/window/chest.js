@@ -79,10 +79,60 @@ export default class ChestWindow extends Window {
             ct.add(btnClose);
         });
 
-        this.onDrop = function(e) {
-            console.log(243536789);
-        }
+        //
+        this.catchActions();
 
+    }
+
+    //
+    catchActions() {
+
+        const handlerMouseDown = function(e) {
+            this._originalMouseDown(e);
+            this.parent.confirmAction();
+        };
+
+        const handlerOnDrop = function(e) {
+            this._originalOnDrop(e);
+            this.parent.confirmAction();
+        };
+
+        for(let slots of [this.chest.slots, this.inventory_slots]) {
+            for(let slot of slots) {
+                // mouse down
+                slot._originalMouseDown = slot.onMouseDown;
+                slot.onMouseDown = handlerMouseDown;
+                // drop
+                slot._originalOnDrop = slot.onDrop;
+                slot.onDrop = handlerOnDrop;
+            }
+        }
+    
+    }
+
+    // Confirm action
+    confirmAction() {
+        const params = {
+            drag: Game.hud.wm.drag?.item?.item,
+            chest: {entity_id: this.entity_id, slots: []},
+            inventory_slots: []
+        };
+        params.drag = params.drag ? BLOCK.convertItemToInventoryItem(params.drag) : null;
+        // chest
+        for(let slot of this.chest.slots) {
+            if(slot.item) {
+                params.chest.slots.push(BLOCK.convertItemToInventoryItem(slot.item));
+            }
+        }
+        // inventory
+        for(let slot of this.inventory_slots) {
+            let item = slot.getItem();
+            if(item) {
+                params.inventory_slots.push(BLOCK.convertItemToInventoryItem(item));
+            }
+        }
+        // Send to server
+        this.server.ChestConfirm(params);
     }
 
     draw(ctx, ax, ay) {
@@ -155,42 +205,6 @@ export default class ChestWindow extends Window {
             lblSlot.onMouseLeave = function() {
                 this.style.background.color = '#00000000';
             }
-            /*
-            // Перехват установки содержимого
-            lblSlot.setItemOriginal = lblSlot.setItem;
-            lblSlot.setItem = function(item, e, no_send_to_server) {
-                console.log('setItem');
-                if(e && e?.ignore) {
-                    // console.log('ignore setItem');
-                    return;
-                }
-                // не разрешаем ничего делать, если сундук еще не загрузился
-                if(this.parent.parent.loading) {
-                    // console.log('1');
-                    return;
-                }
-                if(e && 'drag' in e) {
-                    item = e.drag?.item?.item || item;
-                }
-                if(no_send_to_server) {
-                    // console.log('2', item);
-                    this.setItemOriginal(item);
-                } else { 
-                    // console.log('3', item);
-                    ct.server.ChestSlotAction(ct.entity_id, this.index, item, {
-                        shiftKey: e.shiftKey,
-                        secondButton: e.button == MOUSE.BUTTON_RIGHT
-                    });
-                }
-            }
-            // Перехват бросания на слот
-            lblSlot.onDropOriginal = lblSlot.onDrop;
-            lblSlot.onDrop = function(e) {
-                console.log('onDrop');
-                this.setItem(null, e, false);
-                // e.ignore = true;
-                // this.onDropOriginal(e);
-            }*/
             this.chest.slots.push(lblSlot);
             ct.add(lblSlot);
         }
