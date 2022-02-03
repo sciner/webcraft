@@ -4,28 +4,53 @@ import {BLOCK} from "./blocks.js";
 
 export class RecipeManager {
 
-    constructor() {
+    constructor(force_load) {
         this.all = [];
         this.crafting_shaped = {
             list: [],
-            searchRecipeResult: function(pattern_array) {
+            map: new Map(),
+            searchRecipe: function(pattern_array) {
                 for(let recipe of this.list) {
                     if(recipe.pattern_array.length == pattern_array.length) {
                         if(recipe.pattern_array.every((val, index) => val === pattern_array[index])) {
-                            return recipe.result;
+                            return recipe;
                         }
                     }
                 }
                 return null;
             }
         };
-        this.load(() => {
-            if(!Game.is_server) {
-                // Recipe window
-                this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
-                Game.hud.wm.add(this.frmRecipe);
+        if(force_load) {
+            this.load(() => {
+                if(!Game.is_server) {
+                    // Recipe window
+                    this.frmRecipe = new RecipeWindow(this, 10, 10, 294, 332, 'frmRecipe', null, null);
+                    Game.hud.wm.add(this.frmRecipe);
+                }
+            });
+        }
+    }
+
+    // Return recipe by ID
+    getRecipe(recipe_id) {
+        if(typeof recipe_id != 'string') {
+            throw 'error_invalid_recipe_id';
+        }
+        return this.crafting_shaped.map.get(recipe_id);
+    }
+
+    // Return item recipes
+    getRecipesForItem(item_id) {
+        let b = BLOCK.fromId(item_id);
+        for(let r of this.crafting_shaped.list) {
+            let n = r.result.item.split(':');
+            if(n.length == 2) {
+                if(n[1] == b.name.toLowerCase()) {
+                    return r;
+                }
             }
-        });
+        }
+        return null;
     }
 
     add(recipe) {
@@ -120,6 +145,7 @@ export class RecipeManager {
                 r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
                 //
                 this.crafting_shaped.list.push(r);
+                this.crafting_shaped.map.set(r.id, r);
                 break;
             }
             default: {

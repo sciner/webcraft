@@ -18,7 +18,7 @@ export class Inventory extends PlayerInventory {
         //
         this.select(this.current.index);
         // Recipe manager
-        this.recipes = new RecipeManager();
+        this.recipes = new RecipeManager(true);
     }
 
     setState(inventory_state) {
@@ -56,6 +56,7 @@ export class Inventory extends PlayerInventory {
                 // do nothing
             }
         }
+        return true;
     }
 
     // drawHUD
@@ -110,14 +111,6 @@ export class Inventory extends PlayerInventory {
                     DEST_SIZE,
                     DEST_SIZE
                     );
-                if(item.count > 1) {
-                    hud.ctx.textBaseline    = 'bottom';
-                    hud.ctx.font            = Math.round(18 * zoom) + 'px Ubuntu';
-                    hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size);
-                    hud.ctx.fillStyle = '#ffffffff';
-                    hud.ctx.fillText(item.count, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size - 2 * zoom);
-                }
                 // Draw instrument life
                 if(mat.item?.instrument_id && item.power < mat.power) {
                     const power_normal = item.power / mat.power;
@@ -131,6 +124,23 @@ export class Inventory extends PlayerInventory {
                     let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
                     hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw * power_normal | 0, 4 * zoom);
+                }
+                // Draw label
+                let label = item.count > 1 ? item.count : null;
+                let shift_y = 0;
+                if(this.current.index == k) {
+                    if(!label && 'power' in item) {
+                        label = Math.round(item.power * 100) / 100;
+                        shift_y = -10;
+                    }
+                }
+                if(label) {
+                    hud.ctx.textBaseline = 'bottom';
+                    hud.ctx.font = Math.round(18 * zoom) + 'px Ubuntu';
+                    hud.ctx.fillStyle = '#000000ff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * zoom);
+                    hud.ctx.fillStyle = '#ffffffff';
+                    hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + (shift_y - 2) * zoom);
                 }
             }
             hud_pos.x += cell_size;
@@ -154,20 +164,6 @@ export class Inventory extends PlayerInventory {
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         this.hud.wm.add(this.frmChest);
-    }
-
-    // sendIncrement...
-    sendInventoryIncrement(item) {
-        // @todo inventory
-        console.error('Нужно перенести на сервер');
-        this.player.world.server.sendInventoryIncrement(BLOCK.convertItemToInventoryItem(item));
-    }
-    
-    //
-    setItem(index, item) {
-        // @todo inventory
-        console.error('Нужно перенести на сервер');
-        this.player.world.server.setInventoryItem(index, BLOCK.convertItemToInventoryItem(item));
     }
 
 }

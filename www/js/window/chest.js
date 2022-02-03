@@ -13,6 +13,7 @@ export default class ChestWindow extends Window {
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
+        this.server     = inventory.player.world.server;
         this.inventory  = inventory;
         this.loading    = false;
 
@@ -40,15 +41,17 @@ export default class ChestWindow extends Window {
             Game.releaseMousePointer();
             Game.sounds.play(BLOCK.CHEST.sound, 'open');
         }
-        
+
         // Обработчик закрытия формы
         this.onHide = function() {
-            // Drag
+            // Перекидываем таскаемый айтем в инвентарь, чтобы не потерять его
+            // @todo Обязательно надо проработать кейс, когда в инвентаре нет места для этого айтема
             let dragItem = this.getRoot().drag.getItem();
             if(dragItem) {
-                this.inventory.sendInventoryIncrement(dragItem.item);
+                this.inventory.increment(dragItem.item);
             }
             this.getRoot().drag.clear();
+            this.confirmAction();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');
         }
 
@@ -57,7 +60,7 @@ export default class ChestWindow extends Window {
         ct.add(new Label(15 * this.zoom, 147 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
 
         // Add listeners for server commands
-        inventory.player.world.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
             this.setData(cmd.data);
         });
 
@@ -76,6 +79,58 @@ export default class ChestWindow extends Window {
             ct.add(btnClose);
         });
 
+        // Catch action
+        this.catchActions();
+
+    }
+
+    // Catch action
+    catchActions() {
+        //
+        const handlerMouseDown = function(e) {
+            this._originalMouseDown(e);
+            this.parent.confirmAction();
+        };
+        //
+        const handlerOnDrop = function(e) {
+            this._originalOnDrop(e);
+            this.parent.confirmAction();
+        };
+        //
+        for(let slots of [this.chest.slots, this.inventory_slots]) {
+            for(let slot of slots) {
+                // mouse down
+                slot._originalMouseDown = slot.onMouseDown;
+                slot.onMouseDown = handlerMouseDown;
+                // drop
+                slot._originalOnDrop = slot.onDrop;
+                slot.onDrop = handlerOnDrop;
+            }
+        }
+    }
+
+    // Confirm action
+    confirmAction() {
+        const params = {
+            drag_item: Game.hud.wm.drag?.item?.item,
+            chest: {entity_id: this.entity_id, slots: {}},
+            inventory_slots: []
+        };
+        params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
+        // chest
+        for(let k in this.chest.slots) {
+            let slot = this.chest.slots[k];
+            if(slot.item) {
+                params.chest.slots[k] = BLOCK.convertItemToInventoryItem(slot.item);
+            }
+        }
+        // inventory
+        for(let slot of this.inventory_slots) {
+            let item = slot.getItem();
+            params.inventory_slots.push(item ? BLOCK.convertItemToInventoryItem(item) : null);
+        }
+        // Send to server
+        this.server.ChestConfirm(params);
     }
 
     draw(ctx, ax, ay) {
@@ -90,7 +145,7 @@ export default class ChestWindow extends Window {
         this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.player.world.server.LoadChest(this.entity_id);
+        this.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);
@@ -106,22 +161,19 @@ export default class ChestWindow extends Window {
         this.clear();
         for(let k of Object.keys(chest.slots)) {
             let item = chest.slots[k];
+            if(!item) {
+                continue;
+            }
             let block = {...BLOCK.fromId(item.id)};
             block = Object.assign(block, item);
-            this.chest.slots[k].setItem(block, true);
+            this.chest.slots[k].setItem(block, null, true);
         }
-    }
-    
-    // Отправка на сервер новых данных слота текущего сундука
-    SendChestSlotItem(slot_index, item) {
-        Game.player.world.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
     }
 
     // Очистка слотов сундука от предметов
     clear() {
         for(let slot of this.chest.slots) {
-            slot.item = null;
-            // slot.setItem(null);
+            slot.item = null; // slot.setItem(null);
         }
     }
 
@@ -150,27 +202,6 @@ export default class ChestWindow extends Window {
             }
             lblSlot.onMouseLeave = function() {
                 this.style.background.color = '#00000000';
-            }
-            // Перехват установки содержимого
-            lblSlot.setItemOriginal = lblSlot.setItem;
-            lblSlot.setItem = function(e, no_send_to_server) {
-                // не разрешаем ничего делать, если сундук еще не загрузился
-                if(this.parent.parent.loading) {
-                    return;
-                }
-                this.setItemOriginal(e);
-                if(!no_send_to_server) {
-                    ct.SendChestSlotItem(this.index, this.getItem());
-                }
-            }
-            // Перехват бросания на слот
-            lblSlot.onDropOriginal = lblSlot.onDrop;
-            lblSlot.onDrop = function(e) {
-                // не разрешаем ничего делать, если сундук еще не загрузился
-                if(this.parent.parent.loading) {
-                    return;
-                }
-                this.onDropOriginal(e);
             }
             this.chest.slots.push(lblSlot);
             ct.add(lblSlot);

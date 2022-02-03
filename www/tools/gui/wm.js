@@ -360,9 +360,10 @@ export class Window {
         if(entered.length + leaved.length > 0) {
             // console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
-                if(entered[0]?.tooltip) {
+                //if(entered[0]?.tooltip) {
+                    // @todo possible bug
                     this.getRoot()._wm_setTooltipText(entered[0].tooltip);
-                }
+                //}
                 entered[0].onMouseEnter();
             } else {
                 this.getRoot()._wm_setTooltipText(null);

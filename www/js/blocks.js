@@ -9,8 +9,10 @@ export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
-const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
+export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
+export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
+export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
+export const BLOCK_HAS_WINDOW               = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -142,7 +144,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item) {
+    static convertItemToDBItem(item) {
         if(!item || !('id' in item)) {
             return null;
         }
@@ -150,6 +152,37 @@ export class BLOCK {
             id: item.id
         };
         for(let k of ITEM_DB_PROPS) {
+            let v = item[k];
+            if(v !== undefined && v !== null) {
+                resp[k] = v;
+            }
+        }
+        return resp;
+    }
+
+    // Return new simplified item
+    static convertItemToInventoryItem(item, b) {
+        if(!item || !('id' in item) || item.id < 0) {
+            return null;
+        }
+        const resp = {
+            id: item.id
+        };
+        if('count' in item) {
+            item.count = Math.floor(item.count);
+        }
+        for(let k of ITEM_INVENTORY_PROPS) {
+            if(b) {
+                if(k in b) {
+                    if(k == 'power' && b.power == 1) {
+                        continue;
+                    }
+                } else {
+                    if(k != 'count') {
+                        continue;
+                    }
+                }
+            }
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;

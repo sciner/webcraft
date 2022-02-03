@@ -14,6 +14,10 @@ vec3 gamma(vec3 color){
     return pow(color, vec3(1.0/2.0));
 }
 
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 void main() {
 
     vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
@@ -32,6 +36,8 @@ void main() {
         // Read texture
         vec4 color = texture(u_texture, texc * mipScale + mipOffset);
         // color *= vec4(1.2, 1.2, 1.2, 1.);
+
+        // color = color * (1. + rand(round((texc * mipScale + mipOffset) * 6000.) / 6000.) / 16.);
 
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {

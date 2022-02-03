@@ -31,7 +31,7 @@ export class ServerClient {
     static CMD_CREATE_ENTITY            = 44;
     static CMD_LOAD_CHEST               = 45;
     static CMD_CHEST_CONTENT            = 46;
-    static CMD_SET_CHEST_SLOT_ITEM      = 47; // Отправка на сервер новых данных слота текущего сундука
+    static CMD_CHEST_CONFIRM            = 47; // Отправка на сервер действия с сундуком
     //
     static CMD_CHANGE_POS_SPAWN         = 63;
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
@@ -49,10 +49,8 @@ export class ServerClient {
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
-    static CMD_INVENTORY_SELECT         = 79;
-    static CMD_INVENTORY_INCREMENT      = 82;
-    static CMD_INVENTORY_DECREMENT      = 90;
-    static CMD_INVENTORY_SET_ITEM       = 83;
+    static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
+    static CMD_INVENTORY_NEW_STATE      = 90;
 
     // Mobs    
 	static CMD_MOB_ADD                  = 70;
@@ -340,18 +338,9 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_LOAD_CHEST, data: {entity_id: entity_id}});
     }
 
-    // Отправка на сервер новых данных слота текущего сундука
-    SendChestSlotItem(entity_id, slot_index, item) {
-        this.Send({name: ServerClient.CMD_SET_CHEST_SLOT_ITEM, data: {
-            entity_id: entity_id,
-            slot_index: slot_index,
-            item: {
-                id: item.id,
-                entity_id: item.entity_id,
-                count: item.count,
-                power: item.power,
-            }
-        }});
+    //
+    ChestConfirm(params) {
+        this.Send({name: ServerClient.CMD_CHEST_CONFIRM, data: params});
     }
 
     // Смена точки спавна
@@ -384,6 +373,11 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_INVENTORY_SELECT, data: data});
     }
 
+    // Save inventory
+    InventoryNewState(state, used_recipes) {
+        this.Send({name: ServerClient.CMD_INVENTORY_NEW_STATE, data: {state, used_recipes}});
+    }
+
     // Switch to next game mode
     GameModeNext() {
         this.Send({name: ServerClient.CMD_GAMEMODE_NEXT, data: null});
@@ -397,27 +391,6 @@ export class ServerClient {
     // Clone block from pos
     CloneBlock(pos) {
         this.Send({name: ServerClient.CMD_BLOCK_CLONE, data: pos});
-    }
-
-    // @temporarly
-    sendInventoryIncrement(item) {
-        this.Send({name: ServerClient.CMD_INVENTORY_INCREMENT, data: item});
-    }
-
-    // @temporarly
-    sendInventoryDecrement(item_id, count) {
-        this.Send({name: ServerClient.CMD_INVENTORY_DECREMENT, data: {
-            item_id: item_id,
-            count: count
-        }});
-    }
-
-    // @temporarly
-    setInventoryItem(index, item) {
-        this.Send({name: ServerClient.CMD_INVENTORY_SET_ITEM, data: {
-            index: index,
-            item: item
-        }});
     }
 
     DropItem() {

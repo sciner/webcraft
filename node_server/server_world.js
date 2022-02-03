@@ -56,6 +56,7 @@ export class ServerWorld {
                 mobs: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
             },
             start() {
                 this.pn = performance.now();
@@ -103,6 +104,26 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        // Queue of chest confirms
+        this.chest_confirm_queue = {
+            list: [],
+            add: function(player, params) {
+                this.list.push({player, params});
+            },
+            run: async function() {
+                while(this.list.length > 0) {
+                    const queue_item = this.list.shift();
+                    const chest = that.chests.get(queue_item.params.chest.entity_id);
+                    if(chest) {
+                        console.log('Chest state from ' + queue_item.player.session.username);
+                        await chest.confirmPlayerAction(queue_item.player, queue_item.params);
+                    } else {
+                        queue_item.player.inventory.refresh(true);
+                        throw `Chest ${queue_item.params.chest.entity_id} not found`;
+                    }
+                }
+            }
+        };
         // Queue of player pickat actions
         this.pickat_action_queue = {
             list: [],
@@ -163,6 +184,13 @@ export class ServerWorld {
         // 5.
         this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
+        // 6. Chest confirms
+        try {
+            await this.chest_confirm_queue.run();
+        } catch(e) {
+            // do nothing
+        }
+        this.ticks_stat.add('chest_confirm_queue');
         //
         this.ticks_stat.end();
         //
@@ -524,6 +552,7 @@ export class ServerWorld {
             const params = actions.create_painting;
             const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
             await this.db.createPainting(this, server_player, pos, params);
+            server_player.inventory.decrement();
             const cps = getChunkPackets(pos);
             if(cps) {
                 if(!cps.chunk) {
@@ -560,7 +589,7 @@ export class ServerWorld {
             await this.db.TransactionBegin();
             try {
                 for(let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToInventoryItem(params.item);
+                    params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if(!prev_chunk_addr.equal(chunk_addr)) {
                         chunk = this.chunks.get(chunk_addr);

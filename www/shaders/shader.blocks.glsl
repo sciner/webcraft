@@ -103,7 +103,7 @@
 #ifdef crosshair_define_func
     // crosshair draw block
     void drawCrosshair() {
-        float cm = 0.00065;
+        float cm = 0.0008;
         vec4 crosshair;
 
         if(u_resolution.x > u_resolution.y) {

@@ -532,6 +532,16 @@ export class Vector {
     }
 
     /**
+     * @returns {Vector}
+     */
+    roundSelf() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        this.z = Math.round(this.z);
+        return this;
+    }
+
+    /**
      * @return {Vector}
      */
     toInt() {
