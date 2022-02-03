@@ -234,7 +234,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 dragItem = {...targetItem};
                 dragItem.count = split_count;
                 targetItem.count -= split_count;
-                this.setItem(targetItem);
+                this.setItem(targetItem, e);
             } else {
                 if(e.shiftKey) {
                     switch(this.parent.id) {
@@ -244,7 +244,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let targetList = this.slot_index < 9 ? srcList.slice(srcListFirstIndexOffset) : srcList.slice(srcListFirstIndexOffset, 9);
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
                             if(targetItem.count == 0) {
-                                that.setItem(null);
+                                that.setItem(null, e);
                             }
                             break;
                         }
@@ -254,7 +254,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
                             if(targetItem.count == 0) {
-                                that.setItem(null);
+                                that.setItem(null, e);
                             }
                             break;
                         }
@@ -264,7 +264,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             let targetList = srcList;
                             this.appendToList(targetItem, targetList, srcList, srcListFirstIndexOffset);
                             if(targetItem.count == 0) {
-                                that.setItem(null);
+                                that.setItem(null, e);
                             }
                         }
                         default: {
@@ -274,7 +274,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                     return;
                 }
                 dragItem = targetItem;
-                that.setItem(null);
+                that.setItem(null, e);
             }
             that.dragItem = dragItem;
             e.drag.setItem({
@@ -284,6 +284,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 item: dragItem
             });
             this.prev_mousedown_time = performance.now();
+            this.prev_mousedown_button = e.button;
         }
 
         // Drag & drop
@@ -300,7 +301,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             }
             const max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
             //
-            if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && !e.shiftKey) {
+            if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && this.prev_mousedown_button == MOUSE.BUTTON_LEFT && !e.shiftKey) {
                 // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
                 let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
                 if(doubleClick && dropData.item.count < max_stack_count) {
@@ -326,7 +327,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                     dropData.item.count += minus_count;
                                     slot.item.count -= minus_count;
                                     if(slot.item.count < 1) {
-                                        slots[i].setItem(null);
+                                        slots[i].setItem(null, e);
                                     }
                                 }
                             }
@@ -385,11 +386,11 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                                 drag.clear();
                             }
                         }
-                        this.setItem(targetItem);
+                        this.setItem(targetItem, e);
                     }
                 } else {
                     // поменять местами перетаскиваемый элемент и содержимое ячейки
-                    this.setItem(dropData.item);
+                    this.setItem(dropData.item, e);
                     dropData.item = targetItem;
                 }
             } else {
@@ -397,10 +398,10 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
                     let newItem = {...dropData.item};
                     newItem.count = 1;
-                    that.setItem(newItem);
+                    that.setItem(newItem, e);
                     dropData.item.count--;
                 } else {
-                    that.setItem(dropData.item);
+                    that.setItem(dropData.item, e);
                     drag.clear();
                 }
             }

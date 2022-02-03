@@ -231,10 +231,10 @@ export class ServerPlayer extends Player {
                     break;
                 }
             
-                case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
+                case ServerClient.CMD_CHEST_SLOT_ACTION: {
                     const chest = this.world.chests.get(cmd.data.entity_id);
                     if(chest) {
-                        chest.setSlotItem(this, cmd.data.slot_index, cmd.data.item);
+                        this.world.chest_action_queue.add(this, chest, cmd.data);
                     } else {
                         throw `Chest ${cmd.data.entity_id} not found`;
                     }

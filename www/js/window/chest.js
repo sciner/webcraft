@@ -13,6 +13,7 @@ export default class ChestWindow extends Window {
         this.height *= this.zoom;
         this.style.background.image_size_mode = 'stretch';
 
+        this.server     = inventory.player.world.server;
         this.inventory  = inventory;
         this.loading    = false;
 
@@ -50,7 +51,7 @@ export default class ChestWindow extends Window {
             }
             this.getRoot().drag.clear();
             Game.sounds.play(BLOCK.CHEST.sound, 'close');
-            // Save inventory
+            // @todo send close chest
             Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
@@ -59,7 +60,7 @@ export default class ChestWindow extends Window {
         ct.add(new Label(15 * this.zoom, 147 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
 
         // Add listeners for server commands
-        inventory.player.world.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
+        this.server.AddCmdListener([ServerClient.CMD_CHEST_CONTENT], (cmd) => {
             this.setData(cmd.data);
         });
 
@@ -78,6 +79,10 @@ export default class ChestWindow extends Window {
             ct.add(btnClose);
         });
 
+        this.onDrop = function(e) {
+            console.log(243536789);
+        }
+
     }
 
     draw(ctx, ax, ay) {
@@ -92,7 +97,7 @@ export default class ChestWindow extends Window {
         this.entity_id  = entity_id;
         this.loading    = true;
         this.clear();
-        Game.player.world.server.LoadChest(this.entity_id);
+        this.server.LoadChest(this.entity_id);
         setTimeout(function() {
             that.show();
         }, 50);
@@ -108,22 +113,19 @@ export default class ChestWindow extends Window {
         this.clear();
         for(let k of Object.keys(chest.slots)) {
             let item = chest.slots[k];
+            if(!item) {
+                continue;
+            }
             let block = {...BLOCK.fromId(item.id)};
             block = Object.assign(block, item);
-            this.chest.slots[k].setItem(block, true);
+            this.chest.slots[k].setItem(block, null, true);
         }
-    }
-    
-    // Отправка на сервер новых данных слота текущего сундука
-    SendChestSlotItem(slot_index, item) {
-        Game.player.world.server.SendChestSlotItem(this.entity_id, slot_index, {...item});
     }
 
     // Очистка слотов сундука от предметов
     clear() {
         for(let slot of this.chest.slots) {
-            slot.item = null;
-            // slot.setItem(null);
+            slot.item = null; // slot.setItem(null);
         }
     }
 
@@ -153,27 +155,42 @@ export default class ChestWindow extends Window {
             lblSlot.onMouseLeave = function() {
                 this.style.background.color = '#00000000';
             }
+            /*
             // Перехват установки содержимого
             lblSlot.setItemOriginal = lblSlot.setItem;
-            lblSlot.setItem = function(e, no_send_to_server) {
-                // не разрешаем ничего делать, если сундук еще не загрузился
-                if(this.parent.parent.loading) {
+            lblSlot.setItem = function(item, e, no_send_to_server) {
+                console.log('setItem');
+                if(e && e?.ignore) {
+                    // console.log('ignore setItem');
                     return;
                 }
-                this.setItemOriginal(e);
-                if(!no_send_to_server) {
-                    ct.SendChestSlotItem(this.index, this.getItem());
+                // не разрешаем ничего делать, если сундук еще не загрузился
+                if(this.parent.parent.loading) {
+                    // console.log('1');
+                    return;
+                }
+                if(e && 'drag' in e) {
+                    item = e.drag?.item?.item || item;
+                }
+                if(no_send_to_server) {
+                    // console.log('2', item);
+                    this.setItemOriginal(item);
+                } else { 
+                    // console.log('3', item);
+                    ct.server.ChestSlotAction(ct.entity_id, this.index, item, {
+                        shiftKey: e.shiftKey,
+                        secondButton: e.button == MOUSE.BUTTON_RIGHT
+                    });
                 }
             }
             // Перехват бросания на слот
             lblSlot.onDropOriginal = lblSlot.onDrop;
             lblSlot.onDrop = function(e) {
-                // не разрешаем ничего делать, если сундук еще не загрузился
-                if(this.parent.parent.loading) {
-                    return;
-                }
-                this.onDropOriginal(e);
-            }
+                console.log('onDrop');
+                this.setItem(null, e, false);
+                // e.ignore = true;
+                // this.onDropOriginal(e);
+            }*/
             this.chest.slots.push(lblSlot);
             ct.add(lblSlot);
         }

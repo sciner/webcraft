@@ -31,7 +31,7 @@ export class ServerClient {
     static CMD_CREATE_ENTITY            = 44;
     static CMD_LOAD_CHEST               = 45;
     static CMD_CHEST_CONTENT            = 46;
-    static CMD_SET_CHEST_SLOT_ITEM      = 47; // Отправка на сервер новых данных слота текущего сундука
+    static CMD_CHEST_SLOT_ACTION        = 47; // Отправка на сервер действия со слотом сундука
     //
     static CMD_CHANGE_POS_SPAWN         = 63;
     static CMD_TELEPORT_REQUEST         = 64; // запрос от игрока на телепорт в указанное уникальное место(spawn|random) или к точным координатам
@@ -338,17 +338,13 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_LOAD_CHEST, data: {entity_id: entity_id}});
     }
 
-    // Отправка на сервер новых данных слота текущего сундука
-    SendChestSlotItem(entity_id, slot_index, item) {
-        this.Send({name: ServerClient.CMD_SET_CHEST_SLOT_ITEM, data: {
+    //
+    ChestSlotAction(entity_id, slot_index, item, options) {
+        this.Send({name: ServerClient.CMD_CHEST_SLOT_ACTION, data: {
             entity_id: entity_id,
             slot_index: slot_index,
-            item: {
-                id: item.id,
-                entity_id: item.entity_id,
-                count: item.count,
-                power: item.power,
-            }
+            item: BLOCK.convertItemToInventoryItem(item),
+            options: options
         }});
     }
 

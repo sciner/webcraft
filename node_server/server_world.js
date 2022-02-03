@@ -56,6 +56,7 @@ export class ServerWorld {
                 mobs: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                chest_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
             },
             start() {
                 this.pn = performance.now();
@@ -103,6 +104,19 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        // Queue of chest actions
+        this.chest_action_queue = {
+            list: [],
+            add: function(player, chest, params) {
+                this.list.push({player, chest, params});
+            },
+            run: async function() {
+                while(this.list.length > 0) {
+                    const queue_item = this.list.shift();
+                    queue_item.chest.slotAction(queue_item.player, queue_item.params.slot_index, queue_item.params.item, queue_item.params.options);        
+                }
+            }
+        };
         // Queue of player pickat actions
         this.pickat_action_queue = {
             list: [],
@@ -163,6 +177,9 @@ export class ServerWorld {
         // 5.
         this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
+        // 6. Chest actions
+        this.chest_action_queue.run();
+        this.ticks_stat.add('chest_action_queue');
         //
         this.ticks_stat.end();
         //

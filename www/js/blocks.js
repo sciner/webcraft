@@ -167,6 +167,9 @@ export class BLOCK {
         const resp = {
             id: item.id
         };
+        if('count' in item) {
+            item.count = Math.floor(item.count);
+        }
         for(let k of ITEM_INVENTORY_PROPS) {
             if(b) {
                 if(k in b) {

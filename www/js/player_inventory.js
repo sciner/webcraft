@@ -13,6 +13,7 @@ export class PlayerInventory {
         this.items          = state.items;
         this.max_count      = 36;
         this.hotbar_count   = 9;
+        this.drag_item      = null;
         this.onSelect       = (item) => {};
     }
 
@@ -195,7 +196,7 @@ export class PlayerInventory {
     }
 
     // decrementByItemID
-    decrementByItemID(item_id, count) {
+    decrementByItemID(item_id, count, dont_refresh) {
         for(let i in this.items) {
             let item = this.items[i];
             if(!item || item.count < 1) {
@@ -215,7 +216,9 @@ export class PlayerInventory {
                 }
             }
         }
-        this.refresh(true);
+        if(typeof dont_refresh === 'undefined' || !dont_refresh) {
+            this.refresh(true);
+        }
     }
 
     // Клонирование материала в инвентарь
@@ -297,6 +300,57 @@ export class PlayerInventory {
             this.setItem(this.current.index, null);
         } else {
             this.decrement();
+        }
+        return true;
+    }
+
+    // Has item
+    hasItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        return existing_item && existing_item.count >= item.count;
+    }
+
+    // Decrement item
+    decrementItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        if(!existing_item || existing_item.count < item.count) {
+            return false;
+        }
+        // Decrement
+        if(isNaN(item_key)) {
+            // @todo Нужно по другому сделать вычитание, иначе если игрок не запросит свою постройку айтемов, на сервере у него порядок и группировка останется неправильной
+            // Я сделал так, потому что математически у него останется правильное количество айтемов и меня это пока устраивает =)
+            existing_item.count -= item.count;
+            if(existing_item.count < 1) {
+                items.delete(item_key);
+            }
+            this.items = Array.from(items.values());    
+        } else {
+            this.decrementByItemID(item.id, item.count, true);
         }
         return true;
     }
