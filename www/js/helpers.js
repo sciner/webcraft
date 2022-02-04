@@ -157,6 +157,21 @@ export class VectorCollector {
         }
     }
 
+    kvpIterator() {
+        const that = this;
+        return (function* () {
+            let vec = new Vector(0, 0, 0);
+            for (let [xk, x] of that.list) {
+                for (let [yk, y] of x) {
+                    for (let [zk, value] of y) {
+                        vec.set(xk|0, yk|0, zk|0);
+                        yield [vec, value];
+                    }
+                }
+            }
+        })()
+    }
+
     clear(list) {
         this.list = list ? list : new Map();
         this.size = 0;

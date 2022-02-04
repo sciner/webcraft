@@ -642,7 +642,7 @@ export class ServerWorld {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
                     } else {
-                        console.error('Chunk not found in pos', chunk_addr, params);
+                        // console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
                 await this.db.TransactionCommit();

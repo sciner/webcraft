@@ -12,7 +12,12 @@ export class CraftTableSlot extends Label {
 
     //
     get tooltip() {
-        return this.getItem()?.name.replaceAll('_', ' ') || null;
+        let resp = null;
+        let item = this.getItem();
+        if(item) {
+            resp = item.name.replaceAll('_', ' ') + ` (#${item.id})`;
+        }
+        return resp;
     }
 
     setItem(item) {
