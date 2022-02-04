@@ -436,7 +436,6 @@ export class ServerPlayer extends Player {
     }
 
     tick(delta) {
-        console.log(3);
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2. Check near drop items

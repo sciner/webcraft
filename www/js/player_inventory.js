@@ -193,7 +193,7 @@ export class PlayerInventory {
     }
     
     // Decrement
-    decrement(ignore_creative_game_mode) {
+    decrement(decrement_item, ignore_creative_game_mode) {
         if(!this.current_item) {
             return;
         }
@@ -324,7 +324,7 @@ export class PlayerInventory {
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
-            this.decrement(true);
+            this.decrement(null, true);
         }
         return true;
     }
