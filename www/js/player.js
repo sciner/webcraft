@@ -80,7 +80,7 @@ export class Player {
             return await this.onPickAtTarget(...args);
         });
         // Player control
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         // Chat
         this.chat                   = new Chat(this);

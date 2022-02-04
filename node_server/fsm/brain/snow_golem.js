@@ -9,7 +9,11 @@ export class Brain extends FSMBrain {
         //
         this.prevPos        = new Vector(mob.pos);
         this.lerpPos        = new Vector(mob.pos);
-        this.pc             = this.createPlayerControl(this, 1/4, 1.6, 1);
+        this.pc             = this.createPlayerControl(this, {
+            baseSpeed: 1/4,
+            playerHeight: 1.6,
+            stepHeight: 1
+        });
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.standStill);
     }
