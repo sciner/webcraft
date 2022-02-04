@@ -2833,6 +2833,7 @@
         "material": {
             "id": "stone"
         },
+        "can_rotate": true,
         "texture": {
             "up": [
                 14,

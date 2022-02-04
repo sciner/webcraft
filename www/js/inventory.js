@@ -1,4 +1,4 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow} from "./window/index.js";
+import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, FurnaceWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
@@ -164,6 +164,9 @@ export class Inventory extends PlayerInventory {
         // Chest window
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         this.hud.wm.add(this.frmChest);
+        // Furnace window
+        this.frmFurnace = new FurnaceWindow(10, 10, 352, 332, 'frmFurnace', null, null, this);
+        this.hud.wm.add(this.frmFurnace);
     }
 
 }

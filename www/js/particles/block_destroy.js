@@ -42,9 +42,16 @@ export default class Particles_Block_Destroy {
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
         }
 
-        const c         = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
-        //
-        const count = small ? 5 : 30;
+        // Texture params
+        let texture_id = 'default';
+        if(typeof block.texture == 'object' && 'id' in block.texture) {
+            texture_id = block.texture.id;
+        }
+        let tex = this.resource_pack.textures.get(texture_id);
+        const c = BLOCK.calcTexture(this.texture, DIRECTION.UP, tex.tx_cnt); // полная текстура
+
+        // particles count
+        const count     = small ? 5 : 30;
 
         this.pos        = new Vector(
             pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,

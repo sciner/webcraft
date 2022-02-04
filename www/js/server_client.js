@@ -47,6 +47,10 @@ export class ServerClient {
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_CREATE_PAINTING          = 89;
 
+    // Furnace / Печь
+    static CMD_LOAD_FURNACE             = 91;
+    static CMD_FURNACE_CONTENT          = 92;
+
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
@@ -336,6 +340,11 @@ export class ServerClient {
     // Запрос содержимого сундука
     LoadChest(entity_id) {
         this.Send({name: ServerClient.CMD_LOAD_CHEST, data: {entity_id: entity_id}});
+    }
+
+    // Запрос содержимого печки
+    LoadFurnace(entity_id) {
+        this.Send({name: ServerClient.CMD_LOAD_FURNACE, data: {entity_id: entity_id}});
     }
 
     //

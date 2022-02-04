@@ -425,6 +425,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.load_chest = entity_id;
                         break;
                     }
+                    case BLOCK.FURNACE.id: {
+                        resp.open_window = 'frmFurnace';
+                        break;
+                    }
                 }
                 resp.reset_target_event = true;
                 return resp;
