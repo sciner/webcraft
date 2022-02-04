@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from '../blocks.js';
-import {Color, Helpers, Vector} from '../helpers.js';
+import {Color, FastRandom, Vector} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 
@@ -23,6 +23,8 @@ export class Default_Terrain_Generator {
     async setSeed(seed) {
         this.seed = seed;
         noise.seed(this.seed);
+        //
+        this.fastRandoms = new FastRandom(this.seed, CHUNK_SIZE_X * CHUNK_SIZE_Z);
     }
 
     generate(chunk) {
@@ -155,7 +157,8 @@ export class Default_Terrain_Generator {
 
     // Акация
     plantAcacia(options, chunk, orig_x, orig_y, orig_z) {
-        let random = new alea(chunk.id + '_tree' + orig_x + 'x' + orig_z);
+        // let xyz = chunk.coord.add(new Vector(orig_x, orig_y, orig_z));
+        // let random = new alea('tree' + xyz.toHash());
         let iterations = 0;
         let that = this;
         let plant = function(x, y, z, height, px, pz, rads) {
@@ -166,7 +169,8 @@ export class Default_Terrain_Generator {
                 z += pz;
                 that.temp_block.id = options.type.trunk;
                 that.setBlock(chunk, x, p, z, that.temp_block, true);
-                let r = random.double();
+                // let r = random.double();
+                let r = that.fastRandoms.double(x + p + z + chunk.coord.x + chunk.coord.y + chunk.coord.z);
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
                     r *= 10;
                     iterations++;

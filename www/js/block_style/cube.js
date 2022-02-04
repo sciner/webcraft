@@ -3,6 +3,7 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -11,6 +12,12 @@ const {mat3} = glMatrix;
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
 let DIRT_BLOCKS = null;
+
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_dirt_rotations');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = Math.round(a.double() * 100);
+}
 
 export function pushTransformed(
     vertices, mat, pivot,
@@ -122,6 +129,7 @@ export default class style {
         let upFlags                 = flags;
         let c;
 
+
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {
@@ -190,10 +198,7 @@ export default class style {
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
-                let a = new alea([x, y, z].join('x'));
-                a = a.int32();
-                if(a < 0) a = -a;
-                let rv = a % 4;
+                const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
                 switch(rv) {
                     case 0: {
                         top_vectors = [0, -1, 0, 1, 0, 0];

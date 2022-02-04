@@ -1,4 +1,5 @@
 import { CubeSym } from "./core/CubeSym.js";
+import {impl as alea} from "../../vendors/alea.js";
 
 export const TX_CNT = 32;
 
@@ -1097,6 +1098,33 @@ export class AverageClockTimer {
         this.sum += value;
         this.history.push(value);
         this.avg = (this.sum / this.history.length) || 0;
+    }
+
+}
+
+// FastRandom...
+export class FastRandom {
+
+    constructor(seed, cnt) {
+        const a = new alea(seed);
+        this.int32s = new Array(cnt);
+        this.doubles = new Array(cnt);
+        this.index = 0;
+        this.cnt = cnt;
+        for(let i = 0; i < cnt; i++) {
+            this.int32s[i] = a.int32();
+            this.doubles[i] = a.double();
+        }
+    }
+
+    double(offset) {
+        offset = Math.abs(offset) % this.cnt;
+        return this.doubles[offset];
+    }
+
+    int32(offset) {
+        offset = Math.abs(offset) % this.cnt;
+        return this.int32s[offset];
     }
 
 }

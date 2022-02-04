@@ -6,7 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 
 const _createBlockAABB = new AABB();
-    
+
 const sides = [
     new Vector(1, 0, 0),
     new Vector(-1, 0, 0),

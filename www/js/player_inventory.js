@@ -56,7 +56,11 @@ export class PlayerInventory {
         // New state
         const state = params.state;
         if('items' in state) {
-            if(await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes)) {
+            let equal = this.player.game_mode.isCreative();
+            if(!equal) {
+                equal = await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes);
+            }
+            if(equal) {
                 // apply new
                 this.applyNewItems(state.items, true);
                 // send current to player

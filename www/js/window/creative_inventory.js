@@ -195,6 +195,8 @@ export class CreativeInventoryWindow extends Window {
         // Обработчик закрытия формы
         this.onHide = function() {
             this.getRoot().drag.clear();
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
         // Add close button
