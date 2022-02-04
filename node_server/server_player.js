@@ -9,7 +9,7 @@ import { getChunkAddr } from "../www/js/chunk.js";
 import config from "./config.js";
 
 const PLAYER_HEIGHT = 1.7;
-const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 3;
+const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
 const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
     new Vector(-1, 0, -1),
@@ -436,6 +436,7 @@ export class ServerPlayer extends Player {
     }
 
     tick(delta) {
+        console.log(3);
         // 1.
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2. Check near drop items

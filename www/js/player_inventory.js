@@ -193,8 +193,11 @@ export class PlayerInventory {
     }
     
     // Decrement
-    decrement() {
-        if(!this.current_item || this.player.game_mode.isCreative()) {
+    decrement(ignore_creative_game_mode) {
+        if(!this.current_item) {
+            return;
+        }
+        if(!ignore_creative_game_mode && this.player.game_mode.isCreative()) {
             return;
         }
         const current_item_material = BLOCK.fromId(this.current_item.id);
@@ -307,9 +310,9 @@ export class PlayerInventory {
         item.count = 1;
         const pos = this.player.state.pos.clone();
         pos.addSelf(this.temp_vec.set(
-            -Math.sin(this.player.state.rotate.z) * .15,
+            -Math.sin(this.player.state.rotate.z) * .15 + Math.random() * .5,
             this.player.height * .4,
-            -Math.cos(this.player.state.rotate.z) * .15,
+            -Math.cos(this.player.state.rotate.z) * .15 + Math.random() * .5,
         ));
         // Add velocity for drop item
         this.temp_vec.set(
@@ -321,7 +324,7 @@ export class PlayerInventory {
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
-            this.decrement();
+            this.decrement(true);
         }
         return true;
     }
