@@ -352,6 +352,11 @@ export class ServerWorld {
             }
         }
         if (new_pos) {
+            let MAX_COORD = 2000000000;
+            if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
+                console.log('error_too_far');
+                throw 'error_too_far';
+            }
             let packets = [{
                 name: ServerClient.CMD_TELEPORT,
                 data: {

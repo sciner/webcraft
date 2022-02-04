@@ -170,7 +170,7 @@ export class Default_Terrain_Generator {
                 that.temp_block.id = options.type.trunk;
                 that.setBlock(chunk, x, p, z, that.temp_block, true);
                 // let r = random.double();
-                let r = that.fastRandoms.double(x + p + z + chunk.coord.x + chunk.coord.y + chunk.coord.z);
+                let r = that.fastRandoms.double(x + p + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + height);
                 if(iterations == 0 && r < .1 && p <= y+height/2) {
                     r *= 10;
                     iterations++;
