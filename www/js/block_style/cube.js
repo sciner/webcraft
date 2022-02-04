@@ -11,6 +11,7 @@ const {mat3} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
+const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -144,6 +145,22 @@ export default class style {
         let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
         let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
         let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+
+        if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+            // alternative for blocks where UP is not actually UP
+            // something is upside down or on side...
+            DIRECTION_BACK = DIRECTION.BACK;
+            DIRECTION_RIGHT = DIRECTION.RIGHT;
+            DIRECTION_FORWARD = DIRECTION.FORWARD;
+            DIRECTION_LEFT = DIRECTION.LEFT;
+            //use matrix instead!
+            if (matrix) {
+                mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                matrix = tempMatrix;
+            } else {
+                matrix = CubeSym.matrices[cardinal_direction];
+            }
+        }
 
         if(material.style == 'ladder') {
             width = 1;
