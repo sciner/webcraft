@@ -1,5 +1,5 @@
 import { CubeSym } from "./core/CubeSym.js";
-import {impl as alea} from "../../vendors/alea.js";
+import {impl as alea} from "../vendors/alea.js";
 
 export const TX_CNT = 32;
 
