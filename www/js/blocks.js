@@ -349,7 +349,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
+        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
             group = 'doubleface';
         }
         return group;
@@ -542,11 +542,11 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height, block) {
+    static calcMaterialTexture(material, dir, width, height, block, force_tex) {
         let tx_cnt = material.tx_cnt;
-        let texture = material.texture;
+        let texture = force_tex || material.texture;
         // Stages
-        if(material.stage_textures && block && block.extra_data) {
+        if(block && material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
                 let stage = block.extra_data.stage;
                 stage = Math.max(stage, 0);
@@ -953,7 +953,7 @@ export class BLOCK {
                     const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
-                            ...styleVariant.aabb(b).map(aabb => aabb.toArray())
+                            ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
                         );
                     } else {
                         let shift_y = 0;
@@ -993,7 +993,7 @@ export class BLOCK {
                     );
                 } else {
                     switch(material.style) {
-                        case 'sign': {
+                        /*case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 1;
                             shapes.push([
@@ -1001,7 +1001,7 @@ export class BLOCK {
                                 .5+hw, sign_height, .5+hw
                             ]);
                             break;
-                        }
+                        }*/
                         case 'planting': {
                             let hw = (12/16) / 2;
                             let h = 12/16;

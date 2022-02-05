@@ -64,7 +64,7 @@ export default class style {
         return [aabb];
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
         const {
             rotate
         } = block;

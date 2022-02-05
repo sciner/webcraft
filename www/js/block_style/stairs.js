@@ -11,7 +11,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         let texture         = block.material.texture;
         let lm              = MULTIPLY.COLOR.WHITE;

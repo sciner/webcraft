@@ -207,9 +207,12 @@ export class Renderer {
 
         const extruded = [];
         const regular = Array.from(all_blocks.values()).map((block, i) => {
-            const draw_style = block.inventory_style
+            let draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;
+            if('inventory' in block) {
+                draw_style = block.inventory.style;
+            }
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
@@ -332,12 +335,18 @@ export class Renderer {
 
                 const resource_pack = material.resource_pack;
                 let texture_id = 'default';
-                if(typeof material.texture == 'object' && 'id' in material.texture) {
-                    texture_id = material.texture.id;
+                let texture = material.texture;
+                if('inventory' in material) {
+                    if('texture' in material.inventory) {
+                        texture = material.inventory.texture;
+                    }
+                }
+                if(typeof texture == 'object' && 'id' in texture) {
+                    texture_id = texture.id;
                 }
                 const tex = resource_pack.textures.get(texture_id);
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.FORWARD, tex.tx_cnt);
+                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
