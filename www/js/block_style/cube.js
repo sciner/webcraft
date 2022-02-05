@@ -141,24 +141,49 @@ export default class style {
 
         let DIRECTION_UP        = DIRECTION.UP;
         let DIRECTION_DOWN      = DIRECTION.DOWN;
-        let DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-        let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-        let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-        let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        let DIRECTION_BACK      = DIRECTION.BACK
+        let DIRECTION_RIGHT     = DIRECTION.RIGHT
+        let DIRECTION_FORWARD   = DIRECTION.FORWARD
+        let DIRECTION_LEFT      = DIRECTION.LEFT;
 
-        if (CubeSym.matrices[cardinal_direction][4] <= 0) {
-            // alternative for blocks where UP is not actually UP
-            // something is upside down or on side...
-            DIRECTION_BACK = DIRECTION.BACK;
-            DIRECTION_RIGHT = DIRECTION.RIGHT;
-            DIRECTION_FORWARD = DIRECTION.FORWARD;
-            DIRECTION_LEFT = DIRECTION.LEFT;
-            //use matrix instead!
-            if (matrix) {
-                mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
-                matrix = tempMatrix;
-            } else {
-                matrix = CubeSym.matrices[cardinal_direction];
+        if(material.can_rotate) {
+            DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+            DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+            DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+            DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        }
+
+        if(material.can_rotate && block.rotate) {
+            if(material.id == 3) {
+                if(block.rotate.y == 0) {
+                    canDrawTOP = true;
+                    canDrawDOWN = true;
+                    canDrawSOUTH = true;
+                    canDrawNORTH = true;
+                    canDrawWEST = true;
+                    canDrawEAST = true;
+                    if(block.rotate.x % 2 == 1) {
+                        matrix = CubeSym.matrices[CubeSym.ROT_Z3];
+                    } else {
+                        matrix = CubeSym.matrices[CubeSym.ROT_X3];
+                    }
+                }
+                /*
+                if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                    // alternative for blocks where UP is not actually UP
+                    // something is upside down or on side...
+                    DIRECTION_BACK = DIRECTION.BACK;
+                    DIRECTION_RIGHT = DIRECTION.RIGHT;
+                    DIRECTION_FORWARD = DIRECTION.FORWARD;
+                    DIRECTION_LEFT = DIRECTION.LEFT;
+                    //use matrix instead!
+                    if (matrix) {
+                        mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                        matrix = tempMatrix;
+                    } else {
+                        matrix = CubeSym.matrices[cardinal_direction];
+                    }
+                }*/
             }
         }
 
