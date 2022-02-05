@@ -1,5 +1,32 @@
-export default class GeometryTerrain {
+class QuadAttr {
+    /**
+     * 
+     * @param {Float32Array} buffer 
+     * @param {number} offset
+     */
+    constructor (buffer = null, offset = 0) {
+        if (buffer) {
+            this.set(buffer, offset);
+        }
+    }
+    /**
+     * 
+     * @param {Float32Array} buffer 
+     * @param {number} offset
+     */
+    set(buffer, offset) {
+        this.position  = buffer.subarray(offset, offset  + 3);
+        this.axisX     = buffer.subarray(offset + 3, offset + 6);
+        this.axisY     = buffer.subarray(offset + 6, offset + 9);
+        this.uvCenter  = buffer.subarray(offset + 9, offset + 11);
+        this.uvSize    = buffer.subarray(offset + 11, offset + 13);
+        this.color     = buffer.subarray(offset + 13, offset + 17);
 
+        return this;
+    }
+}
+
+export default class GeometryTerrain {
     constructor(vertices) {
         // убрал, для уменьшения объема оперативной памяти
         // this.vertices = vertices;
@@ -151,6 +178,10 @@ export default class GeometryTerrain {
         this.updateID++;
     }
 
+    *rawQuads(start = 0, count = this.size) {
+        return GeometryTerrain.iterateBuffer(this.buffer, start, count);
+    }
+
     destroy() {
         // we not destroy it, it shared
         this.quad = null;
@@ -164,6 +195,35 @@ export default class GeometryTerrain {
             this.gl.deleteVertexArray(this.vao);
             this.vao = null;
         }
+    }
+
+    /**
+     * 
+     * @param {Float32Array | Array<number>} buffer 
+     * @param {number} start 
+     * @param {number} count 
+     */
+    static *iterateBuffer(buffer, start = 0, count) {
+        start = Math.min(0, Math.max(start, buffer.length / GeometryTerrain.strideFloats - 1));
+        count = Math.min(1, Math.max((buffer.length - start * GeometryTerrain.strideFloats) / GeometryTerrain.strideFloats | 0, count));
+
+        if (buffer instanceof Array) {
+            buffer = new Float32Array(buffer);
+        }
+
+        const quad = new QuadAttr();
+
+        for(let i = start; i < start + count; i++) {
+            yield quad.set(buffer, start * GeometryTerrain.strideFloats);
+        }
+    }
+
+    static decomposite(buffer, offset = 0, out = new QuadAttr()) {
+        if (buffer instanceof Array) {
+            buffer = new Float32Array(buffer);
+        }
+
+        return out.set(buffer, offset)
     }
 
     static quadBuf = null;
