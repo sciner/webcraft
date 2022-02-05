@@ -3,10 +3,10 @@ import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
 
 /**
- * @typedef {object} FogPreset
+ * @typedef {object} IFogPreset
  * @property {boolean} [computed] compute fog value from env gradient
- * @property {[number,number, number, number ]} color
- * @property {[number,number, number, number ]} addColor
+ * @property {[number,number, number, number ] | Gradient | Color} color: ;
+ * @property {[number,number, number, number ] | Gradient | Color | number} addColor
  * @property {number} density
  */
 
@@ -14,6 +14,372 @@ export const PRESET_NAMES = {
     NORMAL: 'normal',
     WATER: 'water',
     LAVA: 'lava'
+}
+
+export class FogPreset {
+    /**
+     *
+     * @param {IFogPreset} fogPreset
+     */
+    constructor(fogPreset) {
+        this.color    = new Color();
+        this.addColor = new Color();
+        this.density  = 0;
+
+        this.hasAddColor = false;
+        this.addColorAlpha = 1;
+
+        /**
+         * @type {IFogPreset}
+         */
+        this._preset = null;
+
+        this._lastEvalFactor = -1;
+
+        this.set(fogPreset);
+    }
+
+    /**
+     *
+     * @param {number} factor
+     * @returns
+     */
+    eval(factor = 0) {
+        return this._eval(factor);
+    }
+
+    _eval(factor = 0) {
+        factor = Mth.clamp(factor, 0, 1);
+
+        if (!this.preset){
+            this._lastEvalFactor = factor;
+            return;
+        }
+
+        if (Math.abs(factor - this._lastEvalFactor) < 0.01) {
+            return;
+        }
+
+        this._lastEvalFactor = factor;
+
+        this.color.copy(this.preset.color.toColor(factor));
+
+        if (this.hasAddColor) {
+            this.addColor.copy(this.preset.addColor.toColor(factor));
+        } else {
+            this.addColor.copy(this.color);
+            this.addColor.mulAlpha(this.addColorAlpha);
+        }
+
+        this.density = this.preset.density;
+
+        return this;
+    }
+
+    /**
+     *
+     * @param {IFogPreset} fogPreset
+     */
+    set(fogPreset) {
+        if (!fogPreset) {
+            this.preset = null;
+            this.hasAddColor = false;
+            this.addColorAlpha = 1;
+
+            return this._eval(0);
+        }
+
+        this.hasAddColor = fogPreset.addColor != null && typeof fogPreset.addColor !== 'number';
+
+        if (this.hasAddColor) {
+            this.addColorAlpha = fogPreset.addColor || 1;
+        }
+
+        this.preset = {
+            color: new Gradient(fogPreset.color),
+            addColor: this.hasAddColor ? new Gradient(fogPreset.addColor) : fogPreset.addColor,
+            density: fogPreset.density,
+        };
+
+        this._eval(0);
+    }
+
+    /**
+     *
+     * @param {FogPreset} target
+     * @param {number} iterFactor
+     * @param {number} [evalFactor]
+     * @param {FogPreset} [out]
+     */
+    lerpTo (target, iterFactor = 0, evalFactor = null, out = new FogPreset(null)) {
+        if (evalFactor == null) {
+            evalFactor = this._lastEvalFactor;
+        }
+    }
+
+    copy(from) {
+        return this.set(from.preset);
+    }
+
+    clone() {
+        return new FogPreset(this.preset);
+    }
+}
+
+export class Color {
+    /**
+     *
+     * @param {number | Color | Array<number> } anyData
+     * @param {number} [alpha]
+     */
+    constructor (anyData = 0, alpha = 1, pma = false) {
+        this._raw = new Float32Array(4);
+        this._pma = pma;
+
+        this.set(anyData, alpha);
+    }
+
+    mulAlpha(alpha = 1) {
+        if (this._pma) {
+            this._raw[0] *= alpha;
+            this._raw[1] *= alpha;
+            this._raw[2] *= alpha;
+        }
+        this._raw[3] *= alpha;
+
+        return this;
+    }
+
+    lum() {
+        return luminance(this._raw);
+    }
+
+    /**
+     *
+     * @param {number | Color | Array<number> } anyData
+     * @param {number} [alpha]
+     */
+    set (anyData, alpha = 1) {
+
+        if (!Color.isColorLike(anyData)) {
+            return this;
+        }
+
+        if (anyData instanceof Color) {
+            return this.copy(anyData);
+        }
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+
+        alpha = Mth.clamp(alpha, 0, 1);
+
+        if (typeof anyData === 'number') {
+            r = ((anyData >> 16) & 0xff) / 0xff;
+            g = ((anyData >> 8) & 0xff) / 0xff;
+            b = ((anyData >> 0) & 0xff) / 0xff;
+        } else if (Array.isArray(anyData)) {
+            r = anyData[0];
+            g = anyData[1];
+            b = anyData[2];
+            alpha = Mth.clamp(anyData[3] || 1, 0, 1) * alpha;
+        }
+
+        if(this._pma) {
+            r *= alpha;
+            g *= alpha;
+            b *= alpha;
+        }
+
+        this._raw.set([r, g, b, alpha]);
+
+        return this;
+    }
+
+    /**
+     *
+     * @param {Color} target
+     * @param {number} factor
+     * @param {Color } out
+     */
+    lerpTo (target, factor = 0, out = new Color()) {
+        factor = Mth.clamp(factor, 0, 1);
+
+        if (target._pma !== this._pma) {
+            throw new Error('[Color] Botch color should use same PMA mode');
+        }
+
+        const targetColor = target.toArray();
+
+        out._pma = this._pma;
+
+        // color
+        out._raw[0] = this._raw[0] * factor + targetColor[0] * (1 - factor);
+        out._raw[1] = this._raw[1] * factor + targetColor[1] * (1 - factor);
+        out._raw[2] = this._raw[2] * factor + targetColor[2] * (1 - factor);
+        out._raw[3] = this._raw[3] * factor + targetColor[3] * (1 - factor);
+
+        return out;
+    }
+
+    toArray() {
+        return this._raw;
+    }
+
+    /**
+     *
+     * @param {Color} from
+     * @returns
+     */
+    copy(from) {
+        this._raw.set(from._raw);
+        this._pma = from._pma;
+
+        return this;
+    }
+
+    clone() {
+        return new Color().copy(this);
+    }
+
+    static isColorLike(target) {
+        if (target instanceof Color) {
+            return true;
+        }
+
+        if (typeof target === 'number') {
+            return true;
+        }
+
+        if (Array.isArray(target) && (target.length === 3 || target.length === 4)) {
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+/**
+ * @typedef {Object} ColorRecord
+ * @property {number} pos
+ * @property {number | Color | Array<number>} color
+ */
+
+export class Gradient {
+    /**
+     *
+     * @param {{[key: number]: number | Color | Array<number>} | Array<ColorRecord>} gradData
+     */
+    constructor (gradData = new Color()) {
+        this._color = new Color();
+        this._raw = this._color._raw;
+
+        /**
+         * @type {ColorRecord[]}
+         */
+        this._grad = [];
+
+        this._lastEvalFactor = -1;
+
+        this.set(gradData);
+
+        this._eval(0);
+    }
+
+    /**
+     *
+     * @param {{[key: number]: number | Color | Array<number>} | Array<ColorRecord>} gradData
+     */
+    set(gradData) {
+        if (gradData instanceof Gradient) {
+            return this.copy(gradData);
+        }
+
+        if (Color.isColorLike(gradData)) {
+            this._grad = [{
+                color: new Color(gradData),
+                pos: 0
+            }];
+            return;
+        }
+
+        if (Array.isArray(gradData)) {
+            this._grad = gradData.map((e) => ({pos: e.pos, color: new Color(e.color)}));
+            return;
+        }
+
+        this._grad = Object
+            .entries(gradData)
+            .map(([key, color]) => ({pos: +key / 100, color: new Color(color)}));
+
+        return this;
+    }
+
+    _eval(factor = 0) {
+        if (this._grad.length <= 1) {
+            this._color.copy(this._grad[0].color);
+            this._lastEvalFactor = 0;
+            return this;
+        }
+
+        factor = Mth.clamp(factor, 0, 1);
+
+        if (Math.abs(this._lastEvalFactor - factor) <= (this._grad.length - 1) / 256) {
+            return;
+        }
+
+        this._lastEvalFactor = factor;
+
+        let rightKey = this._grad[0];
+        let leftKey = this._grad[0];
+
+        /**
+         * @todo lookup cache
+         */
+        for(const entry of this._grad) {
+            rightKey = entry;
+
+            if (rightKey.pos >= factor) {
+                break;
+            }
+
+            leftKey = entry;
+        }
+
+        const relative = (factor - leftKey.pos) / (rightKey.pos - leftKey.pos);
+
+        return leftKey.color.lerpTo(rightKey.color, relative, this._color);
+    }
+
+    toArray(factor = -1) {
+        if (factor > 0) {
+            this._eval(factor);
+        }
+
+        return this._raw;
+    }
+
+    toColor(factor = -1) {
+        if (factor > 0) {
+            this._eval(factor);
+        }
+
+        return this._color;
+    }
+
+    /**
+     *
+     * @param {Gradient} from
+     */
+    copy(from) {
+        return this.set(from._grad);
+    }
+
+    clone() {
+        return new Gradient(from._grad);
+    }
 }
 
 const ENV_GRAD_COLORS = Object.entries({
@@ -34,7 +400,7 @@ const ENV_GRAD_COLORS = Object.entries({
     })
 );
 
-export const FOG_PRESETS = {
+export const FOG_PRESETS = compilePresets({
     [PRESET_NAMES.NORMAL]: {
         // PLZ, not enable yet
         computed: false, // disable temporary, for computed a color shpuld be ENV_GRAD_COLORS
@@ -56,7 +422,7 @@ export const FOG_PRESETS = {
         addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
         density: 0.5
     }
-};
+});
 
 export const SETTINGS = {
     skyColor:               [0, 0, 0.8],
