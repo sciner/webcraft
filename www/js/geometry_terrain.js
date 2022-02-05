@@ -20,7 +20,8 @@ class QuadAttr {
         this.axisY     = buffer.subarray(offset + 6, offset + 9);
         this.uvCenter  = buffer.subarray(offset + 9, offset + 11);
         this.uvSize    = buffer.subarray(offset + 11, offset + 13);
-        this.color     = buffer.subarray(offset + 13, offset + 17);
+        this.color     = buffer.subarray(offset + 13, offset + 16);
+        this.flags     = buffer.subarray(offset + 16, offset + 17);
 
         return this;
     }
@@ -34,11 +35,18 @@ export default class GeometryTerrain {
         this.uploadID = -1;
         this.strideFloats = GeometryTerrain.strideFloats;
         this.stride = this.strideFloats * 4;
+
+        /**
+         * @type {Float32Array}
+         */
+        this.data;
+
         if (vertices instanceof Array) {
             this.data = new Float32Array(vertices);
         } else {
             this.data = vertices;
         }
+
         this.size = this.data.length / this.strideFloats;
         /**
          *
@@ -176,6 +184,16 @@ export default class GeometryTerrain {
         }
         this.size = this.data.length / this.strideFloats;
         this.updateID++;
+    }
+
+    /**
+     * Raw quad view, used for easy acess to quad attrs
+     * @param {number} index of quad (not of buffer entry) 
+     * @param {QuadAttr} [target] 
+     * @returns 
+     */
+    rawQuad (index = 0, target = new QuadAttr()) {
+        return target.set(this.buffer, index * GeometryTerrain.strideFloats);
     }
 
     *rawQuads(start = 0, count = this.size) {
