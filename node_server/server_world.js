@@ -153,6 +153,31 @@ export class ServerWorld {
         };
     }
 
+    getInfo() {
+        console.log(this.info);
+        this.updateWorldCalendar();
+        return this.info;
+    }
+
+    // updateWorldCalendar
+    updateWorldCalendar() {
+        this.info.calendar = {
+            age: null,
+            day_time: null,
+        };
+        const currentTime = ((+new Date()) / 1000) | 0;
+        // возраст в реальных секундах
+        const diff_sec = currentTime - this.info.dt;
+        // один игровой день в реальных секундах
+        const game_day_in_real_seconds = 86400 / GAME_ONE_SECOND // 1200
+        // возраст в игровых днях
+        const age = diff_sec / game_day_in_real_seconds;
+        // возраст в ЦЕЛЫХ игровых днях
+        this.info.calendar.age = Math.floor(age);
+        // количество игровых секунд прошедших в текущем игровом дне
+        this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
+    }
+
     // World tick
     async tick() {
         let started = performance.now();
@@ -267,28 +292,6 @@ export class ServerWorld {
             }];
             this.sendAll(packets, [player.session.user_id]);
         }
-    }
-
-    /**
-     * Возвращает игровое время
-     * @return {Object}
-     */
-    getTime() {
-        if(!this.world_state) {
-            return null;
-        }
-        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
-        let hours = time / 1000 | 0;
-        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
-        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
-        let hours_string = hours > 9 ? hours : '0' + hours;
-        return {
-            day:        this.world_state.age,
-            hours:      hours,
-            minutes:    minutes,
-            string:     hours_string + ':' + minutes_string
-        };
     }
 
     /**

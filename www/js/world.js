@@ -126,17 +126,17 @@ export class World {
 
     // Возвращает игровое время
     getTime() {
-        if(!this.world_state) {
+        if(!this.info?.calendar) {
             return null;
         }
         let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
+        let time = (this.info?.calendar.day_time + 6000 + add) % 24000 | 0;
         let hours = time / 1000 | 0;
         let minutes = (time - hours * 1000) / 1000 * 60 | 0;
         let minutes_string = minutes > 9 ? minutes : '0' + minutes;
         let hours_string = hours > 9 ? hours : '0' + hours;
         return {
-            day:        this.world_state.age,
+            day:        this.info?.calendar.age,
             hours:      hours,
             minutes:    minutes,
             string:     hours_string + ':' + minutes_string
