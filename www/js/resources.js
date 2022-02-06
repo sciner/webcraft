@@ -2,7 +2,6 @@ import "./../vendors/gl-matrix-3.3.min.js";
 import { Helpers } from "./helpers.js";
 
 export class Resources {
-
     static async getModelAsset(key) {
         if (!this.models[key]) {
             return;
@@ -86,6 +85,9 @@ export class Resources {
                     })
             );
         }
+
+        // Painting
+        all.push[Resources.loadPainting()];
 
         // Physics features
         all.push(fetch('/vendors/prismarine-physics/lib/features.json').then(response => response.json()).then(json => { this.physics.features = json;}));
@@ -291,11 +293,7 @@ export class Resources {
 
     // loadResourcePacks...
     static async loadResourcePacks() {
-        let resp = null;
-        await Helpers.fetchJSON('../data/resource_packs.json').then(json => {
-            resp = json;
-        });
-        return resp;
+        return Helpers.fetchJSON('../data/resource_packs.json', true, 'rp')
     }
 
     // Load supported block styles
@@ -303,7 +301,7 @@ export class Resources {
         let resp = new Set();
         let all = [];
         let json_url = '../data/block_style.json';
-        await Helpers.fetchJSON(json_url).then((json) => {
+        await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module
                 all.push(import('./block_style/' + code + '.js').then(module => {
@@ -330,7 +328,7 @@ export class Resources {
 
     // Load recipes
     static async loadRecipes() {
-        return  Helpers.fetchJSON('../data/recipes.json');
+        return  Helpers.fetchJSON('../data/recipes.json', true);
     }
 
     // Load models
@@ -340,7 +338,33 @@ export class Resources {
 
     // Load materials
     static async loadMaterials() {
-        return  Helpers.fetchJSON('../data/materials.json');
+        return  Helpers.fetchJSON('../data/materials.json', true);
+    }
+
+    // Load painting
+    static async loadPainting() {
+        if(Resources._painting) {
+            return Resources._painting;
+        }
+        let resp = null;
+        await Helpers.fetchJSON('../data/painting.json').then(json => {
+            json.sizes = new Map();
+            for(const [k, item] of Object.entries(json.frames)) {
+                let sz_w = item.w / json.one_width;
+                let sz_h = item.h / json.one_height;
+                item.x /= json.sprite_width;
+                item.y /= json.sprite_height;
+                item.w /= json.sprite_width;
+                item.h /= json.sprite_height;
+                const key = `${sz_w}x${sz_h}`;
+                if(!json.sizes.has(key)) {
+                    json.sizes.set(key, new Map());
+                }
+                json.sizes.get(key).set(k, item);
+            }
+            resp = json;
+        });
+        return Resources._painting = resp;
     }
 
 }

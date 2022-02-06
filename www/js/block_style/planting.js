@@ -4,6 +4,10 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
+import { AABB } from '../core/AABB.js';
+
+const aabb = new AABB();
+const pivotObj = {x: 0.5, y: .5, z: 0.5};
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -18,9 +22,27 @@ export default class style {
 
     static getRegInfo() {
         return {
-            styles: ['planting', 'sign'],
-            func: this.func
+            styles: ['planting'],
+            func: this.func,
+            aabb: this.computeAABB
         };
+    }
+
+    // computeAABB
+    static computeAABB(block) {
+        let cardinal_direction = block.getCardinalDirection();
+        let hw = (4.5/16) / 2;
+        let sign_height = 1;
+        if(block.material.planting) {
+            hw = 12/16 / 2;
+            sign_height = 12/16;
+        }
+        aabb.set(
+            .5-hw, 0, .5-hw,
+            .5+hw, sign_height, .5+hw
+        );
+        aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
+        return [aabb];
     }
 
     // getAnimations...
@@ -34,32 +56,41 @@ export default class style {
             return block.material.texture_animations['side'];
         }
         return 1;
-    };
+    }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    // Draw func
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         let cardinal_direction = block.getCardinalDirection()
 
         let dx = 0, dy = 0, dz = 0;
-        let c = BLOCK.calcTexture(block.material.texture, DIRECTION.UP);
+        let c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
         let flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
+
+        //
+        if(neighbours && neighbours.DOWN) {
+            const under_height = neighbours.DOWN.material.height;
+            if(under_height && under_height < 1) {
+                y -= 1 - under_height;
+            }
+        }
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
             style.lm.set(biome.dirt_color);
             flags |= QUAD_FLAGS.MASK_BIOME;
         }
+
         if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
             dy = -.15;
         }
 
-        let sz = 1 / 1.41;
-        let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         let r = 0;
 
-        if(block.material.style != 'sign') {
+        if(block.material.style == 'planting') {
+            let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
             r = randoms[index] * 4/16 - 2/16;
         }
 
@@ -74,6 +105,7 @@ export default class style {
             cardinal_direction,
             dx, dy, dz
         );
+
     }
 
 }

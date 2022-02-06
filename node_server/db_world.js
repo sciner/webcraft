@@ -11,6 +11,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
+import { ServerWorld } from './server_world.js';
 
 export class DBWorld {
 
@@ -233,6 +234,29 @@ export class DBWorld {
         migrations.push({version: 13, queries: [`alter table user add column "game_mode" TEXT DEFAULT NULL`]});
         migrations.push({version: 14, queries: [`UPDATE user SET inventory = replace(inventory, '"index2":0', '"index2":-1')`]});
         migrations.push({version: 15, queries: [`UPDATE entity SET x = json_extract(pos_spawn, '$.x'), y = json_extract(pos_spawn, '$.y'), z = json_extract(pos_spawn, '$.z')`]});
+        migrations.push({version: 16, queries: [`CREATE TABLE "painting" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "user_id" integer NOT NULL,
+            "dt" integer NOT NULL,
+            "params" TEXT,
+            "x" integer NOT NULL,
+            "y" integer NOT NULL,
+            "z" integer NOT NULL,
+            "image_name" TEXT,
+            "entity_id" TEXT,
+            "world_id" INTEGER
+        );`]});
+        migrations.push({version: 17, queries: [`alter table world_modify add column "ticks" INTEGER DEFAULT NULL`]});
+        migrations.push({version: 18, queries: [`UPDATE world_modify SET params = '{"id":612}' WHERE params = '{"id":141}';`]});
+        migrations.push({version: 19, queries: [`UPDATE world_modify SET extra_data = '{"stage":0}' WHERE params = '{"id":59}' OR params LIKE '{"id":59,%';`]});
+        migrations.push({version: 20, queries: [
+            `DELETE FROM world_modify WHERE params = '{"id":75}' OR params LIKE '{"id":75,%';`,
+            `DELETE FROM world_modify WHERE params = '{"id":76}' OR params LIKE '{"id":76,%';`
+        ]});
+        migrations.push({version: 21, queries: [
+            `UPDATE user SET pos_spawn = (SELECT pos_spawn FROM world) WHERE ABS(json_extract(pos_spawn, '$.x')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.y')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.z')) > 2000000000`,
+            `UPDATE user SET pos = pos_spawn WHERE ABS(json_extract(pos, '$.x')) > 2000000000 OR ABS(json_extract(pos, '$.y')) > 2000000000 OR ABS(json_extract(pos, '$.z')) > 2000000000`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -247,6 +271,18 @@ export class DBWorld {
             }
         }
 
+    }
+
+    async TransactionBegin() {        
+        await this.db.get('begin transaction');
+    }
+
+    async TransactionCommit() {
+        await this.db.get('commit');
+    }
+
+    async TransactionRollback() {
+        await this.db.get('rollback');
     }
 
     // getDefaultPlayerIndicators...
@@ -459,6 +495,48 @@ export class DBWorld {
         return result.lastID;
     }
 
+    /**
+     * Create painting
+     * @param {ServerWorld} world 
+     * @param {ServerPlayer} player 
+     * @param {Object} params
+     * @return {number}
+     */
+    async createPainting(world, player, pos, params) {
+        const result = await this.db.run('INSERT INTO painting(user_id, dt, params, x, y, z, entity_id, image_name, world_id) VALUES(:user_id, :dt, :params, :x, :y, :z, :entity_id, :image_name, :world_id)', {
+            ':user_id':         player.session.user_id,
+            ':dt':              ~~(Date.now() / 1000),
+            ':params':          JSON.stringify(params),
+            ':x':               pos.x,
+            ':y':               pos.y,
+            ':z':               pos.z,
+            ':entity_id':       params.entity_id,
+            ':image_name':      params.image_name,
+            ':world_id':        world.info.id
+        });
+        return result.lastID;
+    }
+
+    // Load paintings
+    async loadPaintings(addr, size) {
+        let rows = await this.db.all('SELECT * FROM painting WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
+            ':x_min': addr.x * size.x,
+            ':x_max': addr.x * size.x + size.x,
+            ':y_min': addr.y * size.y,
+            ':y_max': addr.y * size.y + size.y,
+            ':z_min': addr.z * size.z,
+            ':z_max': addr.z * size.z + size.z
+        });
+        let resp = new Map();
+        for(let row of rows) {
+            let item = JSON.parse(row.params);
+            // pos:        new Vector(row.x, row.y, row.z),
+            item.entity_id = row.entity_id;
+            resp.set(item.entity_id, item);
+        }
+        return resp;
+    }
+
     // saveChestSlots...
     async saveChestSlots(chest) {
         const result = await this.db.run('UPDATE chest SET slots = :slots WHERE entity_id = :entity_id', {
@@ -591,7 +669,7 @@ export class DBWorld {
     async loadChunkModifiers(addr, size) {
         const mul = new Vector(10, 10, 10); // 116584
         let resp = new Map();
-        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
+        let rows = await this.db.all("SELECT x, y, z, params, 1 as power, entity_id, extra_data, ticks FROM world_modify WHERE id IN (select max(id) FROM world_modify WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max group by x, y, z)", {
             ':x_min': addr.x * size.x,
             ':x_max': addr.x * size.x + size.x,
             ':y_min': addr.y * size.y,
@@ -606,6 +684,9 @@ export class DBWorld {
                 id: params && ('id' in params) ? params.id : 0
             };
             if(item.id > 2) {
+                if(row.ticks) {
+                    item.ticks = row.ticks;
+                }
                 if('rotate' in params && params.rotate) {
                     if(BLOCK.fromId(item.id)?.can_rotate) {
                         item.rotate = new Vector(params.rotate).mul(mul).round().div(mul);

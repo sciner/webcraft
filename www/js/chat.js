@@ -240,13 +240,17 @@ export class Chat {
         hud.ctx.font            = Math.round(18 * this.zoom) + 'px Ubuntu';
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
-        let mt                  = hud.ctx.measureText('TW|');
-        let line_height         = mt.actualBoundingBoxDescent + 14 * this.zoom;
-        let y                   = hud.height - (top + margin + line_height);
+
+        if(!this.line_height) {
+            let mt = hud.ctx.measureText('TW|');
+            this.line_height = mt.actualBoundingBoxDescent + 14 * this.zoom;
+        }
+
+        let y = hud.height - (top + margin + this.line_height);
 
         if(this.active) {
             hud.ctx.fillStyle = '#000000aa';
-            hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, line_height);
+            hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, this.line_height);
             let text = this.buffer.join('');
             let how_long_open = Math.round(now - this.open_time);
             if(how_long_open % blink_period < blink_period * 0.5) {
@@ -274,7 +278,7 @@ export class Chat {
                     }
                     let aa = Math.ceil(170 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
-                    hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, line_height);
+                    hud.ctx.fillRect(margin, y - padding, hud.width - margin * 2, this.line_height);
                     //
                     aa = Math.ceil(51 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                     hud.ctx.fillStyle = '#000000' + aa;
@@ -284,7 +288,7 @@ export class Chat {
                     hud.ctx.fillStyle = '#ffffff' + aa;
                     hud.ctx.fillText(text, margin + padding + 2, y + 2 * this.zoom);
                     //
-                    y -= line_height;
+                    y -= this.line_height;
                 }
             }
         }

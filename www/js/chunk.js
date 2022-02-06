@@ -88,7 +88,7 @@ export class Chunk {
         // Light
         this.lightTex = null;
         this.lightData = null;
-        this.lightMats = {};
+        this.lightMats = new Map();
 
         // Objects & variables
         this.inited                     = false;
@@ -154,10 +154,16 @@ export class Chunk {
         let prev_block_id = Infinity;
         let light_power_number = 0;
         let blocks_count = size.x * size.y * size.z;
+        let block_material = null;
         for(let i = 0; i < blocks_count; i++) {
             const block_id = ids[ind];
             if(block_id != prev_block_id) {
-                light_power_number = BLOCK.BLOCK_BY_ID.get(block_id).light_power_number;
+                block_material = BLOCK.BLOCK_BY_ID.get(block_id)
+                if(block_material) {
+                    light_power_number = block_material.light_power_number;
+                } else {
+                    console.error(`Block not found ${block_id}`);
+                }
                 prev_block_id = block_id;
             }
             light_source[ind] = light_power_number;
@@ -198,11 +204,11 @@ export class Chunk {
         if (this.lightData) {
             this.getLightTexture(render);
 
-            if (!this.lightMats[key]) {
-                this.lightMats[key] = texMat.getLightMat(this.lightTex)
+            if (!this.lightMats.has(key)) {
+                this.lightMats.set(key, texMat.getLightMat(this.lightTex));
             }
 
-            render.drawMesh(v.buffer, this.lightMats[key], this.coord);
+            render.drawMesh(v.buffer, this.lightMats.get(key), this.coord);
         } else {
             render.drawMesh(v.buffer, texMat, this.coord);
         }
@@ -265,16 +271,18 @@ export class Chunk {
 
     // destruct chunk
     destruct() {
-        if(this.buffer) {
-            this.buffer.destroy();
+        // Destroy buffers
+        for(let [_, v] of this.vertices) {
+            if(v.buffer) {
+                v.buffer.destroy();
+            }
         }
         const { lightTex } = this;
         if (lightTex) {
             this.getChunkManager().lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
-            this.getChunkManager().lightmap_count --;
+            this.getChunkManager().lightmap_count--;
             lightTex.destroy();
         }
-        this.buffer = null;
         this.lightTex = null;
         // Run webworker method
         this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
@@ -295,7 +303,7 @@ export class Chunk {
     // Get the type of the block at the specified position.
     // Mostly for neatness, since accessing the array
     // directly is easier and faster.
-    getBlock(x, y, z) {
+    getBlock(x, y, z, v) {
         if(!this.inited) {
             return this.getChunkManager().DUMMY;
         }
@@ -305,7 +313,12 @@ export class Chunk {
         if(x < 0 || y < 0 || z < 0 || x >= this.size.x || y >= this.size.y || z >= this.size.z) {
             return this.getChunkManager().DUMMY;
         }
-        let block = this.tblocks.get(new Vector(x, y, z));
+        if(v instanceof Vector) {
+            v.set(x, y, z);
+        } else {
+            v = new Vector(x, y, z);
+        }
+        let block = this.tblocks.get(v);
         return block;
     }
 
@@ -354,10 +367,10 @@ export class Chunk {
             update_vertices         = true;
             if (oldLight !== light) {
                 // updating light here
-                const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
-                const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
-                const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
-                const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
+                // const sy = (this.size.x + 2) * (this.size.z + 2), sx = 1, sz = this.size.x + 2;
+                // const iy = this.size.x * this.size.z, ix = 1, iz = this.size.x;
+                // const innerCoord = pos.x * ix + pos.y * iy + pos.z * iz;
+                // const outerCoord = (pos.x + 1) * sx + (pos.y + 1) * sy + (pos.z + 1) * sz;
                 chunkManager.postLightWorkerMessage(['setBlock', { addr: this.addr,
                     x:          x + this.coord.x,
                     y:          y + this.coord.y,
@@ -437,7 +450,7 @@ export class Chunk {
     static createFrustumGeometry(coord, size) {
         let frustum_geometry    = [];
         let box_radius          = size.x;
-        let sphere_radius       = Math.sqrt(3) * box_radius / 2;
+        let sphere_radius       = (Math.sqrt(3) * box_radius / 2) * 1.05;
         frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y / 4, size.z / 2)), sphere_radius));
         frustum_geometry.push(new Sphere(coord.add(new Vector(size.x / 2, size.y - size.y / 4, size.z / 2)), sphere_radius));
         return frustum_geometry;

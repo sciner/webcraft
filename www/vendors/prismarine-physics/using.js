@@ -2,7 +2,7 @@
 * https://github.com/PrismarineJS/prismarine-physics
 **/
 
-import {Vec3} from "../../js/helpers.js";
+import {Vec3, Vector} from "../../js/helpers.js";
 import {BLOCK} from "../../js/blocks.js";
 import {Physics, PlayerState} from "./index.js";
 import {Resources} from "../../js/resources.js";
@@ -46,15 +46,17 @@ class FakeWorld {
 
     constructor(world) {
         this.world = world;
+        this.block_pos = new Vector(0, 0, 0);
+        this._pos = new Vector(0, 0, 0);
     }
 
     // getBlock...
     getBlock(pos) {
-        pos = pos.floored();
-        let b = this.world.chunkManager.getBlock(pos.x, pos.y, pos.z);
+        this._pos.copyFrom(pos).flooredSelf();
+        let b = this.world.chunkManager.getBlock(this._pos.x, this._pos.y, this._pos.z);
         if (b.shapes === null) {
-            b.position = pos;
-            b.shapes = (b.id > 0) ? BLOCK.getShapes(pos, b, this.world, true, false) : [];
+            b.position = this._pos.clone();
+            b.shapes = (b.id > 0) ? BLOCK.getShapes(this._pos, b, this.world, true, false) : [];
         }
         return b;
     }
@@ -82,10 +84,10 @@ function FakePlayer(pos) {
 
 export class PrismarinePlayerControl {
 
-    constructor(world, pos, default_speed, playerHeight, stepHeight, defaultSlipperiness) {
+    constructor(world, pos, options) {
         const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
-        this.physics            = Physics(mcData, this.world, playerHeight, stepHeight, defaultSlipperiness);
+        this.physics            = Physics(mcData, this.world, options);
         this.player             = FakePlayer(pos);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
@@ -98,7 +100,7 @@ export class PrismarinePlayerControl {
             sprint: false,
             sneak: false
         };
-        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features, default_speed);
+        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features, options.baseSpeed);
     }
 
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js

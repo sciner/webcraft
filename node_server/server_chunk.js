@@ -8,6 +8,7 @@ export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+export const STAGE_TIME_MUL                = 5; // 20;
 
 export class ServerChunk {
 
@@ -19,7 +20,9 @@ export class ServerChunk {
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = new Map();
+        this.ticking_blocks = new Map();
         this.mobs           = new Map();
+        this.painting       = new Map();
         this.drop_items     = new Map();
         this.setState(CHUNK_STATE_NEW);
     }
@@ -37,13 +40,23 @@ export class ServerChunk {
         this.setState(CHUNK_STATE_LOADING);
         if(this.world.chunkHasModifiers(this.addr)) {
             this.modify_list = await this.world.db.loadChunkModifiers(this.addr, this.size);
+            this.ticking = new Map();
+            let block = null;
+            let pos = new Vector(0, 0, 0);
             for(let k of this.modify_list.keys()) {
-                let pos = k.split(',');
-                pos = new Vector(pos[0] | 0, pos[1] | 0, pos[2] | 0);
+                let temp = k.split(',');
+                pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
                 // If chest
                 let chest = this.world.chests.getOnPos(pos);
                 if(chest) {
                     this.modify_list.set(k, chest.entity.item);
+                }
+                const m = this.modify_list.get(k);
+                if(!block || block.id != m.id) {
+                    block = BLOCK.fromId(m.id);
+                }
+                if(block.ticking) {
+                    this.addTickingBlock(pos, block);
                 }
             }
         }
@@ -78,6 +91,7 @@ export class ServerChunk {
         if(this.load_state > CHUNK_STATE_LOADED) {
             this.sendMobs([player.session.user_id]);
             this.sendDropItems([player.session.user_id]);
+            this.sendPaintings([player.session.user_id]);
         }
     }
 
@@ -129,6 +143,20 @@ export class ServerChunk {
         this.sendAll(packets);
     }
 
+    // Add paintings
+    addPaintings(painting_list, notify_all) {
+        for(let painting of painting_list) {
+            this.painting.set(painting.entity_id, painting);
+        }
+        if(notify_all) {
+            let packets = [{
+                name: ServerClient.CMD_CREATE_PAINTING,
+                data: painting_list
+            }];
+            this.sendAll(packets);
+        }
+    }
+
     // Send chunk for players
     sendToPlayers(player_ids) {
         // @CmdChunkState
@@ -173,6 +201,21 @@ export class ServerChunk {
         this.world.sendSelected(packets, player_user_ids, []);
     }
 
+    sendPaintings(player_user_ids) {
+        // Send all drop items in this chunk
+        if (this.painting.size < 1) {
+            return;
+        }
+        let packets = [{
+            name: ServerClient.CMD_CREATE_PAINTING,
+            data: []
+        }];
+        for(const [_, painting] of this.painting) {
+            packets[0].data.push(painting);
+        }
+        this.world.sendSelected(packets, player_user_ids, []);
+    }
+
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
         this.tblocks            = new TypedBlocks(this.coord);
@@ -190,13 +233,19 @@ export class ServerChunk {
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
+        this.painting = await this.world.db.loadPaintings(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
-        if(this.connections.size > 0 && this.mobs.size > 0) {
-            this.sendMobs(Array.from(this.connections.keys()));
-        }
-        if(this.connections.size > 0 && this.drop_items.size > 0) {
-            this.sendDropItems(Array.from(this.connections.keys()));
+        if(this.connections.size > 0) {
+            if(this.mobs.size > 0) {
+                this.sendMobs(Array.from(this.connections.keys()));
+            }
+            if(this.drop_items.size > 0) {
+                this.sendDropItems(Array.from(this.connections.keys()));
+            }
+            if(this.painting.size > 0) {
+                this.sendPaintings(Array.from(this.connections.keys()));
+            }
         }
     }
 
@@ -242,7 +291,7 @@ export class ServerChunk {
     // getBlockAsItem
     getBlockAsItem(pos, y, z) {
         const block = this.getBlock(pos, y, z);
-        return BLOCK.convertItemToInventoryItem(block);
+        return BLOCK.convertItemToDBItem(block);
     }
 
     // onBlockSet
@@ -276,6 +325,76 @@ export class ServerChunk {
         }
     }
 
+    // Store in modify list
+    addModifiedBlock(pos, item) {
+        this.modify_list.set(pos.toHash(), item);
+        if(item && item.id) {
+            let block = BLOCK.fromId(item.id);
+            if(block.ticking) {
+                this.addTickingBlock(pos, block);
+            }
+        }
+    }
+
+    //
+    addTickingBlock(pos, block) {
+        const k = pos.toHash();
+        this.ticking_blocks.set(k, {
+            pos: pos.clone(),
+            block: block
+        });
+        this.world.chunks.addTickingChunk(this.addr);
+    }
+
+    //
+    deleteTickingBlock(pos) {
+        const k = pos.toHash();
+        this.ticking_blocks.delete(k);
+        if(this.ticking_blocks.size == 0) {
+            this.world.chunks.removeTickingChunk(this.addr);
+        }
+    }
+
+    // On world tick
+    async tick() {
+        let updated_blocks = [];
+        for(let [k, v] of this.ticking_blocks.entries()) {
+            const m = this.modify_list.get(k);
+            if(!m || m.id != v.block.id) {
+                this.deleteTickingBlock(v.pos);
+                continue;
+            }
+            if(Math.random() > .33) {
+                if(!m.ticks) {
+                    m.ticks = 0;
+                }
+                m.ticks++;
+                const ticking = v.block.ticking;
+                switch(ticking.type) {
+                    case 'stage': {
+                        if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
+                            if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
+                                m.extra_data.stage++;
+                                if(m.extra_data.stage == ticking.max_stage) {
+                                    m.extra_data.complete = true;
+                                }
+                                updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                            }
+                        } else {
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        if(updated_blocks.length > 0) {
+            const actions = {blocks: {list: updated_blocks}};
+            await this.world.applyActions(null, actions);
+        }
+    }
+
     // Before unload chunk
     async onUnload() {
         // Unload mobs
@@ -290,6 +409,7 @@ export class ServerChunk {
                 drop_item.onUnload();
             }
         }
+        this.world.chunks.removeTickingChunk(this.addr);
     }
 
 }

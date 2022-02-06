@@ -43,22 +43,18 @@
         "id": 190,
         "name": "SPRUCE_LEAVES"
     },
-    {
-        "id": 456,
-        "name": "BIRCH_PLANK"
-    },
-    {
-        "id": 7,
-        "name": "OAK_PLANK"
-    },
-    {
-        "id": 457,
-        "name": "ACACIA_PLANK"
-    },
-    {
-        "id": 460,
-        "name": "SPRUCE_PLANK"
-    },
+
+    {"id": 456, "name": "BIRCH_PLANK"},
+    {"id": 7, "name": "OAK_PLANK"},
+    {"id": 457, "name": "ACACIA_PLANK"},
+    {"id": 460, "name": "SPRUCE_PLANK"},
+
+    {"id": 458, "name": "BIRCH_SLAB"},
+    {"id": 126, "name": "OAK_SLAB"},
+    {"id": 459, "name": "ACACIA_SLAB"},
+    {"id": 461, "name": "SPRUCE_SLAB"},
+    {"id": 501, "name": "BRICK_SLAB"},
+
     {
         "id": 1,
         "name": "BEDROCK"
@@ -211,8 +207,11 @@
         "id": 58,
         "name": "CRAFTING_TABLE"
     },
-    {
-        "id": 54,
-        "name": "CHEST"
-    }
+
+    {"id": 606, "name": "WOODEN_SWORD"},
+    {"id": 607, "name": "STONE_SWORD"},
+    {"id": 608, "name": "IRON_SWORD"},
+    {"id": 609, "name": "GOLD_SWORD"},
+    {"id": 610, "name": "DIAMOND_SWORD"},
+    {"id": 611, "name": "NETHERITE_SWORD"}
 ]

@@ -1,6 +1,6 @@
 import {MULTIPLY, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {pushTransformed} from '../block_style/cube.js';
+import {pushTransformed} from './cube.js';
 
 // const {mat4} = glMatrix;
 const {mat3, mat4} = glMatrix;
@@ -60,7 +60,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome) {
+    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome, unknown, matrix, pivot, force_tex) {
         _x *= 2;
         _y *= 2;
         _z *= 2;
@@ -74,9 +74,12 @@ export default class style {
         }
 
         let tex = resource_pack.textures.get(texture_id);
+        // Texture
+        const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD, null, null, null, force_tex);
+        if(!tex) {
+            console.log(block.id);
+        }
 
-        // let imageData = tex.imageData;
-        let c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
         let world = new FakeCloudWorld();
         let tex_w = Math.round(c[2] * tex.width);
         let tex_h = Math.round(c[3] * tex.height);
@@ -99,14 +102,14 @@ export default class style {
         const MUL               = 2; // Масштабирование получившейся фигуры
         const SCALE_FACTOR      = tex_w / MUL; // Сколько кубов умещается в 1-м
         const TEX_WIDTH_HALF    = tex_w / 2 * MUL;
-        let matrix              = mat3.create();
+        matrix                  = mat3.create();
         let scale               = new Vector(1, 1, tex_w / 32).divScalar(SCALE_FACTOR);
         mat4.scale(matrix, matrix, scale.toArray());
 
         // Size of one texture pixel
         const ts = tex.width / tex.tx_cnt;
 
-        let force_tex = [
+        force_tex = [
             c[0],
             c[1],
             0,

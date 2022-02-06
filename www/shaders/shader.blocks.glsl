@@ -103,7 +103,7 @@
 #ifdef crosshair_define_func
     // crosshair draw block
     void drawCrosshair() {
-        float cm = 0.00065;
+        float cm = 0.0008;
         vec4 crosshair;
 
         if(u_resolution.x > u_resolution.y) {
@@ -186,9 +186,7 @@
 
     // Apply fog
     outColor = mix(outColor, u_fogColor, fogAmount);
-    outColor.r = (outColor.r * (1. - u_fogAddColor.a) + u_fogAddColor.r * u_fogAddColor.a);
-    outColor.g = (outColor.g * (1. - u_fogAddColor.a) + u_fogAddColor.g * u_fogAddColor.a);
-    outColor.b = (outColor.b * (1. - u_fogAddColor.a) + u_fogAddColor.b * u_fogAddColor.a);
+    outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
 
 #endif
 
@@ -207,9 +205,9 @@
     // sun light pass
     if (u_SunDir.w < 0.5) {
         if(v_normal.x != 0.) {
-            light = light * .7;
+            light = light * .95;
         } else if(v_normal.y != 0.) {
-            light = light * .85;
+            light = light * .6;
         }
     } else {
         // limit brightness to 0.2

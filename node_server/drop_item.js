@@ -22,7 +22,12 @@ export class DropItem {
         // Сохраним drop item в глобальном хранилище, чтобы не пришлось искать по всем чанкам
         world.all_drop_items.set(this.entity_id, this);
         //
-        this.#pc = this.createPlayerControl(1, 0.3, 1, .98);
+        this.#pc = this.createPlayerControl({
+            baseSpeed: 1,
+            playerHeight: 0.3,
+            stepHeight: 1,
+            defaultSlipperiness: 0.98
+        });
         this.#prev_chunk_addr = getChunkAddr(this.pos);
         //
         this.load_time = performance.now();
@@ -33,12 +38,10 @@ export class DropItem {
     }
 
     /**
-     * @param {number} base_speed 
-     * @param {number} playerHeight 
-     * @param {number} stepHeight 
+     * @param {object} options
      * @return {PrismarinePlayerControl}
      */
-    createPlayerControl(base_speed, playerHeight, stepHeight, defaultSlipperiness) {
+    createPlayerControl(options) {
         let world = this.getWorld();
         return new PrismarinePlayerControl({
             chunkManager: {
@@ -54,7 +57,7 @@ export class DropItem {
                     }
                 }
             }
-        }, this.pos, base_speed, playerHeight, stepHeight, defaultSlipperiness);
+        }, this.pos, options);
     }
 
     get chunk_addr() {

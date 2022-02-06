@@ -207,7 +207,7 @@ export class RecipeWindow extends Window {
             let item_id = recipe.result.item_id;
             let block = BLOCK.fromId(item_id);
             let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + i, null, null, recipe, block);
-            lblRecipe.tooltip = block.name.replaceAll('_', ' ');
+            lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${item_id})`;
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);
             lblRecipe.update();

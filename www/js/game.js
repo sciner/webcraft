@@ -1,6 +1,6 @@
 import {World} from "./world.js";
 import {Renderer, ZOOM_FACTOR} from "./render.js";
-import {Vector, AverageClockTimer} from "./helpers.js";
+import {Vector, AverageClockTimer, Mth} from "./helpers.js";
 import {BLOCK} from "./blocks.js";
 import {Resources} from "./resources.js";
 import {ServerClient} from "./server_client.js";
@@ -12,7 +12,7 @@ import {Hotbar} from "./hotbar.js";
 const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
 
-console.log(UI_ZOOM, RES_SCALE);
+// console.log(UI_ZOOM, RES_SCALE);
 
 export class GameClass {
 
@@ -21,6 +21,8 @@ export class GameClass {
         this.hud        = new HUD(0, 0);
         this.hotbar     = new Hotbar(this.hud);
         this.render     = new Renderer('renderSurface');
+        this.world      = new World();
+
         this.current_player_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
@@ -32,18 +34,28 @@ export class GameClass {
     async Start(server_url, world_guid, settings, resource_loading_progress) {
         // Load resources
         Resources.onLoading = resource_loading_progress;
-        await Resources.load({
+
+        // we can use it both
+        const resourceTask = Resources.load({
             imageBitmap:    true,
             glsl:           this.render.renderBackend.kind === 'webgl',
             wgsl:           this.render.renderBackend.kind === 'webgpu'
         });
+
         //
-        await BLOCK.init(settings);
+        const blockTask = BLOCK.init(settings);
+
+        await Promise.all([resourceTask, blockTask]);
+
+        this.world.init(settings);
+
         // Create world
-        this.world = new World(settings);
         await this.render.init(this.world, settings);
+
         let ws = new WebSocket(server_url + '?session_id=' + this.App.session.session_id + '&skin=' + this.skin.id + '&world_guid=' + world_guid);
+
         await this.world.connectToServer(ws);
+
         return this.world;
     }
 
@@ -64,13 +76,22 @@ export class GameClass {
         bodyClassList.add('started');
         // Run render loop
         this.loop = this.loop.bind(this);
-        window.requestAnimationFrame(this.loop);
+
+        // Send player state
+        this.sendStateInterval = setInterval(() => {
+            this.sendPlayerState(player);
+        }, 50);
+
+        this.render.requestAnimationFrame(this.loop);
     }
 
     // Set the canvas the renderer uses for some input operations.
     setInputCanvas(element_id) {
         let player = this.player;
         let canvas = document.getElementById(element_id);
+        const add_mouse_rotate = new Vector();
+        const that = this;
+        const controls = that.player.controls;
         let kb = this.kb = new Kb(canvas, {
             onPaste: (e) => {
                 let clipboardData = e.clipboardData || window.clipboardData;
@@ -93,6 +114,56 @@ export class GameClass {
                         offsetY:    this.player.controls.mouseY * (this.hud.height / this.render.canvas.height)
                     });
                     return false;
+                } else if(type == MOUSE.MOVE) {
+                    let z = e.movementX;
+                    let x = e.movementY;
+                    // @todo Hack for chrome bug
+                    /*
+                    if(Math.abs(z) > 100) {
+                        if(that.preve) {
+                            z = that.preve.movementX;
+                        }
+                    } else {
+                        that.preve = e;
+                    }
+                    if(Math.abs(x) > 100) {
+                        if(that.preve) {
+                            x = that.preve.movementY;
+                        }
+                    } else {
+                        that.preve = e;
+                    }*/
+                    if(that.hud.wm.hasVisibleWindow()) {
+                        if(controls.enabled) {
+                            controls.mouseY += x;
+                            controls.mouseX += z;
+                            controls.mouseX = Math.max(controls.mouseX, 0);
+                            controls.mouseY = Math.max(controls.mouseY, 0);
+                            controls.mouseX = Math.min(controls.mouseX, that.hud.width);
+                            controls.mouseY = Math.min(controls.mouseY, that.hud.height);
+                        } else {
+                            controls.mouseY = e.offsetY * window.devicePixelRatio;
+                            controls.mouseX = e.offsetX * window.devicePixelRatio;
+                        }
+                        //
+                        that.hud.wm.mouseEventDispatcher({
+                            type:       e.type,
+                            shiftKey:   e.shiftKey,
+                            button:     e.button,
+                            offsetX:    controls.mouseX * (that.hud.width / that.render.canvas.width),
+                            offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
+                        });
+                    } else {
+                        x *= -1;
+                        add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
+                        add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
+                        if(that.player.zoom) {
+                            add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
+                            add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
+                        }
+                        that.player.addRotate(add_mouse_rotate.divScalar(900));
+                    }
+                    return true;
                 }
                 if(!this.player.controls.enabled || player.chat.active || hasVisibleWindow) {
                     return false
@@ -342,40 +413,60 @@ export class GameClass {
         }
     }
 
-    // Render loop
-    loop() {
+    /**
+     * Main loop
+     * @param {number} time 
+     * @param  {...any} args - args from raf, because it necessary for XR
+     */
+    loop(time = 0, ...args) {
         let player  = this.player;
         let tm      = performance.now();
+        let delta   = this.hud.FPS.delta;
+
         if(this.player.controls.enabled && !this.hud.splash.loading) {
-            // Simulate physics
-            this.world.physics.simulate();
             // Update local player
             player.update();
         } else {
             player.lastUpdate = null;
         }
+
         this.world.chunkManager.update(player.pos);
+
         // Picking target
         if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
             player.pickAt.update(player.pos, player.game_mode.getPickatDistance());
         }
-        // Draw world
+
+        // change camera location
         this.render.setCamera(player, player.getEyePos(), player.rotate);
-        this.render.draw(this.hud.FPS.delta);
-        // Send player state
-        this.sendPlayerState(player);
+
+        // Update world
+        // this is necessary
+        // because there are a cases when we should call draw without update
+        // or update without draw
+        // like XR, it quiery frame more that 60 fps (90, 120) and we shpuld render each frame
+        // but update can be called slowly
+        if(this.hud.FPS.frames % 3 == 0) {
+            this.render.update(delta, args);
+        }
+
+        // Draw world
+        this.render.draw(delta, args);
+
         // Счетчик FPS
         this.hud.FPS.incr();
         this.averageClockTimer.add(performance.now() - tm);
-        window.requestAnimationFrame(this.loop);
+
+        // we must request valid loop
+        this.render.requestAnimationFrame(this.loop);
     }
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState(player) {
-        this.current_player_state.rotate.set(player.rotate.x, player.rotate.y, player.rotate.z);
-        this.current_player_state.pos.set(Math.round(player.lerpPos.x * 1000) / 1000, Math.round(player.lerpPos.y * 1000) / 1000, Math.round(player.lerpPos.z * 1000) / 1000);
+        this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
+        this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
         this.ping = Math.round(this.player.world.server.ping_value);
-        let current_player_state_json = JSON.stringify(this.current_player_state);
+        const current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {
             this.prev_player_state = current_player_state_json;
             this.player.world.server.Send({
@@ -474,57 +565,21 @@ export class GameClass {
                 }
             }
         });
-        // Mouse move
-        let add_mouse_rotate = new Vector();
-        document.addEventListener('mousemove', function(e) {
-            let controls = that.player.controls;
-            let z = e.movementX;
-            let x = e.movementY;
-            if(that.hud.wm.hasVisibleWindow()) {
-            	if(controls.enabled) {
-                    controls.mouseY += x;
-                    controls.mouseX += z;
-                    controls.mouseX = Math.max(controls.mouseX, 0);
-                    controls.mouseY = Math.max(controls.mouseY, 0);
-                    controls.mouseX = Math.min(controls.mouseX, that.hud.width);
-                    controls.mouseY = Math.min(controls.mouseY, that.hud.height);
-                } else {
-                    controls.mouseY = e.offsetY * window.devicePixelRatio;
-                    controls.mouseX = e.offsetX * window.devicePixelRatio;
-                }
-                //
-                that.hud.wm.mouseEventDispatcher({
-                    type:       e.type,
-                    shiftKey:   e.shiftKey,
-                    button:     e.button,
-                    offsetX:    controls.mouseX * (that.hud.width / that.render.canvas.width),
-                    offsetY:    controls.mouseY * (that.hud.height / that.render.canvas.height)
-                });
-            } else {
-                x *= -1;
-                add_mouse_rotate.x = (x / window.devicePixelRatio) * controls.mouse_sensitivity;
-                add_mouse_rotate.z = (z / window.devicePixelRatio) * controls.mouse_sensitivity;
-                if(that.player.zoom) {
-                    add_mouse_rotate.x *= ZOOM_FACTOR * 0.5;
-                    add_mouse_rotate.z *= ZOOM_FACTOR * 0.5;
-                }
-                that.player.addRotate(add_mouse_rotate.divScalar(900));
-            }
-        }, false);
     }
 
     drawInstruments() {
         let instruments = [];
-        for(let i of this.block_manager.getAll().values()) {
-            if(i.instrument_id) {
+        for(let block of this.block_manager.getAll().values()) {
+            if(block.item?.instrument_id) {
                 instruments.push({
-                    id: i.id,
-                    name: i.name,
-                    material: i.material.id,
-                    instrument_id: i.instrument_id,
-                    instrument_boost: i.material.mining.instrument_boost,
-                    power: i.power,
-                    texture: JSON.stringify(i.texture)
+                    id:                 block.id,
+                    name:               block.name,
+                    material:           block.material.id,
+                    instrument_id:      block.item.instrument_id,
+                    instrument_boost:   block.material.mining.instrument_boost,
+                    power:              block.power,
+                    item:               JSON.stringify(block.item),
+                    texture:            JSON.stringify(block.texture)
                 });
             }
         }

@@ -6,6 +6,12 @@ export class ServerChat {
 
     constructor(world) {
         this.world = world;
+        this.onCmdCallbacks = [];
+        plugins.initPlugins('chat', this);
+    }
+
+    onCmd(callback) {
+        this.onCmdCallbacks.push(callback)
     }
 
     // Send message
@@ -89,9 +95,9 @@ export class ServerChat {
                 break;
             }
             case '/give':
-                if(!player.game_mode.isCreative()) {
-                    // throw 'error_command_not_working_in_this_game_mode';
-                }
+                //if(!player.game_mode.isCreative()) {
+                //  throw 'error_command_not_working_in_this_game_mode';
+                //}
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;
                 let cnt = 1;
@@ -103,13 +109,12 @@ export class ServerChat {
                     cnt = args[2];
                 }
                 cnt = Math.max(cnt | 0, 1);
-                let block = BLOCK[name.toUpperCase()];
-                if(block) {
-                    block = {...block};
-                    delete(block.texture);
+                let b = BLOCK[name.toUpperCase()];
+                if(b) {
+                    const block = BLOCK.convertItemToInventoryItem(b);
                     block.count = cnt;
                     player.inventory.increment(block);
-                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + block.name, [player.session.user_id]);
+                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
                 } else {
                     this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
                 }
@@ -150,7 +155,32 @@ export class ServerChat {
             case '/tps': {
                 let temp = [];
                 for(let [k, v] of Object.entries(this.world.ticks_stat)) {
-                    temp.push(k + ': ' + Math.round(v*1000)/1000);
+                    if(['start', 'add', 'values', 'pn_values', 'pn', 'end'].indexOf(k) >= 0) continue;
+                    temp.push(k + ': ' + Math.round(v * 1000) / 1000);
+                }
+                this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
+                break;
+            }
+            case '/tps2': {
+                console.log(this.world.ticks_stat);
+                for(let [k, v] of Object.entries(this.world.ticks_stat.values)) {
+                    let temp = [];
+                    for(let [vk, vv] of Object.entries(v)) {
+                        temp.push(vk + ': ' + Math.round(vv * 1000) / 1000);
+                    }
+                    this.sendSystemChatMessageToSelectedPlayers(k + ': ' + temp.join('; '), [player.session.user_id]);
+                }
+                break;
+            }
+            case '/sysstat': {
+                const stat = {
+                    mobs_count: this.world.mobs.size,
+                    drop_items: this.world.all_drop_items.size,
+                    players: this.world.players.size,
+                };
+                let temp = [];
+                for(let [k, v] of Object.entries(stat)) {
+                    temp.push(k + ': ' + v);
                 }
                 this.sendSystemChatMessageToSelectedPlayers(temp.join('; '), [player.session.user_id]);
                 break;
@@ -185,7 +215,15 @@ export class ServerChat {
                break;
             }
             default: {
-                throw 'error_invalid_command';
+                let ok = false;
+                for(let plugin_callback of this.onCmdCallbacks) {
+                    if(await plugin_callback(player, cmd, args)) {
+                        ok = true;
+                    }
+                }
+                if(!ok) {
+                    throw 'error_invalid_command';
+                }
                 break;
             }
         }
@@ -244,11 +282,10 @@ export class ServerChat {
                     break;
                 }
                 case 'string': {
-                    let value = parseFloat(ch);
-                    if (isNaN(value)) {
+                    if (isNaN(ch)) {
                         resp.push(ch);
                     } else {
-                        resp.push(value);
+                        resp.push(parseFloat(ch));
                     }
                     break;
                 }

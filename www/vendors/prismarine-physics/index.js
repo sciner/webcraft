@@ -1,6 +1,5 @@
 import { Vec3 } from "../../js/helpers.js";
 import { AABB } from "./lib/aabb.js";
-import { math } from "./lib/math.js";
 import {Resources} from "../../js/resources.js";
 import {DEFAULT_SLIPPERINESS} from "./using.js";
 
@@ -10,7 +9,13 @@ function makeSupportFeature(mcData, features) {
     return feature => features.some(({ name, versions }) => name === feature && versions.includes(mcData.version.majorVersion))
 }
 
-export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSlipperiness) {
+class math {
+    static clamp(min, x, max) {
+        return Math.max(min, Math.min(x, max))
+    }
+}
+
+export function Physics(mcData, fake_world, options) {
 
     const supportFeature = makeSupportFeature(mcData, Resources.physics.features);
 
@@ -57,21 +62,21 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        stepHeight: typeof stepHeight === 'undefined' ? 0.6 : stepHeight, // how much height can the bot step on without jump
+        stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
         honeyblockSpeed: 0.4,
         honeyblockJumpSpeed: 0.4,
         ladderMaxSpeed: 0.15,
         ladderClimbSpeed: 0.2,
-        playerHalfWidth: 0.3,
-        playerHeight: typeof playerHeight === 'undefined' ? 1.8 : playerHeight,
+        playerHalfWidth: typeof options.playerHalfWidth === 'undefined' ? 0.3 : options.playerHalfWidth,
+        playerHeight: typeof options.playerHeight === 'undefined' ? 1.8 : options.playerHeight,
         waterInertia: 0.8,
         lavaInertia: 0.5,
         liquidAcceleration: 0.02,
         airborneInertia: 0.91,
         airborneAcceleration: 0.02,
-        defaultSlipperiness: typeof defaultSlipperiness === 'undefined' ? DEFAULT_SLIPPERINESS : defaultSlipperiness,
+        defaultSlipperiness: typeof options.defaultSlipperiness === 'undefined' ? DEFAULT_SLIPPERINESS : options.defaultSlipperiness,
         outOfLiquidImpulse: 0.3,
         autojumpCooldown: 10, // ticks (0.5s)
         bubbleColumnSurfaceDrag: {
@@ -531,7 +536,7 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
             for (cursor.z = Math.floor(bb.minZ); cursor.z <= Math.floor(bb.maxZ); cursor.z++) {
                 for (cursor.x = Math.floor(bb.minX); cursor.x <= Math.floor(bb.maxX); cursor.x++) {
                     const block = world.getBlock(cursor)
-                    if (block && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
+                    if (block && block.material && (block.material.is_water || waterLike.has(block.type) || block.getProperties().waterlogged)) {
                         const waterLevel = cursor.y + 1 - getLiquidHeightPcent(block)
                         if (Math.ceil(bb.maxY) >= waterLevel) waterBlocks.push(block)
                     }
@@ -583,8 +588,11 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
                 // @fixed Без этого фикса игрок не может выбраться из воды на берег
                 vel.y += 0.09 // 0.04
             } else if (entity.onGround && entity.jumpTicks === 0) {
-                const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
-                vel.y = Math.fround(0.42) * ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1)
+                vel.y = Math.fround(0.42)
+                if(honeyblockId != BLOCK_NOT_EXISTS) {
+                    const blockBelow = world.getBlock(entity.pos.floored().offset(0, -0.5, 0))
+                    vel.y *= ((blockBelow && blockBelow.type === honeyblockId) ? physics.honeyblockJumpSpeed : 1);
+                }
                 if (entity.jumpBoost > 0) {
                     vel.y += 0.1 * entity.jumpBoost
                 }

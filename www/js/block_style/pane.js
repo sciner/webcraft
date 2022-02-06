@@ -11,7 +11,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -69,14 +69,11 @@ export default class style {
         let connect_u       = 7/16;
         let connect_v       = 2/16;
         let tex             = BLOCK.calcTexture(texture, DIRECTION_FORWARD);
-        let canConnect = (block) => {
-            return block.id > 0 && (!block.properties.transparent || block.properties.style == 'pane');
-        };
 
-        let con_s = canConnect(neighbours.SOUTH);
-        let con_n = canConnect(neighbours.NORTH);
-        let con_w = canConnect(neighbours.WEST);
-        let con_e = canConnect(neighbours.EAST);
+        let con_s = BLOCK.canPaneConnect(neighbours.SOUTH);
+        let con_n = BLOCK.canPaneConnect(neighbours.NORTH);
+        let con_w = BLOCK.canPaneConnect(neighbours.WEST);
+        let con_e = BLOCK.canPaneConnect(neighbours.EAST);
 
         let no_draw_center_sides = [];
         if(con_s) no_draw_center_sides.push(ROTATE.S);
@@ -88,19 +85,31 @@ export default class style {
 
         // South
         if(con_s) {
-            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, [ROTATE.N, ROTATE.S]);
+            let ndcs = [];
+            if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
+            if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
+            push_part(vertices, tex, x + .5, bottom, z + connect_u/2, connect_v, connect_u, h, ndcs);
         }
         // North
         if(con_n) {
-            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, [ROTATE.N, ROTATE.S]);
+            let ndcs = [];
+            if(neighbours.SOUTH.id == block.id) ndcs.push(ROTATE.S);
+            if(neighbours.NORTH.id == block.id) ndcs.push(ROTATE.N);
+            push_part(vertices, tex, x + .5, bottom, z + 1 - connect_u/2, connect_v, connect_u, h, ndcs);
         }
         // West
         if(con_w) {
-            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, [ROTATE.E, ROTATE.W]);
+            let ndcs = [];
+            if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
+            if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
+            push_part(vertices, tex, x + connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
         }
         // East
         if(con_e) {
-            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, [ROTATE.E, ROTATE.W]);
+            let ndcs = [];
+            if(neighbours.WEST.id == block.id) ndcs.push(ROTATE.W);
+            if(neighbours.EAST.id == block.id) ndcs.push(ROTATE.E);
+            push_part(vertices, tex, x + 1 - connect_u/2, bottom, z + .5, connect_u, connect_v, h, ndcs);
         }
 
     }

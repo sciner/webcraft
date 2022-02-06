@@ -2,8 +2,7 @@ import {CHUNK_BLOCKS, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chun
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
-import {Map} from './../map.js';
-import {MapCell} from './../map_cell.js';
+import {Map, MapCell} from './../map.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
@@ -64,9 +63,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     123: BLOCK.GRAVEL,
                 };
                 vox_templates.monu10 = {chunk: chunks[0], palette: palette};
-            });
-            await Vox_Loader.load(root_dir + '/data/vox/small_castle.vox', (chunks) => {
-                vox_templates.small_castle = {chunk: chunks[0], palette: {}};
             });
             await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
                 let palette = {

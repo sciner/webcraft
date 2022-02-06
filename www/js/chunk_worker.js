@@ -1,5 +1,7 @@
 // Modules
 let Vector              = null;
+let Helpers             = null;
+// let VectorCollector     = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
@@ -32,13 +34,15 @@ const worker = {
 
 worker.init();
 
-/**
-* @param {string} terrain_type
-*/
-async function importModules(terrain_type, world_seed, world_guid, settings) {
-    // load module
+preLoad().then();
+
+async function preLoad () {
+    const start = performance.now();
+
     await import('./helpers.js').then(module => {
         Vector = module.Vector;
+        Helpers = module.Helpers;
+        // VectorCollector = module.VectorCollector;
     });
     // load module
     await import('./worker/world.js').then(module => {
@@ -47,8 +51,31 @@ async function importModules(terrain_type, world_seed, world_guid, settings) {
     // load module
     await import('./blocks.js').then(module => {
         globalThis.BLOCK = module.BLOCK;
-        return BLOCK.init(settings);
+        //return BLOCK.init(settings);
     });
+
+    console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
+}
+/**
+* @param {string} terrain_type
+*/
+async function initWorld(
+    terrain_type,
+    world_seed,
+    world_guid,
+    settings,
+    cache
+) {
+    if (cache) {
+        Helpers.setCache(cache);
+    }
+
+    // legacy
+    if (!globalThis.BLOCK) {
+        await preLoad();
+    }
+
+    await globalThis.BLOCK.init(settings);
     //
     worlds = new WorkerWorldManager();
     await worlds.InitTerrainGenerators([terrain_type]);
@@ -67,7 +94,13 @@ async function onMessageFunc(e) {
     const args = data[1];
     if(cmd == 'init') {
         // Init modules
-        return await importModules(args.generator.id, args.world_seed, args.world_guid, args.settings);
+        return await initWorld(
+            args.generator.id,
+            args.world_seed,
+            args.world_guid,
+            args.settings,
+            args.resource_cache
+        );
     }
     switch(cmd) {
         case 'createChunk': {
@@ -120,7 +153,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'setBlock': {
-            let result = [];
+            let chunks = new VectorCollector();
             for(let m of args) {
                 // 1. Get chunk
                 let chunk = world.chunks.get(m.addr);
@@ -132,12 +165,16 @@ async function onMessageFunc(e) {
                     let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
                     // 3. Clear vertices for block and around near
                     chunk.setDirtyBlocks(pos);
-                    // 4. Rebuild vertices list
-                    result.push(buildVertices(chunk, false));
-                    chunk.vertices = null;
+                    chunks.set(m.addr, chunk);
                 } else {
                     console.error('worker.setBlock: chunk not found at addr: ', m.addr);
                 }
+            }
+            // 4. Rebuild vertices list
+            let result = [];
+            for(let chunk of chunks) {
+                result.push(buildVertices(chunk, false));
+                chunk.vertices = null;
             }
             // 5. Send result to chunk manager
             worker.postMessage(['vertices_generated', result]);
@@ -183,4 +220,107 @@ function buildVertices(chunk, return_map) {
         resp.map = chunk.map.info;
     }
     return resp;
+}
+
+// VectorCollector...
+class VectorCollector {
+
+    static sets = 0;
+
+    constructor(list) {
+        this.clear(list);
+    }
+
+    *[Symbol.iterator]() {
+        for (let x of this.list.values()) {
+            for (let y of x.values()) {
+                for (let value of y.values()) {
+                    yield value;
+                }
+            }
+        }
+    }
+
+    clear(list) {
+        this.list = list ? list : new Map();
+        this.size = 0;
+    }
+
+    set(vec, value) {
+        let size = this.size;
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            this.size++;
+        }
+        if (typeof value === 'function') {
+            value = value(vec);
+        }
+        this.list.get(vec.x).get(vec.y).set(vec.z, value);
+        return this.size > size;
+    }
+
+    add(vec, value) {
+        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
+        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
+        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
+            if (typeof value === 'function') {
+                value = value(vec);
+            }
+            this.list.get(vec.x).get(vec.y).set(vec.z, value);
+            this.size++;
+        }
+        return this.list.get(vec.x).get(vec.y).get(vec.z);
+    }
+
+    delete(vec) {
+        if(!this.has(vec)) {
+            return false;
+        }
+        this.size--;
+        this.list.get(vec.x).get(vec.y).delete(vec.z)
+        return true;
+    }
+
+    has(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
+        //if(!this.list.has(vec.x)) return false;
+        //if(!this.list.get(vec.x).has(vec.y)) return false;
+        //if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
+        //return true;
+    }
+
+    get(vec) {
+        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
+        // if(!this.list.has(vec.x)) return null;
+        // if(!this.list.get(vec.x).has(vec.y)) return null;
+        // if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
+    }
+
+    keys() {
+        let resp = [];
+        for (let [xk, x] of this.list) {
+            for (let [yk, y] of x) {
+                for (let [zk, z] of y) {
+                    resp.push(new Vector(xk|0, yk|0, zk|0));
+                }
+            }
+        }
+        return resp;
+    }
+
+    values() {
+        let resp = [];
+        for(let item of this) {
+            resp.push(item);
+        }
+        return resp;
+    }
+
+    reduce(max_size) {
+        if(this.size < max_size) {
+            return false;
+        }
+    }
+
 }

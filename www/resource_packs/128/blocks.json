@@ -43,22 +43,18 @@
         "id": 190,
         "name": "SPRUCE_LEAVES"
     },
-    {
-        "id": 456,
-        "name": "BIRCH_PLANK"
-    },
-    {
-        "id": 7,
-        "name": "OAK_PLANK"
-    },
-    {
-        "id": 457,
-        "name": "ACACIA_PLANK"
-    },
-    {
-        "id": 460,
-        "name": "SPRUCE_PLANK"
-    },
+
+    {"id": 456, "name": "BIRCH_PLANK"},
+    {"id": 7, "name": "OAK_PLANK"},
+    {"id": 457, "name": "ACACIA_PLANK"},
+    {"id": 460, "name": "SPRUCE_PLANK"},
+
+    {"id": 458, "name": "BIRCH_SLAB"},
+    {"id": 126, "name": "OAK_SLAB"},
+    {"id": 459, "name": "ACACIA_SLAB"},
+    {"id": 461, "name": "SPRUCE_SLAB"},
+    {"id": 44, "name": "SMOOTH_STONE_SLAB"},
+
     {
         "id": 1,
         "name": "BEDROCK"

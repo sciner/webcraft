@@ -1,21 +1,26 @@
-import {BLOCK} from "./blocks.js";
+import {BLOCK, ITEM_INVENTORY_PROPS} from "./blocks.js";
 import {Helpers, Vector} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
+import {InventoryComparator} from "./inventory_comparator.js";
 
 export class PlayerInventory {
 
     temp_vec = new Vector();
 
     constructor(player, state) {
+        this.count          = state.items.length;
         this.player         = player;
         this.current        = state.current;
-        this.items          = state.items;
+        this.items          = new Array(this.count); // state.items;
         this.max_count      = 36;
         this.hotbar_count   = 9;
+        this.drag_item      = null;
         this.onSelect       = (item) => {};
+        this.applyNewItems(state.items, false);
     }
 
-    refresh() {
+    // Refresh
+    refresh(send_state) {
         const data = {
             current: this.current,
             items: this.items
@@ -30,14 +35,65 @@ export class PlayerInventory {
         }];
         this.player.world.sendAll(packets, [this.player.session.user_id]);
         // Send new inventory to player
-        this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
+        if(send_state) {
+            this.player.world.sendSelected([{name: ServerClient.CMD_INVENTORY_STATE, data: data}], [this.player.session.user_id], []);
+        }
+        return true;
     }
 
     //
-    setIndexes(data) {
+    setIndexes(data, send_state) {
         this.current.index = Helpers.clamp(data.index, 0, this.hotbar_count - 1);
         this.current.index2 = Helpers.clamp(data.index2, -1, this.max_count - 1);
-        this.refresh();
+        this.refresh(send_state);
+    }
+
+    // Игрок прислал новое состояние инвентаря, нужно его провалидировать и применить
+    async newState(params) {
+        if(!('state' in params && 'used_recipes' in params)) {
+            throw 'error_invalid_inventory_state_params';
+        }
+        // New state
+        const state = params.state;
+        if('items' in state) {
+            let equal = this.player.game_mode.isCreative();
+            if(!equal) {
+                equal = await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes);
+            }
+            if(equal) {
+                // apply new
+                this.applyNewItems(state.items, true);
+                // send current to player
+                this.refresh(true);
+                console.log('Applied new state');
+            } else {
+                // send current to player
+                this.refresh(true);
+                console.log('Ignore new state');
+            }
+        }
+    }
+
+    //
+    applyNewItems(items, refresh) {
+        if(!Array.isArray(items)) {
+            throw 'error_items_must_be_array';
+        }
+        if(items.length != this.count) {
+            throw 'error_items_invalid_count|' + `${items.length} != ${this.count}`;
+        }
+        let new_items = [];
+        for(let i in items) {
+            let b = null;
+            if(items[i]) {
+                b = BLOCK.fromId(items[i].id)
+            }
+            new_items[i] = BLOCK.convertItemToInventoryItem(items[i], b);
+        }
+        this.items = new_items;
+        if(refresh) {
+            this.refresh(true);
+        }
     }
 
     // Return current active item in hotbar
@@ -54,7 +110,7 @@ export class PlayerInventory {
             index = 0;
         }
         this.current.index = index;
-        this.refresh(false);
+        this.refresh(true);
         this.onSelect(this.current_item);
     }
 
@@ -87,13 +143,12 @@ export class PlayerInventory {
                     if(item.count < item_max_count) {
                         if(item.count + mat.count <= item_max_count) {
                             item.count = Math.min(item.count + mat.count, item_max_count);
-                            this.refresh(true);
-                            return;
+                            return this.refresh(true);
                         } else {
                             let remains = (item.count + mat.count) - item_max_count;
                             item.count = item_max_count;
                             mat.count = remains;
-                            this.refresh(true);
+                            return this.refresh(true);
                         }
                     }
                 }
@@ -116,29 +171,44 @@ export class PlayerInventory {
                 if(mat.count > 0) {
                     this.increment(mat);
                 }
-                this.refresh(true);
-                return;
+                return this.refresh(true);
             }
         }
+        return false;
     }
-    
-    // Decrement
-    decrement(mining_block) {
+
+    decrement_instrument(mined_block) {
         if(!this.current_item || this.player.game_mode.isCreative()) {
             return;
         }
         const current_item_material = BLOCK.fromId(this.current_item.id);
-        if(current_item_material.instrument_id) {
+        if(current_item_material.item?.instrument_id) {
             this.current_item.power = Math.max(this.current_item.power - .01, 0);
+            this.current_item.power = Math.round(this.current_item.power * 1000) / 1000;
             if(this.current_item.power < 0.001) {
                 this.items[this.current.index] = null;
             }
+            this.refresh(true);
+        }
+    }
+    
+    // Decrement
+    decrement(decrement_item, ignore_creative_game_mode) {
+        if(!this.current_item) {
+            return;
+        }
+        if(!ignore_creative_game_mode && this.player.game_mode.isCreative()) {
+            return;
+        }
+        const current_item_material = BLOCK.fromId(this.current_item.id);
+        if(current_item_material.item?.instrument_id) {
+            this.decrement_instrument();
         } else {
             this.current_item.count = Math.max(this.current_item.count - 1, 0);
             if(this.current_item.count < 1) {
                 let matBlock = BLOCK.fromId(this.current_item.id);
-                if(matBlock.tags.indexOf('bucket') >= 0) {
-                    if(matBlock.emit_on_set) {
+                if(matBlock.item && matBlock.item?.name == 'bucket') {
+                    if(matBlock.item.emit_on_set) {
                         const emptyBucket = BLOCK.BUCKET_EMPTY;
                         this.items[this.current.index] = {id: emptyBucket.id, count: 1};
                     }
@@ -151,7 +221,7 @@ export class PlayerInventory {
     }
 
     // decrementByItemID
-    decrementByItemID(item_id, count) {
+    decrementByItemID(item_id, count, dont_refresh) {
         for(let i in this.items) {
             let item = this.items[i];
             if(!item || item.count < 1) {
@@ -170,6 +240,9 @@ export class PlayerInventory {
                     this.items[i] = null;
                 }
             }
+        }
+        if(typeof dont_refresh === 'undefined' || !dont_refresh) {
+            this.refresh(true);
         }
     }
 
@@ -237,9 +310,9 @@ export class PlayerInventory {
         item.count = 1;
         const pos = this.player.state.pos.clone();
         pos.addSelf(this.temp_vec.set(
-            -Math.sin(this.player.state.rotate.z) * .15,
+            -Math.sin(this.player.state.rotate.z) * .15 + Math.random() * .5,
             this.player.height * .4,
-            -Math.cos(this.player.state.rotate.z) * .15,
+            -Math.cos(this.player.state.rotate.z) * .15 + Math.random() * .5,
         ));
         // Add velocity for drop item
         this.temp_vec.set(
@@ -251,7 +324,58 @@ export class PlayerInventory {
         if(this.current_item.count == 1) {
             this.setItem(this.current.index, null);
         } else {
-            this.decrement();
+            this.decrement(null, true);
+        }
+        return true;
+    }
+
+    // Has item
+    hasItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        return existing_item && existing_item.count >= item.count;
+    }
+
+    // Decrement item
+    decrementItem(item) {
+        if(!item || !('id' in item) || !('count' in item)) {
+            return false;
+        }
+        //
+        const item_col = InventoryComparator.groupToSimpleItems([item]);
+        if(item_col.size != 1) {
+            return false;
+        }
+        const item_key = item_col.keys().next()?.value;
+        item = item_col.get(item_key);
+        //
+        const items = InventoryComparator.groupToSimpleItems(this.items);
+        const existing_item = items.get(item_key);
+        if(!existing_item || existing_item.count < item.count) {
+            return false;
+        }
+        // Decrement
+        if(isNaN(item_key)) {
+            // @todo Нужно по другому сделать вычитание, иначе если игрок не запросит свою постройку айтемов, на сервере у него порядок и группировка останется неправильной
+            // Я сделал так, потому что математически у него останется правильное количество айтемов и меня это пока устраивает =)
+            existing_item.count -= item.count;
+            if(existing_item.count < 1) {
+                items.delete(item_key);
+            }
+            this.items = Array.from(items.values());    
+        } else {
+            this.decrementByItemID(item.id, item.count, true);
         }
         return true;
     }
@@ -305,10 +429,10 @@ export class PlayerInventory {
                     power:      item.power
                 };
                 // Individual properties
-                for(let prop of ['entity_id', 'entity_name']) {
+                for(let prop of ['entity_id', 'entity_name', 'extra_data']) {
                     t[prop] = null;
                     if(item.hasOwnProperty(prop)) {
-                        t.entity_id = item[prop];
+                        t[prop] = item[prop];
                     }
                 }
             }

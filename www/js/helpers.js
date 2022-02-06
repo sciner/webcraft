@@ -1,4 +1,5 @@
 import { CubeSym } from "./core/CubeSym.js";
+import {impl as alea} from "../vendors/alea.js";
 
 export const TX_CNT = 32;
 
@@ -14,7 +15,69 @@ export const TX_CNT = 32;
     }
 });*/
 
+/**
+ * Lerp any value between
+ * @param {*} a 
+ * @param {*} b 
+ * @param {number} t 
+ * @param {*} res 
+ * @returns 
+ */
+export function lerpComplex (a, b, t, res) {
+    const typeA = typeof a;
+    const typeB = typeof b;
+
+    if (typeA !== typeB) {
+        return res; // no emit
+    }
+
+    if (a == null || b == null) {
+        return null;
+    }
+
+    if (typeA == 'boolean' || typeA === 'string') {
+        return t > 0.5 ? b : a; // if < 0.5 return a, or b
+    }
+
+    if (typeA === 'number') {
+        return a * (1 - t) + b * t;
+    }
+
+    if (Array.isArray(a)) {
+        res = res || [];
+
+        for (let i = 0; i < Math.min(a.length, b.length); i ++) {
+            res[i] = a[i] * (1 - t) + b[i] * t;            
+        }
+
+        return res;
+    }
+
+    res = res || {};
+
+    for (const key in a) {
+        
+        res[key] = lerpComplex(
+            a[key],
+            b[key],
+            t,
+            res[key]
+        );
+    }
+
+    return res;
+}
+
 export class Mth {
+    /**
+     * Lerp any value between
+     * @param {*} a 
+     * @param {*} b 
+     * @param {number} t 
+     * @param {*} res 
+     * @returns 
+     */
+    static lerpComplex = lerpComplex;
 
     static lerp(amount, value1, value2) {
         amount = amount < 0 ? 0 : amount;
@@ -92,6 +155,21 @@ export class VectorCollector {
                 }
             }
         }
+    }
+
+    kvpIterator() {
+        const that = this;
+        return (function* () {
+            let vec = new Vector(0, 0, 0);
+            for (let [xk, x] of that.list) {
+                for (let [yk, y] of x) {
+                    for (let [zk, value] of y) {
+                        vec.set(xk|0, yk|0, zk|0);
+                        yield [vec, value];
+                    }
+                }
+            }
+        })()
     }
 
     clear(list) {
@@ -366,6 +444,17 @@ export class Vector {
      * @param {Vector} vec
      * @return {Vector}
      */
+    subSelf(vec) {
+        this.x -= vec.x;
+        this.y -= vec.y;
+        this.z -= vec.z;
+        return this;
+    }
+
+    /**
+     * @param {Vector} vec
+     * @return {Vector}
+     */
     mul(vec) {
         return new Vector(this.x * vec.x, this.y * vec.y, this.z * vec.z);
     }
@@ -459,6 +548,16 @@ export class Vector {
     }
 
     /**
+     * @returns {Vector}
+     */
+    roundSelf() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        this.z = Math.round(this.z);
+        return this;
+    }
+
+    /**
      * @return {Vector}
      */
     toInt() {
@@ -537,6 +636,16 @@ export class Vector {
         );
     }
 
+    /**
+     * @return {Vector}
+     */
+    flooredSelf() {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        this.z = Math.floor(this.z);
+        return this;
+    }
+
     translate(x, y, z) {
         this.x += x;
         this.y += y;
@@ -574,6 +683,13 @@ export class Vector {
         this.x = 0;
         this.y = 0;
         return this;
+    }
+
+    volume(vec) {
+        const volx = Math.abs(this.x - vec.x) + 1;
+        const voly = Math.abs(this.y - vec.y) + 1;
+        const volz = Math.abs(this.z - vec.z) + 1;
+        return volx * voly * volz;
     }
 
 }
@@ -627,8 +743,23 @@ export let DIRECTION_NAME = {};
 
 export class Helpers {
 
+    static cache = new Map();
     static fetch;
     static fs;
+
+    static setCache(cache) {
+        Helpers.cache = cache;
+    }
+
+    static getCache() {
+        return Helpers.cache;
+    }
+
+    static getRandomInt(min, max) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     // clamp
     static clamp(x, min, max) {
@@ -830,7 +961,28 @@ if(typeof fetch === 'undefined') {
     };`);
 } else {
     Helpers.fetch = async (url) => fetch(url);
-    Helpers.fetchJSON = async (url) => fetch(url).then(response => response.json());
+    Helpers.fetchJSON = async (url, useCache = false, namespace = '') => {
+        const cacheKey = namespace + '|' + url;
+
+        if (useCache && Helpers.cache.has(cacheKey)) {
+            return Promise.resolve(JSON.parse(Helpers.cache.get(cacheKey)));
+        }
+
+        const respt = await fetch(url);
+
+        // if cache is presented - store text response
+        // then we can use this inside a worker
+        if (useCache) {
+            const text = await respt.text();
+            
+            Helpers.cache.set(cacheKey, text);
+
+            return JSON.parse(text);
+        }
+
+        return respt.json()
+    };
+
     Helpers.fetchBinary = async (url) => fetch(url).then(response => response.arrayBuffer());
 }
 
@@ -961,6 +1113,33 @@ export class AverageClockTimer {
         this.sum += value;
         this.history.push(value);
         this.avg = (this.sum / this.history.length) || 0;
+    }
+
+}
+
+// FastRandom...
+export class FastRandom {
+
+    constructor(seed, cnt) {
+        const a = new alea(seed);
+        this.int32s = new Array(cnt);
+        this.doubles = new Array(cnt);
+        this.index = 0;
+        this.cnt = cnt;
+        for(let i = 0; i < cnt; i++) {
+            this.int32s[i] = a.int32();
+            this.doubles[i] = a.double();
+        }
+    }
+
+    double(offset) {
+        offset = Math.abs(offset) % this.cnt;
+        return this.doubles[offset];
+    }
+
+    int32(offset) {
+        offset = Math.abs(offset) % this.cnt;
+        return this.int32s[offset];
     }
 
 }

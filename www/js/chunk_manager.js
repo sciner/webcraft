@@ -1,10 +1,14 @@
-import {SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
+import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
 import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
+import { Resources } from "./resources.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
+
+export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
+export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
 const CC = [
     {x:  0, y:  1, z:  0},
@@ -24,7 +28,8 @@ export class ChunkManager {
     static instance;
 
     constructor(world) {
-        let that                    = this;
+        ChunkManager.instance = this;
+
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
@@ -46,6 +51,12 @@ export class ChunkManager {
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+
+    }
+
+    init () {
+        const world                   = this.world;
+        const that                    = this;
         //
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
@@ -127,10 +138,17 @@ export class ChunkManager {
         const world_seed = world_info.seed;
         const world_guid = world_info.guid;
         const settings = world.settings;
-        this.postWorkerMessage(['init', {generator, world_seed, world_guid, settings}]);
+        const resource_cache = Helpers.getCache();
+
+        this.postWorkerMessage(['init', {
+            generator,
+            world_seed,
+            world_guid,
+            settings,
+            resource_cache
+        }]);
         this.postLightWorkerMessage(['init', null]);
 
-        ChunkManager.instance = this;
     }
 
     //
@@ -211,22 +229,17 @@ export class ChunkManager {
         if(!this.worker_inited || !this.nearby) {
             return;
         }
-        let groups = [];
-        if(transparent) {
-            groups = ['transparent', 'doubleface_transparent'];
-        } else {
-            groups = ['regular', 'doubleface'];
-        }
         const rpList = this.renderList.get(resource_pack.id);
         if (!rpList) {
             return true;
         }
+        let groups = transparent ? GROUPS_TRANSPARENT : GROUPS_NO_TRANSPARENT;;
         for(let group of groups) {
-            const mat = resource_pack.shader.materials[group];
             const list = rpList.get(group);
             if (!list) {
                 continue;
             }
+            const mat = resource_pack.shader.materials[group];
             for (let i = 0; i < list.length; i += 2) {
                 const chunk = list[i];
                 const vertices = list[i + 1];
@@ -240,7 +253,11 @@ export class ChunkManager {
         return true;
     }
 
-    // Get
+    /**
+     * Return chunk by address
+     * @param {*} addr 
+     * @returns Chunk
+     */
     getChunk(addr) {
         return this.chunks.get(addr);
     }
@@ -360,16 +377,16 @@ export class ChunkManager {
     }
 
     // Возвращает блок по абслютным координатам
-    getBlock(x, y, z) {
+    getBlock(x, y, z, v) {
         if(x instanceof Vector || typeof x == 'object') {
             y = x.y;
             z = x.z;
             x = x.x;
         }
-        let addr = getChunkAddr(x, y, z);
-        let chunk = this.chunks.get(addr);
+        this.get_block_chunk_addr = getChunkAddr(x, y, z, this.get_block_chunk_addr);
+        let chunk = this.chunks.get(this.get_block_chunk_addr);
         if(chunk) {
-            return chunk.getBlock(x, y, z);
+            return chunk.getBlock(x, y, z, v);
         }
         return this.DUMMY;
     }
@@ -392,61 +409,9 @@ export class ChunkManager {
             entity_id:  entity_id,
             extra_data: extra_data ? extra_data : null
         };
-        if(is_modify) {
-            /*// @server Отправляем на сервер инфу об установке блока
-            this.world.server.Send({
-                name: ServerClient.CMD_BLOCK_SET,
-                data: {
-                    pos: pos,
-                    item: item,
-                    action_id: action_id
-                }
-            });*/
-            let material = BLOCK.fromId(item.id);
-            if(material.spawn_egg) {
-                return;
-            }
-            // заменяемый блок
-            let world_block = chunk.getBlock(pos.x, pos.y, pos.z);
-            let b = null;
-            let action = null;
-            if(block.id == BLOCK.AIR.id) {
-                // dig
-                action = 'dig';
-                b = world_block;
-            } else if(world_block && world_block.id == block.id) {
-                // do nothing
-            } else {
-                // place
-                action = 'place';
-                b = block;
-            }
-            if(action) {
-                b = BLOCK.BLOCK_BY_ID.get(b.id);
-                if(b.hasOwnProperty('sound')) {
-                    Game.sounds.play(b.sound, action);
-                }
-            }
-        }
         // устанавливаем блок
         return chunk.setBlock(pos.x, pos.y, pos.z, item, false, item.power, item.rotate, item.entity_id, extra_data);
     }
-
-    /*
-    // destroyBlock
-    destroyBlock(pos) {
-        let render = Game.render;
-        let block = this.getBlock(pos.x, pos.y, pos.z);
-        if(block.id == BLOCK.TULIP.id) {
-            render.setBrightness(.15);
-        } else if(block.id == BLOCK.DANDELION.id) {
-            render.setBrightness(1);
-        } else if(block.id == BLOCK.CACTUS.id) {
-            render.setRain(true);
-        }
-        render.destroyBlock(block, pos);
-        this.setBlock(pos.x, pos.y, pos.z, BLOCK.AIR, true, null, null, null, null, ServerClient.BLOCK_ACTION_DESTROY);
-    }*/
 
     // Set nearby chunks
     updateNearby(data) {
@@ -475,7 +440,7 @@ export class ChunkManager {
         let startx = pos.x;
         let all_blocks = BLOCK.getAll();
         for(let [id, block] of all_blocks) {
-            if(block.fluid || block.is_item || !block.spawnable) {
+            if(block.fluid || block.item || !block.spawnable) {
                 continue;
             }
             if(cnt % d == 0) {

@@ -9,16 +9,14 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
+import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
 import { World } from "./world.js";
-// import {Vox_Loader} from "./vox/loader.js";
-// import {Vox_Mesh} from "./vox/mesh.js";
-// import Particles_Sun from "./particles/sun.js";
-// import { Particle_Hand } from "./particles/block_hand.js";
+import { Environment, PRESET_NAMES, SETTINGS as ENV_SET } from "./environment.js";
 
 const {mat4, quat, vec3} = glMatrix;
 
@@ -39,27 +37,15 @@ const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
 const NEAR_DISTANCE             = 2 / 16;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
-
-let settings = {
-    fogColor:               [118 / 255, 194 / 255, 255 / 255, 1], // [185 / 255, 210 / 255, 255 / 255, 1],
-    // fogColor:               [192 / 255, 216 / 255, 255 / 255, 1],
-    fogUnderWaterColor:     [55 / 255, 100 / 255, 230 / 255, 1],
-    fogAddColor:            [0, 0, 0, 0],
-    fogUnderWaterAddColor:  [55 / 255, 100 / 255, 230 / 255, 0.45],
-    fogDensity:             2.52 / 320,
-    fogDensityUnderWater:   0.1
-};
-
-let currentRenderState = {
-    fogColor:           [118 / 255, 194 / 255, 255 / 255, 1],
-    fogDensity:         0.02,
-    underWater:         false
-};
+// Shake camera on damage
+const DAMAGE_TIME               = 250;
+const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
 
     constructor(renderSurfaceId) {
+        this.xrMode             = false;
         this.canvas             = document.getElementById(renderSurfaceId);
         this.canvas.renderer    = this;
         this.testLightOn        = false;
@@ -71,7 +57,8 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
-        this.nightShift         = 1;
+        this.env                = new Environment();
+
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
             BACKEND, {
@@ -90,6 +77,22 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
+
+    }
+
+    /**
+     * Request animation frame
+     * This method depend of mode which we runs
+     * for XR raf will be provided from session
+     * @param {(time, ...args) => void} callback 
+     * @returns {number}
+     */
+    requestAnimationFrame(callback) {
+        if (this.xrMode) {
+            console.log('Not supported yet');
+        }
+
+        return self.requestAnimationFrame(callback);
     }
 
     /**
@@ -118,28 +121,26 @@ export class Renderer {
     }
 
     async init(world, settings) {
-        return new Promise(resolve => {
-            (async () => {
-                await this._init(world, settings, resolve);
-            })();
-        })
+        return this._init(world, settings);
     }
 
     // todo
     // GO TO PROMISE
-    async _init(world, settings, callback) {
-
+    async _init(world, settings) {
         this.setWorld(world);
+
         const {renderBackend} = this;
+
         await renderBackend.init({
             blocks: Resources.shaderBlocks
         });
 
-        this.skyBox             = null;
+        this.env.init(this);
+
         this.videoCardInfoCache = null;
         this.options            = {FOV_NORMAL, FOV_WIDE, FOV_ZOOM, ZOOM_FACTOR, FOV_CHANGE_SPEED, NEAR_DISTANCE, RENDER_DISTANCE, FOV_FLYING, FOV_FLYING_CHANGE_SPEED};
 
-        this.brightness         = 1;
+        this.setBrightness(1); // this.brightness = 1;
         renderBackend.resize(this.canvas.width, this.canvas.height);
 
         // Init shaders for all resource packs
@@ -174,11 +175,7 @@ export class Renderer {
         this.camPos             = this.globalUniforms.camPos;
 
         this.setPerspective(FOV_NORMAL, NEAR_DISTANCE, RENDER_DISTANCE);
-
-        if (renderBackend) {
-            // SkyBox
-            this.initSky();
-        }
+        this.updateViewport();
 
         // HUD
         // Build main HUD
@@ -191,28 +188,31 @@ export class Renderer {
         }
 
         this.generatePrev();
-        
-        callback();
-
     }
 
     generatePrev() {
         const target = this.renderBackend.createRenderTarget({
             width: 2048,
-            height: 2048,
+            height: 2048 + 1024,
             depth: true
         });
+
+        const ASPECT = target.height / target.width;
         const ZERO = new Vector();
-        const GRID = 16;
+        const GRID_X = 16;
+        const GRID_Y = GRID_X * ASPECT;
         const all_blocks = BLOCK.getAll();
 
         let inventory_icon_id = 0;
 
         const extruded = [];
         const regular = Array.from(all_blocks.values()).map((block, i) => {
-            const draw_style = block.inventory_style
+            let draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;
+            if('inventory' in block) {
+                draw_style = block.inventory.style;
+            }
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
@@ -240,8 +240,8 @@ export class Renderer {
             min: 0.01,
             fov: 60,
             renderType: this.renderBackend.gl ? 'webgl' : 'webgpu',
-            width: GRID * 2, // block size is 2
-            height: GRID * 2,
+            width: GRID_X * 2, // block size is 2
+            height: GRID_Y * 2,
         });
         //
         const gu = this.globalUniforms;
@@ -256,7 +256,7 @@ export class Renderer {
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
         gu.testLightOn = true;
-        gu.fogColor = settings.fogColor;
+        gu.fogColor = [0, 0, 0, 1];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
@@ -270,29 +270,42 @@ export class Renderer {
         camera.use(gu, true);
         gu.update();
         
-        this.renderBackend.setTarget(target);
+        this.renderBackend.beginPass({
+            target
+        });
 
-        regular.forEach((block, i) => {
-            const pos = block.block_material.inventory_icon_id;
-            const x = -GRID + 1 + (pos % GRID) * 2;
-            const y = GRID - 1 - ((pos / GRID) | 0) * 2;
-            const multipart = block.parts > 1;
+        regular.forEach((drop, i) => {
+            const pos = drop.block_material.inventory_icon_id;
+            const x = -GRID_X + 1 + (pos % GRID_X) * 2;
+            const y = GRID_Y - 1 - ((pos / (GRID_X)) | 0) * 2;
+            const multipart = drop.mesh_group.multipart;
 
-            // use linera for inventory
-            block.material.texture.minFilter = 'linear';
-            block.material.texture.magFilter = 'linear';
-            
-            this.renderBackend.drawMesh(
-                block.buffer,
-                block.material,
-                new Vector(x, y, 0),
-                multipart ? matrix_empty : matrix
-            );
+            drop.mesh_group.meshes.forEach((mesh, _, map) => {
 
-            block.material.texture.minFilter = 'nearest';
-            block.material.texture.magFilter = 'nearest';
+                if(!mesh.material) {
+                    console.log(mesh)
+                    debugger;
+                }
+
+                // use linear for inventory
+                mesh.material.texture.minFilter = 'linear';
+                mesh.material.texture.magFilter = 'linear';
+
+                this.renderBackend.drawMesh(
+                    mesh.buffer,
+                    mesh.material,
+                    new Vector(x, y, 0),
+                    multipart ? matrix_empty : matrix
+                );
+
+                mesh.material.texture.minFilter = 'nearest';
+                mesh.material.texture.magFilter = 'nearest';
+
+            });
 
         });
+
+        this.renderBackend.endPass();
 
         // render target to Canvas
         target.toImage('canvas').then((data) => {
@@ -303,8 +316,8 @@ export class Renderer {
 
             const tmpCanvas = document.createElement('canvas');
             const tmpContext = tmpCanvas.getContext('2d');
-            tmpCanvas.width = target.width / GRID;
-            tmpCanvas.height = target.height / GRID;
+            tmpCanvas.width = target.width / GRID_X;
+            tmpCanvas.height = target.height / GRID_Y;
 
             tmpContext.imageSmoothingEnabled = false;
             ctx.imageSmoothingEnabled = false;
@@ -313,22 +326,27 @@ export class Renderer {
             // and can be draw directly
             extruded.forEach((material) => {
                 const pos = material.inventory_icon_id;
-                const w = target.width / GRID;
-                const h = target.height / GRID;
-                const x = (pos % GRID) * w;
-                const y = ((pos / GRID) | 0) * h;
+                const w = target.width / GRID_X;
+                const h = target.height / (GRID_Y);
+                const x = (pos % GRID_X) * w;
+                const y = ((pos / GRID_X) | 0) * h;
+
+                // const c = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
 
                 const resource_pack = material.resource_pack;
-
                 let texture_id = 'default';
-                if(typeof material.texture == 'object' && 'id' in material.texture) {
-                    texture_id = material.texture.id;
+                let texture = material.texture;
+                if('inventory' in material) {
+                    if('texture' in material.inventory) {
+                        texture = material.inventory.texture;
+                    }
                 }
-
+                if(typeof texture == 'object' && 'id' in texture) {
+                    texture_id = texture.id;
+                }
                 const tex = resource_pack.textures.get(texture_id);
-
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.UP, tex.tx_cnt);
+                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
@@ -380,33 +398,15 @@ export class Renderer {
 
             Resources.inventory.image = data;
         });
+        
+        this.renderBackend.endPass();
 
         // disable
         gu.useSunDir = false;
 
-        this.renderBackend.setTarget(null);
-
         target.destroy();
     }
 
-    initSky() {
-        return this.skyBox = this.renderBackend.createCubeMap({
-            code: Resources.codeSky,
-            uniforms: {
-                u_brightness: 1.0,
-                u_textureOn: true
-            },
-            sides: [
-                Resources.sky.posx,
-                Resources.sky.negx,
-                Resources.sky.posy,
-                Resources.sky.negy,
-                Resources.sky.posz,
-                Resources.sky.negz
-            ]
-        });
-    }
-    
     /**
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
@@ -421,71 +421,62 @@ export class Renderer {
         this.player = player;
     }
 
-    // setBrightness...
+    /**
+     * @deprecated use a this.env.setBrightness
+     * @param {number} value 
+     */
     setBrightness(value) {
-        this.brightness = value;
-        let mult = Math.min(1, value * 2)
-        currentRenderState.fogColor = [
-            settings.fogColor[0] * (value * mult),
-            settings.fogColor[1] * (value * mult),
-            settings.fogColor[2] * (value * mult),
-            settings.fogColor[3]
-        ];
+        this.env.setBrightness(value);
     }
 
     // toggleNight...
     toggleNight() {
-        if(this.brightness == 1) {
+        if(this.env.brightness == 1) {
             this.setBrightness(0);
         } else {
             this.setBrightness(1);
         }
     }
 
-    // Render one frame of the world to the canvas.
-    draw(delta) {
-
+    update (delta, args) {
         this.frame++;
-        const { gl, shader, renderBackend } = this;
-        const { size } = renderBackend;
-
-        renderBackend.stat.drawcalls = 0;
-        renderBackend.stat.drawquads = 0;
-        let player = this.player;
-        currentRenderState.fogDensity   = settings.fogDensity;
-        currentRenderState.fogAddColor  = settings.fogAddColor;
+        
+        // this.env.computeFogRelativeSun();
+        // todo - refact this
+        // viewport is context-dependent
         this.updateViewport();
 
-        //
-        let brightness = this.brightness;
-        let fogColor = [...currentRenderState.fogColor];
+        const { renderBackend, player } = this;
+        const { size, globalUniforms } = renderBackend;
 
-        // Calculate nightShift
-        this.nightShift = 1;
+        globalUniforms.resolution       = [size.width, size.height];
+        globalUniforms.localLigthRadius = 0;
+
+        let blockDist = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
+        let nightshift = 1.;
+        let preset = PRESET_NAMES.NORMAL;
+
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
-            this.nightShift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
-            fogColor[0] *= this.nightShift;
-            fogColor[1] *= this.nightShift;
-            fogColor[2] *= this.nightShift;
+            nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
-        brightness *= this.nightShift;
-
-        fogColor = player.eyes_in_water ? settings.fogUnderWaterColor : fogColor;
-        renderBackend.beginFrame(fogColor);
-
-        // apply camera state;
-        this.camera.use(renderBackend.globalUniforms, true);
-
-        // 1. Draw skybox
-        if(this.skyBox) {
-            if(this.skyBox.shader.uniforms) {
-                this.skyBox.shader.uniforms.u_textureOn.value = brightness == 1 && !player.eyes_in_water;
-                this.skyBox.shader.uniforms.u_brightness.value = brightness;
+  
+        if(player.eyes_in_water) {
+            if(player.eyes_in_water.is_water) {
+                preset = PRESET_NAMES.WATER;
+                blockDist = 8; //
             } else {
-                this.skyBox.shader.brightness = brightness;
+                preset = PRESET_NAMES.LAVA;
+                blockDist = 4; //
             }
-            this.skyBox.draw(this.camera.viewMatrix, this.camera.projMatrix, size.width, size.height);
         }
+
+        this.env.setEnvState({
+            chunkBlockDist: blockDist,
+            nightshift: nightshift,
+            preset: preset
+        });
+
+        this.env.update(delta, args);
 
         // Clouds
         if(!this.clouds) {
@@ -493,48 +484,55 @@ export class Renderer {
             pos.y = 128.1;
             this.clouds = this.createClouds(pos);
         }
-        //
-        if(this.frame % 3 == 0) {
-            this.world.chunkManager.rendered_chunks.fact = 0;
-            this.world.chunkManager.prepareRenderList(this);
-        }
 
-        //updating global uniforms
-        let gu                  = this.globalUniforms;
-        // In water
-        if(player.eyes_in_water) {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = 8;
-            gu.fogAddColor      = settings.fogUnderWaterAddColor;
-            gu.brightness       = brightness;
-        } else {
-            gu.fogColor         = fogColor;
-            gu.chunkBlockDist   = player.state.chunk_render_dist * CHUNK_SIZE_X - CHUNK_SIZE_X * 2;
-            gu.fogAddColor      = currentRenderState.fogAddColor;
-            gu.brightness       = brightness;
-        }
         //
-        gu.time                 = performance.now();
-        gu.fogDensity           = currentRenderState.fogDensity;
-        gu.resolution           = [size.width, size.height];
-        gu.testLightOn          = this.testLightOn;
-        gu.sunDir               = this.sunDir;
-        gu.localLigthRadius     = 0;
-        
+        //if(this.frame % 3 == 0) {
+        this.world.chunkManager.rendered_chunks.fact = 0;
+        this.world.chunkManager.prepareRenderList(this);
+        //}
+
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
             const power = BLOCK.getLightPower(block);
-
             // and skip all block that have power greater that 0x0f
             // it not a light source, it store other light data
-            gu.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
+            globalUniforms.localLigthRadius = +(power <= 0x0f) * (power & 0x0f);
         }
 
-        gu.update();
+        // Base texture
+        if(!this._base_texture) {
+            this._base_texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture
+        }
+    }
 
-        this.defaultShader.texture = BLOCK.resource_pack_manager.get('base').textures.get('default').texture;
+    // Render one frame of the world to the canvas.
+    draw (delta, args) {
+        const { renderBackend, camera, player } = this;
+        const { globalUniforms } = renderBackend;
+
+        renderBackend.stat.drawcalls = 0;
+        renderBackend.stat.drawquads = 0;
+        this.defaultShader.texture = this._base_texture;
+
+        // upload GU data from environment
+        this.env.sync(renderBackend.globalUniforms);
+
+        // apply camera state;
+        // it can depend of passes count
+        camera.use(renderBackend.globalUniforms, true);
+
+        globalUniforms.update();
+
+        renderBackend.beginPass({
+            fogColor : this.env.actualFogColor
+        });
+
+        this.env.draw(this);
+
         this.defaultShader.bind(true);
 
+        // layers??
+        // maybe we will create a real layer group
         for(let transparent of [false, true]) {
             for(let [_, rp] of BLOCK.resource_pack_manager.list) {
                 // 2. Draw chunks
@@ -554,7 +552,7 @@ export class Renderer {
                     this.drawMobs(delta);
                     // 5. Draw drop items
                     this.drawDropItems(delta);
-
+                    // 6. Draw meshes
                     this.meshes.draw(this, delta);
                 }
             }
@@ -569,13 +567,13 @@ export class Renderer {
             this.HUD.draw();
         }
 
+        // 5. Screenshot
         if(this.make_screenshot) {
             this.make_screenshot = false;
             this.renderBackend.screenshot();
         }
- 
-        renderBackend.endFrame();
 
+        renderBackend.endPass();
     }
 
     //
@@ -599,6 +597,11 @@ export class Renderer {
     // rainDrop
     rainDrop(pos) {
         this.meshes.add(new Particles_Raindrop(this, pos));
+    }
+
+    // addAsteroid
+    addAsteroid(pos, rad) {
+        this.meshes.add(new Particles_Asteroid(this, pos, rad));
     }
 
     // createClouds
@@ -626,6 +629,9 @@ export class Renderer {
 
     // drawPlayers
     drawPlayers(delta) {
+        if(this.world.players.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, player] of this.world.players.list) {
@@ -638,6 +644,9 @@ export class Renderer {
 
     // drawMobs
     drawMobs(delta) {
+        if(this.world.mobs.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, mob] of this.world.mobs.list) {
@@ -647,9 +656,12 @@ export class Renderer {
 
     // drawDropItems
     drawDropItems(delta) {
+        if(this.world.drop_items.list.size < 1) {
+            return;
+        }
         const {renderBackend, defaultShader} = this;     
         defaultShader.bind();
-        for(let drop_item of this.world.drop_items.list.values()) {
+        for(let [id, drop_item] of this.world.drop_items.list) {
             drop_item.draw(this, delta);
         }
     }
@@ -699,10 +711,42 @@ export class Renderer {
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
         const tmp = mat4.create();
-
+        // Shake camera on damage
+        if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
+            let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
+            let value = 0;
+            if(percent < .25) {
+                value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
+            } else {
+                value = -DAMAGE_CAMERA_SHAKE_VALUE + DAMAGE_CAMERA_SHAKE_VALUE * ((percent - .25) / .75);
+            }
+            rotate.y = value;
+        } else {
+            rotate.y = 0;
+        }
         this.bobView(player, tmp);
         this.camera.set(pos, rotate, tmp);
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
+    }
+
+    // Original bobView
+    bobView(viewMatrix, p_109140_) {
+        let player = this.world.localPlayer;
+        if(player) {
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
+            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+            let effect_power = 0.05;
+            let z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
+            let x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
+            mat4.rotate(viewMatrix, viewMatrix, x_mul_degree, [1, 0, 0]); // x
+            mat4.rotate(viewMatrix, viewMatrix, z_mul_degree, [0, 1, 0]); // z
+            mat4.translate(viewMatrix, viewMatrix, [
+                (Math.sin(f1 * Math.PI) * f2 * 0.5),
+                (-Math.abs(Math.cos(f1 * Math.PI) * f2)),
+                0
+            ]);
+        }
     }
 
     // Original bobView
@@ -710,9 +754,8 @@ export class Renderer {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
-            let speed_mul = 1.0;
-            let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
-            let f1 = -(player.walkDist * speed_mul + f * p_109140_);
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
             //
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
@@ -761,10 +804,11 @@ export class Renderer {
                 vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
                 renderer:  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
             };
+        } else {
+            resp = {
+                error: 'no WEBGL_debug_renderer_info',
+            };
         }
-        resp = {
-            error: 'no WEBGL_debug_renderer_info',
-        };
         this.videoCardInfoCache = resp;
         return resp;
     }

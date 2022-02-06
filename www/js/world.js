@@ -1,9 +1,9 @@
 import {ChunkManager} from "./chunk_manager.js";
 import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
-import {Physics} from "./physics.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
+import {Particles_Painting} from "./particles/painting.js";
 
 /**
  * World generation unfo passed from server
@@ -33,6 +33,11 @@ export class World {
         this.settings = settings;
         this.serverTimeShift = 0;
         this.latency = 0;
+
+        this.chunkManager           = new ChunkManager(this);
+        this.mobs                   = new MobManager(this);
+        this.drop_items             = new DropItemManager(this)
+        this.players                = new PlayerManager(this);
     }
 
     get serverTimeWithLatency() {
@@ -57,7 +62,7 @@ export class World {
         const latency = (now - clientTime) / 2;
         const timeLag = (now - time) + latency;
 
-        console.log('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
+        console.debug('Server time synced, serverTime:', time, 'latency:', latency, 'shift:', timeLag);
 
         this.latency         = latency;
         this.serverTimeShift = timeLag;
@@ -86,6 +91,12 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
+            this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
+                for(let params of cmd.data) {
+                    Game.render.meshes.add(new Particles_Painting(params));
+                }
+            });
+
             // Connect
             await this.server.connect(() => {
 
@@ -95,16 +106,18 @@ export class World {
         });
     }
 
+    init (settings) {
+        this.settings = settings;
+    }
+
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
     setInfo(info) {
         this.info                   = info;
         this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
-        this.chunkManager           = new ChunkManager(this);
-        this.mobs                   = new MobManager(this);
-        this.drop_items             = new DropItemManager(this)
-        this.players                = new PlayerManager(this);
-        this.physics                = new Physics(this);
+ 
         // Init
+        this.players.init();
+        this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();
     }

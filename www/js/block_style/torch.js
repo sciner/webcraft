@@ -3,7 +3,6 @@ import { default as cube_style } from './cube.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { CubeSym } from '../core/CubeSym.js';
 import { AABB } from '../core/AABB.js';
-import {BLOCK} from "../blocks.js";
 
 const { mat3 } = glMatrix;
 
@@ -62,10 +61,10 @@ export default class style {
         aabb.y_min -= Math.sin(rotTorch) * h * 2;
         aabb.y_max += Math.sin(rotTorch) * h * 2;
          
-        return aabb;
+        return [aabb];
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
         const {
             rotate
         } = block;

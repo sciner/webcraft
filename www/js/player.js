@@ -5,10 +5,9 @@ import {PickAt} from "./pickat.js";
 import {Instrument_Hand} from "./instrument/hand.js";
 import {BLOCK} from "./blocks.js";
 import {PrismarinePlayerControl, PHYSICS_TIMESTEP} from "../vendors/prismarine-physics/using.js";
-import {SpectatorPlayerControl} from "./spectator-physics.js";
+import {PlayerControl, SpectatorPlayerControl} from "./spectator-physics.js";
 import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
-import {PlayerControl} from "./player_control.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
 
@@ -42,7 +41,7 @@ export class Player {
         this.game_mode              = new GameMode(this, data.state.game_mode);
         this.game_mode.onSelect     = (mode) => {
             if(!mode.can_fly) {
-                this.lastBlockPos = this.getBlockPos();
+                this.lastBlockPos = this.getBlockPos().clone();
                 this.setFlying(false);
             } else if(mode.id == GAME_MODE.SPECTATOR) {
                 this.setFlying(true);
@@ -56,9 +55,10 @@ export class Player {
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
         this.posO                   = new Vector(0, 0, 0);
-        this.chunkAddr              = getChunkAddr(this.pos);
-        this.blockPos               = this.getBlockPos();
+        this._block_pos             = new Vector(0, 0, 0);
+        this.blockPos               = this.getBlockPos().clone();
         this.blockPosO              = this.blockPos.clone();
+        this.chunkAddr              = getChunkAddr(this.pos);
         // Rotate
         this.rotate                 = new Vector(0, 0, 0);
         this.rotateDegree           = new Vector(0, 0, 0);
@@ -71,6 +71,7 @@ export class Player {
                 this.pickAt.resetProgress();
             }
             this.world.server.InventorySelect(this.inventory.current);
+            Game.hud.refresh();
         };
         this.inventory.setState(data.inventory);
         Game.hotbar.setInventory(this.inventory);
@@ -79,7 +80,7 @@ export class Player {
             return await this.onPickAtTarget(...args);
         });
         // Player control
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         // Chat
         this.chat                   = new Chat(this);
@@ -90,8 +91,8 @@ export class Player {
         this.walking                = false; // идёт по земле
         this.in_water               = false; // ноги в воде
         this.in_water_o             = false;
-        this.eyes_in_water          = false; // глаза в воде
-        this.eyes_in_water_o        = false; // глаза в воде (предыдущее значение)
+        this.eyes_in_water          = null; // глаза в воде
+        this.eyes_in_water_o        = null; // глаза в воде (предыдущее значение)
         this.onGround               = false;
         this.onGroundO              = false;
         this.walking_frame          = 0;
@@ -168,12 +169,12 @@ export class Player {
         if(f > 0) {
             const pos = player.getBlockPos().clone();
             let world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            const isLayering = world_block && world_block.material.tags.indexOf('layering') >= 0;
+            const isLayering = world_block && world_block.material?.layering;
             if(!isLayering) {
                 pos.y--;
                 world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
             }
-            if(world_block && world_block.id > 0 && (!world_block.material.passable || world_block.material.passable == 1)) {
+            if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
                 let sound           = world_block.getSound();
@@ -263,7 +264,7 @@ export class Player {
         return true;
     }
 
-    // Ограничение частоты выолнения данного действия
+    // Ограничение частоты выполнения данного действия
     limitBlockActionFrequency(e) {
         let resp = (e.number > 1 && performance.now() - this._prevActionTime < PREV_ACTION_MIN_ELAPSED);
         if(!resp) {
@@ -298,21 +299,16 @@ export class Player {
         if(actions.clone_block && this.game_mode.canBlockClone()) {
             this.world.server.CloneBlock(e.pos);
         }
-        for(let mod of actions.blocks) {
-            const pos = mod.pos;
-            const item = mod.item;
-            const rotate = item.rotate;
-            const extra_data = item.extra_data;
-            switch(mod.action_id) {
-                case ServerClient.BLOCK_ACTION_CREATE:
-                case ServerClient.BLOCK_ACTION_REPLACE:
-                case ServerClient.BLOCK_ACTION_MODIFY: {
-                    this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                    break;
-                }
-                case ServerClient.BLOCK_ACTION_DESTROY: {
-                    this.world.chunkManager.setBlock(pos.x, pos.y, pos.z, item, true, null, rotate, null, extra_data, mod.action_id);
-                    break;
+        if(actions.blocks && actions.blocks.list) {
+            for(let mod of actions.blocks.list) {
+                switch(mod.action_id) {
+                    case ServerClient.BLOCK_ACTION_CREATE:
+                    case ServerClient.BLOCK_ACTION_REPLACE:
+                    case ServerClient.BLOCK_ACTION_MODIFY:
+                    case ServerClient.BLOCK_ACTION_DESTROY: {
+                        this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
+                        break;
+                    }
                 }
             }
         }
@@ -327,7 +323,7 @@ export class Player {
     getCurrentInstrument() {
         let currentInventoryItem = this.currentInventoryItem;
         let instrument = new Instrument_Hand(this.inventory, currentInventoryItem);
-        if(currentInventoryItem && currentInventoryItem.instrument_id) {
+        if(currentInventoryItem && currentInventoryItem.item?.instrument_id) {
             // instrument = new Instrument_Hand();
         }
         return instrument;
@@ -351,7 +347,7 @@ export class Player {
 
     // getBlockPos
     getBlockPos() {
-        return this.pos.floored();
+        return this._block_pos.copyFrom(this.pos).floored();
     }
 
     //
@@ -469,14 +465,14 @@ export class Player {
             let hby                 = this.pos.y + this.height;
             this.headBlock          = this.world.chunkManager.getBlock(this.blockPos.x, hby | 0, this.blockPos.z);
             this.eyes_in_water_o    = this.eyes_in_water;
-            this.eyes_in_water      = this.headBlock.material.is_fluid;
+            this.eyes_in_water      = this.headBlock.material.is_fluid ? this.headBlock.material : null;
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
                 let blockOverIsFluid = (headBlockOver.properties.fluid || headBlockOver.material.is_fluid);
                 if(!blockOverIsFluid) {
                     let power = Math.min(this.headBlock.power, .9);
-                    this.eyes_in_water = hby < (hby | 0) + power + .01;
+                    this.eyes_in_water = (hby < (hby | 0) + power + .01) ? this.headBlock.material : null;
                 }
             }
             // Update FOV

@@ -3,6 +3,7 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -11,6 +12,12 @@ const {mat3} = glMatrix;
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
 let DIRT_BLOCKS = null;
+
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_dirt_rotations');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = Math.round(a.double() * 100);
+}
 
 export function pushTransformed(
     vertices, mat, pivot,
@@ -57,8 +64,12 @@ export default class style {
         };
     }
 
+    static isOnCeil(block) {
+        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
+    }
+
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -78,7 +89,7 @@ export default class style {
             if(!neighbourBlock) {
                 return true;
             }
-            let resp = drawAllSides || neighbourBlock.material.transparent;
+            let resp = drawAllSides || neighbourBlock.material?.transparent;
             if(resp) {
                 if(block.id == neighbourBlock.id && material.selflit) {
                     resp = false;
@@ -118,6 +129,7 @@ export default class style {
         let upFlags                 = flags;
         let c;
 
+
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {
@@ -138,9 +150,15 @@ export default class style {
             height = 1;
         }
 
-        if(material.tags.indexOf('layering') >= 0) {
+        if(material.layering) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
+            }
+            if(block.properties.layering.slab) {
+                let on_ceil = style.isOnCeil(block);
+                if(on_ceil) {
+                    y += block.properties.layering.height;
+                }
             }
         }
 
@@ -149,7 +167,7 @@ export default class style {
             DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
         }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
-            if(neighbours.UP && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+            if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                 DIRECTION_UP        = DIRECTION.DOWN;
                 DIRECTION_BACK      = DIRECTION.DOWN;
                 DIRECTION_RIGHT     = DIRECTION.DOWN;
@@ -180,10 +198,7 @@ export default class style {
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
-                let a = new alea([x, y, z].join('x'));
-                a = a.int32();
-                if(a < 0) a = -a;
-                let rv = a % 4;
+                const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
                 switch(rv) {
                     case 0: {
                         top_vectors = [0, -1, 0, 1, 0, 0];
@@ -239,13 +254,14 @@ export default class style {
                 1, 0, 0,
                 0, -1, 0,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+                lm.r, lm.g, lm.b, flags | sideFlags);
         }
 
         const H = (bH - 1 + height);
 
         // South | Front/Forward
         if(canDrawSOUTH) {
+            let animations_south = getAnimations('south');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -254,11 +270,12 @@ export default class style {
                 1, 0, 0,
                 0, 0, H,
                 c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_south, flags | sideFlags);
         }
 
         // North
         if(canDrawNORTH) {
+            let animations_north = getAnimations('north');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -267,11 +284,12 @@ export default class style {
                 1, 0, 0,
                 0, 0, -H,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_north, flags | sideFlags);
         }
 
         // West
         if(canDrawWEST) {
+            let animations_west = getAnimations('west');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -280,11 +298,12 @@ export default class style {
                 0, 1, 0,
                 0, 0, -H,
                 c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_west, flags | sideFlags);
         }
 
         // East
         if(canDrawEAST) {
+            let animations_east = getAnimations('east');
             c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, H);
             pushTransformed(
                 vertices, matrix, pivot,
@@ -293,7 +312,7 @@ export default class style {
                 0, 1, 0,
                 0, 0, H,
                 c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
+                lm.r, lm.g, animations_east, flags | sideFlags);
         }
 
     }

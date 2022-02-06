@@ -51,6 +51,7 @@ export const CubeSym = {
         if (sz < 0) {
             return CubeSym.ROT_Y2;
         }
+        return CubeSym.ID;
     },
     dirAdd(sym, dir) {
         const mat = this.matrices[this.add(sym, dir)];

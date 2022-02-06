@@ -99,8 +99,15 @@ export class HUD {
                 let padding = 15;
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
+                // Measure text
+                if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
+                    this.prevSplashTextMeasure = {
+                        text: txt,
+                        measure: ctx.measureText(txt)
+                    };
+                }
                 // get width of text
-                let mt = ctx.measureText(txt);
+                let mt = this.prevSplashTextMeasure.measure;
                 let width = mt.width;
                 let height = mt.actualBoundingBoxDescent;
                 // color for background
@@ -152,6 +159,7 @@ export class HUD {
 
     refresh() {
         this.need_refresh = true;
+        this.prepareText();
     }
 
     clear() {
@@ -214,7 +222,7 @@ export class HUD {
 
         // Make info for draw
         let hasDrawContent = Game.world && Game.player && Game.player.chat.hasDrawContent();
-        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 1000) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
+        if(!force && !this.need_refresh && !this.prepareText() && (performance.now() - this.prevDrawTime < 75) && !Game.hud.wm.hasVisibleWindow() && !hasDrawContent) {
             return false;
         }
         this.need_refresh = false;
@@ -236,7 +244,7 @@ export class HUD {
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
 
-        this.ctx.save();
+        // this.ctx.save();
 
         if(this.isActive()) {
             // Draw game technical info
@@ -244,7 +252,7 @@ export class HUD {
             // Draw HUD components
             for(let t of this.items) {
                 for(let e of t) {
-                    this.ctx.restore();
+                    // this.ctx.restore();
                     e.item.drawHUD(this);
                 }
             }
@@ -279,7 +287,7 @@ export class HUD {
         this.text = 'Render: ' + Game.render.renderBackend.kind + '\n';
         let vci = Game.render.getVideoCardInfo();
         if(!vci.error) {
-            this.text += '\nRenderer: ' + vci.renderer;
+            this.text += 'Renderer: ' + vci.renderer + '\n';
         }
         this.text += 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + (Math.round(1000 / this.FPS.avg * 100) / 100) + ' ms';
         this.text += '\nMAT: ';
@@ -354,7 +362,7 @@ export class HUD {
 
     // Draw game technical info
     drawInfo() {
-        if(!this.draw_info) {
+        if(!this.draw_info || !this.text) {
             return;
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
@@ -365,19 +373,27 @@ export class HUD {
     drawText(str, x, y) {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
+        if(!this.strMeasures || this.strMeasures.length != str.length) {
+            this.strMeasures = new Array(str.length);
+        }
         for(let i in str) {
-            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i);
+            if(!this.strMeasures[i] || this.strMeasures[i].text != str[i]) {
+                this.strMeasures[i] = {
+                    text: str[i],
+                    measure: this.ctx.measureText(str[i] + '|')
+                };
+            }
+            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, this.strMeasures[i].measure);
         }
     }
 
     // Напечатать текст с фоном
-    drawTextBG(txt, x, y) {
-        /// lets save current state as we make a lot of changes
+    drawTextBG(txt, x, y, mt) {
+        // lets save current state as we make a lot of changes
         this.ctx.save();
-        /// draw text from top - makes life easier at the moment
+        // draw text from top - makes life easier at the moment
         this.ctx.textBaseline = 'top';
         // get width of text
-        let mt = this.ctx.measureText(txt+'|');
         let width = mt.width;
         let height = mt.actualBoundingBoxDescent;
         // color for background

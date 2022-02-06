@@ -14,6 +14,10 @@ vec3 gamma(vec3 color){
     return pow(color, vec3(1.0/2.0));
 }
 
+float rand(vec2 co) {
+    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
 void main() {
 
     vec2 texCoord = clamp(v_texcoord, v_texClamp.xy, v_texClamp.zw);
@@ -33,6 +37,8 @@ void main() {
         vec4 color = texture(u_texture, texc * mipScale + mipOffset);
         // color *= vec4(1.2, 1.2, 1.2, 1.);
 
+        // color = color * (1. + rand(round((texc * mipScale + mipOffset) * 6000.) / 6000.) / 16.);
+
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
             if (color.a < u_opaqueThreshold) {
@@ -47,6 +53,23 @@ void main() {
             vec4 color_mult = texture(u_texture, biome);
             color.rgb += color_mask.rgb * color_mult.rgb;
         }
+
+        /*
+        if (v_color.r >= 0.0) {
+            vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize, texc.y) * mipScale + mipOffset);
+            vec4 color_mult = texture(u_texture, biome);
+            // color.rgb += color_mask.rgb * color_mult.rgb;
+            color += mix(vec4(color_mask.rgb * color_mult.rgb, 0.), color_mask, 1. - color.a);
+        }
+
+        if(color.a < 0.1) discard;
+        if (u_opaqueThreshold > 0.1) {
+            if (color.a < u_opaqueThreshold) {
+                discard;
+            } else {
+                color.a = 1.0;
+            }
+        }*/
 
         #include<local_light_pass>
 
