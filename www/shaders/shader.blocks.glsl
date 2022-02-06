@@ -187,11 +187,11 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xy);
     float fogAmount = 0.;
-    float refBlockDist = u_chunkBlockDist * max(1.0,  (1. - v_useFog) * 15.);
+    float fogFactorDiv = max(1.0,  (1. - v_useFog) * 15.);
+    float refBlockDist = u_chunkBlockDist * fogFactorDiv;
+    float fogFactor = 0.05 / fogFactorDiv;
 
-    if(fogDistance > refBlockDist) {
-        fogAmount = clamp(0.05 * (fogDistance - refBlockDist), 0., 1.);
-    }
+    fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
 
     // Apply fog
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
