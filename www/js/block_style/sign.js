@@ -1,18 +1,112 @@
 import {DIRECTION, MULTIPLY, ROTATE} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import { AABB } from '../core/AABB.js';
-// import {pushTransformed} from './cube.js';
+import {pushTransformed} from './cube.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat3, mat4} = glMatrix; 
 
 // const {mat4} = glMatrix;
 // const {mat3, mat4} = glMatrix;
 
 const aabb = new AABB();
+const defaultPivot = [0.5, 0.5, 0.5];
+const defaultMatrix = mat3.create();
 
 const CENTER_WIDTH      = 1.9 / 16;
 const CONNECT_X         = 16 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const CONNECT_BOTTOM    = 9 / 16;
+
+function pushAABB(vertices, aabb, pivot, matrix, cc) {
+
+    let lm          = MULTIPLY.COLOR.WHITE;
+    let flags       = 0;
+    let upFlags     = 0;
+    let sideFlags   = 0;
+
+    let x = aabb.x_min + aabb.width / 2
+    let y = aabb.y_min + aabb.height / 2
+    let z = aabb.z_min + aabb.depth / 2
+
+    const TX_CNT = 32;
+
+    // pivot = defaultPivot;
+    // matrix = defaultMatrix;
+
+    // up
+    let animations_up = 1;
+    let vector_up = [aabb.width, 0, 0, 0, aabb.depth, 0]; // vectors.up
+    pushTransformed(
+        vertices, matrix, pivot,
+        x, z, aabb.y_max,
+        0, 0, 0,
+        ...vector_up,
+        cc.up[0], cc.up[1], -aabb.width/32, aabb.depth/32,
+        lm.r, lm.g, animations_up, flags | upFlags
+    );
+
+    // down
+    let animations_down = 1;
+    let vector_down = [aabb.width, 0, 0, 0, -aabb.depth, 0]; // vectors.up
+    pushTransformed(
+        vertices, matrix, pivot,
+        x, z, aabb.y_min,
+        0, 0, 0,
+        ...vector_down,
+        cc.up[0], cc.up[1], -aabb.width/32, aabb.depth/32,
+        lm.r, lm.g, animations_down, flags | upFlags
+    );
+
+    // south
+    let animations_south = 1;
+    let vector_south = [aabb.width, 0, 0, 0, 0, aabb.height];
+    pushTransformed(
+        vertices, matrix, pivot,
+        x, z, y,
+        0, -aabb.depth/2, 0,
+        ...vector_south,
+        cc.south[0], cc.south[1], aabb.width/TX_CNT, -aabb.height/TX_CNT,
+        lm.r, lm.g, animations_south, flags | sideFlags
+    );
+
+    // north
+    let animations_north = 1;
+    let vector_north = [aabb.width, 0, 0, 0, 0, -aabb.height];
+    pushTransformed(
+        vertices, matrix, pivot,
+        x, z, y,
+        0, aabb.depth/2, 0,
+        ...vector_north,
+        cc.north[0], cc.north[1], -aabb.width/TX_CNT, aabb.height/TX_CNT,
+        lm.r, lm.g, animations_north, flags | sideFlags);
+
+    // west
+    let animations_west = 1;
+    let vector_west = [0, aabb.depth, 0, 0, 0, -aabb.height];
+    pushTransformed(
+        vertices, matrix, pivot,
+        x-aabb.width/2, z, y,
+        0, 0, 0,
+        ...vector_west,
+        cc.west[0], cc.west[1], -aabb.depth/TX_CNT, aabb.height/TX_CNT,
+        lm.r, lm.g, animations_west, flags | sideFlags
+    );
+
+    // east
+    let animations_east = 1;
+    let vectors_east = [0, aabb.depth, 0, 0, 0, aabb.height];
+    pushTransformed(
+        vertices, matrix, pivot,
+        x + aabb.width/2, z, y,
+        0, 0, 0,
+        ...vectors_east,
+        cc.west[0], cc.west[1], -aabb.depth/TX_CNT, aabb.height/TX_CNT,
+        lm.r, lm.g, animations_east, flags | sideFlags
+    );
+
+}
 
 // Забор
 export default class style {
@@ -32,7 +126,7 @@ export default class style {
         }
         let hw = 1 / 4;
         let sign_height = 1;
-        if(block.rotate.y == 0) {
+        if(block.rotate && block.rotate.y == 0) {
 
             let z_plus = 0;
             let bottom = CONNECT_BOTTOM;
@@ -108,39 +202,47 @@ export default class style {
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
-        let z_plus = 0;
-        let bottom = CONNECT_BOTTOM;
-        if(block.rotate.y == 0) {
-            bottom = .5 - CONNECT_HEIGHT / 2;
-            z_plus = .5;
-        }
+        let aabb = new AABB();
+        aabb.set(
+            x + .5 - CONNECT_X/2,
+            y + .6,
+            z + .5 - CONNECT_Z/2,
+            x + .5 + CONNECT_X/2,
+            y + .6 + CONNECT_HEIGHT,
+            z + .5 + CONNECT_Z/2,
+        );
 
-        // push_part(vertices, c, x + .5, y + bottom, z + .5, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
+        pivot = [0, 0, 0];
 
-        // South
-        if(block.rotate.x == ROTATE.S) {
-            push_part(vertices, c, x + .5, y + bottom, z + .5 - CONNECT_Z/2 + z_plus, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
-        }
+        // Calc matrices
+        const scale = new Vector(1.5, 1.5, 1.5);
+        // const scale = new Vector(1, 1, 1);
+        matrix = mat3.create();
+        // mat4.identity(matrix);
+        // mat4.translate(matrix, matrix, 0, 0, 0);
+        // mat4.rotate(matrix, matrix, Math.PI, [1, 1, 1]);
+        mat4.scale(matrix, matrix, scale.toArray());
 
-        // North
-        if(block.rotate.x == ROTATE.N) {
-            push_part(vertices, c, x + .5, y + bottom, z + .5 + CONNECT_Z/2 - z_plus, CONNECT_X, CONNECT_Z, CONNECT_HEIGHT);
-        }
-
-        // West
-        if(block.rotate.x == ROTATE.W) {
-            push_part(vertices, c, x + .5 - CONNECT_Z/2 + z_plus, y + bottom, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
-        }
-
-        // East
-        if(block.rotate.x == ROTATE.E) {
-            push_part(vertices, c, x + .5 + CONNECT_Z/2 - z_plus, y + bottom, z + .5, CONNECT_Z, CONNECT_X, CONNECT_HEIGHT);
-        }
+        //
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            matrix,
+            {
+                up: c,
+                down: c,
+                south: c,
+                north: c,
+                west: c,
+                east: c
+            }
+        );
 
         // Center
-        if(block.rotate.y != 0) {
-            push_part(vertices, c_down, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
-        }
+        //if(block.rotate.y != 0) {
+        push_part(vertices, c_down, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
+        //}
 
     }
 
