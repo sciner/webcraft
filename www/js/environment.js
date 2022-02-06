@@ -657,7 +657,7 @@ export class Environment {
      */
     _computeFogRelativeSun() {
         this.sunDir = [
-            0, Math.cos(this.time / 10000), -Math.sin(this.time / 10000)
+            -Math.sin(this.time / 10000), Math.cos(this.time / 10000), 0
         ];
 
         const sun = this.sunDir;

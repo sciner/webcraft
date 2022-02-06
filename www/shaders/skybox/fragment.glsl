@@ -20,33 +20,48 @@ const vec3 moonColor = vec3(0.9);
 #include<crosshair_define_func>
 #include<vignetting_define_func>
 
-float circle(vec3 w, vec3 d, float s, float f) {
+float rect(vec3 w, vec3 d, float s){
+    vec3 dist = abs(w - d) - vec3(s);
+    float outDist = length(max(dist, 0.0));
+    float inDist = min(max(dist.z, max(dist.x, dist.y)), 0.0);
+
+    return outDist + inDist;
+}
+
+float sdfFunc(vec3 w, vec3 d, float s, float f) {
     float dist = distance(w, d) - s;
+    //float dist = rect(w, d, s);
 
     return smoothstep(f, 1., 1. - dist);
 }
 
+vec3 mapToCube(vec3 pos) {
+    vec3 norm = normalize(pos);
+    vec3 upos = abs(norm);
+
+    return norm / max(upos.z, max(upos.x, upos.y));
+}
 
 void main() {
     vec3 norm    = normalize(v_texCoord);
     vec3 color   = texture(u_texture, v_texCoord).rgb;
+    vec3 sun     = normalize(u_sunDir.xyz);
     vec4 overlay;
-    vec3 sun     = u_sunDir.xyz; 
 
     float fogFade = smoothstep(0., 0.5, max(0., norm.y));
 
     float fogFade2  = sqrt(fogFade);
 
-    float sunDisk = circle(norm, sun, 0.05, 0.95);
+    float sunDisk = sdfFunc(norm, sun, 0.05, 0.95);
 
     //sun
     overlay = vec4(sunColor, sunDisk * fogFade2);
 
     //moon
-    vec3 moonPos = normalize(vec3(sun.z, -sun.y, 2.));
-    float moonDisk = circle(norm, moonPos, 0.02, 0.99);
-    float moodGlow = circle(norm, moonPos, 0.05, 0.7) * 0.15;
- 
+    vec3 moonPos = -sun;
+    float moonDisk = sdfFunc(norm, moonPos, 0.02, 0.99);
+    float moodGlow = sdfFunc(norm, moonPos, 0.05, 0.7) * 0.15;
+
     overlay += vec4(moonColor, moonDisk * fogFade2);
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
 
@@ -63,5 +78,5 @@ void main() {
 
     #include<crosshair_call_func>
 
-    #include<vignetting_call_func>   
+    #include<vignetting_call_func>
 }
