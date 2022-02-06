@@ -4,7 +4,7 @@ import { AABB } from '../core/AABB.js';
 import {pushTransformed} from './cube.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
-const {mat3, mat4} = glMatrix; 
+const {mat3, mat4} = glMatrix;
 
 // const {mat4} = glMatrix;
 // const {mat3, mat4} = glMatrix;
@@ -19,93 +19,120 @@ const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const CONNECT_BOTTOM    = 9 / 16;
 
-function pushAABB(vertices, aabb, pivot, matrix, cc) {
+/**
+ * Multiple arrays between by minimal lenght
+ * @param {number[]} a
+ * @param {number[]} b
+ * @param {number[]} out
+ */
+const perMul = (a, b, out = []) => {
+    const m = Math.min(a.length, b.length);
+
+    for(let i = 0; i < m; i ++) {
+        out[i] = a[i] * b[i];
+    }
+
+    return out;
+}
+
+/**
+ * Dot arrays
+ * @param {number[]} a 
+ * @param {number[]} b 
+ * @returns 
+ */
+const perDot = (a, b) => {
+    const m = Math.min(a.length, b.length);
+
+    let out = 0;
+
+    for(let i = 0; i < m; i ++) {
+        out += a[i] * b[i];
+    }
+
+    return out;
+}
+
+const PLANES = {
+    up: {
+        // axisX , axisY. axisY is flips sign!
+        axes  : [[1, 0, 0], /**/ [0, 1, 0]],
+        // origin offset realtive center
+        offset : [0, 0, 0.5],
+    },
+    down: {
+        axes  : [[1, 0, 0], /**/ [0, -1, 0]],
+        offset: [0, 0, -0.5],
+    },
+    south: {
+        axes  : [[1, 0, 0], /**/ [0, 0, 1]],
+        offset: [0, -0.5, 0],
+    },
+    north: {
+        axes  : [[1, 0, 0], /**/ [0, 0, -1]],
+        offset: [0, 0.5, 0],
+    },
+    east: {
+        axes  : [[0, 1, 0], /**/ [0, 0, 1]],
+        offset: [0.5, 0, 0],
+    },
+    west: {
+        axes  : [[0, 1, 0], /**/ [0, 0, -1]],
+        offset: [-0.5, 0, 0],
+    }
+}
+
+function pushAABB(vertices, aabb, pivot, matrix, sides) {
 
     let lm          = MULTIPLY.COLOR.WHITE;
-    let flags       = 0;
-    let upFlags     = 0;
-    let sideFlags   = 0;
+    let globalFlags       = 0;
 
     let x = aabb.x_min + aabb.width / 2
     let y = aabb.y_min + aabb.height / 2
     let z = aabb.z_min + aabb.depth / 2
 
-    const TX_CNT = 32;
+    const size = [
+        aabb.width,
+        aabb.depth,
+        aabb.height
+    ];
 
-    // pivot = defaultPivot;
-    // matrix = defaultMatrix;
+    const tmp3 = [];
 
-    // up
-    let animations_up = 1;
-    let vector_up = [aabb.width, 0, 0, 0, aabb.depth, 0]; // vectors.up
-    pushTransformed(
-        vertices, matrix, pivot,
-        x, z, aabb.y_max,
-        0, 0, 0,
-        ...vector_up,
-        cc.up[0], cc.up[1], -aabb.width/32, aabb.depth/32,
-        lm.r, lm.g, animations_up, flags | upFlags
-    );
+    for(const key in PLANES) {
+        const {
+            axes, offset,
+        } = PLANES[key];
 
-    // down
-    let animations_down = 1;
-    let vector_down = [aabb.width, 0, 0, 0, -aabb.depth, 0]; // vectors.up
-    pushTransformed(
-        vertices, matrix, pivot,
-        x, z, aabb.y_min,
-        0, 0, 0,
-        ...vector_down,
-        cc.up[0], cc.up[1], -aabb.width/32, aabb.depth/32,
-        lm.r, lm.g, animations_down, flags | upFlags
-    );
+        const {
+            uv, flag = 0, anim = 1
+        } = sides[key];
 
-    // south
-    let animations_south = 1;
-    let vector_south = [aabb.width, 0, 0, 0, 0, aabb.height];
-    pushTransformed(
-        vertices, matrix, pivot,
-        x, z, y,
-        0, -aabb.depth/2, 0,
-        ...vector_south,
-        cc.south[0], cc.south[1], aabb.width/TX_CNT, -aabb.height/TX_CNT,
-        lm.r, lm.g, animations_south, flags | sideFlags
-    );
+        const uvSize0 = -perDot(axes[0], size) * Math.abs(uv[2]);
+        const uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
 
-    // north
-    let animations_north = 1;
-    let vector_north = [aabb.width, 0, 0, 0, 0, -aabb.height];
-    pushTransformed(
-        vertices, matrix, pivot,
-        x, z, y,
-        0, aabb.depth/2, 0,
-        ...vector_north,
-        cc.north[0], cc.north[1], -aabb.width/TX_CNT, aabb.height/TX_CNT,
-        lm.r, lm.g, animations_north, flags | sideFlags);
-
-    // west
-    let animations_west = 1;
-    let vector_west = [0, aabb.depth, 0, 0, 0, -aabb.height];
-    pushTransformed(
-        vertices, matrix, pivot,
-        x-aabb.width/2, z, y,
-        0, 0, 0,
-        ...vector_west,
-        cc.west[0], cc.west[1], -aabb.depth/TX_CNT, aabb.height/TX_CNT,
-        lm.r, lm.g, animations_west, flags | sideFlags
-    );
-
-    // east
-    let animations_east = 1;
-    let vectors_east = [0, aabb.depth, 0, 0, 0, aabb.height];
-    pushTransformed(
-        vertices, matrix, pivot,
-        x + aabb.width/2, z, y,
-        0, 0, 0,
-        ...vectors_east,
-        cc.west[0], cc.west[1], -aabb.depth/TX_CNT, aabb.height/TX_CNT,
-        lm.r, lm.g, animations_east, flags | sideFlags
-    );
-
+        pushTransformed(
+            vertices, matrix, pivot,
+            // center
+            x, z, y,
+            // offset
+            ...perMul(size, offset, tmp3),
+            // axisx
+            ...perMul(size, axes[0], tmp3),
+            //axisY
+            ...perMul(size, axes[1], tmp3),
+            // UV center
+            uv[0], uv[1],
+            // UV size
+            uvSize0, uvSize1,
+            // tint location
+            lm.r, lm.g,
+            // animation
+            anim,
+            // flags
+            globalFlags | flag
+        );           
+    }
 }
 
 // Забор
@@ -154,7 +181,7 @@ export default class style {
                 xs = CONNECT_X * CON_MUL;
                 zs = CONNECT_Z * CON_MUL_Z;
             }
-    
+
             // North
             if(block.rotate.x == ROTATE.N) {
                 x += .5;
@@ -163,7 +190,7 @@ export default class style {
                 xs = CONNECT_X * CON_MUL;
                 zs = CONNECT_Z * CON_MUL_Z;
             }
-    
+
             // West
             if(block.rotate.x == ROTATE.W) {
                 x += .5 - CONNECT_Z/2 + z_plus;
@@ -172,7 +199,7 @@ export default class style {
                 xs = CONNECT_Z * CON_MUL_Z;
                 zs = CONNECT_X * CON_MUL;
             }
-    
+
             // East
             if(block.rotate.x == ROTATE.E) {
                 x += .5 + CONNECT_Z/2 - z_plus;
@@ -214,14 +241,12 @@ export default class style {
 
         pivot = [0, 0, 0];
 
-        // Calc matrices
-        const scale = new Vector(1.5, 1.5, 1.5);
-        // const scale = new Vector(1, 1, 1);
-        matrix = mat3.create();
-        // mat4.identity(matrix);
-        // mat4.translate(matrix, matrix, 0, 0, 0);
-        // mat4.rotate(matrix, matrix, Math.PI, [1, 1, 1]);
-        mat4.scale(matrix, matrix, scale.toArray());
+        // we can use mat4 now
+        matrix = mat4.create();
+
+        mat4.scale(matrix, matrix, [0.5, 0.5, 0.5]);
+
+        mat4.rotateY(matrix, matrix, Math.PI / 3);
 
         //
         pushAABB(
@@ -230,12 +255,12 @@ export default class style {
             pivot,
             matrix,
             {
-                up: c,
-                down: c,
-                south: c,
-                north: c,
-                west: c,
-                east: c
+                up   : { uv: c, flag: 0, anim: 1 }, // flag: 0, anim: 1 implicit 
+                down : { uv: c, flag: 0, anim: 1 },
+                south: { uv: c, flag: 0, anim: 1 },
+                north: { uv: c, flag: 0, anim: 1 },
+                west : { uv: c, flag: 0, anim: 1 },
+                east : { uv: c, flag: 0, anim: 1 },
             }
         );
 
