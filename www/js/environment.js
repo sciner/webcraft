@@ -4,10 +4,10 @@ import { Resources } from "./resources.js";
 
 /**
  * @typedef {object} IFogPreset
- * @property {boolean} [computed] compute fog value from env gradient
  * @property {[number,number, number, number ] | Gradient | Color} color: ;
  * @property {[number,number, number, number ] | Gradient | Color | number} addColor
  * @property {number} density
+ * @property {number} [illuminate]
  */
 
 export const PRESET_NAMES = {
@@ -25,6 +25,7 @@ export class FogPreset {
         this.color    = new Color();
         this.addColor = new Color();
         this.density  = 0;
+        this.illuminate = 0;
 
         this.hasAddColor = false;
         this.addColorAlpha = 1;
@@ -71,7 +72,8 @@ export class FogPreset {
             this.addColor.mulAlpha(this.addColorAlpha);
         }
 
-        this.density = this.preset.density;
+        this.density    = this.preset.density;
+        this.illuminate = this.preset.illuminate || 0; 
 
         return this;
     }
@@ -89,18 +91,24 @@ export class FogPreset {
             return this._eval(0);
         }
 
-        this.hasAddColor = fogPreset.addColor != null && typeof fogPreset.addColor !== 'number';
+        const {
+            color,
+            addColor,
+            density,
+            ...other
+        } = fogPreset;
+
+        this.hasAddColor = addColor != null && typeof addColor !== 'number';
 
         if (!this.hasAddColor) {
-            this.addColorAlpha = fogPreset.addColor || 1;
+            this.addColorAlpha = addColor || 1;
         }
 
         this.preset = {
-            color   : new Gradient(fogPreset.color),
-            addColor: this.hasAddColor 
-                ? new Gradient(fogPreset.addColor) 
-                : fogPreset.addColor,
-            density : fogPreset.density,
+            color   : new Gradient(color),
+            addColor: this.hasAddColor ? new Gradient(addColor) : addColor,
+            density : density,
+            ...other
         };
 
         this._eval(0);
@@ -124,7 +132,8 @@ export class FogPreset {
         this.color.lerpTo(target.color, iterFactor, out.color);
         this.addColor.lerpTo(target.addColor, iterFactor, out.addColor);
 
-        out.density =  Mth.lerp(iterFactor, this.density, target.density);
+        out.density    = Mth.lerp(iterFactor, this.density, target.density);
+        out.illuminate = Mth.lerp(iterFactor, this.illuminate, target.illuminate);
 
         return out;
     }
@@ -421,14 +430,16 @@ export const FOG_PRESETS = {
         computed: false,
         color: [55 / 255, 100 / 255, 230 / 255, 1],
         addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
-        density: 0.1
+        density: 0.1,
+        illuminate: 0.1,
     },
 
     [PRESET_NAMES.LAVA]: {
         computed: false,
         color: [255 / 255, 100 / 255, 20 / 255, 1],
         addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
-        density: 0.5
+        density: 0.5,
+        illuminate: 0.5,
     }
 };
 
@@ -730,8 +741,8 @@ export class Environment {
 
         this._computedBrightness = lum / this._refLum;
 
-        const value = this.brightness * this._computedBrightness;
-        const mult = Math.min(1, value * 2) * this.nightshift * value;
+        const value = this.brightness * lum;
+        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
 
         for (let i = 0; i < 3; i ++) {
             this.actualFog[i] = fogColor[i] * mult;
@@ -740,8 +751,6 @@ export class Environment {
 
         this.actualFog[3] = 1;
         this.actualFogAdd[3] = fogAdd[3];
-
-        console.log(this.actualFog[0]);
 
         this._fogDirty = false;
     }

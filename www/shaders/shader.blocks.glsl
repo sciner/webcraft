@@ -185,8 +185,8 @@
     }
 
     // Apply fog
-    outColor = mix(outColor, u_fogColor, fogAmount);
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
+    outColor = mix(outColor, u_fogColor, fogAmount);
 
 #endif
 
