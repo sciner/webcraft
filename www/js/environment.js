@@ -737,9 +737,9 @@ export class Environment {
 
         base.eval(this._sunFactor);
 
-        const lum = base.color.lum();
+        const lum = base.color.lum() / this._refLum;
 
-        this._computedBrightness = lum / this._refLum;
+        this._computedBrightness = lum;
 
         const value = this.brightness * lum;
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
