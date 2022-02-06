@@ -1,4 +1,4 @@
-import {Vector} from '../helpers.js';
+import {QUAD_FLAGS, Vector} from '../helpers.js';
 import { default as push_cube_style } from '../block_style/cube.js';
 import GeometryTerrain from "../geometry_terrain.js";
 import {Resources} from "../resources.js";
@@ -126,6 +126,9 @@ export default class Particles_Clouds {
         // console.log(parseInt(this.vertices.length / GeometryTerrain.strideFloats) + ' quads in clouds ');
         //
         this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+
+        this.buffer.changeFlags(QUAD_FLAGS.NO_FOG | QUAD_FLAGS.NO_AO, 'replace');
+        this.buffer.updateInternal();
     }
 
     // Draw
