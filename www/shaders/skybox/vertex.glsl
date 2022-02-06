@@ -4,9 +4,6 @@ in vec3 a_vertex;
 
 uniform mat4 u_viewMatrix;
 uniform mat4 u_projMatrix;
-uniform float u_brightness;
-uniform vec2 u_resolution;
-uniform bool u_textureOn;
 
 out vec3 v_texCoord;
 

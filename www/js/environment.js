@@ -820,13 +820,8 @@ export class Environment {
         if (!this.skyBox) {
             return;
         }
-
+        
         const { width, height }  = render.renderBackend.size;
-
-        // other will updated from GU
-        if (this.skyBox.shader.uniforms) {
-            this.skyBox.shader.uniforms.u_textureOn.value = this.fullBrightness >= 0.9 && this._currentPresetName === PRESET_NAMES.NORMAL;
-        }
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }
