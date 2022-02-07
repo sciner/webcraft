@@ -3,8 +3,8 @@ import {Vector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 
-// Consts
-let MAX_TORCH_POWER = 16;
+// Constants
+const DIRTY_REBUILD_RAD = 1;
 
 const CC = [
     {x:  0, y:  1, z:  0},
@@ -401,7 +401,7 @@ export class Chunk {
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        let dirty_rad = MAX_TORCH_POWER;
+        let dirty_rad = DIRTY_REBUILD_RAD;
         let cnt = 0;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {

@@ -18,6 +18,7 @@ const CONNECT_X         = 16 / 16;
 const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const CONNECT_BOTTOM    = 9 / 16;
+const BOTTOM_HEIGHT     = .6;
 
 /**
  * Multiple arrays between by minimal lenght
@@ -243,10 +244,8 @@ export default class style {
 
         // we can use mat4 now
         matrix = mat4.create();
-
-        mat4.scale(matrix, matrix, [0.5, 0.5, 0.5]);
-
-        mat4.rotateY(matrix, matrix, Math.PI / 3);
+        mat4.scale(matrix, matrix, [1, 1, 1]);
+        mat4.rotateY(matrix, matrix, Math.random() * 2 * Math.PI);
 
         //
         pushAABB(
@@ -266,7 +265,29 @@ export default class style {
 
         // Center
         //if(block.rotate.y != 0) {
-        push_part(vertices, c_down, x + .5, y, z + .5, CENTER_WIDTH, CENTER_WIDTH, 1);
+        let aabb_down = new AABB();
+        aabb_down.set(
+            x + .5 - CENTER_WIDTH/2,
+            y,
+            z + .5 - CENTER_WIDTH/2,
+            x + .5 + CENTER_WIDTH/2,
+            y + BOTTOM_HEIGHT,
+            z + .5 + CENTER_WIDTH/2,
+        );
+        pushAABB(
+            vertices,
+            aabb_down,
+            pivot,
+            matrix,
+            {
+                up   : { uv: c_down, flag: 0, anim: 1 }, // flag: 0, anim: 1 implicit 
+                down : { uv: c_down, flag: 0, anim: 1 },
+                south: { uv: c_down, flag: 0, anim: 1 },
+                north: { uv: c_down, flag: 0, anim: 1 },
+                west : { uv: c_down, flag: 0, anim: 1 },
+                east : { uv: c_down, flag: 0, anim: 1 },
+            }
+        );
         //}
 
     }

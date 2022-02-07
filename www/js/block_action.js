@@ -768,6 +768,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     if(matBlock.sound) {
                         resp.play_sound = {tag: matBlock.sound, action: 'place'};
                     }
+                    if(matBlock.tags.indexOf('sign') >= 0) {
+                        resp.open_window = 'frmEditSign';
+                    }
                     resp.decrement = true;
                 }
             }
