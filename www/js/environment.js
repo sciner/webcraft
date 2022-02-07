@@ -411,21 +411,22 @@ export class Gradient {
     }
 }
 
+// fog not use alpha, we can set it for addColor
+// addColor will be interpolated with alpha
+// alpha is used for cool effect
 const ENV_GRAD_COLORS = {
-    [0]: 0x020202,
-    [35]: 0x250a07,
-    [46]: 0x963b25,
-    [55]: 0xe3ad59,
-    [65]: 0x76c2ff, // as fog
-    [100]: 0x76c2ff, // as fog
+    [0]  : new Color(0x020202, 0),
+    [35] : new Color(0x250a07, 0.3),
+    [46] : new Color(0x963b25, 0.2),
+    [55] : new Color(0xe3ad59, 0.1),
+    [65] : new Color(0x76c2ff, 0.0), // as fog
+    [100]: new Color(0x76c2ff, 0.0), // as fog
 };
 
 export const FOG_PRESETS = {
     [PRESET_NAMES.NORMAL]: {
-        // PLZ, not enable yet
-        computed: false, // disable temporary, for computed a color shpuld be ENV_GRAD_COLORS
-        color: ENV_GRAD_COLORS, //[118 / 255, 194 / 255, 255 / 255, 1],
-        addColor: [0, 0, 0, 0],
+        color: ENV_GRAD_COLORS,
+        addColor: ENV_GRAD_COLORS,
         density: 2.52 / 320,
     },
 
