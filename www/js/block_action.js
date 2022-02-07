@@ -314,7 +314,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let entity_id       = world_block ? world_block.entity_id : null;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
-    let isEditSign  = !e.shiftKey && createBlock && world_material && world_material.tags.indexOf('sign') >= 0;
+    let isEditSign  = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
     // Edit sign
     if(isEditSign) {
         if(!extra_data) {

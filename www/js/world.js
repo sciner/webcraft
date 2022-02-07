@@ -146,4 +146,27 @@ export class World {
     getBlock(x, y, z) {
         return this.chunkManager.getBlock(x, y, z);
     }
+
+    // Change block extra_data
+    changeBlockExtraData(pos, extra_data) {
+        const e = {
+            id: +new Date(),
+            pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
+            createBlock: false,
+            destroyBlock: false,
+            cloneBlock: false,
+            changeExtraData: true,
+            start_time: performance.now(),
+            shift_key: false,
+            button_id: MOUSE.BUTTON_RIGHT,
+            number: 1,
+            extra_data: extra_data
+        };
+        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+        this.server.Send({
+            name: ServerClient.CMD_PICKAT_ACTION,
+            data: e
+        });
+    }
+
 }

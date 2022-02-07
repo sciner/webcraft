@@ -1,6 +1,4 @@
 import {Button, Label, TextEdit, Window} from "../../tools/gui/wm.js";
-import {ServerClient} from "../server_client.js";
-import {Vector} from "../helpers.js";
 
 export class EditSignWindow extends Window {
 
@@ -67,41 +65,7 @@ export class EditSignWindow extends Window {
             if(block.material.tags.indexOf('sign') >= 0) {
                 let extra_data = block.extra_data || {};
                 extra_data.text = txtEdit1.buffer.join('');
-                const e = {
-                    pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
-                    createBlock: true,
-                    destroyBlock: false,
-                    cloneBlock: false,
-                    start_time: performance.now(),
-                    id: +new Date(),
-                    shift_key: false,
-                    button_id: MOUSE.BUTTON_RIGHT,
-                    number: 1,
-                    extra_data: extra_data
-                    /*
-                    actions: {
-                        blocks: {
-                            list: [
-                                {
-                                    pos: pos,
-                                    item: {
-                                        id: block.id,
-                                        rotate: block.rotate,
-                                        entity_id: block.entity_id,
-                                        extra_data: extra_data
-                                    },
-                                    action_id: ServerClient.BLOCK_ACTION_MODIFY
-                                }
-                            ]
-                        }
-                    }
-                    */
-                };
-                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-                Game.world.server.Send({
-                    name: ServerClient.CMD_PICKAT_ACTION,
-                    data: e
-                });
+                Game.world.changeBlockExtraData(pos, extra_data);
             }
         }
 
