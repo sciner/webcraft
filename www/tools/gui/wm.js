@@ -2,6 +2,8 @@
 * Window Manager based ON 2D canvas 
 */
 
+export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
+
 // Base window
 export class Window {
 
@@ -42,6 +44,43 @@ export class Window {
         this.onMouseMove    = function(e) {};
         this.onDrop         = function(e) {};
         this.onWheel        = function(e) {};
+        // onKeyEvent
+        this.onKeyEvent     = function(e) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            fired = f.onKeyEvent(e);
+                            if(fired) {
+                                break;
+                            }
+                        }
+                    }
+                    if(!fired) {
+                        w.onKeyEvent(e);
+                    }
+                }
+            }
+        };
+        // typeChar
+        this.typeChar       = function(e, charCode, typedChar) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            f.typeChar(e, charCode, typedChar);
+                            fired = true;
+                            break;
+                        }
+                    }
+                    if(!fired) {
+                        w.typeChar(e, charCode, typedChar);
+                    }
+                }
+            }
+        };
         this.style          = {
             color: '#3f3f3f',
             textAlign: {
@@ -298,10 +337,10 @@ export class Window {
         }
         bg.src = url;
     }
-    show() {
+    show(args) {
         this.visible = true;
         this.resetHover();
-        this.onShow();
+        this.onShow(args);
     }
     hide() {
         this.visible = false;
@@ -426,45 +465,51 @@ export class Window {
         }
         this.onWheel(e);
     }
-    print(text) {
+    print(original_text) {
         if(!this.ctx) {
             console.error('Empty context');
             return;
         }
-        if(!text) {
+        if(!original_text) {
             return;
         }
         const x             = this.x + this.ax + this.style.padding.left;
         const y             = this.y + this.ay + this.style.padding.top;
-        const lineHeight    = 20;
+        const lineHeight    = this.style.font.size * 1.25;
         let currentLine     = 0;
-        if(this.word_wrap) {
-            let words           = (text + '').split(' ');
-            let idx             = 1;
-            if(words.length > 1) {
-                while(words.length > 0 && idx <= words.length) {
-                    let str = words.slice(0, idx).join(' ');
-                    let w = this.ctx.measureText(str).width;
-                    if(w > this.width) {
-                        if(idx == 1) {
-                            idx = 2;
+        let texts = original_text.split("\r");
+        for(let text of texts) {
+            if(this.word_wrap) {
+                let words           = (text + '').split(' ');
+                let idx             = 1;
+                if(words.length > 1) {
+                    while(words.length > 0 && idx <= words.length) {
+                        let str = words.slice(0, idx).join(' ');
+                        let w = this.ctx.measureText(str).width;
+                        if(w > this.width - 20) {
+                            if(idx == 1) {
+                                idx = 2;
+                            }
+                            let print_word = words.slice(0, idx - 1).join(' ');
+                            this.ctx.fillText(print_word, x, y + (lineHeight * currentLine));
+                            currentLine++;
+                            words = words.splice(idx - 1);
+                            idx = 1;
+                        } else {
+                            idx++;
                         }
-                        this.ctx.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
-                        currentLine++;
-                        words = words.splice(idx - 1);
-                        idx = 1;
-                    } else {
-                        idx++;
                     }
                 }
+                if(idx > 0) {
+                    this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+                }
+            } else {
+                this.ctx.fillText(text, x, y + (lineHeight * currentLine));
             }
-            if(idx > 0) {
-                this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
-            }
-        } else {
-            this.ctx.fillText(text, x, y + (lineHeight * currentLine));
+            currentLine++;
         }
     }
+
     loadCloseButtonImage(callback) {
         if(this._loadCloseButtonImage) {
             callback(this._loadCloseButtonImage);
@@ -506,6 +551,104 @@ export class Label extends Window {
         super(x, y, w, h, id, title, text);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
+    }
+
+}
+
+// TextEdit
+export class TextEdit extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
+
+        super(x, y, w, h, id, title, text);
+
+        // Styles
+        this.style.background.color = '#ffffff77';
+        this.style.border.hidden = true;
+        this.style.font.size = 19;
+        this.style.padding = {
+            left: 5,
+            right: 5,
+            top: 5,
+            bottom: 5
+        };
+
+        // Properties
+        this.focused = false;
+        this.buffer = [];
+
+        // Backspace pressed
+        this.backspace = () => {
+            if(!this.focused) {
+                return;
+            }
+            if(this.buffer.length > 0) {
+                this.buffer.pop();
+            }
+        }
+
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.ENTER: {
+                    if(down) {
+                        this.buffer.push(String.fromCharCode(13));
+                    }
+                    return true;
+                }
+                case KEY.BACKSPACE: {
+                    if(down) {
+                        this.backspace();
+                        break;
+                    }
+                    return true;
+                }
+            }
+        }
+
+        // typeChar
+        this.typeChar = (e, charCode, ch) => {
+            if(!this.focused) {
+                return;
+            }
+            if(charCode == 13) {
+                return false;
+            }
+            if(this.buffer.length < 128) {
+                this.buffer.push(ch);
+            }
+        }
+
+        this.create_time = performance.now();
+
+    }
+
+    // Draw
+    draw(ctx, ax, ay) {
+        const now = performance.now();
+        //
+        this.text = this.buffer.join('');
+        this.text = this.text.replaceAll("\r", "¡");
+        let temp = this.text.split(' ');
+        for(let i in temp) {
+            let word = temp[i];
+            if(word) {
+                let parts = word.match(/.{1,15}/g);
+                if(parts) {
+                    temp[i] = parts.join(' ');
+                }
+            }
+        }
+        this.text = temp.join(' ').replaceAll("¡", "\r");
+        //
+        let how_long_open = Math.round(now - this.create_time);
+        if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
+            this.text += '_';
+        }
+        //
+        this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
+        super.draw(ctx, ax, ay);
     }
 
 }

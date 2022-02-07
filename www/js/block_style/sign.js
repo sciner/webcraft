@@ -63,6 +63,10 @@ export default class style {
             return;
         }
 
+        if(block.extra_data) {
+            console.log('extra_data', block.extra_data);
+        }
+
         // Textures
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);

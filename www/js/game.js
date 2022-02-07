@@ -174,7 +174,12 @@ export class GameClass {
             onKeyPress: (e) => {
                 let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
                 let typedChar = String.fromCharCode(charCode);
-                player.chat.typeChar(charCode, typedChar);
+                if(player.chat.active) {
+                    player.chat.typeChar(charCode, typedChar);
+                } else {
+                    //
+                    this.hud.wm.typeChar(e, charCode, typedChar);
+                }
             },
             // Hook for keyboard input
             onKeyEvent: (e) => {
@@ -185,19 +190,7 @@ export class GameClass {
                 }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
-                    switch(e.keyCode) {
-                        // E (Inventory)
-                        case KEY.ESC:
-                        case KEY.E: {
-                            if(!e.down) {
-                                this.hud.wm.closeAll();
-                                this.setupMousePointer(false);
-                                return true;
-                            }
-                            break;
-                        }
-                    }
-                    return;
+                    return this.hud.wm.onKeyEvent(e);
                 }
                 //
                 switch(e.keyCode) {
@@ -496,6 +489,12 @@ export class GameClass {
         if(!this.world || this.player.controls.enabled) {
             return;
         }
+
+        // All windows closed
+        this.hud.wm.allClosed = () => {
+            console.info('All windows closed');
+            this.setupMousePointer(false);
+        };
 
         const element = this.render.canvas;
         element.requestPointerLock = element.requestPointerLock || element.webkitRequestPointerLock;

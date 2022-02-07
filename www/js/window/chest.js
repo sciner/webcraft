@@ -82,6 +82,21 @@ export default class ChestWindow extends Window {
         // Catch action
         this.catchActions();
 
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.E:
+                case KEY.ESC: {
+                    if(!down) {
+                        ct.hide();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 
     // Catch action

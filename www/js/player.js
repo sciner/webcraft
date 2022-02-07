@@ -284,7 +284,18 @@ export class Player {
         // console.log(actions.id);
         if(actions.open_window) {
             this.clearEvents();
-            Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
+            let args = null;
+            let window_id = actions.open_window;
+            if(typeof actions.open_window == 'object') {
+                window_id = actions.open_window.id;
+                args = actions.open_window.args;
+            }
+            const w = Game.hud.wm.getWindow(window_id);
+            if(w) {
+                w.show(args);
+            } else {
+                console.error('error_window_not_found', actions.open_window);
+            }
         }
         if(actions.error) {
             console.error(actions.error);

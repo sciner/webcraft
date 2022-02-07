@@ -1,5 +1,6 @@
 import {Mesh_Default} from "./mesh/default.js";
 import {ServerClient} from "./server_client.js";
+import {BLINK_PERIOD} from "../tools/gui/wm.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
@@ -232,7 +233,6 @@ export class Chat {
         const top               = 45 * this.zoom;
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
-        const blink_period      = 500; // период моргания курсора ввода текста (мс)
 
         hud.ctx.save();
 
@@ -253,7 +253,7 @@ export class Chat {
             hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, this.line_height);
             let text = this.buffer.join('');
             let how_long_open = Math.round(now - this.open_time);
-            if(how_long_open % blink_period < blink_period * 0.5) {
+            if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
                 text += '_';
             }
             hud.drawText(text, margin + padding, hud.height - top + padding);
