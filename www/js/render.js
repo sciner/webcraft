@@ -57,7 +57,7 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
-        this.env                = new Environment();
+        this.env                = new Environment(this);
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,

@@ -9,14 +9,14 @@ import {Particles_Painting} from "./particles/painting.js";
  * World generation unfo passed from server
  * @typedef {Object} TWorldInfo
  * @property {{id: string}} generator
- * @property {string} game_mode 
+ * @property {string} game_mode
  * @property {string} guid
  * @property {number} id
  * @property {{x: number, y: number, z: number}} pos_spawn
  * @property {string} seed
  * @property {Object} state
  * @property {string} title
- * @property {number} user_id 
+ * @property {number} user_id
  */
 
 // World container
@@ -74,14 +74,14 @@ export class World {
             this.server = new ServerClient(ws);
             // Add listeners for server commands
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
-                this.hello = cmd; 
+                this.hello = cmd;
                 console.log(cmd.data);
 
                 this.queryTimeSync();
             });
 
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
-                this.setInfo(cmd.data);
+                this.setInfo(cmd);
                 res(cmd);
             });
 
@@ -111,10 +111,10 @@ export class World {
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
-    setInfo(info) {
-        this.info                   = info;
-        this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
- 
+    setInfo({data: info, time}) {
+        this.info           = info;
+        this.dt_connected   = time; // Серверное время, когда произошло подключение к серверу!
+
         // Init
         this.players.init();
         this.chunkManager.init();
@@ -129,14 +129,22 @@ export class World {
         if(!this.info?.calendar) {
             return null;
         }
-        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.info?.calendar.day_time + 6000 + add) % 24000 | 0;
-        let hours = time / 1000 | 0;
-        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
-        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
-        let hours_string = hours > 9 ? hours : '0' + hours;
+
+        const {
+            day_time, age
+        } = this.info.calendar;
+
+        const add       = (this.serverTime - this.dt_connected) / 1000 / 1200 * 24000;
+        const time      = (day_time + 6000 + add) % 24000;
+
+        const hours = time / 1000 | 0;
+        const minutes = (time - hours * 1000) / 1000 * 60 | 0;
+        const minutes_string = minutes.toFixed(0).padStart(2, '0');
+        const hours_string   = hours.toFixed(0).padStart(2, '0');
+
         return {
-            day:        this.info?.calendar.age,
+            time:       time, // max value is 24_000
+            day:        age,
             hours:      hours,
             minutes:    minutes,
             string:     hours_string + ':' + minutes_string

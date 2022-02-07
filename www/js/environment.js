@@ -1,4 +1,5 @@
 import { lerpComplex, Mth } from "./helpers.js";
+import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
 
@@ -518,7 +519,12 @@ class PresetInterpolationTask extends InterpolateTask {
 }
 
 export class Environment {
-    constructor() {
+    /**
+     * 
+     * @param {Renderer} context 
+     */
+    constructor(context) {
+        this.context = context;
         this.actualFog = [0,0,0,0];
         this.actualFogAdd = [0,0,0,0];
         /**
@@ -656,16 +662,27 @@ export class Environment {
      * Fix this case
      */
     _computeFogRelativeSun() {
+        const world       = this.context.world;
+        const dayTimeTics = 24000; 
+        const gameTime = world?.getTime();
+
+        // in secs
+        let dayTime = dayTimeTics / 2; // default
+
+        if (gameTime) {
+            dayTime = gameTime.time;
+        }
+
+        const phase = Math.PI * 2 * dayTime / dayTimeTics;
+
         this.sunDir = [
-            -Math.sin(this.time / 10000), Math.cos(this.time / 10000), 0
+            Math.sin(phase),
+            -Math.cos(phase),
+            0
         ];
 
-        const sun = this.sunDir;
-        const len = Math.sqrt(sun[0] * sun[0] + sun[1] * sun[1] + sun[2] * sun[2]);
-        const dir = [sun[0] / len, sun[1] / len, sun[2] / len];
-
         // up vector only is Y
-        const factor =  Mth.clamp(0.5 * (1. + dir[1]), 0, 1);
+        const factor =  Mth.clamp(0.5 * (1. + this.sunDir[1]), 0, 1);
 
         this._sunFactor = factor;
 
