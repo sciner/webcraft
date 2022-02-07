@@ -1,5 +1,7 @@
 #include<header>
 
+// noise factor for rediuce gradinet banding issues
+#define BANDING_NOISE 0.01 
 //
 uniform samplerCube u_texture;
 uniform float u_brightness;
@@ -7,7 +9,7 @@ uniform vec4 u_fogColor; // global
 uniform vec4 u_fogAddColor; // global
 uniform vec3 u_sunDir; // global
 
-
+// used in crosshair_define_func
 uniform vec2 u_resolution; // global
 
 in vec3 v_texCoord;
@@ -42,13 +44,20 @@ vec3 mapToCube(vec3 pos) {
     return norm / max(upos.z, max(upos.x, upos.y));
 }
 
+float rand3Df(vec3 co){
+    return fract(sin(dot(co, vec3(12.9898, 78.233, 85.26))) * 43758.5453);
+}
+
 void main() {
     vec3 norm    = normalize(v_texCoord);
     vec3 color   = baseColor;// texture(u_texture, v_texCoord).rgb;
     vec3 sun     = normalize(u_sunDir.xyz);
     vec4 overlay;
 
-    float fogFade = smoothstep(0., 0.5, max(0., norm.y));
+    // random for fix banding 
+    float r = (0.5 - rand3Df(norm)) * BANDING_NOISE;
+
+    float fogFade = smoothstep(0., 0.5, max(0., norm.y + r));
 
     float fogFade2  = sqrt(fogFade);
 
@@ -60,7 +69,7 @@ void main() {
     //moon
     vec3 moonPos = -sun;
     float moonDisk = sdfFunc(norm, moonPos, 0.02, 0.99);
-    float moodGlow = sdfFunc(norm, moonPos, 0.05, 0.7) * 0.15;
+    float moodGlow = sdfFunc(norm, moonPos + vec3(r), 0.05, 0.7) * 0.15;
 
     overlay += vec4(moonColor, moonDisk * fogFade2);
     //overlay += stars(v_texCoord) * (1. - u_brightness) * fogFade2;
