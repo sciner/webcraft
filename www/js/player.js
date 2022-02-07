@@ -273,18 +273,24 @@ export class Player {
         return resp;
     }
 
+    clearEvents() {
+        Game.kb.clearStates()
+        this.pickAt.clearEvent();
+        this.inMiningProcess = false;
+    }
+
     // Apply pickat actions
     applyActions(e, actions) {
         // console.log(actions.id);
         if(actions.open_window) {
-            this.inMiningProcess = false;
+            this.clearEvents();
             Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
         }
         if(actions.error) {
             console.error(actions.error);
         }
         if(actions.load_chest) {
-            this.inMiningProcess = false;
+            this.clearEvents();
             Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
         }
         if(actions.play_sound) {

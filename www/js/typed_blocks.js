@@ -93,7 +93,7 @@ export class TBlock {
         return this.tb.vertices.get(this.vec);
     }
     set vertices(value) {
-        if(value) return this.tb.vertices.set(this.vec, value);
+        if(value !== null) return this.tb.vertices.set(this.vec, value);
         this.tb.vertices.delete(this.vec);
     }
 

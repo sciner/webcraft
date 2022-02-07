@@ -2679,6 +2679,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 20,
@@ -2702,6 +2705,9 @@
             "id": "wood"
         },
         "can_rotate": true,
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 21,
@@ -2724,6 +2730,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 22,
@@ -2746,6 +2755,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 23,
@@ -2768,6 +2780,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 24,
@@ -2790,6 +2805,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 25,
@@ -5071,7 +5089,7 @@
                 "dot": [[22, 0]],
                 "line": [[24, 0], [26, 0]]
             }
-        }, 
+        },
         "extra_data": {
             "signal": 0
         },

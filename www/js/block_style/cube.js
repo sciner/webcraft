@@ -11,6 +11,7 @@ const {mat3} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
+const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -37,11 +38,27 @@ export function pushTransformed(
     y0 -= pivot[1];
     z0 -= pivot[2];
 
-    mat = mat || defaultMatrix,
+    mat = mat || defaultMatrix;
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    // unroll mat4 matrix to mat3 + tx, ty, tz
+    if (mat.length === 16) {
+        mat3.fromMat4(tempMatrix, mat);
+
+        tx = mat[12];
+        ty = mat[14]; // flip
+        tz = mat[13]; // flip
+
+        mat = tempMatrix;
+    }
+
     vertices.push(
-        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2],
-        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8],
-        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5],
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
 
         ux * mat[0] + uy * mat[1] + uz * mat[2],
         ux * mat[6] + uy * mat[7] + uz * mat[8],
@@ -140,10 +157,40 @@ export default class style {
 
         let DIRECTION_UP        = DIRECTION.UP;
         let DIRECTION_DOWN      = DIRECTION.DOWN;
-        let DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-        let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-        let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-        let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        let DIRECTION_BACK      = DIRECTION.BACK
+        let DIRECTION_RIGHT     = DIRECTION.RIGHT
+        let DIRECTION_FORWARD   = DIRECTION.FORWARD
+        let DIRECTION_LEFT      = DIRECTION.LEFT;
+
+        if(material.can_rotate) {
+            DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+            DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+            DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+            DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        }
+
+        if(material.can_rotate && block.rotate) {
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                //TODO: calculate canDrawTop and neighbours based on rotation
+                canDrawTOP = true;
+                canDrawDOWN = true;
+                canDrawSOUTH = true;
+                canDrawNORTH = true;
+                canDrawWEST = true;
+                canDrawEAST = true;
+                DIRECTION_BACK = DIRECTION.BACK;
+                DIRECTION_RIGHT = DIRECTION.RIGHT;
+                DIRECTION_FORWARD = DIRECTION.FORWARD;
+                DIRECTION_LEFT = DIRECTION.LEFT;
+                //use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+            }
+        }
 
         if(material.style == 'ladder') {
             width = 1;

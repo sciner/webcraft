@@ -1,4 +1,69 @@
 import {CubeSym} from "./CubeSym.js";
+import {MULTIPLY} from '../helpers.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat3, mat4}      = glMatrix;
+const defaultPivot      = [0.5, 0.5, 0.5];
+const defaultMatrix     = mat4.create();
+const tempMatrix        = mat3.create();
+
+/**
+ * Multiple arrays between by minimal lenght
+ * @param {number[]} a
+ * @param {number[]} b
+ * @param {number[]} out
+ */
+const perMul = (a, b, out = []) => {
+    const m = Math.min(a.length, b.length);
+    for(let i = 0; i < m; i ++) {
+        out[i] = a[i] * b[i];
+    }
+    return out;
+}
+
+/**
+ * Dot arrays
+ * @param {number[]} a 
+ * @param {number[]} b 
+ * @returns 
+ */
+const perDot = (a, b) => {
+    const m = Math.min(a.length, b.length);
+    let out = 0;
+    for(let i = 0; i < m; i ++) {
+        out += a[i] * b[i];
+    }
+    return out;
+}
+
+const PLANES = {
+    up: {
+        // axisX , axisY. axisY is flips sign!
+        axes  : [[1, 0, 0], /**/ [0, 1, 0]],
+        // origin offset realtive center
+        offset : [0, 0, 0.5],
+    },
+    down: {
+        axes  : [[1, 0, 0], /**/ [0, -1, 0]],
+        offset: [0, 0, -0.5],
+    },
+    south: {
+        axes  : [[1, 0, 0], /**/ [0, 0, 1]],
+        offset: [0, -0.5, 0],
+    },
+    north: {
+        axes  : [[1, 0, 0], /**/ [0, 0, -1]],
+        offset: [0, 0.5, 0],
+    },
+    east: {
+        axes  : [[0, 1, 0], /**/ [0, 0, 1]],
+        offset: [0.5, 0, 0],
+    },
+    west: {
+        axes  : [[0, 1, 0], /**/ [0, 0, -1]],
+        offset: [-0.5, 0, 0],
+    }
+}
 
 export class AABB {
 
@@ -176,4 +241,123 @@ export class AABBPool {
     }
 
     static instance = new AABBPool();
+}
+
+export class AABBSideParams {
+
+    constructor(uv, flag, anim) {
+        this.uv = uv;
+        this.flag = flag;
+        this.anim = anim;
+    }
+
+}
+
+export function pushTransformed(
+    vertices, mat, pivot,
+    cx, cz, cy,
+    x0, z0, y0,
+    ux, uz, uy,
+    vx, vz, vy,
+    c0, c1, c2, c3,
+    r, g, b,
+    flags
+) {
+    pivot = pivot || defaultPivot;
+    cx += pivot[0];
+    cy += pivot[1];
+    cz += pivot[2];
+    x0 -= pivot[0];
+    y0 -= pivot[1];
+    z0 -= pivot[2];
+
+    mat = mat || defaultMatrix;
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    // unroll mat4 matrix to mat3 + tx, ty, tz
+    if (mat.length === 16) {
+        mat3.fromMat4(tempMatrix, mat);
+
+        tx = mat[12];
+        ty = mat[14]; // flip
+        tz = mat[13]; // flip
+
+        mat = tempMatrix;
+    }
+
+    vertices.push(
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
+
+        ux * mat[0] + uy * mat[1] + uz * mat[2],
+        ux * mat[6] + uy * mat[7] + uz * mat[8],
+        ux * mat[3] + uy * mat[4] + uz * mat[5],
+
+        vx * mat[0] + vy * mat[1] + vz * mat[2],
+        vx * mat[6] + vy * mat[7] + vz * mat[8],
+        vx * mat[3] + vy * mat[4] + vz * mat[5],
+
+        c0, c1, c2, c3, r, g, b, flags
+    );
+}
+
+export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides) {
+
+    pivot = pivot || defaultPivot;
+    matrix = matrix || defaultMatrix;
+
+    let lm          = MULTIPLY.COLOR.WHITE;
+    let globalFlags       = 0;
+
+    let x = aabb.x_min + aabb.width / 2
+    let y = aabb.y_min + aabb.height / 2
+    let z = aabb.z_min + aabb.depth / 2
+
+    const size = [
+        aabb.width,
+        aabb.depth,
+        aabb.height
+    ];
+
+    const tmp3 = [];
+
+    for(const key in PLANES) {
+        const {
+            axes, offset,
+        } = PLANES[key];
+
+        const {
+            uv, flag = 0, anim = 1
+        } = sides[key];
+
+        const uvSize0 = -perDot(axes[0], size) * Math.abs(uv[2]);
+        const uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
+
+        pushTransformed(
+            vertices, matrix, pivot,
+            // center
+            x, z, y,
+            // offset
+            ...perMul(size, offset, tmp3),
+            // axisx
+            ...perMul(size, axes[0], tmp3),
+            //axisY
+            ...perMul(size, axes[1], tmp3),
+            // UV center
+            uv[0], uv[1],
+            // UV size
+            uvSize0, uvSize1,
+            // tint location
+            lm.r, lm.g,
+            // animation
+            anim,
+            // flags
+            globalFlags | flag
+        );           
+    }
+
 }
