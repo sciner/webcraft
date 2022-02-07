@@ -58,9 +58,10 @@ export class FogPreset {
             return;
         }
 
+        /*
         if (Math.abs(factor - this._lastEvalFactor) < 0.001) {
             return;
-        }
+        }*/
 
         this._lastEvalFactor = factor;
 
@@ -349,9 +350,10 @@ export class Gradient {
         factor = Mth.clamp(factor, 0, 1);
 
         
+        /*
         if (Math.abs(this._lastEvalFactor - factor) <= 1 / ((this._grad.length - 1) * 256)) {
             return;
-        }
+        }*/
 
         this._lastEvalFactor = factor;
 
