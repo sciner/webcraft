@@ -41,27 +41,27 @@ const PLANES = {
         // axisX , axisY. axisY is flips sign!
         axes  : [[1, 0, 0], /**/ [0, 1, 0]],
         // origin offset realtive center
-        offset : [0, 0, 0.5],
+        offset : [0.5, 0.5, 1.0],
     },
     down: {
         axes  : [[1, 0, 0], /**/ [0, -1, 0]],
-        offset: [0, 0, -0.5],
+        offset: [0.5, 0.5, 0.0],
     },
     south: {
         axes  : [[1, 0, 0], /**/ [0, 0, 1]],
-        offset: [0, -0.5, 0],
+        offset: [0.5, 0.0, 0.5],
     },
     north: {
         axes  : [[1, 0, 0], /**/ [0, 0, -1]],
-        offset: [0, 0.5, 0],
+        offset: [0.5, 1.0, 0.5],
     },
     east: {
         axes  : [[0, 1, 0], /**/ [0, 0, 1]],
-        offset: [0.5, 0, 0],
+        offset: [1.0, 0.5, 0.5],
     },
     west: {
         axes  : [[0, 1, 0], /**/ [0, 0, -1]],
-        offset: [-0.5, 0, 0],
+        offset: [-0.0, 0.5, 0.5],
     }
 }
 
@@ -307,9 +307,15 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     let lm          = MULTIPLY.COLOR.WHITE;
     let globalFlags       = 0;
 
-    let x = aabb.x_min + aabb.width / 2
-    let y = aabb.y_min + aabb.height / 2
-    let z = aabb.z_min + aabb.depth / 2
+    let x = aabb.x_min
+    let y = aabb.y_min
+    let z = aabb.z_min
+
+    pivot = [0.5, 0.5, 0.5]
+
+    pivot[0] *= aabb.width;
+    pivot[1] *= aabb.height;
+    pivot[2] *= aabb.depth;
 
     const size = [
         aabb.width,
@@ -320,6 +326,10 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     const tmp3 = [];
 
     for(const key in PLANES) {
+        if (!key in sides) {
+            break;
+        } 
+
         const {
             axes, offset,
         } = PLANES[key];
