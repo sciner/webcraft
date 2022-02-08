@@ -309,7 +309,18 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     let y = aabb.y_min
     let z = aabb.z_min
 
-    pivot = pivot || [0.5 * aabb.width, 0.5 * aabb.height, 0.5 * aabb.depth]
+    if(!pivot) {
+        let center = new Vector(
+            aabb.x_max - aabb.width / 2,
+            aabb.y_max - aabb.height / 2,
+            aabb.z_max - aabb.depth / 2,
+        );
+        pivot = [
+            .5 - center.x + aabb.width / 2,
+            .5 - center.y + aabb.height / 2,
+            .5 - center.z + aabb.depth / 2,
+        ];
+    }
 
     const size = [
         aabb.width,

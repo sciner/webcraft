@@ -89,8 +89,7 @@ export default class style {
         // we can use mat4 now
         matrix = mat4.create();
         mat4.scale(matrix, matrix, [1, 1, 1]);
-        // mat4.rotateY(matrix, matrix, Math.random() * 2 * Math.PI);
-        mat4.rotateY(matrix, matrix, Math.PI);
+        mat4.rotateY(matrix, matrix, Math.random() * 2 * Math.PI);
 
         let aabb = new AABB();
         aabb.set(
