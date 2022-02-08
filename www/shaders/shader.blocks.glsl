@@ -197,6 +197,9 @@
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
     outColor = mix(outColor, u_fogColor, fogAmount);
 
+    // special effect for sunrise 
+    outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
+
 #endif
 
 #ifdef terrain_read_flags_vert

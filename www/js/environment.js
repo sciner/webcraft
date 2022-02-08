@@ -1,3 +1,4 @@
+//@ts-check
 import { lerpComplex, Mth } from "./helpers.js";
 import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
@@ -5,8 +6,8 @@ import { Resources } from "./resources.js";
 
 /**
  * @typedef {object} IFogPreset
- * @property {[number,number, number, number ] | Gradient | Color} color: ;
- * @property {[number,number, number, number ] | Gradient | Color | number} addColor
+ * @property {[number,number, number, number ] | Gradient | Color | IAnyColorRecordMap} color: ;
+ * @property {[number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap} addColor
  * @property {number} density
  * @property {number} [illuminate]
  */
@@ -20,9 +21,9 @@ export const PRESET_NAMES = {
 export class FogPreset {
     /**
      *
-     * @param {IFogPreset} fogPreset
+     * @param {IFogPreset} [fogPreset]
      */
-    constructor(fogPreset) {
+    constructor(fogPreset = null) {
         this.color    = new Color();
         this.addColor = new Color();
         this.density  = 0;
@@ -285,22 +286,33 @@ export class Color {
 }
 
 /**
- * @typedef {Object} ColorRecord
+ * @typedef {{[key: number]: number | Color | Array<number>} } IAnyColorRecordMap
+ */
+
+/**
+ * @typedef {Object} IAnyColorRecord
  * @property {number} pos
  * @property {number | Color | Array<number>} color
  */
 
+/**
+ * @typedef {Object} IColorRecord
+ * @property {number} pos
+ * @property {Color} color
+ */
+
+
 export class Gradient {
     /**
      *
-     * @param {{[key: number]: number | Color | Array<number>} | Array<ColorRecord>} gradData
+     * @param {IAnyColorRecordMap| Array<IAnyColorRecord> | Gradient | Color} gradData
      */
     constructor (gradData = new Color()) {
         this._color = new Color();
         this._raw = this._color._raw;
 
         /**
-         * @type {ColorRecord[]}
+         * @type {IColorRecord[]}
          */
         this._grad = [];
 
@@ -313,7 +325,7 @@ export class Gradient {
 
     /**
      *
-     * @param {{[key: number]: number | Color | Array<number>} | Array<ColorRecord>} gradData
+     * @param {{[key: number]: number | Color | Array<number>} | Array<IAnyColorRecord> | Gradient | Color} gradData
      */
     set(gradData) {
         if (gradData instanceof Gradient) {
@@ -407,7 +419,7 @@ export class Gradient {
     }
 
     clone() {
-        return new Gradient(from._grad);
+        return new Gradient(this._grad);
     }
 }
 
@@ -426,21 +438,19 @@ const ENV_GRAD_COLORS = {
 export const FOG_PRESETS = {
     [PRESET_NAMES.NORMAL]: {
         color: ENV_GRAD_COLORS,
-        addColor: ENV_GRAD_COLORS,
+        addColor: [0, 0, 0, 0],
         density: 2.52 / 320,
     },
 
     [PRESET_NAMES.WATER]: {
-        computed: false,
-        color: [55 / 255, 100 / 255, 230 / 255, 1],
+        color: [55 / 255, 100 / 255, 230 / 255, 0],
         addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
         density: 0.1,
         illuminate: 0.1,
     },
 
     [PRESET_NAMES.LAVA]: {
-        computed: false,
-        color: [255 / 255, 100 / 255, 20 / 255, 1],
+        color: [255 / 255, 100 / 255, 20 / 255, 0.4],
         addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
         density: 0.5,
         illuminate: 0.5,
@@ -528,10 +538,12 @@ export class Environment {
      */
     constructor(context) {
         this.context = context;
-        this.actualFog = [0,0,0,0];
-        this.actualFogAdd = [0,0,0,0];
+
+        this.rawInterpolatedFog      = [0 ,0 ,0, 0];
+        this.rawInterpolatedFogAdd   = [0 ,0 ,0, 0];
+        this.interpolatedClearValue  = [0, 0, 0, 1]; // same as fog, but include brightness internally and always has alpha 1
         /**
-         * @type {{[key: string]: FogPreset}}
+         * @type {{[key: string] : FogPreset}}
          */
         this.presets = Object.entries(FOG_PRESETS).reduce((acc, [key, value]) => {
             acc [key] = new FogPreset(value);
@@ -597,8 +609,8 @@ export class Environment {
      * Set fog preset state
      */
     set fogPreset(v) {
-        if (!(v in FOG_PRESETS)) {
-            v = FOG_PRESETS.NORMAL;
+        if (!(v in this.presets)) {
+            v = PRESET_NAMES.NORMAL;
         }
 
         if (v === this._currentPresetName) {
@@ -622,7 +634,7 @@ export class Environment {
     * State relative color interpolated with brightness, time and underwater knowledge
     */
     get actualFogColor() {
-        return this.actualFog;
+        return this.rawInterpolatedFog;
     }
 
     /**
@@ -765,12 +777,15 @@ export class Environment {
         const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
 
         for (let i = 0; i < 3; i ++) {
-            this.actualFog[i] = fogColor[i] * mult;
-            this.actualFogAdd[i] = fogAdd[i];
+            this.rawInterpolatedFog[i]     = fogColor[i] * mult;
+            this.interpolatedClearValue[i] = fogColor[i] * mult;
+
+            this.rawInterpolatedFogAdd[i]  = fogAdd[i];
         }
 
-        this.actualFog[3] = 1;
-        this.actualFogAdd[3] = fogAdd[3];
+        this.rawInterpolatedFog[3]     = fogColor[3];
+        this.rawInterpolatedFogAdd[3]  = fogAdd[3];
+        this.interpolatedClearValue[3] = 1;
 
         this._fogDirty = false;
     }
@@ -815,20 +830,17 @@ export class Environment {
 
     /**
      * Sync environment state with uniforms
-     * @param {GlobalUniformGroup} render
+     * @param {GlobalUniformGroup} gu
      */
     sync (gu) {
-        const fogPreset = this.fogPresetRes;
-
         gu.chunkBlockDist       = this.chunkBlockDist;
 
-        gu.fogAddColor          = this.actualFogAdd;
-        gu.fogColor             = this.actualFog;
+        gu.fogAddColor          = this.rawInterpolatedFogAdd;
+        gu.fogColor             = this.rawInterpolatedFog;
         gu.brightness           = this.fullBrightness;
 
         gu.time                 = this.time;
-        gu.fogDensity           = this.fogDensity * fogPreset.density;
-        gu.testLightOn          = this.testLightOn;
+        //gu.fogDensity           = this.fogDensity * fogPreset.density;
         gu.sunDir               = this.sunDir;
     }
 
