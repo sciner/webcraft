@@ -86,8 +86,6 @@ export default class style {
         const c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
-        pivot = [0, 0, 0];
-
         // we can use mat4 now
         matrix = mat4.create();
         mat4.scale(matrix, matrix, [1, 1, 1]);

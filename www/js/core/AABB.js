@@ -300,8 +300,6 @@ export function pushTransformed(
 }
 
 export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, autoUV) {
-
-    pivot = pivot || defaultPivot;
     matrix = matrix || defaultMatrix;
 
     let lm          = MULTIPLY.COLOR.WHITE;
@@ -311,11 +309,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     let y = aabb.y_min
     let z = aabb.z_min
 
-    pivot = [0.5, 0.5, 0.5]
-
-    pivot[0] *= aabb.width;
-    pivot[1] *= aabb.height;
-    pivot[2] *= aabb.depth;
+    pivot = pivot || [0.5 * aabb.width, 0.5 * aabb.height, 0.5 * aabb.depth]
 
     const size = [
         aabb.width,
