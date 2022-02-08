@@ -319,6 +319,7 @@ export class Chunk {
 
         // Add vertices for blocks
         this.vertices = new Map();
+        this.extend_blocks = [];
 
         this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
@@ -332,6 +333,16 @@ export class Chunk {
         const cache = BLOCK_CACHE;
         const blockIter = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
         let material = null;
+
+        // addVerticesToGroup...
+        const addVerticesToGroup = (material_group, material_key, vertices) => {
+            if(!this.vertices.has(material_key)) {
+                // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                this.vertices.set(material_key, JSON.parse(JSON.stringify(group_templates[material_group])));
+            }
+            // Push vertices
+            this.vertices.get(material_key).list.push(...vertices);
+        };
 
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
@@ -370,7 +381,7 @@ export class Chunk {
             }
             if(block.vertices === null) {
                 block.vertices = [];
-                material.resource_pack.pushVertices(
+                const resp = material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
                     this,
@@ -380,15 +391,39 @@ export class Chunk {
                     neighbours,
                     this.map.info.cells[block.pos.x][block.pos.z].biome
                 );
+                if(Array.isArray(resp)) {
+                    this.extend_blocks.push(...resp);
+                }
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices.has(material.material_key)) {
-                    // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
-                    this.vertices.set(material.material_key, JSON.parse(JSON.stringify(group_templates[material.group])));
-                }
-                // Push vertices
-                this.vertices.get(material.material_key).list.push(...block.vertices);
+                addVerticesToGroup(material.group, material.material_key, block.vertices);
+            }
+        }
+
+        if(this.extend_blocks.length > 0) {
+            const fake_neighbours = {
+                UP: null,
+                DOWN: null,
+                SOUTH: null,
+                NORTH: null,
+                WEST: null,
+                EAST: null,
+            };
+            for(let eb of this.extend_blocks) {
+                let vertices = [];
+                const material = eb.material;
+                material.resource_pack.pushVertices(
+                    vertices,
+                    eb,
+                    this,
+                    eb.pos.x,
+                    eb.pos.y,
+                    eb.pos.z,
+                    fake_neighbours,
+                    null
+                );
+                addVerticesToGroup(material.group, material.material_key, vertices);
             }
         }
 
@@ -396,6 +431,7 @@ export class Chunk {
         this.tm = performance.now() - tm;
         this.neighbour_chunks = null;
         return true;
+
     }
 
     // setDirtyBlocks

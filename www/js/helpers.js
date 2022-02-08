@@ -1178,3 +1178,41 @@ export class RuneStrings {
     }
 
 }
+
+// AlphabetTexture
+export class AlphabetTexture {
+
+    static init() {
+        this.chars = new Map();
+        this.char_size = {width: 32, height: 32};
+        this.width = this.height = 1024;
+        this.chars_x = Math.floor(this.width / this.char_size.width);
+        if(AlphabetTexture.image) {
+            return;
+        }
+    }
+
+    static indexToPos(index) {
+        const x = (index % this.chars_x) * this.char_size.width;
+        const y = Math.floor(index / this.chars_x);
+        return {x: x, y: y};
+    }
+
+    static getStringUVs(str) {
+        this.init();
+        let chars = RuneStrings.toArray(str);
+        let resp = [];
+        for(let char of chars) {
+            if(!this.chars.has(char)) {
+                const index = this.chars.size;
+                let pos = this.indexToPos(index);
+                pos.char = char;
+                pos.index = index;
+                this.chars.set(char, pos);
+            }
+            resp.push(this.chars.get(char));
+        }
+        return resp;
+    }
+
+}

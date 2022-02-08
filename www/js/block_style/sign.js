@@ -1,4 +1,4 @@
-import {DIRECTION, RuneStrings} from '../helpers.js';
+import {DIRECTION, AlphabetTexture} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -12,41 +12,22 @@ const CONNECT_HEIGHT    = 8 / 16;
 const CONNECT_BOTTOM    = 9 / 16;
 const BOTTOM_HEIGHT     = .6;
 
-class AlphabetTexture {
+class FakeBlock {
 
-    static init() {
-        this.chars = new Map();
-        this.char_size = {width: 32, height: 32};
-        this.width = this.height = 1024;
-        this.chars_x = Math.floor(this.width / this.char_size.width);
-        if(AlphabetTexture.image) {
-            return;
-        }
+    constructor(id, extra_data, pos, rotate) {
+        this.id = id;
+        this.extra_data = extra_data;
+        this.pos = pos;
+        this.rotate = rotate;
     }
 
-    static indexToPos(index) {
-        const x = (index % this.chars_x) * this.char_size.width;
-        const y = Math.floor(index / this.chars_x);
-        return {x: x, y: y};
+    get material() {
+        return BLOCK.fromId(this.id);
     }
 
-    static getStringUVs(str) {
-        this.init();
-        let chars = RuneStrings.toArray(str);
-        let resp = [];
-        for(let char of chars) {
-            if(!this.chars.has(char)) {
-                let pos = this.indexToPos(this.chars.size);
-                this.chars.set(char, pos);
-            }
-            resp.push(this.chars.get(char));
-        }
-        return resp;
-    }
+};
 
-}
-
-console.log(AlphabetTexture.getStringUVs('Привет, Мир!!!'));
+// console.log(AlphabetTexture.getStringUVs('Привет, Мир!!!'));
 
 // Табличка
 export default class style {
@@ -97,14 +78,6 @@ export default class style {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
-        }
-
-        if(block.extra_data) {
-            let text = block.extra_data?.text;
-            if(text) {
-                let chars = RuneStrings.toArray(text);
-                console.log(chars);
-            }
         }
 
         // Textures
@@ -172,6 +145,24 @@ export default class style {
                 east:   new AABBSideParams(c_down, 0, 1),
             }
         );
+
+        // Return text block
+        if(block.extra_data) {
+            let text = block.extra_data?.text;
+            if(text) {
+                return [new FakeBlock(
+                    BLOCK.TEXT.id,
+                    {
+                        aabb: aabb,
+                        chars: AlphabetTexture.getStringUVs(text)
+                    },
+                    new Vector(x, y, z),
+                    block.rotate
+                )];
+            }
+        }
+
+        return null;
 
     }
 

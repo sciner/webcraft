@@ -5246,7 +5246,6 @@
         "transparent": true,
 		"can_rotate": true,
         "texture": {
-            "id": "alphabet",
             "side": [22, 19],
             "down": [22, 16]
         }
@@ -5318,6 +5317,21 @@
         "texture": {
             "side": [25, 19],
             "down": [25, 16]
+        }
+    },
+    {
+        "id": 648,
+        "name": "TEXT",
+        "style": "text",
+        "transparent": true,
+        "can_rotate": true,
+        "spawnable": false,
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "id": "alphabet",
+            "side": [0, 0]
         }
     }
 ]
