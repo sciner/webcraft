@@ -1,11 +1,9 @@
 import {BLOCK} from "./blocks.js";
-import {Helpers, RuneStrings} from './helpers.js';
+import {Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 
 let tmpCanvas;
-
-const demo_runes = RuneStrings.toArray('😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ01234567890!')
 
 export class BaseResourcePack {
 
@@ -95,29 +93,33 @@ export class BaseResourcePack {
             cnv.ctx = cnv.canvas.getContext('2d');
 
             // Fill magenta background
-            cnv.ctx.fillStyle = '#ff0088';
-            cnv.ctx.imageSmoothingEnabled = false;
-            cnv.ctx.fillRect(0, 0, cnv.canvas.width, cnv.canvas.height);
+            // cnv.ctx.fillStyle = '#ff0088';
+            // cnv.ctx.imageSmoothingEnabled = false;
+            // cnv.ctx.fillRect(0, 0, 200, 200);
 
             // demo text
             cnv.ctx.fillStyle = '#ffffffff';
-            cnv.ctx.textBaseline = 'bottom';
-            cnv.ctx.font = '14px UbuntuMono-Regular';
-            let cnt = 0;
-            let demo_runes_count = demo_runes.length;
-            for(let x = 0; x < 8; x++) {
-                for(let y = 0; y < 8; y++) {
-                    for(let i = 0; i < 8; i++) {
-                        let text = [];
-                        for(let j = 0; j < 15; j++) {
-                            let label = demo_runes[cnt++ % demo_runes_count];
-                            text.push(label);
-                        }
-                        text = text.join('');
-                        cnv.ctx.fillText(text, x * 128, y * 128 + i * 16 + 2);
-                    }
-                }
+            cnv.ctx.textBaseline = 'top';
+            const char_size = {
+                width: cnv.width / textureInfo.tx_cnt,
+                height: cnv.height / textureInfo.tx_cnt
             }
+            AlphabetTexture.init();
+            for(let [_, item] of AlphabetTexture.chars.entries()) {
+                const char = item.char;
+                let py = 0;
+                if(char.length > 1) {
+                    cnv.ctx.font = '18px UbuntuMono-Regular';
+                    py = 7;
+                } else {
+                    cnv.ctx.font = '31px UbuntuMono-Regular';
+                    py = 1;
+                }
+                const mt = cnv.ctx.measureText(char);
+                cnv.ctx.fillText(char, item.x + 16-mt.width/2, item.y+py);
+            }
+
+            // Helpers.downloadImage(cnv.canvas, 'alphabet.png');
 
             const settings_for_canvas = {...settings};
             settings_for_canvas.mipmap = false;
@@ -267,14 +269,13 @@ export class BaseResourcePack {
     }
 
     // pushVertices
-    pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style, force_tex) {
+    pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style, force_tex, _matrix, _pivot) {
         const style = draw_style ? draw_style : block.material.style;
         const module = BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
-        let undef;
-        return module.func(block, vertices, world, x, y, z, neighbours, biome, true, undef, undef, force_tex);
+        return module.func(block, vertices, world, x, y, z, neighbours, biome, true, _matrix, _pivot, force_tex);
     }
 
 }

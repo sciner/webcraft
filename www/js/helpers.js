@@ -1182,19 +1182,22 @@ export class RuneStrings {
 // AlphabetTexture
 export class AlphabetTexture {
 
+    static default_runes = RuneStrings.toArray('абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖХИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾0123456789~`@#№$;:\\/*-+()[]-_&?%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ');
+
     static init() {
+        if(this.chars) {
+            return false;
+        }
         this.chars = new Map();
         this.char_size = {width: 32, height: 32};
         this.width = this.height = 1024;
         this.chars_x = Math.floor(this.width / this.char_size.width);
-        if(AlphabetTexture.image) {
-            return;
-        }
+        this.getStringUVs(AlphabetTexture.default_runes.join(''));
     }
 
     static indexToPos(index) {
         const x = (index % this.chars_x) * this.char_size.width;
-        const y = Math.floor(index / this.chars_x);
+        const y = Math.floor(index / this.chars_x) * this.char_size.height;
         return {x: x, y: y};
     }
 
@@ -1206,6 +1209,8 @@ export class AlphabetTexture {
             if(!this.chars.has(char)) {
                 const index = this.chars.size;
                 let pos = this.indexToPos(index);
+                pos.xn = pos.x / 1024;
+                pos.yn = pos.y / 1024;
                 pos.char = char;
                 pos.index = index;
                 this.chars.set(char, pos);

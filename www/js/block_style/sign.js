@@ -14,11 +14,13 @@ const BOTTOM_HEIGHT     = .6;
 
 class FakeBlock {
 
-    constructor(id, extra_data, pos, rotate) {
+    constructor(id, extra_data, pos, rotate, pivot, matrix) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
         this.rotate = rotate;
+        this.pivot = pivot;
+        this.matrix = matrix;
     }
 
     get material() {
@@ -127,7 +129,8 @@ export default class style {
                 north:  new AABBSideParams(c, 0, 1),
                 west:   new AABBSideParams(c, 0, 1),
                 east:   new AABBSideParams(c, 0, 1),
-            }
+            },
+            true
         );
 
         // Push vertices down
@@ -143,7 +146,8 @@ export default class style {
                 north:  new AABBSideParams(c_down, 0, 1),
                 west:   new AABBSideParams(c_down, 0, 1),
                 east:   new AABBSideParams(c_down, 0, 1),
-            }
+            },
+            true
         );
 
         // Return text block
@@ -157,7 +161,9 @@ export default class style {
                         chars: AlphabetTexture.getStringUVs(text)
                     },
                     new Vector(x, y, z),
-                    block.rotate
+                    block.rotate,
+                    pivot,
+                    matrix
                 )];
             }
         }

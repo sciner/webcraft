@@ -1,5 +1,5 @@
 import {BLOCK} from "../blocks.js";
-import {Vector} from "../helpers.js";
+import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 
@@ -319,7 +319,7 @@ export class Chunk {
 
         // Add vertices for blocks
         this.vertices = new Map();
-        this.extend_blocks = [];
+        this.emitted_blocks = this.emitted_blocks || new VectorCollector();
 
         this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
@@ -348,6 +348,10 @@ export class Chunk {
         for(let block of blockIter) {
             material = block.material;
             if(block.id == BLOCK.AIR.id || !material || material.item) {
+                if(this.emitted_blocks.has(block.pos)) {
+                    console.log('delete emitter');
+                    this.emitted_blocks.delete(block.pos);
+                }
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
@@ -392,7 +396,9 @@ export class Chunk {
                     this.map.info.cells[block.pos.x][block.pos.z].biome
                 );
                 if(Array.isArray(resp)) {
-                    this.extend_blocks.push(...resp);
+                    this.emitted_blocks.set(block.pos, resp);
+                } else {
+                    this.emitted_blocks.delete(block.pos);
                 }
             }
             world.blocks_pushed++;
@@ -401,7 +407,8 @@ export class Chunk {
             }
         }
 
-        if(this.extend_blocks.length > 0) {
+        // Emmited blocks
+        if(this.emitted_blocks.size > 0) {
             const fake_neighbours = {
                 UP: null,
                 DOWN: null,
@@ -410,20 +417,26 @@ export class Chunk {
                 WEST: null,
                 EAST: null,
             };
-            for(let eb of this.extend_blocks) {
-                let vertices = [];
-                const material = eb.material;
-                material.resource_pack.pushVertices(
-                    vertices,
-                    eb,
-                    this,
-                    eb.pos.x,
-                    eb.pos.y,
-                    eb.pos.z,
-                    fake_neighbours,
-                    null
-                );
-                addVerticesToGroup(material.group, material.material_key, vertices);
+            for(let eblocks of this.emitted_blocks) {
+                for(let eb of eblocks) {
+                    let vertices = [];
+                    const material = eb.material;
+                    material.resource_pack.pushVertices(
+                        vertices,
+                        eb,
+                        this,
+                        eb.pos.x,
+                        eb.pos.y,
+                        eb.pos.z,
+                        fake_neighbours,
+                        null,
+                        null,
+                        null,
+                        eb.matrix,
+                        eb.pivot
+                    );
+                    addVerticesToGroup(material.group, material.material_key, vertices);
+                }
             }
         }
 

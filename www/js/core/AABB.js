@@ -113,12 +113,6 @@ export class AABB {
     }
 
     set(xMin, yMin, zMin, xMax, yMax, zMax) {
-        // this.x_min = cx - w / 2;
-        // this.x_max = cx + w / 2;
-        // this.y_min = cy - h / 2;
-        // this.y_max = cy + h / 2;
-        // this.z_min = cz - d / 2;
-        // this.z_max = cz + d / 2;
         this.x_min = xMin;
         this.y_min = yMin;
         this.z_min = zMin;
@@ -305,7 +299,7 @@ export function pushTransformed(
     );
 }
 
-export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides) {
+export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, autoUV) {
 
     pivot = pivot || defaultPivot;
     matrix = matrix || defaultMatrix;
@@ -334,8 +328,16 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides) {
             uv, flag = 0, anim = 1
         } = sides[key];
 
-        const uvSize0 = -perDot(axes[0], size) * Math.abs(uv[2]);
-        const uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
+        let uvSize0;
+        let uvSize1;
+
+        if(autoUV) {
+            uvSize0 = -perDot(axes[0], size) * Math.abs(uv[2]);
+            uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
+        } else {
+            uvSize0 = uv[2];
+            uvSize1 = -uv[3];    
+        }
 
         pushTransformed(
             vertices, matrix, pivot,
