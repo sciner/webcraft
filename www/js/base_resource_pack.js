@@ -93,9 +93,9 @@ export class BaseResourcePack {
             cnv.ctx = cnv.canvas.getContext('2d');
 
             // Fill magenta background
-            // cnv.ctx.fillStyle = '#ff0088';
-            // cnv.ctx.imageSmoothingEnabled = false;
-            // cnv.ctx.fillRect(0, 0, 200, 200);
+            cnv.ctx.fillStyle = '#ff0088';
+            cnv.ctx.imageSmoothingEnabled = false;
+            cnv.ctx.fillRect(0, 0, 200, 200);
 
             // demo text
             cnv.ctx.fillStyle = '#ffffffff';

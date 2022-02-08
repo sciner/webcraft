@@ -38,7 +38,8 @@ export default class style {
             );
         }
 
-        const c_empty = [0, 0, 0, 0]; // 100/1024, 100/1024, 2/1024, 2/1024];
+        // const c_empty = [0, 0, 0, 0]; // 100/1024, 100/1024, 2/1024, 2/1024];
+        const c_empty = [1/1024, 1/1024, 2/1024, 2/1024];
 
         /*
         // Push vertices
@@ -88,6 +89,19 @@ export default class style {
             aabbc.y_min = aabbc.y_max - (cy+1) * LETTER_H;
             aabbc.y_max = aabbc.y_min + LETTER_H;
             aabbc.translate(PADDING.x, PADDING.y, PADDING.z);
+
+            let center = new Vector(
+                aabbc.x_min - aabbc.width / 2,
+                aabbc.y_min - aabbc.height / 2,
+                aabbc.z_min - aabbc.depth / 2,
+            );
+
+            pivot = [
+                +.5 - center.x,
+                +.5 - center.y,
+                +.5 - center.z,
+            ];
+
             // Push vertices
             pushAABB(
                 vertices,
