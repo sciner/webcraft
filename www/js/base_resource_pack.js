@@ -96,18 +96,26 @@ export class BaseResourcePack {
 
             // Fill magenta background
             cnv.ctx.fillStyle = '#ff0088';
+            cnv.ctx.imageSmoothingEnabled = false;
             cnv.ctx.fillRect(0, 0, cnv.canvas.width, cnv.canvas.height);
 
             // demo text
             cnv.ctx.fillStyle = '#ffffffff';
             cnv.ctx.textBaseline = 'bottom';
-            cnv.ctx.font = '18px Ubuntu';
+            cnv.ctx.font = '14px UbuntuMono-Regular';
             let cnt = 0;
             let demo_runes_count = demo_runes.length;
-            for(let x = 0; x < 64; x++) {
-                for(let y = 0; y < 64; y++) {
-                    let label = demo_runes[cnt++ % demo_runes_count];
-                    cnv.ctx.fillText(label, x * 16, y * 16);
+            for(let x = 0; x < 8; x++) {
+                for(let y = 0; y < 8; y++) {
+                    for(let i = 0; i < 8; i++) {
+                        let text = [];
+                        for(let j = 0; j < 15; j++) {
+                            let label = demo_runes[cnt++ % demo_runes_count];
+                            text.push(label);
+                        }
+                        text = text.join('');
+                        cnv.ctx.fillText(text, x * 128, y * 128 + i * 16 + 2);
+                    }
                 }
             }
 

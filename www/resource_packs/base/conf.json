@@ -46,7 +46,7 @@
         },
         "alphabet": {
             "canvas": {"width": 1024, "height": 1024},
-            "tx_cnt": 32
+            "tx_cnt": 8
         }
     }
 }
