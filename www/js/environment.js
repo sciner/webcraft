@@ -428,6 +428,10 @@ function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
 }
 
+function easeOutExpo(x) {
+    return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+}
+
 function luminance (color) {
     const r = color[0]
     const g = color[1];
@@ -770,7 +774,7 @@ export class Environment {
 
         base.eval(this._sunFactor);
 
-        const lum = base.color.lum() / this._refLum;
+        const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
 
         this._computedBrightness = lum;
 
