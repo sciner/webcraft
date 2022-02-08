@@ -18,6 +18,7 @@ export const PRESET_NAMES = {
     LAVA: 'lava'
 }
 
+
 export class FogPreset {
     /**
      *
@@ -76,7 +77,7 @@ export class FogPreset {
         }
 
         this.density    = this.preset.density;
-        this.illuminate = this.preset.illuminate || 0; 
+        this.illuminate = this.preset.illuminate || 0;
 
         return this;
     }
@@ -361,7 +362,7 @@ export class Gradient {
 
         factor = Mth.clamp(factor, 0, 1);
 
-        
+
         /*
         if (Math.abs(this._lastEvalFactor - factor) <= 1 / ((this._grad.length - 1) * 256)) {
             return;
@@ -422,49 +423,6 @@ export class Gradient {
         return new Gradient(this._grad);
     }
 }
-
-// fog not use alpha, we can set it for addColor
-// addColor will be interpolated with alpha
-// alpha is used for cool effect
-const ENV_GRAD_COLORS = {
-    [0]  : new Color(0x020202, 0),
-    [35] : new Color(0x250a07, 0.3),
-    [46] : new Color(0x963b25, 0.2),
-    [55] : new Color(0xe3ad59, 0.1),
-    [65] : new Color(0x76c2ff, 0.0), // as fog
-    [100]: new Color(0x76c2ff, 0.0), // as fog
-};
-
-export const FOG_PRESETS = {
-    [PRESET_NAMES.NORMAL]: {
-        color: ENV_GRAD_COLORS,
-        addColor: [0, 0, 0, 0],
-        density: 2.52 / 320,
-    },
-
-    [PRESET_NAMES.WATER]: {
-        color: [55 / 255, 100 / 255, 230 / 255, 0],
-        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
-        density: 0.1,
-        illuminate: 0.1,
-    },
-
-    [PRESET_NAMES.LAVA]: {
-        color: [255 / 255, 100 / 255, 20 / 255, 0.4],
-        addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
-        density: 0.5,
-        illuminate: 0.5,
-    }
-};
-
-export const SETTINGS = {
-    skyColor:               [0, 0, 0.8],
-    fog:                    'base', //for preset
-    fogDensity:             1, // multiplication
-    fogDensityUnderWater:   0.1,
-    chunkBlockDist:         8,
-    interpoateTime:         300,
-};
 
 function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
@@ -531,10 +489,53 @@ class PresetInterpolationTask extends InterpolateTask {
     }
 }
 
+// fog not use alpha, we can set it for addColor
+// addColor will be interpolated with alpha
+// alpha is used for cool effect
+const ENV_GRAD_COLORS = {
+    [0]  : new Color(0x020202, 0),
+    [35] : new Color(0x250a07, 0.35),
+    [46] : new Color(0x963b25, 0.25),
+    [55] : new Color(0xe3ad59, 0.15),
+    [65] : new Color(0x76c2ff, 0.0), // as fog
+    [100]: new Color(0x76c2ff, 0.0), // as fog
+};
+
+export const FOG_PRESETS = {
+    [PRESET_NAMES.NORMAL]: {
+        color: ENV_GRAD_COLORS,
+        addColor: [0, 0, 0, 0],
+        density: 2.52 / 320,
+    },
+
+    [PRESET_NAMES.WATER]: {
+        color: [55 / 255, 100 / 255, 230 / 255, 0],
+        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
+        density: 0.1,
+        illuminate: 0.1,
+    },
+
+    [PRESET_NAMES.LAVA]: {
+        color: [255 / 255, 100 / 255, 20 / 255, 0.4],
+        addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
+        density: 0.5,
+        illuminate: 0.5,
+    }
+};
+
+export const SETTINGS = {
+    skyColor:               [0, 0, 0.8],
+    fog:                    'base', //for preset
+    fogDensity:             1, // multiplication
+    fogDensityUnderWater:   0.1,
+    chunkBlockDist:         8,
+    interpoateTime:         300,
+};
+
 export class Environment {
     /**
-     * 
-     * @param {Renderer} context 
+     *
+     * @param {Renderer} context
      */
     constructor(context) {
         this.context = context;
@@ -593,7 +594,7 @@ export class Environment {
     get fogPresetRes() {
         const p = this.presets[this._currentPresetName];
 
-        return this._tasks.has('_interpolatedPreset') 
+        return this._tasks.has('_interpolatedPreset')
             ? this._interpolatedPreset || p
             : p;
     }
@@ -678,7 +679,7 @@ export class Environment {
      */
     _computeFogRelativeSun() {
         const world       = this.context.world;
-        const dayTimeTics = 24000; 
+        const dayTimeTics = 24000;
         const gameTime = world?.getTime();
 
         // in secs
@@ -763,7 +764,7 @@ export class Environment {
         const fogColor = p.color.toArray();
         const fogAdd = p.addColor.toArray();
 
-        // we use computed preset as base 
+        // we use computed preset as base
         // compute brightness realtive it
         const base = this.presets[PRESET_NAMES.NORMAL];
 
@@ -852,7 +853,7 @@ export class Environment {
         if (!this.skyBox) {
             return;
         }
-        
+
         const { width, height }  = render.renderBackend.size;
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
