@@ -2,6 +2,8 @@
 * Window Manager based ON 2D canvas 
 */
 
+import {RuneStrings} from "../../js/helpers.js";
+
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
 // Base window
@@ -476,7 +478,8 @@ export class Window {
         const x             = this.x + this.ax + this.style.padding.left;
         const y             = this.y + this.ay + this.style.padding.top;
         const lineHeight    = this.style.font.size * 1.25;
-        let currentLine     = 0;
+        //
+        let currentLine = 0;
         let texts = original_text.split("\r");
         for(let text of texts) {
             if(this.word_wrap) {
@@ -566,6 +569,7 @@ export class TextEdit extends Window {
         this.style.background.color = '#ffffff77';
         this.style.border.hidden = true;
         this.style.font.size = 19;
+        this.style.font.family = 'UbuntuMono-Regular';
         this.style.padding = {
             left: 5,
             right: 5,
@@ -627,20 +631,7 @@ export class TextEdit extends Window {
     // Draw
     draw(ctx, ax, ay) {
         const now = performance.now();
-        //
-        this.text = this.buffer.join('');
-        this.text = this.text.replaceAll("\r", "¡");
-        let temp = this.text.split(' ');
-        for(let i in temp) {
-            let word = temp[i];
-            if(word) {
-                let parts = word.match(/.{1,15}/g);
-                if(parts) {
-                    temp[i] = parts.join(' ');
-                }
-            }
-        }
-        this.text = temp.join(' ').replaceAll("¡", "\r");
+        this.text = RuneStrings.splitLongWords(this.buffer.join(''), 15);
         //
         let how_long_open = Math.round(now - this.create_time);
         if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {

@@ -237,7 +237,7 @@ export class Chat {
         hud.ctx.save();
 
         // Calc text size
-        hud.ctx.font            = Math.round(18 * this.zoom) + 'px Ubuntu';
+        hud.ctx.font            = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
 

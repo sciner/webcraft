@@ -213,7 +213,7 @@ export class HUD {
         if(Game.hud.width != new_width || Game.hud.height != new_height) {
             this.width  = this.ctx.canvas.width   = new_width;
             this.height = this.ctx.canvas.height  = new_height;
-            this.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
+            this.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
             Game.hud.wm.resize(this.width, this.height);
             this.refresh();
             // Vignette
@@ -240,7 +240,7 @@ export class HUD {
 
         // Set style
         this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = Math.round(20 * this.zoom) + 'px Ubuntu';
+        this.ctx.font           = Math.round(20 * this.zoom) + 'px ' + UI_FONT;
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
 

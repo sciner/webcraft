@@ -1,4 +1,4 @@
-import {DIRECTION} from '../helpers.js';
+import {DIRECTION, RuneStrings} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -11,6 +11,42 @@ const CONNECT_Z         = 2 / 16;
 const CONNECT_HEIGHT    = 8 / 16;
 const CONNECT_BOTTOM    = 9 / 16;
 const BOTTOM_HEIGHT     = .6;
+
+class AlphabetTexture {
+
+    static init() {
+        this.chars = new Map();
+        this.char_size = {width: 32, height: 32};
+        this.width = this.height = 1024;
+        this.chars_x = Math.floor(this.width / this.char_size.width);
+        if(AlphabetTexture.image) {
+            return;
+        }
+    }
+
+    static indexToPos(index) {
+        const x = (index % this.chars_x) * this.char_size.width;
+        const y = Math.floor(index / this.chars_x);
+        return {x: x, y: y};
+    }
+
+    static getStringUVs(str) {
+        this.init();
+        let chars = RuneStrings.toArray(str);
+        let resp = [];
+        for(let char of chars) {
+            if(!this.chars.has(char)) {
+                let pos = this.indexToPos(this.chars.size);
+                this.chars.set(char, pos);
+            }
+            resp.push(this.chars.get(char));
+        }
+        return resp;
+    }
+
+}
+
+console.log(AlphabetTexture.getStringUVs('Привет, Мир!!!'));
 
 // Табличка
 export default class style {
@@ -64,7 +100,11 @@ export default class style {
         }
 
         if(block.extra_data) {
-            console.log('extra_data', block.extra_data);
+            let text = block.extra_data?.text;
+            if(text) {
+                let chars = RuneStrings.toArray(text);
+                console.log(chars);
+            }
         }
 
         // Textures

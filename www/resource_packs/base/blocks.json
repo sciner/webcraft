@@ -4770,7 +4770,7 @@
         "spawnable": false,
         "material": {"id": "wood"},
         "texture": {
-            "id": "paintintg_frame",
+            "id": "painting_frame",
             "side": [29.5, 29.5]
         }
     },
@@ -5246,6 +5246,7 @@
         "transparent": true,
 		"can_rotate": true,
         "texture": {
+            "id": "alphabet",
             "side": [22, 19],
             "down": [22, 16]
         }

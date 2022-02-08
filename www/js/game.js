@@ -11,6 +11,7 @@ import {Hotbar} from "./hotbar.js";
 
 const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
+globalThis.UI_FONT = 'Ubuntu';
 
 // console.log(UI_ZOOM, RES_SCALE);
 

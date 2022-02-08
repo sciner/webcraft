@@ -1,9 +1,11 @@
 import {BLOCK} from "./blocks.js";
-import {Helpers} from './helpers.js';
+import {Helpers, RuneStrings} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 
 let tmpCanvas;
+
+const demo_runes = RuneStrings.toArray('😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ01234567890!')
 
 export class BaseResourcePack {
 
@@ -82,12 +84,61 @@ export class BaseResourcePack {
     }
 
     async _processTexture (textureInfo, renderBackend, settings) {
-        const {image, texture} = await this._loadTexture(
-            this.dir + textureInfo.image,
-            settings,
-            renderBackend
-        );
 
+        let image, texture;
+
+        if('canvas' in textureInfo) {
+            const cnv = textureInfo.canvas;
+            cnv.canvas = document.createElement('canvas');
+            cnv.canvas.width = cnv.width;
+            cnv.canvas.height = cnv.height;
+            cnv.ctx = cnv.canvas.getContext('2d');
+
+            // Fill magenta background
+            cnv.ctx.fillStyle = '#ff0088';
+            cnv.ctx.fillRect(0, 0, cnv.canvas.width, cnv.canvas.height);
+
+            // demo text
+            cnv.ctx.fillStyle = '#ffffffff';
+            cnv.ctx.textBaseline = 'bottom';
+            cnv.ctx.font = '18px Ubuntu';
+            let cnt = 0;
+            let demo_runes_count = demo_runes.length;
+            for(let x = 0; x < 64; x++) {
+                for(let y = 0; y < 64; y++) {
+                    let label = demo_runes[cnt++ % demo_runes_count];
+                    cnv.ctx.fillText(label, x * 16, y * 16);
+                }
+            }
+
+            const settings_for_canvas = {...settings};
+            settings_for_canvas.mipmap = false;
+
+            const texture = renderBackend.createTexture({
+                source: cnv.canvas,
+                style: this.genTextureStyle(cnv.canvas, settings_for_canvas),
+                minFilter: 'nearest',
+                magFilter: 'nearest',
+            });
+
+            textureInfo.texture = texture;
+            textureInfo.width   = cnv.width;
+            textureInfo.height  = cnv.height;
+            textureInfo.texture_n = null;
+            // textureInfo.imageData = cnv.ctx.getImageData(0, 0, cnv.width, cnv.height);
+
+            return;
+
+        } else {
+            let resp = await this._loadTexture(
+                this.dir + textureInfo.image,
+                settings,
+                renderBackend
+            );
+            image = resp.image;
+            texture = resp.texture;
+        }
+    
         textureInfo.texture = texture;
         textureInfo.width   = image.width;
         textureInfo.height  = image.height;
@@ -217,4 +268,5 @@ export class BaseResourcePack {
         let undef;
         return module.func(block, vertices, world, x, y, z, neighbours, biome, true, undef, undef, force_tex);
     }
+
 }

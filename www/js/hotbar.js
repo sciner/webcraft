@@ -106,7 +106,7 @@ export class Hotbar {
                 let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                 //
                 hud.ctx.textBaseline = 'bottom';
-                hud.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
+                hud.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
                 const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
                 // Measure text
                 if(!this.prevItemMeasure || this.prevItemMeasure.text != itemName) {

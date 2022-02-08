@@ -76,7 +76,7 @@ export class CraftTableSlot extends Label {
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = Math.round(18 * this.zoom) + 'px Ubuntu';
+            ctx.font                = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
             ctx.fillStyle           = '#000000ff';
             ctx.fillText(item.count, x + width + 2 * this.zoom, y + height + 2 * this.zoom);
             ctx.fillStyle           = '#ffffffff';

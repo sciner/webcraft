@@ -1,5 +1,6 @@
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
+import {default as runes} from "../vendors/runes.js";
 
 export const TX_CNT = 32;
 
@@ -1140,6 +1141,40 @@ export class FastRandom {
     int32(offset) {
         offset = Math.abs(offset) % this.cnt;
         return this.int32s[offset];
+    }
+
+}
+
+export class RuneStrings {
+
+    static toArray(str) {
+        return runes(str);
+    }
+
+    // Разделяет слово на строки, в которых максимум указанное в [chunk] количество букв (с учётом emoji)
+    static toChunks(str, chunk) {
+        const rs = runes(str);
+        if(rs.length > chunk) {
+            let i, j, resp = [];
+            for (i = 0, j = rs.length; i < j; i += chunk) {
+                resp.push(rs.slice(i, i + chunk).join(''));
+            }
+            return resp;
+        }
+        return [str];
+    }
+
+    // Разделяет длинные слова пробелами (с учётом emoji)
+    static splitLongWords(str, max_len) {
+        let text = str.replaceAll("\r", "¡");
+        let temp = text.split(' ');
+        for(let i in temp) {
+            let word = temp[i];
+            if(word) {
+                temp[i] = RuneStrings.toChunks(word, max_len).join(' ');
+            }
+        }
+        return temp.join(' ').replaceAll("¡", "\r");
     }
 
 }

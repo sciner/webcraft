@@ -82,7 +82,7 @@ export class Inventory extends PlayerInventory {
         const hud_pos = new Vector(pos.x, pos.y, 0);
         const DEST_SIZE = 64 * zoom;
         // style
-        hud.ctx.font            = Math.round(18 * zoom) + 'px Ubuntu';
+        hud.ctx.font            = Math.round(18 * zoom) + 'px ' + UI_FONT;
         hud.ctx.textAlign       = 'right';
         hud.ctx.textBaseline    = 'bottom';
         for(const k in this.items) {
@@ -136,7 +136,7 @@ export class Inventory extends PlayerInventory {
                 }
                 if(label) {
                     hud.ctx.textBaseline = 'bottom';
-                    hud.ctx.font = Math.round(18 * zoom) + 'px Ubuntu';
+                    hud.ctx.font = Math.round(18 * zoom) + 'px ' + UI_FONT;
                     hud.ctx.fillStyle = '#000000ff';
                     hud.ctx.fillText(label, hud_pos.x + cell_size - 5 * zoom, hud_pos.y + cell_size + shift_y * (zoom / 2));
                     hud.ctx.fillStyle = '#ffffffff';

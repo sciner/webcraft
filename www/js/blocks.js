@@ -315,11 +315,6 @@ export class BLOCK {
             let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
             return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
         }
-        if(block.tags.indexOf('sign') >= 0) {
-            if(block.id == replace_with_block_id) {
-                return true;
-            }
-        }
         return false;
     }
 
