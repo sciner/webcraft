@@ -83,6 +83,9 @@ void main() {
     // fog tint
     color = mix(color, u_fogColor.rgb, 1. - pow(1. - u_fogAddColor.a, 2.0));
 
+    // special effect for sunrise 
+    color = mix(color, u_fogColor.rgb, u_fogColor.a);
+
     outColor = vec4(color, 1.);
 
     #include<crosshair_call_func>

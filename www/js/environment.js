@@ -494,10 +494,10 @@ class PresetInterpolationTask extends InterpolateTask {
 // alpha is used for cool effect
 const ENV_GRAD_COLORS = {
     [0]  : new Color(0x020202, 0),
-    [35] : new Color(0x250a07, 0.35),
+    [35] : new Color(0x250a07, 0.15),
     [46] : new Color(0x963b25, 0.25),
-    [55] : new Color(0xe3ad59, 0.15),
-    [65] : new Color(0x76c2ff, 0.0), // as fog
+    [57] : new Color(0xe3ad59, 0.0),
+    [62] : new Color(0x76c2ff, 0.0), // as fog
     [100]: new Color(0x76c2ff, 0.0), // as fog
 };
 
