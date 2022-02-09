@@ -121,10 +121,10 @@ export default class style {
 
         if(draw_bottom) {
             matrix = mat4.create();
-            mat4.rotateY(matrix, matrix, Math.random() * 2 * Math.PI);
+            mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * -(2 * Math.PI));
         } else {
             aabb.translate(0, -(.2 + aabb.height) / 2, .5 - aabb.depth / 2);
-            matrix = CubeSym.matrices[CubeSym.dirAdd(block.rotate.x, CubeSym.ROT_Y2)];
+            matrix = CubeSym.matrices[CubeSym.dirAdd(Math.floor(block.rotate.x), CubeSym.ROT_Y2)];
         }
 
         // Center
@@ -191,8 +191,8 @@ export default class style {
                         aabb: aabb,
                         chars: AlphabetTexture.getStringUVs(text),
                         sign: AlphabetTexture.getStringUVs(
-                            new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10) + "\r" +
-                            block.extra_data.username
+                            block.extra_data.username + ' | ' +
+                            new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10)
                         )
                     },
                     new Vector(x, y, z),

@@ -783,16 +783,21 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             }
                         }
                     }
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                    if(matBlock.sound) {
-                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
-                    }
-                    if(matBlock.tags.indexOf('sign') >= 0) {
+                    const is_sign = matBlock.tags.indexOf('sign') >= 0;
+                    if(is_sign) {
+                        if(orientation.y != 0) {
+                            orientation.x = player.rotate.z / 90;
+                        }
+                        console.log('orientation', orientation, player.rotate.z);
                         let block_pos = new Vector(pos);
                         resp.open_window = {
                             id: 'frmEditSign',
                             args: {pos: block_pos}
                         };
+                    }
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    if(matBlock.sound) {
+                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
                     }
                     resp.decrement = true;
                 }
