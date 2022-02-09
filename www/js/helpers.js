@@ -18,11 +18,11 @@ export const TX_CNT = 32;
 
 /**
  * Lerp any value between
- * @param {*} a 
- * @param {*} b 
- * @param {number} t 
- * @param {*} res 
- * @returns 
+ * @param {*} a
+ * @param {*} b
+ * @param {number} t
+ * @param {*} res
+ * @returns
  */
 export function lerpComplex (a, b, t, res) {
     const typeA = typeof a;
@@ -48,7 +48,7 @@ export function lerpComplex (a, b, t, res) {
         res = res || [];
 
         for (let i = 0; i < Math.min(a.length, b.length); i ++) {
-            res[i] = a[i] * (1 - t) + b[i] * t;            
+            res[i] = a[i] * (1 - t) + b[i] * t;
         }
 
         return res;
@@ -57,7 +57,7 @@ export function lerpComplex (a, b, t, res) {
     res = res || {};
 
     for (const key in a) {
-        
+
         res[key] = lerpComplex(
             a[key],
             b[key],
@@ -72,11 +72,11 @@ export function lerpComplex (a, b, t, res) {
 export class Mth {
     /**
      * Lerp any value between
-     * @param {*} a 
-     * @param {*} b 
-     * @param {number} t 
-     * @param {*} res 
-     * @returns 
+     * @param {*} a
+     * @param {*} b
+     * @param {number} t
+     * @param {*} res
+     * @returns
      */
     static lerpComplex = lerpComplex;
 
@@ -95,10 +95,10 @@ export class Mth {
     }
 
     static clamp (value, min, max) {
-        return value < min 
+        return value < min
             ? min : (
-                value > max 
-                    ? max 
+                value > max
+                    ? max
                     : value
             );
     }
@@ -109,22 +109,22 @@ export class Mth {
 
     /**
      * Compute a distance between over minimal arc
-     * @param {number} current 
-     * @param {number} target 
-     * @returns {number} 
+     * @param {number} current
+     * @param {number} target
+     * @returns {number}
      */
     static deltaAngle(current, target) {
         const delta = Mth.repeat((target - current), 360.0);
 
-        return delta > 180 
-            ? delta - 360.0 
+        return delta > 180
+            ? delta - 360.0
             : delta;
     }
 
     /**
      * Lerp angle with over minimal distance
-     * @param {number} a - start angle 
-     * @param {number} b - target angle 
+     * @param {number} a - start angle
+     * @param {number} b - target angle
      * @param {number} t - lerp factor
      * @returns {number}
      */
@@ -340,10 +340,10 @@ export class Vector {
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
     /**
-     * 
-     * @param {Vector | {x: number, y: number, z: number} | number[]} [x] 
-     * @param {number} [y] 
-     * @param {number} [z] 
+     *
+     * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
+     * @param {number} [y]
+     * @param {number} [z]
      */
     constructor(x, y, z) {
         this.x = 0;
@@ -428,8 +428,8 @@ export class Vector {
      * @return {void}
      */
     lerpFromAngle(vec1, vec2, delta, rad = false) {
-        const coef = rad 
-            ? 180 / Math.PI 
+        const coef = rad
+            ? 180 / Math.PI
             : 1;
 
         this.x = Mth.lerpAngle(vec1.x * coef, vec2.x * coef, delta) / coef;
@@ -678,10 +678,10 @@ export class Vector {
     }
 
     /**
-     * 
-     * @param {Vector | {x: number, y: number, z: number} | number[]} x 
-     * @param {number} [y] 
-     * @param {number} [z] 
+     *
+     * @param {Vector | {x: number, y: number, z: number} | number[]} x
+     * @param {number} [y]
+     * @param {number} [z]
      */
     set(x, y = x, z = x) {
         if (typeof x == "object" && x) {
@@ -727,8 +727,8 @@ export class Vector {
     }
 
     /**
-     * 
-     * @param {Vector | number[] | {x: number, y: number, z: number}} from 
+     *
+     * @param {Vector | number[] | {x: number, y: number, z: number}} from
      */
     copy(from) {
         if (from == null) {
@@ -1037,7 +1037,7 @@ if(typeof fetch === 'undefined') {
         // then we can use this inside a worker
         if (useCache) {
             const text = await respt.text();
-            
+
             Helpers.cache.set(cacheKey, text);
 
             return JSON.parse(text);

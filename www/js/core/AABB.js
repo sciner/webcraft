@@ -23,9 +23,9 @@ const perMul = (a, b, out = []) => {
 
 /**
  * Dot arrays
- * @param {number[]} a 
- * @param {number[]} b 
- * @returns 
+ * @param {number[]} a
+ * @param {number[]} b
+ * @returns
  */
 const perDot = (a, b) => {
     const m = Math.min(a.length, b.length);
@@ -316,13 +316,13 @@ export function pushTransformed(
  */
 
 /**
- * 
- * @param {number[]} vertices 
- * @param {AABB} aabb 
- * @param {Vector | number[]} pivot 
- * @param {number[]} matrix 
- * @param {ISideSet} sides 
- * @param {boolean} [autoUV] 
+ *
+ * @param {number[]} vertices
+ * @param {AABB} aabb
+ * @param {Vector | number[]} pivot
+ * @param {number[]} matrix
+ * @param {ISideSet} sides
+ * @param {boolean} [autoUV]
  * @param {Vector | number[]} [center]
  */
 export function pushAABB(
@@ -381,7 +381,7 @@ export function pushAABB(
             uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
         } else {
             uvSize0 = uv[2];
-            uvSize1 = -uv[3];    
+            uvSize1 = -uv[3];
         }
 
         pushTransformed(
