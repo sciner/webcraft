@@ -1,5 +1,5 @@
 import {CubeSym} from "./CubeSym.js";
-import {MULTIPLY} from '../helpers.js';
+import {MULTIPLY, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4}      = glMatrix;
@@ -310,7 +310,23 @@ export function pushTransformed(
     );
 }
 
-export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
+/**
+ * Side params for cube
+ * @typedef {{up?: AABBSideParams, down?: AABBSideParams, south?: AABBSideParams, north: AABBSideParams, east?: AABBSideParams, west?: AABBSideParams}} ISideSet
+ */
+
+/**
+ * 
+ * @param {number[]} vertices 
+ * @param {AABB} aabb 
+ * @param {Vector | number[]} pivot 
+ * @param {number[]} matrix 
+ * @param {ISideSet} sides 
+ * @param {boolean} [autoUV] 
+ * @param {Vector | number[]} [center]
+ */
+export function pushAABB(
+    vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
 
     matrix = matrix || defaultMatrix;
 

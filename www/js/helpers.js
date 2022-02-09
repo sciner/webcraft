@@ -339,32 +339,55 @@ export class Vector {
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
+    /**
+     * 
+     * @param {Vector | {x: number, y: number, z: number} | number[]} [x] 
+     * @param {number} [y] 
+     * @param {number} [z] 
+     */
     constructor(x, y, z) {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
 
-        /*Vector.cnt++;
-        if(typeof window !== 'undefined') {
-            var err = new Error();
-            let stack = err.stack + '';
-            if(!Vector.traces.has(stack)) {
-                Vector.traces.set(stack, {count: 0});
-            }
-            Vector.traces.get(stack).count++;
-        }*/
+        this.set(x, y, z);
+    }
 
-        if(x instanceof Vector) {
-            this.x = x.x;
-            this.y = x.y;
-            this.z = x.z;
-            return;
-        } else if(typeof x == 'object') {
-            this.x = x.x;
-            this.y = x.y;
-            this.z = x.z;
-            return;
-        }
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+    //Array like proxy for usign it in gl-matrix
+    get [0]() {
+        return this.x;
+    }
+
+    set [0](v) {
+        this.x = v;
+    }
+
+    get [1]() {
+        return this.y;
+    }
+
+    set [1](v) {
+        this.y = v;
+    }
+
+    get [2]() {
+        return this.z;
+    }
+
+    set [2](v) {
+        this.z = v;
+    }
+
+    // array like iterator
+    *[Symbol.iterator]() {
+        yield this.x;
+        yield this.y;
+        yield this.z;
+    }
+
+    // array like object lenght
+    get length() {
+        return 3;
     }
 
     /**
@@ -654,7 +677,17 @@ export class Vector {
         return this;
     }
 
-    set(x, y, z) {
+    /**
+     * 
+     * @param {Vector | {x: number, y: number, z: number} | number[]} x 
+     * @param {number} [y] 
+     * @param {number} [z] 
+     */
+    set(x, y = x, z = x) {
+        if (typeof x == "object" && x) {
+            return this.copy(x);
+        }
+
         this.x = x;
         this.y = y;
         this.z = z;
@@ -691,6 +724,35 @@ export class Vector {
         const voly = Math.abs(this.y - vec.y) + 1;
         const volz = Math.abs(this.z - vec.z) + 1;
         return volx * voly * volz;
+    }
+
+    /**
+     * 
+     * @param {Vector | number[] | {x: number, y: number, z: number}} from 
+     */
+    copy(from) {
+        if (from == null) {
+            return this;
+        }
+
+        // array like object with length 3 or more
+        // for gl-matix
+        if (from.length >= 3) {
+            this.x = from[0];
+            this.y = from[1];
+            this.z = from[2];
+
+            return this;
+        }
+
+        // object is simple and has x, y, z props
+        if ('x' in from) {
+            this.x = from.x;
+            this.y = from.y;
+            this.z = from.z;
+        }
+
+        return this;
     }
 
 }
