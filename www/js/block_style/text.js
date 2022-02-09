@@ -103,7 +103,9 @@ export default class style {
                     north:  new AABBSideParams(c_empty, 0, 1),
                     west:   new AABBSideParams(c_empty, 0, 1),
                     east:   new AABBSideParams(c_empty, 0, 1),
-                }
+                },
+                false,
+                new Vector(x, y, z)
             );
             if(++cx == MAX_CHARS_PER_LINE || char.char == ' ' && cx > MAX_CHARS_PER_LINE * .8) {
                 wrap();

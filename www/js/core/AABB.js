@@ -299,7 +299,8 @@ export function pushTransformed(
     );
 }
 
-export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, autoUV) {
+export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
+
     matrix = matrix || defaultMatrix;
 
     let lm          = MULTIPLY.COLOR.WHITE;
@@ -308,6 +309,13 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     let x = aabb.x_min
     let y = aabb.y_min
     let z = aabb.z_min
+
+    if(center) {
+        aabb = new AABB().copyFrom(aabb);
+        aabb.translate(-center.x, -center.y, -center.z);
+    }
+
+    // pivot = pivot || [.5 * aabb.width, .5 * aabb.height, .5 * aabb.depth]
 
     if(!pivot) {
         let center = new Vector(
@@ -374,7 +382,7 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
             anim,
             // flags
             globalFlags | flag
-        );           
+        );
     }
 
 }

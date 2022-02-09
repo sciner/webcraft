@@ -128,7 +128,8 @@ export default class style {
                 west:   new AABBSideParams(c, 0, 1),
                 east:   new AABBSideParams(c, 0, 1),
             },
-            true
+            true,
+            new Vector(x, y, z)
         );
 
         // Push vertices down
@@ -145,7 +146,8 @@ export default class style {
                 west:   new AABBSideParams(c_down, 0, 1),
                 east:   new AABBSideParams(c_down, 0, 1),
             },
-            true
+            true,
+            new Vector(x, y, z)
         );
 
         // Return text block
