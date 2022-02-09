@@ -788,7 +788,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         if(orientation.y != 0) {
                             orientation.x = player.rotate.z / 90;
                         }
-                        console.log('orientation', orientation, player.rotate.z);
                         let block_pos = new Vector(pos);
                         resp.open_window = {
                             id: 'frmEditSign',
