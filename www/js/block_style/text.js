@@ -7,6 +7,7 @@ export default class style {
     static _aabb = new AABB();
     static _aabbc = new AABB();
     static _center = new Vector(0, 0, 0);
+    static _padding = new Vector(0, 0, 0);
 
     // getRegInfo
     static getRegInfo() {
@@ -32,7 +33,7 @@ export default class style {
         const LETTER_H              = (aabb.height / 4) * .7;
         const MAX_CHARS_PER_LINE    = 22;
         const LETTER_SPACING_MUL    = .5;
-        const PADDING               = new Vector(LETTER_W / 4, -LETTER_H / 4, 0);
+        const PADDING               = style._padding.set(LETTER_W / 4, -LETTER_H / 4, 0);
         const char_size             = AlphabetTexture.char_size_norm;
 
         // Letter position
