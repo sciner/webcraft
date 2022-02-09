@@ -4,6 +4,7 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3, mat4}      = glMatrix;
 const defaultPivot      = [0.5, 0.5, 0.5];
+const defalutCenter     = [0, 0, 0];
 const defaultMatrix     = mat4.create();
 const tempMatrix        = mat3.create();
 
@@ -89,14 +90,14 @@ export class AABB {
     }
 
     get center() {
-        if(this._center) {
-            return this._center;
-        }
-        return this._center = new Vector(
-            this.x_max - this.width / 2,
-            this.y_max - this.height / 2,
-            this.z_max - this.depth / 2,
+        this._center = this._center ||  new Vector(0,0,0);
+        this._center.set(
+            this.x_min + this.width / 2,
+            this.y_min + this.height / 2,
+            this.z_min + this.depth / 2,
         );
+
+        return this._center;
     }
 
     clone() {
@@ -329,6 +330,7 @@ export function pushAABB(
     vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
 
     matrix = matrix || defaultMatrix;
+    center = center || defalutCenter;
 
     let lm              = MULTIPLY.COLOR.WHITE;
     let globalFlags     = 0;
@@ -338,7 +340,7 @@ export function pushAABB(
 
     if(center) {
         aabb = new AABB().copyFrom(aabb);
-        aabb.translate(-center.x, -center.y, -center.z);
+        aabb.translate(-center[0], -center[1], -center[2]);
     }
 
     // pivot = pivot || [.5 * aabb.width, .5 * aabb.height, .5 * aabb.depth]
