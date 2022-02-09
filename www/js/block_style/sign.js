@@ -159,7 +159,7 @@ export default class style {
                         aabb: aabb,
                         chars: AlphabetTexture.getStringUVs(text),
                         sign: AlphabetTexture.getStringUVs(
-                            new Date(block.extra_data.dt).toISOString().slice(0, 10) + "\r" +
+                            new Date(block.extra_data.dt || Date.now()).toISOString().slice(0, 10) + "\r" +
                             block.extra_data.username
                         )
                     },

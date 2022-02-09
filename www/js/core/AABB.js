@@ -2,40 +2,11 @@ import {CubeSym} from "./CubeSym.js";
 import {MULTIPLY, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
-const {mat3, mat4}      = glMatrix;
+const {mat3, mat4, vec3}      = glMatrix;
 const defaultPivot      = [0.5, 0.5, 0.5];
 const defalutCenter     = [0, 0, 0];
 const defaultMatrix     = mat4.create();
 const tempMatrix        = mat3.create();
-
-/**
- * Multiple arrays between by minimal lenght
- * @param {number[]} a
- * @param {number[]} b
- * @param {number[]} out
- */
-const perMul = (a, b, out = []) => {
-    const m = Math.min(a.length, b.length);
-    for(let i = 0; i < m; i ++) {
-        out[i] = a[i] * b[i];
-    }
-    return out;
-}
-
-/**
- * Dot arrays
- * @param {number[]} a
- * @param {number[]} b
- * @returns
- */
-const perDot = (a, b) => {
-    const m = Math.min(a.length, b.length);
-    let out = 0;
-    for(let i = 0; i < m; i ++) {
-        out += a[i] * b[i];
-    }
-    return out;
-}
 
 const PLANES = {
     up: {
@@ -75,6 +46,19 @@ export class AABB {
         this.x_max = 0;
         this.y_max = 0;
         this.z_max = 0;
+    }
+
+    /**
+     * @type {Vector}
+     */
+    get size() {
+        this._size = this._size || new Vector(0,0,0);
+
+        this._size.x = this.width;
+        this._size.y = this.height;
+        this._size.z = this.depth;
+
+        return this._size;
     }
 
     get width() {
@@ -208,8 +192,16 @@ export class AABB {
         return this.applyMatrix(CubeSym.matrices[sym], pivot);
     }
 
-    toArray() {
-        return [this.x_min, this.y_min, this.z_min, this.x_max, this.y_max, this.z_max];
+    toArray(target = []) {
+        target[0] = this.x_min;
+        target[1] = this.y_min;
+        target[2] = this.z_min;
+
+        target[3] = this.x_max;
+        target[4] = this.y_max;
+        target[5] = this.z_max;
+
+        return target;
     }
 
     translate(x, y, z) {
@@ -324,46 +316,36 @@ export function pushTransformed(
  * @param {number[]} matrix
  * @param {ISideSet} sides
  * @param {boolean} [autoUV]
- * @param {Vector | number[]} [center]
+ * @param {Vector | number[]} [center] - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
 export function pushAABB(
     vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;
+    pivot  = pivot  || defaultPivot; 
 
-    let lm              = MULTIPLY.COLOR.WHITE;
-    let globalFlags     = 0;
-    let x               = aabb.x_min;
-    let y               = aabb.y_min;
-    let z               = aabb.z_min;
-
-    if(center) {
-        aabb = new AABB().copyFrom(aabb);
-        aabb.translate(-center[0], -center[1], -center[2]);
-    }
-
-    // pivot = pivot || [.5 * aabb.width, .5 * aabb.height, .5 * aabb.depth]
-
-    if(!pivot) {
-        const aabb_center = aabb.center;
-        pivot = [
-            .5 - aabb_center.x + aabb.width / 2,
-            .5 - aabb_center.y + aabb.height / 2,
-            .5 - aabb_center.z + aabb.depth / 2,
-        ];
-    }
+    const lm              = MULTIPLY.COLOR.WHITE;
+    const globalFlags     = 0;
+    const x               = center.x;
+    const y               = center.y;
+    const z               = center.z;
 
     const size = [
-        aabb.width,
-        aabb.depth,
+        aabb.width, 
+        aabb.depth, // fucking flipped ZY
         aabb.height
     ];
 
-    const tmp3 = [];
+    // distance from center to minimal position
+    const dist = [
+        aabb.x_min - x,
+        aabb.z_min - z, // fucking flipped ZY
+        aabb.y_min - y
+    ];
 
-    for(const key in PLANES) {
-        if (!(key in sides)) {
+    for(const key in sides) {
+        if (!(key in PLANES)) {
             continue;
         }
 
@@ -379,8 +361,8 @@ export function pushAABB(
         let uvSize1;
 
         if(autoUV) {
-            uvSize0 = -perDot(axes[0], size) * Math.abs(uv[2]);
-            uvSize1 = -perDot(axes[1], size) * Math.abs(uv[3]);
+            uvSize0 = -vec3.dot(axes[0], size) * Math.abs(uv[2]);
+            uvSize1 = -vec3.dot(axes[1], size) * Math.abs(uv[3]);
         } else {
             uvSize0 = uv[2];
             uvSize1 = -uv[3];
@@ -391,11 +373,17 @@ export function pushAABB(
             // center
             x, z, y,
             // offset
-            ...perMul(size, offset, tmp3),
+            size[0] * offset[0] + dist[0],
+            size[1] * offset[1] + dist[1],
+            size[2] * offset[2] + dist[2],
             // axisx
-            ...perMul(size, axes[0], tmp3),
+            size[0] * axes[0][0],
+            size[1] * axes[0][1],
+            size[2] * axes[0][2],
             //axisY
-            ...perMul(size, axes[1], tmp3),
+            size[0] * axes[1][0],
+            size[1] * axes[1][1],
+            size[2] * axes[1][2],
             // UV center
             uv[0], uv[1],
             // UV size
