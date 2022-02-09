@@ -29,8 +29,6 @@ class FakeBlock {
 
 };
 
-// console.log(AlphabetTexture.getStringUVs('Привет, Мир!!!'));
-
 // Табличка
 export default class style {
 
@@ -157,8 +155,13 @@ export default class style {
                 return [new FakeBlock(
                     BLOCK.TEXT.id,
                     {
+                        ...block.extra_data,
                         aabb: aabb,
-                        chars: AlphabetTexture.getStringUVs(text)
+                        chars: AlphabetTexture.getStringUVs(text),
+                        sign: AlphabetTexture.getStringUVs(
+                            new Date(block.extra_data.dt).toISOString().slice(0, 10) + "\r" +
+                            block.extra_data.username
+                        )
                     },
                     new Vector(x, y, z),
                     block.rotate,

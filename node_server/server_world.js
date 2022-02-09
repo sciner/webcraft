@@ -140,6 +140,7 @@ export class ServerWorld {
                     const player = {
                         radius:     0.7,
                         height:     server_player.height,
+                        username:   server_player.session.username,
                         pos:        new Vector(server_player.state.pos),
                         rotate:     server_player.rotateDegree.clone()
                     };

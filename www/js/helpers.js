@@ -1188,14 +1188,14 @@ export class AlphabetTexture {
     static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
     static chars            = new Map();
 
-    static default_runes = RuneStrings.toArray('абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖХИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾0123456789~`@#№$;:\\/*-+()[]-_&?%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ');
+    static default_runes = RuneStrings.toArray('�•█абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖХИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾0123456789~`@#№$;:\\/*-+()[]-^_&?!%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ');
 
     static init() {
         if(this.chars_x) {
             return false;
         }
         this.chars_x = Math.floor(this.width / this.char_size.width);
-        this.getStringUVs(AlphabetTexture.default_runes.join(''));
+        this.getStringUVs(AlphabetTexture.default_runes.join(''), true);
     }
 
     static indexToPos(index) {
@@ -1204,21 +1204,26 @@ export class AlphabetTexture {
         return {x: x, y: y};
     }
 
-    static getStringUVs(str) {
+    static getStringUVs(str, init_new) {
         this.init();
         let chars = RuneStrings.toArray(str);
         let resp = [];
         for(let char of chars) {
-            if(!this.chars.has(char)) {
+            if(init_new && !this.chars.has(char)) {
                 const index = this.chars.size;
                 let pos = this.indexToPos(index);
-                pos.xn = pos.x / 1024;
-                pos.yn = pos.y / 1024;
+                pos.xn = pos.x / this.width;
+                pos.yn = pos.y / this.height;
                 pos.char = char;
                 pos.index = index;
                 this.chars.set(char, pos);
             }
-            resp.push(this.chars.get(char));
+            let item = this.chars.get(char) || this.chars.get('�');
+            if(char == "\r") {
+                item.char = char;
+            }
+            // item.char = char;
+            resp.push(item);
         }
         return resp;
     }

@@ -31,7 +31,6 @@ export default class style {
 
         const LETTER_W              = (aabb.width / 8) * .7;
         const LETTER_H              = (aabb.height / 4) * .7;
-        const MAX_CHARS_PER_LINE    = 22;
         const LETTER_SPACING_MUL    = .5;
         const PADDING               = style._padding.set(LETTER_W / 4, -LETTER_H / 4, 0);
         const char_size             = AlphabetTexture.char_size_norm;
@@ -40,9 +39,17 @@ export default class style {
         let cx                      = 0;
         let cy                      = 0;
 
+        function wrap() {
+            cx = 0;
+            cy++;
+        }
+
         // Each over all text chars
         for(let char of block.extra_data.chars) {
-
+            if(char.char == "\r") {
+                wrap();
+                continue;
+            }
             // Letter texture
             let c = [
                 char.xn + char_size.width / 2,
@@ -50,7 +57,6 @@ export default class style {
                 char_size.width,
                 char_size.height
             ];
-
             // Letter position
             aabbc.copyFrom(aabb);
             aabbc.x_min += (cx * LETTER_W) * LETTER_SPACING_MUL;
@@ -58,7 +64,6 @@ export default class style {
             aabbc.y_min = aabbc.y_max - (cy+1) * LETTER_H;
             aabbc.y_max = aabbc.y_min + LETTER_H;
             aabbc.translate(PADDING.x, PADDING.y, PADDING.z);
-
             // Push letter vertices
             pushAABB(
                 vertices,
@@ -71,13 +76,47 @@ export default class style {
                 false,
                 center
             );
+            cx++;
+        }
 
-            // Wrap to next line if current is full
-            if(++cx == MAX_CHARS_PER_LINE || char.char == ' ' && cx > MAX_CHARS_PER_LINE * .8) {
-                cy++;
-                cx = 0;
+        // Draw signature and date on backside
+        cx = 0;
+        cy = 8;
+        const sign = block.extra_data.sign;
+        const SCALE_SIGN = 2;
+        for(let i in sign) {
+            const char = sign[sign.length - 1 - i];
+            if(char.char == "\r") {
+                wrap();
+                continue;
             }
-
+            // Letter texture
+            let c = [
+                char.xn + char_size.width / 2,
+                char.yn + char_size.height / 2,
+                -char_size.width,
+                -char_size.height
+            ];
+            // Letter position
+            aabbc.copyFrom(aabb);
+            aabbc.x_min += (cx * LETTER_W) * (LETTER_SPACING_MUL / SCALE_SIGN);
+            aabbc.x_max = aabbc.x_min + LETTER_W / SCALE_SIGN;
+            aabbc.y_min = aabbc.y_max - (cy+1) * LETTER_H / SCALE_SIGN;
+            aabbc.y_max = aabbc.y_min + LETTER_H / SCALE_SIGN;
+            aabbc.translate(PADDING.x, PADDING.y, PADDING.z);
+            // Push letter vertices
+            pushAABB(
+                vertices,
+                aabbc,
+                pivot,
+                matrix,
+                {
+                    north:  new AABBSideParams(c, 0, 1)
+                },
+                false,
+                center
+            );
+            cx++;
         }
 
         return null;

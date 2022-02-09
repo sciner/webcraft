@@ -10,13 +10,13 @@ export class EditSignWindow extends Window {
 
         this.width *= this.zoom;
         this.height *= this.zoom;
-        this.style.background.image_size_mode = 'stretch';
 
         // Get window by ID
         const ct = this;
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/edit_sign_oak.png');
+        ct.style.background.image_size_mode = 'stretch';
+        ct.setBackground('./media/gui/form-empty.png');
         ct.hide();
 
         // Hook for keyboard input
@@ -33,22 +33,24 @@ export class EditSignWindow extends Window {
             return false;
         }
 
-        // Обработчик закрытия формы
-        //this.onHide = function() {
-        //}
-
         // Add labels to window
-        let lbl1 = new Label(135 * this.zoom, 12 * this.zoom, 80 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit signature');
-        // lbl1.style.font.size *= 1.5;
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 120 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Edit sign text');
         ct.add(lbl1);
 
         // Text editors
-        let margin          = (this.width / this.zoom) / 48 * 2;
-        let textEditHeight  = margin * 6; // 100;
-        const txtEdit1 = new TextEdit(margin * this.zoom, 40 * this.zoom, this.width - (margin * 2) * this.zoom, textEditHeight * this.zoom, 'txtEdit1', null, 'Hello, World!');
-        txtEdit1.word_wrap = true;
-        txtEdit1.style.font.size *= this.zoom;
-        txtEdit1.focused = true;
+        const margin            = 14; // (this.width / this.zoom) / 48 * 2;
+        const textEditWidth     = 200 * this.zoom;
+        const textEditHeight    = textEditWidth / 2;
+        const txtEdit1 = new TextEdit(this.width / 2 - textEditWidth / 2, 40 * this.zoom, textEditWidth, textEditHeight, 'txtEdit1', null, 'Hello, World!');
+        txtEdit1.word_wrap          = true;
+        txtEdit1.style.color        = '#ffffff';
+        txtEdit1.focused            = true;
+        txtEdit1.max_length         = 100;
+        txtEdit1.max_lines          = 5;
+        txtEdit1.max_chars_per_line = 20;
+        txtEdit1.style.font.size    *= this.zoom;
+        txtEdit1.style.background.image_size_mode = 'stretch';
+        txtEdit1.setBackground('./media/gui/edit_sign_oak.png');
         ct.add(txtEdit1);
 
         // Обработчик открытия формы
@@ -64,19 +66,22 @@ export class EditSignWindow extends Window {
             const block = Game.world.getBlock(pos);
             if(block.material.tags.indexOf('sign') >= 0) {
                 let extra_data = block.extra_data || {};
-                extra_data.text = txtEdit1.buffer.join('');
+                const lines = txtEdit1.calcPrintLines(txtEdit1.buffer.join(''));
+                extra_data.text = lines.join("\r");
                 Game.world.changeBlockExtraData(pos, extra_data);
             }
         }
+
+        // Ширина / высота слота
+        this.cell_size = 36 * this.zoom;
 
         // Add close button
         this.loadCloseButtonImage((image) => {
             // Add buttons
             const ct = this;
-            // Close button
-            const bs = 20; // margin * 1.5;
-            let btnClose = new Button(ct.width - (margin + bs) * this.zoom, 9 * this.zoom, bs * this.zoom, bs * this.zoom, 'btnClose', '');
+            let btnClose = new Button(ct.width - this.cell_size, 9 * this.zoom, 20 * this.zoom, 20 * this.zoom, 'btnClose', '');
             btnClose.style.font.family = 'Arial';
+            btnClose.style.background.image_size_mode = 'stretch';
             btnClose.style.background.image = image;
             btnClose.onDrop = btnClose.onMouseDown = function(e) {
                 ct.hide();

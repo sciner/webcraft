@@ -64,6 +64,7 @@ export class Chunk {
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
         this.id = this.addr.toHash();
+        this.emitted_blocks = new VectorCollector();
     }
 
     init() {
@@ -208,6 +209,7 @@ export class Chunk {
         block.entity_id  = entity_id;
         block.texture    = null;
         block.extra_data = extra_data;
+        this.emitted_blocks.delete(block.pos);
     }
 
     // Возвращает всех 6-х соседей блока
@@ -319,7 +321,6 @@ export class Chunk {
 
         // Add vertices for blocks
         this.vertices = new Map();
-        this.emitted_blocks = this.emitted_blocks || new VectorCollector();
 
         this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),

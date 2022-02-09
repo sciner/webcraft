@@ -349,7 +349,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone' || block.style == 'text') {
+        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
             group = 'doubleface';
         }
         return group;

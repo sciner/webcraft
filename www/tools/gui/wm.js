@@ -31,9 +31,11 @@ export class Window {
         this.parent         = null;
         this.scrollX        = 0;
         this.scrollY        = 0;
+        this.max_chars_per_line = 0;
         this.onHide         = function() {};
         this.onShow         = function() {};
         this.onMouseEnter   = function() {};
+        this.create_time    = performance.now();
         this.onMouseLeave   = () => {
             for(let w of this.list.values()) {
                 if(w.hover) {
@@ -241,9 +243,9 @@ export class Window {
             }
 
         }
-        if(this.title || this.text) {
-            this.applyStyle(ctx, ax, ay);
-        }
+        //if(this.title || this.text) {
+        this.applyStyle(ctx, ax, ay);
+        //}
         // Draw title
         if(this.title) {
             ctx.fillStyle = this.style.color;
@@ -259,9 +261,9 @@ export class Window {
             ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
         }
         // print text
-        if(this.text) {
-            this.print(this.text);
-        }
+        //if(this.text) {
+        this.print(this.text);
+        //}
         // draw border
         if(!this.style.border.hidden) {
             ctx.beginPath(); // Start a new path
@@ -467,52 +469,78 @@ export class Window {
         }
         this.onWheel(e);
     }
+    calcPrintLines(original_text) {
+        if(!this.word_wrap || !this.ctx) {
+            return [original_text];
+        }
+        let currentLine = 0;
+        const lines = [''];
+        //
+        this.applyStyle(this.ctx, 0, 0);
+        if(this.max_chars_per_line > 0) {
+            original_text = RuneStrings.splitLongWords(original_text, this.max_chars_per_line);
+        }
+        //
+        function addLine() {
+            currentLine++;
+            if(lines.length < currentLine + 1) {
+                lines.push('');
+            }
+        }
+        let texts = original_text.split("\r");
+        for(let text of texts) {
+            let words = (text + '').split(' ');
+            let idx = 1;
+            if(words.length > 1) {
+                while(words.length > 0 && idx <= words.length) {
+                    let str = words.slice(0, idx).join(' ');
+                    let w = this.ctx.measureText(str).width;
+                    // Wrap to next line if current is full
+                    if(w > this.width - 20) {
+                        if(idx == 1) {
+                            idx = 2;
+                        }
+                        let print_word = words.slice(0, idx - 1).join(' ');
+                        lines[currentLine] += print_word;
+                        addLine();
+                        words = words.splice(idx - 1);
+                        idx = 1;
+                    } else {
+                        idx++;
+                    }
+                }
+            }
+            if(idx > 0) {
+                lines[currentLine] += words.join(' ');
+            }
+            addLine();
+        }
+        lines.pop();
+        return lines;
+    }
     print(original_text) {
         if(!this.ctx) {
             console.error('Empty context');
             return;
         }
-        if(!original_text) {
-            return;
-        }
         const x             = this.x + this.ax + this.style.padding.left;
         const y             = this.y + this.ay + this.style.padding.top;
-        const lineHeight    = this.style.font.size * 1.25;
-        //
-        let currentLine = 0;
-        let texts = original_text.split("\r");
-        for(let text of texts) {
-            if(this.word_wrap) {
-                let words           = (text + '').split(' ');
-                let idx             = 1;
-                if(words.length > 1) {
-                    while(words.length > 0 && idx <= words.length) {
-                        let str = words.slice(0, idx).join(' ');
-                        let w = this.ctx.measureText(str).width;
-                        if(w > this.width - 20) {
-                            if(idx == 1) {
-                                idx = 2;
-                            }
-                            let print_word = words.slice(0, idx - 1).join(' ');
-                            this.ctx.fillText(print_word, x, y + (lineHeight * currentLine));
-                            currentLine++;
-                            words = words.splice(idx - 1);
-                            idx = 1;
-                        } else {
-                            idx++;
-                        }
-                    }
-                }
-                if(idx > 0) {
-                    this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
-                }
-            } else {
-                this.ctx.fillText(text, x, y + (lineHeight * currentLine));
+        const lineHeight    = this.style.font.size * 1.05;
+        const lines         = this.calcPrintLines(original_text || '');
+        // Draw cariage symbol
+        if(this.draw_cariage) {
+            const now = performance.now();
+            let how_long_open = Math.round(now - this.create_time);
+            if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
+                lines[lines.length - 1] += '_';
             }
-            currentLine++;
+        }
+        // Print lines
+        for(let i in lines) {
+            const line = lines[i];
+            this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
-
     loadCloseButtonImage(callback) {
         if(this._loadCloseButtonImage) {
             callback(this._loadCloseButtonImage);
@@ -564,6 +592,11 @@ export class TextEdit extends Window {
     constructor(x, y, w, h, id, title, text) {
 
         super(x, y, w, h, id, title, text);
+
+        this.max_length         = 0;
+        this.max_lines          = 0;
+        this.max_chars_per_line = 0;
+        this.draw_cariage       = true;
 
         // Styles
         this.style.background.color = '#ffffff77';
@@ -619,24 +652,23 @@ export class TextEdit extends Window {
             if(charCode == 13) {
                 return false;
             }
-            if(this.buffer.length < 128) {
+            if(this.buffer.length < this.max_length || this.max_length == 0) {
+                if(this.max_lines > 0) {
+                    const ot = this.buffer.join('') + ch;
+                    const lines = this.calcPrintLines(ot);
+                    if(lines.length > this.max_lines) {
+                        return;
+                    }
+                }
                 this.buffer.push(ch);
             }
         }
-
-        this.create_time = performance.now();
 
     }
 
     // Draw
     draw(ctx, ax, ay) {
-        const now = performance.now();
-        this.text = RuneStrings.splitLongWords(this.buffer.join(''), 15);
-        //
-        let how_long_open = Math.round(now - this.create_time);
-        if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
-            this.text += '_';
-        }
+        this.text = this.buffer.join('');
         //
         this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
         super.draw(ctx, ax, ay);

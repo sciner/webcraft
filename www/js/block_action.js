@@ -325,7 +325,12 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         if(e?.extra_data?.text) {
             extra_data.text = e?.extra_data?.text || '';
             if(typeof extra_data.text == 'string') {
-                resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                if(extra_data.text.length <= 110) {
+                    var date = new Date();
+                    extra_data.username = player.username;
+                    extra_data.dt = date.toISOString();
+                    resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
             }
         }
     // Edit trapdoor

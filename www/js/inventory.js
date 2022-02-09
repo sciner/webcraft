@@ -165,7 +165,7 @@ export class Inventory extends PlayerInventory {
         this.frmChest = new ChestWindow(10, 10, 352, 332, 'frmChest', null, null, this);
         this.hud.wm.add(this.frmChest);
         // Edit sign
-        this.frmEditSign = new EditSignWindow(10, 10, 384, 192, 'frmEditSign', null, null, this);
+        this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
         this.hud.wm.add(this.frmEditSign);
     }
 
