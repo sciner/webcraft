@@ -1182,15 +1182,18 @@ export class RuneStrings {
 // AlphabetTexture
 export class AlphabetTexture {
 
+    static width            = 1024;
+    static height           = 1024;
+    static char_size        = {width: 32, height: 32};
+    static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
+    static chars            = new Map();
+
     static default_runes = RuneStrings.toArray('абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖХИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾0123456789~`@#№$;:\\/*-+()[]-_&?%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ');
 
     static init() {
-        if(this.chars) {
+        if(this.chars_x) {
             return false;
         }
-        this.chars = new Map();
-        this.char_size = {width: 32, height: 32};
-        this.width = this.height = 1024;
         this.chars_x = Math.floor(this.width / this.char_size.width);
         this.getStringUVs(AlphabetTexture.default_runes.join(''));
     }

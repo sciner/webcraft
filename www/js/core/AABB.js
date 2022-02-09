@@ -88,6 +88,17 @@ export class AABB {
         return this.z_max - this.z_min;
     }
 
+    get center() {
+        if(this._center) {
+            return this._center;
+        }
+        return this._center = new Vector(
+            this.x_max - this.width / 2,
+            this.y_max - this.height / 2,
+            this.z_max - this.depth / 2,
+        );
+    }
+
     clone() {
         return new AABB().copyFrom(this);
     }
@@ -303,12 +314,11 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
 
     matrix = matrix || defaultMatrix;
 
-    let lm          = MULTIPLY.COLOR.WHITE;
-    let globalFlags       = 0;
-
-    let x = aabb.x_min
-    let y = aabb.y_min
-    let z = aabb.z_min
+    let lm              = MULTIPLY.COLOR.WHITE;
+    let globalFlags     = 0;
+    let x               = aabb.x_min;
+    let y               = aabb.y_min;
+    let z               = aabb.z_min;
 
     if(center) {
         aabb = new AABB().copyFrom(aabb);
@@ -318,15 +328,11 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     // pivot = pivot || [.5 * aabb.width, .5 * aabb.height, .5 * aabb.depth]
 
     if(!pivot) {
-        let center = new Vector(
-            aabb.x_max - aabb.width / 2,
-            aabb.y_max - aabb.height / 2,
-            aabb.z_max - aabb.depth / 2,
-        );
+        const aabb_center = aabb.center;
         pivot = [
-            .5 - center.x + aabb.width / 2,
-            .5 - center.y + aabb.height / 2,
-            .5 - center.z + aabb.depth / 2,
+            .5 - aabb_center.x + aabb.width / 2,
+            .5 - aabb_center.y + aabb.height / 2,
+            .5 - aabb_center.z + aabb.depth / 2,
         ];
     }
 
@@ -339,9 +345,9 @@ export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, aut
     const tmp3 = [];
 
     for(const key in PLANES) {
-        if (!key in sides) {
-            break;
-        } 
+        if (!(key in sides)) {
+            continue;
+        }
 
         const {
             axes, offset,
