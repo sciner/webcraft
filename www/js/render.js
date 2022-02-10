@@ -57,7 +57,7 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
-        this.env                = new Environment();
+        this.env                = new Environment(this);
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -255,8 +255,7 @@ export class Renderer {
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
-        gu.testLightOn = true;
-        gu.fogColor = [0, 0, 0, 1];
+        gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
@@ -524,7 +523,7 @@ export class Renderer {
         globalUniforms.update();
 
         renderBackend.beginPass({
-            fogColor : this.env.actualFogColor
+            fogColor : this.env.interpolatedClearValue
         });
 
         this.env.draw(this);

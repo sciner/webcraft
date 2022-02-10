@@ -767,9 +767,10 @@ export let MULTIPLY = {
 };
 
 export let QUAD_FLAGS = {}
-    QUAD_FLAGS.NORMAL_UP = 1;
-    QUAD_FLAGS.MASK_BIOME = 2;
-    QUAD_FLAGS.NO_AO = 4;
+    QUAD_FLAGS.NORMAL_UP = 1 << 0;
+    QUAD_FLAGS.MASK_BIOME = 1 << 1;
+    QUAD_FLAGS.NO_AO = 1 << 2;
+    QUAD_FLAGS.NO_FOG = 1 << 3;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

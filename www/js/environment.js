@@ -1,13 +1,15 @@
+//@ts-check
 import { lerpComplex, Mth } from "./helpers.js";
+import { Renderer } from "./render.js";
 import { GlobalUniformGroup } from "./renders/BaseRenderer.js";
 import { Resources } from "./resources.js";
 
 /**
- * @typedef {object} FogPreset
- * @property {boolean} [computed] compute fog value from env gradient
- * @property {[number,number, number, number ]} color
- * @property {[number,number, number, number ]} addColor
+ * @typedef {object} IFogPreset
+ * @property {[number,number, number, number ] | Gradient | Color | IAnyColorRecordMap} color: ;
+ * @property {[number,number, number, number ] | Gradient | Color | number | IAnyColorRecordMap} addColor
  * @property {number} density
+ * @property {number} [illuminate]
  */
 
 export const PRESET_NAMES = {
@@ -16,63 +18,418 @@ export const PRESET_NAMES = {
     LAVA: 'lava'
 }
 
-const ENV_GRAD_COLORS = Object.entries({
-    [0]: 0x020202,
-    [35]: 0x250a07,
-    [46]: 0x963b25,
-    [55]: 0xe3ad59,
-    [65]: 0x76c2ff, // as fog
-    [100]: 0x76c2ff, // as fog
-})
-.map(([key, color]) => ({
-        pos: +key / 100,
-        value: [
-            (color >> 16 & 0xff) / 0xff,
-            (color >> 8 & 0xff) / 0xff,
-            (color & 0xff) / 0xff
-        ]
-    })
-);
 
-export const FOG_PRESETS = {
-    [PRESET_NAMES.NORMAL]: {
-        // PLZ, not enable yet
-        computed: false, // disable temporary, for computed a color shpuld be ENV_GRAD_COLORS
-        color: [118 / 255, 194 / 255, 255 / 255, 1],
-        addColor: [0, 0, 0, 0],
-        density: 2.52 / 320,
-    },
+export class FogPreset {
+    /**
+     *
+     * @param {IFogPreset} [fogPreset]
+     */
+    constructor(fogPreset = null) {
+        this.color    = new Color();
+        this.addColor = new Color();
+        this.density  = 0;
+        this.illuminate = 0;
 
-    [PRESET_NAMES.WATER]: {
-        computed: false,
-        color: [55 / 255, 100 / 255, 230 / 255, 1],
-        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
-        density: 0.1
-    },
+        this.hasAddColor = false;
+        this.addColorAlpha = 1;
 
-    [PRESET_NAMES.LAVA]: {
-        computed: false,
-        color: [255 / 255, 100 / 255, 20 / 255, 1],
-        addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
-        density: 0.5
+        /**
+         * @type {IFogPreset}
+         */
+        this._preset = null;
+
+        this._lastEvalFactor = -1;
+
+        this.set(fogPreset);
     }
-};
 
-export const SETTINGS = {
-    skyColor:               [0, 0, 0.8],
-    fog:                    'base', //for preset
-    fogDensity:             1, // multiplication
-    fogDensityUnderWater:   0.1,
-    chunkBlockDist:         8,
-    interpoateTime:         300,
-};
+    /**
+     *
+     * @param {number} factor
+     * @returns
+     */
+    eval(factor = 0) {
+        return this._eval(factor);
+    }
 
-function deepClone(obj, target = {}) {
-    return lerpComplex(obj, obj, 0, target);
+    _eval(factor = 0) {
+        factor = Mth.clamp(factor, 0, 1);
+
+        if (!this.preset){
+            this._lastEvalFactor = factor;
+            return;
+        }
+
+        /*
+        if (Math.abs(factor - this._lastEvalFactor) < 0.001) {
+            return;
+        }*/
+
+        this._lastEvalFactor = factor;
+
+        this.color.copy(this.preset.color.toColor(factor));
+
+        if (this.hasAddColor) {
+            this.addColor.copy(this.preset.addColor.toColor(factor));
+        } else {
+            this.addColor.copy(this.color);
+            this.addColor.mulAlpha(this.addColorAlpha);
+        }
+
+        this.density    = this.preset.density;
+        this.illuminate = this.preset.illuminate || 0;
+
+        return this;
+    }
+
+    /**
+     *
+     * @param {IFogPreset} fogPreset
+     */
+    set(fogPreset) {
+        if (!fogPreset) {
+            this.preset = null;
+            this.hasAddColor = false;
+            this.addColorAlpha = 1;
+
+            return this._eval(0);
+        }
+
+        const {
+            color,
+            addColor,
+            density,
+            ...other
+        } = fogPreset;
+
+        this.hasAddColor = addColor != null && typeof addColor !== 'number';
+
+        if (!this.hasAddColor) {
+            this.addColorAlpha = addColor || 1;
+        }
+
+        this.preset = {
+            color   : new Gradient(color),
+            addColor: this.hasAddColor ? new Gradient(addColor) : addColor,
+            density : density,
+            ...other
+        };
+
+        this._eval(0);
+    }
+
+    /**
+     *
+     * @param {FogPreset} target
+     * @param {number} iterFactor interpolate factor between presets
+     * @param {number} [evalFactor] evaluate factor iternally for eval presets values
+     * @param {FogPreset} [out]
+     */
+    lerpTo (target, iterFactor = 0, evalFactor = null, out = new FogPreset(null)) {
+        if (evalFactor == null) {
+            evalFactor = this._lastEvalFactor;
+        }
+
+        this.eval(evalFactor);
+        target.eval(evalFactor);
+
+        this.color.lerpTo(target.color, iterFactor, out.color);
+        this.addColor.lerpTo(target.addColor, iterFactor, out.addColor);
+
+        out.density    = Mth.lerp(iterFactor, this.density, target.density);
+        out.illuminate = Mth.lerp(iterFactor, this.illuminate, target.illuminate);
+
+        return out;
+    }
+
+    copy(from) {
+        return this.set(from.preset);
+    }
+
+    clone() {
+        return new FogPreset(this.preset);
+    }
+}
+
+export class Color {
+    /**
+     *
+     * @param {number | Color | Array<number> } anyData
+     * @param {number} [alpha]
+     */
+    constructor (anyData = 0, alpha = 1, pma = false) {
+        this._raw = new Float32Array(4);
+        this._pma = pma;
+
+        this.set(anyData, alpha);
+    }
+
+    mulAlpha(alpha = 1) {
+        if (this._pma) {
+            this._raw[0] *= alpha;
+            this._raw[1] *= alpha;
+            this._raw[2] *= alpha;
+        }
+        this._raw[3] *= alpha;
+
+        return this;
+    }
+
+    lum() {
+        return luminance(this._raw);
+    }
+
+    /**
+     *
+     * @param {number | Color | Array<number> } anyData
+     * @param {number} [alpha]
+     */
+    set (anyData, alpha = 1) {
+
+        if (!Color.isColorLike(anyData)) {
+            return this;
+        }
+
+        if (anyData instanceof Color) {
+            return this.copy(anyData);
+        }
+
+        let r = 0;
+        let g = 0;
+        let b = 0;
+
+        alpha = Mth.clamp(alpha, 0, 1);
+
+        if (typeof anyData === 'number') {
+            r = ((anyData >> 16) & 0xff) / 0xff;
+            g = ((anyData >> 8) & 0xff) / 0xff;
+            b = ((anyData >> 0) & 0xff) / 0xff;
+        } else if (Array.isArray(anyData)) {
+            r = anyData[0];
+            g = anyData[1];
+            b = anyData[2];
+            alpha = Mth.clamp(anyData[3] == null? 1 : anyData[3], 0, 1) * alpha;
+        }
+
+        if(this._pma) {
+            r *= alpha;
+            g *= alpha;
+            b *= alpha;
+        }
+
+        this._raw.set([r, g, b, alpha]);
+
+        return this;
+    }
+
+    /**
+     *
+     * @param {Color} target
+     * @param {number} factor
+     * @param {Color } out
+     */
+    lerpTo (target, factor = 0, out = new Color()) {
+        factor = Mth.clamp(factor, 0, 1);
+
+        if (target._pma !== this._pma) {
+            throw new Error('[Color] Botch color should use same PMA mode');
+        }
+
+        const targetColor = target.toArray();
+
+        out._pma = this._pma;
+
+        // color
+        out._raw[0] = this._raw[0] * (1 - factor) + targetColor[0] * factor;
+        out._raw[1] = this._raw[1] * (1 - factor) + targetColor[1] * factor;
+        out._raw[2] = this._raw[2] * (1 - factor) + targetColor[2] * factor;
+        out._raw[3] = this._raw[3] * (1 - factor) + targetColor[3] * factor;
+
+        return out;
+    }
+
+    toArray() {
+        return this._raw;
+    }
+
+    /**
+     *
+     * @param {Color} from
+     * @returns
+     */
+    copy(from) {
+        this._raw.set(from._raw);
+        this._pma = from._pma;
+
+        return this;
+    }
+
+    clone() {
+        return new Color().copy(this);
+    }
+
+    static isColorLike(target) {
+        if (target instanceof Color) {
+            return true;
+        }
+
+        if (typeof target === 'number') {
+            return true;
+        }
+
+        if (Array.isArray(target) && (target.length === 3 || target.length === 4)) {
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+/**
+ * @typedef {{[key: number]: number | Color | Array<number>} } IAnyColorRecordMap
+ */
+
+/**
+ * @typedef {Object} IAnyColorRecord
+ * @property {number} pos
+ * @property {number | Color | Array<number>} color
+ */
+
+/**
+ * @typedef {Object} IColorRecord
+ * @property {number} pos
+ * @property {Color} color
+ */
+
+
+export class Gradient {
+    /**
+     *
+     * @param {IAnyColorRecordMap| Array<IAnyColorRecord> | Gradient | Color} gradData
+     */
+    constructor (gradData = new Color()) {
+        this._color = new Color();
+        this._raw = this._color._raw;
+
+        /**
+         * @type {IColorRecord[]}
+         */
+        this._grad = [];
+
+        this._lastEvalFactor = -1;
+
+        this.set(gradData);
+
+        this._eval(0);
+    }
+
+    /**
+     *
+     * @param {{[key: number]: number | Color | Array<number>} | Array<IAnyColorRecord> | Gradient | Color} gradData
+     */
+    set(gradData) {
+        if (gradData instanceof Gradient) {
+            return this.copy(gradData);
+        }
+
+        if (Color.isColorLike(gradData)) {
+            this._grad = [{
+                color: new Color(gradData),
+                pos: 0
+            }];
+            return;
+        }
+
+        if (Array.isArray(gradData)) {
+            this._grad = gradData.map((e) => ({pos: e.pos, color: new Color(e.color)}));
+            return;
+        }
+
+        this._grad = Object
+            .entries(gradData)
+            .map(([key, color]) => ({pos: +key / 100, color: new Color(color)}));
+
+        return this;
+    }
+
+    _eval(factor = 0) {
+        if (this._grad.length <= 1) {
+            this._color.copy(this._grad[0].color);
+            this._lastEvalFactor = 0;
+            return this;
+        }
+
+        factor = Mth.clamp(factor, 0, 1);
+
+
+        /*
+        if (Math.abs(this._lastEvalFactor - factor) <= 1 / ((this._grad.length - 1) * 256)) {
+            return;
+        }*/
+
+        this._lastEvalFactor = factor;
+
+        let rightKey = this._grad[0];
+        let leftKey = this._grad[0];
+
+        /**
+         * @todo lookup cache
+         */
+        for(const entry of this._grad) {
+            rightKey = entry;
+
+            if (rightKey.pos >= factor) {
+                break;
+            }
+
+            leftKey = entry;
+        }
+
+        let relative = 0;
+
+        if (leftKey !== rightKey) {
+            relative = (factor - leftKey.pos) / (rightKey.pos - leftKey.pos);
+        }
+
+        return leftKey.color.lerpTo(rightKey.color, relative, this._color);
+    }
+
+    toArray(factor = -1) {
+        if (factor > 0) {
+            this._eval(factor);
+        }
+
+        return this._raw;
+    }
+
+    toColor(factor = -1) {
+        if (factor > 0) {
+            this._eval(factor);
+        }
+
+        return this._color;
+    }
+
+    /**
+     *
+     * @param {Gradient} from
+     */
+    copy(from) {
+        return this.set(from._grad);
+    }
+
+    clone() {
+        return new Gradient(this._grad);
+    }
 }
 
 function easeOutCubic(x) {
     return 1 - Math.pow(1 - x, 3);
+}
+
+function easeOutExpo(x) {
+    return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
 }
 
 function luminance (color) {
@@ -81,14 +438,6 @@ function luminance (color) {
     const b = color[2];
 
     return  Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b );
-}
-
-function interpolateColor (a, b, factor = 0, target = []) {
-    target[0] = a[0] * (1 - factor) + b[0] * factor;
-    target[1] = a[1] * (1 - factor) + b[1] * factor;
-    target[2] = a[2] * (1 - factor) + b[2] * factor;
-
-    return target;
 }
 
 class InterpolateTask {
@@ -107,13 +456,17 @@ class InterpolateTask {
         this.dur = duration;
         this.context = context;
 
-        this.value = null;
+        this.value = context ? context[name] : null;
         this.t = 0;
         this.update(0);
     }
 
     get done() {
         return this.t >= 1;
+    }
+
+    _eval (factor) {
+        return Mth.lerpComplex(this.from, this.to, factor, this.value);
     }
 
     update(delta = 0) {
@@ -125,7 +478,7 @@ class InterpolateTask {
 
         const lim = this.ease(Mth.clamp(this.t, 0, 1));
 
-        this.value = Mth.lerpComplex(this.from, this.to, lim, this.value);
+        this.value = this._eval (lim);
 
         if (this.context) {
             this.context[this.name] = this.value;
@@ -133,31 +486,74 @@ class InterpolateTask {
     }
 }
 
-function interpolateGrad (pattern, factor = 0,target = []) {
-    factor = Math.max(0, Math.min(1, factor));
-
-    let rightKey = pattern[0];
-    let leftKey = pattern[0];
-
-    for(const entry of pattern) {
-        rightKey = entry;
-
-        if (rightKey.pos >= factor) {
-            break;
-        }
-
-        leftKey = entry;
+class PresetInterpolationTask extends InterpolateTask {
+    _eval (factor) {
+        const sunFactor = this.context ? this.context._sunFactor : 1;
+        return this.from.lerpTo(this.to, factor, sunFactor, this.value || new FogPreset());
     }
-
-    const relative = (factor - leftKey.pos) / (rightKey.pos - leftKey.pos);
-
-    return interpolateColor(leftKey.value, rightKey.value, relative, target);
 }
 
+// fog not use alpha, we can set it for addColor
+// addColor will be interpolated with alpha
+// alpha is used for cool effect
+const ENV_GRAD_COLORS = {
+    [0]  : new Color(0x020202, 0),
+    [35] : new Color(0x250a07, 0.15),
+    [46] : new Color(0x963b25, 0.25),
+    [57] : new Color(0xe3ad59, 0.0),
+    [62] : new Color(0x76c2ff, 0.0), // as fog
+    [100]: new Color(0x76c2ff, 0.0), // as fog
+};
+
+export const FOG_PRESETS = {
+    [PRESET_NAMES.NORMAL]: {
+        color: ENV_GRAD_COLORS,
+        addColor: [0, 0, 0, 0],
+        density: 2.52 / 320,
+    },
+
+    [PRESET_NAMES.WATER]: {
+        color: [55 / 255, 100 / 255, 230 / 255, 0],
+        addColor: [55 / 255, 100 / 255, 230 / 255, 0.45],
+        density: 0.1,
+        illuminate: 0.1,
+    },
+
+    [PRESET_NAMES.LAVA]: {
+        color: [255 / 255, 100 / 255, 20 / 255, 0.4],
+        addColor: [255 / 255, 100 / 255, 20 / 255, 0.45],
+        density: 0.5,
+        illuminate: 0.5,
+    }
+};
+
+export const SETTINGS = {
+    skyColor:               [0, 0, 0.8],
+    fog:                    'base', //for preset
+    fogDensity:             1, // multiplication
+    fogDensityUnderWater:   0.1,
+    chunkBlockDist:         8,
+    interpoateTime:         300,
+};
+
 export class Environment {
-    constructor() {
-        this.actualFog = [0,0,0,0];
-        this.actualFogAdd = [0,0,0,0];
+    /**
+     *
+     * @param {Renderer} context
+     */
+    constructor(context) {
+        this.context = context;
+
+        this.rawInterpolatedFog      = [0 ,0 ,0, 0];
+        this.rawInterpolatedFogAdd   = [0 ,0 ,0, 0];
+        this.interpolatedClearValue  = [0, 0, 0, 1]; // same as fog, but include brightness internally and always has alpha 1
+        /**
+         * @type {{[key: string] : FogPreset}}
+         */
+        this.presets = Object.entries(FOG_PRESETS).reduce((acc, [key, value]) => {
+            acc [key] = new FogPreset(value);
+            return acc;
+        },{});
 
         this.skyColor = [...SETTINGS.skyColor];
         this.fogDensity = SETTINGS.fogDensity;
@@ -174,7 +570,9 @@ export class Environment {
         /***
          * @type {FogPreset}
          */
-        this._interpolatedPreset = deepClone(FOG_PRESETS[PRESET_NAMES.NORMAL]);
+        this._interpolatedPreset = null;
+
+        this._refLum = this.presets[PRESET_NAMES.NORMAL].eval(1).color.lum();
 
         // fog color before apply brightness factor
         this._computedFogRaw = [0,0,0,0];
@@ -182,6 +580,9 @@ export class Environment {
         this._computedBrightness = 1;
 
         this._fogDirty = false;
+
+        // 0 - horizontal, 1 - top
+        this._sunFactor = 1;
 
         this._tasks = new Map();
         this._interpolate(0);
@@ -195,7 +596,11 @@ export class Environment {
      * @returns {FogPreset}
      */
     get fogPresetRes() {
-        return this._interpolatedPreset;
+        const p = this.presets[this._currentPresetName];
+
+        return this._tasks.has('_interpolatedPreset')
+            ? this._interpolatedPreset || p
+            : p;
     }
 
     /**
@@ -209,8 +614,8 @@ export class Environment {
      * Set fog preset state
      */
     set fogPreset(v) {
-        if (!(v in FOG_PRESETS)) {
-            v = FOG_PRESETS.NORMAL;
+        if (!(v in this.presets)) {
+            v = PRESET_NAMES.NORMAL;
         }
 
         if (v === this._currentPresetName) {
@@ -222,7 +627,8 @@ export class Environment {
         this._currentPresetName = v;
         this._fogDirty = true;
 
-        this._runInterpolation('_interpolatedPreset', FOG_PRESETS[from], FOG_PRESETS[v]);
+        this._runInterpolation('_interpolatedPreset', this.presets[from], this.presets[v]);
+        this._interpolationRun = true;
     }
 
     get time() {
@@ -233,7 +639,7 @@ export class Environment {
     * State relative color interpolated with brightness, time and underwater knowledge
     */
     get actualFogColor() {
-        return this.actualFog;
+        return this.rawInterpolatedFog;
     }
 
     /**
@@ -276,22 +682,30 @@ export class Environment {
      * Fix this case
      */
     _computeFogRelativeSun() {
-        return;
+        const world       = this.context.world;
+        const dayTimeTics = 24000;
+        const gameTime = world?.getTime();
+
+        // in secs
+        let dayTime = dayTimeTics / 2; // default
+
+        if (gameTime) {
+            dayTime = gameTime.time;
+        }
+
+        const phase = Math.PI * 2 * dayTime / dayTimeTics;
+
         this.sunDir = [
-            0, Math.cos(this.time / 10000), -Math.sin(this.time / 10000)
+            Math.sin(phase),
+            -Math.cos(phase),
+            0
         ];
 
-        const sun = this.sunDir;
-        const len = Math.sqrt(sun[0] * sun[0] + sun[1] * sun[1] + sun[2] * sun[2]);
-        const dir = [sun[0] / len, sun[1] / len, sun[2] / len];
-
         // up vector only is Y
-        const factor = 0.5 * (1. + dir[1]);
-        const color = interpolateGrad(ENV_GRAD_COLORS, factor, this._computedFogRaw);
+        const factor =  Mth.clamp(0.5 * (1. + this.sunDir[1]), 0, 1);
 
-        const lum = luminance(color) / luminance(ENV_GRAD_COLORS[ENV_GRAD_COLORS.length - 1].value);
+        this._sunFactor = factor;
 
-        this._computedBrightness = lum * lum;
         this._fogDirty = true;
     }
 
@@ -307,7 +721,11 @@ export class Environment {
             return;
         }
 
-        const task = new InterpolateTask({
+        const taskCtor = from instanceof FogPreset
+            ? PresetInterpolationTask
+            : InterpolateTask;
+
+        const task = new taskCtor({
             from,
             to,
             duration: SETTINGS.interpoateTime,
@@ -343,33 +761,36 @@ export class Environment {
             return;
         }
 
-        const p = this._interpolatedPreset;
+        const p = this.fogPresetRes;
 
-        let fogColor = p.color;
-        let fogAdd = p.addColor;
+        p.eval(this._sunFactor);
 
-        /*
-        // not supported yet because we use interpolated state.
-        // We should interpolate and color and states, but, need resolve wich state will have computed fog
+        const fogColor = p.color.toArray();
+        const fogAdd = p.addColor.toArray();
 
-        if (p.computed) {
-            // compute color
-            this._computeFogRelativeSun();
+        // we use computed preset as base
+        // compute brightness realtive it
+        const base = this.presets[PRESET_NAMES.NORMAL];
 
-            // our fog color is computed, use it
-            fogColor = this._computedFogRaw;
-        }*/
+        base.eval(this._sunFactor);
 
-        const value = this.brightness * this._computedBrightness;
-        const mult = Math.min(1, value * 2) * this.nightshift * value;
+        const lum = easeOutExpo( Mth.clamp((-1 + 2 * this._sunFactor) * 0.8 + 0.2, 0, 1)) ;// base.color.lum() / this._refLum;
+
+        this._computedBrightness = lum;
+
+        const value = this.brightness * lum;
+        const mult = Math.max(p.illuminate, Math.min(1, value * 2) * this.nightshift * value);
 
         for (let i = 0; i < 3; i ++) {
-            this.actualFog[i] = fogColor[i] * mult;
-            this.actualFogAdd[i] = fogAdd[i];
+            this.rawInterpolatedFog[i]     = fogColor[i] * mult;
+            this.interpolatedClearValue[i] = fogColor[i] * mult;
+
+            this.rawInterpolatedFogAdd[i]  = fogAdd[i];
         }
 
-        this.actualFog[3] = 1;
-        this.actualFogAdd[3] = fogAdd[3];
+        this.rawInterpolatedFog[3]     = fogColor[3];
+        this.rawInterpolatedFogAdd[3]  = fogAdd[3];
+        this.interpolatedClearValue[3] = 1;
 
         this._fogDirty = false;
     }
@@ -407,26 +828,24 @@ export class Environment {
     }
 
     update (delta, args) {
+        this._computeFogRelativeSun();
         this._interpolate(delta);
         this.updateFogState();
     }
 
     /**
      * Sync environment state with uniforms
-     * @param {GlobalUniformGroup} render
+     * @param {GlobalUniformGroup} gu
      */
     sync (gu) {
-        const fogPreset = this.fogPresetRes;
-
         gu.chunkBlockDist       = this.chunkBlockDist;
 
-        gu.fogAddColor          = this.actualFogAdd;
-        gu.fogColor             = this.actualFog;
+        gu.fogAddColor          = this.rawInterpolatedFogAdd;
+        gu.fogColor             = this.rawInterpolatedFog;
         gu.brightness           = this.fullBrightness;
 
         gu.time                 = this.time;
-        gu.fogDensity           = this.fogDensity * fogPreset.density;
-        gu.testLightOn          = this.testLightOn;
+        //gu.fogDensity           = this.fogDensity * fogPreset.density;
         gu.sunDir               = this.sunDir;
     }
 
@@ -440,11 +859,6 @@ export class Environment {
         }
 
         const { width, height }  = render.renderBackend.size;
-
-        // other will updated from GU
-        if (this.skyBox.shader.uniforms) {
-            this.skyBox.shader.uniforms.u_textureOn.value = this.brightness >= 0.9 && this._currentPresetName === PRESET_NAMES.NORMAL;
-        }
 
         this.skyBox.draw(render.viewMatrix, render.projMatrix, width, height);
     }
