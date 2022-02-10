@@ -501,8 +501,8 @@ const ENV_GRAD_COLORS = {
     [35] : new Color(0x250a07, 0.15),
     [46] : new Color(0x963b25, 0.25),
     [57] : new Color(0xe3ad59, 0.0),
-    [62] : new Color(0x76c2ff, 0.0), // as fog
-    [100]: new Color(0x76c2ff, 0.0), // as fog
+    [62] : new Color(0xbdd7ea, 0.0), // as fog
+    [100]: new Color(0xbdd7ea, 0.0), // as fog
 };
 
 export const FOG_PRESETS = {
