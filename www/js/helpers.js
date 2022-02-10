@@ -1250,7 +1250,7 @@ export class AlphabetTexture {
     static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
     static chars            = new Map();
 
-    static default_runes = RuneStrings.toArray('�•█абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖХИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾0123456789~`@#№$;:\\/*-+()[]-^_&?!%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ');
+    static default_runes = RuneStrings.toArray('�•█—абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789~`@#№$;:\\/*-+()[]{}-^_&?!%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾');
 
     static init() {
         if(this.chars_x) {
@@ -1280,11 +1280,10 @@ export class AlphabetTexture {
                 pos.index = index;
                 this.chars.set(char, pos);
             }
-            let item = this.chars.get(char) || this.chars.get('�');
+            let item = this.chars.has(char) ? this.chars.get(char) : this.chars.get('�');
             if(char == "\r") {
                 item.char = char;
             }
-            // item.char = char;
             resp.push(item);
         }
         return resp;

@@ -194,7 +194,17 @@ export class RecipeManager {
     async load(callback) {
         let that = this;
         let recipes = await Resources.loadRecipes();
+        let ids = new Map();
         for(let item of recipes) {
+            if(!('id' in item)) {
+                console.error(item);
+                throw 'error_recipe_has_no_id';
+            }
+            if(ids.has(item.id)) {
+                console.error(item);
+                throw 'error_duplicate_recipe_id|' + item.id;
+            }
+            ids.set(item.id, true);
             that.add(item);
         }
         callback();
