@@ -708,9 +708,10 @@ export class Vector {
             return this.copy(x);
         }
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        // maybe undef
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
         return this;
     }
 
