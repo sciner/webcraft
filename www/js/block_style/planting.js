@@ -22,7 +22,7 @@ export default class style {
 
     static getRegInfo() {
         return {
-            styles: ['planting', 'sign'],
+            styles: ['planting'],
             func: this.func,
             aabb: this.computeAABB
         };
@@ -58,7 +58,8 @@ export default class style {
         return 1;
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    // Draw func
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         let cardinal_direction = block.getCardinalDirection()
 

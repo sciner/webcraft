@@ -11,6 +11,7 @@ import {Hotbar} from "./hotbar.js";
 
 const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
+globalThis.UI_FONT = 'Ubuntu';
 
 // console.log(UI_ZOOM, RES_SCALE);
 
@@ -174,7 +175,12 @@ export class GameClass {
             onKeyPress: (e) => {
                 let charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
                 let typedChar = String.fromCharCode(charCode);
-                player.chat.typeChar(charCode, typedChar);
+                if(player.chat.active) {
+                    player.chat.typeChar(charCode, typedChar);
+                } else {
+                    //
+                    this.hud.wm.typeChar(e, charCode, typedChar);
+                }
             },
             // Hook for keyboard input
             onKeyEvent: (e) => {
@@ -185,19 +191,7 @@ export class GameClass {
                 }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
-                    switch(e.keyCode) {
-                        // E (Inventory)
-                        case KEY.ESC:
-                        case KEY.E: {
-                            if(!e.down) {
-                                this.hud.wm.closeAll();
-                                this.setupMousePointer(false);
-                                return true;
-                            }
-                            break;
-                        }
-                    }
-                    return;
+                    return this.hud.wm.onKeyEvent(e);
                 }
                 //
                 switch(e.keyCode) {
@@ -469,10 +463,10 @@ export class GameClass {
 
     // Отправка информации о позиции и ориентации игрока на сервер
     sendPlayerState(player) {
-        this.current_player_state.rotate.set(player.rotate.x, player.rotate.y, player.rotate.z);
-        this.current_player_state.pos.set(Math.round(player.lerpPos.x * 1000) / 1000, Math.round(player.lerpPos.y * 1000) / 1000, Math.round(player.lerpPos.z * 1000) / 1000);
+        this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
+        this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
         this.ping = Math.round(this.player.world.server.ping_value);
-        let current_player_state_json = JSON.stringify(this.current_player_state);
+        const current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {
             this.prev_player_state = current_player_state_json;
             this.player.world.server.Send({
@@ -502,6 +496,12 @@ export class GameClass {
         if(!this.world || this.player.controls.enabled) {
             return;
         }
+
+        // All windows closed
+        this.hud.wm.allClosed = () => {
+            console.info('All windows closed');
+            this.setupMousePointer(false);
+        };
 
         const element = this.render.canvas;
         element.requestPointerLock = element.requestPointerLock || element.webkitRequestPointerLock;

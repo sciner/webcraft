@@ -14,6 +14,11 @@
     #define aoFactor 1.0
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
 
+    // bit shifts
+    #define NORMAL_UP_FLAG 0
+    #define MASK_BIOME_FLAG 1
+    #define NO_AO_FLAG 2
+    #define NO_FOG_FLAG 3
 #endif
 
 #ifdef global_uniforms_ubo
@@ -111,6 +116,7 @@
     out vec4 v_color;
     out vec2 v_uvCenter;
     out float v_lightMode;
+    out float v_useFog;
     //--
 #endif
 
@@ -126,6 +132,7 @@
     in vec3 v_chunk_pos;
     in vec2 v_uvCenter;
     in float v_lightMode;
+    in float v_useFog;
 
     out vec4 outColor;
 #endif
@@ -134,7 +141,7 @@
 #ifdef crosshair_define_func
     // crosshair draw block
     void drawCrosshair() {
-        float cm = 0.00065;
+        float cm = 0.0008;
         vec4 crosshair;
 
         if(u_resolution.x > u_resolution.y) {
@@ -211,23 +218,30 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xy);
     float fogAmount = 0.;
-    if(fogDistance > u_chunkBlockDist) {
-        fogAmount = clamp(0.05 * (fogDistance - u_chunkBlockDist), 0., 1.);
-    }
+    float fogFactorDiv = max(1.0,  (1. - v_useFog) * 15.);
+    float refBlockDist = u_chunkBlockDist * fogFactorDiv;
+    float fogFactor = 0.05 / fogFactorDiv;
+
+    fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
 
     // Apply fog
-    outColor = mix(outColor, u_fogColor, fogAmount);
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
+    outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
+
+    // special effect for sunrise 
+    outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
 
 #endif
 
 #ifdef terrain_read_flags_vert
     // read flags
     int flags = int(a_flags);
-    int flagNormalUp = flags & 1;
-    int flagBiome = (flags >> 1) & 1; 
-    int flagNoAO = (flags >> 2) & 1;
+    int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
+    int flagBiome = (flags >> MASK_BIOME_FLAG) & 1; 
+    int flagNoAO = (flags >> NO_AO_FLAG) & 1;
+    int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
  
+    v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     //--
 #endif

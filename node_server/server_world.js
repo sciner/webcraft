@@ -56,6 +56,7 @@ export class ServerWorld {
                 mobs: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
             },
             start() {
                 this.pn = performance.now();
@@ -103,6 +104,26 @@ export class ServerWorld {
             // calc time elapsed
             // console.log("Save took %sms", Math.round((performance.now() - pn) * 1000) / 1000);
         }, 5000);
+        // Queue of chest confirms
+        this.chest_confirm_queue = {
+            list: [],
+            add: function(player, params) {
+                this.list.push({player, params});
+            },
+            run: async function() {
+                while(this.list.length > 0) {
+                    const queue_item = this.list.shift();
+                    const chest = that.chests.get(queue_item.params.chest.entity_id);
+                    if(chest) {
+                        console.log('Chest state from ' + queue_item.player.session.username);
+                        await chest.confirmPlayerAction(queue_item.player, queue_item.params);
+                    } else {
+                        queue_item.player.inventory.refresh(true);
+                        throw `Chest ${queue_item.params.chest.entity_id} not found`;
+                    }
+                }
+            }
+        };
         // Queue of player pickat actions
         this.pickat_action_queue = {
             list: [],
@@ -119,6 +140,7 @@ export class ServerWorld {
                     const player = {
                         radius:     0.7,
                         height:     server_player.height,
+                        username:   server_player.session.username,
                         pos:        new Vector(server_player.state.pos),
                         rotate:     server_player.rotateDegree.clone()
                     };
@@ -130,6 +152,31 @@ export class ServerWorld {
                 }
             }
         };
+    }
+
+    getInfo() {
+        console.log(this.info);
+        this.updateWorldCalendar();
+        return this.info;
+    }
+
+    // updateWorldCalendar
+    updateWorldCalendar() {
+        this.info.calendar = {
+            age: null,
+            day_time: null,
+        };
+        const currentTime = ((+new Date()) / 1000) | 0;
+        // возраст в реальных секундах
+        const diff_sec = currentTime - this.info.dt;
+        // один игровой день в реальных секундах
+        const game_day_in_real_seconds = 86400 / GAME_ONE_SECOND // 1200
+        // возраст в игровых днях
+        const age = diff_sec / game_day_in_real_seconds;
+        // возраст в ЦЕЛЫХ игровых днях
+        this.info.calendar.age = Math.floor(age);
+        // количество игровых секунд прошедших в текущем игровом дне
+        this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
     // World tick
@@ -163,6 +210,13 @@ export class ServerWorld {
         // 5.
         this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
+        // 6. Chest confirms
+        try {
+            await this.chest_confirm_queue.run();
+        } catch(e) {
+            // do nothing
+        }
+        this.ticks_stat.add('chest_confirm_queue');
         //
         this.ticks_stat.end();
         //
@@ -242,28 +296,6 @@ export class ServerWorld {
     }
 
     /**
-     * Возвращает игровое время
-     * @return {Object}
-     */
-    getTime() {
-        if(!this.world_state) {
-            return null;
-        }
-        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
-        let hours = time / 1000 | 0;
-        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
-        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
-        let hours_string = hours > 9 ? hours : '0' + hours;
-        return {
-            day:        this.world_state.age,
-            hours:      hours,
-            minutes:    minutes,
-            string:     hours_string + ':' + minutes_string
-        };
-    }
-
-    /**
      * Send commands for all except player id list
      * @param {Object[]} packets
      * @param {number[]} except_players  ID of players
@@ -324,6 +356,11 @@ export class ServerWorld {
             }
         }
         if (new_pos) {
+            let MAX_COORD = 2000000000;
+            if(Math.abs(new_pos.x) > MAX_COORD || Math.abs(new_pos.y) > MAX_COORD || Math.abs(new_pos.z) > MAX_COORD) {
+                console.log('error_too_far');
+                throw 'error_too_far';
+            }
             let packets = [{
                 name: ServerClient.CMD_TELEPORT,
                 data: {
@@ -524,6 +561,7 @@ export class ServerWorld {
             const params = actions.create_painting;
             const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
             await this.db.createPainting(this, server_player, pos, params);
+            server_player.inventory.decrement();
             const cps = getChunkPackets(pos);
             if(cps) {
                 if(!cps.chunk) {
@@ -560,7 +598,7 @@ export class ServerWorld {
             await this.db.TransactionBegin();
             try {
                 for(let params of actions.blocks.list) {
-                    params.item = BLOCK.convertItemToInventoryItem(params.item);
+                    params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
                     if(!prev_chunk_addr.equal(chunk_addr)) {
                         chunk = this.chunks.get(chunk_addr);
@@ -608,7 +646,7 @@ export class ServerWorld {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
                     } else {
-                        console.error('Chunk not found in pos', chunk_addr, params);
+                        // console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
                 await this.db.TransactionCommit();

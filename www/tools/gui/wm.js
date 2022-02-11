@@ -2,6 +2,10 @@
 * Window Manager based ON 2D canvas 
 */
 
+import {RuneStrings} from "../../js/helpers.js";
+
+export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
+
 // Base window
 export class Window {
 
@@ -27,9 +31,11 @@ export class Window {
         this.parent         = null;
         this.scrollX        = 0;
         this.scrollY        = 0;
+        this.max_chars_per_line = 0;
         this.onHide         = function() {};
         this.onShow         = function() {};
         this.onMouseEnter   = function() {};
+        this.create_time    = performance.now();
         this.onMouseLeave   = () => {
             for(let w of this.list.values()) {
                 if(w.hover) {
@@ -42,6 +48,43 @@ export class Window {
         this.onMouseMove    = function(e) {};
         this.onDrop         = function(e) {};
         this.onWheel        = function(e) {};
+        // onKeyEvent
+        this.onKeyEvent     = function(e) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            fired = f.onKeyEvent(e);
+                            if(fired) {
+                                break;
+                            }
+                        }
+                    }
+                    if(!fired) {
+                        w.onKeyEvent(e);
+                    }
+                }
+            }
+        };
+        // typeChar
+        this.typeChar       = function(e, charCode, typedChar) {
+            for(let w of this.list.values()) {
+                if(w.visible) {
+                    let fired = false;
+                    for(let f of w.list.values()) {
+                        if(f.focused) {
+                            f.typeChar(e, charCode, typedChar);
+                            fired = true;
+                            break;
+                        }
+                    }
+                    if(!fired) {
+                        w.typeChar(e, charCode, typedChar);
+                    }
+                }
+            }
+        };
         this.style          = {
             color: '#3f3f3f',
             textAlign: {
@@ -200,9 +243,9 @@ export class Window {
             }
 
         }
-        if(this.title || this.text) {
-            this.applyStyle(ctx, ax, ay);
-        }
+        //if(this.title || this.text) {
+        this.applyStyle(ctx, ax, ay);
+        //}
         // Draw title
         if(this.title) {
             ctx.fillStyle = this.style.color;
@@ -218,9 +261,9 @@ export class Window {
             ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
         }
         // print text
-        if(this.text) {
-            this.print(this.text);
-        }
+        //if(this.text) {
+        this.print(this.text);
+        //}
         // draw border
         if(!this.style.border.hidden) {
             ctx.beginPath(); // Start a new path
@@ -298,10 +341,10 @@ export class Window {
         }
         bg.src = url;
     }
-    show() {
+    show(args) {
         this.visible = true;
         this.resetHover();
-        this.onShow();
+        this.onShow(args);
     }
     hide() {
         this.visible = false;
@@ -360,9 +403,10 @@ export class Window {
         if(entered.length + leaved.length > 0) {
             // console.log(entered.length, leaved.length, entered[0]);
             if(entered.length > 0) {
-                if(entered[0]?.tooltip) {
+                //if(entered[0]?.tooltip) {
+                    // @todo possible bug
                     this.getRoot()._wm_setTooltipText(entered[0].tooltip);
-                }
+                //}
                 entered[0].onMouseEnter();
             } else {
                 this.getRoot()._wm_setTooltipText(null);
@@ -425,31 +469,40 @@ export class Window {
         }
         this.onWheel(e);
     }
-    print(text) {
-        if(!this.ctx) {
-            console.error('Empty context');
-            return;
+    calcPrintLines(original_text) {
+        if(!this.word_wrap || !this.ctx) {
+            return [original_text];
         }
-        if(!text) {
-            return;
+        let currentLine = 0;
+        const lines = [''];
+        //
+        this.applyStyle(this.ctx, 0, 0);
+        if(this.max_chars_per_line > 0) {
+            original_text = RuneStrings.splitLongWords(original_text, this.max_chars_per_line);
         }
-        const x             = this.x + this.ax + this.style.padding.left;
-        const y             = this.y + this.ay + this.style.padding.top;
-        const lineHeight    = 20;
-        let currentLine     = 0;
-        if(this.word_wrap) {
-            let words           = (text + '').split(' ');
-            let idx             = 1;
+        //
+        function addLine() {
+            currentLine++;
+            if(lines.length < currentLine + 1) {
+                lines.push('');
+            }
+        }
+        let texts = original_text.split("\r");
+        for(let text of texts) {
+            let words = (text + '').split(' ');
+            let idx = 1;
             if(words.length > 1) {
                 while(words.length > 0 && idx <= words.length) {
                     let str = words.slice(0, idx).join(' ');
                     let w = this.ctx.measureText(str).width;
-                    if(w > this.width) {
+                    // Wrap to next line if current is full
+                    if(w > this.width - 20) {
                         if(idx == 1) {
                             idx = 2;
                         }
-                        this.ctx.fillText(words.slice(0, idx - 1).join(' '), x, y + (lineHeight * currentLine));
-                        currentLine++;
+                        let print_word = words.slice(0, idx - 1).join(' ');
+                        lines[currentLine] += print_word;
+                        addLine();
                         words = words.splice(idx - 1);
                         idx = 1;
                     } else {
@@ -458,10 +511,34 @@ export class Window {
                 }
             }
             if(idx > 0) {
-                this.ctx.fillText(words.join(' '), x, y + (lineHeight * currentLine));
+                lines[currentLine] += words.join(' ');
             }
-        } else {
-            this.ctx.fillText(text, x, y + (lineHeight * currentLine));
+            addLine();
+        }
+        lines.pop();
+        return lines;
+    }
+    print(original_text) {
+        if(!this.ctx) {
+            console.error('Empty context');
+            return;
+        }
+        const x             = this.x + this.ax + this.style.padding.left;
+        const y             = this.y + this.ay + this.style.padding.top;
+        const lineHeight    = this.style.font.size * 1.05;
+        const lines         = this.calcPrintLines(original_text || '');
+        // Draw cariage symbol
+        if(this.draw_cariage) {
+            const now = performance.now();
+            let how_long_open = Math.round(now - this.create_time);
+            if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
+                lines[lines.length - 1] += '_';
+            }
+        }
+        // Print lines
+        for(let i in lines) {
+            const line = lines[i];
+            this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
     loadCloseButtonImage(callback) {
@@ -505,6 +582,96 @@ export class Label extends Window {
         super(x, y, w, h, id, title, text);
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
+    }
+
+}
+
+// TextEdit
+export class TextEdit extends Window {
+
+    constructor(x, y, w, h, id, title, text) {
+
+        super(x, y, w, h, id, title, text);
+
+        this.max_length         = 0;
+        this.max_lines          = 0;
+        this.max_chars_per_line = 0;
+        this.draw_cariage       = true;
+
+        // Styles
+        this.style.background.color = '#ffffff77';
+        this.style.border.hidden = true;
+        this.style.font.size = 19;
+        this.style.font.family = 'UbuntuMono-Regular';
+        this.style.padding = {
+            left: 5,
+            right: 5,
+            top: 5,
+            bottom: 5
+        };
+
+        // Properties
+        this.focused = false;
+        this.buffer = [];
+
+        // Backspace pressed
+        this.backspace = () => {
+            if(!this.focused) {
+                return;
+            }
+            if(this.buffer.length > 0) {
+                this.buffer.pop();
+            }
+        }
+
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.ENTER: {
+                    if(down) {
+                        this.buffer.push(String.fromCharCode(13));
+                    }
+                    return true;
+                }
+                case KEY.BACKSPACE: {
+                    if(down) {
+                        this.backspace();
+                        break;
+                    }
+                    return true;
+                }
+            }
+        }
+
+        // typeChar
+        this.typeChar = (e, charCode, ch) => {
+            if(!this.focused) {
+                return;
+            }
+            if(charCode == 13) {
+                return false;
+            }
+            if(this.buffer.length < this.max_length || this.max_length == 0) {
+                if(this.max_lines > 0) {
+                    const ot = this.buffer.join('') + ch;
+                    const lines = this.calcPrintLines(ot);
+                    if(lines.length > this.max_lines) {
+                        return;
+                    }
+                }
+                this.buffer.push(ch);
+            }
+        }
+
+    }
+
+    // Draw
+    draw(ctx, ax, ay) {
+        this.text = this.buffer.join('');
+        //
+        this.style.background.color = this.focused ? '#ffffff77' : '#00000000';
+        super.draw(ctx, ax, ay);
     }
 
 }
@@ -587,8 +754,8 @@ export class WindowManager extends Window {
             draw: function() {
                 that.drag.draw({
                     ctx: this.parent.ctx,
-                    x: this.x,
-                    y: this.y
+                    x: this.x - 18 * UI_ZOOM,
+                    y: this.y - 18 * UI_ZOOM
                 });
                 if(this.image && this.visible) {
                     ctx.imageSmoothingEnabled = true;
@@ -621,7 +788,7 @@ export class WindowManager extends Window {
             draw: function(e) {
                 if(this.item) {
                     if(typeof this.item.draw === 'function') {
-                        this.item.draw(e);
+                        this.item.draw(e, true);
                     }
                 }
             }

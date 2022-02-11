@@ -14,7 +14,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     generate(chunk) {
 
-        let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.BEDROCK.id : BLOCK.SAND.id;
+        // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANK.id : BLOCK.BIRCH_PLANK.id;
+        let block_id = BLOCK.DIRT.id;
 
         // setBlock
         let temp_vec2 = new Vector(0, 0, 0);
@@ -34,7 +35,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
         }
 
-        let cell = {biome: {dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0), code: 'Flat'}};
+        let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
         let addr = chunk.addr;

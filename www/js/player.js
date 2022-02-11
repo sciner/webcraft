@@ -80,7 +80,7 @@ export class Player {
             return await this.onPickAtTarget(...args);
         });
         // Player control
-        this.pr                     = new PrismarinePlayerControl(this.world, this.pos);
+        this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});
         this.pr_spectator           = new SpectatorPlayerControl(this.world, this.pos);
         // Chat
         this.chat                   = new Chat(this);
@@ -273,18 +273,35 @@ export class Player {
         return resp;
     }
 
+    clearEvents() {
+        Game.kb.clearStates()
+        this.pickAt.clearEvent();
+        this.inMiningProcess = false;
+    }
+
     // Apply pickat actions
     applyActions(e, actions) {
         // console.log(actions.id);
         if(actions.open_window) {
-            this.inMiningProcess = false;
-            Game.hud.wm.getWindow(actions.open_window).toggleVisibility();
+            this.clearEvents();
+            let args = null;
+            let window_id = actions.open_window;
+            if(typeof actions.open_window == 'object') {
+                window_id = actions.open_window.id;
+                args = actions.open_window.args;
+            }
+            const w = Game.hud.wm.getWindow(window_id);
+            if(w) {
+                w.show(args);
+            } else {
+                console.error('error_window_not_found', actions.open_window);
+            }
         }
         if(actions.error) {
             console.error(actions.error);
         }
         if(actions.load_chest) {
-            this.inMiningProcess = false;
+            this.clearEvents();
             Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
         }
         if(actions.play_sound) {

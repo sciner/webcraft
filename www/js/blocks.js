@@ -9,8 +9,10 @@ export const TRANS_TEX                      = [4, 12];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
-export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'extra_data', 'power', 'rotate'];
-const BLOCK_HAS_WINDOW                      = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
+export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
+export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
+export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
+export const BLOCK_HAS_WINDOW               = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -142,7 +144,7 @@ export class BLOCK {
     }
 
     // Return new simplified item
-    static convertItemToInventoryItem(item) {
+    static convertItemToDBItem(item) {
         if(!item || !('id' in item)) {
             return null;
         }
@@ -150,6 +152,37 @@ export class BLOCK {
             id: item.id
         };
         for(let k of ITEM_DB_PROPS) {
+            let v = item[k];
+            if(v !== undefined && v !== null) {
+                resp[k] = v;
+            }
+        }
+        return resp;
+    }
+
+    // Return new simplified item
+    static convertItemToInventoryItem(item, b) {
+        if(!item || !('id' in item) || item.id < 0) {
+            return null;
+        }
+        const resp = {
+            id: item.id
+        };
+        if('count' in item) {
+            item.count = Math.floor(item.count);
+        }
+        for(let k of ITEM_INVENTORY_PROPS) {
+            if(b) {
+                if(k in b) {
+                    if(k == 'power' && b.power == 1) {
+                        continue;
+                    }
+                } else {
+                    if(k != 'count') {
+                        continue;
+                    }
+                }
+            }
             let v = item[k];
             if(v !== undefined && v !== null) {
                 resp[k] = v;
@@ -316,7 +349,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'sign' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
+        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
             group = 'doubleface';
         }
         return group;
@@ -509,11 +542,11 @@ export class BLOCK {
     }
 
     // Возвращает координаты текстуры с учетом информации из ресурс-пака
-    static calcMaterialTexture(material, dir, width, height, block) {
+    static calcMaterialTexture(material, dir, width, height, block, force_tex) {
         let tx_cnt = material.tx_cnt;
-        let texture = material.texture;
+        let texture = force_tex || material.texture;
         // Stages
-        if(material.stage_textures && block && block.extra_data) {
+        if(block && material.stage_textures && block && block.extra_data) {
             if('stage' in block.extra_data) {
                 let stage = block.extra_data.stage;
                 stage = Math.max(stage, 0);
@@ -778,13 +811,13 @@ export class BLOCK {
                     if((zconnects == 2 && xconnects == 0) || (zconnects == 0 && xconnects == 2)) {
                         // do nothing
                     } else {
-                        if(!for_physic) {
-                            // Central
-                            shapes.push([
-                                .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
-                                .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
-                            ]);
-                        }
+                        //if(!for_physic) {
+                        // Central
+                        shapes.push([
+                            .5-CENTER_WIDTH/2, 0, .5-CENTER_WIDTH/2,
+                            .5+CENTER_WIDTH/2, Math.max(height, 1), .5+CENTER_WIDTH/2
+                        ]);
+                        //}
                     }
                     break;
                 }
@@ -920,7 +953,7 @@ export class BLOCK {
                     const styleVariant = BLOCK.styles.get(material.style);
                     if (styleVariant && styleVariant.aabb) {
                         shapes.push(
-                            ...styleVariant.aabb(b).map(aabb => aabb.toArray())
+                            ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
                         );
                     } else {
                         let shift_y = 0;
@@ -960,7 +993,7 @@ export class BLOCK {
                     );
                 } else {
                     switch(material.style) {
-                        case 'sign': {
+                        /*case 'sign': {
                             let hw = (4/16) / 2;
                             let sign_height = 1;
                             shapes.push([
@@ -968,7 +1001,7 @@ export class BLOCK {
                                 .5+hw, sign_height, .5+hw
                             ]);
                             break;
-                        }
+                        }*/
                         case 'planting': {
                             let hw = (12/16) / 2;
                             let h = 12/16;

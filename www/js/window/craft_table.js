@@ -55,6 +55,8 @@ export class CraftTable extends BaseCraftWindow {
             // Close recipe window
             Game.hud.wm.getWindow('frmRecipe').hide();
             this.clearCraft();
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems(), this.lblResultSlot.getUsedRecipes());
         }
 
         // Add labels to window
@@ -77,6 +79,21 @@ export class CraftTable extends BaseCraftWindow {
             }
             ct.add(btnClose);
         });
+
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.E:
+                case KEY.ESC: {
+                    if(!down) {
+                        ct.hide();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
 
     }
 
@@ -136,7 +153,8 @@ export class CraftTable extends BaseCraftWindow {
             }
         }
         pattern_array = pattern_array.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-        let craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array);
+        this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array);
+        let craft_result = this.lblResultSlot.recipe?.result || null;
         if(!craft_result) {
             let pattern_array2 = [];
             // 2. Mirrored
@@ -153,14 +171,15 @@ export class CraftTable extends BaseCraftWindow {
                 }
             }
             pattern_array2 = pattern_array2.join(' ').trim().split(' ').map(x => x ? parseInt(x) : null);
-            craft_result = this.recipes.crafting_shaped.searchRecipeResult(pattern_array2);
+            this.lblResultSlot.recipe = this.recipes.crafting_shaped.searchRecipe(pattern_array2);
+            craft_result = this.lblResultSlot.recipe?.result || null;
         }
         if(!craft_result) {
-            return this.resultSlot.setItem(null);
+            return this.lblResultSlot.setItem(null);
         }
         let block = Object.assign({count: craft_result.count}, BLOCK.fromId(craft_result.item_id));
         delete(block.texture);
-        this.resultSlot.setItem(block);
+        this.lblResultSlot.setItem(block);
     }
 
     getSlots() {

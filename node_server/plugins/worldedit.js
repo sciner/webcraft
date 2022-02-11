@@ -1,5 +1,6 @@
 import {BLOCK} from "../../www/js/blocks.js";
-import {Vector} from "../../www/js/helpers.js";
+import {getChunkAddr} from "../../www/js/chunk.js";
+import {Vector, VectorCollector} from "../../www/js/helpers.js";
 
 const MAX_SET_BLOCK = 30000;
 
@@ -60,6 +61,102 @@ export default class WorldEdit {
                     args = chat.parseCMD(args, ['string', 'string']);
                     const palette = this.createBlocksPalette(args[1]);
                     await this.fillQuboid(chat, player, qi, palette, quboid_fill_type_id);
+                    return true;
+                    break;
+                }
+                case '//copy': {
+                    if(!chat.world.admins.checkIsAdmin(player)) {
+                        throw 'error_not_permitted';
+                    }
+                    const qi = this.getCuboidInfo(player);
+                    let blocks = new VectorCollector();
+                    let chunk_addr = new Vector(0, 0, 0);
+                    let chunk_addr_o = new Vector(Infinity, Infinity, Infinity);
+                    let bpos = new Vector(0, 0, 0);
+                    let chunk = null;
+                    for(let x = 0; x < qi.volx; x++) {
+                        for(let y = 0; y < qi.voly; y++) {
+                            for(let z = 0; z < qi.volz; z++) {
+                                bpos.set(
+                                    qi.pos1.x + x * qi.signx,
+                                    qi.pos1.y + y * qi.signy,
+                                    qi.pos1.z + z * qi.signz
+                                );
+                                chunk_addr = getChunkAddr(bpos, chunk_addr);
+                                if(!chunk_addr_o.equal(chunk_addr)) {
+                                    chunk_addr_o.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
+                                    chunk = chat.world.chunks.get(chunk_addr);
+                                    if(!chunk) {
+                                        throw 'error_chunk_not_loaded';
+                                    }
+                                }
+                                let block = chunk.getBlock(bpos);
+                                let mat = block.material;
+                                if(mat.is_entity) {
+                                    continue;
+                                }
+                                if(block.id < 0) {
+                                    throw 'error_error_get_block';
+                                }
+                                const item = {
+                                    id: block.id
+                                };
+                                const extra_data = block.extra_data;
+                                if(extra_data) {
+                                    item.extra_data = extra_data;
+                                }
+                                if(mat.can_rotate) {
+                                    if(block.rotate) {
+                                        item.rotate = block.rotate;
+                                    }
+                                }
+                                blocks.set(bpos, item);
+                            }
+                        }
+                    }
+                    player._world_edit_copy = {
+                        quboid: qi,
+                        blocks: blocks,
+                        player_pos: player.state.pos.floored()
+                    };
+                    let msg = `${blocks.size} block(s) copied`;
+                    chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+                    return true;
+                    break;
+                }
+                case '//paste': {
+                    if(!chat.world.admins.checkIsAdmin(player)) {
+                        throw 'error_not_permitted';
+                    }
+                    if(!player._world_edit_copy) {
+                        throw 'error_not_copied_blocks';
+                    }
+                    const pn_set = performance.now();
+                    let actions = {blocks: {
+                        list: [],
+                        options: {
+                            ignore_check_air: true,
+                            on_block_set: false
+                        }
+                    }};
+                    //
+                    const player_pos = player.state.pos.floored();
+                    let affected_count = 0;
+                    //
+                    let data = player._world_edit_copy;
+                    const blockIter = data.blocks.kvpIterator();
+                    let offset = new Vector(data.quboid.pos1).sub(data.player_pos);
+                    for(let [bpos, item] of blockIter) {
+                        let shift = bpos.sub(data.quboid.pos1);
+                        let new_pos = player_pos.add(shift).add(offset);
+                        actions.blocks.list.push({pos: new_pos, item: item});
+                        affected_count++;
+                    }
+                    //
+                    await chat.world.applyActions(null, actions, false);
+                    let msg = `${affected_count} block(s) affected`;
+                    chat.sendSystemChatMessageToSelectedPlayers(msg, [player.session.user_id]);
+                    console.log('Time took: ' + (performance.now() - pn_set));
                     return true;
                     break;
                 }

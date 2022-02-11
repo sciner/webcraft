@@ -195,6 +195,8 @@ export class CreativeInventoryWindow extends Window {
         // Обработчик закрытия формы
         this.onHide = function() {
             this.getRoot().drag.clear();
+            // Save inventory
+            Game.world.server.InventoryNewState(this.inventory.exportItems(), []);
         }
 
         // Add close button
@@ -211,6 +213,21 @@ export class CreativeInventoryWindow extends Window {
             }
             ct.add(btnClose);
         });
+
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.E:
+                case KEY.ESC: {
+                    if(!down) {
+                        ct.hide();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
 
     }
 

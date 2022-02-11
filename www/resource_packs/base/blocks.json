@@ -2122,7 +2122,7 @@
         "name": "BREWING_STAND",
         "inventory_style": "extruder",
         "transparent": true,
-        "style": "sign",
+        "style": "planting",
         "material": {
             "id": "stone"
         },
@@ -2679,6 +2679,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 20,
@@ -2701,6 +2704,10 @@
         "material": {
             "id": "wood"
         },
+        "can_rotate": true,
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 21,
@@ -2723,6 +2730,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 22,
@@ -2745,6 +2755,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 23,
@@ -2767,6 +2780,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 24,
@@ -2789,6 +2805,9 @@
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "rotate_by_pos_n"
+        ],
         "texture": {
             "up": [
                 25,
@@ -4751,7 +4770,7 @@
         "spawnable": false,
         "material": {"id": "wood"},
         "texture": {
-            "id": "paintintg_frame",
+            "id": "painting_frame",
             "side": [29.5, 29.5]
         }
     },
@@ -5070,7 +5089,7 @@
                 "dot": [[22, 0]],
                 "line": [[24, 0], [26, 0]]
             }
-        }, 
+        },
         "extra_data": {
             "signal": 0
         },
@@ -5158,5 +5177,161 @@
             4,
             30
         ]
+    },
+
+
+    
+    {
+        "id": 642,
+        "name": "BIRCH_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [20, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [20, 19],
+            "down": [20, 16]
+        }
+    },
+    {
+        "id": 643,
+        "name": "OAK_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [21, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [21, 19],
+            "down": [21, 16]
+        }
+    },
+    {
+        "id": 644,
+        "name": "ACACIA_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [22, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [22, 19],
+            "down": [22, 16]
+        }
+    },
+    {
+        "id": 645,
+        "name": "SPRUCE_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [23, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [23, 19],
+            "down": [23, 16]
+        }
+    },
+    {
+        "id": 646,
+        "name": "DARK_OAK_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [24, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [24, 19],
+            "down": [24, 16]
+        }
+    },
+    {
+        "id": 647,
+        "name": "JUNGLE_SIGN",
+        "style": "sign",
+        "sound": "madcraft:block.wood",
+        "inventory": {
+            "style": "extruder",
+            "texture": [25, 18]
+        },
+        "tags": [
+            "sign",
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "transparent": true,
+		"can_rotate": true,
+        "texture": {
+            "side": [25, 19],
+            "down": [25, 16]
+        }
+    },
+    {
+        "id": 648,
+        "name": "TEXT",
+        "style": "text",
+        "transparent": true,
+        "can_rotate": true,
+        "spawnable": false,
+        "material": {
+            "id": "wood"
+        },
+        "texture": {
+            "id": "alphabet",
+            "side": [0, 0]
+        }
     }
 ]

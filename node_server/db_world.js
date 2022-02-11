@@ -253,6 +253,10 @@ export class DBWorld {
             `DELETE FROM world_modify WHERE params = '{"id":75}' OR params LIKE '{"id":75,%';`,
             `DELETE FROM world_modify WHERE params = '{"id":76}' OR params LIKE '{"id":76,%';`
         ]});
+        migrations.push({version: 21, queries: [
+            `UPDATE user SET pos_spawn = (SELECT pos_spawn FROM world) WHERE ABS(json_extract(pos_spawn, '$.x')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.y')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.z')) > 2000000000`,
+            `UPDATE user SET pos = pos_spawn WHERE ABS(json_extract(pos, '$.x')) > 2000000000 OR ABS(json_extract(pos, '$.y')) > 2000000000 OR ABS(json_extract(pos, '$.z')) > 2000000000`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

@@ -1,10 +1,10 @@
 import {BLOCK} from "../blocks.js";
-import {Vector} from "../helpers.js";
+import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 
-// Consts
-let MAX_TORCH_POWER = 16;
+// Constants
+const DIRTY_REBUILD_RAD = 1;
 
 const CC = [
     {x:  0, y:  1, z:  0},
@@ -64,6 +64,7 @@ export class Chunk {
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
         this.id = this.addr.toHash();
+        this.emitted_blocks = new VectorCollector();
     }
 
     init() {
@@ -208,6 +209,7 @@ export class Chunk {
         block.entity_id  = entity_id;
         block.texture    = null;
         block.extra_data = extra_data;
+        this.emitted_blocks.delete(block.pos);
     }
 
     // Возвращает всех 6-х соседей блока
@@ -333,10 +335,24 @@ export class Chunk {
         const blockIter = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
         let material = null;
 
+        // addVerticesToGroup...
+        const addVerticesToGroup = (material_group, material_key, vertices) => {
+            if(!this.vertices.has(material_key)) {
+                // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
+                this.vertices.set(material_key, JSON.parse(JSON.stringify(group_templates[material_group])));
+            }
+            // Push vertices
+            this.vertices.get(material_key).list.push(...vertices);
+        };
+
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
             material = block.material;
             if(block.id == BLOCK.AIR.id || !material || material.item) {
+                if(this.emitted_blocks.has(block.pos)) {
+                    console.log('delete emitter');
+                    this.emitted_blocks.delete(block.pos);
+                }
                 continue;
             }
             // собираем соседей блока, чтобы на этой базе понять, дальше отрисовывать стороны или нет
@@ -370,7 +386,7 @@ export class Chunk {
             }
             if(block.vertices === null) {
                 block.vertices = [];
-                material.resource_pack.pushVertices(
+                const resp = material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
                     this,
@@ -380,15 +396,48 @@ export class Chunk {
                     neighbours,
                     this.map.info.cells[block.pos.x][block.pos.z].biome
                 );
+                if(Array.isArray(resp)) {
+                    this.emitted_blocks.set(block.pos, resp);
+                } else {
+                    this.emitted_blocks.delete(block.pos);
+                }
             }
             world.blocks_pushed++;
             if(block.vertices !== null && block.vertices.length > 0) {
-                if(!this.vertices.has(material.material_key)) {
-                    // {...group_templates[material.group]}; -> Не работает так! list остаётся ссылкой на единый массив!
-                    this.vertices.set(material.material_key, JSON.parse(JSON.stringify(group_templates[material.group])));
+                addVerticesToGroup(material.group, material.material_key, block.vertices);
+            }
+        }
+
+        // Emmited blocks
+        if(this.emitted_blocks.size > 0) {
+            const fake_neighbours = {
+                UP: null,
+                DOWN: null,
+                SOUTH: null,
+                NORTH: null,
+                WEST: null,
+                EAST: null,
+            };
+            for(let eblocks of this.emitted_blocks) {
+                for(let eb of eblocks) {
+                    let vertices = [];
+                    const material = eb.material;
+                    material.resource_pack.pushVertices(
+                        vertices,
+                        eb,
+                        this,
+                        eb.pos.x,
+                        eb.pos.y,
+                        eb.pos.z,
+                        fake_neighbours,
+                        null,
+                        null,
+                        null,
+                        eb.matrix,
+                        eb.pivot
+                    );
+                    addVerticesToGroup(material.group, material.material_key, vertices);
                 }
-                // Push vertices
-                this.vertices.get(material.material_key).list.push(...block.vertices);
             }
         }
 
@@ -396,12 +445,13 @@ export class Chunk {
         this.tm = performance.now() - tm;
         this.neighbour_chunks = null;
         return true;
+
     }
 
     // setDirtyBlocks
     // Вызывается, когда какой нибудь блок уничтожили (вокруг него все блоки делаем испорченными)
     setDirtyBlocks(pos) {
-        let dirty_rad = MAX_TORCH_POWER;
+        let dirty_rad = DIRTY_REBUILD_RAD;
         let cnt = 0;
         for(let cx = -dirty_rad; cx <= dirty_rad; cx++) {
             for(let cz = -dirty_rad; cz <= dirty_rad; cz++) {

@@ -9,7 +9,7 @@ import { getChunkAddr } from "../www/js/chunk.js";
 import config from "./config.js";
 
 const PLAYER_HEIGHT = 1.7;
-const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 3;
+const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
 const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
     new Vector(-1, 0, -1),
@@ -71,6 +71,7 @@ export class ServerPlayer extends Player {
         this.skin                   = '';
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
+        this.newInventoryStates     = [];
     }
 
     init(init_info) {
@@ -107,9 +108,10 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.3 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
-        this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
+
+        this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.getInfo()}]);
     }
 
     async onMessage(response) {
@@ -230,13 +232,8 @@ export class ServerPlayer extends Player {
                     break;
                 }
             
-                case ServerClient.CMD_SET_CHEST_SLOT_ITEM: {
-                    const chest = this.world.chests.get(cmd.data.entity_id);
-                    if(chest) {
-                        chest.setSlotItem(this, cmd.data.slot_index, cmd.data.item);
-                    } else {
-                        throw `Chest ${cmd.data.entity_id} not found`;
-                    }
+                case ServerClient.CMD_CHEST_CONFIRM: {
+                    this.world.chest_confirm_queue.add(this, cmd.data);
                     break;
                 }
                     
@@ -259,6 +256,11 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
+                case ServerClient.CMD_INVENTORY_NEW_STATE: {
+                    this.newInventoryStates.push(cmd.data);
+                    break;
+                }
+
                 case ServerClient.CMD_CREATE_ENTITY: {
                     this.world.createEntity(this, cmd.data);
                     break;
@@ -276,21 +278,6 @@ export class ServerPlayer extends Player {
 
                 case ServerClient.CMD_GAMEMODE_SET: {
                     this.game_mode.applyMode(cmd.data.id, true);
-                    break;
-                }
-
-                case ServerClient.CMD_INVENTORY_INCREMENT: {
-                    this.inventory.increment(cmd.data);
-                    break;
-                }
-
-                case ServerClient.CMD_INVENTORY_DECREMENT: {
-                    this.inventory.decrementByItemID(cmd.data.item_id, cmd.data.count);
-                    break;
-                }
-
-                case ServerClient.CMD_INVENTORY_SET_ITEM: {
-                    this.inventory.setItem(cmd.data.index, cmd.data.item);
                     break;
                 }
 
@@ -454,8 +441,21 @@ export class ServerPlayer extends Player {
         this.world.chunks.checkPlayerVisibleChunks(this, false);
         // 2. Check near drop items
         this.checkNearDropItems();
+        // 3. Check has new inventory state
+        this.checkInventoryChanges();
         //
         this.sendState();
+    }
+
+    //
+    checkInventoryChanges() {
+        if(this.newInventoryStates.length == 0) {
+            return;
+        }
+        const state = this.newInventoryStates[0];
+        // Apply new inventory state
+        this.inventory.newState(state);
+        this.newInventoryStates.shift();
     }
 
     // Send current state to players
@@ -470,7 +470,7 @@ export class ServerPlayer extends Player {
             data: this.exportState()
         }];
         // this.world.sendAll(packets, [this.session.user_id]);
-        this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.id]);
+        this.world.sendSelected(packets, Array.from(chunk_over.connections.keys()), [this.session.user_id]);
     }
 
     // Check near drop items

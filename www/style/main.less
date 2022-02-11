@@ -1,7 +1,10 @@
 @font-face {
 	font-family: Ubuntu;
-	src:
-        url('/style/Ubuntu-Regular.ttf');
+	src: url('/style/Ubuntu-Regular.ttf');
+}
+@font-face {
+	font-family: UbuntuMono-Regular;
+	src: url('/style/UbuntuMono-Regular.ttf');
 }
 /* Minecraft-like pixely font */
 @font-face {
@@ -12,6 +15,10 @@
 }
 
 /* General page style */
+
+.font-mono {
+    font-family: UbuntuMono-Regular;
+}
 
 @-webkit-keyframes scrollBg {
     0% {
@@ -168,6 +175,10 @@ button {
     bottom: 20px;
 	transform: translateX(-50%) scale(0.7);
 	background: rgba( 0, 0, 0, 0.6 );
+}
+
+canvas {
+    font-family: UbuntuMono-Regular;
 }
 
 /* Username input */

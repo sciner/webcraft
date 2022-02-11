@@ -58,7 +58,7 @@ export default class style {
         return 1;
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         let cardinal_direction = block.getCardinalDirection()
         if(cardinal_direction == CubeSym.NEG_Y) {

@@ -84,10 +84,10 @@ function FakePlayer(pos) {
 
 export class PrismarinePlayerControl {
 
-    constructor(world, pos, default_speed, playerHeight, stepHeight, defaultSlipperiness) {
+    constructor(world, pos, options) {
         const mcData            = FakeWorld.getMCData(world);
         this.world              = new FakeWorld(world);
-        this.physics            = Physics(mcData, this.world, playerHeight, stepHeight, defaultSlipperiness);
+        this.physics            = Physics(mcData, this.world, options);
         this.player             = FakePlayer(pos);
         this.timeAccumulator    = 0;
         this.physicsEnabled     = true;
@@ -100,7 +100,7 @@ export class PrismarinePlayerControl {
             sprint: false,
             sneak: false
         };
-        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features, default_speed);
+        this.player_state = new PlayerState(this.player, this.controls, mcData, Resources.physics.features, options.baseSpeed);
     }
 
     // https://github.com/PrismarineJS/mineflayer/blob/436018bde656225edd29d09f6ed6129829c3af42/lib/plugins/physics.js

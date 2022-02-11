@@ -130,9 +130,18 @@ export class MeshGroup {
         for(let k of this.vc.keys()) {
             const item = this.vc.get(k);
             const rp = item.block.material.resource_pack;
+            let force_tex = null;
+            // Draw style
             let ds = item.block.material.style;
-            if(force_inventory_style && item.block.material.inventory_style) {
-                ds = item.block.material.inventory_style;
+            if(force_inventory_style) {
+                if(item.block.material.inventory_style) {
+                    ds = item.block.material.inventory_style;
+                } else if('inventory' in item.block.material) {
+                    ds = item.block.material.inventory.style;
+                    if('texture' in item.block.material.inventory) {
+                        force_tex = item.block.material.inventory.texture;
+                    }
+                }
             }
             const mat_key = item.block.material.material_key;
             //
@@ -155,7 +164,8 @@ export class MeshGroup {
                 tz + k.z,
                 item.neighbours,
                 biome,
-                ds
+                ds,
+                force_tex
             );
         }
 

@@ -44,13 +44,11 @@ export class FSMBrain {
     }
 
     /**
-     * @param {FSMBrain} brain 
-     * @param {number} base_speed 
-     * @param {number} playerHeight 
-     * @param {number} stepHeight 
+     * @param {FSMBrain} brain
+     * @param {object} options
      * @return {PrismarinePlayerControl}
      */
-    createPlayerControl(brain, base_speed, playerHeight, stepHeight) {
+    createPlayerControl(brain, options) {
         let mob = brain.mob;
         let world = mob.getWorld();
         return new PrismarinePlayerControl({
@@ -67,7 +65,7 @@ export class FSMBrain {
                     }
                 }
             }
-        }, mob.pos, base_speed, playerHeight, stepHeight);
+        }, mob.pos, options);
     }
 
     // Send current mob state to players

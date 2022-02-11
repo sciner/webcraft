@@ -1,5 +1,5 @@
 import {BLOCK} from "./blocks.js";
-import {Helpers} from './helpers.js';
+import {Helpers, AlphabetTexture} from './helpers.js';
 import {Resources} from'./resources.js';
 import {TerrainTextureUniforms} from "./renders/common.js";
 
@@ -82,12 +82,73 @@ export class BaseResourcePack {
     }
 
     async _processTexture (textureInfo, renderBackend, settings) {
-        const {image, texture} = await this._loadTexture(
-            this.dir + textureInfo.image,
-            settings,
-            renderBackend
-        );
 
+        let image, texture;
+
+        if('canvas' in textureInfo) {
+            const cnv = textureInfo.canvas;
+            cnv.canvas = document.createElement('canvas');
+            cnv.canvas.width = cnv.width;
+            cnv.canvas.height = cnv.height;
+            cnv.ctx = cnv.canvas.getContext('2d');
+
+            // Fill magenta background
+            // cnv.ctx.fillStyle = '#ff0088';
+            // cnv.ctx.imageSmoothingEnabled = false;
+            // cnv.ctx.fillRect(0, 0, 200, 200);
+
+            // demo text
+            cnv.ctx.fillStyle = '#ffffffff';
+            cnv.ctx.textBaseline = 'top';
+            const char_size = {
+                width: cnv.width / textureInfo.tx_cnt,
+                height: cnv.height / textureInfo.tx_cnt
+            }
+            AlphabetTexture.init();
+            for(let [_, item] of AlphabetTexture.chars.entries()) {
+                const char = item.char;
+                let py = 0;
+                if(char.length > 1) {
+                    cnv.ctx.font = '18px UbuntuMono-Regular';
+                    py = 7;
+                } else {
+                    cnv.ctx.font = '31px UbuntuMono-Regular';
+                    py = 1;
+                }
+                const mt = cnv.ctx.measureText(char);
+                cnv.ctx.fillText(char, item.x + 16-mt.width/2, item.y+py);
+            }
+
+            // Helpers.downloadImage(cnv.canvas, 'alphabet.png');
+
+            const settings_for_canvas = {...settings};
+            settings_for_canvas.mipmap = false;
+
+            const texture = renderBackend.createTexture({
+                source: cnv.canvas,
+                style: this.genTextureStyle(cnv.canvas, settings_for_canvas),
+                minFilter: 'nearest',
+                magFilter: 'nearest',
+            });
+
+            textureInfo.texture = texture;
+            textureInfo.width   = cnv.width;
+            textureInfo.height  = cnv.height;
+            textureInfo.texture_n = null;
+            // textureInfo.imageData = cnv.ctx.getImageData(0, 0, cnv.width, cnv.height);
+
+            return;
+
+        } else {
+            let resp = await this._loadTexture(
+                this.dir + textureInfo.image,
+                settings,
+                renderBackend
+            );
+            image = resp.image;
+            texture = resp.texture;
+        }
+    
         textureInfo.texture = texture;
         textureInfo.width   = image.width;
         textureInfo.height  = image.height;
@@ -208,12 +269,13 @@ export class BaseResourcePack {
     }
 
     // pushVertices
-    pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style) {
+    pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style, force_tex, _matrix, _pivot) {
         const style = draw_style ? draw_style : block.material.style;
         const module = BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
-        return module.func(block, vertices, world, x, y, z, neighbours, biome, true);
+        return module.func(block, vertices, world, x, y, z, neighbours, biome, true, _matrix, _pivot, force_tex);
     }
+
 }

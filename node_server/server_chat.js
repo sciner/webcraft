@@ -95,9 +95,9 @@ export class ServerChat {
                 break;
             }
             case '/give':
-                if(!player.game_mode.isCreative()) {
-                    // throw 'error_command_not_working_in_this_game_mode';
-                }
+                //if(!player.game_mode.isCreative()) {
+                //  throw 'error_command_not_working_in_this_game_mode';
+                //}
                 args = this.parseCMD(args, ['string', 'string', '?int']);
                 let name = null;
                 let cnt = 1;
@@ -109,13 +109,12 @@ export class ServerChat {
                     cnt = args[2];
                 }
                 cnt = Math.max(cnt | 0, 1);
-                let block = BLOCK[name.toUpperCase()];
-                if(block) {
-                    block = {...block};
-                    delete(block.texture);
+                let b = BLOCK[name.toUpperCase()];
+                if(b) {
+                    const block = BLOCK.convertItemToInventoryItem(b);
                     block.count = cnt;
                     player.inventory.increment(block);
-                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + block.name, [player.session.user_id]);
+                    this.sendSystemChatMessageToSelectedPlayers('Выдан: ' + b.name, [player.session.user_id]);
                 } else {
                     this.sendSystemChatMessageToSelectedPlayers(`error_unknown_item|${name}`, [player.session.user_id]);
                 }

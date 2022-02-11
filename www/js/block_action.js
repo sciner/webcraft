@@ -6,7 +6,7 @@ import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
 
 const _createBlockAABB = new AABB();
-    
+
 const sides = [
     new Vector(1, 0, 0),
     new Vector(-1, 0, 0),
@@ -314,8 +314,27 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let entity_id       = world_block ? world_block.entity_id : null;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
+    let isEditSign  = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    // Edit sign
+    if(isEditSign) {
+        if(!extra_data) {
+            extra_data = {
+                text: null
+            };
+        }
+        if(e?.extra_data?.text) {
+            extra_data.text = e?.extra_data?.text || '';
+            if(typeof extra_data.text == 'string') {
+                if(extra_data.text.length <= 110) {
+                    var date = new Date();
+                    extra_data.username = player.username;
+                    extra_data.dt = date.toISOString();
+                    resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                }
+            }
+        }
     // Edit trapdoor
-    if(isEditTrapdoor) {
+    } else if(isEditTrapdoor) {
         // Trapdoor
         if(!extra_data) {
             extra_data = {
@@ -763,6 +782,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 return resp;
                             }
                         }
+                    }
+                    const is_sign = matBlock.tags.indexOf('sign') >= 0;
+                    if(is_sign) {
+                        if(orientation.y != 0) {
+                            orientation.x = player.rotate.z / 90;
+                        }
+                        let block_pos = new Vector(pos);
+                        resp.open_window = {
+                            id: 'frmEditSign',
+                            args: {pos: block_pos}
+                        };
                     }
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     if(matBlock.sound) {

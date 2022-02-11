@@ -3,6 +3,7 @@
 import {DIRECTION, MULTIPLY, QUAD_FLAGS} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
@@ -10,7 +11,14 @@ const {mat3} = glMatrix;
 
 const defaultPivot = [0.5, 0.5, 0.5];
 const defaultMatrix = mat3.create();
+const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
+
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_dirt_rotations');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = Math.round(a.double() * 100);
+}
 
 export function pushTransformed(
     vertices, mat, pivot,
@@ -30,11 +38,27 @@ export function pushTransformed(
     y0 -= pivot[1];
     z0 -= pivot[2];
 
-    mat = mat || defaultMatrix,
+    mat = mat || defaultMatrix;
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    // unroll mat4 matrix to mat3 + tx, ty, tz
+    if (mat.length === 16) {
+        mat3.fromMat4(tempMatrix, mat);
+
+        tx = mat[12];
+        ty = mat[14]; // flip
+        tz = mat[13]; // flip
+
+        mat = tempMatrix;
+    }
+
     vertices.push(
-        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2],
-        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8],
-        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5],
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
 
         ux * mat[0] + uy * mat[1] + uz * mat[2],
         ux * mat[6] + uy * mat[7] + uz * mat[8],
@@ -62,7 +86,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -122,6 +146,7 @@ export default class style {
         let upFlags                 = flags;
         let c;
 
+
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {
@@ -132,10 +157,40 @@ export default class style {
 
         let DIRECTION_UP        = DIRECTION.UP;
         let DIRECTION_DOWN      = DIRECTION.DOWN;
-        let DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-        let DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-        let DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-        let DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        let DIRECTION_BACK      = DIRECTION.BACK
+        let DIRECTION_RIGHT     = DIRECTION.RIGHT
+        let DIRECTION_FORWARD   = DIRECTION.FORWARD
+        let DIRECTION_LEFT      = DIRECTION.LEFT;
+
+        if(material.can_rotate) {
+            DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+            DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+            DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+            DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+        }
+
+        if(material.can_rotate && block.rotate) {
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                //TODO: calculate canDrawTop and neighbours based on rotation
+                canDrawTOP = true;
+                canDrawDOWN = true;
+                canDrawSOUTH = true;
+                canDrawNORTH = true;
+                canDrawWEST = true;
+                canDrawEAST = true;
+                DIRECTION_BACK = DIRECTION.BACK;
+                DIRECTION_RIGHT = DIRECTION.RIGHT;
+                DIRECTION_FORWARD = DIRECTION.FORWARD;
+                DIRECTION_LEFT = DIRECTION.LEFT;
+                //use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+            }
+        }
 
         if(material.style == 'ladder') {
             width = 1;
@@ -190,10 +245,7 @@ export default class style {
             let top_vectors = [1, 0, 0, 0, 1, 0];
             // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
             if(block.id == BLOCK.DIRT.id) {
-                let a = new alea([x, y, z].join('x'));
-                a = a.int32();
-                if(a < 0) a = -a;
-                let rv = a % 4;
+                const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
                 switch(rv) {
                     case 0: {
                         top_vectors = [0, -1, 0, 1, 0, 0];

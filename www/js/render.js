@@ -38,6 +38,9 @@ const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
 const NEAR_DISTANCE             = 2 / 16;
 const RENDER_DISTANCE           = 800;
 const NIGHT_SHIFT_RANGE         = 16;
+// Shake camera on damage
+const DAMAGE_TIME               = 250;
+const DAMAGE_CAMERA_SHAKE_VALUE = 0.2;
 
 // Creates a new renderer with the specified canvas as target.
 export class Renderer {
@@ -55,7 +58,7 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
-        this.env                = new Environment();
+        this.env                = new Environment(this);
 
         /**
          * Should be a BaseRenderer subclass, but on this line is loader. Replace it after init!
@@ -214,9 +217,12 @@ export class Renderer {
 
         const extruded = [];
         const regular = Array.from(all_blocks.values()).map((block, i) => {
-            const draw_style = block.inventory_style
+            let draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;
+            if('inventory' in block) {
+                draw_style = block.inventory.style;
+            }
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
@@ -259,7 +265,7 @@ export class Renderer {
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
-        gu.fogColor = [0, 0, 0, 1];
+        gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
@@ -338,12 +344,18 @@ export class Renderer {
 
                 const resource_pack = material.resource_pack;
                 let texture_id = 'default';
-                if(typeof material.texture == 'object' && 'id' in material.texture) {
-                    texture_id = material.texture.id;
+                let texture = material.texture;
+                if('inventory' in material) {
+                    if('texture' in material.inventory) {
+                        texture = material.inventory.texture;
+                    }
+                }
+                if(typeof texture == 'object' && 'id' in texture) {
+                    texture_id = texture.id;
                 }
                 const tex = resource_pack.textures.get(texture_id);
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.FORWARD, tex.tx_cnt);
+                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
@@ -521,7 +533,7 @@ export class Renderer {
         globalUniforms.update();
 
         renderBackend.beginPass({
-            fogColor : this.env.actualFogColor
+            fogColor : this.env.interpolatedClearValue
         });
 
         this.env.draw(this);
@@ -708,10 +720,42 @@ export class Renderer {
     // ang - Pitch, yaw and roll.
     setCamera(player, pos, rotate) {
         const tmp = mat4.create();
-
+        // Shake camera on damage
+        if(Game.hotbar.last_damage_time && performance.now() - Game.hotbar.last_damage_time < DAMAGE_TIME) {
+            let percent = (performance.now() - Game.hotbar.last_damage_time) / DAMAGE_TIME;
+            let value = 0;
+            if(percent < .25) {
+                value = -DAMAGE_CAMERA_SHAKE_VALUE * (percent / .25);
+            } else {
+                value = -DAMAGE_CAMERA_SHAKE_VALUE + DAMAGE_CAMERA_SHAKE_VALUE * ((percent - .25) / .75);
+            }
+            rotate.y = value;
+        } else {
+            rotate.y = 0;
+        }
         this.bobView(player, tmp);
         this.camera.set(pos, rotate, tmp);
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
+    }
+
+    // Original bobView
+    bobView(viewMatrix, p_109140_) {
+        let player = this.world.localPlayer;
+        if(player) {
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
+            let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
+            let effect_power = 0.05;
+            let z_mul_degree = Math.sin(f1 * Math.PI) * f2 * (3.0 * effect_power);
+            let x_mul_degree = Math.abs(Math.cos(f1 * Math.PI - 0.2) * f2) * (5.0 * effect_power);
+            mat4.rotate(viewMatrix, viewMatrix, x_mul_degree, [1, 0, 0]); // x
+            mat4.rotate(viewMatrix, viewMatrix, z_mul_degree, [0, 1, 0]); // z
+            mat4.translate(viewMatrix, viewMatrix, [
+                (Math.sin(f1 * Math.PI) * f2 * 0.5),
+                (-Math.abs(Math.cos(f1 * Math.PI) * f2)),
+                0
+            ]);
+        }
     }
 
     // Original bobView
@@ -719,9 +763,8 @@ export class Renderer {
         if(player && player.walking && !player.getFlying() && !player.in_water ) {
             let p_109140_ = player.walking_frame * 2 % 1;
             //
-            let speed_mul = 1.0;
-            let f = player.walkDist * speed_mul - player.walkDistO * speed_mul;
-            let f1 = -(player.walkDist * speed_mul + f * p_109140_);
+            let f = player.walkDist - player.walkDistO;
+            let f1 = -(player.walkDist + f * p_109140_);
             let f2 = Mth.lerp(p_109140_, player.oBob, player.bob);
             //
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;

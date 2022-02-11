@@ -15,7 +15,7 @@ class math {
     }
 }
 
-export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSlipperiness) {
+export function Physics(mcData, fake_world, options) {
 
     const supportFeature = makeSupportFeature(mcData, Resources.physics.features);
 
@@ -62,21 +62,21 @@ export function Physics(mcData, fake_world, playerHeight, stepHeight, defaultSli
         pitchSpeed: 3.0,
         sprintSpeed: 1.3,
         sneakSpeed: 0.3,
-        stepHeight: typeof stepHeight === 'undefined' ? 0.65 : stepHeight, // how much height can the bot step on without jump
+        stepHeight: typeof options.stepHeight === 'undefined' ? 0.65 : options.stepHeight, // how much height can the bot step on without jump
         negligeableVelocity: 0.003, // actually 0.005 for 1.8, but seems fine
         soulsandSpeed: 0.4,
         honeyblockSpeed: 0.4,
         honeyblockJumpSpeed: 0.4,
         ladderMaxSpeed: 0.15,
         ladderClimbSpeed: 0.2,
-        playerHalfWidth: 0.3,
-        playerHeight: typeof playerHeight === 'undefined' ? 1.8 : playerHeight,
+        playerHalfWidth: typeof options.playerHalfWidth === 'undefined' ? 0.3 : options.playerHalfWidth,
+        playerHeight: typeof options.playerHeight === 'undefined' ? 1.8 : options.playerHeight,
         waterInertia: 0.8,
         lavaInertia: 0.5,
         liquidAcceleration: 0.02,
         airborneInertia: 0.91,
         airborneAcceleration: 0.02,
-        defaultSlipperiness: typeof defaultSlipperiness === 'undefined' ? DEFAULT_SLIPPERINESS : defaultSlipperiness,
+        defaultSlipperiness: typeof options.defaultSlipperiness === 'undefined' ? DEFAULT_SLIPPERINESS : options.defaultSlipperiness,
         outOfLiquidImpulse: 0.3,
         autojumpCooldown: 10, // ticks (0.5s)
         bubbleColumnSurfaceDrag: {
