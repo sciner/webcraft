@@ -3,9 +3,6 @@
 in vec3 a_vertex;
 
 #include<global_uniforms_ubo>
-/*
-uniform mat4 u_viewMatrix;
-uniform mat4 u_projMatrix;
 
 out vec3 v_texCoord;
 

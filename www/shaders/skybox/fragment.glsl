@@ -2,18 +2,8 @@
 
 // noise factor for rediuce gradinet banding issues
 #define BANDING_NOISE 0.01 
-//
-uniform samplerCube u_texture;
-uniform bool u_textureOn;
 
 #include<global_uniforms_ubo>
-/*
-uniform float u_brightness;
-uniform vec2 u_resolution;
-*/
-
-// used in crosshair_define_func
-uniform vec2 u_resolution; // global
 
 in vec3 v_texCoord;
 out vec4 outColor;
@@ -54,7 +44,7 @@ float rand3Df(vec3 co){
 void main() {
     vec3 norm    = normalize(v_texCoord);
     vec3 color   = baseColor;// texture(u_texture, v_texCoord).rgb;
-    vec3 sun     = normalize(u_sunDir.xyz);
+    vec3 sun     = normalize(u_SunDir.xyz);
     vec4 overlay;
 
     // random for fix banding 
