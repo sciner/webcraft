@@ -1,83 +1,110 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, MAX_CAVES_LEVEL, getChunkAddr} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS} from "../chunk.js";
+import {AABB} from '../core/AABB.js';
 
 // Общее количество блоков в чанке
-const BLOCK_COUNT               = CHUNK_SIZE_X * MAX_CAVES_LEVEL * CHUNK_SIZE_Z;
-const DIVIDER                   = new Vector(CHUNK_SIZE_X, MAX_CAVES_LEVEL, CHUNK_SIZE_Z);
-const DEF_RAD                   = 5;
-const MIN_RAD                   = 2; // минимальный радиус секции
-const MAX_RAD                   = 10; // максимальный радиус секции
-const NEIGHBOURS_CAVES_RADIUS   = 5;
-const HIGH_CAVE_V1              = new Vector(0, -DEF_RAD * .9, 0);
-const HIGH_CAVE_V2              = new Vector(0, -DEF_RAD * 2 * .9, 0);
-const chunk_addr_temp           = new Vector(0, 0, 0);
+const DIVIDER                   = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+const MAX_RAD                   = 3; // максимальный радиус секции
+const MAX_DIR_LENGTH            = 40;
+const MAX_DIR_HEIGHT            = 10;
+const _aabb                     = new AABB();
 const temp_vec                  = new Vector(0, 0, 0);
+const _vec_chunk_start          = new Vector(0, 0, 0); // Адрес чанка, где начинается отрезок
+const _vec_chunk_end            = new Vector(0, 0, 0); // Адрес чанка, где заканчивается отрезок
+
+// CaveLine...
+class CaveLine {
+
+    constructor(p_start, p_end, rad) {
+        this.p_start = p_start;
+        this.p_end = p_end;
+        this.rad = rad;
+    }
+
+}
 
 // Cave...
 export class Cave {
 
     // Constructor
-    constructor(seed, addr) {
-        this.alea           = new alea(seed + addr.toString());
-        this.head_pos       = null;
-        this.coord          = addr.mul(DIVIDER);
-        this.points         = [];
-        this.chunks         = new VectorCollector();
-        //
-        const r             = this.alea.double();
-        let index           = r;
-        // проверяем нужно или нет начало пещеры в этом чанке
-        if(index < .99) {
-            let addPoint = (point) => {
-                point.pos = point.pos.toInt();
-                chunk_addr_temp.set((point.pos.x / DIVIDER.x) | 0, (point.pos.y / DIVIDER.y) | 0, (point.pos.z / DIVIDER.z) | 0);
-                let chunk = this.chunks.get(chunk_addr_temp);
-                if(!chunk) {
-                    chunk = {points: []};
-                    this.chunks.set(chunk_addr_temp, chunk);
-                }
-                chunk.points.push(point);
-            };
-            // Генерируем абсолютную позицию начала пещеры в этом чанке
-            index = parseInt(BLOCK_COUNT * .05 + this.alea.double() * BLOCK_COUNT * .5);
-            // Конвертируем позицию в 3D вектор
+    constructor(lines, seed, addr) {
+
+        const aleaRandom = new alea(seed + addr.toString());
+
+        if(aleaRandom.double() < .5) {
+            return;
+        }
+
+        // Генерируем абсолютную позицию начала пещеры в этом чанке
+        let index = parseInt(aleaRandom.double() * CHUNK_BLOCKS);
+
+        // Конвертируем позицию в 3D вектор
+        const x = index % CHUNK_SIZE_X;
+        const y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
+        const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
+        temp_vec.set(x, y, z);
+
+        let p_start = addr.mul(DIVIDER).addSelf(temp_vec);
+
+        // getChunk
+        function getChunk(addr) {
+            let chunk = lines.get(addr);
+            if(!chunk) {
+                chunk = {list: []};
+                lines.set(addr, chunk);
+            }
+            return chunk;
+        }
+
+        // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
+        for(let i = 0; i < 5; i++) {
+
+            let r = aleaRandom.double();
+            const length = Math.round(r * MAX_DIR_LENGTH) + 1;
+            const height = Math.round(r * MAX_DIR_HEIGHT);
+            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 1;
+
+            // Генерация нового направления группы секций
             temp_vec.set(
-                index % CHUNK_SIZE_X,
-                parseInt(index / (CHUNK_SIZE_X * CHUNK_SIZE_Z)),
-                parseInt((index % (CHUNK_SIZE_X + CHUNK_SIZE_Z)) / CHUNK_SIZE_X)
-            );
-            this.head_pos = addr.mul(DIVIDER).add(temp_vec);
-            let rad = DEF_RAD;
-            // Добавляем "голову" пещеры
-            addPoint({rad: rad, pos: this.head_pos});
-            let point_pos = this.head_pos;
-            // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
-            for(let _ of [1, 2, 3, 4, 5]) {
-                let pts_count = parseInt(this.alea.double() * MAX_RAD) + 1;
-                // Генерация нового направления группы секций
-                temp_vec.set(
-                    (this.alea.double() * 2 - 1) * 4,
-                    (this.alea.double() * 2 - 1) * 1.25,
-                    (this.alea.double() * 2 - 1) * 4,
-                );
-                for(let i = 0; i < pts_count; i++) {
-                    point_pos = point_pos.add(temp_vec);
-                    rad = parseInt((rad + this.alea.double() * DEF_RAD + MIN_RAD) / 2);
-                    const point = {
-                        rad: rad,
-                        pos: point_pos
-                    };
-                    addPoint(point);
-                    // В редких случаях генерируем высокие пещеры
-                    if(r < .1) {
-                        addPoint({rad: point.rad, pos: point.pos.add(HIGH_CAVE_V1)});
-                        if(r < .065) {
-                            addPoint({rad: point.rad, pos: point.pos.add(HIGH_CAVE_V2)});
+                (aleaRandom.double() * 2 - 1) * length,
+                (aleaRandom.double() * 2 - 1) * height,
+                (aleaRandom.double() * 2 - 1) * length,
+            ).flooredSelf();
+            let p_end = p_start.add(temp_vec);
+
+            // Для расчетов максимально разнесенных точек отрезка с учетом радиуса
+            _aabb.set(Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity);
+            _aabb.addPoint(p_start.x - rad, p_start.y - rad, p_start.z - rad);
+            _aabb.addPoint(p_start.x + rad, p_start.y + rad, p_start.z + rad);
+            _aabb.addPoint(p_end.x - rad, p_end.y - rad, p_end.z - rad);
+            _aabb.addPoint(p_end.x + rad, p_end.y + rad, p_end.z + rad);
+
+            // Вычисляем начальный и конечный чанк для крайних блоков капсули отрезка
+            _vec_chunk_start.set(_aabb.x_min, _aabb.y_min, _aabb.z_min).divScalarVec(DIVIDER).flooredSelf();
+            _vec_chunk_end.set(_aabb.x_max, _aabb.y_max, _aabb.z_max).divScalarVec(DIVIDER).flooredSelf();
+
+            // Отрезок
+            const line = new CaveLine(p_start.clone(), p_end.clone(), rad);
+
+            // Если отрезок полностью умещается в одном чанке
+            if(_vec_chunk_start.equal(_vec_chunk_end)) {
+                let chunk = getChunk(_vec_chunk_start);
+                chunk.list.push(line);
+            } else {
+                for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
+                    for(let y = _vec_chunk_start.y; y <= _vec_chunk_end.y; y++) {
+                        for(let z = _vec_chunk_start.z; z <= _vec_chunk_end.z; z++) {
+                            let chunk = getChunk(temp_vec.set(x, y, z));
+                            chunk.list.push(line);
                         }
                     }
                 }
             }
+
+            p_start = p_end.clone();
+            // @todo В редких случаях генерируем высокие пещеры
+
         }
     }
 
@@ -88,57 +115,39 @@ export class CaveGenerator {
 
     constructor(seed) {
         this.seed           = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
-        this.caves          = new VectorCollector();
-        this.margin         = 8;
-        this.spiral_moves   = SpiralGenerator.generate(this.margin);
+        this.margin         = 4;
+        this.spiral_moves   = SpiralGenerator.generate3D(new Vector(this.margin, this.margin, this.margin));
+        this.lines          = new VectorCollector(); // В ключах адреса чанков, в значениях отрезки, которые затрагивают этот чанк
+        this.caves          = new VectorCollector(); // Чтобы не генерировать пещеры в одних и техже чанках много раз подряд
+        this._temp_add_vec  = new Vector(0, 0, 0);
+        this._neighb        = new Vector(0, 0, 0);
     }
 
     // add
     add(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        let cave = this.caves.get(chunk_addr);
-        if(cave) {
-            return cave;
+        if(!this.caves.has(chunk_addr)) {
+            new Cave(this.lines, this.seed, chunk_addr);
+            this.caves.set(chunk_addr, true);
+            return true;
         }
-        cave = new Cave(this.seed, chunk_addr);
-        return this.caves.add(chunk_addr, cave);
-    }
-
-    // get
-    get(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        return this.caves.get(chunk_addr);
+        return false;
     }
 
     /**
-     * getNeighbours
+     * getNeighbourLines
      * @param { Vector } chunk_addr 
      * @returns 
      */
-    getNeighbours(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        const neighbours_caves = [];
-        for(let cx = -NEIGHBOURS_CAVES_RADIUS; cx < NEIGHBOURS_CAVES_RADIUS; cx++) {
-            for(let cz = -NEIGHBOURS_CAVES_RADIUS; cz < NEIGHBOURS_CAVES_RADIUS; cz++) {
-                temp_vec.set(chunk_addr.x + cx, chunk_addr.y, chunk_addr.z + cz);
-                const map_cave = this.get(temp_vec);
-                if(map_cave && map_cave.head_pos) {
-                    const chunk = map_cave.chunks.get(chunk_addr);
-                    if(chunk) {
-                        neighbours_caves.push(chunk);
-                    }
-                }
-            }
-        }
-        return neighbours_caves;
+     getNeighbourLines(chunk_addr) {
+        this._neighb.set(chunk_addr.x, 0, chunk_addr.z);
+        return this.lines.get(this._neighb);
     }
 
-    // addSpiral
+    // Инициализация пещер во всех чанках вокруг центрального chunk_addr
     addSpiral(chunk_addr) {
-        chunk_addr = new Vector(chunk_addr.x, 0, chunk_addr.z);
-        this.add(chunk_addr.add(Vector.ZERO));
         for(let sm of this.spiral_moves) {
-            this.add(chunk_addr.add(sm));
+            this._temp_add_vec.set(chunk_addr.x, chunk_addr.y, chunk_addr.z).addSelf(sm.pos);
+            this.add(this._temp_add_vec);
         }
     }
 

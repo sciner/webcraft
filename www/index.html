@@ -27,6 +27,7 @@
 	<!-- Third party -->
     <script src="vendors/howler.min.js" type="text/javascript"></script>
     <script src="vendors/angular.min.js"></script>
+    <script src="vendors/scriptracker-1.1.1.min.js"></script>
     <!-- <script src="vendors/webgl-utils.js"></script> -->
     <script src="js/ui/controller.js" type="module"></script>
     <script>
@@ -41,6 +42,20 @@
             rootpath: ":/a.com/"
         };
     </script>
+    <!--
+    <script>
+        var modPlayer = new ScripTracker();
+        modPlayer.on(ScripTracker.Events.playerReady, function(player, songName, songLength) {
+            player.play();
+        });
+        fetch('/media/disc/morninfizik.xm')
+        .then(res => res.blob()) // Gets the response and returns it as a blob
+        .then(async blob => {
+            var buffer = await blob.arrayBuffer();
+            modPlayer.loadRaw(new Uint8Array(buffer), blob.type.split('/')[1])
+        });
+    </script>
+    -->
     <script src="vendors/less.min.js" ="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body oncontextmenu="return false" ng-controller="gameCtrl" ng-cloak>

@@ -17,6 +17,7 @@ const ABS_CONCRETE              = 16;
 const MOSS_HUMIDITY             = .75;
 const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
+const _intersection             = new Vector(0, 0, 0);
 
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -547,26 +548,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
-            // caves
-            // Соседние чанки в указанном радиусе, на наличие начала(головы) пещер
-            let neighbours_caves = this.caveManager.getNeighbours(chunk.addr);
-            let in_chunk_cave_points = [];
-            for(let map_cave of neighbours_caves) {
-                for(let item of map_cave.points) {
-                    let rad = item.rad;
-                    if(this._createBlockAABB.intersect({
-                        x_min: item.pos.x - rad,
-                        x_max: item.pos.x + rad,
-                        y_min: item.pos.y - rad,
-                        y_max: item.pos.y + rad,
-                        z_min: item.pos.z - rad,
-                        z_max: item.pos.z + rad
-                    })) {
-                        in_chunk_cave_points.push(item);
-                    }
-                }
-            }
-    
+            // Ищем отрезки пещер
+            let neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
+            const in_chunk_cave_lines = neighbour_lines && neighbour_lines.list.length > 0;
+
             // Endless spiral staircase
             if(this.world_id == 'demo') {
                 if(chunk.addr.x == 180 && chunk.addr.z == 174) {
@@ -668,15 +653,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
 
                         // Caves | Пещеры
-                        if(in_chunk_cave_points && !in_ocean) {
+                        if(in_chunk_cave_lines && !in_ocean) {
                             // Проверка не является ли этот блок пещерой
                             let is_cave_block = false;
-                            for(let cave_point of in_chunk_cave_points) {
-                                if(xyz.distance(cave_point.pos) < cave_point.rad) {
+                            for(let line of neighbour_lines.list) {
+                                if(xyz.distanceToLine(line.p_start, line.p_end, _intersection) < line.rad) {
                                     is_cave_block = true;
-                                    break;
-                                }
-                                if(is_cave_block) {
                                     break;
                                 }
                             }

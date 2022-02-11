@@ -158,13 +158,16 @@ export class VectorCollector {
         }
     }
 
-    kvpIterator() {
+    kvpIterator(aabb) {
         const that = this;
         return (function* () {
             let vec = new Vector(0, 0, 0);
             for (let [xk, x] of that.list) {
+                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
                 for (let [yk, y] of x) {
+                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
                     for (let [zk, value] of y) {
+                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
                         vec.set(xk|0, yk|0, zk|0);
                         yield [vec, value];
                     }
@@ -535,6 +538,23 @@ export class Vector {
         return vec1.sub(vec2).length();
     }
 
+
+    // distancePointLine...
+    distanceToLine(line_start, line_end, intersection = null) {
+        intersection = intersection || new Vector(0, 0, 0);
+        let dist = line_start.distance(line_end);
+        let u = (((this.x - line_start.x) * (line_end.x - line_start.x)) +
+            ((this.y - line_start.y) * (line_end.y - line_start.y)) +
+            ((this.z - line_start.z) * (line_end.z - line_start.z))) /
+            (dist * dist);
+        if(u < 0) u = 0;
+        if(u > 1) u = 1;
+        intersection.x = line_start.x + u * (line_end.x - line_start.x);
+        intersection.y = line_start.y + u * (line_end.y - line_start.y);
+        intersection.z = line_start.z + u * (line_end.z - line_start.z);
+        return this.distance(intersection);
+    }
+
     /**
      * @return {Vector}
      */
@@ -705,6 +725,13 @@ export class Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
+        return this;
+    }
+
+    divScalarVec(vec) {
+        this.x /= vec.x;
+        this.y /= vec.y;
+        this.z /= vec.z;
         return this;
     }
 
