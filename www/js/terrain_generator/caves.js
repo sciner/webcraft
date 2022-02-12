@@ -13,6 +13,78 @@ const temp_vec                  = new Vector(0, 0, 0);
 const _vec_chunk_start          = new Vector(0, 0, 0); // Адрес чанка, где начинается отрезок
 const _vec_chunk_end            = new Vector(0, 0, 0); // Адрес чанка, где заканчивается отрезок
 
+//
+const side              = new Vector(0, 0, 0);
+const coord             = ['x', 'y', 'z'];
+const INF               = 100000.0;
+const eps               = 1e-3;
+const _block_vec        = new Vector(0, 0, 0);
+const _pos              = new Vector(0, 0, 0);
+const vc_trace          = new VectorCollector();
+const pos               = new Vector(0, 0, 0);
+const pos2              = new Vector(0, 0, 0);
+
+// traceVec3
+function traceVec3(p1, p2) {
+
+    pos.copyFrom(p1);
+    pos2.copyFrom(p2);
+
+    const pickat_distance   = p1.distance(p2);
+    const dir               = p2.sub(p1).normalize();
+    const block             = _block_vec.copyFrom(p1);
+
+    vc_trace.clear();
+
+    while (Math.abs(block.x - p1.x) < pickat_distance
+        && Math.abs(block.y - p1.y) < pickat_distance
+        && Math.abs(block.z - p1.z) < pickat_distance
+    ) {
+        let tMin = INF;
+        for(let d of coord) {
+            if(dir[d] > eps && tMin > (block[d]  - pos[d]) / dir[d]) {
+                tMin = (block[d] - pos[d]) / dir[d];
+                side.zero()[d] = 1;
+            }
+            if(dir[d] < -eps && tMin > (block[d] - pos[d]) / dir[d]) {
+                tMin = (block[d] - pos[d]) / dir[d];
+                side.zero()[d] = -1;
+            }
+        }
+    
+        if (tMin >= INF) {
+            break;
+        }
+
+        pos.x += dir.x * tMin;
+        pos.y += dir.y * tMin;
+        pos.z += dir.z * tMin;
+
+        for(let x = -1; x <= 1; x++) {
+            for(let y = -1; y <= 1; y++) {
+                for(let z = -1; z <= 1; z++) {
+                    _pos.set(x, y, z).addSelf(pos).flooredSelf();
+                    if(_pos.x>=p1.x && _pos.y>=p1.y && _pos.z>=p1.z) {
+                        if(_pos.x<=p2.x && _pos.y<=p2.y && _pos.z<=p2.z) {
+                            vc_trace.set(_pos, true);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(pos.equal(p2)) {
+            break;
+        }
+
+        block.addSelf(side);
+
+    }
+
+    return Array.from(vc_trace.keys());
+
+}
+
 // CaveLine...
 class CaveLine {
 
@@ -92,14 +164,19 @@ export class Cave {
                 let chunk = getChunk(_vec_chunk_start);
                 chunk.list.push(line);
             } else {
-                for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
+                let points = traceVec3(_vec_chunk_start, _vec_chunk_end);
+                for(let point of points) {
+                    let chunk = getChunk(point);
+                    chunk.list.push(line);
+                }
+                /*for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
                     for(let y = _vec_chunk_start.y; y <= _vec_chunk_end.y; y++) {
                         for(let z = _vec_chunk_start.z; z <= _vec_chunk_end.z; z++) {
                             let chunk = getChunk(temp_vec.set(x, y, z));
                             chunk.list.push(line);
                         }
                     }
-                }
+                }*/
             }
 
             p_start = p_end.clone();
