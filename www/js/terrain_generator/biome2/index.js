@@ -11,6 +11,23 @@ import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
 
+// Ores
+const ORE_RANDOMS = [
+    {max_rad: 2, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
+    {max_rad: 2, block_id: BLOCK.GOLD_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.REDSTONE_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.IRON_ORE.id, max_y: Infinity},
+    {max_rad: 1, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 1, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 2, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity},
+    {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
+];
+
 //
 let vox_templates = {};
 const ABS_CONCRETE              = 16;
@@ -40,6 +57,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             SCALE_HUMIDITY:         320  * scale, // Масштаб для карты шума влажности
             SCALE_VALUE:            250  * scale // Масштаб шума для карты высот
         };
+        this.temp_vec               = new Vector(0, 0, 0);
+        this.noise3d                = noise.simplex3;
         //
         this.noisefn                = noise.perlin2;
         this.noisefn3d              = noise.perlin3;
@@ -228,24 +247,83 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         return maps;
     }
 
+    // getOreBlockID...
+    getOreBlockID(xyz, value, biome) {
+        this.temp_vec.set(xyz.x, xyz.y + 1, xyz.z);
+        if(this.map.info.plants.has(this.temp_vec)) {
+            return biome.dirt_block;
+        }
+        let stone_block_id = BLOCK.CONCRETE.id;
+        let density = this.noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
+        if(density > 0.5) {
+            if(density < 0.66) {
+                stone_block_id = BLOCK.DIORITE.id;
+            } else if(density < 0.83) {
+                stone_block_id = BLOCK.ANDESITE.id;
+            } else {
+                stone_block_id = BLOCK.GRANITE.id;
+            }
+        } else if(xyz.y < value - 5) {
+            for(let ore of this.ores) {
+                if(ore.pos.distance(xyz) < ore.rad) {
+                    if(xyz.y < ore.max_y) {
+                        stone_block_id = ore.block_id;
+                    }
+                    break;
+                }
+            }
+            /*
+            const DIAMOND_ORE_FREQ = xyz.y < 16 ? (xyz.y < 6 ? 0.06 : 0.04) : 0;
+            if(density < DIAMOND_ORE_FREQ) {
+                stone_block_id = BLOCK.DIAMOND_ORE.id;
+            } else {
+                let density_ore = this.noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
+                if (density_ore < .1) {
+                    stone_block_id = BLOCK.COAL_ORE.id;
+                } else if (density_ore > .85) {
+                    stone_block_id = BLOCK.IRON_ORE.id;
+                }
+            }
+            */
+        }
+        return stone_block_id;
+    }
+
     // Generate
     generate(chunk) {
 
-        let maps                    = this.generateMaps(chunk);
-        let map                     = maps[4];
-        let xyz                     = new Vector(0, 0, 0);
-        let xyz_stone_density       = new Vector(0, 0, 0);
-        let temp_vec                = new Vector(0, 0, 0);
-        let temp_vec2               = new Vector(0, 0, 0);
-        let ppos                    = new Vector(0, 0, 0);
+        let xyz                         = new Vector(0, 0, 0);
+        let temp_vec                    = new Vector(0, 0, 0);
+        let temp_vec2                   = new Vector(0, 0, 0);
+        let ppos                        = new Vector(0, 0, 0);
+        let chunkAABB                   = new AABB();
+        const _createBlockAABB          = this._createBlockAABB;
+        const _createBlockAABB_second   = this._createBlockAABB_second;
+        const seed                      = chunk.id;
+        const aleaRandom                = new alea(seed);
+        const size_x                    = chunk.size.x;
+        const size_y                    = chunk.size.y;
+        const size_z                    = chunk.size.z;
 
-        const noise3d               = noise.simplex3;
-        const seed                  = chunk.id;
-        const aleaRandom            = new alea(seed);
-        let DENSITY_COEFF           = 1;
+        // Maps
+        let maps                        = this.generateMaps(chunk);
+        let map                         = maps[4];
+        this.map                        = map;
 
-        // Bedrock
-        let min_y = 0;
+        this.ores = [];
+        const margin = 3;
+        let count = Math.round(aleaRandom.double() * 15);
+        for(let i = 0; i < count; i++) {
+            const r = Math.floor(aleaRandom.double() * ORE_RANDOMS.length);
+            const ore = ORE_RANDOMS[r];
+            ore.rad = Math.min(Math.round(aleaRandom.double() * ore.max_rad) + 1, ore.max_rad),
+            ore.pos = new Vector(
+                margin + (CHUNK_SIZE_X - margin*2) * aleaRandom.double(),
+                margin + (CHUNK_SIZE_Y - margin*2) * aleaRandom.double(),
+                margin + (CHUNK_SIZE_Z - margin*2) * aleaRandom.double()
+            ).flooredSelf().addSelf(chunk.coord)
+            this.ores.push(ore)
+        }
 
         //
         const setBlock = (x, y, z, block_id, rotate) => {
@@ -257,242 +335,22 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             chunk.tblocks.id[index] = block_id;
         };
 
-        //
-        const getBlock = (x, y, z) => {
-            temp_vec2.set(x, y, z);
-            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
-            return chunk.tblocks.id[index];
-        };
-
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
 
-            let fill_count = 0;
-
-            //
-            for(let x = 0; x < chunk.size.x; x++) {
-
-                // let DENSITY_COEFF_X = Math.sin((chunk.coord.x + x) / 2000 * Math.PI * 2 / 10) + 2;
-
-                for(let z = 0; z < chunk.size.z; z++) {
-
-                    let y_start                 = Infinity;
-                    let stalactite_height       = 0;
-                    let stalactite_can_start    = false;
-                    let dripstone_allow         = true;
-
-                    // let DENSITY_COEFF_Z = Math.sin((chunk.coord.z + z) / 2000 * Math.PI * 2 / 10) + 2;
-
-                    for(let y = chunk.size.y - 1; y >= 0; y--) {
-
-                        xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-
-                        // let DENSITY_COEFF_Y = Math.sin((chunk.coord.y + y) / 500 * Math.PI * 2 / 10) + 2;
-                        // let DENSITY_COEFF = (DENSITY_COEFF_X + DENSITY_COEFF_Y + DENSITY_COEFF_Z) / 3;
-
-                        let density = (
-                            noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
-                            noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
-                        ) / 2;
-
-                        if(xyz.y > -ABS_CONCRETE) {
-                            const dist = xyz.y / -ABS_CONCRETE + .2;
-                            density += dist;
-                        }
-
-                        // air
-                        if(density < 0.5) {
-                            if(stalactite_can_start) {
-                                const humidity = noise3d(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
-                                if(y_start == Infinity) {
-                                    // start stalactite
-                                    y_start = y;
-                                    stalactite_height = 0;
-                                    // MOSS_BLOCK
-                                    if(humidity > MOSS_HUMIDITY) {
-                                        setBlock(x, y + 1, z, BLOCK.MOSS_BLOCK.id);
-                                        dripstone_allow = false;
-                                    }
-                                } else {
-                                    stalactite_height++;
-                                    if(stalactite_height >= 5) {
-                                        // Moss and vine
-                                        if(humidity > MOSS_HUMIDITY) {
-                                            if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
-                                                if(aleaRandom.double() < .3) {
-                                                    for(let yy = 0; yy < stalactite_height; yy++) {
-                                                        let vine_id = null;
-                                                        if(yy == stalactite_height - 1) {
-                                                            vine_id = BLOCK.CAVE_VINE_PART3.id + (x + z + y + yy) % 2;
-                                                        } else {
-                                                            vine_id = BLOCK.CAVE_VINE_PART1.id + (aleaRandom.double() < .2 ? 1 : 0);
-                                                        }
-                                                        setBlock(x, y_start - yy, z, vine_id);
-                                                    }
-                                                }
-                                                // reset stalactite
-                                                y_start = Infinity;
-                                                stalactite_height = 0;
-                                                stalactite_can_start = false;
-                                            }
-                                        } else if(dripstone_allow) {
-                                            // Dripstone
-                                            if(aleaRandom.double() < .3) {
-                                                setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
-                                                setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
-                                                setBlock(x, y_start - 2, z, BLOCK.DRIPSTONE3.id);
-                                            }
-                                            // reset stalactite
-                                            y_start = Infinity;
-                                            stalactite_height = 0;
-                                            stalactite_can_start = false;
-                                        }
-                                    }
-                                }
-                            }
-                            continue;
-                        }
-
-                        let stone_block_id = BLOCK.CONCRETE.id;
-                        xyz_stone_density.set(xyz.x + 100000, xyz.y + 100000, xyz.z + 100000);
-                        let stone_density = noise3d(xyz_stone_density.x / 20, xyz_stone_density.z / 20, xyz_stone_density.y / 20) / 2 + .5;
-
-                        if(stone_density < .025) {
-                            stone_block_id = BLOCK.GLOWSTONE.id;
-                        } else {
-                            if(stone_density > 0.5) {
-                                if(stone_density < 0.66) {
-                                    stone_block_id = BLOCK.DIORITE.id;
-                                } else if(stone_density < 0.83) {
-                                    stone_block_id = BLOCK.ANDESITE.id;
-                                } else {
-                                    stone_block_id = BLOCK.GRANITE.id;
-                                }
-                            } else {
-                                let density_ore = noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
-                                // 0 ... 0.06
-                                if(stone_density < 0.06) {
-                                    stone_block_id = BLOCK.DIAMOND_ORE.id;
-                                // 0.06 ... 0.1
-                                } else if (density_ore < .1) {
-                                    stone_block_id = BLOCK.COAL_ORE.id;
-                                // 0.1 ... 0.3
-                                } else if (density_ore > .3) {
-                                    stone_block_id = BLOCK.DRIPSTONE_BLOCK.id;
-                                // 0.85 ...1
-                                } else if (density_ore > .85) {
-                                    stone_block_id = BLOCK.COAL_ORE.id;
-                                }
-                            }
-                        }
-
-                        setBlock(x, y, z, stone_block_id);
-
-                        // reset stalactite
-                        stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;
-                        y_start                 = Infinity;
-                        stalactite_height       = 0;
-
-                        fill_count++;
-
-                    }
-                }
-            }
-
-            // Amethyst room
-            if(fill_count > CHUNK_BLOCKS * .7) {
-                let chance = aleaRandom.double();
-                if(chance < .25) {
-                    const room_pos = new Vector(chunk.size).divScalar(2);
-                    let temp_vec_amethyst = new Vector(0, 0, 0);
-                    let sides = [
-                        new Vector(1, 0, 0),
-                        new Vector(-1, 0, 0),
-                        new Vector(0, 1, 0),
-                        new Vector(0, -1, 0),
-                        new Vector(0, 0, 1),
-                        new Vector(0, 0, -1)
-                    ];
-                    let rotates = [
-                        new Vector(CubeSym.ROT_Z, 0, 0),
-                        new Vector(CubeSym.ROT_Z3, 0, 0),
-                        new Vector(CubeSym.NEG_Y, 0, 0),
-                        new Vector(CubeSym.ROT_Y3, 0, 0),
-                        new Vector(CubeSym.ROT_X, 0, 0),
-                        new Vector(CubeSym.ROT_X3, 0, 0)
-                    ];
-                    let temp_ar_vec = new Vector();
-                    let rad = chance * 4;
-                    room_pos.y += Math.round((rad - 0.5) * 10);
-                    for(let x = 0; x < chunk.size.x; x++) {
-                        for(let z = 0; z < chunk.size.z; z++) {
-                            for(let y = chunk.size.y - 1; y >= 0; y--) {
-                                temp_vec_amethyst.set(x, y, z);
-                                let dist = Math.round(room_pos.distance(temp_vec_amethyst));
-                                if(dist <= AMETHYST_ROOM_RADIUS) {
-                                    if(dist > AMETHYST_ROOM_RADIUS - 1.5) {
-                                        let b = getBlock(x, y, z);
-                                        if(b == 0) {
-                                            // air
-                                            continue;
-                                        } else if (dist >= AMETHYST_ROOM_RADIUS - 1.42) {
-                                            setBlock(x, y, z, BLOCK.AMETHYST.id);
-                                        }
-                                    } else {
-                                        setBlock(x, y, z, BLOCK.AIR.id);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // Set clusters
-                    let y_start = Math.max(room_pos.y - AMETHYST_ROOM_RADIUS, 1);
-                    let y_end = Math.min(room_pos.y + AMETHYST_ROOM_RADIUS, chunk.size.y - 2);
-                    for(let x = 1; x < chunk.size.x - 1; x++) {
-                        for(let z = 1; z < chunk.size.z - 1; z++) {
-                            for(let y = y_start; y < y_end; y++) {
-                                let rnd = aleaRandom.double();
-                                if(rnd > AMETHYST_CLUSTER_CHANCE) {
-                                    continue;
-                                }
-                                temp_vec_amethyst.set(x, y, z);
-                                let dist = Math.round(room_pos.distance(temp_vec_amethyst));
-                                if(dist < AMETHYST_ROOM_RADIUS - 1.5) {
-                                    if(getBlock(x, y, z) == 0) {
-                                        let set_vec     = null;
-                                        let attempts    = 0;
-                                        let rotate      = null;
-                                        while(!set_vec && ++attempts < 5) {
-                                            let i = Math.round(rnd * 10 * 5 + attempts) % 5;
-                                            temp_ar_vec.set(x + sides[i].x, y + sides[i].y, z + sides[i].z);
-                                            let b = getBlock(temp_ar_vec.x, temp_ar_vec.y, temp_ar_vec.z);
-                                            if(b != 0 && b != BLOCK.AMETHYST_CLUSTER.id) {
-                                                set_vec = sides[i];
-                                                rotate = rotates[i];
-                                            }
-                                        }
-                                        if(set_vec) {
-                                            setBlock(x, y, z, BLOCK.AMETHYST_CLUSTER.id, rotate);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            this.generateBottomCaves(chunk, aleaRandom, setBlock);
 
         } else {
 
             //
-            this._createBlockAABB.copyFrom({
-                x_min: chunk.coord.x,
-                x_max: chunk.coord.x + CHUNK_SIZE_X,
-                y_min: chunk.coord.y,
-                y_max: chunk.coord.y + CHUNK_SIZE_Y,
-                z_min: chunk.coord.z,
-                z_max: chunk.coord.z + CHUNK_SIZE_Z
-            });
+            chunkAABB.set(
+                chunk.coord.x,
+                chunk.coord.y,
+                chunk.coord.z,
+                chunk.coord.x + CHUNK_SIZE_X,
+                chunk.coord.y + CHUNK_SIZE_Y,
+                chunk.coord.z + CHUNK_SIZE_Z
+            );
     
             // Static objects
             let islands = this.islands;
@@ -501,14 +359,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             // voxel_buildings
             let has_voxel_buildings = false;
             for(var item of this.voxel_buildings) {
-                if(this._createBlockAABB.intersect({
-                    x_min: item.coord.x,
-                    x_max: item.coord.x + item.size.x,
-                    y_min: item.coord.y,
-                    y_max: item.coord.y + item.size.y,
-                    z_min: item.coord.z,
-                    z_max: item.coord.z + item.size.z
-                })) {
+                _createBlockAABB_second.set(
+                    item.coord.x - item.size.x,
+                    item.coord.y - item.size.y,
+                    item.coord.z - item.size.z,
+                    item.coord.x + item.size.x,
+                    item.coord.y + item.size.y,
+                    item.coord.z + item.size.z
+                );
+                if(chunkAABB.intersect(_createBlockAABB_second)) {
                     has_voxel_buildings = true;
                     break;
                 }
@@ -517,15 +376,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             // Islands
             let has_islands = false;
             for(let item of this.islands) {
-                let rad = item.rad;
-                if(this._createBlockAABB.intersect({
-                    x_min: item.pos.x - rad,
-                    x_max: item.pos.x + rad,
-                    y_min: item.pos.y - rad,
-                    y_max: item.pos.y + rad,
-                    z_min: item.pos.z - rad,
-                    z_max: item.pos.z + rad
-                })) {
+                const rad = item.rad;
+                _createBlockAABB_second.set(
+                    item.pos.x - rad,
+                    item.pos.y - rad,
+                    item.pos.z - rad,
+                    item.pos.x + rad,
+                    item.pos.y + rad,
+                    item.pos.z + rad
+                );
+                if(chunkAABB.intersect(_createBlockAABB_second)) {
                     has_islands = true;
                     break;
                 }
@@ -534,26 +394,30 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             // extruders
             let has_extruders = false;
             for(let item of this.extruders) {
-                let rad = item.rad;
-                if(this._createBlockAABB.intersect({
-                    x_min: item.pos.x - rad,
-                    x_max: item.pos.x + rad,
-                    y_min: item.pos.y - rad,
-                    y_max: item.pos.y + rad,
-                    z_min: item.pos.z - rad,
-                    z_max: item.pos.z + rad
-                })) {
+                const rad = item.rad;
+                _createBlockAABB_second.set(
+                    item.pos.x - rad,
+                    item.pos.y - rad,
+                    item.pos.z - rad,
+                    item.pos.x + rad,
+                    item.pos.y + rad,
+                    item.pos.z + rad
+                );
+                if(chunkAABB.intersect(_createBlockAABB_second)) {
                     has_extruders = true;
                     break;
                 }
             }
 
             // Ищем отрезки пещер
-            let neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
+            const neighbour_lines = this.caveManager.getNeighbourLines(chunk.addr);
             const in_chunk_cave_lines = neighbour_lines && neighbour_lines.list.length > 0;
 
             // Проверка не является ли этот блок пещерой
             function checkIsCaveBlock(xyz) {
+                if(!in_chunk_cave_lines) {
+                    return false;
+                }
                 for(let k = neighbour_lines.list.length - 1; k >= 0; k--) {
                     const line = neighbour_lines.list[k];
                     let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
@@ -564,32 +428,28 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 return false;
             }
 
-            const _createBlockAABB = this._createBlockAABB;
-            const _createBlockAABB_second = this._createBlockAABB_second;
-
             // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
             function nearTree(xyz) {
-                let near_tree = false;
                 const near_rad = 5;
                 // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
+                _createBlockAABB_second.set(
+                    xyz.x - near_rad,
+                    xyz.y - near_rad - chunk.coord.y,
+                    xyz.z - near_rad,
+                    xyz.x + near_rad,
+                    xyz.y + near_rad - chunk.coord.y,
+                    xyz.z + near_rad
+                );
                 for(let m of maps) {
                     if(m.info.trees.size == 0) continue;
                     //
-                    _createBlockAABB.copyFrom({
-                        x_min: m.chunk.coord.x,
-                        x_max: m.chunk.coord.x + CHUNK_SIZE_X,
-                        y_min: m.chunk.coord.y,
-                        y_max: m.chunk.coord.y + CHUNK_SIZE_Y,
-                        z_min: m.chunk.coord.z,
-                        z_max: m.chunk.coord.z + CHUNK_SIZE_Z
-                    });
-                    _createBlockAABB_second.set(
-                        xyz.x - near_rad,
-                        xyz.y - near_rad - chunk.coord.y,
-                        xyz.z - near_rad,
-                        xyz.x + near_rad,
-                        xyz.y + near_rad - chunk.coord.y,
-                        xyz.z + near_rad
+                    _createBlockAABB.set(
+                        m.chunk.coord.x,
+                        m.chunk.coord.y,
+                        m.chunk.coord.z,
+                        m.chunk.coord.x + CHUNK_SIZE_X,
+                        m.chunk.coord.y + CHUNK_SIZE_Y,
+                        m.chunk.coord.z + CHUNK_SIZE_Z
                     );
                     if(!_createBlockAABB.intersect(_createBlockAABB_second)) {
                         continue;
@@ -597,15 +457,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
                     for(let tree of m.info.trees) {
                         if(tree.pos.distance(ppos) < near_rad) {
-                            near_tree = true;
-                            break;
+                            return true;
                         }
                     }
-                    if(near_tree) {
-                        break;
-                    }
                 }
-                return near_tree;
+                return false;
             }
 
             // drawBuilding...
@@ -623,40 +479,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 return false;
             }
 
-            // getOreBlockID...
-            function getOreBlockID(xyz, value, biome) {
-                temp_vec.set(xyz.x, xyz.y + 1, xyz.z);
-                if(map.info.plants.has(temp_vec)) {
-                    return biome.dirt_block;
-                }
-                let stone_block_id = BLOCK.CONCRETE.id;
-                let density = noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
-                if(density > 0.5) {
-                    if(density < 0.66) {
-                        stone_block_id = BLOCK.DIORITE.id;
-                    } else if(density < 0.83) {
-                        stone_block_id = BLOCK.ANDESITE.id;
-                    } else {
-                        stone_block_id = BLOCK.GRANITE.id;
-                    }
-                } else if(xyz.y < value - 5) {
-                    let density_ore = noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
-                    const DIAMOND_ORE_FREQ = xyz.y < 16 ? (xyz.y < 6 ? 0.06 : 0.04) : 0;
-                    if(density < DIAMOND_ORE_FREQ) {
-                        stone_block_id = BLOCK.DIAMOND_ORE.id;
-                    } else if (density_ore < .1) {
-                        stone_block_id = BLOCK.COAL_ORE.id;
-                    } else if (density_ore > .85) {
-                        stone_block_id = BLOCK.COAL_ORE.id;
-                    }
-                }
-                return stone_block_id;
-            }
-
             // drawIsland
             function drawIsland(xyz, x, y, z) {
                 if(!has_islands) {
-                    return;
+                    return false;
                 }
                 for(let island of islands) {
                     let dist = xyz.distance(island.pos);
@@ -664,17 +490,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(xyz.y < island.pos.y) {
                             if(xyz.y < island.pos.y - 3) {
                                 setBlock(x, y, z, BLOCK.CONCRETE.id);
+                                return true;
                             } else {
                                 if(dist < island.rad * 0.9) {
                                     setBlock(x, y, z, BLOCK.CONCRETE.id);
+                                    return true;
                                 } else {
                                     setBlock(x, y, z, BLOCK.DIRT.id);
+                                    return true;
                                 }
                             }
                         }
                         break;
                     }
                 }
+                return false;
             }
 
             // extrude
@@ -690,7 +520,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             // Endless spiral staircase
             if(this.world_id == 'demo') {
                 if(chunk.addr.x == 180 && chunk.addr.z == 174) {
-                    for(let y = min_y; y < chunk.size.y; y += .25) {
+                    for(let y = 0; y < chunk.size.y; y += .25) {
                         let y_abs = y + chunk.coord.y;
                         let y_int = parseInt(y);
                         let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
@@ -710,10 +540,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
-            // chunk sizes
-            const size_x = chunk.size.x;
-            const size_y = chunk.size.y;
-            const size_z = chunk.size.z;
             //
             for(let x = 0; x < size_x; x++) {
                 for(let z = 0; z < size_z; z++) {
@@ -721,12 +547,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const cell              = map.info.cells[x][z];
                     const biome             = cell.biome;
                     const value             = cell.value2;
+                    const rnd               = aleaRandom.double();
+                    const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
+                    const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
 
-                    let rnd                 = aleaRandom.double();
-                    let local_dirt_level    = value - (rnd < .005 ? 1 : 3);
-                    let in_ocean            = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
-
-                    for(let y = min_y; y < size_y; y++) {
+                    for(let y = 0; y < size_y; y++) {
 
                         xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
 
@@ -739,7 +564,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // Islands
                         if(has_islands) {
-                            drawIsland(xyz, x, y, z);
+                            if(drawIsland(xyz, x, y, z)) {
+                                continue;
+                            }
                         }
 
                         // Remove volume from terrain
@@ -763,7 +590,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // Ores (если это не вода, то заполняем полезными ископаемыми)
                         if(xyz.y < local_dirt_level) {
-                            const stone_block_id = getOreBlockID(xyz, value, biome);
+                            const stone_block_id = this.getOreBlockID(xyz, value, biome);
                             setBlock(x, y, z, stone_block_id);
                         } else {
                             setBlock(x, y, z, biome.dirt_block);
@@ -804,8 +631,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             let temp_block = null;
             let idx = 0;
             for(let pos of map.info.plants.keys()) {
-                let block_id = map.info.plants.get(pos);
+                // 
                 if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                    let block_id = map.info.plants.get(pos);
                     xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
                     if(temp_block.id === BLOCK.DIRT.id || temp_block.id == 516) {
@@ -825,6 +653,236 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         return map;
+
+    }
+
+    // Генерация пещер нижнего мира
+    generateBottomCaves(chunk, aleaRandom, setBlock) {
+
+        const noise3d               = noise.simplex3;
+        let xyz                     = new Vector(0, 0, 0);
+        let xyz_stone_density       = new Vector(0, 0, 0);
+        let DENSITY_COEFF           = 1;
+        let fill_count              = 0;
+
+        //
+        const getBlock = (x, y, z) => {
+            const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+            return chunk.tblocks.id[index];
+        };
+
+        //
+        for(let x = 0; x < chunk.size.x; x++) {
+
+            // let DENSITY_COEFF_X = Math.sin((chunk.coord.x + x) / 2000 * Math.PI * 2 / 10) + 2;
+
+            for(let z = 0; z < chunk.size.z; z++) {
+
+                let y_start                 = Infinity;
+                let stalactite_height       = 0;
+                let stalactite_can_start    = false;
+                let dripstone_allow         = true;
+
+                // let DENSITY_COEFF_Z = Math.sin((chunk.coord.z + z) / 2000 * Math.PI * 2 / 10) + 2;
+
+                for(let y = chunk.size.y - 1; y >= 0; y--) {
+
+                    xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+
+                    // let DENSITY_COEFF_Y = Math.sin((chunk.coord.y + y) / 500 * Math.PI * 2 / 10) + 2;
+                    // let DENSITY_COEFF = (DENSITY_COEFF_X + DENSITY_COEFF_Y + DENSITY_COEFF_Z) / 3;
+
+                    let density = (
+                        noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
+                        noise3d(xyz.x / (20 * DENSITY_COEFF), xyz.y / (20 * DENSITY_COEFF), xyz.z / (20 * DENSITY_COEFF)) / 2 + .5
+                    ) / 2;
+
+                    if(xyz.y > -ABS_CONCRETE) {
+                        const dist = xyz.y / -ABS_CONCRETE + .2;
+                        density += dist;
+                    }
+
+                    // air
+                    if(density < 0.5) {
+                        if(stalactite_can_start) {
+                            const humidity = noise3d(xyz.x / 80, xyz.z / 80, xyz.y / 80) / 2 + .5;
+                            if(y_start == Infinity) {
+                                // start stalactite
+                                y_start = y;
+                                stalactite_height = 0;
+                                // MOSS_BLOCK
+                                if(humidity > MOSS_HUMIDITY) {
+                                    setBlock(x, y + 1, z, BLOCK.MOSS_BLOCK.id);
+                                    dripstone_allow = false;
+                                }
+                            } else {
+                                stalactite_height++;
+                                if(stalactite_height >= 5) {
+                                    // Moss and vine
+                                    if(humidity > MOSS_HUMIDITY) {
+                                        if(stalactite_height == 5 + Math.round((humidity - MOSS_HUMIDITY) * (1 / MOSS_HUMIDITY) * 20)) {
+                                            if(aleaRandom.double() < .3) {
+                                                for(let yy = 0; yy < stalactite_height; yy++) {
+                                                    let vine_id = null;
+                                                    if(yy == stalactite_height - 1) {
+                                                        vine_id = BLOCK.CAVE_VINE_PART3.id + (x + z + y + yy) % 2;
+                                                    } else {
+                                                        vine_id = BLOCK.CAVE_VINE_PART1.id + (aleaRandom.double() < .2 ? 1 : 0);
+                                                    }
+                                                    setBlock(x, y_start - yy, z, vine_id);
+                                                }
+                                            }
+                                            // reset stalactite
+                                            y_start = Infinity;
+                                            stalactite_height = 0;
+                                            stalactite_can_start = false;
+                                        }
+                                    } else if(dripstone_allow) {
+                                        // Dripstone
+                                        if(aleaRandom.double() < .3) {
+                                            setBlock(x, y_start - 0, z, BLOCK.DRIPSTONE.id);
+                                            setBlock(x, y_start - 1, z, BLOCK.DRIPSTONE2.id);
+                                            setBlock(x, y_start - 2, z, BLOCK.DRIPSTONE3.id);
+                                        }
+                                        // reset stalactite
+                                        y_start = Infinity;
+                                        stalactite_height = 0;
+                                        stalactite_can_start = false;
+                                    }
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
+                    let stone_block_id = BLOCK.CONCRETE.id;
+                    xyz_stone_density.set(xyz.x + 100000, xyz.y + 100000, xyz.z + 100000);
+                    let stone_density = noise3d(xyz_stone_density.x / 20, xyz_stone_density.z / 20, xyz_stone_density.y / 20) / 2 + .5;
+
+                    if(stone_density < .025) {
+                        stone_block_id = BLOCK.GLOWSTONE.id;
+                    } else {
+                        if(stone_density > 0.5) {
+                            if(stone_density < 0.66) {
+                                stone_block_id = BLOCK.DIORITE.id;
+                            } else if(stone_density < 0.83) {
+                                stone_block_id = BLOCK.ANDESITE.id;
+                            } else {
+                                stone_block_id = BLOCK.GRANITE.id;
+                            }
+                        } else {
+                            let density_ore = noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
+                            // 0 ... 0.06
+                            if(stone_density < 0.06) {
+                                stone_block_id = BLOCK.DIAMOND_ORE.id;
+                            // 0.06 ... 0.1
+                            } else if (density_ore < .1) {
+                                stone_block_id = BLOCK.COAL_ORE.id;
+                            // 0.1 ... 0.3
+                            } else if (density_ore > .3) {
+                                stone_block_id = BLOCK.DRIPSTONE_BLOCK.id;
+                            // 0.85 ...1
+                            } else if (density_ore > .85) {
+                                stone_block_id = BLOCK.COAL_ORE.id;
+                            }
+                        }
+                    }
+
+                    setBlock(x, y, z, stone_block_id);
+
+                    // reset stalactite
+                    stalactite_can_start    = stone_block_id == BLOCK.DRIPSTONE_BLOCK.id;
+                    y_start                 = Infinity;
+                    stalactite_height       = 0;
+
+                    fill_count++;
+
+                }
+            }
+        }
+
+        // Amethyst room
+        if(fill_count > CHUNK_BLOCKS * .7) {
+            let chance = aleaRandom.double();
+            if(chance < .25) {
+                const room_pos = new Vector(chunk.size).divScalar(2);
+                let temp_vec_amethyst = new Vector(0, 0, 0);
+                let sides = [
+                    new Vector(1, 0, 0),
+                    new Vector(-1, 0, 0),
+                    new Vector(0, 1, 0),
+                    new Vector(0, -1, 0),
+                    new Vector(0, 0, 1),
+                    new Vector(0, 0, -1)
+                ];
+                let rotates = [
+                    new Vector(CubeSym.ROT_Z, 0, 0),
+                    new Vector(CubeSym.ROT_Z3, 0, 0),
+                    new Vector(CubeSym.NEG_Y, 0, 0),
+                    new Vector(CubeSym.ROT_Y3, 0, 0),
+                    new Vector(CubeSym.ROT_X, 0, 0),
+                    new Vector(CubeSym.ROT_X3, 0, 0)
+                ];
+                let temp_ar_vec = new Vector();
+                let rad = chance * 4;
+                room_pos.y += Math.round((rad - 0.5) * 10);
+                for(let x = 0; x < chunk.size.x; x++) {
+                    for(let z = 0; z < chunk.size.z; z++) {
+                        for(let y = chunk.size.y - 1; y >= 0; y--) {
+                            temp_vec_amethyst.set(x, y, z);
+                            let dist = Math.round(room_pos.distance(temp_vec_amethyst));
+                            if(dist <= AMETHYST_ROOM_RADIUS) {
+                                if(dist > AMETHYST_ROOM_RADIUS - 1.5) {
+                                    let b = getBlock(x, y, z);
+                                    if(b == 0) {
+                                        // air
+                                        continue;
+                                    } else if (dist >= AMETHYST_ROOM_RADIUS - 1.42) {
+                                        setBlock(x, y, z, BLOCK.AMETHYST.id);
+                                    }
+                                } else {
+                                    setBlock(x, y, z, BLOCK.AIR.id);
+                                }
+                            }
+                        }
+                    }
+                }
+                // Set clusters
+                let y_start = Math.max(room_pos.y - AMETHYST_ROOM_RADIUS, 1);
+                let y_end = Math.min(room_pos.y + AMETHYST_ROOM_RADIUS, chunk.size.y - 2);
+                for(let x = 1; x < chunk.size.x - 1; x++) {
+                    for(let z = 1; z < chunk.size.z - 1; z++) {
+                        for(let y = y_start; y < y_end; y++) {
+                            let rnd = aleaRandom.double();
+                            if(rnd > AMETHYST_CLUSTER_CHANCE) {
+                                continue;
+                            }
+                            temp_vec_amethyst.set(x, y, z);
+                            let dist = Math.round(room_pos.distance(temp_vec_amethyst));
+                            if(dist < AMETHYST_ROOM_RADIUS - 1.5) {
+                                if(getBlock(x, y, z) == 0) {
+                                    let set_vec     = null;
+                                    let attempts    = 0;
+                                    let rotate      = null;
+                                    while(!set_vec && ++attempts < 5) {
+                                        let i = Math.round(rnd * 10 * 5 + attempts) % 5;
+                                        temp_ar_vec.set(x + sides[i].x, y + sides[i].y, z + sides[i].z);
+                                        let b = getBlock(temp_ar_vec.x, temp_ar_vec.y, temp_ar_vec.z);
+                                        if(b != 0 && b != BLOCK.AMETHYST_CLUSTER.id) {
+                                            set_vec = sides[i];
+                                            rotate = rotates[i];
+                                        }
+                                    }
+                                    if(set_vec) {
+                                        setBlock(x, y, z, BLOCK.AMETHYST_CLUSTER.id, rotate);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
     }
 

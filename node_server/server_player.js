@@ -272,11 +272,17 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_GAMEMODE_NEXT: {
+                    if(!this.world.admins.checkIsAdmin(this)) {
+                        throw 'error_not_permitted';
+                    }
                     this.game_mode.next();
                     break;
                 }
 
                 case ServerClient.CMD_GAMEMODE_SET: {
+                    if(!this.world.admins.checkIsAdmin(this)) {
+                        throw 'error_not_permitted';
+                    }
                     this.game_mode.applyMode(cmd.data.id, true);
                     break;
                 }

@@ -111,7 +111,7 @@ export class Cave {
 
         const aleaRandom = new alea(seed + addr.toString());
 
-        if(aleaRandom.double() < .6) {
+        if(aleaRandom.double() < .7) {
             return;
         }
 
@@ -142,7 +142,7 @@ export class Cave {
             let r = aleaRandom.double();
             const length = Math.round(r * MAX_DIR_LENGTH) + 1;
             const height = Math.round(r * MAX_DIR_HEIGHT);
-            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 1;
+            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 2;
 
             // Генерация нового направления группы секций
             temp_vec.set(
@@ -232,8 +232,7 @@ export class CaveGenerator {
      * @returns 
      */
      getNeighbourLines(chunk_addr) {
-        this._neighb.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
-        return this.lines.get(this._neighb);
+        return this.lines.get(chunk_addr);
     }
 
     // Инициализация пещер во всех чанках вокруг центрального chunk_addr
