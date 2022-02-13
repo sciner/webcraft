@@ -5,13 +5,16 @@ import {AABB} from '../core/AABB.js';
 
 // Общее количество блоков в чанке
 const DIVIDER                   = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+const CHUNK_DIAGONAL_LENGTH     = Vector.ZERO.distance(DIVIDER);
 const MAX_RAD                   = 3; // максимальный радиус секции
 const MAX_DIR_LENGTH            = 40;
 const MAX_DIR_HEIGHT            = 10;
 const _aabb                     = new AABB();
+const _intersection             = new Vector(0, 0, 0);
 const temp_vec                  = new Vector(0, 0, 0);
 const _vec_chunk_start          = new Vector(0, 0, 0); // Адрес чанка, где начинается отрезок
 const _vec_chunk_end            = new Vector(0, 0, 0); // Адрес чанка, где заканчивается отрезок
+const _vec_chunk_coord          = new Vector(0, 0, 0); //
 
 //
 const side              = new Vector(0, 0, 0);
@@ -102,14 +105,18 @@ export class Cave {
     // Constructor
     constructor(lines, seed, addr) {
 
+        if(addr.y < 0 || addr.y > 2) {
+            return;
+        }
+
         const aleaRandom = new alea(seed + addr.toString());
 
-        if(aleaRandom.double() < .5) {
+        if(aleaRandom.double() < .6) {
             return;
         }
 
         // Генерируем абсолютную позицию начала пещеры в этом чанке
-        let index = parseInt(aleaRandom.double() * CHUNK_BLOCKS);
+        let index = parseInt(aleaRandom.double() * CHUNK_BLOCKS * .6);
 
         // Конвертируем позицию в 3D вектор
         const x = index % CHUNK_SIZE_X;
@@ -164,19 +171,28 @@ export class Cave {
                 let chunk = getChunk(_vec_chunk_start);
                 chunk.list.push(line);
             } else {
-                let points = traceVec3(_vec_chunk_start, _vec_chunk_end);
+                /*let points = traceVec3(_vec_chunk_start, _vec_chunk_end);
                 for(let point of points) {
                     let chunk = getChunk(point);
                     chunk.list.push(line);
-                }
-                /*for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
+                }*/
+                for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
                     for(let y = _vec_chunk_start.y; y <= _vec_chunk_end.y; y++) {
                         for(let z = _vec_chunk_start.z; z <= _vec_chunk_end.z; z++) {
-                            let chunk = getChunk(temp_vec.set(x, y, z));
-                            chunk.list.push(line);
+                            temp_vec.set(x, y, z);
+                            _vec_chunk_coord.set(
+                                x * CHUNK_SIZE_X + (CHUNK_SIZE_X / 2),
+                                y * CHUNK_SIZE_Y + (CHUNK_SIZE_Y / 2),
+                                z * CHUNK_SIZE_Z + (CHUNK_SIZE_Z / 2)
+                            );
+                            let dist = _vec_chunk_coord.distanceToLine(line.p_start, line.p_end, _intersection);
+                            if(dist <= CHUNK_DIAGONAL_LENGTH / 2) {
+                                let chunk = getChunk(temp_vec);
+                                chunk.list.push(line);
+                            }
                         }
                     }
-                }*/
+                }
             }
 
             p_start = p_end.clone();
@@ -216,7 +232,7 @@ export class CaveGenerator {
      * @returns 
      */
      getNeighbourLines(chunk_addr) {
-        this._neighb.set(chunk_addr.x, 0, chunk_addr.z);
+        this._neighb.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
         return this.lines.get(this._neighb);
     }
 
