@@ -7,6 +7,7 @@ import {AABB} from '../core/AABB.js';
 const DIVIDER                   = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 const CHUNK_DIAGONAL_LENGTH     = Vector.ZERO.distance(DIVIDER);
 const MAX_RAD                   = 2; // максимальный радиус секции
+const TREASURE_ROOM_RAD         = 3.5;
 const GROUP_COUNT               = 8;
 const MAX_DIR_LENGTH            = 25;
 const _aabb                     = new AABB();
@@ -95,10 +96,11 @@ function traceVec3(p1, p2) {
 // CaveLine...
 class CaveLine {
 
-    constructor(p_start, p_end, rad) {
+    constructor(p_start, p_end, rad, aabb) {
         this.p_start = p_start;
         this.p_end = p_end;
         this.rad = rad;
+        this.aabb = aabb;
     }
 
 }
@@ -147,18 +149,25 @@ export class Cave {
         const vert_coeff = 2;
         let p_end = null;
 
+        let is_treasure = true; // r < .1;
+
         // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
         for(let i = 0; i < GROUP_COUNT; i++) {
 
-            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 1;
+            let rad = Math.round(aleaRandom.double() * MAX_RAD) + 1;
 
             if(vec_line.x == Infinity) {
                 // Генерация нового направления группы секций
-                vec_line.set(
-                    (aleaRandom.double() * 2 - 1) * length,
-                    (aleaRandom.double() * 2 - 1) * (length / vert_coeff),
-                    (aleaRandom.double() * 2 - 1) * length
-                ).flooredSelf();
+                if(is_treasure) {
+                    rad = TREASURE_ROOM_RAD;
+                    vec_line.set(8, 0, 0).flooredSelf();
+                } else {
+                    vec_line.set(
+                        (aleaRandom.double() * 2 - 1) * length,
+                        (aleaRandom.double() * 2 - 1) * (length / vert_coeff),
+                        (aleaRandom.double() * 2 - 1) * length
+                    ).flooredSelf();
+                }
                 p_end = p_start.add(vec_line);
             } else {
                 new_pos.copyFrom(p_end).addSelf(vec_line);
@@ -181,7 +190,9 @@ export class Cave {
             _vec_chunk_end.set(_aabb.x_max, _aabb.y_max, _aabb.z_max).divScalarVec(DIVIDER).flooredSelf();
 
             // Отрезок
-            const line = new CaveLine(p_start.clone(), p_end.clone(), rad);
+            const line = new CaveLine(p_start.clone(), p_end.clone(), rad, _aabb.clone());
+            line.is_treasure = is_treasure;
+            is_treasure = false;
 
             // Если отрезок полностью умещается в одном чанке
             if(_vec_chunk_start.equal(_vec_chunk_end)) {

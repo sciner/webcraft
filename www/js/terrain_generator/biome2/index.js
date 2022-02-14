@@ -11,6 +11,8 @@ import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
 
+const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
+
 // Ores
 const ORE_RANDOMS = [
     {max_rad: 2, block_id: BLOCK.DIAMOND_ORE.id, max_y: 32},
@@ -414,10 +416,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 for(let k = neighbour_lines.list.length - 1; k >= 0; k--) {
                     const line = neighbour_lines.list[k];
-                    let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                    let r = randoms[randoms_index++ % randoms.length];
-                    if(dist < line.rad + r * 1) {
-                        return true;
+                    if(line.is_treasure) {
+                        if(line.aabb.contains(xyz.x, xyz.y, xyz.z)) {
+                            return line;
+                        }
+                    } else {
+                        let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
+                        let r = randoms[randoms_index++ % randoms.length];
+                        if(dist < line.rad + r * 1) {
+                            return line;
+                        }
                     }
                 }
                 return false;
@@ -512,6 +520,58 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 return false;
             }
 
+            // getTreasureRoomMat
+            function getTreasureRoomMat(xyz, is_floor, level) {
+                if(!is_floor && level == 0) {
+                    return BLOCK.LODESTONE.id;
+                }
+                let rb = randoms[randoms_index++ % randoms.length];
+                if(rb < .2) {
+                    return BLOCK.MOSS_BLOCK.id;
+                } else if (rb < .8) {
+                    return BLOCK.STONE_BRICK.id;
+                } else {
+                    return BLOCK.MOSSY_STONE_BRICKS.id;
+                }
+            }
+
+            // drawTreasureRoom...
+            function drawTreasureRoom(line, xyz, x, y, z) {
+                if(xyz.y < line.p_start.y || xyz.y == line.p_start.y + Math.round(line.rad) - 1) {
+                    // floor
+                    setBlock(x, y, z, getTreasureRoomMat(xyz, true));
+                } else {
+                    if(
+                        // long walls
+                        (xyz.z == line.p_start.z + Math.floor(line.rad)) ||
+                        (xyz.z == line.p_end.z - Math.floor(line.rad)) ||
+                        // short walls
+                        (xyz.x == line.p_end.x + Math.floor(line.rad)) ||
+                        (xyz.x == line.p_start.x - Math.floor(line.rad))
+                    ) {
+                        setBlock(x, y, z, getTreasureRoomMat(xyz, false, xyz.y - line.p_start.y));
+                    } else if (xyz.x == line.p_start.x - Math.floor(line.rad) + 7) {
+                        // 3-th short wall with door
+                        if(xyz.z != line.p_start.z || (xyz.z == line.p_start.z && xyz.y > line.p_start.y + 2)) {
+                            setBlock(x, y, z, getTreasureRoomMat(xyz, false, xyz.y - line.p_start.y));
+                        } else {
+                            if(xyz.y == line.p_start.y + 2) {
+                                setBlock(x, y, z, BLOCK.IRON_BARS.id);
+                            }
+                        }
+                    }
+                    if(xyz.y == line.p_start.y) {
+                        // chest
+                        if(xyz.z == line.p_start.z) {
+                            let cx = Math.round((line.p_start.x + line.p_end.x) / 2) - 6;
+                            if(xyz.x == cx) {
+                                setBlock(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE);
+                            }
+                        }
+                    }
+                }
+            }
+
             // Endless spiral staircase
             if(this.world_id == 'demo') {
                 if(chunk.addr.x == 180 && chunk.addr.z == 174) {
@@ -578,8 +638,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // Caves | Пещеры
                         if(in_chunk_cave_lines && !in_ocean) {
-                            if(checkIsCaveBlock(xyz) && !nearTree(xyz)) {
-                                continue;
+                            const line = checkIsCaveBlock(xyz);
+                            if(line) {
+                                if(!nearTree(xyz)) {
+                                    if(line.is_treasure) {
+                                        drawTreasureRoom(line, xyz, x, y, z);
+                                    }
+                                    continue;
+                                }
                             }
                         }
 
@@ -669,8 +735,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         //
         for(let x = 0; x < chunk.size.x; x++) {
 
-            // let DENSITY_COEFF_X = Math.sin((chunk.coord.x + x) / 2000 * Math.PI * 2 / 10) + 2;
-
             for(let z = 0; z < chunk.size.z; z++) {
 
                 let y_start                 = Infinity;
@@ -678,14 +742,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 let stalactite_can_start    = false;
                 let dripstone_allow         = true;
 
-                // let DENSITY_COEFF_Z = Math.sin((chunk.coord.z + z) / 2000 * Math.PI * 2 / 10) + 2;
-
                 for(let y = chunk.size.y - 1; y >= 0; y--) {
 
                     xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
-
-                    // let DENSITY_COEFF_Y = Math.sin((chunk.coord.y + y) / 500 * Math.PI * 2 / 10) + 2;
-                    // let DENSITY_COEFF = (DENSITY_COEFF_X + DENSITY_COEFF_Y + DENSITY_COEFF_Z) / 3;
 
                     let density = (
                         noise3d(xyz.x / (100 * DENSITY_COEFF), xyz.y / (15 * DENSITY_COEFF), xyz.z / (100 * DENSITY_COEFF)) / 2 + .5 +
