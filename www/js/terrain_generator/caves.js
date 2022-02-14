@@ -6,16 +6,19 @@ import {AABB} from '../core/AABB.js';
 // Общее количество блоков в чанке
 const DIVIDER                   = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 const CHUNK_DIAGONAL_LENGTH     = Vector.ZERO.distance(DIVIDER);
-const MAX_RAD                   = 3; // максимальный радиус секции
-const MAX_DIR_LENGTH            = 40;
-const MAX_DIR_HEIGHT            = 10;
+const MAX_RAD                   = 2; // максимальный радиус секции
+const GROUP_COUNT               = 8;
+const MAX_DIR_LENGTH            = 25;
 const _aabb                     = new AABB();
 const _intersection             = new Vector(0, 0, 0);
 const temp_vec                  = new Vector(0, 0, 0);
+const vec_line                  = new Vector(0, 0, 0);
+const new_pos                   = new Vector(0, 0, 0);
 const _vec_chunk_start          = new Vector(0, 0, 0); // Адрес чанка, где начинается отрезок
 const _vec_chunk_end            = new Vector(0, 0, 0); // Адрес чанка, где заканчивается отрезок
 const _vec_chunk_coord          = new Vector(0, 0, 0); //
 
+/*
 //
 const side              = new Vector(0, 0, 0);
 const coord             = ['x', 'y', 'z'];
@@ -87,6 +90,7 @@ function traceVec3(p1, p2) {
     return Array.from(vc_trace.keys());
 
 }
+*/
 
 // CaveLine...
 class CaveLine {
@@ -122,9 +126,9 @@ export class Cave {
         const x = index % CHUNK_SIZE_X;
         const y = index / (CHUNK_SIZE_X * CHUNK_SIZE_Z) | 0;
         const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
-        temp_vec.set(x, y, z);
+        vec_line.set(x, y, z);
 
-        let p_start = addr.mul(DIVIDER).addSelf(temp_vec);
+        let p_start = addr.mul(DIVIDER).addSelf(vec_line);
 
         // getChunk
         function getChunk(addr) {
@@ -136,21 +140,34 @@ export class Cave {
             return chunk;
         }
 
+        vec_line.x = Infinity;
+
+        let r = aleaRandom.double();
+        const length = Math.round(r * MAX_DIR_LENGTH) + 1;
+        const vert_coeff = 2;
+        let p_end = null;
+
         // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
-        for(let i = 0; i < 5; i++) {
+        for(let i = 0; i < GROUP_COUNT; i++) {
 
-            let r = aleaRandom.double();
-            const length = Math.round(r * MAX_DIR_LENGTH) + 1;
-            const height = Math.round(r * MAX_DIR_HEIGHT);
-            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 2;
+            const rad = Math.round(aleaRandom.double() * MAX_RAD) + 1;
 
-            // Генерация нового направления группы секций
-            temp_vec.set(
-                (aleaRandom.double() * 2 - 1) * length,
-                (aleaRandom.double() * 2 - 1) * height,
-                (aleaRandom.double() * 2 - 1) * length,
-            ).flooredSelf();
-            let p_end = p_start.add(temp_vec);
+            if(vec_line.x == Infinity) {
+                // Генерация нового направления группы секций
+                vec_line.set(
+                    (aleaRandom.double() * 2 - 1) * length,
+                    (aleaRandom.double() * 2 - 1) * (length / vert_coeff),
+                    (aleaRandom.double() * 2 - 1) * length
+                ).flooredSelf();
+                p_end = p_start.add(vec_line);
+            } else {
+                new_pos.copyFrom(p_end).addSelf(vec_line);
+                const max_rad = new_pos.distance(p_end) * .9;
+                new_pos.x += (aleaRandom.double() * 2 - 1) * max_rad;
+                new_pos.y += (aleaRandom.double() * 2 - 1) * (max_rad / vert_coeff);
+                new_pos.z += (aleaRandom.double() * 2 - 1) * max_rad;
+                p_end.set(new_pos).flooredSelf();
+            }
 
             // Для расчетов максимально разнесенных точек отрезка с учетом радиуса
             _aabb.set(Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity);
@@ -171,11 +188,6 @@ export class Cave {
                 let chunk = getChunk(_vec_chunk_start);
                 chunk.list.push(line);
             } else {
-                /*let points = traceVec3(_vec_chunk_start, _vec_chunk_end);
-                for(let point of points) {
-                    let chunk = getChunk(point);
-                    chunk.list.push(line);
-                }*/
                 for(let x = _vec_chunk_start.x; x <= _vec_chunk_end.x; x++) {
                     for(let y = _vec_chunk_start.y; y <= _vec_chunk_end.y; y++) {
                         for(let z = _vec_chunk_start.z; z <= _vec_chunk_end.z; z++) {
@@ -199,6 +211,7 @@ export class Cave {
             // @todo В редких случаях генерируем высокие пещеры
 
         }
+
     }
 
 }

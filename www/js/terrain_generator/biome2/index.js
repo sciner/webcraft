@@ -28,6 +28,12 @@ const ORE_RANDOMS = [
     {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
 ];
 
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
+
 //
 let vox_templates = {};
 const ABS_CONCRETE              = 16;
@@ -272,19 +278,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     break;
                 }
             }
-            /*
-            const DIAMOND_ORE_FREQ = xyz.y < 16 ? (xyz.y < 6 ? 0.06 : 0.04) : 0;
-            if(density < DIAMOND_ORE_FREQ) {
-                stone_block_id = BLOCK.DIAMOND_ORE.id;
-            } else {
-                let density_ore = this.noise3d(xyz.y / 10, xyz.x / 10, xyz.z / 10) / 2 + .5;
-                if (density_ore < .1) {
-                    stone_block_id = BLOCK.COAL_ORE.id;
-                } else if (density_ore > .85) {
-                    stone_block_id = BLOCK.IRON_ORE.id;
-                }
-            }
-            */
         }
         return stone_block_id;
     }
@@ -304,6 +297,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const size_x                    = chunk.size.x;
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
+        let randoms_index               = 0;
 
         // Maps
         let maps                        = this.generateMaps(chunk);
@@ -421,7 +415,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 for(let k = neighbour_lines.list.length - 1; k >= 0; k--) {
                     const line = neighbour_lines.list[k];
                     let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                    if(dist < line.rad) {
+                    let r = randoms[randoms_index++ % randoms.length];
+                    if(dist < line.rad + r * 1) {
                         return true;
                     }
                 }
