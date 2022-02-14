@@ -334,8 +334,8 @@ export class ServerClient {
     }
 
     // Запрос содержимого сундука
-    LoadChest(entity_id) {
-        this.Send({name: ServerClient.CMD_LOAD_CHEST, data: {entity_id: entity_id}});
+    LoadChest(info) {
+        this.Send({name: ServerClient.CMD_LOAD_CHEST, data: info});
     }
 
     //

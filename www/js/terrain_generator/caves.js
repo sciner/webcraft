@@ -192,6 +192,7 @@ export class Cave {
             // Отрезок
             const line = new CaveLine(p_start.clone(), p_end.clone(), rad, _aabb.clone());
             line.is_treasure = is_treasure;
+            line.r = aleaRandom.double();
             is_treasure = false;
 
             // Если отрезок полностью умещается в одном чанке

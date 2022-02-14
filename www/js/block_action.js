@@ -441,7 +441,10 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         break;
                     }
                     case BLOCK.CHEST.id: {
-                        resp.load_chest = entity_id;
+                        resp.load_chest = {
+                            pos: new Vector(pos),
+                            entity_id: entity_id
+                        };
                         break;
                     }
                 }

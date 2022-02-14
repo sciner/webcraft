@@ -98,6 +98,7 @@ no_drop_ao: Этот блок не отбрасывает AO
 leaves: Это листва
 slab: Это полублок
 anycardinal
+texture_doubleside
 alpha
 
 -----------------------------------

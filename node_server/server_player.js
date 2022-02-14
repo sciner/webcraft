@@ -223,7 +223,7 @@ export class ServerPlayer extends Player {
 
                 // Request chest content
                 case ServerClient.CMD_LOAD_CHEST: {
-                    const chest = this.world.chests.get(cmd.data.entity_id);
+                    const chest = await this.world.chests.getByInfo(this, cmd.data);
                     if(chest) {
                         await chest.sendContentToPlayers([this]);
                     } else {

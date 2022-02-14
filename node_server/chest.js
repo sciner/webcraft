@@ -20,6 +20,7 @@ export class Chest {
     constructor(world, pos, user_id, time, item, slots) {
         this.#world         = world;
         this.#pos           = pos;
+        this.pos            = pos;
         this.user_id        = user_id;
         this.time           = time;
         this.item           = item;

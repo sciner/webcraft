@@ -539,6 +539,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             function drawTreasureRoom(line, xyz, x, y, z) {
                 if(xyz.y < line.p_start.y || xyz.y == line.p_start.y + Math.round(line.rad) - 1) {
                     // floor
+                    /*if(line.r < 1.1) {
+                        if(xyz.y == line.p_start.y - 1) {
+                            if(xyz.x == line.p_start.x - Math.floor(line.rad) + 1) {
+                                setBlock(x, y, z, BLOCK.STILL_LAVA.id);
+                            } else {
+                                setBlock(x, y, z, getTreasureRoomMat(xyz, true));
+                            }
+                        } else {
+                            setBlock(x, y, z, getTreasureRoomMat(xyz, true));
+                        }
+                    } else {
+                        setBlock(x, y, z, getTreasureRoomMat(xyz, true));
+                    }
+                    */
                     setBlock(x, y, z, getTreasureRoomMat(xyz, true));
                 } else {
                     if(
@@ -555,6 +569,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(xyz.z != line.p_start.z || (xyz.z == line.p_start.z && xyz.y > line.p_start.y + 2)) {
                             setBlock(x, y, z, getTreasureRoomMat(xyz, false, xyz.y - line.p_start.y));
                         } else {
+                            // iron bars over door
                             if(xyz.y == line.p_start.y + 2) {
                                 setBlock(x, y, z, BLOCK.IRON_BARS.id);
                             }
@@ -566,6 +581,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             let cx = Math.round((line.p_start.x + line.p_end.x) / 2) - 6;
                             if(xyz.x == cx) {
                                 setBlock(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE);
+                            }
+                            if(xyz.x == cx + 3) {
+                                setBlock(x, y, z, BLOCK.MOB_SPAWN.id, DEFAULT_CHEST_ROTATE);
                             }
                         }
                     }
@@ -640,10 +658,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         if(in_chunk_cave_lines && !in_ocean) {
                             const line = checkIsCaveBlock(xyz);
                             if(line) {
-                                if(!nearTree(xyz)) {
-                                    if(line.is_treasure) {
-                                        drawTreasureRoom(line, xyz, x, y, z);
-                                    }
+                                if(line.is_treasure) {
+                                    drawTreasureRoom(line, xyz, x, y, z);
+                                    continue;
+                                } else if(!nearTree(xyz)) {
                                     continue;
                                 }
                             }

@@ -5,8 +5,8 @@
     },
     "textures": {
         "lodestone": {
-            "image": "/textures/lodestone_top.jpg",
-            "tx_cnt": 1
+            "image": "/textures/default.png",
+            "tx_cnt": 2
         }
     }
 }

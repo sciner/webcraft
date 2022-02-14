@@ -5333,5 +5333,30 @@
             "id": "alphabet",
             "side": [0, 0]
         }
+    },
+    {
+        "id": 649,
+        "name": "MOB_SPAWN",
+        "style": "cube",
+        "transparent": true,
+        "can_rotate": true,
+        "material": {
+            "id": "iron"
+        },
+        "texture_animations": {
+            "side": 2
+        },
+        "tags": [
+            "alpha"
+        ],
+        "light_power": {
+            "r": 255,
+            "g": 0,
+            "b": 255,
+            "a": 96
+        },
+        "texture": {
+            "side": [1, 9]
+        }
     }
 ]
