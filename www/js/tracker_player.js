@@ -19,11 +19,11 @@ export class Tracker_Player {
             return;
         }
 
-        this.stop(pos);
-
         const jukebox = new XMPlayer();
+        jukebox.url = url;
         jukebox.init();
 
+        this.stop(pos);
         this.vc.set(pos, jukebox);
 
         fetch(url)
