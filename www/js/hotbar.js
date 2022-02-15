@@ -91,7 +91,14 @@ export class Hotbar {
         // Draw item name in hotbar
         let currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
-            let itemName = currentInventoryItem?.name || BLOCK.fromId(currentInventoryItem.id)?.name;
+            const bb = BLOCK.fromId(currentInventoryItem.id);
+            let itemName = null; // currentInventoryItem?.name || BLOCK.fromId(currentInventoryItem.id)?.name;
+            if(bb) {
+                itemName = bb.name;
+                if(bb.title) {
+                    itemName = bb.title;
+                }
+            }
             itemName = itemName.replaceAll('_', ' ');
             const max_name_show_time = 2000;
             if(itemName != this.itemNameO) {
