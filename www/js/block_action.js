@@ -469,6 +469,23 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 return resp;
             }
         }
+        // Jukebox & music disc
+        if(world_material.tags.indexOf('jukebox') >= 0) {
+            if(extra_data && 'disc' in extra_data) {
+                const disc_id = extra_data.disc.id;
+                pos = new Vector(pos);
+                // Drop disc
+                dropBlock(player, {
+                    id: disc_id,
+                    material: BLOCK.fromId(disc_id),
+                    posworld: new Vector(pos),
+                    extra_data: null
+                }, resp);
+                resp.blocks.list.push({pos: pos.clone(), item: {id: world_material.id, rotate: rotate, extra_data: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.stop_disc.push({pos: pos.clone()});
+                return resp;
+            }
+        }
         // 2. Проверка инвентаря
         if(!currentInventoryItem || currentInventoryItem.count < 1) {
             return resp;
@@ -478,9 +495,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             // throw 'error_deprecated_block';
             return resp;
         }
-        // Music disc
-        if(matBlock.item && matBlock.item.name == 'music_disc') {
-            if(world_material.tags.indexOf('jukebox') >= 0) {
+        // Jukebox & music disc
+        if(world_material.tags.indexOf('jukebox') >= 0) {
+            if(matBlock.item && matBlock.item && matBlock.item.name == 'music_disc') {
                 const discs = await Resources.loadMusicDiscs();
                 for(let disc of discs) {
                     if(disc.id == matBlock.id) {
@@ -489,9 +506,13 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             dt: +new Date()
                         }
                         resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                        resp.decrement = true;
                     }
                 }
+                return resp;
             }
+        }
+        if(matBlock && matBlock?.item?.name == 'music_disc') {
             return resp;
         }
         // 3. If is egg
