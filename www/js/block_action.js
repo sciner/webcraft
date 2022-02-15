@@ -215,11 +215,11 @@ async function createPainting(world, pos) {
     return null;
 }
 
-function dropBlock(player, block, resp) {
-    const isSurvival = true; // player.game_mode.isSurvival()
+function dropBlock(player, block, resp, force) {
+    /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
-    }
+    }*/
     if(block.material.tags.indexOf('no_drop') >= 0) {
         return;
     }
@@ -235,7 +235,7 @@ function dropBlock(player, block, resp) {
             }
             if(ok) {
                 const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
-                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
             }
         } else {
             console.error('error_invalid_drop_item', block.material.drop_item);
@@ -267,7 +267,7 @@ function dropBlock(player, block, resp) {
             items.push({id: block.id, count: 1});
         }
         for(let item of items) {
-            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
         }
     }
 }
@@ -395,13 +395,13 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 material: BLOCK.fromId(disc_id),
                                 posworld: block.posworld.clone(),
                                 extra_data: null
-                            }, resp);
+                            }, resp, false);
                             // Stop play disc
                             resp.stop_disc.push({pos: block.posworld.clone()});
                         }
                     }
                     // Drop block if need
-                    dropBlock(player, block, resp);
+                    dropBlock(player, block, resp, false);
                     // Destroy connected blocks
                     for(let cn of ['next_part', 'previous_part']) {
                         let part = block.material[cn];
@@ -480,7 +480,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     material: BLOCK.fromId(disc_id),
                     posworld: new Vector(pos),
                     extra_data: null
-                }, resp);
+                }, resp, false);
                 resp.blocks.list.push({pos: pos.clone(), item: {id: world_material.id, rotate: rotate, extra_data: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 resp.stop_disc.push({pos: pos.clone()});
                 return resp;

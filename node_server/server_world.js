@@ -590,8 +590,8 @@ export class ServerWorld {
         }
         // Create drop items
         if(actions.drop_items && actions.drop_items.length > 0) {
-            if(server_player.game_mode.isSurvival()) {
-                for(let di of actions.drop_items) {
+            for(let di of actions.drop_items) {
+                if(di.force || server_player.game_mode.isSurvival()) {
                     // Add velocity for drop item
                     this.temp_vec.set(0, .375, 0);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
