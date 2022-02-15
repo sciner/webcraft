@@ -1,5 +1,4 @@
 import uuid from 'uuid';
-
 import {Vector, VectorCollector } from "../www/js/helpers.js";
 import { Chest } from './chest.js';
 import {ServerClient} from "../www/js/server_client.js";
@@ -90,19 +89,33 @@ export class ChestManager {
                 // @todo Generate random treasure chest content
                 const slots = {};
                 const items_kit = [
-                    {id: 637, count: [1, 1, 1, 1, 2, 2]}, // IRON_INGOT
-                    {id: 638, count: [0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3]}, // GOLD_INGOT
-                    {id: 59, count: [0, 0, 1, 2, 3]}, // WHEAT_SEEDS
+                    {id: 637, count: [1, 1, 1, 1, 2, 2, 3, 5]}, // IRON_INGOT
+                    {id: 638, count: [0, 0, 1, 1, 2, 2, 3, 3, 4]}, // GOLD_INGOT
+                    {id: 59, count: [0, 0, 1, 2, 3, 8]}, // WHEAT_SEEDS
+                    {id: 638, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // CARROT_SEEDS
                     {id: 607, count: [0, 0, 0, 0, 0, 1]}, // STONE_SWORD
+                    {id: 561, count: [0, 0, 0, 0, 1]}, // IRON_SHOVEL
+                    {id: 610, count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}, // DIAMOND_SWORD
                     {id: 84, count: [0, 0, 0, 1]}, // JUKEBOX
                     {id: 634, count: [1, 1, 2]}, // BREAD
                     {id: 633, count: [1, 1, 2, 2, 3]}, // WHEAT
-                    {id: 613, count: [0, 0, 0, 0, 0, 0, 1]}, // APPLE
-                    {id: 641, count: [0, 0, 0, 0, 0, 0, 0, 0, 1, 2]}, // DIAMOND
-                    {id: 643, count: [0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3]}, // OAK_SIGN
+                    {id: 613, count: [0, 0, 0, 0, 1]}, // APPLE
+                    {id: 641, count: [0, 0, 0, 0, 1, 2]}, // DIAMOND
+                    {id: 643, count: [0, 0, 0, 1, 1, 2, 2, 3]}, // OAK_SIGN
+                    {id: 626, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // IRON_BARS
+                    {id: 8, count: [0, 0, 0, 4, 4, 8, 8, 16]}, // COBBLESTONE
+                    //
+                    {id: 901, count: [0, 0, 0, 1]}, // MUSIC_DISC 1
+                    {id: 902, count: [0, 0, 0, 1]}, // MUSIC_DISC 2
+                    {id: 903, count: [0, 0, 1]}, // MUSIC_DISC 3
+                    {id: 904, count: [0, 0, 0, 1]}, // MUSIC_DISC 4
+                    {id: 905, count: [0, 0, 0, 1]}, // MUSIC_DISC 5
+                    {id: 906, count: [0, 0, 1]}, // MUSIC_DISC 6
+                    {id: 907, count: [0, 0, 0, 1]}, // MUSIC_DISC 7
+                    {id: 908, count: [0, 0, 0, 0, 0, 0, 1]}, // MUSIC_DISC 8
                 ];
                 for(let i = 0; i < 27; i++) {
-                    if(Math.random() > .33) {
+                    if(Math.random() > .8) {
                         continue;
                     }
                     const kit_index = Math.floor(Math.random() * items_kit.length);

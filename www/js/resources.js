@@ -367,4 +367,16 @@ export class Resources {
         return Resources._painting = resp;
     }
 
+    // Load music discs
+    static async loadMusicDiscs() {
+        if(Resources._music_discs) {
+            return Resources._music_discs;
+        }
+        let resp = null;
+        await Helpers.fetchJSON('../data/music_disc.json').then(json => {
+            resp = json;
+        });
+        return Resources._music_discs = resp;
+    }
+
 }

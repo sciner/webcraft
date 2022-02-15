@@ -1257,5 +1257,22 @@
             "item": "madcraft:spruce_sign",
             "count": 3
         }
+    },
+    {
+        "id": "6248a262-e882-48d5-b4fd-0dd78c8ff6f9",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "PPP",
+            "P#P",
+            "PPP"
+        ],
+        "key": {
+            "P": {"item": "madcraft:oak_plank"},
+            "#": {"item": "madcraft:diamond"}
+        },
+        "result": {
+            "item": "madcraft:jukebox",
+            "count": 1
+        }
     }
 ]

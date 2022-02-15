@@ -17,7 +17,8 @@ export class ResourcePackManager {
         const all               = [];
 
         // 1. base
-        resource_packs.add(new BaseResourcePack(def_resource_pack.path, def_resource_pack.id));
+        const base = new BaseResourcePack(def_resource_pack.path, def_resource_pack.id);
+        resource_packs.add(base);
 
         // 2. extends
         for(let item of json.extends) {
@@ -39,6 +40,21 @@ export class ResourcePackManager {
         for(let rp of resource_packs.values()) {
             this.list.set(rp.id, rp);
             await rp.init(this);
+        }
+
+        // Load music discs
+        for(let disc of await Resources.loadMusicDiscs()) {
+            const b = {
+                "id": disc.id,
+                "name": "MUSIC_DISC_" + (disc.id - 900),
+                "title": disc.title,
+                "style": "extruder",
+                "item": {"name": "music_disc"},
+                "max_in_stack": 1,
+                "material": {"id": "iron"},
+                "texture": {"side": [0, 29]}
+            };
+            BLOCK.add(base, b);
         }
 
     }

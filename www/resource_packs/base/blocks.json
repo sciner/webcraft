@@ -3105,18 +3105,17 @@
     {
         "id": 84,
         "name": "JUKEBOX",
+        "sound": "madcraft:block.wood",
+        "can_rotate": true,
+        "tags": [
+            "jukebox"
+        ],
         "material": {
             "id": "wood"
         },
         "texture": {
-            "up": [
-                11,
-                4
-            ],
-            "side": [
-                10,
-                4
-            ]
+            "up": [11, 4],
+            "side": [10, 4]
         }
     },
     {
@@ -5178,9 +5177,6 @@
             30
         ]
     },
-
-
-    
     {
         "id": 642,
         "name": "BIRCH_SIGN",

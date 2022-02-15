@@ -102,6 +102,17 @@ export default class style {
         let height                  = material.height ? material.height : 1;
         const drawAllSides          = width != 1 || height != 1;
 
+        if(material.tags.indexOf('jukebox') >= 0) {
+            const disc = block?.extra_data?.disc || null;
+            if(disc) {
+                worker.postMessage(['play_disc', {
+                    ...disc,
+                    dt: block.extra_data?.dt,
+                    pos: chunk.coord.add(new Vector(x, y, z))
+                }]);
+            }
+        }
+
         let canDrawFace = (neighbourBlock) => {
             if(!neighbourBlock) {
                 return true;

@@ -394,7 +394,6 @@ export class Player {
     // Updates this local player (gravity, movement)
     update() {
         this.inMiningProcess = false;
-
         // View
         if(this.lastUpdate) {
             if(!this.overChunk) {
@@ -494,6 +493,8 @@ export class Player {
             }
             // Update FOV
             Game.render.updateFOV(delta, this.zoom, this.running, this.getFlying());
+            // TrackerPlayer change volumes
+            TrackerPlayer.changePos(this.lerpPos);
         }
         this.lastUpdate = performance.now();
     }

@@ -97,6 +97,12 @@ export class World {
                 }
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
+                for(let params of cmd.data) {
+                    TrackerPlayer.stop(params.pos);
+                }
+            });
+
             // Connect
             await this.server.connect(() => {
 

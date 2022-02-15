@@ -111,6 +111,9 @@ export class ChunkManager {
                     }
                     break;
                 }
+                case 'play_disc': {
+                    TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
+                }
             }
         }
         // Light worker messages receiver

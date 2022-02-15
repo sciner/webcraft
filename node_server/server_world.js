@@ -574,16 +574,26 @@ export class ServerWorld {
                 });
             }
         }
+        // Stop playing discs
+        if(Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
+            for(let params of actions.stop_disc) {
+                const cps = getChunkPackets(params.pos);
+                if(cps) {
+                    if(cps.chunk) {
+                        cps.packets.push({
+                            name: ServerClient.CMD_STOP_PLAY_DISC,
+                            data: actions.stop_disc
+                        });
+                    }
+                }
+            }
+        }
         // Create drop items
         if(actions.drop_items && actions.drop_items.length > 0) {
             if(server_player.game_mode.isSurvival()) {
                 for(let di of actions.drop_items) {
                     // Add velocity for drop item
-                    this.temp_vec.set(
-                        0,
-                        .375,
-                        0,
-                    );
+                    this.temp_vec.set(0, .375, 0);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }
@@ -645,6 +655,9 @@ export class ServerWorld {
                         if(on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
+                        if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                            this.onDestroyBlock(params.pos, params.destroy_block_id);
+                        }
                     } else {
                         // console.error('Chunk not found in pos', chunk_addr, params);
                     }
@@ -661,6 +674,10 @@ export class ServerWorld {
                 cp.chunk.sendAll(cp.packets, []);
             }
         }
+    }
+
+    onDestroyBlock(pos, block_id) {
+        //
     }
 
 }

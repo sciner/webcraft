@@ -149,7 +149,7 @@ export class Cave {
         const vert_coeff = 2;
         let p_end = null;
 
-        let is_treasure = true; // r < .1;
+        let is_treasure = r < .1;
 
         // Генерация групп(по умолчанию 3 штуки) секций("тела") пещеры
         for(let i = 0; i < GROUP_COUNT; i++) {

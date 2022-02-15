@@ -289,6 +289,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         reset_target_event:     false,
         decrement:              false,
         decrement_instrument:   false,
+        stop_disc:              [],
         drop_items:             [],
         blocks:                 {list: []},
         create_painting:        null
@@ -378,10 +379,26 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         return false;
                     }
                     cv.add(block.posworld, true);
-                    resp.blocks.list.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                    resp.blocks.list.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: block.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
                     //
                     if(block.material.sound) {
                         resp.play_sound = {tag: block.material.sound, action: 'dig'};
+                    }
+                    //
+                    if(block.material.tags.indexOf('jukebox') >= 0) {
+                        // If disc exists inside jukebox
+                        if(block.extra_data && block.extra_data.disc) {
+                            const disc_id = block.extra_data.disc.id;
+                            // Drop disc
+                            dropBlock(player, {
+                                id: disc_id,
+                                material: BLOCK.fromId(disc_id),
+                                posworld: block.posworld.clone(),
+                                extra_data: null
+                            }, resp);
+                            // Stop play disc
+                            resp.stop_disc.push({pos: block.posworld.clone()});
+                        }
                     }
                     // Drop block if need
                     dropBlock(player, block, resp);
@@ -459,6 +476,22 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         const matBlock = BLOCK.fromId(currentInventoryItem.id);
         if(matBlock.deprecated) {
             // throw 'error_deprecated_block';
+            return resp;
+        }
+        // Music disc
+        if(matBlock.item && matBlock.item.name == 'music_disc') {
+            if(world_material.tags.indexOf('jukebox') >= 0) {
+                const discs = await Resources.loadMusicDiscs();
+                for(let disc of discs) {
+                    if(disc.id == matBlock.id) {
+                        extra_data = {
+                            disc: {...disc},
+                            dt: +new Date()
+                        }
+                        resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                    }
+                }
+            }
             return resp;
         }
         // 3. If is egg
@@ -580,7 +613,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 12. Запрет на списание инструментов как блоков
-        if(matBlock.item && matBlock.item) {
+        if(matBlock.item) {
             switch(matBlock.item.name) {
                 case 'instrument': {
                     switch(matBlock.item.instrument_id) {

@@ -8,6 +8,10 @@ import {HUD} from "./hud.js";
 import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
+import {Tracker_Player} from "./tracker_player.js";
+
+// TrackerPlayer
+globalThis.TrackerPlayer = new Tracker_Player();
 
 const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;

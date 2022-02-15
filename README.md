@@ -73,3 +73,5 @@ const packets = [{
 }];
 chunk.sendAll(packets, []);
 ```
+
+XM player: https://github.com/a1k0n/jsxm/

@@ -168,7 +168,6 @@ export default class ChestWindow extends Window {
 
     // Пришло содержимое сундука от сервера
     setData(chest) {
-        console.log(chest, this.info);
         // пришло содержимое другого сундука (не просматриваемого в данный момент)
         if(chest.item.entity_id != this.info.entity_id) {
             if(!this.info.pos.equal(chest.pos)) {
