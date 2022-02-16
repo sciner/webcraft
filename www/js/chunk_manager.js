@@ -56,6 +56,9 @@ export class ChunkManager {
             add: function(args) {
                 this.list.set(args.block_pos, args.pos);
             },
+            delete(pos) {
+                this.list.delete(pos);
+            },
             destroyAllInAABB(aabb) {
                 for(let [pos, _] of this.list.entries(aabb)) {
                     this.list.delete(pos);

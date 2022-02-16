@@ -323,6 +323,7 @@ export class Player {
                     case ServerClient.BLOCK_ACTION_REPLACE:
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
+                        this.world.chunkManager.torches.delete(mod.pos);
                         this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }
