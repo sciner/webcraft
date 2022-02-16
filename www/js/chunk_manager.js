@@ -1,8 +1,8 @@
 import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
-import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord, ALLOW_NEGATIVE_Y} from "./chunk.js";
+import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
-import { Resources } from "./resources.js";
+import {Particles_Torch_Flame} from "./particles/torch_flame.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
@@ -28,12 +28,51 @@ export class ChunkManager {
     static instance;
 
     constructor(world) {
+
         ChunkManager.instance = this;
 
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
-        this.torches                = new VectorCollector();
+
+        // Paintings
+        this.paintings = {
+            list: new VectorCollector(),
+            add: function(pos, item) {
+                this.list.set(pos, item);
+                Game.render.meshes.add(item);
+            },
+            destroyAllInAABB(aabb) {
+                for(let [pos, mesh] of this.list.entries(aabb)) {
+                    mesh.destroy();
+                    this.list.delete(pos);
+                }
+            }
+        };
+
+        // Torches
+        this.torches = {
+            list: new VectorCollector(),
+            add: function(args) {
+                this.list.set(args.block_pos, args.pos);
+            },
+            destroyAllInAABB(aabb) {
+                for(let [pos, _] of this.list.entries(aabb)) {
+                    this.list.delete(pos);
+                }
+            },
+            update(player_pos) {
+                const meshes = Game.render.meshes;
+                // Add torches animations if need
+                for(let [_, pos] of this.list.entries()) {
+                    if(player_pos.distance(pos) < 12) {
+                        if(Math.random() < .3) {
+                            meshes.add(new Particles_Torch_Flame(this, pos, 'extend/regular/effects'));
+                        }
+                    }
+                }
+            }
+        };
 
         // rendering
         this.poses                  = [];
@@ -117,7 +156,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_torch': {
-                    that.torches.set(args.pos, args.pos);
+                    that.torches.add(args);
                     break;
                 }
             }
@@ -320,6 +359,13 @@ export class ChunkManager {
         let chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
+            // 1. Delete torch emmiters
+            this.torches.destroyAllInAABB(chunk.aabb);
+            // 2. Destroy playing discs
+            TrackerPlayer.destroyAllInAABB(chunk.aabb);
+            // 3.
+            this.paintings.destroyAllInAABB(chunk.aabb);
+            // 4. Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;
@@ -383,6 +429,9 @@ export class ChunkManager {
                 }
             }
         }
+
+        this.torches.update(player_pos);
+
     }
 
     // Возвращает блок по абслютным координатам

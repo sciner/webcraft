@@ -154,6 +154,7 @@ export class Particles_Painting {
 
     destroy() {
         this.buffer.destroy();
+        this.life = 0;
     }
 
     isAlive() {

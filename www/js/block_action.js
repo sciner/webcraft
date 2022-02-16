@@ -207,6 +207,7 @@ async function createPainting(world, pos) {
                 aabb:       aabb.toArray(),
                 size:       size,
                 image_name: image_name,
+                pos:        center_pos,
                 pos_n:      pos.n
             };
             break;

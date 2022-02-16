@@ -51,6 +51,12 @@ export class Tracker_Player {
         }
     }
 
+    destroyAllInAABB(aabb) {
+        for(let [pos, _] of this.vc.entries(aabb)) {
+            this.stop(pos);
+        }
+    }
+
     changePos(pos) {
         if(!this.n_started) {
             this.n_started = performance.now();

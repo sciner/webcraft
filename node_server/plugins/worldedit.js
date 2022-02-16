@@ -144,7 +144,7 @@ export default class WorldEdit {
                     let affected_count = 0;
                     //
                     let data = player._world_edit_copy;
-                    const blockIter = data.blocks.kvpIterator();
+                    const blockIter = data.blocks.entries();
                     let offset = new Vector(data.quboid.pos1).sub(data.player_pos);
                     for(let [bpos, item] of blockIter) {
                         let shift = bpos.sub(data.quboid.pos1);

@@ -76,7 +76,6 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
                 this.hello = cmd;
                 console.log(cmd.data);
-
                 this.queryTimeSync();
             });
 
@@ -93,7 +92,8 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
                 for(let params of cmd.data) {
-                    Game.render.meshes.add(new Particles_Painting(params));
+                    const paiting = new Particles_Painting(params);
+                    this.chunkManager.paintings.add(params.pos, paiting);
                 }
             });
 

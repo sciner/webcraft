@@ -3,6 +3,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
+import {AABB} from './core/AABB.js';
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;
@@ -103,7 +104,15 @@ export class Chunk {
         // save ref on chunk manager
         // strictly after post message, for avoid crash
         this.chunkManager               = chunkManager;
-
+        this.aabb                       = new AABB();
+        this.aabb.set(
+            this.coord.x,
+            this.coord.y,
+            this.coord.z,
+            this.coord.x + this.size.x,
+            this.coord.y + this.size.y,
+            this.coord.z + this.size.z
+        );
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -271,6 +280,7 @@ export class Chunk {
 
     // destruct chunk
     destruct() {
+        let chunkManager = this.getChunkManager();
         // Destroy buffers
         for(let [_, v] of this.vertices) {
             if(v.buffer) {
@@ -279,14 +289,14 @@ export class Chunk {
         }
         const { lightTex } = this;
         if (lightTex) {
-            this.getChunkManager().lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
-            this.getChunkManager().lightmap_count--;
+            chunkManager.lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
+            chunkManager.lightmap_count--;
             lightTex.destroy();
         }
         this.lightTex = null;
         // Run webworker method
-        this.getChunkManager().postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
-        this.getChunkManager().postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        chunkManager.postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        chunkManager.postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
     }
 
     // buildVertices

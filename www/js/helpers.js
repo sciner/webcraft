@@ -158,11 +158,7 @@ export class VectorCollector {
         }
     }
 
-    entries() {
-        return this.kvpIterator(null);
-    }
-
-    kvpIterator(aabb) {
+    entries(aabb) {
         const that = this;
         return (function* () {
             let vec = new Vector(0, 0, 0);
@@ -178,6 +174,10 @@ export class VectorCollector {
                 }
             }
         })()
+    }
+
+    kvpIterator(aabb) {
+        return this.entries(aabb);
     }
 
     clear(list) {

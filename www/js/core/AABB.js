@@ -221,6 +221,7 @@ export class AABB {
         if(y > this.y_max) this.y_max = y;
         if(z < this.z_min) this.z_min = z;
         if(z > this.z_max) this.z_max = z;
+        return this;
     }
 
 }

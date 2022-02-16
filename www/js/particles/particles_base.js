@@ -92,6 +92,7 @@ export class Particles_Base {
     }
 
     destroy(render) {
+        this.life = 0;
         if (this.buffer) {
             this.buffer.destroy();
             this.buffer = null;
