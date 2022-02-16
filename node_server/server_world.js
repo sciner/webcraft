@@ -225,7 +225,7 @@ export class ServerWorld {
                 this.tick()
             }, 
             elapsed < 50 ? (50 - elapsed) : 0    
-        ); 
+        );
     }
 
     save() {

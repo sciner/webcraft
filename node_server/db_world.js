@@ -267,7 +267,7 @@ export class DBWorld {
                 await this.db.get('update options set version = ' + (++version));
                 await this.db.get('commit');
                 version = m.version;
-                console.info('Migration applied : ' + version);
+                console.info('Migration applied: ' + version);
             }
         }
 

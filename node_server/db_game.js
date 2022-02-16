@@ -63,6 +63,36 @@ export class DBGame {
             await this.db.get('commit');
             version++;
         }
+
+        const migrations = [];
+        migrations.push({version: 2, queries: [`CREATE TABLE "log" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "dt" integer NOT NULL,
+            "event_name" TEXT,
+            "data" TEXT
+        );`]});
+
+        for(let m of migrations) {
+            if(m.version > version) {
+                await this.db.get('begin transaction');
+                for(let query of m.queries) {
+                    await this.db.get(query);
+                }
+                await this.db.get('update options set version = ' + (++version));
+                await this.db.get('commit');
+                version = m.version;
+                console.info('Migration applied: ' + version);
+            }
+        }
+
+    }
+
+    async LogAppend(event_name, data) {
+        await this.db.run('INSERT INTO log(dt, event_name, data) VALUES (:dt, :event_name, :data)', {
+            ':dt':          ~~(Date.now() / 1000),
+            ':event_name':  event_name,
+            ':data':        JSON.stringify(data, null, 2)
+        });
     }
 
     // Создание нового мира (сервера)

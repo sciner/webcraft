@@ -134,6 +134,7 @@ export class ServerPlayer extends Player {
                 case ServerClient.CMD_CONNECT: {
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
+                    Log.append('CmdConnect', {world_guid, session: this.session});
                     world.onPlayer(this, skin);
                     break;
                 }

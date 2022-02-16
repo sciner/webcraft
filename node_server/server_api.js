@@ -11,11 +11,13 @@ export class ServerAPI {
                 switch(req.originalUrl) {
                     case '/api/User/Registration': {
                         let session = await Game.db.Registration(req.body.username, req.body.password);
+                        Log.append('Registration', {username: req.body.username});
                         res.status(200).json(session);
                         break;
                     }
                     case '/api/User/Login': {
                         let session = await Game.db.Login(req.body.username, req.body.password);
+                        Log.append('Login', {username: req.body.username});
                         res.status(200).json(session);
                         break;
                     }
@@ -26,6 +28,7 @@ export class ServerAPI {
                         let game_mode   = 'survival';
                         let session     = await Game.db.GetPlayerSession(req.get('x-session-id'));
                         let world       = await Game.db.InsertNewWorld(session.user_id, generator, seed, title, game_mode);
+                        Log.append('InsertNewWorld', {user_id: session.user_id, generator, seed, title, game_mode});
                         res.status(200).json(world);
                         break;
                     }
@@ -33,6 +36,7 @@ export class ServerAPI {
                         const world_guid = req.body.world_guid;
                         const session    = await Game.db.GetPlayerSession(req.get('x-session-id'));
                         const world      = await Game.db.JoinWorld(session.user_id, world_guid);
+                        Log.append('JoinWorld', {user_id: session.user_id, world_guid});
                         res.status(200).json(world);
                         break;
                     }

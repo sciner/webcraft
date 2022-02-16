@@ -470,7 +470,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // Jukebox & music disc
-        if(world_material.tags.indexOf('jukebox') >= 0) {
+        if(!e.shiftKey && world_material.tags.indexOf('jukebox') >= 0) {
             if(extra_data && 'disc' in extra_data) {
                 const disc_id = extra_data.disc.id;
                 pos = new Vector(pos);
@@ -496,7 +496,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return resp;
         }
         // Jukebox & music disc
-        if(world_material.tags.indexOf('jukebox') >= 0) {
+        if(!e.shiftKey && world_material.tags.indexOf('jukebox') >= 0) {
             if(matBlock.item && matBlock.item && matBlock.item.name == 'music_disc') {
                 const discs = await Resources.loadMusicDiscs();
                 for(let disc of discs) {
