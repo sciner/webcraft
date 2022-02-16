@@ -7,6 +7,10 @@
         "lodestone": {
             "image": "/textures/default.png",
             "tx_cnt": 2
+        },
+        "effects": {
+            "image": "/textures/effects.png",
+            "tx_cnt": 8
         }
     }
 }

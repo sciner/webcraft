@@ -33,6 +33,7 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+        this.torches                = new VectorCollector();
 
         // rendering
         this.poses                  = [];
@@ -113,6 +114,11 @@ export class ChunkManager {
                 }
                 case 'play_disc': {
                     TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
+                    break;
+                }
+                case 'add_torch': {
+                    that.torches.set(args.pos, true);
+                    break;
                 }
             }
         }

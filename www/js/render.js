@@ -12,6 +12,9 @@ import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
+import {Particles_Music_Note} from "./particles/music_note.js";
+import {Particles_Torch_Flame} from "./particles/torch_flame.js";
+
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
@@ -437,9 +440,26 @@ export class Renderer {
         }
     }
 
-    update (delta, args) {
+    update(delta, args) {
+
         this.frame++;
-        
+
+        for(let [pos, disc] of TrackerPlayer.vc.entries()) {
+            if(Math.random() < .1) {
+                this.meshes.add(new Particles_Music_Note(this, pos, 'extend/regular/effects'));
+            }
+        }
+
+        if(this.world && this.player) {
+            for(let [pos, _] of this.world.chunkManager.torches.entries()) {
+                if(this.player.lerpPos.distance(pos) < 16) {
+                    if(Math.random() < .3) {
+                        this.meshes.add(new Particles_Torch_Flame(this, pos, 'extend/regular/effects'));
+                    }
+                }
+            }
+        }
+
         // this.env.computeFogRelativeSun();
         // todo - refact this
         // viewport is context-dependent

@@ -136,9 +136,9 @@ export class Particles_Painting {
                     (this.pos.y - this.chunk.coord.y)
                 ]
             )
+        }
             const light = this.chunk.getLightTexture(render.renderBackend);
             this.material.changeLighTex(light);
-        }
 
         render.renderBackend.drawMesh(
             this.buffer,
