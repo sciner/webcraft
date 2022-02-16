@@ -3554,6 +3554,22 @@
         }
     },
     {
+        "id": 651,
+        "name": "SPAWN_EGG_FOX",
+        "style": "extruder",
+        "material": {
+            "id": "bone"
+        },
+        "spawn_egg": {
+            "type": "fox",
+            "skin": "base"
+        },
+        "texture": {
+            "id": "egg",
+            "side": [4, 3]
+        }
+    },
+    {
         "id": 541,
         "name": "BUCKET_EMPTY",
         "style": "extruder",

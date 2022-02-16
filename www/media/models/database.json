@@ -128,6 +128,15 @@
             "skins": {
                 "base": "textures/spider.png"
             }
+        },
+        "fox": {
+            "type": "json",
+            "geom": "json/fox.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/fox/fox.png",
+                "arctic": "textures/fox/arctic_fox.png"
+            }
         }
     }
 }
