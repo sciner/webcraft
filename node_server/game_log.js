@@ -8,6 +8,7 @@ export class GameLog {
             }, 
             2000
         );
+        this.append('ServerRestart');
     }
 
     append(event_name, data) {

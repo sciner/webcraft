@@ -72,6 +72,7 @@ export class ServerPlayer extends Player {
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
+        this.dt_connect             = new Date();
     }
 
     init(init_info) {

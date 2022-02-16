@@ -45,7 +45,9 @@ export class DBGame {
 
     // Migrations
     async applyMigrations() {
+
         let version = 0;
+        
         try {
             // Read options
             let row = await this.db.get('SELECT version FROM options');
@@ -56,21 +58,16 @@ export class DBGame {
             await this.db.get('insert into options(version) values(0)');
             await this.db.get('commit');
         }
-        // Version 0 -> 1
-        if (version == 0) {
-            await this.db.get('begin transaction');
-            await this.db.get('update options set version = 1');
-            await this.db.get('commit');
-            version++;
-        }
 
         const migrations = [];
+        migrations.push({version: 1, queries: [`update options set version = 1`]})
         migrations.push({version: 2, queries: [`CREATE TABLE "log" (
             "id" INTEGER PRIMARY KEY AUTOINCREMENT,
             "dt" integer NOT NULL,
             "event_name" TEXT,
             "data" TEXT
         );`]});
+        migrations.push({version: 3, queries: [`alter table user add column "flags" INTEGER DEFAULT 0`]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -123,7 +120,7 @@ export class DBGame {
 
     // GetPlayerSession...
     async GetPlayerSession(session_id) {
-        let row = await this.db.get('SELECT u.id, u.username, u.guid FROM user_session s LEFT JOIN user u ON u.id = s.user_id WHERE token = ? LIMIT 1', session_id)
+        let row = await this.db.get('SELECT u.id, u.username, u.guid, u.flags FROM user_session s LEFT JOIN user u ON u.id = s.user_id WHERE token = ? LIMIT 1', session_id)
         if(!row) {
             throw 'error_invalid_session';
         }
@@ -131,6 +128,7 @@ export class DBGame {
             user_id:        row.id,
             user_guid:      row.guid,
             username:       row.username,
+            flags:          row.flags,
             session_id:     session_id
         };
     }

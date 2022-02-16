@@ -1,5 +1,7 @@
 import express from "express"; 
 
+const FLAG_SYSTEM_ADMIN = 256;
+
 export class ServerAPI {
 
     static init(app) {
@@ -46,6 +48,29 @@ export class ServerAPI {
                         res.status(200).json(result);
                         break;
                     }
+                    case '/api/Game/Online': {
+                        let session = await Game.db.GetPlayerSession(req.get('x-session-id'));
+                        ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
+                        const resp = {
+                            players_online: 0,
+                            worlds: []
+                        };
+                        for(let world of Game.worlds.values()) {
+                            if(world.info) {
+                                let info = {...world.info, players: []};
+                                for(let player of world.players.values()) {
+                                    info.players.push({
+                                        ...player.state,
+                                        dt_connect: player.dt_connect
+                                    });
+                                    resp.players_online++;
+                                }
+                                resp.worlds.push(info);
+                            }
+                        }
+                        res.status(200).json(resp);
+                        break;
+                    }
                     default: {
                         throw 'error_method_not_exists';
                         break;
@@ -63,6 +88,14 @@ export class ServerAPI {
                 );
             }
         });
+    }
+
+    // requireSessionFlag...
+    static requireSessionFlag(session, flag) {
+        if(session.flags & flag != flag) {
+            throw 'error_require_permission';
+        }
+        return true;
     }
 
 }
