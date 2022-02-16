@@ -17,9 +17,11 @@ export class GameLog {
 
     async write() {
         let item = null;
+        const all = [];
         while(item = this.items.shift()) {
-            await this.db.LogAppend(item.event_name, item.data);
+            all.push(this.db.LogAppend(item.event_name, item.data));
         }
+        await Promise.all(all);
     }
 
 }

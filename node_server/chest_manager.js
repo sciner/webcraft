@@ -2,6 +2,7 @@ import uuid from 'uuid';
 import {Vector, VectorCollector } from "../www/js/helpers.js";
 import { Chest } from './chest.js';
 import {ServerClient} from "../www/js/server_client.js";
+import {BLOCK} from "../www/js/blocks.js";
 
 export class ChestManager {
 
@@ -123,6 +124,10 @@ export class ChestManager {
                     item.count = item.count[Math.floor(Math.random() * item.count.length)];
                     if(item.count > 0) {
                         slots[i] = item;
+                        const b = BLOCK.fromId(item.id);
+                        if(b.power != 1) {
+                            item.power = b.power;
+                        }
                     }
                 }
                 const chest = await this.create(player, params, {check_occupied: false, slots: slots});

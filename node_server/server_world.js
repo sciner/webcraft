@@ -605,8 +605,12 @@ export class ServerWorld {
             let chunk = null;
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            // await this.db.TransactionBegin();
+            const use_tx = actions.blocks.list.length > 1;
+            if(use_tx) {
+                await this.db.TransactionBegin();
+            }
             try {
+                let all = [];
                 for(let params of actions.blocks.list) {
                     params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
@@ -614,7 +618,7 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
-                    await this.db.blockSet(this, null, params);
+                    all.push(this.db.blockSet(this, null, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     if(chunk) {
@@ -662,10 +666,15 @@ export class ServerWorld {
                         // console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
-                // await this.db.TransactionCommit();
+                await Promise.all(all);
+                if(use_tx) {
+                    await this.db.TransactionCommit();
+                }
             } catch(e) {
                 console.log('error', e);
-                // await this.db.TransactionRollback();
+                if(use_tx) {
+                    await this.db.TransactionRollback();
+                }
                 throw e;
             }
         }

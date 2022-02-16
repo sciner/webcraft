@@ -125,7 +125,7 @@ export class BLOCK {
         }
         let mat = null;
         if('name' in block && 'title' in block) {
-            // do nothing
+            mat = block;
         } else {
             mat = BLOCK.fromId(block.id);
         }
