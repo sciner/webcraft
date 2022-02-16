@@ -10,6 +10,7 @@ import {GameLog} from './game_log.js';
 export class ServerGame {
 
     constructor() {
+        this.dt_started = new Date();
         this.is_server = true;
         // Worlds
         this.worlds = new Map();

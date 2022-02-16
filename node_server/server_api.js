@@ -52,6 +52,7 @@ export class ServerAPI {
                         let session = await Game.db.GetPlayerSession(req.get('x-session-id'));
                         ServerAPI.requireSessionFlag(session, FLAG_SYSTEM_ADMIN);
                         const resp = {
+                            dt_started: Game.dt_started,
                             players_online: 0,
                             worlds: []
                         };
