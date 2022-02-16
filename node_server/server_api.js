@@ -92,7 +92,7 @@ export class ServerAPI {
 
     // requireSessionFlag...
     static requireSessionFlag(session, flag) {
-        if(session.flags & flag != flag) {
+        if((session.flags & flag) != flag) {
             throw 'error_require_permission';
         }
         return true;
