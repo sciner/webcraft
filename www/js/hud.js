@@ -347,7 +347,7 @@ export class HUD {
             }
             this.text += '🙎‍♂️' + p.username;
             if(p.itsMe()) {
-                this.text += ' <- YOU';
+                this.text += ' ⬅ YOU';
             } else {
                 this.text += ' ... ' + Math.floor(Helpers.distance(player.pos, p._pos)) + 'm';
             }

@@ -119,6 +119,24 @@ export class BLOCK {
     static max_id                   = 0;
     static MASK_BIOME_BLOCKS        = [];
 
+    static getBlockTitle(block) {
+        if(!block || !('id' in block)) {
+            return '';
+        }
+        let mat = null;
+        if('name' in block && 'title' in block) {
+            // do nothing
+        } else {
+            mat = BLOCK.fromId(block.id);
+        }
+        let resp = mat.name;
+        if(mat.title) {
+            resp += ` (${mat.title})`;
+        }
+        resp = resp.replaceAll('_', ' ');
+        return resp;
+    }
+
     static getLightPower(material) {
         if (!material) {
             return 0;

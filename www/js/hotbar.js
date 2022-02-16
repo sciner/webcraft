@@ -20,8 +20,8 @@ export class Hotbar {
         }
         this.image.src = './media/hotbar.png';
         //
-        this.itemNameO = null;
-        this.itemNameChangeTime = performance.now();
+        this.itemTitleO = null;
+        this.itemTitleChangeTime = performance.now();
         this.last_damage_time = null;
     }
 
@@ -91,21 +91,13 @@ export class Hotbar {
         // Draw item name in hotbar
         let currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
-            const bb = BLOCK.fromId(currentInventoryItem.id);
-            let itemName = null; // currentInventoryItem?.name || BLOCK.fromId(currentInventoryItem.id)?.name;
-            if(bb) {
-                itemName = bb.name;
-                if(bb.title) {
-                    itemName = bb.title;
-                }
-            }
-            itemName = itemName.replaceAll('_', ' ');
+            let itemTitle = BLOCK.getBlockTitle(currentInventoryItem);
             const max_name_show_time = 2000;
-            if(itemName != this.itemNameO) {
-                this.itemNameO = itemName;
-                this.itemNameChangeTime = performance.now();
+            if(itemTitle != this.itemTitleO) {
+                this.itemTitleO = itemTitle;
+                this.itemTitleChangeTime = performance.now();
             }
-            const time_remains = performance.now() - this.itemNameChangeTime;
+            const time_remains = performance.now() - this.itemTitleChangeTime;
             if(time_remains < max_name_show_time) {
                 // Text opacity
                 let alpha = 1;
@@ -116,22 +108,22 @@ export class Hotbar {
                 hud.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
                 const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
                 // Measure text
-                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemName) {
+                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemTitle) {
                     this.prevItemMeasure = {
-                        text: itemName,
-                        measure: hud.ctx.measureText(itemName)
+                        text: itemTitle,
+                        measure: hud.ctx.measureText(itemTitle)
                     };
                 }
                 const textWidth = this.prevItemMeasure.measure.width;
                 hud.ctx.fillStyle = '#000000' + aa;
-                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
+                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
                 hud.ctx.fillStyle = '#ffffff' + aa;
-                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
+                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
                 //
                 hud.refresh();
             }
         } else {
-            this.itemNameO = null;
+            this.itemTitleO = null;
         }
 
         if(mayGetDamaged) {
