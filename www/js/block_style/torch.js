@@ -70,7 +70,7 @@ export default class style {
         } = block;
 
         if (!rotate || rotate.y) {
-            worker.postMessage(['add_torch', {pos: chunk.coord.add(new Vector(x, y, z))}]);
+            // worker.postMessage(['add_torch', {pos: chunk.coord.add(new Vector(x, y, z))}]);
             return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null, null);
         }
 
@@ -78,11 +78,13 @@ export default class style {
         mat3.fromRotation(tmpMat, rotTorch);
         mat3.multiply(tmpMat, tmpMat, symRot);
 
-        worker.postMessage(['add_torch', {pos: chunk.coord.add(new Vector(
-            x,
-            y,
-            z
-        ))}]);
+        const torch_pos = chunk.coord.add(new Vector(
+            x + cubeSymAxis[rotate.x][0] * 0.2,
+            y + .1,
+            z + cubeSymAxis[rotate.x][1] * 0.2,
+        ));
+
+        worker.postMessage(['add_torch', {pos: torch_pos}]);
 
         return cube_func(
             block,

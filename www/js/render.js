@@ -451,7 +451,7 @@ export class Renderer {
         }
 
         if(this.world && this.player) {
-            for(let [pos, _] of this.world.chunkManager.torches.entries()) {
+            for(let [_, pos] of this.world.chunkManager.torches.entries()) {
                 if(this.player.lerpPos.distance(pos) < 16) {
                     if(Math.random() < .3) {
                         this.meshes.add(new Particles_Torch_Flame(this, pos, 'extend/regular/effects'));

@@ -117,7 +117,7 @@ export class ChunkManager {
                     break;
                 }
                 case 'add_torch': {
-                    that.torches.set(args.pos, true);
+                    that.torches.set(args.pos, args.pos);
                     break;
                 }
             }

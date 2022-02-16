@@ -13,6 +13,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
     // Constructor
     constructor(render, block, pos, small) {
 
+        super();
+
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
 
