@@ -60,6 +60,8 @@ export class ServerAPI {
                                 let info = {...world.info, players: []};
                                 for(let player of world.players.values()) {
                                     info.players.push({
+                                        user_id: player.session.user_id,
+                                        username: player.session.username,
                                         ...player.state,
                                         dt_connect: player.dt_connect
                                     });
