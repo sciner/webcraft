@@ -532,6 +532,9 @@ export class DBWorld {
             let item = JSON.parse(row.params);
             // pos:        new Vector(row.x, row.y, row.z),
             item.entity_id = row.entity_id;
+            if(!item.pos) {
+                item.pos = new Vector(row.x, row.y, row.z);
+            }
             resp.set(item.entity_id, item);
         }
         return resp;
