@@ -13,7 +13,7 @@ export class NetworkPhysicObject {
         this._chunk_addr    = new Vector(0, 0, 0);
         this.yaw            = 0;
         this.pitch          = 0;
-        this.sneak          = false;
+        this.sneak          = 0;
 
         // Networking
         this.netBuffer = [];
@@ -70,7 +70,7 @@ export class NetworkPhysicObject {
         if(nextRot) {
             this.yaw = nextRot.z;
             this.pitch = nextRot.x;
-            this.sneak = !!sneak;
+            this.sneak = sneak;
         }
     }
 
@@ -100,15 +100,16 @@ export class NetworkPhysicObject {
             pos: prevPos,
             rotate: prevRot,
             time: prevTime,
+            sneak: prevSneak = 0,
         } = this.netBuffer[0];
 
         const {
             pos: nextPos,
             rotate: nextRot,
             time: nextTime,
+            sneak: nextSneak = 0,
         } = this.netBuffer[1];
 
-        const sneak = !!this.netBuffer[1].sneak;
         let iterp = (correctedTime - prevTime) / (nextTime - prevTime);
         
         // prevent extrapolation.
@@ -117,6 +118,8 @@ export class NetworkPhysicObject {
         iterp = Mth.clamp(iterp, 0, 1);
 
         tPos.lerpFrom(prevPos, nextPos, iterp);
+
+        const sneak = Mth.lerp(iterp, prevSneak, nextSneak);
 
         if(nextRot) {
             tRot.lerpFromAngle(prevRot, nextRot, iterp, true);
