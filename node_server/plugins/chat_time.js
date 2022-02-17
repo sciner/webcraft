@@ -26,6 +26,9 @@ export default class Chat_Time {
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
                     if(args.length == 3) {
                         const world = player.world;
+                        if(!world.admins.checkIsAdmin(player)) {
+                            throw 'error_not_permitted';
+                        }
                         if(args[1] == 'add') {
                             let value = args[2];
                             if(!isNaN(value)) {
