@@ -7,7 +7,7 @@ import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
-const SNEAK_ANGLE = 45 * Math.PI / 180;
+const SNEAK_ANGLE = 28.65 * Math.PI / 180;
 
 export class Traversable {
     constructor() {

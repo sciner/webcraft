@@ -84,6 +84,10 @@ export class World {
                 res(cmd);
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_UPDATE_INFO], (cmd) => {
+                this.updateInfo(cmd);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
                 Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
@@ -120,12 +124,18 @@ export class World {
     setInfo({data: info, time}) {
         this.info           = info;
         this.dt_connected   = time; // Серверное время, когда произошло подключение к серверу!
+        this.dt_update_time = time;
 
         // Init
         this.players.init();
         this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();
+    }
+
+    updateInfo({data: info, time}) {
+        this.info = info;
+        this.dt_update_time = time;
     }
 
     joinPlayer(player) {}
@@ -140,8 +150,8 @@ export class World {
             day_time, age
         } = this.info.calendar;
 
-        const add       = (this.serverTime - this.dt_connected) / 1000 / 1200 * 24000;
-        const time      = (day_time + 6000 + add) % 24000;
+        const add       = (this.serverTime - this.dt_update_time) / 1000 / 1200 * 24000;
+        const time      = (day_time + add) % 24000;
 
         const hours = time / 1000 | 0;
         const minutes = (time - hours * 1000) / 1000 * 60 | 0;

@@ -206,6 +206,9 @@ export class Player {
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
     onStep(step_side) {
         this.steps_count++;
+        if(this.isSneak) {
+            return;
+        }
         let world = this.world;
         let player = this;
         if(!player || player.in_water || !player.walking || !player.controls.enabled) {

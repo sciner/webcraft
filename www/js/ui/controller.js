@@ -368,6 +368,7 @@ let gameCtrl = async function($scope, $timeout) {
     // My games
     $scope.mygames = {
         list: [],
+        shared_worlds: [],
         loading: false,
         load: function() {
             let session = $scope.App.getSession();
@@ -378,7 +379,14 @@ let gameCtrl = async function($scope, $timeout) {
             that.loading = true;
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
+                    that.shared_worlds = [];
                     that.list = worlds;
+                    for(let w of worlds) {
+                        w.my = w.user_id == session.user_id;
+                        if(!w.my) {
+                            that.shared_worlds.push(w);
+                        }
+                    }
                     that.loading = false;
                     $scope.loadingComplete();
                 });

@@ -3368,6 +3368,7 @@
         "id": 86,
         "name": "PUMPKIN",
         "planting": false,
+        "mining_time": 1,
         "material": {
             "id": "plant"
         },

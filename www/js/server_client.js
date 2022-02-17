@@ -47,6 +47,7 @@ export class ServerClient {
 	static CMD_PICKAT_ACTION            = 88;
 	static CMD_CREATE_PAINTING          = 89;
     static CMD_STOP_PLAY_DISC           = 91;
+	static CMD_WORLD_UPDATE_INFO        = 92;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;

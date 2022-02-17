@@ -110,7 +110,12 @@ export class ServerPlayer extends Player {
             data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
 
-        this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.getInfo()}]);
+        this.sendWorldInfo(false);
+    }
+
+    // sendWorldInfo
+    sendWorldInfo(update) {
+        this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
     }
 
     async onMessage(response) {

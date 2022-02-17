@@ -373,7 +373,7 @@ export class GameClass {
                     return true;
                 }
                 player.zoom = !!kb.keys[KEY.C];
-                if(e.ctrlKey) {
+                if(e.ctrlKey && !player.isSneak) {
                     player.controls.sprint = !!kb.keys[KEY.W];
                 } else {
                     if(!e.down) {

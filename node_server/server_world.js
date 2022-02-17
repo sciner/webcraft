@@ -172,7 +172,8 @@ export class ServerWorld {
         // один игровой день в реальных секундах
         const game_day_in_real_seconds = 86400 / GAME_ONE_SECOND // 1200
         // возраст в игровых днях
-        const age = diff_sec / game_day_in_real_seconds;
+        let add = (this.info.add_time / GAME_DAY_SECONDS);
+        const age = diff_sec / game_day_in_real_seconds + add;
         // возраст в ЦЕЛЫХ игровых днях
         this.info.calendar.age = Math.floor(age);
         // количество игровых секунд прошедших в текущем игровом дне
@@ -326,6 +327,12 @@ export class ServerWorld {
             if(player) {
                 player.sendPackets(packets);
             }
+        }
+    }
+
+    sendUpdatedInfo() {
+        for(let p of this.players.values()) {
+            p.sendWorldInfo(true);
         }
     }
 

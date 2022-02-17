@@ -65,12 +65,13 @@ export class DBWorld {
                 game_mode:  row.game_mode,
                 generator:  JSON.parse(row.generator),
                 pos_spawn:  JSON.parse(row.pos_spawn),
-                state:      null
+                state:      null,
+                add_time:   row.add_time
             }
         }
         // Insert new world to Db
         let world = await Game.db.getWorld(world_guid);
-        const result = await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
+        await this.db.run('INSERT INTO world(dt, guid, user_id, title, seed, generator, pos_spawn) VALUES (:dt, :guid, :user_id, :title, :seed, :generator, :pos_spawn)', {
             ':dt':          ~~(Date.now() / 1000),
             ':guid':        world.guid,
             ':user_id':     world.user_id,
@@ -81,6 +82,13 @@ export class DBWorld {
         });
         // let world_id = result.lastID;
         return this.getWorld(world_guid);
+    }
+
+    async updateAddTime(world_guid, add_time) {
+        await this.db.run('UPDATE world SET add_time = :add_time WHERE guid = :world_guid', {
+            ':world_guid':  world_guid,
+            ':add_time':    add_time
+        });
     }
 
     // Migrations
@@ -257,6 +265,7 @@ export class DBWorld {
             `UPDATE user SET pos_spawn = (SELECT pos_spawn FROM world) WHERE ABS(json_extract(pos_spawn, '$.x')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.y')) > 2000000000 OR ABS(json_extract(pos_spawn, '$.z')) > 2000000000`,
             `UPDATE user SET pos = pos_spawn WHERE ABS(json_extract(pos, '$.x')) > 2000000000 OR ABS(json_extract(pos, '$.y')) > 2000000000 OR ABS(json_extract(pos, '$.z')) > 2000000000`
         ]});
+        migrations.push({version: 22, queries: [`alter table world add column "add_time" INTEGER DEFAULT 7000`]});
 
         for(let m of migrations) {
             if(m.version > version) {
