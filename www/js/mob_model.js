@@ -7,6 +7,8 @@ import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
 
+const SNEAK_ANGLE = 45 * Math.PI / 180;
+
 export class Traversable {
     constructor() {
         
@@ -162,6 +164,7 @@ export class MobAnimator extends Animator {
         parts['arm'] = arms;
         parts['leg'] = legs;
         parts['wing'] = wings;
+        parts['body'] = [tree.findNode('Body')].filter(Boolean);
 
         animable.parts = parts;
     }
@@ -260,20 +263,30 @@ export class MobAnimation {
     }
 
     leg({
-        part, index, aniangle, animable
+        part, index, aniangle, animable, isArm = 0
     }) {
         const x = index % 2;
         const y = index / 2 | 0;
         const sign = x ^ y ? 1 : -1;
 
         quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, aniangle * sign);
+        quat.rotateX(part.quat, part.quat, aniangle * sign - animable.sneak * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
+
+        part.updateMatrix();
+    }
+
+    body({
+        part, index, aniangle, animable
+    }) {
+        quat.identity(part.quat);
+        quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
 
         part.updateMatrix();
     }
 
     arm(opts) {
         opts.index += 2;
+        opts.isArm = 1;
         return this.leg(opts);
     }
 
@@ -329,6 +342,7 @@ export class MobModel extends NetworkPhysicObject {
         this.nametag                    = null;
         this.aniframe                   = 0;
         this.height                     = 0;
+        this.sneak                      = 1;
 
         Object.assign(this, props);
 
@@ -417,7 +431,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y,
+            this.pos.y - this.drawPos.y - 0.2 * this.sneak,
         ]);
 
         this.sceneTree.updateMatrix();
