@@ -36,7 +36,7 @@ export class Resources {
         this.codeMain           = {};
         this.codeSky            = {};
         this.pickat             = {};
-        this.sky                = {};
+        // this.sky                = {};
         this.clouds             = {};
         this.inventory          = {};
         this.physics            = {};
@@ -56,6 +56,7 @@ export class Resources {
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
 
         // Skybox textures
+        /*
         let skiybox_dir = './media/skybox/park';
         all.push(loadImage(skiybox_dir + '/posx.webp').then((img) => {this.sky.posx = img}));
         all.push(loadImage(skiybox_dir + '/negx.webp').then((img) => {this.sky.negx = img}));
@@ -63,6 +64,7 @@ export class Resources {
         all.push(loadImage(skiybox_dir + '/negy.webp').then((img) => {this.sky.negy = img}));
         all.push(loadImage(skiybox_dir + '/posz.webp').then((img) => {this.sky.posz = img}));
         all.push(loadImage(skiybox_dir + '/negz.webp').then((img) => {this.sky.negz = img}));
+        */
 
         // Skybox shaders
         if (settings.wgsl) {

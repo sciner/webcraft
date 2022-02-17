@@ -657,14 +657,14 @@ export class Environment {
                 u_brightness: 1.0
                 // u_textureOn: true
             },
-            sides: [
+            /*sides: [
                 Resources.sky.posx,
                 Resources.sky.negx,
                 Resources.sky.posy,
                 Resources.sky.negy,
                 Resources.sky.posz,
                 Resources.sky.negz
-            ]
+            ]*/
         });
     }
 
