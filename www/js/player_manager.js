@@ -75,6 +75,7 @@ export class PlayerManager {
 
         player.applyNetState({
             pos: data.pos,
+            sneak: !!data.sneak,
             rotate: data.rotate,
             time: time,
             hands: data.hands

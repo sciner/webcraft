@@ -387,6 +387,7 @@ export class ServerWorld {
         }
         player.state.pos                = new Vector(params.pos);
         player.state.rotate             = new Vector(params.rotate);
+        player.state.sneak              = !!params.sneak;
         player.position_changed         = true;
     }
 

@@ -8,7 +8,6 @@ import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
 import config from "./config.js";
 
-const PLAYER_HEIGHT = 1.7;
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
 const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
@@ -55,7 +54,6 @@ export class ServerPlayer extends Player {
         this.#_rotateDegree         = new Vector(0, 0, 0);
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
-        this.height                 = PLAYER_HEIGHT;
         this.#forward               = new Vector(0, 1, 0);
         this.game_mode              = new GameMode(null, this);
         this.game_mode.onSelect     = async (mode) => {
@@ -440,7 +438,8 @@ export class ServerPlayer extends Player {
             pos:      this.state.pos,
             rotate:   this.state.rotate,
             skin:     this.state.skin,
-            hands:    this.state.hands
+            hands:    this.state.hands,
+            sneak:    this.state.sneak
         };
     }
 

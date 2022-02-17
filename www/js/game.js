@@ -31,6 +31,7 @@ export class GameClass {
         this.current_player_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
+            sneak:              false,
             ping:               0
         };
     }
@@ -463,6 +464,7 @@ export class GameClass {
     sendPlayerState(player) {
         this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
         this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
+        this.current_player_state.sneak = player.isSneak;
         this.ping = Math.round(this.player.world.server.ping_value);
         const current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {

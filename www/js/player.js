@@ -1,4 +1,4 @@
-import {Helpers, ROTATE, Vector} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
@@ -15,6 +15,8 @@ const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
+const SNEAK_HEIGHT                      = 6/16; // in blocks
+const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
 // Creates a new local player manager.
 export class Player {
@@ -51,6 +53,7 @@ export class Player {
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         this._eye_pos               = new Vector(0, 0, 0);
         // Position
+        this._height                = PLAYER_HEIGHT;
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
@@ -97,7 +100,6 @@ export class Player {
         this.onGroundO              = false;
         this.walking_frame          = 0;
         this.zoom                   = false;
-        this.height                 = PLAYER_HEIGHT;
         this.walkDist               = 0;
         this.walkDistO              = 0;
         this.bob                    = 0;
@@ -134,6 +136,50 @@ export class Player {
         return true;
     }
 
+    // Return player is sneak
+    get isSneak() {
+        // Get current player control
+        const pc = this.getPlayerControl();
+        if(pc instanceof PrismarinePlayerControl) {
+            if(pc.player_state.control.sneak && pc.player_state.onGround) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Return player height
+    get height() {
+        let sneak = this.isSneak;
+        //
+        const target_height = PLAYER_HEIGHT - (sneak ? SNEAK_HEIGHT : 0);
+        // If sneak changed
+        if(this.sneak !== sneak) {
+            this.sneak = sneak;
+            this.pn_start_change_sneak = performance.now();
+            this._sneak_period = Math.abs(target_height - this._height) / SNEAK_HEIGHT;
+            if(this._sneak_period == 0) {
+                this._height = target_height
+            } else {
+                this._height_diff = target_height - this._height;
+                this._height_before_change = this._height;
+            }
+        }
+        //
+        if(this._height != target_height) {
+            const elapsed = performance.now() - this.pn_start_change_sneak;
+            if(elapsed < SNEAK_CHANGE_PERIOD * this._sneak_period) {
+                // Interpolate between current and target heights
+                const percent = elapsed / (SNEAK_CHANGE_PERIOD * this._sneak_period);
+                this._height = this._height_before_change + (this._height_diff * percent);
+            } else {
+                this._height = target_height;
+            }
+        }
+        return this._height;
+    }
+
+    //
     addRotate(vec3) {
         this.setRotate(
             this.rotate.addSelf(vec3)
