@@ -62,6 +62,10 @@ export class TraversableRenderer {
 
     drawTraversed(node, parent, render, traversable) {
 
+        if('visible' in node && !node.visible) {
+            return;
+        }
+
         if (!node.terrainGeometry) {
             return true;
         }
