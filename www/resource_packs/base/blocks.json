@@ -5393,5 +5393,86 @@
             "side": [6, 2],
             "down": [2, 0]
         }
+    },
+    {
+        "id": 652,
+        "name": "LANTERN",
+        "style": "lantern",
+        "sound": "madcraft:block.stone",
+        "transparent": true,
+        "can_rotate": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [1, 28]
+        },
+        "tags": [
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 255
+        },
+        "texture_animations": {
+            "side": 3
+        },
+       "texture": {
+            "side": [27, 1]
+        }
+    },
+    {
+        "id": 653,
+        "name": "SEA_LANTERN",
+        "sound": "madcraft:block.stone",
+        "tags": [
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 255
+        },
+        "texture_animations": {
+            "side": 5
+        },
+       "texture": {
+            "side": [26, 1]
+        }
+    },
+    {
+        "id": 654,
+        "name": "SMOKER",
+        "sound": "madcraft:block.stone",
+        "can_rotate": true,
+        "material": {
+            "id": "stone"
+        },
+       "texture": {
+            "up": [25, 1],
+            "side": [25, 2],
+            "north": [25, 3],
+            "down": [25, 4]
+        }
+    },
+    {
+        "id": 655,
+        "name": "DRIED_KELP",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+       "texture": {
+            "up": [24, 1],
+            "side": [24, 2],
+            "down": [24, 3]
+        }
     }
 ]
