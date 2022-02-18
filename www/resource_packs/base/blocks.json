@@ -977,10 +977,11 @@
         "id": 24,
         "name": "SANDSTONE",
         "sound": "madcraft:block.gravel",
-        "texture": [
-            0,
-            12
-        ],
+        "texture": {
+            "side": [0, 12],
+            "up": [0, 11],
+            "down": [0, 11]
+        },
         "material": {
             "id": "stone"
         }
@@ -5370,6 +5371,27 @@
         },
         "texture": {
             "side": [1, 9]
+        }
+    },
+    {
+        "id": 650,
+        "name": "FLOWER_POT",
+        "style": "pot",
+        "sound": "madcraft:block.stone",
+        "transparent": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [0, 28]
+        },
+        "tags": [
+            "no_drop_ao"
+        ],
+        "material": {
+            "id": "stone"
+        },
+        "texture": {
+            "side": [6, 2],
+            "down": [2, 0]
         }
     }
 ]

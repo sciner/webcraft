@@ -89,7 +89,7 @@ export class NetworkPhysicObject {
             return this.applyState(
                 this.netBuffer[0].pos,
                 this.netBuffer[0].rotate,
-                this.netBuffer[0].sneak
+                this.netBuffer[0].sneak || 0
             );
         }
 

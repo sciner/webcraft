@@ -110,6 +110,7 @@ export class PlayerManager {
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skin.id,
+            sneak:          player.isSneak,
             username:       Game.App.session.username + ' Ghost',
             hands:          {left: {id: null}, right: {id: player.currentInventoryItem?.id}}
         }));

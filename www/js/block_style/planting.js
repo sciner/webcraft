@@ -89,13 +89,14 @@ export default class style {
 
         let r = 0;
 
-        if(block.material.style == 'planting') {
+        const no_random_pos = block.hasTag('no_random_pos');
+
+        if(block.material.style == 'planting' && !no_random_pos) {
             let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
             r = randoms[index] * 4/16 - 2/16;
+            dx = 0.5 - 0.5 + r;
+            dz = 0.5 - 0.5 + r;
         }
-
-        dx = 0.5 - 0.5 + r;
-        dz = 0.5 - 0.5 + r;
 
         style.lm.b = style.getAnimations(block, 'up');
         pushPlanedGeom(
