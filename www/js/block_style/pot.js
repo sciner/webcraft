@@ -13,15 +13,7 @@ const HEIGHT = 5 / 16;
 const WIDTH_INNER = 4/16;
 const HEIGHT_INNER = 1/16;
 
-const RANDOM_FLOWERS = [
-    BLOCK.DANDELION.id,
-    BLOCK.FLOWER_ALLIUM.id,
-    BLOCK.FLOWER_BLUE_ORCHID.id,
-    BLOCK.FLOWER_OXEYE_DAISY.id,
-    BLOCK.FLOWER_LILY_OF_THE_VALLEY.id,
-    BLOCK.BROWN_MUSHROOM.id,
-    BLOCK.RED_MUSHROOM.id
-];
+let RANDOM_FLOWERS = [];
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -87,6 +79,18 @@ export default class style {
 
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+
+        if(RANDOM_FLOWERS.length == 0) {
+            RANDOM_FLOWERS = [
+                BLOCK.DANDELION.id,
+                BLOCK.FLOWER_ALLIUM.id,
+                BLOCK.FLOWER_BLUE_ORCHID.id,
+                BLOCK.FLOWER_OXEYE_DAISY.id,
+                BLOCK.FLOWER_LILY_OF_THE_VALLEY.id,
+                BLOCK.BROWN_MUSHROOM.id,
+                BLOCK.RED_MUSHROOM.id
+            ];
+        }
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
