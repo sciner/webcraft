@@ -12,6 +12,7 @@ import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
+let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 // Ores
 const ORE_RANDOMS = [
@@ -220,7 +221,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const noisefn               = this.noisefn;
         let maps                    = [];
         let map                     = null;
-        let size                    = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         let rad                     = 1;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
@@ -256,10 +256,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     // getOreBlockID...
-    getOreBlockID(xyz, value, biome) {
-        this.temp_vec.set(xyz.x, xyz.y + 1, xyz.z);
+    getOreBlockID(xyz, value, dirt_block) {
+        this.temp_vec.copyFrom(xyz);
+        this.temp_vec.y++;
         if(this.map.info.plants.has(this.temp_vec)) {
-            return biome.dirt_block;
+            return dirt_block;
         }
         let stone_block_id = BLOCK.CONCRETE.id;
         let density = this.noise3d(xyz.x / 20, xyz.z / 20, xyz.y / 20) / 2 + .5;
@@ -287,6 +288,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     // Generate
     generate(chunk) {
 
+        const chunk_coord               = chunk.coord;
         let xyz                         = new Vector(0, 0, 0);
         let temp_vec                    = new Vector(0, 0, 0);
         let temp_vec2                   = new Vector(0, 0, 0);
@@ -317,13 +319,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 margin + (CHUNK_SIZE_X - margin*2) * aleaRandom.double(),
                 margin + (CHUNK_SIZE_Y - margin*2) * aleaRandom.double(),
                 margin + (CHUNK_SIZE_Z - margin*2) * aleaRandom.double()
-            ).flooredSelf().addSelf(chunk.coord)
+            ).flooredSelf().addSelf(chunk_coord)
             this.ores.push(ore)
         }
 
         //
         const setBlock = (x, y, z, block_id, rotate) => {
-            temp_vec2.set(x, y, z);
+            // temp_vec2.set(x, y, z);
+            temp_vec2.x = x;
+            temp_vec2.y = y;
+            temp_vec2.z = z;
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
             if(rotate) {
                 chunk.tblocks.rotate.set(temp_vec2, rotate);
@@ -340,12 +345,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             //
             chunkAABB.set(
-                chunk.coord.x,
-                chunk.coord.y,
-                chunk.coord.z,
-                chunk.coord.x + CHUNK_SIZE_X,
-                chunk.coord.y + CHUNK_SIZE_Y,
-                chunk.coord.z + CHUNK_SIZE_Z
+                chunk_coord.x,
+                chunk_coord.y,
+                chunk_coord.z,
+                chunk_coord.x + CHUNK_SIZE_X,
+                chunk_coord.y + CHUNK_SIZE_Y,
+                chunk_coord.z + CHUNK_SIZE_Z
             );
     
             // Static objects
@@ -437,10 +442,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
                 _createBlockAABB_second.set(
                     xyz.x - near_rad,
-                    xyz.y - near_rad - chunk.coord.y,
+                    xyz.y - near_rad - chunk_coord.y,
                     xyz.z - near_rad,
                     xyz.x + near_rad,
-                    xyz.y + near_rad - chunk.coord.y,
+                    xyz.y + near_rad - chunk_coord.y,
                     xyz.z + near_rad
                 );
                 for(let m of maps) {
@@ -594,7 +599,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             if(this.world_id == 'demo') {
                 if(chunk.addr.x == 180 && chunk.addr.z == 174) {
                     for(let y = 0; y < chunk.size.y; y += .25) {
-                        let y_abs = y + chunk.coord.y;
+                        let y_abs = y + chunk_coord.y;
                         let y_int = parseInt(y);
                         let x = 8 + parseInt(Math.sin(y_abs / Math.PI) * 6);
                         let z = 8 + parseInt(Math.cos(y_abs / Math.PI) * 6);
@@ -623,10 +628,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const rnd               = aleaRandom.double();
                     const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
                     const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
+                    const dirt_block        = biome.dirt_block;
+
+                    xyz.set(x + chunk_coord.x, 0, z + chunk_coord.z);
 
                     for(let y = 0; y < size_y; y++) {
 
-                        xyz.set(x + chunk.coord.x, y + chunk.coord.y, z + chunk.coord.z);
+                        xyz.y = y + chunk_coord.y;
+                        // xyz.set(x + chunk_coord.x, y + chunk_coord.y, z + chunk_coord.z);
 
                         // Draw voxel buildings
                         if(has_voxel_buildings) {
@@ -669,20 +678,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
                         // Ores (если это не вода, то заполняем полезными ископаемыми)
                         if(xyz.y < local_dirt_level) {
-                            const stone_block_id = this.getOreBlockID(xyz, value, biome);
+                            const stone_block_id = this.getOreBlockID(xyz, value, dirt_block);
                             setBlock(x, y, z, stone_block_id);
                         } else {
-                            setBlock(x, y, z, biome.dirt_block);
+                            setBlock(x, y, z, dirt_block);
                         }
 
                     }
 
                     // `Y` of waterline
-                    let ywl = map.info.options.WATER_LINE - chunk.coord.y;
+                    let ywl = map.info.options.WATER_LINE - chunk_coord.y;
                     if(biome.code == 'OCEAN' && ywl >= 0) {
+                        temp_vec.set(x, 0, z);
                         for(let y = value; y <= map.info.options.WATER_LINE; y++) {
-                            if(y >= chunk.coord.y && y < chunk.coord.y + chunk.size.y) {
-                                temp_vec.set(x, y - chunk.coord.y, z);
+                            if(y >= chunk_coord.y && y < chunk_coord.y + chunk.size.y) {
+                                temp_vec.y = y - chunk_coord.y;
                                 if(!chunk.tblocks.has(temp_vec)) {
                                     setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.STILL_WATER.id);
                                 }
@@ -699,9 +709,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     this.plantTree(
                         p,
                         chunk,
-                        m.chunk.coord.x + p.pos.x - chunk.coord.x,
-                        m.chunk.coord.y + p.pos.y - chunk.coord.y,
-                        m.chunk.coord.z + p.pos.z - chunk.coord.z
+                        m.chunk.coord.x + p.pos.x - chunk_coord.x,
+                        m.chunk.coord.y + p.pos.y - chunk_coord.y,
+                        m.chunk.coord.z + p.pos.z - chunk_coord.z
                     );
                 }
             }
@@ -710,13 +720,12 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             let temp_block = null;
             let idx = 0;
             for(let pos of map.info.plants.keys()) {
-                // 
-                if(pos.y >= chunk.coord.y && pos.y < chunk.coord.y + CHUNK_SIZE_Y) {
+                if(pos.y >= chunk_coord.y && pos.y < chunk_coord.y + CHUNK_SIZE_Y) {
                     let block_id = map.info.plants.get(pos);
-                    xyz.set(pos.x, pos.y - chunk.coord.y - 1, pos.z);
+                    xyz.set(pos.x, pos.y - chunk_coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
                     if(temp_block.id === BLOCK.DIRT.id || temp_block.id == 516) {
-                        temp_vec.set(pos.x, pos.y - chunk.coord.y, pos.z);
+                        temp_vec.set(pos.x, pos.y - chunk_coord.y, pos.z);
                         if(!chunk.tblocks.has(temp_vec)) {
                             if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
                                 setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);

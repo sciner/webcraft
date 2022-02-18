@@ -2,6 +2,7 @@ import {BLOCK} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
+import { AABB } from '../core/AABB.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -63,6 +64,15 @@ export class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.aabb = new AABB();
+        this.aabb.set(
+            this.coord.x,
+            this.coord.y,
+            this.coord.z,
+            this.coord.x + this.size.x,
+            this.coord.y + this.size.y,
+            this.coord.z + this.size.z
+        );
         this.id = this.addr.toHash();
         this.emitted_blocks = new VectorCollector();
     }

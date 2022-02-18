@@ -1,7 +1,7 @@
 // Modules
 let Vector              = null;
 let Helpers             = null;
-// let VectorCollector     = null;
+let VectorCollector     = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
 let worlds              = null;
@@ -42,7 +42,7 @@ async function preLoad () {
     await import('./helpers.js').then(module => {
         Vector = module.Vector;
         Helpers = module.Helpers;
-        // VectorCollector = module.VectorCollector;
+        VectorCollector = module.VectorCollector;
     });
     // load module
     await import('./worker/world.js').then(module => {
@@ -220,107 +220,4 @@ function buildVertices(chunk, return_map) {
         resp.map = chunk.map.info;
     }
     return resp;
-}
-
-// VectorCollector...
-class VectorCollector {
-
-    static sets = 0;
-
-    constructor(list) {
-        this.clear(list);
-    }
-
-    *[Symbol.iterator]() {
-        for (let x of this.list.values()) {
-            for (let y of x.values()) {
-                for (let value of y.values()) {
-                    yield value;
-                }
-            }
-        }
-    }
-
-    clear(list) {
-        this.list = list ? list : new Map();
-        this.size = 0;
-    }
-
-    set(vec, value) {
-        let size = this.size;
-        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
-        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
-            this.size++;
-        }
-        if (typeof value === 'function') {
-            value = value(vec);
-        }
-        this.list.get(vec.x).get(vec.y).set(vec.z, value);
-        return this.size > size;
-    }
-
-    add(vec, value) {
-        if(!this.list.has(vec.x)) this.list.set(vec.x, new Map());
-        if(!this.list.get(vec.x).has(vec.y)) this.list.get(vec.x).set(vec.y, new Map());
-        if(!this.list.get(vec.x).get(vec.y).has(vec.z)) {
-            if (typeof value === 'function') {
-                value = value(vec);
-            }
-            this.list.get(vec.x).get(vec.y).set(vec.z, value);
-            this.size++;
-        }
-        return this.list.get(vec.x).get(vec.y).get(vec.z);
-    }
-
-    delete(vec) {
-        if(!this.has(vec)) {
-            return false;
-        }
-        this.size--;
-        this.list.get(vec.x).get(vec.y).delete(vec.z)
-        return true;
-    }
-
-    has(vec) {
-        return this.list.get(vec.x)?.get(vec.y)?.has(vec.z) || false;
-        //if(!this.list.has(vec.x)) return false;
-        //if(!this.list.get(vec.x).has(vec.y)) return false;
-        //if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return false;
-        //return true;
-    }
-
-    get(vec) {
-        return this.list.get(vec.x)?.get(vec.y)?.get(vec.z) || null;
-        // if(!this.list.has(vec.x)) return null;
-        // if(!this.list.get(vec.x).has(vec.y)) return null;
-        // if(!this.list.get(vec.x).get(vec.y).has(vec.z)) return null;
-    }
-
-    keys() {
-        let resp = [];
-        for (let [xk, x] of this.list) {
-            for (let [yk, y] of x) {
-                for (let [zk, z] of y) {
-                    resp.push(new Vector(xk|0, yk|0, zk|0));
-                }
-            }
-        }
-        return resp;
-    }
-
-    values() {
-        let resp = [];
-        for(let item of this) {
-            resp.push(item);
-        }
-        return resp;
-    }
-
-    reduce(max_size) {
-        if(this.size < max_size) {
-            return false;
-        }
-    }
-
 }

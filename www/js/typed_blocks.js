@@ -251,7 +251,8 @@ export class TypedBlocks {
     }
 
     has(vec) {
-        let index = BLOCK.getIndex(vec);
+        // const index = BLOCK.getIndex(vec);
+        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * vec.y + (vec.z * CHUNK_SIZE_X) + vec.x;
         return this.id[index] > 0;
     }
 

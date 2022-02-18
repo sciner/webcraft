@@ -216,6 +216,7 @@ export class Default_Terrain_Generator {
     // Ель
     plantSpruce(options, chunk, x, y, z) {
         let ystart = y + options.height;
+        let b = null;
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
@@ -244,7 +245,7 @@ export class Default_Terrain_Generator {
                     if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
                         if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
                             this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
-                            let b = chunk.tblocks.get(this.xyz_temp_find);
+                            b = chunk.tblocks.get(this.xyz_temp_find, b);
                             let b_id = b.id;
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                                 this.temp_block.id = options.type.leaves;
@@ -272,6 +273,7 @@ export class Default_Terrain_Generator {
         }
         // листва
         let py = y + options.height;
+        let b = null;
         for(let rad of [1, 1, 2, 2]) {
             for(let i = x - rad; i <= x + rad; i++) {
                 for(let j = z - rad; j <= z + rad; j++) {
@@ -286,7 +288,7 @@ export class Default_Terrain_Generator {
                             continue;
                         }
                         this.xyz_temp_find.set(i, py, j);
-                        let b = chunk.tblocks.get(this.xyz_temp_find);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
                         let b_id = b.id;
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                             this.temp_block.id = options.type.leaves;
