@@ -270,7 +270,7 @@ export class MobAnimation {
         const sign = x ^ y ? 1 : -1;
 
         quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, aniangle * sign - animable.sneak * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
+        quat.rotateX(part.quat, part.quat, aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
 
         part.updateMatrix();
     }
@@ -431,7 +431,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y - 0.2 * this.sneak,
+            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2,
         ]);
 
         this.sceneTree.updateMatrix();
