@@ -60,7 +60,7 @@ export class HUD {
                         }
                     }
                 }
-                this.loading = true;//cl < nc;
+                this.loading = cl < nc;
                 if(!this.loading) {
                     return false;
                 }
