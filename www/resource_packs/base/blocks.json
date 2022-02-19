@@ -5480,6 +5480,7 @@
         "name": "AZALEA",
         "style": "azalea",
         "transparent": true,
+        "inventory_style": "azalea",
         "sound": "madcraft:block.grass",
         "material": {
             "id": "plant"
@@ -5498,6 +5499,7 @@
         "name": "FLOWERING_AZALEA",
         "style": "azalea",
         "transparent": true,
+        "inventory_style": "azalea",
         "sound": "madcraft:block.grass",
         "material": {
             "id": "plant"
