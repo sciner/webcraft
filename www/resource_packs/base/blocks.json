@@ -5512,5 +5512,31 @@
             "side": [16, 1],
             "down": [16, 4]
         }
+    },
+    {
+        "id": 658,
+        "name": "CAKE",
+        "style": "cake",
+        "transparent": true,
+        "can_rotate": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [9, 28]
+        },
+        "extra_data": {"pieces": 7},
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "wood"
+        },
+        "tags": [
+            "cake",
+            "no_drop_ao"
+        ],
+        "texture": {
+            "up": [17, 0],
+            "side": [17, 2],
+            "east": [17, 1],
+            "down": [17, 3]
+        }
     }
 ]

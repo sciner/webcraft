@@ -316,7 +316,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let entity_id       = world_block ? world_block.entity_id : null;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
-    let isEditSign  = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    let isEditSign      = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    let eatCake         = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('cake') >= 0);
     // Edit sign
     if(isEditSign) {
         if(!extra_data) {
@@ -333,6 +334,20 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     extra_data.dt = date.toISOString();
                     resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 }
+            }
+        }
+    // Eat cake
+    } else if (eatCake) {
+        if(!extra_data || typeof extra_data.pieces == 'undefined') {
+            extra_data = {...world_material.extra_data};
+        }
+        if(extra_data?.pieces) {
+            extra_data.pieces--;
+            if(extra_data.pieces == 0) {
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+            } else {
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.reset_target_pos = true;
             }
         }
     // Edit trapdoor
