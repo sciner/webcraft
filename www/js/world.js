@@ -24,13 +24,13 @@ export class World {
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
-    constructor(settings) {
+    constructor() {
+
         /**
          * @type {TWorldInfo}
          */
         this.info = null;
         this.localPlayer = null;
-        this.settings = settings;
         this.serverTimeShift = 0;
         this.latency = 0;
 

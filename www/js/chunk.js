@@ -153,6 +153,11 @@ export class Chunk {
     }
 
     initLights() {
+
+        if(!this.chunkManager.use_light) {
+            return false;
+        }
+
         const { size } = this;
         const sz = size.x * size.y * size.z;
         const light_buffer = this.light_buffer = new ArrayBuffer(sz);

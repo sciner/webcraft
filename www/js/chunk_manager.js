@@ -90,16 +90,17 @@ export class ChunkManager {
         this.lightmap_bytes         = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
-        this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
 
     }
 
-    init () {
+    init() {
+        
         const world                   = this.world;
         const that                    = this;
+
         //
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
@@ -190,6 +191,9 @@ export class ChunkManager {
         const world_guid = world_info.guid;
         const settings = world.settings;
         const resource_cache = Helpers.getCache();
+
+        this.use_light                = !!settings.use_light;
+        this.worker_counter           = this.use_light ? 2 : 1;
 
         this.postWorkerMessage(['init', {
             generator,
@@ -353,7 +357,9 @@ export class ChunkManager {
 
     // postLightWorkerMessage
     postLightWorkerMessage(data) {
-        this.lightWorker.postMessage(data);
+        if(this.use_light) {
+            this.lightWorker.postMessage(data);
+        }
     }
 
     // Remove chunk

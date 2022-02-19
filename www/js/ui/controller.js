@@ -294,6 +294,7 @@ let gameCtrl = async function($scope, $timeout) {
         form: {
             texture_pack: 'base',
             render_distance: 4,
+            use_light: false,
             mipmap: false
         },
         save: function() {
