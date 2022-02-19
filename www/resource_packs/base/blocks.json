@@ -5420,7 +5420,7 @@
         "texture_animations": {
             "side": 3
         },
-       "texture": {
+        "texture": {
             "side": [27, 1]
         }
     },
@@ -5443,7 +5443,7 @@
         "texture_animations": {
             "side": 5
         },
-       "texture": {
+        "texture": {
             "side": [26, 1]
         }
     },
@@ -5455,7 +5455,7 @@
         "material": {
             "id": "stone"
         },
-       "texture": {
+        "texture": {
             "up": [25, 1],
             "side": [25, 2],
             "north": [25, 3],
@@ -5469,10 +5469,46 @@
         "material": {
             "id": "stone"
         },
-       "texture": {
+        "texture": {
             "up": [24, 1],
             "side": [24, 2],
             "down": [24, 3]
+        }
+    },
+    {
+        "id": 656,
+        "name": "AZALEA",
+        "style": "azalea",
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop_ao"
+        ],
+        "texture": {
+            "up": [16, 3],
+            "side": [16, 0],
+            "down": [16, 4]
+        }
+    },
+    {
+        "id": 657,
+        "name": "FLOWERING_AZALEA",
+        "style": "azalea",
+        "transparent": true,
+        "sound": "madcraft:block.grass",
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop_ao"
+        ],
+        "texture": {
+            "up": [16, 2],
+            "side": [16, 1],
+            "down": [16, 4]
         }
     }
 ]
