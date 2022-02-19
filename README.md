@@ -1,9 +1,9 @@
 # MadCraft
 Minecraft clone on JS
 
-Demo: https://madcraft.io/
-Discord: https://discord.gg/C9zw4kNT2t
-Youtube: https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos
+- Demo: https://madcraft.io/
+- Discord: https://discord.gg/C9zw4kNT2t
+- Youtube: https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos
 
 # Run and play
 ```
