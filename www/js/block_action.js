@@ -345,9 +345,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             extra_data.pieces--;
             if(extra_data.pieces == 0) {
                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                resp.play_sound = {tag: 'madcraft:block.player', action: 'burp'};
             } else {
                 resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                 resp.reset_target_pos = true;
+                resp.play_sound = {tag: 'madcraft:block.player', action: 'eat'};
             }
         }
     // Edit trapdoor

@@ -5524,9 +5524,9 @@
             "texture": [9, 28]
         },
         "extra_data": {"pieces": 7},
-        "sound": "madcraft:block.grass",
+        "sound": "madcraft:block.cloth",
         "material": {
-            "id": "wood"
+            "id": "wool"
         },
         "tags": [
             "cake",

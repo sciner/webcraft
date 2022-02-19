@@ -3,6 +3,14 @@
         "type": "madcraft:block.player",
         "hit": [
             "hit3"
+        ],
+        "eat": [
+            "Eat1",
+            "Eat2",
+            "Eat3"
+        ],
+        "burp": [
+            "Burp"
         ]
     },
     {
