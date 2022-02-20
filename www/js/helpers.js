@@ -827,6 +827,11 @@ export let DIRECTION = {};
     DIRECTION.RIGHT     = CubeSym.ROT_Y3;
     DIRECTION.FORWARD   = CubeSym.ID;
     DIRECTION.BACK      = CubeSym.ROT_Y2;
+    // Aliases
+    DIRECTION.WEST      = DIRECTION.LEFT;
+    DIRECTION.EAST      = DIRECTION.RIGHT
+    DIRECTION.NORTH     = DIRECTION.FORWARD;
+    DIRECTION.SOUTH     = DIRECTION.BACK;
 
 // Direction names
 export let DIRECTION_NAME = {};

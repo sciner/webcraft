@@ -286,6 +286,9 @@ export class BLOCK {
             }
         } else if(block.extra_data) {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
+            if(extra_data && ('pos' in extra_data)) {
+                extra_data.pos = new Vector(pos);
+            }
         }
         return extra_data;
     }
@@ -367,7 +370,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' || block.style == 'azalea') {
+        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' || block.style == 'azalea' || block.style == 'bamboo') {
             group = 'doubleface';
         }
         return group;

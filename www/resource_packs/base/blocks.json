@@ -5538,5 +5538,36 @@
             "east": [17, 1],
             "down": [17, 3]
         }
+    },
+    {
+        "id": 659,
+        "name": "BAMBOO",
+        "style": "bamboo",
+        "transparent": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [12, 28]
+        },
+        "extra_data": {"stage": 0, "pos": true},
+        "sound": "madcraft:block.cloth",
+        "material": {
+            "id": "wool"
+        },
+        "tags": [
+            "bamboo",
+            "no_drop_ao"
+        ],
+        "texture": {
+            "south": [23, 1],
+            "west": [23, 2],
+            "north": [23, 3],
+            "side": [23, 4],
+            "east": [23, 5]
+        },
+        "ticking": {
+            "type": "bamboo",
+            "max_stage": 3,
+            "times_per_stage": 8
+        }
     }
 ]

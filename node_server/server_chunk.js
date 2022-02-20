@@ -55,7 +55,7 @@ export class ServerChunk {
                 if(!block || block.id != m.id) {
                     block = BLOCK.fromId(m.id);
                 }
-                if(block.ticking) {
+                if(block.ticking && m.extra_data) {
                     this.addTickingBlock(pos, block);
                 }
             }
@@ -330,7 +330,7 @@ export class ServerChunk {
         this.modify_list.set(pos.toHash(), item);
         if(item && item.id) {
             let block = BLOCK.fromId(item.id);
-            if(block.ticking) {
+            if(block.ticking && item.extra_data) {
                 this.addTickingBlock(pos, block);
             }
         }
@@ -358,19 +358,113 @@ export class ServerChunk {
     // On world tick
     async tick() {
         let updated_blocks = [];
+        let ignore_coords = new VectorCollector();
+        let check_pos = new Vector(0, 0, 0);
         for(let [k, v] of this.ticking_blocks.entries()) {
             const m = this.modify_list.get(k);
             if(!m || m.id != v.block.id) {
                 this.deleteTickingBlock(v.pos);
                 continue;
             }
+            const ticking = v.block.ticking;
             if(Math.random() > .33) {
                 if(!m.ticks) {
                     m.ticks = 0;
                 }
                 m.ticks++;
-                const ticking = v.block.ticking;
                 switch(ticking.type) {
+                    case 'bamboo': {
+                        check_pos.copyFrom(v.pos);
+                        check_pos.y = 0;
+                        if(ignore_coords.has(check_pos)) {
+                            break;
+                            // continue;
+                        }
+                        if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
+                            //
+                            if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
+                                //
+                                const world = this.world;
+                                //
+                                function addNextBamboo(pos, block, stage) {
+                                    const next_pos = new Vector(pos);
+                                    next_pos.y++;
+                                    const new_item = {
+                                        id: block.id,
+                                        extra_data: {...block.extra_data}
+                                    };
+                                    new_item.extra_data.stage = stage;
+                                    let b = world.getBlock(next_pos);
+                                    if(b.id == 0) {
+                                        updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                                        // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
+                                        check_pos.copyFrom(next_pos);
+                                        check_pos.y = 0;
+                                        ignore_coords.set(check_pos, true);
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                                //
+                                if(m.extra_data.stage == 0) {
+                                    addNextBamboo(v.pos, m, 1);
+                                    m.extra_data = null; // .stage = 3;
+                                    updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                } else {
+                                    let over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
+                                    let under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
+                                    if(m.extra_data.stage == 1) {
+                                        if(over1.id == 0) {
+                                            if(under1.id == m.id && (!under1.extra_data || under1.extra_data.stage == 3)) {
+                                                addNextBamboo(v.pos, m, 1);
+                                            }
+                                            if(under1.id == m.id && under1.extra_data && under1.extra_data.stage == 1) {
+                                                addNextBamboo(v.pos, m, 2);
+                                            }
+                                        } else if(over1.id == m.id && under1.id == m.id) {
+                                            if(over1.extra_data.stage == 2 && under1.extra_data && under1.extra_data.stage == 1) {
+                                                if(addNextBamboo(over1.posworld, m, 2)) {
+                                                    if(under1.extra_data.stage == 1) {
+                                                        const new_item = {...m};
+                                                        new_item.extra_data = {...new_item.extra_data};
+                                                        new_item.extra_data = null; // .stage = 3;
+                                                        updated_blocks.push({pos: under1.posworld, item: new_item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        if(m.extra_data.stage == 2) {
+                                            if(over1.id == m.id && under1.id == m.id) {
+                                                if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
+                                                    if(over1.posworld.distance(m.extra_data.pos) < 15) {
+                                                        if(addNextBamboo(over1.posworld, m, 2)) {
+                                                            // replace current to 1
+                                                            const new_current = {...m};
+                                                            new_current.extra_data = {...new_current.extra_data};
+                                                            new_current.extra_data.stage = 1;
+                                                            updated_blocks.push({pos: v.pos, item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                            // set under to 3
+                                                            const new_under = {...m};
+                                                            new_under.extra_data = {...new_under.extra_data};
+                                                            new_under.extra_data = null; // .stage = 3;
+                                                            updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        }
+                                                    } else {
+                                                        console.log('--- limit height ---');
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
+                        }
+                        break;
+                    }
                     case 'stage': {
                         if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
                             if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
