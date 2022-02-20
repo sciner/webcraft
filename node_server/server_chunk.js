@@ -10,8 +10,6 @@ export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 export const STAGE_TIME_MUL                = 5; // 20;
 
-const MAX_BAMBOO_HEIGHT                    = 16;
-
 export class ServerChunk {
 
     constructor(world, addr) {
@@ -57,7 +55,7 @@ export class ServerChunk {
                 if(!block || block.id != m.id) {
                     block = BLOCK.fromId(m.id);
                 }
-                if(block.ticking && m.extra_data) {
+                if(block.ticking && m.extra_data && !('notick' in m.extra_data)) {
                     this.addTickingBlock(pos, block);
                 }
             }
@@ -332,7 +330,7 @@ export class ServerChunk {
         this.modify_list.set(pos.toHash(), item);
         if(item && item.id) {
             let block = BLOCK.fromId(item.id);
-            if(block.ticking && item.extra_data) {
+            if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
                 this.addTickingBlock(pos, block);
             }
         }
@@ -359,6 +357,7 @@ export class ServerChunk {
 
     // On world tick
     async tick() {
+        let that = this;
         let updated_blocks = [];
         let ignore_coords = new VectorCollector();
         let check_pos = new Vector(0, 0, 0);
@@ -439,7 +438,7 @@ export class ServerChunk {
                                         if(m.extra_data.stage == 2) {
                                             if(over1.id == m.id && under1.id == m.id) {
                                                 if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
-                                                    if(over1.posworld.distance(m.extra_data.pos) < MAX_BAMBOO_HEIGHT - 1) {
+                                                    if(over1.posworld.distance(m.extra_data.pos) < m.extra_data.max_height - 1) {
                                                         if(addNextBamboo(over1.posworld, m, 2)) {
                                                             // replace current to 1
                                                             const new_current = {...m};
@@ -453,7 +452,29 @@ export class ServerChunk {
                                                             updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                                                         }
                                                     } else {
-                                                        console.log('--- limit height ---');
+                                                        // Limit height
+                                                        let pos = new Vector(v.pos);
+                                                        m.extra_data.notick = true;
+                                                        delete(m.extra_data.pos);
+                                                        delete(m.extra_data.max_height);
+                                                        updated_blocks.push({pos: pos, item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(pos);
+                                                        //
+                                                        const new_under = {...m};
+                                                        new_under.extra_data = {...under1.extra_data};
+                                                        new_under.extra_data.notick = true;
+                                                        delete(new_under.extra_data.pos);
+                                                        delete(new_under.extra_data.max_height);
+                                                        updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(under1.posworld);
+                                                        //
+                                                        const new_over = {...m};
+                                                        new_over.extra_data = {...over1.extra_data};
+                                                        new_over.extra_data.notick = true;
+                                                        delete(new_over.extra_data.pos);
+                                                        delete(new_over.extra_data.max_height);
+                                                        updated_blocks.push({pos: over1.posworld, item: new_over, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(over1.posworld);
                                                     }
                                                 }
                                             }

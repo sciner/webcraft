@@ -251,7 +251,7 @@ export class PlayerInventory {
         if(mat.id < 2 || mat.deprecated) {
             return false;
         }
-        while(mat.previous_part) {
+        while(mat.previous_part && mat.previous_part.id != mat.id) {
             let b = BLOCK.fromId(mat.previous_part.id);
             mat = {id: b.id, previous_part: b.previous_part};
         }

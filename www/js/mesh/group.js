@@ -134,13 +134,13 @@ export class MeshGroup {
             // Draw style
             let ds = item.block.material.style;
             if(force_inventory_style) {
-                if(item.block.material.inventory_style) {
-                    ds = item.block.material.inventory_style;
-                } else if('inventory' in item.block.material) {
+                if('inventory' in item.block.material) {
                     ds = item.block.material.inventory.style;
                     if('texture' in item.block.material.inventory) {
                         force_tex = item.block.material.inventory.texture;
                     }
+                } else if('inventory_style' in item.block.material) {
+                    ds = item.block.material.inventory_style;
                 }
             }
             const mat_key = item.block.material.material_key;

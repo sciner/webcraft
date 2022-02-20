@@ -286,8 +286,28 @@ export class BLOCK {
             }
         } else if(block.extra_data) {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
-            if(extra_data && ('pos' in extra_data)) {
-                extra_data.pos = new Vector(pos);
+            // Execute calculated extra_data fields:
+            if('calculated' in extra_data) {
+                const calculated = extra_data.calculated;
+                delete(extra_data.calculated);
+                for(let g of calculated) {
+                    if(!('name' in g)) {
+                        throw 'error_generator_name_not_set';
+                    }
+                    switch(g.type) {
+                        case 'pos': {
+                            extra_data[g.name] = new Vector(pos);
+                            break;
+                        }
+                        case 'random_int': {
+                            if(!('min_max' in g)) {
+                                throw 'error_generator_min_max_not_set';
+                            }
+                            extra_data[g.name] = Math.round(Math.random() * (g.min_max[1] - g.min_max[0]) + g.min_max[0]);
+                            break;
+                        }
+                    }
+                }
             }
         }
         return extra_data;

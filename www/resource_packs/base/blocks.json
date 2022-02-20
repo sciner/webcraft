@@ -1394,7 +1394,10 @@
         "passable": 1,
         "transparent": true,
         "style": "planting",
-        "inventory_style": "extruder",
+        "inventory": {
+            "style": "extruder",
+            "texture": [6, 22]
+        },
         "sound": "madcraft:block.grass",
         "texture": [
             5,
@@ -1434,10 +1437,13 @@
     {
         "id": 516,
         "name": "FLOWER_LILAC",
+        "inventory": {
+            "style": "extruder",
+            "texture": [8, 22]
+        },
         "passable": 1,
         "transparent": true,
         "style": "planting",
-        "inventory_style": "extruder",
         "sound": "madcraft:block.grass",
         "halfs": {"up": 517},
         "texture": [
@@ -4386,6 +4392,10 @@
         "passable": 0,
         "transparent": true,
         "style": "planting",
+        "inventory": {
+            "style": "extruder",
+            "texture": [31, 3]
+        },
         "sound": "madcraft:block.stone",
         "material": {
             "id": "stone"
@@ -5549,7 +5559,10 @@
             "style": "extruder",
             "texture": [12, 28]
         },
-        "extra_data": {"stage": 0, "pos": true},
+        "extra_data": {"stage": 0, "calculated": [
+            {"type": "pos", "name": "pos"},
+            {"type": "random_int", "name": "max_height", "min_max": [12, 16]}
+        ]},
         "sound": "madcraft:block.cloth",
         "material": {
             "id": "wool"

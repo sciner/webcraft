@@ -1,12 +1,22 @@
+import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {DIRECTION, Vector} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+import {impl as alea} from "../../vendors/alea.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
 
 const STALK_WIDTH = 6/32;
 const TX_CNT = 32;
+
+let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
+let a = new alea('random_plants_position');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
+
+const _temp_shift_pos = new Vector(0, 0, 0);
 
 // Bamboo
 export default class style {
@@ -22,15 +32,27 @@ export default class style {
 
     // computeAABB
     static computeAABB(block, for_physic) {
+
+        let x = 0;
         let y = 0;
+        let z = 0;
+
+        _temp_shift_pos.copyFrom(block.posworld).subSelf(block.tb.coord);
+
+        // Random shift
+        const index = Math.abs(Math.round(_temp_shift_pos.x * CHUNK_SIZE_Z + _temp_shift_pos.z)) % 256;
+        const r = randoms[index] * 4/16 - 2/16;
+        x += 0.5 - 0.5 + r;
+        z += 0.5 - 0.5 + r;
+
         let aabb = new AABB();
         aabb.set(
-            0 + .5 - STALK_WIDTH / 2,
+            x + .5 - STALK_WIDTH / 2,
             y + 0,
-            0 + .5 - STALK_WIDTH / 2,
-            0 + .5 + STALK_WIDTH / 2,
+            z + .5 - STALK_WIDTH / 2,
+            x + .5 + STALK_WIDTH / 2,
             y + 1,
-            0 + .5 + STALK_WIDTH / 2,
+            z + .5 + STALK_WIDTH / 2,
         );
         return [aabb];
     }
@@ -43,6 +65,12 @@ export default class style {
         }
 
         const stage = block?.extra_data ? block.extra_data.stage : 3;
+
+        // Random shift
+        const index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
+        const r = randoms[index] * 4/16 - 2/16;
+        x += 0.5 - 0.5 + r;
+        z += 0.5 - 0.5 + r;
 
         const textures = {
             stalk:          BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // стебель
