@@ -5544,6 +5544,7 @@
         "name": "BAMBOO",
         "style": "bamboo",
         "transparent": true,
+        "planting": true,
         "inventory": {
             "style": "extruder",
             "texture": [12, 28]
@@ -5564,10 +5565,14 @@
             "side": [23, 4],
             "east": [23, 5]
         },
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 659
+        },
         "ticking": {
             "type": "bamboo",
             "max_stage": 3,
-            "times_per_stage": 8
+            "times_per_stage": 24
         }
     }
 ]

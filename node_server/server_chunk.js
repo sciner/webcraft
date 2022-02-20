@@ -10,6 +10,8 @@ export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 export const STAGE_TIME_MUL                = 5; // 20;
 
+const MAX_BAMBOO_HEIGHT                    = 16;
+
 export class ServerChunk {
 
     constructor(world, addr) {
@@ -437,7 +439,7 @@ export class ServerChunk {
                                         if(m.extra_data.stage == 2) {
                                             if(over1.id == m.id && under1.id == m.id) {
                                                 if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
-                                                    if(over1.posworld.distance(m.extra_data.pos) < 15) {
+                                                    if(over1.posworld.distance(m.extra_data.pos) < MAX_BAMBOO_HEIGHT - 1) {
                                                         if(addNextBamboo(over1.posworld, m, 2)) {
                                                             // replace current to 1
                                                             const new_current = {...m};
