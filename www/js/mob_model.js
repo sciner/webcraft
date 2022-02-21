@@ -509,7 +509,7 @@ export class MobModel extends NetworkPhysicObject {
         const asset = await Resources.getModelAsset(this.type);
 
         if (!asset) {
-            console.log("Can't lokate model for:", this.type);
+            console.log("Can't locate model for:", this.type);
             return null;
         }
 
@@ -522,7 +522,7 @@ export class MobModel extends NetworkPhysicObject {
         this.skin = this.skin || asset.baseSkin;
 
         if(!(this.skin in asset.skins)) {
-            console.warn("Can't locate skin: ", this.skin)
+            console.warn("Can't locate skin: ", asset, this.skin)
             this.skin = asset.baseSkin;
         }
 

@@ -157,11 +157,15 @@ export default class style {
         let upFlags                 = flags;
         let c;
 
-
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            sideFlags = QUAD_FLAGS.MASK_BIOME;
+            upFlags = QUAD_FLAGS.MASK_BIOME;
+        }
+        if(block.hasTag('mask_color')) {
+            lm = material.mask_color;
             sideFlags = QUAD_FLAGS.MASK_BIOME;
             upFlags = QUAD_FLAGS.MASK_BIOME;
         }

@@ -54,6 +54,13 @@ export class Mob {
 
     // Create new mob
     static async create(world, params) {
+        let model = world.models.list.get(params.type);
+        if(!model) {
+            throw "Can't locate model for: " + params.type;
+        }
+        if(!(params.skin in model.skins)) {
+            throw "Can't locate skin for: " + params.type + '/' + params.skin;
+        }
         params.indicators = world.db.getDefaultPlayerIndicators();
         let result = await world.db.createMob(params);
         params.id = result.id;

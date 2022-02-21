@@ -82,8 +82,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                         // рельсы
                         for(let y = 14; y < 15; y++) {
-                            this.setBlock(chunk, 5, y, z, BLOCK.WOOL_BLACK, false);
-                            this.setBlock(chunk, 8, y, z, BLOCK.WOOL_BLACK, false);
+                            this.setBlock(chunk, 5, y, z, BLOCK.BLACK_WOOL, false);
+                            this.setBlock(chunk, 8, y, z, BLOCK.BLACK_WOOL, false);
                         }
                         // столбы
                         if(z == 4) {

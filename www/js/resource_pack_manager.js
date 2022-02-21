@@ -1,6 +1,29 @@
 import { BaseResourcePack } from "./base_resource_pack.js";
 import { BLOCK } from "./blocks.js";
+import { Color } from "./helpers.js";
 import { Resources } from "./resources.js";
+
+const START_WOOL_ID = 350;
+const START_CARPET_ID = 800;
+
+export const COLOR_PALETTE = {
+    white: [0, 0],
+    orange: [2, 1],
+    magenta: [2, 3],
+    light_blue: [3, 2],
+    yellow: [3, 1],
+    lime: [0, 2],
+    pink: [3, 3],
+    gray: [2, 0],
+    light_gray: [1, 0],
+    cyan: [2, 2],
+    purple: [1, 3],
+    blue: [0, 3],
+    brown: [0, 1],
+    green: [1, 2],
+    red: [1, 1],
+    black: [3, 0],
+};
 
 export class ResourcePackManager {
 
@@ -42,6 +65,9 @@ export class ResourcePackManager {
             await rp.init(this);
         }
 
+        this.initWool(base);
+        this.initCarpets(base);
+
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
             const b = {
@@ -57,6 +83,61 @@ export class ResourcePackManager {
             BLOCK.add(base, b);
         }
 
+    }
+
+    // Wools
+    initWool(resource_pack) {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_WOOL_ID + i,
+                "name": color.toUpperCase() + '_WOOL',
+                "material": {"id": "wool"},
+                "sound": "madcraft:block.cloth",
+                "texture": {"side": [10, 17]},
+                "mask_color": mask_color,
+                "tags": [
+                    "mask_color"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
+    }
+
+    // Carpets
+    initCarpets(resource_pack) {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        for(let color in COLOR_PALETTE) {
+            const color_pos = COLOR_PALETTE[color];
+            const mask_color = new Color(color_pos[0], color_pos[1], 0);
+            const TX_CNT = 32;
+            mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
+            mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
+            const b = {
+                "id": START_CARPET_ID + i,
+                "transparent": true,
+                "height": 1/16,
+                "name": color.toUpperCase() + '_CARPET',
+                "material": {"id": "wool"},
+                "sound": "madcraft:block.cloth",
+                "texture": {"side": [10, 17]},
+                "mask_color": mask_color,
+                "tags": [
+                    "mask_color",
+                    "no_drop_ao"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
     }
 
     get(id) {

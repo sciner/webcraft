@@ -117,6 +117,12 @@
             "Cloth_dig3",
             "Cloth_dig4"
         ],
+        "hit": [
+            "Cloth_dig1",
+            "Cloth_dig2",
+            "Cloth_dig3",
+            "Cloth_dig4"
+        ],
         "place": [
             "Cloth_dig1",
             "Cloth_dig2",

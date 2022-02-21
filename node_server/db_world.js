@@ -266,6 +266,19 @@ export class DBWorld {
             `UPDATE user SET pos = pos_spawn WHERE ABS(json_extract(pos, '$.x')) > 2000000000 OR ABS(json_extract(pos, '$.y')) > 2000000000 OR ABS(json_extract(pos, '$.z')) > 2000000000`
         ]});
         migrations.push({version: 22, queries: [`alter table world add column "add_time" INTEGER DEFAULT 7000`]});
+        migrations.push({version: 23, queries: [
+            `UPDATE world_modify SET params = '{"id":365}' WHERE params LIKE '{"id":350%';`,
+            `UPDATE world_modify SET params = '{"id":361}' WHERE params LIKE '{"id":351%';`,
+            `UPDATE world_modify SET params = '{"id":362}' WHERE params LIKE '{"id":352%';`,
+            `UPDATE world_modify SET params = '{"id":359}' WHERE params LIKE '{"id":353%';`,
+            `UPDATE world_modify SET params = '{"id":357}' WHERE params LIKE '{"id":354%';`,
+            `UPDATE world_modify SET params = '{"id":363}' WHERE params LIKE '{"id":355%';`,
+            `UPDATE world_modify SET params = '{"id":364}' WHERE params LIKE '{"id":502%';`,
+            `UPDATE world_modify SET params = '{"id":354}' WHERE params LIKE '{"id":506%';`,
+        ]});
+        migrations.push({version: 24, queries: [
+            `UPDATE entity SET skin = 'base' WHERE type = 'axolotl' and skin = 'blue'`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
