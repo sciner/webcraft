@@ -77,11 +77,11 @@ export class ChunkManager {
                         if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
                                 case 'torch': {
-                                    meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/regular/effects'));
+                                    meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/transparent/effects'));
                                     break;
                                 }
                                 case 'campfire': {
-                                    meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/regular/effects'));
+                                    meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/transparent/effects'));
                                     break;
                                 }
                             }
