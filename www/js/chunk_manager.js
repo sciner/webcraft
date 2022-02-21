@@ -67,10 +67,14 @@ export class ChunkManager {
             },
             update(player_pos) {
                 const meshes = Game.render.meshes;
+                const type_distance = {
+                    torch: 12,
+                    campfire: 96
+                };
                 // Add torches animations if need
                 for(let [_, item] of this.list.entries()) {
-                    if(player_pos.distance(item.pos) < 12) {
-                        if(Math.random() < .3) {
+                    if(Math.random() < .3) {
+                        if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
                                 case 'torch': {
                                     meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/regular/effects'));
