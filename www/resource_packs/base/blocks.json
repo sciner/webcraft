@@ -982,7 +982,7 @@
     {
         "id": 24,
         "name": "SANDSTONE",
-        "sound": "madcraft:block.gravel",
+        "sound": "madcraft:block.stone",
         "texture": {
             "side": [0, 12],
             "up": [0, 11],
