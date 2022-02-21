@@ -5491,5 +5491,33 @@
             "max_stage": 3,
             "times_per_stage": 24
         }
+    },
+    {
+        "id": 660,
+        "name": "CAMPFIRE",
+        "style": "campfire",
+        "can_rotate": true,
+        "transparent": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [8, 28]
+        },
+        "sound": "madcraft:block.wood",
+        "material": {
+            "id": "wood"
+        },
+        "tags": [
+            "no_drop_ao"
+        ],
+        "light_power": {
+            "r": 255,
+            "g": 235,
+            "b": 35,
+            "a": 255
+        },
+        "texture": {
+            "side": [31, 4],
+            "up": [31, 5]
+        }
     }
 ]

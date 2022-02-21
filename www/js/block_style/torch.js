@@ -72,7 +72,8 @@ export default class style {
         if (!rotate || rotate.y) {
             worker.postMessage(['add_torch', {
                 block_pos: chunk.coord.add(new Vector(x, y, z)),
-                pos: chunk.coord.add(new Vector(x, y, z))
+                pos: chunk.coord.add(new Vector(x, y, z)),
+                type: 'torch'
             }]);
             return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null, null);
         }
@@ -89,7 +90,8 @@ export default class style {
 
         worker.postMessage(['add_torch', {
             block_pos: chunk.coord.add(new Vector(x, y, z)),
-            pos: torch_pos
+            pos: torch_pos,
+            type: 'torch'
         }]);
 
         return cube_func(

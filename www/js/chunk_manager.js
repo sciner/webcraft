@@ -3,6 +3,7 @@ import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 import {Particles_Torch_Flame} from "./particles/torch_flame.js";
+import {Particles_Campfire_Flame} from "./particles/campfire_flame.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
@@ -54,7 +55,7 @@ export class ChunkManager {
         this.torches = {
             list: new VectorCollector(),
             add: function(args) {
-                this.list.set(args.block_pos, args.pos);
+                this.list.set(args.block_pos, args);
             },
             delete(pos) {
                 this.list.delete(pos);
@@ -67,10 +68,19 @@ export class ChunkManager {
             update(player_pos) {
                 const meshes = Game.render.meshes;
                 // Add torches animations if need
-                for(let [_, pos] of this.list.entries()) {
-                    if(player_pos.distance(pos) < 12) {
+                for(let [_, item] of this.list.entries()) {
+                    if(player_pos.distance(item.pos) < 12) {
                         if(Math.random() < .3) {
-                            meshes.add(new Particles_Torch_Flame(this, pos, 'extend/regular/effects'));
+                            switch(item.type) {
+                                case 'torch': {
+                                    meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/regular/effects'));
+                                    break;
+                                }
+                                case 'campfire': {
+                                    meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/regular/effects'));
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
@@ -101,7 +111,6 @@ export class ChunkManager {
         const world                   = this.world;
         const that                    = this;
 
-        //
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
