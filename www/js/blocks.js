@@ -390,7 +390,7 @@ export class BLOCK {
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' || block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire') {
+        } else if(block.id == 649 || block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' || block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire') {
             group = 'doubleface';
         }
         return group;

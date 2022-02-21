@@ -5274,9 +5274,6 @@
         "texture_animations": {
             "side": 2
         },
-        "tags": [
-            "alpha"
-        ],
         "light_power": {
             "r": 255,
             "g": 0,
