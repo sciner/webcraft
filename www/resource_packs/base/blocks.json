@@ -631,6 +631,7 @@
         "name": "BIRCH_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -646,6 +647,7 @@
         "name": "OAK_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -661,6 +663,7 @@
         "name": "ACACIA_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -676,6 +679,7 @@
         "name": "SPRUCE_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -691,6 +695,7 @@
         "name": "DARK_OAK_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -706,6 +711,7 @@
         "name": "JUNGLE_PLANK",
         "sound": "madcraft:block.wood",
         "tags": [
+            "can_put_info_pot",
             "plank"
         ],
         "material": {
@@ -1774,6 +1780,9 @@
         "material": {
             "id": "dirt"
         },
+        "tags": [
+            "can_put_info_pot"
+        ],
         "texture": [
             13,
             7
@@ -2591,6 +2600,7 @@
             "id": "wood"
         },
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -2617,6 +2627,7 @@
         },
         "can_rotate": true,
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -2642,6 +2653,7 @@
             "id": "wood"
         },
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -2667,6 +2679,7 @@
             "id": "wood"
         },
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -2692,6 +2705,7 @@
             "id": "wood"
         },
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -2717,6 +2731,7 @@
             "id": "wood"
         },
         "tags": [
+            "can_put_info_pot",
             "rotate_by_pos_n"
         ],
         "texture": {
@@ -5294,7 +5309,10 @@
             "style": "extruder",
             "texture": [0, 28]
         },
+        "mining_time": 0,
+        "extra_data": {"item_id": null},
         "tags": [
+            "pot",
             "no_drop_ao"
         ],
         "material": {
@@ -5440,6 +5458,7 @@
             "id": "wool"
         },
         "tags": [
+            "can_put_info_pot",
             "cake",
             "no_drop_ao"
         ],

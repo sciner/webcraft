@@ -1,11 +1,12 @@
 "use strict";
 
-import {DIRECTION, MULTIPLY, QUAD_FLAGS} from '../helpers.js';
+import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 
 const {mat3} = glMatrix;
 
@@ -101,6 +102,41 @@ export default class style {
         let width                   = material.width ? material.width : 1;
         let height                  = material.height ? material.height : 1;
         const drawAllSides          = width != 1 || height != 1;
+        const into_pot              = block.hasTag('into_pot');
+
+        if(into_pot) {
+            width = 8/32;
+            let aabb = new AABB();
+            aabb.set(
+                x + .5 - width/2,
+                y,
+                z + .5 - width/2,
+                x + .5 + width/2,
+                y + 1 - 6/32,
+                z + .5 + width/2
+            );
+            let c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+            let c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
+            let c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
+            // Push vertices down
+            pushAABB(
+                vertices,
+                aabb,
+                pivot,
+                matrix,
+                {
+                    up:     new AABBSideParams(c_up, 0, 1),
+                    down:   new AABBSideParams(c_down, 0, 1),
+                    south:  new AABBSideParams(c_side, 0, 1),
+                    north:  new AABBSideParams(c_side, 0, 1),
+                    west:   new AABBSideParams(c_side, 0, 1),
+                    east:   new AABBSideParams(c_side, 0, 1),
+                },
+                true,
+                new Vector(x, y, z)
+            );
+            return;
+        }
 
         if(material.tags.indexOf('jukebox') >= 0) {
             const disc = block?.extra_data?.disc || null;

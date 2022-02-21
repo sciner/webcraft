@@ -388,6 +388,20 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(world_block.id == BLOCK.CHEST.id) {
                 resp.delete_chest = {pos: new Vector(pos), entity_id: world_block.entity_id};
             }
+            // Remove plant from pot
+            if(world_material.tags.indexOf('pot') >= 0) {
+                if(extra_data?.item_id) {
+                    let drop_item_id = extra_data?.item_id;
+                    extra_data = extra_data ? extra_data : {};
+                    extra_data.item_id = null;
+                    delete(extra_data.item_id);
+                    resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                    resp.play_sound = {tag: 'madcraft:block.cloth', action: 'hit'};
+                    // Create drop item
+                    resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: drop_item_id}], force: true});
+                    return resp;
+                }
+            }
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
                 //
                 const cv = new VectorCollector();
@@ -511,6 +525,16 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         const matBlock = BLOCK.fromId(currentInventoryItem.id);
         if(matBlock.deprecated) {
             // throw 'error_deprecated_block';
+            return resp;
+        }
+        // Put plant into pot
+        let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
+        if(putPlantIntoPot) {
+            extra_data = extra_data ? extra_data : {};
+            extra_data.item_id = matBlock.id;
+            resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            resp.play_sound = {tag: 'madcraft:block.cloth', action: 'hit'};
+            resp.decrement = true;
             return resp;
         }
         // Jukebox & music disc

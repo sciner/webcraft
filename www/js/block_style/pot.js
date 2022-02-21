@@ -8,12 +8,10 @@ import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 const {mat4} = glMatrix;
 
 const WIDTH =  6 / 16;
-const HEIGHT = 5 / 16;
+const HEIGHT = 6 / 16;
 
 const WIDTH_INNER = 4/16;
 const HEIGHT_INNER = 1/16;
-
-let RANDOM_FLOWERS = [];
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
@@ -73,24 +71,12 @@ export default class style {
             0 + HEIGHT,
             0 + .5 + WIDTH / 2,
         );
-        aabb.pad(1/32)
+        // aabb.pad(1/32)
         return [aabb];
     }
 
     // Build function
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
-
-        if(RANDOM_FLOWERS.length == 0) {
-            RANDOM_FLOWERS = [
-                BLOCK.DANDELION.id,
-                BLOCK.FLOWER_ALLIUM.id,
-                BLOCK.FLOWER_BLUE_ORCHID.id,
-                BLOCK.FLOWER_OXEYE_DAISY.id,
-                BLOCK.FLOWER_LILY_OF_THE_VALLEY.id,
-                BLOCK.BROWN_MUSHROOM.id,
-                BLOCK.RED_MUSHROOM.id
-            ];
-        }
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -102,7 +88,7 @@ export default class style {
         const c_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
         const c_inner_down = BLOCK.calcMaterialTexture(block.material, DIRECTION.DOWN);
 
-        c_side[1] += 11/32/32;
+        c_side[1] += 10/32/32;
         c_down[1] += 10/32/32;
 
         let aabb = new AABB();
@@ -116,7 +102,6 @@ export default class style {
         );
 
         matrix = mat4.create();
-        // mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * -(2 * Math.PI));
 
         // Center
         let aabb_down = new AABB();
@@ -174,26 +159,23 @@ export default class style {
             new Vector(x, y, z)
         );
 
-        // mat4.scale(matrix, matrix, [0.5, 0.5, 0.5]);
-        let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-        const flower_block_id = RANDOM_FLOWERS[Math.floor(randoms[index] * RANDOM_FLOWERS.length)];
+        let flower_block_id = null;
+        if(block.extra_data && block.extra_data.item_id) {
+            flower_block_id = block.extra_data.item_id;
+        }
 
-        // Return text block
-        //if(block.extra_data) {
-            //let text = block.extra_data?.text;
-            //if(text) {
-                const fb = new FakeBlock(
-                    flower_block_id,
-                    null,
-                    new Vector(x, y + 3/16, z),
-                    new Vector(0, 1, 0),
-                    pivot,
-                    matrix,
-                    ['no_random_pos']
-                );
-                return [fb];
-            //}
-        //}
+        if(flower_block_id) {
+            const fb = new FakeBlock(
+                flower_block_id,
+                null,
+                new Vector(x, y + 3/16, z),
+                new Vector(0, 1, 0),
+                pivot,
+                matrix,
+                ['no_random_pos', 'into_pot']
+            );
+            return [fb];
+        }
 
         return null;
 

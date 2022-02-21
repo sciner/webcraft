@@ -64,13 +64,18 @@ export default class style {
             return;
         }
 
-        const stage = block?.extra_data ? block.extra_data.stage : 3;
+        let stage = block?.extra_data ? block.extra_data.stage : 3;
+
+        const no_random_pos = block.hasTag('no_random_pos');
+        const into_pot = block.hasTag('into_pot');
 
         // Random shift
-        const index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-        const r = randoms[index] * 4/16 - 2/16;
-        x += 0.5 - 0.5 + r;
-        z += 0.5 - 0.5 + r;
+        if(!no_random_pos) {
+            const index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
+            const r = randoms[index] * 4/16 - 2/16;
+            x += 0.5 - 0.5 + r;
+            z += 0.5 - 0.5 + r;
+        }
 
         const textures = {
             stalk:          BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // стебель
@@ -79,6 +84,11 @@ export default class style {
             leaves:         BLOCK.calcMaterialTexture(block.material, DIRECTION.SOUTH), // малая листва
             large_leaves:   BLOCK.calcMaterialTexture(block.material, DIRECTION.NORTH) // широкая листва
         };
+
+        if(into_pot) {
+            stage = 4;
+            y -= 6/32 - 1/500;
+        }
 
         const pos = new Vector(x, y, z);
         const chains = [];
@@ -128,6 +138,18 @@ export default class style {
                 break;
             }
             case 3: {
+                break;
+            }
+            case 4: {
+                chains.push({
+                    pos: pos,
+                    width: 1,
+                    height: 1,
+                    uv: [.5, .5],
+                    rot: 0,
+                    translate: [0, 0, -.5],
+                    texture: textures.singleleaf
+                });
                 break;
             }
         }

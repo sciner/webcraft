@@ -314,11 +314,11 @@ export class ServerChunk {
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
                     await this.world.createMob(params);
-                    await this.world.applyActions(null, {blocks: [
+                    await this.world.applyActions(null, {blocks: {list: [
                         {pos: item_pos, item: BLOCK.AIR},
                         {pos: under1.posworld, item: BLOCK.AIR},
                         {pos: under2.posworld, item: BLOCK.AIR}
-                    ]});
+                    ]}});
                 }
                 break;
             }
