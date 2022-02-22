@@ -83,6 +83,7 @@ export class ServerClient {
                 total: 0
             },
             in_packets: {
+                size: 0,
                 physical: 0,
                 total: 0
             }
@@ -256,6 +257,7 @@ export class ServerClient {
         }
         //
         this.stat.in_packets.physical++;
+        this.stat.in_packets.size += event.data.length;
         for(let cmd of cmds) {
             // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
@@ -265,7 +267,7 @@ export class ServerClient {
             let in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
             this.stat.in_packets.total++;
-            in_packets.size += event.data.length;
+            in_packets.size += JSON.stringify(cmd).length;
             //
             let listeners = null;
             if('user_guid' in cmd) {
