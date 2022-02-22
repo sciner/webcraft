@@ -76,15 +76,30 @@ export class FSMBrain {
         if(!chunk_over) {
             return;
         }
-        let packets = [{
-            name: ServerClient.CMD_MOB_UPDATE,
-            data: {
-                id:       mob.id,
-                rotate:   mob.rotate,
-                pos:      mob.pos
+        let new_state = {
+            id:       mob.id,
+            rotate:   mob.rotate.multiplyScalar(1000).roundSelf().divScalar(1000),
+            pos:      mob.pos.multiplyScalar(1000).roundSelf().divScalar(1000)
+        };
+        let need_send = true;
+        if(mob.prev_state) {
+            if(mob.prev_state.rotate.equal(new_state.rotate)) {
+                if(mob.prev_state.pos.equal(new_state.pos)) {
+                    need_send = false;
+                }
             }
-        }];
-        world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
+        }
+        if(need_send) {
+            mob.prev_state = new_state;
+            mob.prev_state.rotate = mob.prev_state.rotate.clone();
+            mob.prev_state.pos = mob.prev_state.pos.clone();
+            let packets = [{
+                name: ServerClient.CMD_MOB_UPDATE,
+                data: new_state
+            }];
+            world.packets_queue.add(Array.from(chunk_over.connections.keys()), packets);
+            // world.sendSelected(packets, Array.from(chunk_over.connections.keys()), []);
+        }
     }
 
     // Update state and send to players

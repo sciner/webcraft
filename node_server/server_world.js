@@ -87,6 +87,26 @@ export class ServerWorld {
             }
         };
         //
+        this.packets_queue = {
+            list: new Map(),
+            add: function(user_ids, packets) {
+                for(let user_id of user_ids) {
+                    let arr = this.list.get(user_id);
+                    if(!arr) {
+                        arr = [];
+                        this.list.set(user_id, arr);
+                    }
+                    arr.push(...packets);
+                }
+            },
+            send: function() {
+                for(let [user_id, packets] of this.list) {
+                    that.sendSelected(packets, [user_id], []);
+                }
+                this.list.clear();
+            }
+        };
+        //
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
         //
@@ -217,6 +237,9 @@ export class ServerWorld {
         } catch(e) {
             // do nothing
         }
+        //
+        this.packets_queue.send();
+        //
         this.ticks_stat.add('chest_confirm_queue');
         //
         this.ticks_stat.end();

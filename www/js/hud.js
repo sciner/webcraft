@@ -300,7 +300,7 @@ export class HUD {
         } else {
             this.text += 'NULL';
         }
-        this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total;
+        this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total + '(' + Game.world.server.stat.in_packets.physical + ')';
         this.text += '\nGame mode: ' + player.game_mode.getCurrent().title;
         if(player.world.server.ping_value) {
             this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';

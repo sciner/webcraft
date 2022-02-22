@@ -24,9 +24,9 @@ export class Mob {
         this.type           = params.type;
         this.skin           = params.skin;
         this.indicators     = params.indicators;
-        this.pos            = params.pos;
+        this.pos            = new Vector(params.pos);
         this.pos_spawn      = params.pos_spawn;
-        this.rotate         = params.rotate;
+        this.rotate         = new Vector(params.rotate);
         // Private properties
         this.#chunk_addr    = new Vector();
         this.#forward       = new Vector(0, 1, 0);

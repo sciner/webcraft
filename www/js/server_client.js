@@ -83,6 +83,7 @@ export class ServerClient {
                 total: 0
             },
             in_packets: {
+                physical: 0,
                 total: 0
             }
         };
@@ -254,6 +255,7 @@ export class ServerClient {
             return;
         }
         //
+        this.stat.in_packets.physical++;
         for(let cmd of cmds) {
             // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
