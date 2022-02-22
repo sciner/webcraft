@@ -531,6 +531,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
         if(putPlantIntoPot) {
             extra_data = extra_data ? extra_data : {};
+            if(extra_data.item_id) {
+                resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
+            }
             extra_data.item_id = matBlock.id;
             resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
             resp.play_sound = {tag: 'madcraft:block.cloth', action: 'hit'};

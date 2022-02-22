@@ -79,8 +79,12 @@ export class ServerClient {
         this.ping_time                  = null;
         this.ping_value                 = null;
         this.stat                       = {
-            out_packets: {},
-            in_packets: {}
+            out_packets: {
+                total: 0
+            },
+            in_packets: {
+                total: 0
+            }
         };
         // Commands listeners
         this.cmdListeners               = new Map();
@@ -258,6 +262,7 @@ export class ServerClient {
             }
             let in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
+            this.stat.in_packets.total++;
             in_packets.size += event.data.length;
             //
             let listeners = null;
@@ -304,6 +309,7 @@ export class ServerClient {
             }
             let out_packets = this.stat.out_packets[packet.name];
             out_packets.count++;
+            this.stat.out_packets.total++;
             out_packets.size += json.length;
             this.ws.send(json);
         }, 0);
