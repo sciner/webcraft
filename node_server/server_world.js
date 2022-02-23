@@ -57,6 +57,7 @@ export class ServerWorld {
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                packets_queue_send: {min: Infinity, max: -Infinity, avg: 0, sum: 0}
             },
             start() {
                 this.pn = performance.now();
@@ -101,6 +102,26 @@ export class ServerWorld {
             },
             send: function() {
                 for(let [user_id, packets] of this.list) {
+                    // Group mob update packets
+                    let mob_update_packet = null;
+                    packets = packets.filter(p => {
+                        if(p.name == ServerClient.CMD_MOB_UPDATE) {
+                            if(!mob_update_packet) {
+                                mob_update_packet = {name: p.name, data: []}
+                            }
+                            mob_update_packet.data.push(
+                                p.data.id,
+                                p.data.pos.x, p.data.pos.y, p.data.pos.z,
+                                // p.data.rotate.x, p.data.rotate.y,
+                                p.data.rotate.z
+                            );
+                            return false;
+                        }
+                        return true;
+                    });
+                    if(mob_update_packet) {
+                        packets.push(mob_update_packet);
+                    }
                     that.sendSelected(packets, [user_id], []);
                 }
                 this.list.clear();
@@ -237,10 +258,11 @@ export class ServerWorld {
         } catch(e) {
             // do nothing
         }
+        this.ticks_stat.add('chest_confirm_queue');
         //
         this.packets_queue.send();
+        this.ticks_stat.add('packets_queue_send');
         //
-        this.ticks_stat.add('chest_confirm_queue');
         //
         this.ticks_stat.end();
         //

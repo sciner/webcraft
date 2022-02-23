@@ -1,3 +1,4 @@
+import { Vector } from "./helpers.js";
 import {MobModel} from "./mob_model.js";
 import {ServerClient} from "./server_client.js";
 
@@ -21,15 +22,30 @@ export class MobManager {
                     break;
                 }
                 case ServerClient.CMD_MOB_UPDATE: {
-                    let mob = this.list.get(cmd.data.id);
-                    if(mob) {
-                        mob.applyNetState({
-                            pos: cmd.data.pos,
-                            rotate: cmd.data.rotate,
-                            time: cmd.time
-                        });
+                    if(Array.isArray(cmd.data)) {
+                        for(let i = 0; i < cmd.data.length; i += 5) {
+                            let mob = this.list.get(cmd.data[i]);
+                            if(mob) {
+                                mob.applyNetState({
+                                    pos: new Vector(cmd.data[i + 1], cmd.data[i + 2], cmd.data[i + 3]),
+                                    rotate: new Vector(0, 0, cmd.data[i + 4]), // new Vector(cmd.data[i + 4], cmd.data[i + 5], cmd.data[i + 6]),
+                                    time: cmd.time
+                                });
+                            } else {
+                                // Mob not found
+                            }
+                        }
                     } else {
-                        // Mob not found
+                        let mob = this.list.get(cmd.data.id);
+                        if(mob) {
+                            mob.applyNetState({
+                                pos: cmd.data.pos,
+                                rotate: cmd.data.rotate,
+                                time: cmd.time
+                            });
+                        } else {
+                            // Mob not found
+                        }
                     }
                     break;
                 }
