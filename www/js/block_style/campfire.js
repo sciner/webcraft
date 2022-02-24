@@ -65,7 +65,9 @@ export default class style {
         }]);
 
         matrix = mat4.create();
-        mat4.rotateY(matrix, matrix, ((block.rotate.x - 1) / 4) * -(2 * Math.PI));
+        if(block.rotate) {
+            mat4.rotateY(matrix, matrix, ((block.rotate.x - 1) / 4) * -(2 * Math.PI));
+        }
 
         const pos = new Vector(x, y, z);
         const active = true;
