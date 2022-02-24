@@ -28,7 +28,7 @@ export class InventoryComparator {
                     for(let nr of recipe.need_resources) {
                         let used_item = old_simple.get(nr.item_id);
                         if(!used_item) {
-                            throw 'error_recipe_item_not_found_in_inventory';
+                            throw 'error_recipe_item_not_found_in_inventory|' + recipe_id;
                         }
                         used_item.count -= nr.count;
                         if(used_item.count < 0) {

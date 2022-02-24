@@ -140,8 +140,13 @@ export class RecipeManager {
                 for(let i in keys_variants) {
                     const keys = keys_variants[i];
                     let r = Object.assign({}, recipe);
-                    r.start_index_3 = this.calcStartIndex(recipe, r.pattern, 3, 3);
-                    r.start_index_2 = this.calcStartIndex(recipe, r.pattern, 2, 2);
+                    r.start_index = {
+                        2: this.calcStartIndex(recipe, r.pattern, 2, 2),
+                        3: this.calcStartIndex(recipe, r.pattern, 3, 3)
+                    };
+                    if(i > 0) {
+                        r.id += `:${i}`;
+                    }
                     r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
                     //
                     r.size = {
@@ -176,11 +181,7 @@ export class RecipeManager {
                     r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
                     //
                     this.crafting_shaped.list.push(r);
-                    let id = r.id;
-                    if(i > 0) {
-                        id += `:${i}`;
-                    }
-                    this.crafting_shaped.map.set(id, r);
+                    this.crafting_shaped.map.set(r.id, r);
                 }
                 break;
             }

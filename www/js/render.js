@@ -653,13 +653,23 @@ export class Renderer {
 
     // drawMobs
     drawMobs(delta) {
-        if(this.world.mobs.list.size < 1) {
+        const mobs_count = this.world.mobs.list.size;
+        if(mobs_count < 1) {
             return;
         }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
+        let prev_chunk = null;
+        let prev_chunk_addr = new Vector();
         for(let [id, mob] of this.world.mobs.list) {
-            mob.draw(this, this.camPos, delta);
+            const ca = mob.chunk_addr;
+            if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
+                prev_chunk_addr.copyFrom(ca);
+                prev_chunk = this.world.chunkManager.getChunk(ca);
+            }
+            if(prev_chunk && prev_chunk.in_frustum) {
+                mob.draw(this, this.camPos, delta);
+            }
         }
     }
 

@@ -579,11 +579,11 @@ export class BaseCraftWindow extends Window {
         if(recipe.size.height > this.area.size.height) {
             return false;
         }
+        let slot_index = recipe.start_index[this.area.size.width];
         //
         let pattern_array = recipe.getCroppedPatternArray(this.area.size);
         // Clear current craft recipe slots and result
         // Compare current slots recipe with new, then clear if not equals
-        let slot_index = 0;
         let current_slots_pattern = this.getCurrentSlotsPattern();
         if(this.recipes.patternsIsEqual(current_slots_pattern, pattern_array)) {
             // Find first item in craft slots
@@ -591,7 +591,7 @@ export class BaseCraftWindow extends Window {
                 let slot = this.craft.slots[i];
                 let item = slot.getItem();
                 if(item) {
-                    slot_index = i;
+                    slot_index = parseInt(i);
                     break;
                 }
             }
@@ -601,7 +601,7 @@ export class BaseCraftWindow extends Window {
         // Fill craft slots from recipe
         for(let i in pattern_array) {
             let item_id = pattern_array[i];
-            let slot = this.craft.slots[recipe.start_index_3 + slot_index];
+            let slot = this.craft.slots[slot_index];
             let item = slot.getItem();
             if(item_id) {
                 if(!item) {
@@ -610,12 +610,12 @@ export class BaseCraftWindow extends Window {
                 }
                 let count = 1;
                 item.count += count;
-                // Game.world.server.sendInventoryDecrement(item_id, count);
+                Game.player.inventory.decrementByItemID(item_id, count, true);
             } else {
                 item = null;
             }
             slot.setItem(item);
-            slot_index++
+            slot_index++;
         }
     }
 
