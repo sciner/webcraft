@@ -279,6 +279,9 @@ export class DBWorld {
         migrations.push({version: 24, queries: [
             `UPDATE entity SET skin = 'base' WHERE type = 'axolotl' and skin = 'blue'`,
         ]});
+        migrations.push({version: 25, queries: [
+            `UPDATE user SET game_mode = 'survival' WHERE game_mode IS NOT NULL AND is_admin = 0`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

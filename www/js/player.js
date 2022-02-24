@@ -216,18 +216,8 @@ export class Player {
         }
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
-            const pos = player.lerpPos.clone();
-            pos.x = Math.ceil(pos.x) - 1;
-            pos.y = Math.ceil(pos.y) - 1;
-            pos.z = Math.ceil(pos.z) - 1;
-            // const pos = player.getBlockPos().clone();
-            let world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            /*console.log(pos)
-            const isLayering = world_block && world_block.material?.layering;
-            if(!isLayering) {
-                pos.y--;
-                world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            }*/
+            const pos = player.lerpPos;
+            let world_block = world.chunkManager.getBlock(pos.x, Math.ceil(pos.y) - 1, pos.z);
             if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
