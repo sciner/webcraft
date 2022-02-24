@@ -1274,5 +1274,23 @@
             "item": "madcraft:jukebox",
             "count": 1
         }
+    },
+    {
+        "id": "a6506e79-fda6-4a8a-949d-94edad9d900e",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            " S ",
+            "SCS",
+            "PPP"
+        ],
+        "key": {
+            "S": {"item": "madcraft:stick"},
+            "C": {"item": "madcraft:coal"},
+            "P": {"item": "madcraft:oak_trunk"}
+        },
+        "result": {
+            "item": "madcraft:campfire",
+            "count": 1
+        }
     }
 ]

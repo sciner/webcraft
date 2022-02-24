@@ -601,7 +601,7 @@ export class BaseCraftWindow extends Window {
         // Fill craft slots from recipe
         for(let i in pattern_array) {
             let item_id = pattern_array[i];
-            let slot = this.craft.slots[slot_index];
+            let slot = this.craft.slots[recipe.start_index_3 + slot_index];
             let item = slot.getItem();
             if(item_id) {
                 if(!item) {

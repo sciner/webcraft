@@ -1,6 +1,7 @@
 import {RecipeWindow} from "./window/index.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
+import {default as runes} from "../vendors/runes.js";
 
 export class RecipeManager {
 
@@ -53,6 +54,29 @@ export class RecipeManager {
         return null;
     }
 
+    calcStartIndex(recipe, pattern, rows = 3, cols = 3) {
+        let pat = [...pattern];
+        while(pat.length < rows) {
+            pat.unshift('   ');
+        }
+        let resp = 0;
+        for(let i in pat) {
+            let line = pat[i];
+            if(line.length < cols) {
+                line += ' '.repeat(cols - line.length);
+                pat[i] = line;
+            }
+            const rn = runes(line);
+            for(let j of rn) {
+                if(j != ' ') {
+                    break;
+                }
+                resp++;
+            }
+        }
+        return resp;
+    }
+
     add(recipe) {
         if(!recipe) {
             throw 'Empty recipe';
@@ -95,6 +119,8 @@ export class RecipeManager {
                     }
                 }
                 let r = Object.assign({}, recipe);
+                r.start_index_3 = this.calcStartIndex(recipe, recipe.pattern, 3, 3);
+                r.start_index_2 = this.calcStartIndex(recipe, recipe.pattern, 2, 2);
                 r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
                 // Calculate pattern minimal area size
                 let min_x = 100;
