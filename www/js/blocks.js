@@ -6,6 +6,7 @@ import { CubeSym } from "./core/CubeSym.js";
 import { AABB } from './core/AABB.js';
 
 export const TRANS_TEX                      = [4, 12];
+export const WATER_BLOCKS_ID                = [200, 202];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
@@ -118,6 +119,7 @@ export class BLOCK {
     static resource_pack_manager    = null;
     static max_id                   = 0;
     static MASK_BIOME_BLOCKS        = [];
+    static MASK_COLOR_BLOCKS        = [];
 
     static getBlockTitle(block) {
         if(!block || !('id' in block)) {
@@ -349,7 +351,7 @@ export class BLOCK {
             return true;
         }
         let block = BLOCK.BLOCK_BY_ID.get(block_id);
-        if(block.fluid) {
+        if(block.is_fluid) {
             return true;
         }
         if(block.layering) {
@@ -385,7 +387,7 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if([200, 202].indexOf(block.id) >= 0 || block.style == 'pane') {
+        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane') {
             // если это блок воды или облако
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
@@ -479,7 +481,7 @@ export class BLOCK {
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
-        block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
+        block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
@@ -532,6 +534,9 @@ export class BLOCK {
         }
         if(block.tags.indexOf('mask_biome') >= 0 && BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) < 0) {
             BLOCK.MASK_BIOME_BLOCKS.push(block.id)
+        }
+        if(block.tags.indexOf('mask_color') >= 0 && BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) < 0) {
+            BLOCK.MASK_COLOR_BLOCKS.push(block.id)
         }
         // Parse tags
         for(let tag of block.tags) {

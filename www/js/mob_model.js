@@ -333,6 +333,7 @@ export class MobModel extends NetworkPhysicObject {
             new Vector(0, 0, 0)
         );
 
+        this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
         this.texture                    = null;
         this.material = null;
@@ -431,7 +432,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2,
+            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2 - this.fix_z_fighting,
         ]);
 
         this.sceneTree.updateMatrix();

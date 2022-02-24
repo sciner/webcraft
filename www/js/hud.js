@@ -294,7 +294,7 @@ export class HUD {
         let mat = player.currentInventoryItem;
         if(mat) {
             this.text += ' ' + mat.id + ' / ' + mat.name;
-            if(mat.fluid) {
+            if(mat.is_fluid) {
                 this.text += ' ' + '(FLUID!!!)';
             }
         } else {

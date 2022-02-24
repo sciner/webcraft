@@ -11,6 +11,8 @@ const { mat3, mat4, vec3 } = glMatrix;
 
 const push_plane = push_plane_style.getRegInfo().func;
 
+const freeBuffers = [];
+
 const flame_textures = [
     [0, 3],
     [1, 3],
@@ -89,8 +91,27 @@ export class Particles_Campfire_Flame extends Particles_Base {
         this.vertices = new Float32Array(this.vertices);
 
         // we should save start values
-        this.buffer = new GeometryTerrain(this.vertices.slice());
+        this.buffer = null;
+        if(freeBuffers.length) {
+            this.buffer = freeBuffers.pop();
+            if(this.buffer) {
+                this.buffer.updateInternal(this.vertices.slice());
+            }
+        }
+        if(!this.buffer) {
+            this.buffer = new GeometryTerrain(this.vertices.slice());
+        }
 
+    }
+
+    destroy(render) {
+        this.life = 0;
+        if (this.buffer) {
+            freeBuffers.push(this.buffer)
+            this.buffer = null;
+        }
+        this.vertices = null;
+        this.particles = null;
     }
 
     // isolate draw and update

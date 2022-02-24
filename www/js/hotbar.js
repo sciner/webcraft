@@ -1,9 +1,11 @@
 import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
-const live_shift_random = new Array(1024);
-for(let i = 0; i < live_shift_random.length; i++) {
-    live_shift_random[i] = Math.round(Math.random());
+const MAX_NAME_SHOW_TIME = 2000;
+
+const LIVE_SHIFT_RANDOM = new Array(1024);
+for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
+    LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
 }
 
 export class Hotbar {
@@ -92,16 +94,15 @@ export class Hotbar {
         let currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
             let itemTitle = BLOCK.getBlockTitle(currentInventoryItem);
-            const max_name_show_time = 2000;
             if(itemTitle != this.itemTitleO) {
                 this.itemTitleO = itemTitle;
                 this.itemTitleChangeTime = performance.now();
             }
             const time_remains = performance.now() - this.itemTitleChangeTime;
-            if(time_remains < max_name_show_time) {
+            if(time_remains < MAX_NAME_SHOW_TIME) {
                 // Text opacity
                 let alpha = 1;
-                alpha = Math.min(2 - (time_remains / max_name_show_time) * 2, 1);
+                alpha = Math.min(2 - (time_remains / MAX_NAME_SHOW_TIME) * 2, 1);
                 let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                 //
                 hud.ctx.textBaseline = 'bottom';
@@ -148,7 +149,7 @@ export class Hotbar {
             let calcShiftY = (i, live) => {
                 let shift_y = 0;
                 if(live < .35) {
-                    shift_y = live_shift_random[(spn + i) % live_shift_random.length] * 5;
+                    shift_y = LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5;
                 }
                 return shift_y;
             };

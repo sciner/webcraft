@@ -2,7 +2,7 @@
 
 import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
-import {BLOCK} from "../blocks.js";
+import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
@@ -155,8 +155,12 @@ export default class style {
             }
             let resp = drawAllSides || neighbourBlock.material?.transparent;
             if(resp) {
-                if(block.id == neighbourBlock.id && material.selflit) {
+                if(block.id == neighbourBlock.id) {
                     resp = false;
+                } else {
+                    if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 && WATER_BLOCKS_ID.indexOf(neighbourBlock.id) >= 0) {
+                        return false;
+                    }
                 }
             }
             return resp;
@@ -164,12 +168,11 @@ export default class style {
 
         // Can change height
         let bH = 1.0;
-        if(material.fluid || material.is_fluid) {
+        if(material.is_fluid) {
             bH = Math.min(block.power, .9)
             let blockOver = neighbours.UP;
             if(blockOver) {
-                let blockOverIsFluid = (blockOver.material.fluid || blockOver.material.is_fluid);
-                if(blockOverIsFluid) {
+                if(blockOver.material.is_fluid) {
                     bH = 1.0;
                 }
             }

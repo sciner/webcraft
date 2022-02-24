@@ -36,11 +36,14 @@ export default class Particles_Block_Destroy extends Particles_Base {
         this.material = this.resource_pack.getMaterial(block.material_key);
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
-            // lm          = cell.biome.dirt_color;
-            // lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
             const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
             lm          = {r: chunk.dirt_colors[index], g: chunk.dirt_colors[index + 1], b: 0, a: 0};
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
+        }
+
+        if(BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) >= 0) {
+            lm = block.mask_color;
+            flags = flags | QUAD_FLAGS.MASK_BIOME;
         }
 
         const c = BLOCK.calcTexture(this.texture, DIRECTION.UP); // полная текстура
