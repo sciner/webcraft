@@ -155,7 +155,7 @@ export default class style {
             }
             let resp = drawAllSides || neighbourBlock.material?.transparent;
             if(resp) {
-                if(block.id == neighbourBlock.id) {
+                if(block.id == neighbourBlock.id && material.selflit) {
                     resp = false;
                 } else {
                     if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 && WATER_BLOCKS_ID.indexOf(neighbourBlock.id) >= 0) {
