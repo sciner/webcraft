@@ -104,7 +104,7 @@ export class InventoryComparator {
                 return false;
             }*/
             for (const key of keys1) {
-                if(ITEM_INVENTORY_KEY_PROPS.indexOf(key) < 0) {
+                if(ITEM_INVENTORY_PROPS.indexOf(key) < 0) {
                     continue;
                 }
                 const val1 = object1[key];

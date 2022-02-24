@@ -240,58 +240,7 @@
         ],
         "key": {
             "P": {
-                "item": "madcraft:birch_plank"
-            }
-        },
-        "result": {
-            "item": "madcraft:stick",
-            "count": 4
-        }
-    },
-    {
-        "id": "3f56edb0-4d7c-49ee-a9e4-159ec6be846f",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "P",
-            "P"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:oak_plank"
-            }
-        },
-        "result": {
-            "item": "madcraft:stick",
-            "count": 4
-        }
-    },
-    {
-        "id": "6e836768-df1d-492b-9567-3ab744a49b99",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "P",
-            "P"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:acacia_plank"
-            }
-        },
-        "result": {
-            "item": "madcraft:stick",
-            "count": 4
-        }
-    },
-    {
-        "id": "4dcbf2f1-e7bf-4c1a-a396-78fcaecd3ea6",
-        "type": "madcraft:crafting_shaped",
-        "pattern": [
-            "P",
-            "P"
-        ],
-        "key": {
-            "P": {
-                "item": "madcraft:spruce_plank"
+                "item": ["madcraft:birch_plank", "madcraft:oak_plank", "madcraft:acacia_plank", "madcraft:spruce_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]
             }
         },
         "result": {
@@ -1285,8 +1234,8 @@
         ],
         "key": {
             "S": {"item": "madcraft:stick"},
-            "C": {"item": "madcraft:coal"},
-            "P": {"item": "madcraft:oak_trunk"}
+            "C": {"item": ["madcraft:coal", "madcraft:oak_leaves"]},
+            "P": {"item": ["madcraft:oak_trunk", "madcraft:birch_trunk", "madcraft:spruce_trunk", "madcraft:acacia_trunk", "madcraft:jungle_trunk", "madcraft:dark_oak_trunk"]}
         },
         "result": {
             "item": "madcraft:campfire",

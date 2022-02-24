@@ -93,35 +93,33 @@ export class RecipeManager {
                     throw 'Invalid recipe result block type ' + recipe.result.item;
                 }
                 recipe.result.item_id = result_block.id;
-                // Create key map
-                let keys = {};
-                for(let key of Object.keys(recipe.key)) {
-                    let value = recipe.key[key];
-                    if(value.hasOwnProperty('item')) {
-                        let block = BLOCK.fromName(value.item);
+                // Key variants
+                let keys_variants = [];
+                const makeKeyVariants = (recipe_keys) => {
+                    let keys = {};
+                    for(let key of Object.keys(recipe_keys)) {
+                        let value = recipe_keys[key];
+                        if(!value.hasOwnProperty('item')) {
+                            throw 'Recipe key not have valid property `item` or `tag`';
+                        }
+                        if(Array.isArray(value.item)) {
+                            for(let name of value.item) {
+                                let n = {...recipe_keys};
+                                n[key] = {item: name};
+                                makeKeyVariants(n)
+                            }
+                            return;
+                        }
+                        let block_name = value.item;
+                        let block = BLOCK.fromName(block_name);
                         if(block.id == BLOCK.DUMMY.id) {
-                            throw 'Invalid recipe key name ' + value.item;
+                            throw `Invalid recipe key name '${block_name}'`;
                         }
                         keys[key] = block.id;
-                    } else if(value.hasOwnProperty('tag')) {
-                        let tag = value.tag;
-                        if(BLOCK.BLOCK_BY_TAGS.has(tag)) {
-                            const tag_map = BLOCK.BLOCK_BY_TAGS.get(tag);
-                            for(let block of tag_map.values()) {
-                                // @todo ???
-                            }
-                        } else {
-                            throw 'items with tag `' + tag + '` not found';
-                        }
-                        debugger;
-                    } else {
-                        throw 'Recipe key not have valie property `item` or `tag`';
                     }
+                    keys_variants.push(keys);
                 }
-                let r = Object.assign({}, recipe);
-                r.start_index_3 = this.calcStartIndex(recipe, recipe.pattern, 3, 3);
-                r.start_index_2 = this.calcStartIndex(recipe, recipe.pattern, 2, 2);
-                r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
+                makeKeyVariants(recipe.key);
                 // Calculate pattern minimal area size
                 let min_x = 100;
                 let min_y = 100;
@@ -139,39 +137,51 @@ export class RecipeManager {
                     }
                 }
                 //
-                r.size = {
-                    width: max_x - min_x + 1,
-                    height: max_y - min_y + 1
-                };
-                //
-                r.getCroppedPatternArray = function(size) {
-                    let resp = [];
-                    for(let i in this.pattern_array) {
-                        if(i % 3 == size.width) {
+                for(let i in keys_variants) {
+                    const keys = keys_variants[i];
+                    let r = Object.assign({}, recipe);
+                    r.start_index_3 = this.calcStartIndex(recipe, r.pattern, 3, 3);
+                    r.start_index_2 = this.calcStartIndex(recipe, r.pattern, 2, 2);
+                    r.pattern_array = this.makeRecipePattern(recipe.pattern, keys);
+                    //
+                    r.size = {
+                        width: max_x - min_x + 1,
+                        height: max_y - min_y + 1
+                    };
+                    //
+                    r.getCroppedPatternArray = function(size) {
+                        let resp = [];
+                        for(let i in this.pattern_array) {
+                            if(i % 3 == size.width) {
+                                continue;
+                            }
+                            resp.push(this.pattern_array[i]);
+                        }
+                        return resp;
+                    };
+                    // Need resources
+                    r.need_resources = new Map();
+                    for(let item_id of r.pattern_array) {
+                        if(!item_id) {
                             continue;
                         }
-                        resp.push(this.pattern_array[i]);
+                        if(!r.need_resources.has(item_id)) {
+                            r.need_resources.set(item_id, {
+                                item_id: item_id,   
+                                count: 0
+                            });
+                        }
+                        r.need_resources.get(item_id).count++;
                     }
-                    return resp;
-                };
-                // Need resources
-                r.need_resources = new Map();
-                for(let item_id of r.pattern_array) {
-                    if(!item_id) {
-                        continue;
+                    r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
+                    //
+                    this.crafting_shaped.list.push(r);
+                    let id = r.id;
+                    if(i > 0) {
+                        id += `:${i}`;
                     }
-                    if(!r.need_resources.has(item_id)) {
-                        r.need_resources.set(item_id, {
-                            item_id: item_id,   
-                            count: 0
-                        });
-                    }
-                    r.need_resources.get(item_id).count++;
+                    this.crafting_shaped.map.set(id, r);
                 }
-                r.need_resources = Array.from(r.need_resources, ([name, value]) => (value));
-                //
-                this.crafting_shaped.list.push(r);
-                this.crafting_shaped.map.set(r.id, r);
                 break;
             }
             default: {
@@ -181,7 +191,7 @@ export class RecipeManager {
         }
     }
 
-    makeRecipePattern(pattern, keys) {
+    makeRecipePattern(pattern, keys, index) {
         // Make pattern
         for(let pk in pattern) {
             if(pattern[pk].length < 3) {
