@@ -1007,26 +1007,7 @@ export class BLOCK {
                             ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
                         );
                     } else {
-                        let shift_y = 0;
-                        let height = material.height ? material.height : 1;
-                        // Высота наслаеваемых блоков хранится в extra_data
-                        if(material.layering) {
-                            if(b.extra_data) {
-                                height = b.extra_data?.height || height;
-                            }
-                            if(material.layering.slab) {
-                                let on_ceil = this.isOnCeil(b);
-                                if(on_ceil) {
-                                    shift_y = material.layering.height;
-                                }
-                            }
-                        }
-                        if(material.width) {
-                            let hw = material.width / 2;
-                            shapes.push([.5-hw, shift_y - f, .5-hw, .5+hw, shift_y + height + f, .5+hw]);
-                        } else {
-                            shapes.push([0, shift_y - f, 0, 1, shift_y + height + f, 1]);
-                        }
+                        console.error('Deprecated');
                     }
                     break;
                 }

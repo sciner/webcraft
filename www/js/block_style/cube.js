@@ -43,8 +43,21 @@ export default class style {
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
         const x = 0;
-        const y = 0;
+        let y = 0;
         const z = 0;
+
+        // Высота наслаеваемых блоков хранится в extra_data
+        if(material.layering) {
+            if(block.extra_data) {
+                height = block.extra_data?.height || height;
+            }
+            if(material.layering.slab) {
+                if(style.isOnCeil(block)) {
+                    y += material.layering.height;
+                }
+            }
+        }
+
         // AABB
         let aabb = new AABB();
         aabb.set(
@@ -55,9 +68,14 @@ export default class style {
             y + height,
             z + .5 + width/2
         );
-        let cardinal_direction = block.getCardinalDirection();
-        aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
-        return [aabb.pad(1 / 500)];
+        if(block.getCardinalDirection) {
+            let cardinal_direction = block.getCardinalDirection();
+            aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj);
+        }
+        if(!for_physic) {
+            aabb.pad(1/500);
+        }
+        return [aabb];
     }
 
     static isOnCeil(block) {
