@@ -12,27 +12,33 @@ const PLANES = {
     up: {
         // axisX , axisY. axisY is flips sign!
         axes  : [[1, 0, 0], /**/ [0, 1, 0]],
+        flip  : [1, 1],
         // origin offset realtive center
         offset : [0.5, 0.5, 1.0],
     },
     down: {
         axes  : [[1, 0, 0], /**/ [0, -1, 0]],
+        flip  : [1, 1],
         offset: [0.5, 0.5, 0.0],
     },
     south: {
         axes  : [[1, 0, 0], /**/ [0, 0, 1]],
+        flip  : [1, 1],
         offset: [0.5, 0.0, 0.5],
     },
     north: {
         axes  : [[1, 0, 0], /**/ [0, 0, -1]],
+        flip  : [-1, 1],
         offset: [0.5, 1.0, 0.5],
     },
     east: {
         axes  : [[0, 1, 0], /**/ [0, 0, 1]],
+        flip  : [1, 1],
         offset: [1.0, 0.5, 0.5],
     },
     west: {
         axes  : [[0, 1, 0], /**/ [0, 0, -1]],
+        flip  : [-1, 1],
         offset: [-0.0, 0.5, 0.5],
     }
 }
@@ -354,7 +360,7 @@ export function pushAABB(
         }
 
         const {
-            /*axes,*/ offset,
+            /*axes,*/ offset, flip
         } = PLANES[key];
 
         const {
@@ -368,8 +374,8 @@ export function pushAABB(
         let uvSize1;
 
         if(autoUV) {
-            uvSize0 = -vec3.dot(axes[0], size) * Math.abs(uv[2]);
-            uvSize1 = -vec3.dot(axes[1], size) * Math.abs(uv[3]);
+            uvSize0 = vec3.dot(axes[0], size) * (uv[2]) * flip[0];
+            uvSize1 = -vec3.dot(axes[1], size) * (uv[3]) * flip[1];
         } else {
             uvSize0 = uv[2];
             uvSize1 = -uv[3];

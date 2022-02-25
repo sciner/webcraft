@@ -79,11 +79,15 @@
     out vec3 v_world_pos;
     out vec3 v_chunk_pos;
     out vec3 v_position;
-    out vec2 v_texcoord;
-    out vec4 v_texClamp;
+    out vec2 v_texcoord0;
+    out vec2 v_texcoord1;
+    out vec4 v_texClamp0;
+    out vec4 v_texClamp1;
     out vec3 v_normal;
     out vec4 v_color;
-    out vec2 v_uvCenter;
+    out vec2 v_uvCenter0;
+    out vec2 v_uvCenter1; 
+    out float v_animInterp;
     out float v_lightMode;
     out float v_useFog;
     //--
@@ -92,20 +96,28 @@
 #ifdef terrain_attrs_frag
     // terrain shader attributes and varings
     in vec3 v_position;
-    in vec2 v_texcoord;
-    in vec4 v_texClamp;
+    in vec2 v_texcoord0;
+    in vec2 v_texcoord1;
+    in vec4 v_texClamp0;
+    in vec4 v_texClamp1;
     in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in vec2 v_uvCenter;
+    in vec2 v_uvCenter0;
+    in vec2 v_uvCenter1; 
+    in float v_animInterp;
     in float v_lightMode;
     in float v_useFog;
 
     out vec4 outColor;
 #endif
 
+#ifdef sample_texture_define_func
+    // sample
+    float ()
+#endif
 
 #ifdef crosshair_define_func
     // crosshair draw block
@@ -166,20 +178,26 @@
     //--
 #endif
 
-#ifdef manual_mip
-    // apply manual mip
-    if (u_mipmap > 0.0) {
-        biome *= 0.5;
+#ifdef manual_mip_define_func
+    vec4 manual_mip (vec2 coord, vec2 size) {
+        vec2 mipOffset = vec2(0.0);
+        vec2 mipScale = vec2(1.0);
 
-        // manual implementation of EXT_shader_texture_lod
-        vec2 fw = fwidth(v_texcoord) * float(textureSize(u_texture, 0));
-        fw /= 1.4;
-        vec4 steps = vec4(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
-        mipOffset.x = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
-        mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
-        steps = vec4(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
-        mipOffset.y = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
-        mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+        // apply manual mip
+        if (u_mipmap > 0.0) {
+
+            // manual implementation of EXT_shader_texture_lod
+            vec2 fw = fwidth(coord) * float(size);
+            fw /= 1.4;
+            vec4 steps = vec4(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
+            mipOffset.x = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
+            mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+            steps = vec4(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
+            mipOffset.y = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
+            mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+        }
+
+        return vec4(mipOffset, mipScale);
     }
 #endif
 
