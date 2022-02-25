@@ -293,6 +293,10 @@ export function decodeJsonGeometryTree(json, variant = null) {
     for(let node of bones) {
         const sceneNode = new SceneNode();
 
+        if('visible' in node && !node.visible)  {
+            continue;
+        }
+
         if (!node.parent) {
             root.addChild(sceneNode);
         }

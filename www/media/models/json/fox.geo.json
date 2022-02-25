@@ -53,6 +53,7 @@
         "name": "head_sleeping",
         "parent": "head",
         "pivot": [ 0, 8, -3 ],
+        "visible": false,
         "bind_pose_rotation": [ 0, 0, 0 ],
         "cubes": [
           {

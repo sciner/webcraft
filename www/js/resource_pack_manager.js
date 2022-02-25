@@ -133,6 +133,7 @@ export class ResourcePackManager {
                 "mask_color": mask_color,
                 "tags": [
                     "mask_color",
+                    "rotate_by_pos_n",
                     "no_drop_ao"
                 ]
             };
