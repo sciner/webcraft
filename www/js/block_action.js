@@ -20,7 +20,7 @@ const rotates = [
     new Vector(CubeSym.ROT_Z3, 0, 0),
     new Vector(CubeSym.ROT_Z, 0, 0),
     new Vector(CubeSym.ROT_Y3, 0, 0),
-    new Vector(CubeSym.NEG_Y2, 0, 0),
+    new Vector(CubeSym.ROT_X2, 0, 0),
     new Vector(CubeSym.ROT_X3, 0, 0),
     new Vector(CubeSym.ROT_X, 0, 0)
 ];
