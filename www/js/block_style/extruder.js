@@ -1,9 +1,62 @@
 import {MULTIPLY, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {pushTransformed} from './cube.js';
 
-// const {mat4} = glMatrix;
 const {mat3, mat4} = glMatrix;
+
+const defaultPivot = [0.5, 0.5, 0.5];
+const defaultMatrix = mat3.create();
+
+export function pushTransformed(
+    vertices, mat, pivot,
+    cx, cz, cy,
+    x0, z0, y0,
+    ux, uz, uy,
+    vx, vz, vy,
+    c0, c1, c2, c3,
+    r, g, b,
+    flags
+) {
+    pivot = pivot || defaultPivot;
+    cx += pivot[0];
+    cy += pivot[1];
+    cz += pivot[2];
+    x0 -= pivot[0];
+    y0 -= pivot[1];
+    z0 -= pivot[2];
+
+    mat = mat || defaultMatrix;
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    // unroll mat4 matrix to mat3 + tx, ty, tz
+    if (mat.length === 16) {
+        mat3.fromMat4(tempMatrix, mat);
+
+        tx = mat[12];
+        ty = mat[14]; // flip
+        tz = mat[13]; // flip
+
+        mat = tempMatrix;
+    }
+
+    vertices.push(
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
+
+        ux * mat[0] + uy * mat[1] + uz * mat[2],
+        ux * mat[6] + uy * mat[7] + uz * mat[8],
+        ux * mat[3] + uy * mat[4] + uz * mat[5],
+
+        vx * mat[0] + vy * mat[1] + vz * mat[2],
+        vx * mat[6] + vy * mat[7] + vz * mat[8],
+        vx * mat[3] + vy * mat[4] + vz * mat[5],
+
+        c0, c1, c2, c3, r, g, b, flags
+    );
+}
 
 // World
 class FakeCloudWorld {

@@ -620,7 +620,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             //
             for(let x = 0; x < size_x; x++) {
+                //if(chunk.coord.x + x < 2800) continue;
                 for(let z = 0; z < size_z; z++) {
+
+                    //if(chunk.coord.z + z > 2900) continue;
 
                     const cell              = map.info.cells[x][z];
                     const biome             = cell.biome;
@@ -761,8 +764,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         //
         for(let x = 0; x < chunk.size.x; x++) {
+            //if(chunk.coord.x + x < 2800) continue;
 
             for(let z = 0; z < chunk.size.z; z++) {
+
+                //if(chunk.coord.z + z > 2900) continue;
 
                 let y_start                 = Infinity;
                 let stalactite_height       = 0;

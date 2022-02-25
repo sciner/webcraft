@@ -125,6 +125,7 @@ export class ResourcePackManager {
                 "id": START_CARPET_ID + i,
                 "transparent": true,
                 "height": 1/16,
+                "can_rotate": true,
                 "name": color.toUpperCase() + '_CARPET',
                 "material": {"id": "wool"},
                 "sound": "madcraft:block.cloth",

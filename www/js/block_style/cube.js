@@ -5,72 +5,25 @@ import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat3} = glMatrix;
 
-const defaultPivot = [0.5, 0.5, 0.5];
-const defaultMatrix = mat3.create();
 const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
+
+const UP_AXES = [
+    [[0, -1, 0], [1, 0, 0]],
+    [[-1, 0, 0], [0, -1, 0]],
+    [[0, 1, 0], [-1, 0, 0]],
+    [[1, 0, 0], [0, 1, 0]],
+];
 
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_dirt_rotations');
 for(let i = 0; i < randoms.length; i++) {
     randoms[i] = Math.round(a.double() * 100);
-}
-
-export function pushTransformed(
-    vertices, mat, pivot,
-    cx, cz, cy,
-    x0, z0, y0,
-    ux, uz, uy,
-    vx, vz, vy,
-    c0, c1, c2, c3,
-    r, g, b,
-    flags
-) {
-    pivot = pivot || defaultPivot;
-    cx += pivot[0];
-    cy += pivot[1];
-    cz += pivot[2];
-    x0 -= pivot[0];
-    y0 -= pivot[1];
-    z0 -= pivot[2];
-
-    mat = mat || defaultMatrix;
-
-    let tx = 0;
-    let ty = 0;
-    let tz = 0;
-
-    // unroll mat4 matrix to mat3 + tx, ty, tz
-    if (mat.length === 16) {
-        mat3.fromMat4(tempMatrix, mat);
-
-        tx = mat[12];
-        ty = mat[14]; // flip
-        tz = mat[13]; // flip
-
-        mat = tempMatrix;
-    }
-
-    vertices.push(
-        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
-        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
-        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
-
-        ux * mat[0] + uy * mat[1] + uz * mat[2],
-        ux * mat[6] + uy * mat[7] + uz * mat[8],
-        ux * mat[3] + uy * mat[4] + uz * mat[5],
-
-        vx * mat[0] + vy * mat[1] + vz * mat[2],
-        vx * mat[6] + vy * mat[7] + vz * mat[8],
-        vx * mat[3] + vy * mat[4] + vz * mat[5],
-
-        c0, c1, c2, c3, r, g, b, flags
-    );
 }
 
 export default class style {
@@ -83,61 +36,73 @@ export default class style {
     }
 
     static isOnCeil(block) {
-        return block.extra_data && block.extra_data.point.y >= .5; // на верхней части блока (перевернутая ступенька, слэб)
+        // на верхней части блока (перевернутая ступенька, слэб)
+        return block.extra_data && block.extra_data.point.y >= .5;
+    }
+
+    //
+    static putIntoPot(vertices, material, pivot, matrix, pos) {
+        const width = 8/32;
+        const {x, y, z} = pos;
+        let aabb = new AABB();
+        aabb.set(
+            x + .5 - width/2,
+            y,
+            z + .5 - width/2,
+            x + .5 + width/2,
+            y + 1 - 6/32,
+            z + .5 + width/2
+        );
+        let c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
+        let c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
+        let c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
+        // Push vertices down
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            matrix,
+            {
+                up:     new AABBSideParams(c_up, 0, 1),
+                down:   new AABBSideParams(c_down, 0, 1),
+                south:  new AABBSideParams(c_side, 0, 1),
+                north:  new AABBSideParams(c_side, 0, 1),
+                west:   new AABBSideParams(c_side, 0, 1),
+                east:   new AABBSideParams(c_side, 0, 1),
+            },
+            true,
+            pos
+        );
+        return;
+    }
+
+    // getAnimations...
+    static getAnimations(material, side) {
+        if(!material.texture_animations) {
+            return 1;
+        }
+        if(side in material.texture_animations) {
+            return material.texture_animations[side];
+        } else if('side' in material.texture_animations) {
+            return material.texture_animations['side'];
+        }
+        return 1;
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
 
-        if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
-            return;
-        }
-
-        if(!block.material) {
-            console.error('block', JSON.stringify(block), block.id);
-            debugger;
-        }
-
         const material              = block.material;
         let width                   = material.width ? material.width : 1;
         let height                  = material.height ? material.height : 1;
         const drawAllSides          = width != 1 || height != 1;
-        const into_pot              = block.hasTag('into_pot');
 
-        if(into_pot) {
-            width = 8/32;
-            let aabb = new AABB();
-            aabb.set(
-                x + .5 - width/2,
-                y,
-                z + .5 - width/2,
-                x + .5 + width/2,
-                y + 1 - 6/32,
-                z + .5 + width/2
-            );
-            let c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
-            let c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
-            let c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
-            // Push vertices down
-            pushAABB(
-                vertices,
-                aabb,
-                pivot,
-                matrix,
-                {
-                    up:     new AABBSideParams(c_up, 0, 1),
-                    down:   new AABBSideParams(c_down, 0, 1),
-                    south:  new AABBSideParams(c_side, 0, 1),
-                    north:  new AABBSideParams(c_side, 0, 1),
-                    west:   new AABBSideParams(c_side, 0, 1),
-                    east:   new AABBSideParams(c_side, 0, 1),
-                },
-                true,
-                new Vector(x, y, z)
-            );
-            return;
+        // Pot
+        if(block.hasTag('into_pot')) {
+            return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z));
         }
 
+        // Jukebox
         if(material.tags.indexOf('jukebox') >= 0) {
             const disc = block?.extra_data?.disc || null;
             if(disc) {
@@ -149,6 +114,7 @@ export default class style {
             }
         }
 
+        // Can draw face
         let canDrawFace = (neighbourBlock) => {
             if(!neighbourBlock) {
                 return true;
@@ -180,16 +146,17 @@ export default class style {
         }
 
         //
-        let canDrawTOP = canDrawFace(neighbours.UP) || bH < 1;
+        let canDrawUP = canDrawFace(neighbours.UP) || bH < 1;
         let canDrawDOWN = canDrawFace(neighbours.DOWN);
         let canDrawSOUTH = canDrawFace(neighbours.SOUTH);
         let canDrawNORTH = canDrawFace(neighbours.NORTH);
         let canDrawWEST = canDrawFace(neighbours.WEST);
         let canDrawEAST = canDrawFace(neighbours.EAST);
-        if(!canDrawTOP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
+        if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
             return;
         }
 
+        // Leaves
         if(material.tags.indexOf('leaves') >= 0) {
             if(neighbours.SOUTH.material.tags.indexOf('leaves') > 0) {
                 canDrawSOUTH = false;
@@ -198,7 +165,7 @@ export default class style {
                 canDrawWEST = false;
             }
             if(neighbours.UP.material.tags.indexOf('leaves') > 0) {
-                canDrawTOP = false;
+                canDrawUP = false;
             }
         }
 
@@ -206,7 +173,6 @@ export default class style {
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
-        let c;
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
@@ -221,55 +187,57 @@ export default class style {
             upFlags = QUAD_FLAGS.MASK_BIOME;
         }
 
-        let DIRECTION_UP        = DIRECTION.UP;
-        let DIRECTION_DOWN      = DIRECTION.DOWN;
-        let DIRECTION_BACK      = DIRECTION.BACK
-        let DIRECTION_RIGHT     = DIRECTION.RIGHT
-        let DIRECTION_FORWARD   = DIRECTION.FORWARD
-        let DIRECTION_LEFT      = DIRECTION.LEFT;
+        let DIRECTION_UP            = DIRECTION.UP;
+        let DIRECTION_DOWN          = DIRECTION.DOWN;
+        let DIRECTION_BACK          = DIRECTION.BACK
+        let DIRECTION_RIGHT         = DIRECTION.RIGHT
+        let DIRECTION_FORWARD       = DIRECTION.FORWARD
+        let DIRECTION_LEFT          = DIRECTION.LEFT;
 
+        // Can rotate
         if(material.can_rotate) {
-            DIRECTION_BACK      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
-            DIRECTION_RIGHT     = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
-            DIRECTION_FORWARD   = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
-            DIRECTION_LEFT      = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
-        }
-
-        if(material.can_rotate && block.rotate) {
-            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
-                //TODO: calculate canDrawTop and neighbours based on rotation
-                canDrawTOP = true;
-                canDrawDOWN = true;
-                canDrawSOUTH = true;
-                canDrawNORTH = true;
-                canDrawWEST = true;
-                canDrawEAST = true;
-                DIRECTION_BACK = DIRECTION.BACK;
-                DIRECTION_RIGHT = DIRECTION.RIGHT;
-                DIRECTION_FORWARD = DIRECTION.FORWARD;
-                DIRECTION_LEFT = DIRECTION.LEFT;
-                //use matrix instead!
-                if (matrix) {
-                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
-                    matrix = tempMatrix;
-                } else {
-                    matrix = CubeSym.matrices[cardinal_direction];
+            DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
+            DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
+            DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
+            DIRECTION_LEFT          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
+            //
+            if(block.rotate) {
+                if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                    // @todo: calculate canDrawUP and neighbours based on rotation
+                    canDrawUP = true;
+                    canDrawDOWN = true;
+                    canDrawSOUTH = true;
+                    canDrawNORTH = true;
+                    canDrawWEST = true;
+                    canDrawEAST = true;
+                    DIRECTION_BACK = DIRECTION.BACK;
+                    DIRECTION_RIGHT = DIRECTION.RIGHT;
+                    DIRECTION_FORWARD = DIRECTION.FORWARD;
+                    DIRECTION_LEFT = DIRECTION.LEFT;
+                    // Use matrix instead!
+                    if (matrix) {
+                        mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                        matrix = tempMatrix;
+                    } else {
+                        matrix = CubeSym.matrices[cardinal_direction];
+                    }
                 }
             }
         }
 
+        // Ladder
         if(material.style == 'ladder') {
             width = 1;
             height = 1;
         }
 
+        // Layering
         if(material.layering) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
             }
             if(block.properties.layering.slab) {
-                let on_ceil = style.isOnCeil(block);
-                if(on_ceil) {
+                if(style.isOnCeil(block)) {
                     y += block.properties.layering.height;
                 }
             }
@@ -292,141 +260,35 @@ export default class style {
             }
         }
 
-        // getAnimations...
-        let getAnimations = (side) => {
-            if(!material.texture_animations) {
-                return 1;
-            }
-            if(side in material.texture_animations) {
-                return material.texture_animations[side];
-            } else if('side' in material.texture_animations) {
-                return material.texture_animations['side'];
-            }
-            return 1;
-        };
-
-        // Top
-        if(canDrawTOP) {
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP);
-            let top_vectors = [1, 0, 0, 0, 1, 0];
-            // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
-            if(block.id == BLOCK.DIRT.id) {
-                const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
-                switch(rv) {
-                    case 0: {
-                        top_vectors = [0, -1, 0, 1, 0, 0];
-                        break;
-                    }
-                    case 1: {
-                        top_vectors = [-1, 0, 0, 0, -1, 0];
-                        break;
-                    }
-                    case 2: {
-                        top_vectors = [0, 1, 0, -1, 0, 0];
-                        break;
-                    }
-                    default: {
-                        break;
-                    }
-                }
-            }
-
-            let animations_up = getAnimations('up');
-
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                .5, 0.5, bH - 1 + height,
-                ...top_vectors,
-                c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, animations_up, flags | upFlags
-            );
-
-            if(material.is_fluid && material.transparent) {
-                top_vectors = [
-                    1, 0, 0,
-                    0, -1, 0
-                ];
-                pushTransformed(
-                    vertices, matrix, pivot,
-                    x, z, y,
-                    .5, 0.5, bH - 1 + height,
-                    ...top_vectors,
-                        c[0], c[1], -c[2], c[3],
-                    lm.r, lm.g, animations_up, flags | upFlags);
-            }
-        }
-
-        // Bottom
-        if(canDrawDOWN) {
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN);
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                0.5, 0.5, 0,
-                1, 0, 0,
-                0, -1, 0,
-                c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, lm.b, flags | sideFlags);
-        }
-
         const H = (bH - 1 + height);
 
-        // South | Front/Forward
-        if(canDrawSOUTH) {
-            let animations_south = getAnimations('south');
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, H);
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                .5, .5 - width / 2, H / 2,
-                1, 0, 0,
-                0, 0, H,
-                c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, animations_south, flags | sideFlags);
+        // AABB
+        let aabb = new AABB();
+        aabb.set(
+            x + .5 - width/2,
+            y,
+            z + .5 - width/2,
+            x + .5 + width/2,
+            y + height,
+            z + .5 + width/2
+        );
+
+        // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
+        let axes_up = null;
+        if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SAND.id) {
+            const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
+            axes_up = UP_AXES[rv];
         }
 
-        // North
-        if(canDrawNORTH) {
-            let animations_north = getAnimations('north');
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, H);
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                .5, .5 + width / 2, H / 2,
-                1, 0, 0,
-                0, 0, -H,
-                c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, animations_north, flags | sideFlags);
-        }
-
-        // West
-        if(canDrawWEST) {
-            let animations_west = getAnimations('west');
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, H);
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                .5 - width / 2, .5, H / 2,
-                0, 1, 0,
-                0, 0, -H,
-                c[0], c[1], -c[2], c[3],
-                lm.r, lm.g, animations_west, flags | sideFlags);
-        }
-
-        // East
-        if(canDrawEAST) {
-            let animations_east = getAnimations('east');
-            c = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, H);
-            pushTransformed(
-                vertices, matrix, pivot,
-                x, z, y,
-                .5 + width / 2, .5, H / 2,
-                0, 1, 0,
-                0, 0, H,
-                c[0], c[1], c[2], -c[3],
-                lm.r, lm.g, animations_east, flags | sideFlags);
-        }
+        // Push vertices
+        const sides = {};
+        if(canDrawUP) sides.up = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP), flags | upFlags, style.getAnimations(material, 'up'), lm, axes_up);
+        if(canDrawDOWN) sides.down = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN), flags | sideFlags, style.getAnimations(material, 'down'), lm);
+        if(canDrawSOUTH) sides.south = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, H), flags | sideFlags, style.getAnimations(material, 'south'), lm);
+        if(canDrawNORTH) sides.north = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, H), flags | sideFlags, style.getAnimations(material, 'north'), lm);
+        if(canDrawWEST) sides.west = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, H), flags | sideFlags, style.getAnimations(material, 'west'), lm);
+        if(canDrawEAST) sides.east = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, H), flags | sideFlags, style.getAnimations(material, 'east'), lm);
+        pushAABB(vertices, aabb, pivot, matrix, sides, true, new Vector(x, y, z));
 
     }
 

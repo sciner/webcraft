@@ -244,10 +244,12 @@ export class AABBPool {
 
 export class AABBSideParams {
 
-    constructor(uv, flag, anim) {
+    constructor(uv, flag, anim, lm = null, axes = null) {
         this.uv = uv;
         this.flag = flag;
         this.anim = anim;
+        this.lm = lm;
+        this.axes = axes;
     }
 
 }
@@ -326,7 +328,7 @@ export function pushAABB(
     center = center || defalutCenter;
     pivot  = pivot  || defaultPivot; 
 
-    const lm              = MULTIPLY.COLOR.WHITE;
+    const lm_default      = MULTIPLY.COLOR.WHITE;
     const globalFlags     = 0;
     const x               = center.x;
     const y               = center.y;
@@ -346,17 +348,21 @@ export function pushAABB(
     ];
 
     for(const key in sides) {
+
         if (!(key in PLANES)) {
             continue;
         }
 
         const {
-            axes, offset,
+            /*axes,*/ offset,
         } = PLANES[key];
 
         const {
             uv, flag = 0, anim = 1
         } = sides[key];
+
+        const lm = sides[key].lm || lm_default;
+        const axes = sides[key].axes || PLANES[key].axes;
 
         let uvSize0;
         let uvSize1;
@@ -381,7 +387,7 @@ export function pushAABB(
             size[0] * axes[0][0],
             size[1] * axes[0][1],
             size[2] * axes[0][2],
-            //axisY
+            // axisY
             size[0] * axes[1][0],
             size[1] * axes[1][1],
             size[2] * axes[1][2],
