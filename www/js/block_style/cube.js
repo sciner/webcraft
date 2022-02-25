@@ -190,6 +190,18 @@ export default class style {
             return;
         }
 
+        if(material.tags.indexOf('leaves') >= 0) {
+            if(neighbours.SOUTH.material.tags.indexOf('leaves') > 0) {
+                canDrawSOUTH = false;
+            }
+            if(neighbours.WEST.material.tags.indexOf('leaves') > 0) {
+                canDrawWEST = false;
+            }
+            if(neighbours.UP.material.tags.indexOf('leaves') > 0) {
+                canDrawTOP = false;
+            }
+        }
+
         const cardinal_direction    = block.getCardinalDirection();
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
