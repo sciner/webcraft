@@ -1234,11 +1234,41 @@
         ],
         "key": {
             "S": {"item": "madcraft:stick"},
-            "C": {"item": ["madcraft:coal", "madcraft:oak_leaves"]},
+            "C": {"item": "madcraft:coal"},
             "P": {"item": ["madcraft:oak_trunk", "madcraft:birch_trunk", "madcraft:spruce_trunk", "madcraft:acacia_trunk", "madcraft:jungle_trunk", "madcraft:dark_oak_trunk"]}
         },
         "result": {
             "item": "madcraft:campfire",
+            "count": 1
+        }
+    },
+    {
+        "id": "4ea4952e-7c20-40db-9cd4-ae0f099f6797",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "D"
+        ],
+        "key": {
+            "D": {"item": "madcraft:diamond_block"}
+        },
+        "result": {
+            "item": "madcraft:diamond",
+            "count": 9
+        }
+    },
+    {
+        "id": "b9b659b2-9491-4a19-872a-27b8c1125573",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "DDD",
+            "DDD",
+            "DDD"
+        ],
+        "key": {
+            "D": {"item": "madcraft:diamond"}
+        },
+        "result": {
+            "item": "madcraft:diamond_block",
             "count": 1
         }
     }

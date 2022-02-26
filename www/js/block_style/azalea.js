@@ -118,46 +118,6 @@ export default class style {
             new Vector(x, y, z)
         );
 
-        /*
-        matrix = mat4.create();
-        // mat4.rotateY(matrix, matrix, ((block.rotate.x - 2) / 4) * -(2 * Math.PI));
-
-        // 2. Основная часть
-        // Textures
-        const c_top = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        const c_side = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP);
-        c_top[0] += (-.5 + 6/32) / 32;
-        c_top[1] += (-.5 + 24/32) / 32;
-        c_side[0] += (-.5 + 6/32) / 32;
-        c_side[1] += (-.5 + 11/32) / 32;
-        let aabb_down = new AABB();
-        aabb_down.set(
-            x + .5 - WIDTH/2,
-            y,
-            z + .5 - WIDTH/2,
-            x + .5 + WIDTH/2,
-            y + HEIGHT,
-            z + .5 + WIDTH/2,
-        );
-        // Push vertices
-        pushAABB(
-            vertices,
-            aabb_down,
-            pivot,
-            matrix,
-            {
-                up:     new AABBSideParams(c_top, 0, animations_side),
-                down:   new AABBSideParams(c_top, 0, animations_side),
-                south:  new AABBSideParams(c_side, 0, animations_side),
-                north:  new AABBSideParams(c_side, 0, animations_side),
-                west:   new AABBSideParams(c_side, 0, animations_side),
-                east:   new AABBSideParams(c_side, 0, animations_side),
-            },
-            true,
-            new Vector(x, y, z)
-        );
-        */
-
         return null;
 
     }
