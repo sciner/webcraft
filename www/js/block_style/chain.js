@@ -1,4 +1,4 @@
-import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector} from '../helpers.js';
+import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector, fromMat3} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
@@ -10,26 +10,6 @@ const TX_CNT = 32;
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
-
-function fromMat3(a, b) {
-    a[ 0] = b[ 0];
-    a[ 1] = b[ 1];
-    a[ 2] = b[ 2];
-
-    a[ 4] = b[ 3];
-    a[ 5] = b[ 4];
-    a[ 6] = b[ 5];
-
-    a[ 8] = b[ 6];
-    a[ 9] = b[ 7];
-    a[10] = b[ 8];
-
-    a[ 3] = a[ 7] = a[11] =
-    a[12] = a[13] = a[14] = 0;
-    a[15] = 1.0;
-
-    return a;
-}
 
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -99,7 +79,7 @@ export default class style {
 
         // Matrix
         let cardinal_direction = block.getCardinalDirection();
-        const matrix4 = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+        matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
 
         chains.push({
             pos: pos,
@@ -108,9 +88,9 @@ export default class style {
             uv: [c[0], c[1]],
             flags: flags,
             lm: lm,
-            matrix: [...matrix4],
+            matrix: matrix,
             rot: Math.PI / 4,
-            translate: [CHAIN_WIDTH/2, 0, 0],
+            // translate: [CHAIN_WIDTH/2, 0, 0],
             texture: [...c]
         });
 
@@ -122,9 +102,9 @@ export default class style {
             uv: [c[0], c[1]],
             flags: flags,
             lm: lm,
-            matrix: [...matrix4],
+            matrix: matrix,
             rot: -Math.PI / 4,
-            translate: [-CHAIN_WIDTH/2, 0, 0],
+            // translate: [-CHAIN_WIDTH/2, 0, 0],
             texture: c
         });
 
@@ -138,10 +118,10 @@ export default class style {
         let pivot = null;
         for(let chain of chains) {
             _aabb_chain_middle.set(
-                chain.pos.x +.5 - chain.width/2,
+                chain.pos.x +.5 - chain.width,
                 chain.pos.y,
                 chain.pos.z + .5 - chain.width/2,
-                chain.pos.x + .5 + chain.width/2,
+                chain.pos.x + .5,
                 chain.pos.y + chain.height,
                 chain.pos.z + .5 + chain.width/2,
             );
@@ -150,16 +130,17 @@ export default class style {
             let matrix = mat4.create();
             if(chain.rot) mat4.rotateY(matrix, matrix, chain.rot);
             if(chain.translate) mat4.translate(matrix, matrix, chain.translate);
-            if(chain.matrix) {
+           if(chain.matrix) {
                 matrix = mat4.multiply(matrix, matrix, chain.matrix);
-                // _aabb_chain_middle.applyMatrix(chain.matrix, pivotObj);
             }
             pushAABB(
                 vertices,
                 _aabb_chain_middle,
                 pivot,
                 matrix,
-                {north: new AABBSideParams(chain.texture, 0, 1)},
+                {
+                    east: new AABBSideParams(chain.texture, 0, 1)
+                },
                 true,
                 chain.pos
             );
