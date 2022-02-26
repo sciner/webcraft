@@ -42,6 +42,15 @@ export default class style {
         const material = block.material;
         let width = material.width ? material.width : 1;
         let height = material.height ? material.height : 1;
+        let depth = material.depth ? material.depth : width;
+
+        // Button
+        if(material.is_button) {
+            if(block.extra_data.pressed) {
+                height /= 2;
+            }
+        }
+
         const x = 0;
         let y = 0;
         const z = 0;
@@ -63,10 +72,10 @@ export default class style {
         aabb.set(
             x + .5 - width/2,
             y,
-            z + .5 - width/2,
+            z + .5 - depth/2,
             x + .5 + width/2,
             y + height,
-            z + .5 + width/2
+            z + .5 + depth/2
         );
         if(block.getCardinalDirection) {
             let cardinal_direction = block.getCardinalDirection();
@@ -138,6 +147,7 @@ export default class style {
         const material              = block.material;
         let width                   = material.width ? material.width : 1;
         let height                  = material.height ? material.height : 1;
+        let depth                   = material.depth ? material.depth : width;
         const drawAllSides          = width != 1 || height != 1;
 
         // Pot
@@ -146,7 +156,7 @@ export default class style {
         }
 
         // Jukebox
-        if(material.tags.indexOf('jukebox') >= 0) {
+        if(material.is_jukebox) {
             const disc = block?.extra_data?.disc || null;
             if(disc) {
                 worker.postMessage(['play_disc', {
@@ -154,6 +164,13 @@ export default class style {
                     dt: block.extra_data?.dt,
                     pos: chunk.coord.add(new Vector(x, y, z))
                 }]);
+            }
+        }
+
+        // Button
+        if(material.is_button) {
+            if(block.extra_data.pressed) {
+                height /= 2;
             }
         }
 
@@ -272,6 +289,7 @@ export default class style {
         if(material.style == 'ladder') {
             width = 1;
             height = 1;
+            depth = 1;
         }
 
         // Layering
@@ -308,10 +326,10 @@ export default class style {
         aabb.set(
             x + .5 - width/2,
             y,
-            z + .5 - width/2,
+            z + .5 - depth/2,
             x + .5 + width/2,
             y + height,
-            z + .5 + width/2
+            z + .5 + depth/2
         );
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)

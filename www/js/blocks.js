@@ -487,6 +487,8 @@ export class BLOCK {
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
+        block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
+        block.is_button         = block.tags.indexOf('button') >= 0;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);

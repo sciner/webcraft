@@ -62,7 +62,7 @@ export default class style {
         }
         return 1;
     }
-    chain
+
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         const pos = new Vector(x, y, z);

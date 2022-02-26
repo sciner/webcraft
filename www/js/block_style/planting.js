@@ -73,7 +73,10 @@ export default class style {
         if(neighbours && neighbours.DOWN) {
             const under_height = neighbours.DOWN.material.height;
             if(under_height && under_height < 1) {
-                y -= 1 - under_height;
+                // if(!block.hasTag('rotate_by_pos_n')) {
+                if(cardinal_direction == 0 || cardinal_direction == CubeSym.ROT_Y3) {
+                    y -= 1 - under_height;
+                }
             }
         }
 

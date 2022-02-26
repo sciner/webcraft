@@ -3,8 +3,9 @@ import { BLOCK } from "./blocks.js";
 import { Color } from "./helpers.js";
 import { Resources } from "./resources.js";
 
-const START_WOOL_ID = 350;
-const START_CARPET_ID = 800;
+const START_WOOL_ID = 350; // ... 365
+const START_CARPET_ID = 800; // ... 815
+const START_BUTTON_ID = 770; // ...799
 
 export const COLOR_PALETTE = {
     white: [0, 0],
@@ -67,6 +68,7 @@ export class ResourcePackManager {
 
         this.initWool(base);
         this.initCarpets(base);
+        this.initButtons(base);
 
         // Load music discs
         for(let disc of await Resources.loadMusicDiscs()) {
@@ -83,6 +85,45 @@ export class ResourcePackManager {
             BLOCK.add(base, b);
         }
 
+    }
+
+    // Buttons
+    initButtons(resource_pack) {
+        const palette_pos = {x: 24, y: 31};
+        let i = 0;
+        const materials = [
+            BLOCK.OAK_PLANK,
+            BLOCK.BIRCH_PLANK,
+            BLOCK.SPRUCE_PLANK,
+            BLOCK.ACACIA_PLANK,
+            BLOCK.JUNGLE_PLANK,
+            BLOCK.DARK_OAK_PLANK,
+            BLOCK.WARPED_PLANK,
+            BLOCK.CONCRETE
+        ];
+        for(let mat of materials) {
+            let name_prefix = mat.name.replace('_PLANK', '');
+            const b = {
+                "id": START_BUTTON_ID + i,
+                "name": name_prefix + '_BUTTON',
+                "material": mat.material,
+                "sound": mat.sound,
+                "texture": mat.texture,
+                "width": 0.375,
+                "height": 0.125,
+                "depth": 0.25,
+                "can_rotate": true,
+                "transparent": true,
+                "extra_data": {pressed: 0},
+                "tags": [
+                    "no_drop_ao",
+                    "rotate_by_pos_n",
+                    "button"
+                ]
+            };
+            BLOCK.add(resource_pack, b);
+            i++;
+        }
     }
 
     // Wools

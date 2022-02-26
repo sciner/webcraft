@@ -723,6 +723,22 @@
         ]
     },
     {
+        "id": 661,
+        "name": "WARPED_PLANK",
+        "sound": "madcraft:block.wood",
+        "tags": [
+            "can_put_info_pot",
+            "plank"
+        ],
+        "material": {
+            "id": "wood"
+        },
+        "texture": [
+            26,
+            19
+        ]
+    },
+    {
         "id": 89,
         "name": "GLOWSTONE",
         "light_power": {
@@ -4389,6 +4405,7 @@
         "transparent": true,
         "style": "planting",
         "inventory_style": "extruder",
+        "can_rotate": true,
         "material": {
             "id": "amethyst"
         },
@@ -4402,8 +4419,7 @@
             "g": 235,
             "b": 35,
             "a": 150
-        },
-        "can_rotate": true
+        }
     },
     {
         "id": 600,

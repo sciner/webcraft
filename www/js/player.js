@@ -349,7 +349,9 @@ export class Player {
             Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
         }
         if(actions.play_sound) {
-            Game.sounds.play(actions.play_sound.tag, actions.play_sound.action);
+            for(let item of actions.play_sound) {
+                Game.sounds.play(item.tag, item.action);
+            }
         }
         if(actions.reset_target_pos) {
             this.pickAt.resetTargetPos();

@@ -11,6 +11,21 @@
         ],
         "burp": [
             "Burp"
+        ],
+        "break": [
+            "break"
+        ],
+        "fuse": [
+            "fuse"
+        ],
+        "click": [
+            "click"
+        ],
+        "explode": [
+            "explode1",
+            "explode2",
+            "explode3",
+            "explode4"
         ]
     },
     {
