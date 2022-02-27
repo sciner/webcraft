@@ -766,7 +766,7 @@ export class BLOCK {
             return shapes;
         }
         let f = !!expanded ? .001 : 0;
-        if(!material.passable && (material.style != 'planting')) {
+        if(!material.passable && !material.planting) {
             switch(material.style) {
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;

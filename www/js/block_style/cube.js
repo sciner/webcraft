@@ -1,6 +1,6 @@
 "use strict";
 
-import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector} from '../helpers.js';
+import {DIRECTION, MULTIPLY, QUAD_FLAGS, Vector, calcRotateMatrix} from '../helpers.js';
 import {impl as alea} from "../../vendors/alea.js";
 import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
@@ -8,7 +8,7 @@ import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
-const {mat3} = glMatrix;
+const {mat3, mat4} = glMatrix;
 
 const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
@@ -77,13 +77,25 @@ export default class style {
             y + height,
             z + .5 + depth/2
         );
+
+        //
         if(block.getCardinalDirection) {
             let cardinal_direction = block.getCardinalDirection();
-            aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj);
+            let matrix = CubeSym.matrices[cardinal_direction];
+            // on the ceil
+            if(block.rotate && block.rotate.y == -1) {
+                if(block.material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                    aabb.translate(0, 1 - aabb.y_max, 0)
+                }
+            }
+            aabb.applyMatrix(matrix, pivotObj);
         }
+
+        //
         if(!for_physic) {
             aabb.pad(1/500);
         }
+
         return [aabb];
     }
 
@@ -229,7 +241,7 @@ export default class style {
             }
         }
 
-        const cardinal_direction    = block.getCardinalDirection();
+        let cardinal_direction      = block.getCardinalDirection();
         let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags               = flags;
         let upFlags                 = flags;
@@ -254,34 +266,30 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
+        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
+
         // Can rotate
-        if(material.can_rotate) {
+        if(material.can_rotate && block.rotate) {
             DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
             DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
             DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
             DIRECTION_LEFT          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.LEFT);
             //
-            if(block.rotate) {
-                if (CubeSym.matrices[cardinal_direction][4] <= 0) {
-                    // @todo: calculate canDrawUP and neighbours based on rotation
-                    canDrawUP = true;
-                    canDrawDOWN = true;
-                    canDrawSOUTH = true;
-                    canDrawNORTH = true;
-                    canDrawWEST = true;
-                    canDrawEAST = true;
-                    DIRECTION_BACK = DIRECTION.BACK;
-                    DIRECTION_RIGHT = DIRECTION.RIGHT;
-                    DIRECTION_FORWARD = DIRECTION.FORWARD;
-                    DIRECTION_LEFT = DIRECTION.LEFT;
-                    // Use matrix instead!
-                    if (matrix) {
-                        mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
-                        matrix = tempMatrix;
-                    } else {
-                        matrix = CubeSym.matrices[cardinal_direction];
-                    }
-                }
+            if (
+                CubeSym.matrices[cardinal_direction][4] <= 0 ||
+                (material.tags.indexOf('rotate_by_pos_n') >= 0 && block.rotate.y != 0)
+            ) {
+                // @todo: calculate canDrawUP and neighbours based on rotation
+                canDrawUP = true;
+                canDrawDOWN = true;
+                canDrawSOUTH = true;
+                canDrawNORTH = true;
+                canDrawWEST = true;
+                canDrawEAST = true;
+                DIRECTION_BACK = DIRECTION.BACK;
+                DIRECTION_RIGHT = DIRECTION.RIGHT;
+                DIRECTION_FORWARD = DIRECTION.FORWARD;
+                DIRECTION_LEFT = DIRECTION.LEFT;
             }
         }
 

@@ -230,6 +230,27 @@ export class AABB {
         return this;
     }
 
+    // Expand same for all sides
+    expand(x, y, z) {
+        this.x_min -= x;
+        this.x_max += x;
+        this.y_min -= y;
+        this.y_max += y;
+        this.z_min -= z;
+        this.z_max += z;
+        return this;
+    }
+
+    div(value) {
+        this.x_min /= value;
+        this.x_max /= value;
+        this.y_min /= value;
+        this.y_max /= value;
+        this.z_min /= value;
+        this.z_max /= value;
+        return this;
+    }
+
 }
 
 export class AABBPool {
@@ -251,11 +272,11 @@ export class AABBPool {
 export class AABBSideParams {
 
     constructor(uv, flag, anim, lm = null, axes = null) {
-        this.uv = uv;
-        this.flag = flag;
-        this.anim = anim;
-        this.lm = lm;
-        this.axes = axes;
+        this.uv     = uv;
+        this.flag   = flag;
+        this.anim   = anim;
+        this.lm     = lm;
+        this.axes   = axes;
     }
 
 }

@@ -4697,15 +4697,21 @@
     {
         "id": 617,
         "name": "CHAIN",
-        "style": "chain",
+        "style": "planting",
         "transparent": true,
         "passable": 0,
+        "planes": [
+            {"size": {"x": 3, "y": 16, "z": 3}, "uv": [1.5, 8], "rot": [0, 0.7853975, 0]},
+            {"size": {"x": 3, "y": 16, "z": 3}, "uv": [4.5, 8], "rot": [0, -0.7853975, 0]}
+        ],
+        "aabb_size": {"x": 4.5, "y": 16, "z": 4.5},
         "sound": "madcraft:block.stone",
         "material": {
             "id": "iron"
         },
         "tags": [
             "no_drop_ao",
+            "no_random_pos",
             "rotate_by_pos_n"
         ],
         "texture": [28, 0],

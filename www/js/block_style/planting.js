@@ -1,10 +1,23 @@
-import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color} from '../helpers.js';
-import { pushPlanedGeom } from './plane.js';
+import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector, fromMat3, calcRotateMatrix} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
-import { AABB } from '../core/AABB.js';
+import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+
+const TX_CNT = 32;
+const TX_SIZE = 16;
+
+const DEFAULT_PLANES = [
+    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0.7853975, 0]},
+    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -0.7853975, 0]}
+];
+
+const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
+
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
 
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -15,7 +28,7 @@ for(let i = 0; i < randoms.length; i++) {
     randoms[i] = a.double();
 }
 
-// Растения
+// Растения/Цепи
 export default class style {
 
     static lm = new Color();
@@ -29,19 +42,28 @@ export default class style {
     }
 
     // computeAABB
-    static computeAABB(block) {
-        let cardinal_direction = block.getCardinalDirection();
-        let hw = (4.5/16) / 2;
-        let sign_height = 1;
-        if(block.material.planting) {
-            hw = 12/16 / 2;
-            sign_height = 12/16;
+    static computeAABB(block, for_physic) {
+
+        const aabb_size = block.material.aabb_size || DEFAULT_AABB_SIZE;
+        aabb.set(0, 0, 0, 0, 0, 0)
+        aabb
+            .translate(.5 * TX_SIZE, aabb_size.y/2, .5 * TX_SIZE)
+            .expand(aabb_size.x/2, aabb_size.y/2, aabb_size.z/2)
+            .div(TX_SIZE);
+
+        // Rotate
+        if(block.getCardinalDirection) {
+            let cardinal_direction = block.getCardinalDirection();
+            let matrix = CubeSym.matrices[cardinal_direction];
+            // on the ceil
+            if(block.rotate && block.rotate.y == -1) {
+                if(block.material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                    aabb.translate(0, 1 - aabb.y_max, 0)
+                }
+            }
+            aabb.applyMatrix(matrix, pivotObj);
         }
-        aabb.set(
-            .5-hw, 0, .5-hw,
-            .5+hw, sign_height, .5+hw
-        );
-        aabb.applyMatrix(CubeSym.matrices[cardinal_direction], pivotObj)
+
         return [aabb];
     }
 
@@ -58,56 +80,123 @@ export default class style {
         return 1;
     }
 
-    // Draw func
+    //
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
-        let cardinal_direction = block.getCardinalDirection()
-
+        const material = block.material;
+        const cardinal_direction = block.getCardinalDirection();
         let dx = 0, dy = 0, dz = 0;
-        let c = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
-        let flags = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        let orig_tex = BLOCK.calcMaterialTexture(material, DIRECTION.UP, null, null, block);
+        let flag = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const pos = new Vector(x, y, z);
 
         style.lm.set(MULTIPLY.COLOR.WHITE);
+        style.lm.b = style.getAnimations(block, 'up');
 
         //
-        if(neighbours && neighbours.DOWN) {
-            const under_height = neighbours.DOWN.material.height;
-            if(under_height && under_height < 1) {
-                // if(!block.hasTag('rotate_by_pos_n')) {
-                if(cardinal_direction == 0 || cardinal_direction == CubeSym.ROT_Y3) {
-                    y -= 1 - under_height;
+        if(material.planting) {
+            if(neighbours && neighbours.DOWN) {
+                const under_height = neighbours.DOWN.material.height;
+                if(under_height && under_height < 1) {
+                    if(cardinal_direction == 0 || cardinal_direction == CubeSym.ROT_Y3) {
+                        dy -= 1 - under_height;
+                    }
                 }
             }
         }
 
-        // Texture color multiplier
-        if(block.hasTag('mask_biome')) {
-            style.lm.set(biome.dirt_color);
-            flags |= QUAD_FLAGS.MASK_BIOME;
-        }
-
+        //
         if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
-            dy = -.15;
+            dy -= .15;
         }
-
-        let r = 0;
-
-        const no_random_pos = block.hasTag('no_random_pos');
-
-        if(block.material.style == 'planting' && !no_random_pos) {
+        if(material.planting && !block.hasTag('no_random_pos')) {
             let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
-            r = randoms[index] * 4/16 - 2/16;
+            const r = randoms[index] * 4/16 - 2/16;
             dx = 0.5 - 0.5 + r;
             dz = 0.5 - 0.5 + r;
         }
 
-        style.lm.b = style.getAnimations(block, 'up');
-        pushPlanedGeom(
+        pos.x += dx;
+        pos.y += dy;
+        pos.z += dz;
+
+        // Texture color multiplier
+        if(block.hasTag('mask_biome')) {
+            style.lm.set(biome.dirt_color);
+            flag |= QUAD_FLAGS.MASK_BIOME;
+        }
+
+        // Matrix
+        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
+
+        const planes = material.planes || DEFAULT_PLANES;
+
+        for(let plane of planes) {
+            const uv = [orig_tex[0], orig_tex[1]];
+            const add_uv = [
+                -.5 + plane.uv[0]/TX_SIZE,
+                -.5 + plane.uv[1]/TX_SIZE
+            ];
+            uv[0] += add_uv[0];
+            uv[1] += add_uv[1];
+            //
+            const tex = [...orig_tex];
+            tex[0] += (add_uv[0] / TX_CNT);
+            tex[1] += (add_uv[1] / TX_CNT);
+
+            style.pushPlane(vertices, {
+                pos: pos,
+                width: plane.size.x/TX_SIZE,
+                depth: plane.size.z/TX_SIZE,
+                height: plane.size.y/TX_SIZE,
+                uv: uv,
+                flag: flag,
+                lm: style.lm,
+                matrix: matrix,
+                rot: plane.rot,
+                texture: [...tex]
+            });
+        }
+
+    }
+
+    //
+    static pushPlane(vertices, plane) {
+
+        const pivot = null;
+
+        const _aabb_plane_middle = new AABB();
+        _aabb_plane_middle.set(
+            plane.pos.x + .5,
+            plane.pos.y + .5,
+            plane.pos.z + .5,
+            plane.pos.x + .5,
+            plane.pos.y + .5,
+            plane.pos.z + .5,
+        ).expand(plane.width/2, plane.height/2, plane.depth/2)
+        .translate(plane.width/2, 0, 0);
+
+        // Matrix
+        let matrix = mat4.create();
+        if(plane.rot && !isNaN(plane.rot[0])) {
+            mat4.rotateY(matrix, matrix, plane.rot[1]);
+        }
+        if(plane.translate) mat4.translate(matrix, matrix, plane.translate);
+        if(plane.matrix) {
+            matrix = mat4.multiply(matrix, matrix, plane.matrix);
+        }
+
+        // Push vertices
+        pushAABB(
             vertices,
-            x, y, z, c,
-            style.lm, true, true, 1, 1, 1, flags, 
-            cardinal_direction,
-            dx, dy, dz
+            _aabb_plane_middle,
+            pivot,
+            matrix,
+            {
+                west: new AABBSideParams(plane.texture, plane.flag, 1, plane.lm)
+            },
+            true,
+            plane.pos
         );
 
     }

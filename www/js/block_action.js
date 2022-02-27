@@ -25,11 +25,19 @@ const rotates = [
     new Vector(CubeSym.ROT_X, 0, 0)
 ];
 
-function calcRotateByPosN(pos_n) {
-    for(let i in sides) {
-        let side = sides[i];
-        if(side.equal(pos_n)) {
-            return rotates[i];
+function calcRotateByPosN(rot, pos_n) {
+    if (Math.abs(pos_n.y) === 1) {
+        rot = new Vector(rot);
+        rot.x = BLOCK.getCardinalDirection(rot);
+        rot.z = 0;
+        rot.y = pos_n.y; // mark that is up
+        return rot;
+    } else {
+        for(let i in sides) {
+            let side = sides[i];
+            if(side.equal(pos_n)) {
+                return rotates[i];
+            }
         }
     }
     throw 'error_invalid_pos_n';
@@ -42,7 +50,7 @@ function calcRotate(rot, pos_n) {
     rot.x = 0;
     rot.y = 0;
     // top normal
-    if (Math.abs(pos_n.y) === 1) {                        
+    if (Math.abs(pos_n.y) === 1) {
         rot.x = BLOCK.getCardinalDirection(rot);
         rot.z = 0;
         rot.y = pos_n.y; // mark that is up
@@ -754,7 +762,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
         } else {
-            const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(pos.n) : calcRotate(player.rotate, pos.n);
+            const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(player.rotate, pos.n) : calcRotate(player.rotate, pos.n);
             //
             const new_item = {
                 id: matBlock.id

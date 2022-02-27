@@ -1,6 +1,9 @@
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+
+const {mat3, mat4} = glMatrix;
 
 export const TX_CNT = 32;
 
@@ -1347,4 +1350,40 @@ export function fromMat3(a, b) {
     a[15] = 1.0;
 
     return a;
+}
+
+// calcRotateMatrix
+export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
+    // Can rotate
+    if(material.can_rotate) {
+        //
+        if(rotate) {
+
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+                /*
+                // Use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+                */
+            } else if(rotate.y != 0) {
+                if(material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                    matrix = mat4.create();
+                    if(rotate.y == 1) {
+                        // on the floor
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
+                    } else {
+                        // on the ceil
+                        mat4.rotateZ(matrix, matrix, Math.PI);
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
+                    }
+                }
+            }
+        }
+    }
+    return matrix;
 }

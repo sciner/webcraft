@@ -89,7 +89,6 @@ export class ResourcePackManager {
 
     // Buttons
     initButtons(resource_pack) {
-        const palette_pos = {x: 24, y: 31};
         let i = 0;
         const materials = [
             BLOCK.OAK_PLANK,
