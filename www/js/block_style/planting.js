@@ -1,23 +1,17 @@
-import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector, fromMat3, calcRotateMatrix} from '../helpers.js';
+import {MULTIPLY, DIRECTION, QUAD_FLAGS, Color, Vector, calcRotateMatrix} from '../helpers.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from "../blocks.js";
 import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
-import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
-
-const TX_CNT = 32;
-const TX_SIZE = 16;
+import {AABB} from '../core/AABB.js';
+import { default as default_style, TX_CNT, TX_SIZE} from './default.js';
 
 const DEFAULT_PLANES = [
-    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0.7853975, 0]},
-    {"size": {"x": 16, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -0.7853975, 0]}
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0.7853975, 0]},
+    {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, -0.7853975, 0]}
 ];
 
 const DEFAULT_AABB_SIZE = new Vector(12, 12, 12);
-
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-
-const {mat4} = glMatrix;
 
 const aabb = new AABB();
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
@@ -129,75 +123,18 @@ export default class style {
         // Matrix
         matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
 
+        // Planes
         const planes = material.planes || DEFAULT_PLANES;
-
         for(let plane of planes) {
-            const uv = [orig_tex[0], orig_tex[1]];
-            const add_uv = [
-                -.5 + plane.uv[0]/TX_SIZE,
-                -.5 + plane.uv[1]/TX_SIZE
-            ];
-            uv[0] += add_uv[0];
-            uv[1] += add_uv[1];
-            //
-            const tex = [...orig_tex];
-            tex[0] += (add_uv[0] / TX_CNT);
-            tex[1] += (add_uv[1] / TX_CNT);
-
-            style.pushPlane(vertices, {
-                pos: pos,
-                width: plane.size.x/TX_SIZE,
-                depth: plane.size.z/TX_SIZE,
-                height: plane.size.y/TX_SIZE,
-                uv: uv,
-                flag: flag,
+            default_style.pushPlane(vertices, {
+                ...plane,
                 lm: style.lm,
+                pos: pos,
                 matrix: matrix,
-                rot: plane.rot,
-                texture: [...tex]
+                flag: flag,
+                texture: [...orig_tex]
             });
         }
-
-    }
-
-    //
-    static pushPlane(vertices, plane) {
-
-        const pivot = null;
-
-        const _aabb_plane_middle = new AABB();
-        _aabb_plane_middle.set(
-            plane.pos.x + .5,
-            plane.pos.y + .5,
-            plane.pos.z + .5,
-            plane.pos.x + .5,
-            plane.pos.y + .5,
-            plane.pos.z + .5,
-        ).expand(plane.width/2, plane.height/2, plane.depth/2)
-        .translate(plane.width/2, 0, 0);
-
-        // Matrix
-        let matrix = mat4.create();
-        if(plane.rot && !isNaN(plane.rot[0])) {
-            mat4.rotateY(matrix, matrix, plane.rot[1]);
-        }
-        if(plane.translate) mat4.translate(matrix, matrix, plane.translate);
-        if(plane.matrix) {
-            matrix = mat4.multiply(matrix, matrix, plane.matrix);
-        }
-
-        // Push vertices
-        pushAABB(
-            vertices,
-            _aabb_plane_middle,
-            pivot,
-            matrix,
-            {
-                west: new AABBSideParams(plane.texture, plane.flag, 1, plane.lm)
-            },
-            true,
-            plane.pos
-        );
 
     }
 

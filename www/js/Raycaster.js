@@ -109,7 +109,7 @@ export class Raycaster {
             leftTop.z = Math.floor(block.z);
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > BLOCK.AIR.id && !b.material.is_water; // b.id !== BLOCK.STILL_WATER.id;
+            let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid; // b.id !== BLOCK.STILL_WATER.id;
 
             if (hitShape) {
                 const shapes = BLOCK.getShapes(leftTop, b, this.world, false, true);
