@@ -13,6 +13,7 @@ const {mat3, mat4} = glMatrix;
 const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
+const DEFAULT_ROTATE = new Vector(0, 1, 0);
 
 const UP_AXES = [
     [[0, -1, 0], [1, 0, 0]],
@@ -205,20 +206,18 @@ export default class style {
         };
 
         // Can change height
-        let bH = 1.0;
         if(material.is_fluid) {
-            bH = Math.min(block.power, .9)
-            let blockOver = neighbours.UP;
-            if(blockOver) {
-                if(blockOver.material.is_fluid) {
+            let bH = Math.min(block.power, .9);
+            if(neighbours.UP) {
+                if(neighbours.UP.material.is_fluid) {
                     bH = 1.0;
                 }
             }
-            block.bH = bH;
+            height = bH;
         }
 
         //
-        let canDrawUP = canDrawFace(neighbours.UP) || bH < 1;
+        let canDrawUP = canDrawFace(neighbours.UP) || height < 1;
         let canDrawDOWN = canDrawFace(neighbours.DOWN);
         let canDrawSOUTH = canDrawFace(neighbours.SOUTH);
         let canDrawNORTH = canDrawFace(neighbours.NORTH);
@@ -266,10 +265,11 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
-        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
+        const rotate = block.rotate || DEFAULT_ROTATE;
+        matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
 
         // Can rotate
-        if(material.can_rotate && block.rotate) {
+        if(material.can_rotate && rotate) {
             DIRECTION_BACK          = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.BACK);
             DIRECTION_RIGHT         = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.RIGHT);
             DIRECTION_FORWARD       = CubeSym.dirAdd(CubeSym.inv(cardinal_direction), DIRECTION.FORWARD);
@@ -277,7 +277,7 @@ export default class style {
             //
             if (
                 CubeSym.matrices[cardinal_direction][4] <= 0 ||
-                (material.tags.indexOf('rotate_by_pos_n') >= 0 && block.rotate.y != 0)
+                (material.tags.indexOf('rotate_by_pos_n') >= 0 && rotate.y != 0)
             ) {
                 // @todo: calculate canDrawUP and neighbours based on rotation
                 canDrawUP = true;

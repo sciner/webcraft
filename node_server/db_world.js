@@ -282,6 +282,9 @@ export class DBWorld {
         migrations.push({version: 25, queries: [
             `UPDATE user SET game_mode = 'survival' WHERE game_mode IS NOT NULL AND is_admin = 0`,
         ]});
+        migrations.push({version: 26, queries: [
+            `UPDATE world_modify set params = '{"id": 3}' where  params like '{"id":3,"rotate":{"x":-%'`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
