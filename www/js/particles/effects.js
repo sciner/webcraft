@@ -119,6 +119,8 @@ export class Particles_Effects extends Particles_Base {
             const dx = i + axisx_offset;
             const dy = i + axisy_offset;
 
+            data[i + lm_offset] = 0;
+
             // pos
             data[dp + 0] = vertices[ap + 0] - corrX;
             data[dp + 1] = vertices[ap + 1] - corrZ;
