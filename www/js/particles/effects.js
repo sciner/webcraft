@@ -66,10 +66,6 @@ export class Particles_Effects extends Particles_Base {
         let data = this.buffer.data;
         const vertices = this.vertices;
 
-        if(data.length < vertices.length) {
-            data = new Float32Array(vertices);
-        }
-
         const pp = Game.player.lerpPos;
 
         // correction for light
@@ -80,10 +76,12 @@ export class Particles_Effects extends Particles_Base {
         const pn = performance.now();
         const strideFloats = GeometryTerrain.strideFloats;
 
-
         const clip = !this.last_clip || (performance.now() - this.last_clip > 1000);
 
         if(clip) {
+            if(data.length < vertices.length) {
+                data = new Float32Array(vertices);
+            }    
             //
             let dest_offset = 0;
             for(let i = 0; i < vertices.length; i += strideFloats) {
@@ -149,6 +147,7 @@ export class Particles_Effects extends Particles_Base {
         }
 
         this.buffer.updateInternal(data);
+
     }
 
     draw(render, delta) {

@@ -382,7 +382,7 @@ export default class WorldEdit {
             if(b.deprecated) {
                 throw 'error_block_is_deprecated';
             }
-            if(b.item || b.can_rotate || b.is_fluid || b.extra_data) {
+            if(b.item || b.is_fluid || b.extra_data) {
                 throw 'error_this_block_cannot_be_setted';
             }
             item.block_id = block_id;
