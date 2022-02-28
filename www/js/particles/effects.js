@@ -48,14 +48,34 @@ export class Particles_Effects extends Particles_Base {
 
     // Add particle
     add(pos, params) {
-        const c         = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt); // текстура
-        const sz        = 1; // размер текстуры
+
         const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-        const lm        = MULTIPLY.COLOR.WHITE.clone();
         const {x, y, z} = pos;
-        //
-        let vertices = [];
-        push_plane(vertices, x, y, z, c, lm, true, false, sz, sz, null, flags, true);
+        
+        // const sz = 1; // размер текстуры
+        // const c = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt); // текстура
+        // const lm = MULTIPLY.COLOR.WHITE.clone();
+        // let vertices = [];
+        // push_plane(vertices, x, y, z, c, lm, true, false, sz, sz, null, flags, true);
+
+
+        const c = [
+            (params.texture[0] + 0.5) / this.tx_cnt,
+            (params.texture[1] + 0.5) / this.tx_cnt,
+            1 / this.tx_cnt,
+            1 / this.tx_cnt
+        ];
+        const vertices = [
+            x+.5, z+.5, y+.5,
+            -1, 0, 0,
+            0, 0, -1,
+            ...c,
+            0,
+            0,
+            0,
+            flags
+        ];
+
         //
         const vindex = this.add_index * STRIDE_FLOATS;
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
@@ -129,7 +149,9 @@ export class Particles_Effects extends Particles_Base {
             if(params.invert_percent) {
                 percent = 1 - percent;
             }
-            percent = Math.max(MIN_PERCENT, percent);
+            let min_percent = MIN_PERCENT;
+            if('min_percent' in params) min_percent = params.min_percent;
+            percent = Math.max(min_percent, percent);
             const scale = params.pend < pn ? 0 : percent;
 
             const ap = i + pos_offset;

@@ -13,7 +13,6 @@ import { Particles_Effects } from "./particles/effects.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
-import {Particles_Music_Note} from "./particles/music_note.js";
 
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
@@ -447,7 +446,7 @@ export class Renderer {
         // Add jukebox animations
         for(let [pos, disc] of TrackerPlayer.vc.entries()) {
             if(Math.random() < .1) {
-                this.meshes.add(new Particles_Music_Note(this, pos, 'extend/regular/effects'));
+                Game.render.meshes.addEffectParticle('music_note', pos);
             }
         }
 
