@@ -1,6 +1,6 @@
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { DIRECTION, MULTIPLY, QUAD_FLAGS, Vector } from '../helpers.js';
-import { getChunkAddr } from "../chunk.js";
+import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 import { BLOCK } from "../blocks.js";
@@ -17,6 +17,7 @@ const axisy_offset      = 6;
 const uv_size_offset    = 11;
 const lm_offset         = 13;
 const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
+const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)      ;
 
 export class Particles_Effects extends Particles_Base {
 
@@ -25,8 +26,8 @@ export class Particles_Effects extends Particles_Base {
 
         super();
 
-        this.scale = new Vector(1, 1, 1);
-        this.pos = Vector.ZERO.clone();
+        this.scale          = new Vector(1, 1, 1);
+        this.pos            = Vector.ZERO.clone();
         this.life           = 1;
 
         const m             = material_key.split('/');
@@ -35,11 +36,13 @@ export class Particles_Effects extends Particles_Base {
         this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
 
         this.chunk_addr     = chunk_addr;
+        this.chunk_coord    = chunk_addr.mul(chunk_size);
+        this.pos            = this.chunk_coord.clone();
 
-        this.buffer         = new GeometryTerrain([]);
         this.max_count      = 8000;
         this.add_index      = 0;
         this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
+        this.buffer         = new GeometryTerrain(new Float32Array(this.vertices));
 
     }
 
@@ -76,15 +79,18 @@ export class Particles_Effects extends Particles_Base {
         mat4.scale(this.lookAtMat, this.lookAtMat, this.scale);
 
         //
-        let data = this.buffer.data;
+        const data = this.buffer.data;
         const vertices = this.vertices;
-        if(data.length != vertices.length) {
-            data = new Float32Array(vertices);
-        }
 
         const pn = performance.now();
         const pp = Game.player.lerpPos;
         const MIN_PERCENT = .25;
+
+        // const chCoord  = this.chunk_coord;
+        // const pos = this.pos;
+        // const corrX = pos.x - chCoord.x;
+        // const corrY = pos.y - chCoord.y;
+        // const corrZ = pos.z - chCoord.z;
 
         // Correction for light
         const corrX = pp.x;
@@ -137,12 +143,10 @@ export class Particles_Effects extends Particles_Base {
             data[i + lm_offset] = 0;
 
             // pos
+            let addY = 0;
+            if(params.speed.y != 0) addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
             data[dp + 0] = vertices[ap + 0] - corrX;
             data[dp + 1] = vertices[ap + 1] - corrZ;
-            let addY = 0;
-            if(params.speed.y != 0) {
-                addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
-            }
             data[dp + 2] = vertices[ap + 2] - corrY + addY;
 
             // Look at axis x
