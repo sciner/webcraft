@@ -8,6 +8,21 @@ import {Particles_Campfire_Flame} from "./particles/campfire_flame.js";
 const CHUNKS_ADD_PER_UPDATE     = 4;
 export const MAX_Y_MARGIN       = 3;
 
+const flame_textures = [
+    [0, 3],
+    [1, 3],
+    [2, 3],
+    [3, 3],
+    [4, 3],
+    [5, 3],
+    [6, 3],
+    [7, 3],
+    [0, 4],
+    [1, 4],
+    [2, 4],
+    [3, 4]
+];
+
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -73,7 +88,7 @@ export class ChunkManager {
                 };
                 // Add torches animations if need
                 for(let [_, item] of this.list.entries()) {
-                    if(Math.random() < .3) {
+                    if(Math.random() < .23) {
                         if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
                                 case 'torch': {
@@ -81,7 +96,19 @@ export class ChunkManager {
                                     break;
                                 }
                                 case 'campfire': {
-                                    meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/transparent/effects'));
+                                    let texture_index = Math.floor(flame_textures.length * Math.random());
+                                    const pos = {...item.pos};
+                                    pos.x += (Math.random() - Math.random()) * .3;
+                                    pos.y += .35 + .25 * Math.random();
+                                    pos.z += (Math.random() - Math.random()) * .3;
+                                    Game.render.addEffectParticle(pos, {
+                                        texture:    flame_textures[texture_index],
+                                        started:    performance.now(),
+                                        life:       5,
+                                        gravity:    0.0075 + (0.0075 * Math.random()),
+                                        speed:      new Vector(0, 100, 0)
+                                    })
+                                    // meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/transparent/effects'));
                                     break;
                                 }
                             }

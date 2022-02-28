@@ -9,6 +9,7 @@ import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import Particles_Block_Destroy from "./particles/block_destroy.js";
 import Particles_Block_Drop from "./particles/block_drop.js";
+import { Particles_Effects } from "./particles/effects.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
@@ -611,6 +612,17 @@ export class Renderer {
     // addAsteroid
     addAsteroid(pos, rad) {
         this.meshes.add(new Particles_Asteroid(this, pos, rad));
+    }
+
+    // Add particle
+    addEffectParticle(pos, params) {
+        const PARTICLE_EFFECTS_ID = 'effects';
+        let effects = this.meshes.get(PARTICLE_EFFECTS_ID);
+        if(!effects) {
+            effects = new Particles_Effects(this, 'extend/transparent/effects');
+            this.meshes.add(effects, PARTICLE_EFFECTS_ID);
+        }
+        effects.add(pos, params);
     }
 
     // createClouds

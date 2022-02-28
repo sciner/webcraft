@@ -7,6 +7,10 @@ export class MeshManager {
         this.list = new Map();
     }
 
+    get(id) {
+        return this.list.get(id);
+    }
+
     add(mesh, key) {
         if(!key) {
             key = Helpers.generateID();
