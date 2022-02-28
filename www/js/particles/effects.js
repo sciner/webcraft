@@ -17,9 +17,11 @@ const axisy_offset      = 6;
 const uv_size_offset    = 11;
 const lm_offset         = 13;
 const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
-const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z)      ;
+const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 export class Particles_Effects extends Particles_Base {
+
+    static current_count = 0;
 
     // Constructor
     constructor(render, chunk_addr, material_key) {
@@ -39,10 +41,11 @@ export class Particles_Effects extends Particles_Base {
         this.chunk_coord    = chunk_addr.mul(chunk_size);
         this.pos            = this.chunk_coord.clone();
 
-        this.max_count      = 8000;
+        this.max_count      = 32;
         this.add_index      = 0;
         this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
         this.buffer         = new GeometryTerrain(new Float32Array(this.vertices));
+        this.p_count        = 0;
 
     }
 
@@ -51,13 +54,12 @@ export class Particles_Effects extends Particles_Base {
 
         const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const {x, y, z} = pos;
-        
+
         // const sz = 1; // размер текстуры
         // const c = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt); // текстура
         // const lm = MULTIPLY.COLOR.WHITE.clone();
         // let vertices = [];
         // push_plane(vertices, x, y, z, c, lm, true, false, sz, sz, null, flags, true);
-
 
         const c = [
             (params.texture[0] + 0.5) / this.tx_cnt,
@@ -78,16 +80,35 @@ export class Particles_Effects extends Particles_Base {
 
         //
         const vindex = this.add_index * STRIDE_FLOATS;
+        if(this.vertices[vindex + lm_offset]) {
+            Particles_Effects.current_count--;
+            this.p_count--;
+        }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
         for(let i = 9; i < STRIDE_FLOATS; i++) {
             this.buffer.data[vindex + i] = vertices[i];
+            this.vertices[vindex + i] = vertices[i];
         }
         // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
         //
         params.started = performance.now();
         params.pend = performance.now() + 1000 * params.life;
         this.vertices[vindex + lm_offset] = params;
+        Particles_Effects.current_count++;
+        this.p_count++;
+
+        if(this.p_count >= this.max_count) {
+            if(this.max_count < 8193) {
+                const added = new Array(this.max_count * STRIDE_FLOATS);
+                // Resize buffer
+                this.vertices = [...this.vertices, ...added];
+                this.buffer.data = new Float32Array(this.vertices);
+                this.max_count = this.vertices.length / STRIDE_FLOATS;
+            }
+        }
+
         this.add_index = (this.add_index + 1) % this.max_count;
+
     }
 
     update(render) {
@@ -97,6 +118,8 @@ export class Particles_Effects extends Particles_Base {
         mat3.fromMat4(this.lookAtMat, view);
         mat3.invert(this.lookAtMat, this.lookAtMat);
         mat4.scale(this.lookAtMat, this.lookAtMat, this.scale);
+
+        const lookAtMat = this.lookAtMat;
 
         //
         const data = this.buffer.data;
@@ -117,9 +140,8 @@ export class Particles_Effects extends Particles_Base {
         const corrY = pp.y;
         const corrZ = pp.z;
 
-        // Delete particles
-        const clip = !this.last_clip || (performance.now() - this.last_clip > 1000);
-        if(clip) {
+        // Reset inactive particles
+        if(!this.last_reset || (performance.now() - this.last_reset > 1000)) {
             for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
                 const params = vertices[i + lm_offset];
                 if(!params) {
@@ -127,13 +149,15 @@ export class Particles_Effects extends Particles_Base {
                 }
                 // ignore this particle
                 if(params.pend < pn) {
+                    Particles_Effects.current_count--;
+                    this.p_count--;
                     for(let j = 0; j < STRIDE_FLOATS; j++) {
                         this.vertices[i + j] = 0;
                         data[i + j] = 0;
                     }
                 }
             }
-            this.last_clip = performance.now();
+            this.last_reset = performance.now();
         }
 
         //
@@ -149,47 +173,31 @@ export class Particles_Effects extends Particles_Base {
             if(params.invert_percent) {
                 percent = 1 - percent;
             }
-            let min_percent = MIN_PERCENT;
-            if('min_percent' in params) min_percent = params.min_percent;
-            percent = Math.max(min_percent, percent);
+            percent = Math.max(percent, ('min_percent' in params) ? params.min_percent : MIN_PERCENT);
             const scale = params.pend < pn ? 0 : percent;
 
             const ap = i + pos_offset;
             const ax = i + axisx_offset;
             const ay = i + axisy_offset;
 
-            const dp = i + pos_offset;
-            const dx = i + axisx_offset;
-            const dy = i + axisy_offset;
-
             data[i + lm_offset] = 0;
 
             // pos
             let addY = 0;
             if(params.speed.y != 0) addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
-            data[dp + 0] = vertices[ap + 0] - corrX;
-            data[dp + 1] = vertices[ap + 1] - corrZ;
-            data[dp + 2] = vertices[ap + 2] - corrY + addY;
+            data[ap + 0] = vertices[ap + 0] - corrX;
+            data[ap + 1] = vertices[ap + 1] - corrZ;
+            data[ap + 2] = vertices[ap + 2] - corrY + addY;
 
-            // Look at axis x
-            data[dx + 0] = vertices[ax + 0];
-            data[dx + 1] = vertices[ax + 2];
-            data[dx + 2] = vertices[ax + 1];
-            let d = [data[dx + 0], data[dx + 1], data[dx + 2]];
-            vec3.transformMat3(d, d, this.lookAtMat);
-            data[dx + 0] = d[0] * scale;
-            data[dx + 1] = d[1] * scale;
-            data[dx + 2] = d[2] * scale;
+            // Inline vec3.transformMat3 look at axis X
+            data[ax + 0] = (vertices[ax + 0] * lookAtMat[0] + vertices[ax + 2] * lookAtMat[3] + vertices[ax + 1] * lookAtMat[6]) * scale;
+            data[ax + 1] = (vertices[ax + 0] * lookAtMat[1] + vertices[ax + 2] * lookAtMat[4] + vertices[ax + 1] * lookAtMat[7]) * scale;
+            data[ax + 2] = (vertices[ax + 0] * lookAtMat[2] + vertices[ax + 2] * lookAtMat[5] + vertices[ax + 1] * lookAtMat[8]) * scale;
 
-            // Look at axis y
-            data[dy + 0] = vertices[ay + 0];
-            data[dy + 1] = vertices[ay + 2];
-            data[dy + 2] = vertices[ay + 1];
-            d = [data[dy + 0], data[dy + 1], data[dy + 2]];
-            vec3.transformMat3(d, d, this.lookAtMat);
-            data[dy + 0] = d[0] * scale;
-            data[dy + 1] = d[1] * scale;
-            data[dy + 2] = d[2] * scale;
+            // Inline vec3.transformMat3 look at axis Y
+            data[ay + 0] = (vertices[ay + 0] * lookAtMat[0] + vertices[ay + 2] * lookAtMat[3] + vertices[ay + 1] * lookAtMat[6]) * scale;
+            data[ay + 1] = (vertices[ay + 0] * lookAtMat[1] + vertices[ay + 2] * lookAtMat[4] + vertices[ay + 1] * lookAtMat[7]) * scale;
+            data[ay + 2] = (vertices[ay + 0] * lookAtMat[2] + vertices[ay + 2] * lookAtMat[5] + vertices[ay + 1] * lookAtMat[8]) * scale;
 
         }
 
@@ -200,7 +208,11 @@ export class Particles_Effects extends Particles_Base {
     // Draw
     draw(render, delta) {
 
-        this.update(render);
+        if(this.p_count < 0) {
+            return false;
+        }
+
+        this.update(render)
 
         if(!this.chunk) {
             this.chunk = ChunkManager.instance.getChunk(this.chunk_addr);

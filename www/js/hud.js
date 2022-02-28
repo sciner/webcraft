@@ -2,8 +2,9 @@ import {WindowManager} from "../tools/gui/wm.js";
 import {MainMenu} from "./window/index.js";
 import {FPSCounter} from "./fps.js";
 import GeometryTerrain from "./geometry_terrain.js";
-import {Helpers, Vector} from './helpers.js';
+import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
+import {Particles_Effects} from "./particles/effects.js";
 
 export class HUD {
 
@@ -323,6 +324,7 @@ export class HUD {
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
                 + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
             //
+            this.text += '\nParticles: ' + Particles_Effects.current_count;
             this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
         // Console =)
