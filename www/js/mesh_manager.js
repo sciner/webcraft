@@ -1,4 +1,6 @@
 import {Helpers, Vector} from "./helpers.js";
+import {getChunkAddr} from "./chunk.js";
+import {Particles_Effects} from "./particles/effects.js";
 // import {Particles_Music_Note} from "./particles/music_note.js";
 // import {Particles_Torch_Flame} from "./particles/torch_flame.js";
 // import {Particles_Campfire_Flame} from "./particles/campfire_flame.js";
@@ -125,7 +127,14 @@ export class MeshManager {
         }
 
         if(params) {
-            Game.render.addEffectParticle(p, params)
+            this._chunk_addr = getChunkAddr(p.x, p.y, p.z, this._chunk_addr);
+            const PARTICLE_EFFECTS_ID = 'particles_effects_' + this._chunk_addr.toHash();
+            let effects = this.get(PARTICLE_EFFECTS_ID);
+            if(!effects) {
+                effects = new Particles_Effects(this, this._chunk_addr, 'extend/transparent/effects');
+                this.add(effects, PARTICLE_EFFECTS_ID);
+            }
+            effects.add(p, params);
         }
         
     }
