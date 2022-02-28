@@ -23,6 +23,13 @@ const flame_textures = [
     [3, 4]
 ];
 
+const torch_textures = [
+    [0, 1],
+    [1, 1],
+    [2, 1],
+    [3, 1]
+];
+
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -92,7 +99,21 @@ export class ChunkManager {
                         if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
                                 case 'torch': {
-                                    meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/transparent/effects'));
+                                    let texture_index = Math.floor(torch_textures.length * Math.random());
+                                    const move_up = texture_index > 1;
+                                    const pos = {...item.pos};
+                                    pos.x += (Math.random() - Math.random()) * 0.01;
+                                    pos.y += .2;
+                                    pos.z += (Math.random() - Math.random()) * 0.01;
+                                    Game.render.addEffectParticle(pos, {
+                                        texture:        torch_textures[texture_index],
+                                        started:        performance.now(),
+                                        life:           1,
+                                        invert_percent: true,
+                                        gravity:        0.0075,
+                                        speed:          new Vector(0, move_up ? 100 : 0, 0)
+                                    })
+                                    // meshes.add(new Particles_Torch_Flame(this, item.pos, 'extend/transparent/effects'));
                                     break;
                                 }
                                 case 'campfire': {
@@ -102,11 +123,12 @@ export class ChunkManager {
                                     pos.y += .35 + .25 * Math.random();
                                     pos.z += (Math.random() - Math.random()) * .3;
                                     Game.render.addEffectParticle(pos, {
-                                        texture:    flame_textures[texture_index],
-                                        started:    performance.now(),
-                                        life:       5,
-                                        gravity:    0.0075 + (0.0075 * Math.random()),
-                                        speed:      new Vector(0, 100, 0)
+                                        texture:        flame_textures[texture_index],
+                                        started:        performance.now(),
+                                        life:           5,
+                                        invert_percent: false,
+                                        gravity:        0.0075 + (0.0075 * Math.random()),
+                                        speed:          new Vector(0, 100, 0)
                                     })
                                     // meshes.add(new Particles_Campfire_Flame(this, item.pos, 'extend/transparent/effects'));
                                     break;

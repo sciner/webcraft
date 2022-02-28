@@ -16,6 +16,7 @@ const axisx_offset      = 3;
 const axisy_offset      = 6;
 const uv_size_offset    = 11;
 const lm_offset         = 13;
+const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
 
 export class Particles_Effects extends Particles_Base {
 
@@ -36,27 +37,39 @@ export class Particles_Effects extends Particles_Base {
         this.chunk          = ChunkManager.instance.getChunk(chunk_addr);
         this.life           = 1;
 
-        this.vertices       = [];
         this.buffer         = new GeometryTerrain([]);
+        this.max_count      = 35000;
+        this.add_index      = 0;
+        this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
 
     }
 
+    // Add particle
     add(pos, params) {
-        const c = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt);
-        // размер текстуры
-        const sz = 1;
-        let flags = QUAD_FLAGS.NO_AO;
-        let lm = MULTIPLY.COLOR.WHITE.clone();
-        params.pend = performance.now() + 6000;
-        let {x, y, z} = pos;
-        const vindex = this.vertices.length;
-        push_plane(this.vertices, x, y, z, c, lm, true, false, sz, sz, null, flags, true);
-        this.vertices[vindex + lm_offset + 0] = params;
-
+        const c         = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt); // текстура
+        const sz        = 1; // размер текстуры
+        const flags     = QUAD_FLAGS.NO_AO;
+        const lm        = MULTIPLY.COLOR.WHITE.clone();
+        const {x, y, z} = pos;
+        //
+        let vertices = [];
+        push_plane(vertices, x, y, z, c, lm, true, false, sz, sz, null, flags, true);
+        //
+        const vindex = this.add_index * STRIDE_FLOATS;
+        this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
+        for(let i = 9; i < STRIDE_FLOATS; i++) {
+            this.buffer.data[vindex + i] = vertices[i];
+        }
+        // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
+        //
+        params.pend = performance.now() + 1000 * params.life;
+        this.vertices[vindex + lm_offset] = params;
+        this.add_index = (this.add_index + 1) % this.max_count;
     }
 
     update(render) {
 
+        // Lookat matricies
         const view = render.viewMatrix;
         mat3.fromMat4(this.lookAtMat, view);
         mat3.invert(this.lookAtMat, this.lookAtMat);
@@ -65,48 +78,52 @@ export class Particles_Effects extends Particles_Base {
         //
         let data = this.buffer.data;
         const vertices = this.vertices;
+        if(data.length != vertices.length) {
+            data = new Float32Array(vertices);
+        }
 
+        const pn = performance.now();
         const pp = Game.player.lerpPos;
+        const MIN_PERCENT = .25;
 
-        // correction for light
+        // Correction for light
         const corrX = pp.x;
         const corrY = pp.y;
         const corrZ = pp.z;
 
-        const pn = performance.now();
-        const strideFloats = GeometryTerrain.strideFloats;
-
+        // Delete particles
         const clip = !this.last_clip || (performance.now() - this.last_clip > 1000);
-
         if(clip) {
-            if(data.length < vertices.length) {
-                data = new Float32Array(vertices);
-            }    
-            //
-            let dest_offset = 0;
-            for(let i = 0; i < vertices.length; i += strideFloats) {
+            for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
                 const params = vertices[i + lm_offset];
-                // ignore this particle
-                if(params.pend > pn) {
-                    for(let j = 0; j < strideFloats; j++) {
-                        this.vertices[dest_offset + j] = this.vertices[i + j];
-                    }
-                    dest_offset += strideFloats;
+                if(!params) {
+                    continue;
                 }
-            }
-            if(dest_offset < data.length) {
-                data = data.slice(0, dest_offset);
-                this.vertices.splice(dest_offset);
+                // ignore this particle
+                if(params.pend < pn) {
+                    for(let j = 0; j < STRIDE_FLOATS; j++) {
+                        this.vertices[i + j] = 0;
+                        data[i + j] = 0;
+                    }
+                }
             }
             this.last_clip = performance.now();
         }
 
-        for(let i = 0; i < vertices.length; i += strideFloats) {
+        //
+        for(let i = 0; i < vertices.length; i += STRIDE_FLOATS) {
 
             const params = vertices[i + lm_offset];
+            if(!params) {
+                continue;
+            }
 
             const elapsed = (pn - params.started) / 1000;
-            const percent = .3 + (elapsed / params.life / 2) * 2.75;
+            let percent = elapsed / params.life;
+            if(params.invert_percent) {
+                percent = 1 - percent;
+            }
+            percent = Math.max(MIN_PERCENT, percent);
             const scale = params.pend < pn ? 0 : percent;
 
             const ap = i + pos_offset;
@@ -122,7 +139,11 @@ export class Particles_Effects extends Particles_Base {
             // pos
             data[dp + 0] = vertices[ap + 0] - corrX;
             data[dp + 1] = vertices[ap + 1] - corrZ;
-            data[dp + 2] = vertices[ap + 2] - corrY + (pn - params.started) * params.speed.y / 1000 * params.gravity;
+            let addY = 0;
+            if(params.speed.y != 0) {
+                addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
+            }
+            data[dp + 2] = vertices[ap + 2] - corrY + addY;
 
             // Look at axis x
             data[dx + 0] = vertices[ax + 0];
@@ -150,9 +171,12 @@ export class Particles_Effects extends Particles_Base {
 
     }
 
+    // Draw
     draw(render, delta) {
 
-        const pp = Game.player.lerpPos;
+        const pp = Game.player.lerpPos.clone();
+
+        // pp.y += .2;
 
         this.update(render);
 
