@@ -302,6 +302,9 @@ export class Chunk {
         // Run webworker method
         chunkManager.postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
         chunkManager.postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
+        // Remove particles mesh
+        const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
+        Game.render.meshes.remove(PARTICLE_EFFECTS_ID, Game.render);
     }
 
     // buildVertices

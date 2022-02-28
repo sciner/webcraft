@@ -107,7 +107,6 @@ export class ChunkManager {
                                     pos.z += (Math.random() - Math.random()) * 0.01;
                                     Game.render.addEffectParticle(pos, {
                                         texture:        torch_textures[texture_index],
-                                        started:        performance.now(),
                                         life:           1,
                                         invert_percent: true,
                                         gravity:        0.0075,
@@ -124,9 +123,7 @@ export class ChunkManager {
                                     pos.z += (Math.random() - Math.random()) * .3;
                                     Game.render.addEffectParticle(pos, {
                                         texture:        flame_textures[texture_index],
-                                        started:        performance.now(),
                                         life:           5,
-                                        invert_percent: false,
                                         gravity:        0.0075 + (0.0075 * Math.random()),
                                         speed:          new Vector(0, 100, 0)
                                     })

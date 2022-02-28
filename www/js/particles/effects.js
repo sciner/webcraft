@@ -21,24 +21,23 @@ const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
 export class Particles_Effects extends Particles_Base {
 
     // Constructor
-    constructor(render, material_key) {
+    constructor(render, chunk_addr, material_key) {
 
         super();
 
         this.scale = new Vector(1, 1, 1);
-        const pos = this.pos = Vector.ZERO.clone();
+        this.pos = Vector.ZERO.clone();
+        this.life           = 1;
 
         const m             = material_key.split('/');
         this.resource_pack  = Game.block_manager.resource_pack_manager.get(m[0]);
         this.material       = this.resource_pack.getMaterial(material_key);
         this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
 
-        const chunk_addr    = getChunkAddr(pos.x, pos.y, pos.z);
-        this.chunk          = ChunkManager.instance.getChunk(chunk_addr);
-        this.life           = 1;
+        this.chunk_addr     = chunk_addr;
 
         this.buffer         = new GeometryTerrain([]);
-        this.max_count      = 35000;
+        this.max_count      = 8000;
         this.add_index      = 0;
         this.vertices       = new Array(this.max_count * STRIDE_FLOATS);
 
@@ -48,7 +47,7 @@ export class Particles_Effects extends Particles_Base {
     add(pos, params) {
         const c         = BLOCK.calcTexture(params.texture, DIRECTION.UP, this.tx_cnt); // текстура
         const sz        = 1; // размер текстуры
-        const flags     = QUAD_FLAGS.NO_AO;
+        const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
         const lm        = MULTIPLY.COLOR.WHITE.clone();
         const {x, y, z} = pos;
         //
@@ -62,6 +61,7 @@ export class Particles_Effects extends Particles_Base {
         }
         // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
         //
+        params.started = performance.now();
         params.pend = performance.now() + 1000 * params.life;
         this.vertices[vindex + lm_offset] = params;
         this.add_index = (this.add_index + 1) % this.max_count;
@@ -174,25 +174,26 @@ export class Particles_Effects extends Particles_Base {
     // Draw
     draw(render, delta) {
 
-        const pp = Game.player.lerpPos.clone();
-
-        // pp.y += .2;
-
         this.update(render);
 
-        // this.chunk_addr = getChunkAddr(pp.x, pp.y, pp.z, this.chunk_addr);
-        // let chunk = ChunkManager.instance.getChunk(this.chunk_addr);
-        // const light = chunk.getLightTexture(render.renderBackend);
-        // this.material.changeLighTex(light);
+        if(!this.chunk) {
+            this.chunk = ChunkManager.instance.getChunk(this.chunk_addr);
+        }
 
-        render.renderBackend.drawMesh(
-            this.buffer,
-            this.material,
-            pp,
-            null
-        );
-
-        // this.material.lightTex = null;
+        if(this.chunk) {
+            const light = this.chunk.getLightTexture(render.renderBackend);
+            if(light) {
+                const pp = Game.player.lerpPos.clone();
+                this.material.changeLighTex(light);
+                render.renderBackend.drawMesh(
+                    this.buffer,
+                    this.material,
+                    pp,
+                    null
+                );
+                this.material.lightTex = null;
+            }
+        }
 
     }
 

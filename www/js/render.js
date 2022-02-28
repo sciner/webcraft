@@ -1,7 +1,7 @@
 "use strict";
 
 import {DIRECTION, Helpers, Vector} from "./helpers.js";
-import {CHUNK_SIZE_X} from "./chunk.js";
+import {CHUNK_SIZE_X, getChunkAddr} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
 import {FrustumProxy} from "./frustum.js";
@@ -616,10 +616,11 @@ export class Renderer {
 
     // Add particle
     addEffectParticle(pos, params) {
-        const PARTICLE_EFFECTS_ID = 'effects';
+        this._chunk_addr = getChunkAddr(pos.x, pos.y, pos.z, this._chunk_addr);
+        const PARTICLE_EFFECTS_ID = 'particles_effects_' + this._chunk_addr.toHash();
         let effects = this.meshes.get(PARTICLE_EFFECTS_ID);
         if(!effects) {
-            effects = new Particles_Effects(this, 'extend/transparent/effects');
+            effects = new Particles_Effects(this, this._chunk_addr, 'extend/transparent/effects');
             this.meshes.add(effects, PARTICLE_EFFECTS_ID);
         }
         effects.add(pos, params);
