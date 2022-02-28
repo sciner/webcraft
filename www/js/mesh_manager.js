@@ -96,7 +96,6 @@ export class MeshManager {
             }
             case 'torch_flame': {
                 const move_up = texture_index > 1;
-                const p = {...pos};
                 p.x += (Math.random() - Math.random()) * 0.01;
                 p.y += .2;
                 p.z += (Math.random() - Math.random()) * 0.01;
@@ -111,7 +110,6 @@ export class MeshManager {
                 break;
             }
             case 'campfire_flame': {
-                const p = {...pos};
                 p.x += (Math.random() - Math.random()) * .3;
                 p.y += .35 + .25 * Math.random();
                 p.z += (Math.random() - Math.random()) * .3;
