@@ -28,7 +28,6 @@ export class Particles_Effects extends Particles_Base {
         super();
 
         this.scale          = new Vector(1, 1, 1);
-        this.pos            = Vector.ZERO.clone();
         this.life           = 1;
 
         const m             = material_key.split('/');
@@ -36,9 +35,10 @@ export class Particles_Effects extends Particles_Base {
         this.material       = this.resource_pack.getMaterial(material_key);
         this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
 
+        // this.pos            = this.chunk_coord.clone();
+        this.pos            = Vector.ZERO.clone();
         this.chunk_addr     = chunk_addr;
         this.chunk_coord    = chunk_addr.mul(chunk_size);
-        this.pos            = this.chunk_coord.clone();
 
         this.max_count      = 32;
         this.add_index      = 0;
@@ -125,19 +125,18 @@ export class Particles_Effects extends Particles_Base {
         const vertices = this.vertices;
 
         const pn = performance.now();
-        const pp = Game.player.lerpPos;
+        // const pp = Game.player.lerpPos;
         const MIN_PERCENT = .25;
 
-        // const chCoord  = this.chunk_coord;
-        // const pos = this.pos;
-        // const corrX = pos.x - chCoord.x;
-        // const corrY = pos.y - chCoord.y;
-        // const corrZ = pos.z - chCoord.z;
+        const chCoord  = this.chunk_coord;
+        const corrX = -chCoord.x;
+        const corrY = -chCoord.y;
+        const corrZ = -chCoord.z;
 
         // Correction for light
-        const corrX = pp.x;
-        const corrY = pp.y;
-        const corrZ = pp.z;
+        // const corrX = pp.x;
+        // const corrY = pp.y;
+        // const corrZ = pp.z;
 
         // Reset inactive particles
         if(!this.last_reset || (performance.now() - this.last_reset > 1000)) {
@@ -184,9 +183,9 @@ export class Particles_Effects extends Particles_Base {
             // pos
             let addY = 0;
             if(params.speed.y != 0) addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
-            data[ap + 0] = vertices[ap + 0] - corrX;
-            data[ap + 1] = vertices[ap + 1] - corrZ;
-            data[ap + 2] = vertices[ap + 2] - corrY + addY;
+            data[ap + 0] = vertices[ap + 0] + corrX;
+            data[ap + 1] = vertices[ap + 1] + corrZ;
+            data[ap + 2] = vertices[ap + 2] + corrY + addY;
 
             // Inline vec3.transformMat3 look at axis X
             data[ax + 0] = (vertices[ax + 0] * lookAtMat[0] + vertices[ax + 2] * lookAtMat[3] + vertices[ax + 1] * lookAtMat[6]) * scale;
@@ -220,7 +219,7 @@ export class Particles_Effects extends Particles_Base {
         if(this.chunk) {
             const light = this.chunk.getLightTexture(render.renderBackend);
             if(light) {
-                const pp = Game.player.lerpPos.clone();
+                const pp = this.chunk_coord; // Game.player.lerpPos.clone();
                 this.material.changeLighTex(light);
                 render.renderBackend.drawMesh(
                     this.buffer,
