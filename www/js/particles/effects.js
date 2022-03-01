@@ -1,13 +1,12 @@
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-import { DIRECTION, MULTIPLY, QUAD_FLAGS, Vector } from '../helpers.js';
+import { QUAD_FLAGS, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
-import { BLOCK } from "../blocks.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { Particles_Base } from './particles_base.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 
-const { mat3, mat4, vec3 } = glMatrix;
+const { mat3, mat4 } = glMatrix;
 
 const push_plane = push_plane_style.getRegInfo().func;
 
@@ -92,7 +91,7 @@ export class Particles_Effects extends Particles_Base {
         // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
         //
         params.started = performance.now();
-        params.pend = performance.now() + 1000 * params.life;
+        params.pend = params.started + 1000 * params.life;
         this.vertices[vindex + lm_offset] = params;
         Particles_Effects.current_count++;
         this.p_count++;
@@ -212,7 +211,7 @@ export class Particles_Effects extends Particles_Base {
             return false;
         }
 
-        this.update(render)
+        this.update(render);
 
         if(!this.chunk) {
             this.chunk = ChunkManager.instance.getChunk(this.chunk_addr);

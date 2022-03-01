@@ -1,44 +1,39 @@
 import {Helpers, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {Particles_Effects} from "./particles/effects.js";
-// import {Particles_Music_Note} from "./particles/music_note.js";
-// import {Particles_Torch_Flame} from "./particles/torch_flame.js";
-// import {Particles_Campfire_Flame} from "./particles/campfire_flame.js";
+
+export class Particle {
+
+    constructor(texture, life, invert_percent, min_percent, gravity, speed) {
+        this.texture            = texture;
+        this.life               = life;
+        this.invert_percent     = invert_percent;
+        this.min_percent        = min_percent;
+        this.gravity            = gravity;
+        this.speed              = speed;
+    }
+
+}
 
 // MeshManager
 export class MeshManager {
 
     constructor() {
+
         this.list = new Map();
         this.particle_textures = new Map();
 
         this.particle_textures.set('music_note', [
-            [0, 0],
-            [1, 0],
-            [2, 0],
-            [3, 0]
+            [0, 0], [1, 0], [2, 0], [3, 0]
         ]);
 
         this.particle_textures.set('torch_flame', [
-            [0, 1],
-            [1, 1],
-            [2, 1],
-            [3, 1]
+            [0, 1], [1, 1], [2, 1], [3, 1]
         ]);
 
         this.particle_textures.set('campfire_flame', [
-            [0, 3],
-            [1, 3],
-            [2, 3],
-            [3, 3],
-            [4, 3],
-            [5, 3],
-            [6, 3],
-            [7, 3],
-            [0, 4],
-            [1, 4],
-            [2, 4],
-            [3, 4]
+            [0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [7, 3],
+            [0, 4], [1, 4], [2, 4], [3, 4]
         ]);
 
     }
@@ -73,7 +68,7 @@ export class MeshManager {
     //
     addEffectParticle(name, pos) {
         
-        let params = null;
+        let particle = null;
         const p = {...pos};
 
         let textures = this.particle_textures.get(name);
@@ -85,15 +80,7 @@ export class MeshManager {
         switch(name) {
             case 'music_note': {
                 p.z += (Math.random() - Math.random()) * .3;
-                params = {
-                    texture:        textures[texture_index],
-                    life:           2,
-                    invert_percent: true,
-                    min_percent:    0,
-                    gravity:        0.0075 + (0.0075 * Math.random()),
-                    speed:          new Vector(0, 100, 0)
-                }
-                // this.meshes.add(new Particles_Music_Note(this, p, 'extend/regular/effects'));
+                particle = new Particle(textures[texture_index], 2, true, 0, 0.0075 + (0.0075 * Math.random()), new Vector(0, 100, 0));
                 break;
             }
             case 'torch_flame': {
@@ -101,32 +88,19 @@ export class MeshManager {
                 p.x += (Math.random() - Math.random()) * 0.01;
                 p.y += .2;
                 p.z += (Math.random() - Math.random()) * 0.01;
-                params ={
-                    texture:        textures[texture_index],
-                    life:           1,
-                    invert_percent: true,
-                    gravity:        0.0075,
-                    speed:          new Vector(0, move_up ? 100 : 0, 0)
-                };
-                // this.add(new Particles_Torch_Flame(this, p, 'extend/transparent/effects'));
+                particle = new Particle(textures[texture_index], 1, true, 0, 0.0075, new Vector(0, move_up ? 100 : 0, 0));
                 break;
             }
             case 'campfire_flame': {
                 p.x += (Math.random() - Math.random()) * .3;
                 p.y += .35 + .25 * Math.random();
                 p.z += (Math.random() - Math.random()) * .3;
-                params = {
-                    texture:        textures[texture_index],
-                    life:           5,
-                    gravity:        0.0075 + (0.0075 * Math.random()),
-                    speed:          new Vector(0, 100, 0)
-                };
-                // this.add(new Particles_Campfire_Flame(this, p, 'extend/transparent/effects'));
+                particle = new Particle(textures[texture_index], 5, false, 0, 0.0075 + (0.0075 * Math.random()), new Vector(0, 100, 0));
                 break;
             }
         }
 
-        if(params) {
+        if(particle) {
             this._chunk_addr = getChunkAddr(p.x, p.y, p.z, this._chunk_addr);
             const PARTICLE_EFFECTS_ID = 'particles_effects_' + this._chunk_addr.toHash();
             let effects = this.get(PARTICLE_EFFECTS_ID);
@@ -134,7 +108,7 @@ export class MeshManager {
                 effects = new Particles_Effects(this, this._chunk_addr, 'extend/transparent/effects');
                 this.add(effects, PARTICLE_EFFECTS_ID);
             }
-            effects.add(p, params);
+            effects.add(p, particle);
         }
         
     }
