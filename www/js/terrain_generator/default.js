@@ -18,6 +18,9 @@ export class Default_Terrain_Generator {
         this.xyz_temp_coord = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
+        this.maps = {
+            delete: function() {}
+        };
     }
 
     async setSeed(seed) {
@@ -56,9 +59,6 @@ export class Default_Terrain_Generator {
             }
         };
 
-    }
-
-    deleteMap(addr) {
     }
 
     //

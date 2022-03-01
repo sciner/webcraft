@@ -270,6 +270,7 @@
     vec3 absNormal = abs(v_normal);
     vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
 
+    lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     float caveSample = texture(u_lightTex, lightCoord).a;
     float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
     float aoSample = 0.0;
