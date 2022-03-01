@@ -103,6 +103,36 @@ async function onMessageFunc(e) {
         );
     }
     switch(cmd) {
+        case 'createMaps': {
+            let pn = performance.now();
+            const addr = new Vector(args.addr);
+            const maps = world.generator.maps.generateAround(addr, false, false, 8);
+            const CELLS_COUNT = 256;
+            const CELL_LENGTH = 4;
+            const resp = new Float32Array(new Array((CELLS_COUNT * CELL_LENGTH + CELL_LENGTH) * maps.length));
+            let offset = 0;
+            for(let map of maps) {
+                resp[offset + 0] = map.chunk.addr.x;
+                resp[offset + 1] = map.chunk.addr.y;
+                resp[offset + 2] = map.chunk.addr.z;
+                resp[offset + 3] = 0;
+                offset += CELL_LENGTH;
+                for(let x = 0; x < map.info.cells.length; x++) {
+                    const line = map.info.cells[x];
+                    for(let z = 0; z < line.length; z++) {
+                        const cell = line[z];
+                        resp[offset + 0] = cell.value2;
+                        resp[offset + 1] = cell.block;
+                        resp[offset + 2] = cell.biome.dirt_color.r;
+                        resp[offset + 3] = cell.biome.dirt_color.g;
+                        offset += CELL_LENGTH;
+                    }
+                }
+            }
+            console.log(performance.now() - pn);
+            worker.postMessage(['maps_created', resp]);
+            break;
+        }
         case 'createChunk': {
             let from_cache = world.chunks.has(args.addr);
             const update = ('update' in args) && args.update;

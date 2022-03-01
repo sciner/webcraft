@@ -203,6 +203,12 @@ export class ChunkManager {
                     that.torches.add(args);
                     break;
                 }
+                case 'maps_created': {
+                    // chunkManager.postWorkerMessage(['createMaps', {addr: {x: 1, y: 1, z: 1}}]);
+                    // console.log('maps_created', args.length * 4);
+                    console.log('maps_created', args);
+                    break;
+                }
             }
         }
         // Light worker messages receiver

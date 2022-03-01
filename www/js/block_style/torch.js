@@ -65,11 +65,12 @@ export default class style {
     }
 
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+
         const {
             rotate
         } = block;
 
-        if (!rotate || rotate.y) {
+        if ((!rotate || rotate.y) && (typeof worker != 'undefined')) {
             worker.postMessage(['add_torch', {
                 block_pos: chunk.coord.add(new Vector(x, y, z)),
                 pos: chunk.coord.add(new Vector(x, y, z)),
@@ -88,11 +89,13 @@ export default class style {
             z + cubeSymAxis[rotate.x][1] * 0.2,
         ));
 
-        worker.postMessage(['add_torch', {
-            block_pos: chunk.coord.add(new Vector(x, y, z)),
-            pos: torch_pos,
-            type: 'torch'
-        }]);
+        if(typeof worker != 'undefined') {
+            worker.postMessage(['add_torch', {
+                block_pos: chunk.coord.add(new Vector(x, y, z)),
+                pos: torch_pos,
+                type: 'torch'
+            }]);
+        }
 
         return cube_func(
             block,

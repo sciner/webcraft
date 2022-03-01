@@ -72,11 +72,10 @@ export class TerrainMap {
     }
 
     // Generate maps
-    generateAround(chunk_addr, smooth, vegetation) {
+    generateAround(chunk_addr, smooth, vegetation, rad = 1) {
         const noisefn               = this.noisefn;
         let maps                    = [];
         let map                     = null;
-        let rad                     = 1;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMap._temp_vec3.x = x;
