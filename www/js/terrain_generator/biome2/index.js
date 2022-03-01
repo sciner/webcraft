@@ -31,6 +31,16 @@ const ORE_RANDOMS = [
     {max_rad: 3, block_id: BLOCK.COAL_ORE.id, max_y: Infinity}
 ];
 
+const MAP_SCALE = .5;
+const GENERATOR_OPTIONS = {
+    WATER_LINE:             63, // Ватер-линия
+    SCALE_EQUATOR:          1280 * MAP_SCALE, // Масштаб для карты экватора
+    SCALE_BIOM:             640  * MAP_SCALE, // Масштаб для карты шума биомов
+    SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
+    SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
+};
+
+// Randoms
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
 let a = new alea('random_plants_position');
 for(let i = 0; i < randoms.length; i++) {
@@ -45,6 +55,146 @@ const AMETHYST_ROOM_RADIUS      = 6;
 const AMETHYST_CLUSTER_CHANCE   = 0.1;
 const _intersection             = new Vector(0, 0, 0);
 
+export class TerrainMap {
+
+    static _temp_vec3 = Vector.ZERO.clone();
+
+    constructor(seed, world_id, noisefn) {
+        this.seed = seed;
+        this.world_id = world_id;
+        this.noisefn = noisefn;
+        this.maps_cache = new VectorCollector();
+    }
+
+    // Delete map for unused chunk
+    delete(addr) {
+        return this.maps_cache.delete(addr);
+    }
+
+    // Generate maps
+    generateAround(chunk_addr, smooth, vegetation) {
+        const noisefn               = this.noisefn;
+        let maps                    = [];
+        let map                     = null;
+        let rad                     = 1;
+        for(let x = -rad; x <= rad; x++) {
+            for(let z = -rad; z <= rad; z++) {
+                TerrainMap._temp_vec3.x = x;
+                TerrainMap._temp_vec3.y = -chunk_addr.y;
+                TerrainMap._temp_vec3.z = z;
+                let addr = chunk_addr.add(TerrainMap._temp_vec3);
+                const c = {
+                    id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
+                    blocks: {},
+                    seed:   this.seed,
+                    addr:   addr,
+                    size:   size,
+                    coord:  addr.mul(size),
+                };
+                let item = {
+                    chunk: c,
+                    info: this.generateMap(c, noisefn)
+                };
+                maps.push(item);
+                if(x == 0 && z == 0) {
+                    map = item;
+                }
+            }
+        }
+        // Options
+        smooth = smooth && !map.info.smoothed;
+        vegetation = vegetation && !map.info.smoothed;
+        // Smooth (for central and part of neighbours)
+        if(smooth) {
+            map.info.smoothed = true;
+            map.info.smooth(this);
+        }
+        // Generate vegetation
+        if(vegetation) {
+            for(let map of maps) {
+                map.info.generateVegetation();
+            }
+        }
+        return maps;
+    }
+
+    // generateMap
+    generateMap(chunk, noisefn) {
+        let cached = this.maps_cache.get(chunk.addr);
+        if(cached) {
+            return cached;
+        }
+        const options               = GENERATOR_OPTIONS;
+        const SX                    = chunk.coord.x;
+        const SZ                    = chunk.coord.z;
+        // Result map
+        let map                     = new Map(chunk, options);
+        //
+        for(let x = 0; x < chunk.size.x; x++) {
+            for(let z = 0; z < chunk.size.z; z++) {
+                let px = SX + x;
+                let pz = SZ + z;
+                // Высота горы в точке
+                let value = noisefn(px / 150, pz / 150, 0) * .4 + 
+                    noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
+                    noisefn(px / 650, pz / 650) * .25 + // 65 | 650
+                    noisefn(px / 20, pz / 20) * .05 +
+                    noisefn(px / 350, pz / 350) * .5;
+                value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
+                // Влажность
+                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2, 0, 1);
+                // Экватор
+                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
+                // Get biome
+                let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
+                value = value * biome.max_height + 68;
+                value = parseInt(value);
+                value = Helpers.clamp(value, 4, 2500);
+                biome = BIOMES.getBiome(value / 255, humidity, equator);
+                // Pow
+                let diff = value - options.WATER_LINE;
+                if(diff < 0) {
+                    value -= (options.WATER_LINE - value) * .65 - 1.5;
+                } else {
+                    value = options.WATER_LINE + Math.pow(diff, 1 + diff / 64);
+                }
+                value = parseInt(value);
+                // Different dirt blocks
+                let ns = noisefn(px / 5, pz / 5);
+                let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
+                let dirt_block = biome.dirt_block[index];
+                // Create map cell
+                let cell = new MapCell(
+                    value,
+                    humidity,
+                    equator,
+                    {
+                        code:           biome.code,
+                        color:          biome.color,
+                        dirt_color:     biome.dirt_color,
+                        title:          biome.title,
+                        dirt_block:     dirt_block.id,
+                        block:          biome.block
+                    },
+                    dirt_block.id
+                );
+                if(biome.code == 'OCEAN') {
+                    cell.block = BLOCK.STILL_WATER.id;
+                }
+                try {
+                    map.cells[x][z] = cell;
+                } catch(e) {
+                    debugger;
+                }
+            }
+        }
+        // Clear maps_cache
+        this.maps_cache.reduce(20000);
+        return this.maps_cache.add(chunk.addr, map);
+    }
+
+}
+
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -57,25 +207,19 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     async init() {
-        const scale                 = .5;
         // Настройки
-        this.options = {
-            WATER_LINE:             63, // Ватер-линия
-            SCALE_EQUATOR:          1280 * scale, // Масштаб для карты экватора
-            SCALE_BIOM:             640  * scale, // Масштаб для карты шума биомов
-            SCALE_HUMIDITY:         320  * scale, // Масштаб для карты шума влажности
-            SCALE_VALUE:            250  * scale // Масштаб шума для карты высот
-        };
+        this.options                = GENERATOR_OPTIONS;
         this.temp_vec               = new Vector(0, 0, 0);
         this.noise3d                = noise.simplex3;
         //
         this.noisefn                = noise.perlin2;
         this.noisefn3d              = noise.perlin3;
-        this.maps_cache             = new VectorCollector();
         // Сaves manager
         this.caveManager            = new CaveGenerator(this.seed);
         this.islands                = [];
         this.extruders              = [];
+        //
+        this.maps = new TerrainMap(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
             // Костыль для NodeJS
@@ -132,129 +276,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
     }
 
-    // Delete map for unused chunk
-    deleteMap(addr) {
-        return this.maps_cache.delete(addr);
-    }
-
-    // generateMap
-    generateMap(chunk, noisefn) {
-        let cached = this.maps_cache.get(chunk.addr);
-        if(cached) {
-            return cached;
-        }
-        const options               = this.options;
-        const SX                    = chunk.coord.x;
-        const SZ                    = chunk.coord.z;
-        // Result map
-        let map                     = new Map(chunk, this.options);
-        this.caveManager.addSpiral(chunk.addr);
-        //
-        for(let x = 0; x < chunk.size.x; x++) {
-            for(let z = 0; z < chunk.size.z; z++) {
-                let px = SX + x;
-                let pz = SZ + z;
-                // Высота горы в точке
-                let value = noisefn(px / 150, pz / 150, 0) * .4 + 
-                    noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
-                    noisefn(px / 650, pz / 650) * .25 + // 65 | 650
-                    noisefn(px / 20, pz / 20) * .05 +
-                    noisefn(px / 350, pz / 350) * .5;
-                value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
-                // Влажность
-                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2, 0, 1);
-                // Экватор
-                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
-                // Get biome
-                let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
-                value = value * biome.max_height + 68;
-                value = parseInt(value);
-                value = Helpers.clamp(value, 4, 2500);
-                biome = BIOMES.getBiome(value / 255, humidity, equator);
-                // Pow
-                let diff = value - options.WATER_LINE;
-                if(diff < 0) {
-                    value -= (options.WATER_LINE - value) * .65 - 1.5;
-                } else {
-                    value = options.WATER_LINE + Math.pow(diff, 1 + diff / 64);
-                }
-                value = parseInt(value);
-                // Different dirt blocks
-                let ns = noisefn(px / 5, pz / 5);
-                let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
-                let dirt_block = biome.dirt_block[index];
-                // Create map cell
-                let cell = new MapCell(
-                    value,
-                    humidity,
-                    equator,
-                    {
-                        code:           biome.code,
-                        color:          biome.color,
-                        dirt_color:     biome.dirt_color,
-                        title:          biome.title,
-                        dirt_block:     dirt_block.id,
-                        block:          biome.block
-                    },
-                    dirt_block.id
-                );
-                if(biome.code == 'OCEAN') {
-                    cell.block = BLOCK.STILL_WATER.id;
-                }
-                try {
-                    map.cells[x][z] = cell;
-                    // map.cells[x + 1][z + 1] = cell;
-                    // map.cells[x + 1][z] = cell;
-                    // map.cells[x][z + 1] = cell;
-                } catch(e) {
-                    debugger;
-                }
-            }
-        }
-        // Clear maps_cache
-        this.maps_cache.reduce(20000);
-        return this.maps_cache.add(chunk.addr, map);
-    }
-
-    // generateMaps
-    generateMaps(chunk) {
-        const noisefn               = this.noisefn;
-        let maps                    = [];
-        let map                     = null;
-        let rad                     = 1;
-        for(let x = -rad; x <= rad; x++) {
-            for(let z = -rad; z <= rad; z++) {
-                let addr = chunk.addr.add(new Vector(x, -chunk.addr.y, z));
-                const c = {
-                    id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-                    blocks: {},
-                    seed:   chunk.seed,
-                    addr:   addr,
-                    size:   size,
-                    coord:  addr.mul(size),
-                };
-                let item = {
-                    chunk: c,
-                    info: this.generateMap(c, noisefn)
-                };
-                maps.push(item);
-                if(x == 0 && z == 0) {
-                    map = item;
-                }
-            }
-        }
-        // Smooth (for central and part of neighbours)
-        if(!map.info.smoothed) {
-            map.info.smoothed = true;
-            map.info.smooth(this);
-            // Generate vegetation
-            for(let map of maps) {
-                map.info.generateVegetation();
-            }
-        }
-        return maps;
-    }
-
     // getOreBlockID...
     getOreBlockID(xyz, value, dirt_block) {
         this.temp_vec.copyFrom(xyz);
@@ -304,9 +325,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let randoms_index               = 0;
 
         // Maps
-        let maps                        = this.generateMaps(chunk);
+        let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
         this.map                        = map;
+        this.caveManager.addSpiral(chunk.addr);
 
         this.ores = [];
         const margin = 3;

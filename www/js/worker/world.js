@@ -64,7 +64,7 @@ export class WorkerWorld {
     destructChunk(addr) {
         if(this.chunks.has(addr)) {
             this.chunks.delete(addr);
-            this.generator.deleteMap(addr);
+            this.generator.maps.delete(addr);
             return true;
         }
         return false;
