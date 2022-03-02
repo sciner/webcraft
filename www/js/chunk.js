@@ -1,4 +1,4 @@
-import {Vector, VectorCollector} from "./helpers.js";
+import {Vector} from "./helpers.js";
 import GeometryTerrain from "./geometry_terrain.js";
 import {TypedBlocks} from "./typed_blocks.js";
 import {Sphere} from "./frustum.js";
@@ -8,7 +8,7 @@ import {AABB} from './core/AABB.js';
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;
 export const CHUNK_SIZE_Z                   = 16;
-export const CHUNK_BLOCKS                   = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+export const CHUNK_SIZE                     = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
 export const CHUNK_SIZE_Y_MAX               = 4096;
 export const MAX_CAVES_LEVEL                = 256;
 export const ALLOW_NEGATIVE_Y               = true;
@@ -34,36 +34,6 @@ export function getChunkAddr(x, y, z, v = null) {
     return v;
 }
 
-/**
- * Возвращает мировые координаты самого чанка
- */
-export function getChunkWorldCoord(x, y, z, v = null) {
-    const out = getChunkAddr(x, y, z, v);
-    out.x *= CHUNK_SIZE_X;
-    out.y *= CHUNK_SIZE_Y;
-    out.z *= CHUNK_SIZE_Z;
-    return out;
-}
-
-/**
- * Возвращает локальные координаты относительно чанка
- */
-export function getLocalChunkCoord(x, y, z, target = null) {
-    const out = getChunkWorldCoord(x, y, z, target);
-
-    if(x instanceof Vector) {
-        y = x.y;
-        z = x.z;
-        x = x.x;
-    }
-
-    out.x = x - out.x;
-    out.y = y - out.y;
-    out.z = z - out.z;
-
-    return out;
-}
-
 // Creates a new chunk
 export class Chunk {
 
@@ -87,9 +57,9 @@ export class Chunk {
         this.modify_list = [];
 
         // Light
-        this.lightTex = null;
-        this.lightData = null;
-        this.lightMats = new Map();
+        this.lightTex                   = null;
+        this.lightData                  = null;
+        this.lightMats                  = new Map();
 
         // Objects & variables
         this.inited                     = false;
@@ -117,18 +87,8 @@ export class Chunk {
 
     // onBlocksGenerated ... Webworker callback method
     onBlocksGenerated(args) {
-        this.tblocks            = new TypedBlocks(this.coord);
-        this.tblocks.count      = CHUNK_BLOCKS;
-        this.tblocks.buffer     = args.tblocks.buffer;
-        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
-        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
-        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
-        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
-        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
-        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
-        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
-        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
+        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks.restoreState(args.tblocks);
         this.inited = true;
         this.initLights();
     }
@@ -229,31 +189,18 @@ export class Chunk {
         return true;
     }
 
-    drawBufferGroup(render, resource_pack, group, mat) {
-        let drawed = false;
-        for(let [key, v] of this.vertices) {
-            if(v.resource_pack_id == resource_pack.id && v.material_group == group) {
-                if(!v.buffer) {
-                    continue;
-                }
-                const flag = this.drawBufferVertices(render, resource_pack, group, mat, v);
-                drawed = drawed || flag;
-            }
-        }
-        return drawed;
-    }
-
     // Apply vertices
     applyVertices() {
         let chunkManager = this.getChunkManager();
         const args = this.vertices_args;
         delete(this['vertices_args']);
-        this.need_apply_vertices = false;
-        this.buildVerticesInProgress            = false;
-        chunkManager.vertices_length_total -= this.vertices_length;
         this.vertices_length                    = 0;
+        this.need_apply_vertices                = false;
+        this.buildVerticesInProgress            = false;
+        this.timers                             = args.timers;
         this.gravity_blocks                     = args.gravity_blocks;
         this.fluid_blocks                       = args.fluid_blocks;
+        chunkManager.vertices_length_total      -= this.vertices_length;
         // Delete old WebGL buffers
         for(let [key, v] of this.vertices) {
             if(v.buffer) {
@@ -280,7 +227,6 @@ export class Chunk {
         }
         chunkManager.vertices_length_total += this.vertices_length;
         this.dirty                 = false;
-        this.timers                = args.timers;
     }
 
     // destruct chunk
@@ -350,11 +296,7 @@ export class Chunk {
         };
         // fix rotate
         if(rotate && typeof rotate === 'object') {
-            rotate = new Vector(
-                Math.round(rotate.x * 10) / 10,
-                Math.round(rotate.y * 10) / 10,
-                Math.round(rotate.z * 10) / 10
-            );
+            rotate = new Vector(rotate).roundSelf(1);
         } else {
             rotate = new Vector(0, 0, 0);
         }

@@ -169,11 +169,7 @@ export class Chunk {
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
         // fix rotate
         if(rotate && typeof rotate === 'object') {
-            rotate = new Vector(
-                Math.round(rotate.x * 10) / 10,
-                Math.round(rotate.y * 10) / 10,
-                Math.round(rotate.z * 10) / 10
-            );
+            rotate = new Vector(rotate).roundSelf(1);
         } else {
             rotate = null;
         }

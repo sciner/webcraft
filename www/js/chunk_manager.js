@@ -4,6 +4,7 @@ import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
@@ -260,7 +261,7 @@ export class ChunkManager {
                 v2.length = 0;
             }
         }
-        let applyVerticesCan = 20;
+        let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let chunk of this.poses) {
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {

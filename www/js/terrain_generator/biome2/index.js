@@ -1,4 +1,4 @@
-import {CHUNK_BLOCKS, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../../chunk.js";
 import {Vector, Helpers, VectorCollector} from '../../helpers.js';
 import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
@@ -39,6 +39,24 @@ const GENERATOR_OPTIONS = {
     SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
 };
+
+const sides = [
+    new Vector(1, 0, 0),
+    new Vector(-1, 0, 0),
+    new Vector(0, 1, 0),
+    new Vector(0, -1, 0),
+    new Vector(0, 0, 1),
+    new Vector(0, 0, -1)
+];
+
+const rotates = [
+    new Vector(CubeSym.ROT_Z, 0, 0),
+    new Vector(CubeSym.ROT_Z3, 0, 0),
+    new Vector(CubeSym.NEG_Y, 0, 0),
+    new Vector(CubeSym.ROT_Y3, 0, 0),
+    new Vector(CubeSym.ROT_X, 0, 0),
+    new Vector(CubeSym.ROT_X3, 0, 0)
+];
 
 // Randoms
 let randoms = new Array(CHUNK_SIZE_X * CHUNK_SIZE_Z);
@@ -910,27 +928,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         // Amethyst room
-        if(fill_count > CHUNK_BLOCKS * .7) {
+        if(fill_count > CHUNK_SIZE * .7) {
             let chance = aleaRandom.double();
             if(chance < .25) {
                 const room_pos = new Vector(chunk.size).divScalar(2);
                 let temp_vec_amethyst = new Vector(0, 0, 0);
-                let sides = [
-                    new Vector(1, 0, 0),
-                    new Vector(-1, 0, 0),
-                    new Vector(0, 1, 0),
-                    new Vector(0, -1, 0),
-                    new Vector(0, 0, 1),
-                    new Vector(0, 0, -1)
-                ];
-                let rotates = [
-                    new Vector(CubeSym.ROT_Z, 0, 0),
-                    new Vector(CubeSym.ROT_Z3, 0, 0),
-                    new Vector(CubeSym.NEG_Y, 0, 0),
-                    new Vector(CubeSym.ROT_Y3, 0, 0),
-                    new Vector(CubeSym.ROT_X, 0, 0),
-                    new Vector(CubeSym.ROT_X3, 0, 0)
-                ];
                 let temp_ar_vec = new Vector();
                 let rad = chance * 4;
                 room_pos.y += Math.round((rad - 0.5) * 10);

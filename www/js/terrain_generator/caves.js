@@ -1,6 +1,6 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {Vector, SpiralGenerator, VectorCollector} from "../helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS} from "../chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../chunk.js";
 import {AABB} from '../core/AABB.js';
 
 // Общее количество блоков в чанке
@@ -122,7 +122,7 @@ export class Cave {
         }
 
         // Генерируем абсолютную позицию начала пещеры в этом чанке
-        let index = parseInt(aleaRandom.double() * CHUNK_BLOCKS * .6);
+        let index = parseInt(aleaRandom.double() * CHUNK_SIZE * .6);
 
         // Конвертируем позицию в 3D вектор
         const x = index % CHUNK_SIZE_X;

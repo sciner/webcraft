@@ -1,5 +1,5 @@
 import {Vector, VectorCollector} from "./helpers.js";
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "./chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "./chunk.js";
 import {BLOCK} from "./blocks.js";
 
 export class TBlock {
@@ -169,9 +169,9 @@ export class TBlock {
 // TypedBlocks
 export class TypedBlocks {
 
-    constructor(coord) {
+    constructor(coord, block_count = CHUNK_SIZE) {
         this.coord      = coord;
-        this.count      = CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z;
+        this.count      = block_count;
         this.buffer     = new ArrayBuffer(this.count * 2);
         this.id         = new Uint16Array(this.buffer, 0, this.count);
         this.power      = new VectorCollector();
@@ -181,10 +181,26 @@ export class TypedBlocks {
         this.extra_data = new VectorCollector();
         this.vertices   = new VectorCollector();
         this.falling    = new VectorCollector();
+        //
         this.shapes     = new VectorCollector();
         this.metadata   = new VectorCollector();
         this.position   = new VectorCollector();
     }
+
+    // Restore state
+    restoreState(state) {
+        this.buffer     = state.buffer;
+        this.id         = new Uint16Array(this.buffer, 0, this.count);
+        this.power      = new VectorCollector(state.power.list);
+        this.rotate     = new VectorCollector(state.rotate.list);
+        this.entity_id  = new VectorCollector(state.entity_id.list);
+        this.texture    = new VectorCollector(state.texture.list);
+        this.extra_data = new VectorCollector(state.extra_data.list);
+        this.vertices   = new VectorCollector(state.vertices.list);
+        this.shapes     = new VectorCollector(state.shapes.list);
+        this.falling    = new VectorCollector(state.falling.list);
+    }
+
     /**
      * Creating iterator that fill target block to reduce allocations 
      * NOTE! This unsafe because returned block will be re-filled in iteration process

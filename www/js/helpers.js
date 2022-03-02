@@ -594,18 +594,21 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    round() {
-        return new Vector(
-            Math.round(this.x),
-            Math.round(this.y),
-            Math.round(this.z)
-        );
+    round(decimals) {
+        return this.roundSelf(decimals).clone();
     }
 
     /**
      * @returns {Vector}
      */
-    roundSelf() {
+    roundSelf(decimals) {
+        if(decimals) {
+            decimals = Math.pow(10, decimals);
+            this.x = Math.round(this.x * decimals) / decimals;
+            this.y = Math.round(this.y * decimals) / decimals;
+            this.z = Math.round(this.z * decimals) / decimals;
+            return this;
+        }
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);

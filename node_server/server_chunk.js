@@ -1,4 +1,4 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS, getChunkAddr} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
@@ -218,18 +218,8 @@ export class ServerChunk {
 
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
-        this.tblocks            = new TypedBlocks(this.coord);
-        this.tblocks.count      = CHUNK_BLOCKS;
-        this.tblocks.buffer     = args.tblocks.buffer;
-        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
-        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
-        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
-        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
-        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
-        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
-        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
-        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
+        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks.restoreState(args.tblocks);
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
