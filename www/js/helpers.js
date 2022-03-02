@@ -813,6 +813,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.MASK_BIOME = 1 << 1;
     QUAD_FLAGS.NO_AO = 1 << 2;
     QUAD_FLAGS.NO_FOG = 1 << 3;
+    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

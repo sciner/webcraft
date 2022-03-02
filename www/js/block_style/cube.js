@@ -8,9 +8,8 @@ import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
-const {mat3, mat4} = glMatrix;
+const {mat3} = glMatrix;
 
-const tempMatrix = mat3.create();
 let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};
 const DEFAULT_ROTATE = new Vector(0, 1, 0);
@@ -57,7 +56,7 @@ export default class style {
         const z = 0;
 
         // Высота наслаеваемых блоков хранится в extra_data
-        if(material.layering) {
+        if(material.is_layering) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;
             }
@@ -154,19 +153,84 @@ export default class style {
         return 1;
     }
 
+    // Can draw face
+    static canDrawFace(block, material, neighbourBlock, drawAllSides) {
+        if(!neighbourBlock) {
+            return true;
+        }
+        let resp = drawAllSides || neighbourBlock.material?.transparent;
+        if(resp) {
+            if(block.id == neighbourBlock.id && material.selflit) {
+                resp = false;
+            } else {
+                if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 && WATER_BLOCKS_ID.indexOf(neighbourBlock.id) >= 0) {
+                    return false;
+                }
+            }
+        }
+        return resp;
+    }
+
+    // calculateBlockSize...
+    static calculateBlockSize(block, neighbours) {
+        const material  = block.material;
+        let width       = material.width ? material.width : 1;
+        let height      = material.height ? material.height : 1;
+        let depth       = material.depth ? material.depth : width;
+        // Ladder
+        if(material.style == 'ladder') {
+            width = 1;
+            height = 1;
+            depth = 1;
+        }
+        // Button
+        if(material.is_button) {
+            if(block.extra_data.pressed) {
+                height /= 2;
+            }
+        }
+        // Can change height
+        if(material.is_fluid) {
+            let bH = Math.min(block.power, .9);
+            if(neighbours.UP) {
+                if(neighbours.UP.material.is_fluid) {
+                    bH = 1.0;
+                }
+            }
+            height = bH;
+        }
+        //
+        if(material.is_layering) {
+            if(block.extra_data) {
+                height = block.extra_data?.height || height;
+            }
+        }
+        //
+        if(!DIRT_BLOCKS) {
+            DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
+        }
+        if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
+            if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
+                height = 1;
+            }
+        }
+        return {width, height, depth};
+    }
+
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
-
-        const material              = block.material;
-        let width                   = material.width ? material.width : 1;
-        let height                  = material.height ? material.height : 1;
-        let depth                   = material.depth ? material.depth : width;
-        const drawAllSides          = width != 1 || height != 1;
 
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z));
         }
+
+        const material                  = block.material;
+        const {width, height, depth}    = style.calculateBlockSize(block, neighbours);
+        const drawAllSides              = width != 1 || height != 1;
+        let flags                       = material.light_power ? QUAD_FLAGS.NO_AO : 0;
+        let sideFlags                   = flags;
+        let upFlags                     = flags;
 
         // Jukebox
         if(material.is_jukebox) {
@@ -180,49 +244,13 @@ export default class style {
             }
         }
 
-        // Button
-        if(material.is_button) {
-            if(block.extra_data.pressed) {
-                height /= 2;
-            }
-        }
-
-        // Can draw face
-        let canDrawFace = (neighbourBlock) => {
-            if(!neighbourBlock) {
-                return true;
-            }
-            let resp = drawAllSides || neighbourBlock.material?.transparent;
-            if(resp) {
-                if(block.id == neighbourBlock.id && material.selflit) {
-                    resp = false;
-                } else {
-                    if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 && WATER_BLOCKS_ID.indexOf(neighbourBlock.id) >= 0) {
-                        return false;
-                    }
-                }
-            }
-            return resp;
-        };
-
-        // Can change height
-        if(material.is_fluid) {
-            let bH = Math.min(block.power, .9);
-            if(neighbours.UP) {
-                if(neighbours.UP.material.is_fluid) {
-                    bH = 1.0;
-                }
-            }
-            height = bH;
-        }
-
         //
-        let canDrawUP = canDrawFace(neighbours.UP) || height < 1;
-        let canDrawDOWN = canDrawFace(neighbours.DOWN);
-        let canDrawSOUTH = canDrawFace(neighbours.SOUTH);
-        let canDrawNORTH = canDrawFace(neighbours.NORTH);
-        let canDrawWEST = canDrawFace(neighbours.WEST);
-        let canDrawEAST = canDrawFace(neighbours.EAST);
+        let canDrawUP = style.canDrawFace(block, material, neighbours.UP, drawAllSides) || height < 1;
+        let canDrawDOWN = style.canDrawFace(block, material, neighbours.DOWN, drawAllSides);
+        let canDrawSOUTH = style.canDrawFace(block, material, neighbours.SOUTH, drawAllSides);
+        let canDrawNORTH = style.canDrawFace(block, material, neighbours.NORTH, drawAllSides);
+        let canDrawWEST = style.canDrawFace(block, material, neighbours.WEST, drawAllSides);
+        let canDrawEAST = style.canDrawFace(block, material, neighbours.EAST, drawAllSides);
         if(!canDrawUP && !canDrawDOWN && !canDrawSOUTH && !canDrawNORTH && !canDrawWEST && !canDrawEAST) {
             return;
         }
@@ -239,11 +267,6 @@ export default class style {
                 canDrawUP = false;
             }
         }
-
-        let cardinal_direction      = block.getCardinalDirection();
-        let flags                   = material.light_power ? QUAD_FLAGS.NO_AO : 0;
-        let sideFlags               = flags;
-        let upFlags                 = flags;
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
@@ -265,7 +288,9 @@ export default class style {
         let DIRECTION_FORWARD       = DIRECTION.FORWARD
         let DIRECTION_LEFT          = DIRECTION.LEFT;
 
+        // Rotate
         const rotate = block.rotate || DEFAULT_ROTATE;
+        let cardinal_direction      = block.getCardinalDirection();
         matrix = calcRotateMatrix(material, rotate, cardinal_direction, matrix);
 
         // Can rotate
@@ -293,18 +318,8 @@ export default class style {
             }
         }
 
-        // Ladder
-        if(material.style == 'ladder') {
-            width = 1;
-            height = 1;
-            depth = 1;
-        }
-
         // Layering
-        if(material.layering) {
-            if(block.extra_data) {
-                height = block.extra_data?.height || height;
-            }
+        if(material.is_layering) {
             if(block.properties.layering.slab) {
                 if(style.isOnCeil(block)) {
                     y += block.properties.layering.height;
@@ -313,9 +328,6 @@ export default class style {
         }
 
         // Убираем шапку травы с дерна, если над ним есть непрозрачный блок
-        if(!DIRT_BLOCKS) {
-            DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
-        }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
             if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
                 DIRECTION_UP        = DIRECTION.DOWN;
@@ -324,7 +336,6 @@ export default class style {
                 DIRECTION_FORWARD   = DIRECTION.DOWN;
                 DIRECTION_LEFT      = DIRECTION.DOWN;
                 sideFlags = 0;
-                height = 1;
                 upFlags = 0;
             }
         }
@@ -343,7 +354,8 @@ export default class style {
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         let axes_up = null;
         if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SAND.id) {
-            const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] % 4;
+            let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
+            const rv = randoms[index] % 4;
             axes_up = UP_AXES[rv];
         }
 

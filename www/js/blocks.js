@@ -249,7 +249,7 @@ export class BLOCK {
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
-        let is_slab = block.layering && block.layering.slab;
+        let is_slab = block.is_layering && block.layering.slab;
         if(is_trapdoor || is_stairs || is_door || is_slab) {
             extra_data = {
                 point: new Vector(pos.point.x, pos.point.y, pos.point.z)
@@ -354,7 +354,7 @@ export class BLOCK {
         if(block.is_fluid) {
             return true;
         }
-        if(block.layering) {
+        if(block.is_layering) {
             let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
             return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
         }
@@ -489,6 +489,7 @@ export class BLOCK {
         block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
         block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
         block.is_button         = block.tags.indexOf('button') >= 0;
+        block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);

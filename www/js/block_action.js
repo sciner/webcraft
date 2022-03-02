@@ -656,7 +656,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 8. Некоторые блоки можно ставить только на что-то сверху
-        let setOnlyToTop = !!matBlock.layering && !matBlock.layering.slab;
+        let setOnlyToTop = !!matBlock.is_layering && !matBlock.layering.slab;
         if(setOnlyToTop && pos.n.y != 1) {
             return resp;
         }
@@ -666,8 +666,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return resp;
         }
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-        let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.layering;
-        if(isLayering) {
+        let is_layering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.is_layering;
+        if(is_layering) {
             const layering = world_material.layering;
             let new_extra_data = null;
             pos.y--;

@@ -47,7 +47,7 @@ export class Particles_Effects extends Particles_Base {
     // Add particle
     add(pos, params) {
 
-        const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        const flags     = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP | QUAD_FLAGS.LOOK_AT_CAMERA;
         const {x, y, z} = pos;
 
         const c = [
@@ -74,7 +74,7 @@ export class Particles_Effects extends Particles_Base {
             this.p_count--;
         }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
-        for(let i = 9; i < STRIDE_FLOATS; i++) {
+        for(let i = 3; i < STRIDE_FLOATS; i++) {
             this.buffer.data[vindex + i] = vertices[i];
             this.vertices[vindex + i] = vertices[i];
         }
@@ -171,15 +171,24 @@ export class Particles_Effects extends Particles_Base {
             data[ap + 1] = vertices[ap + 1] - corrZ;
             data[ap + 2] = vertices[ap + 2] - corrY + addY;
 
+            /*
+            data[ax + 0] = vertices[ax + 0];
+            data[ax + 1] = vertices[ax + 1];
+            data[ax + 1] = vertices[ax + 2];
+            data[ay + 0] = vertices[ay + 0];
+            data[ay + 1] = vertices[ay + 1];
+            data[ay + 1] = vertices[ay + 2];
+            */
+
             // Inline vec3.transformMat3 look at axis X
-            data[ax + 0] = (vertices[ax + 0] * lookAtMat[0] + vertices[ax + 2] * lookAtMat[3] + vertices[ax + 1] * lookAtMat[6]) * scale;
-            data[ax + 1] = (vertices[ax + 0] * lookAtMat[1] + vertices[ax + 2] * lookAtMat[4] + vertices[ax + 1] * lookAtMat[7]) * scale;
-            data[ax + 2] = (vertices[ax + 0] * lookAtMat[2] + vertices[ax + 2] * lookAtMat[5] + vertices[ax + 1] * lookAtMat[8]) * scale;
+            // data[ax + 0] = (vertices[ax + 0] * lookAtMat[0] + vertices[ax + 2] * lookAtMat[3] + vertices[ax + 1] * lookAtMat[6]) * scale;
+            // data[ax + 1] = (vertices[ax + 0] * lookAtMat[1] + vertices[ax + 2] * lookAtMat[4] + vertices[ax + 1] * lookAtMat[7]) * scale;
+            // data[ax + 2] = (vertices[ax + 0] * lookAtMat[2] + vertices[ax + 2] * lookAtMat[5] + vertices[ax + 1] * lookAtMat[8]) * scale;
 
             // Inline vec3.transformMat3 look at axis Y
-            data[ay + 0] = (vertices[ay + 0] * lookAtMat[0] + vertices[ay + 2] * lookAtMat[3] + vertices[ay + 1] * lookAtMat[6]) * scale;
-            data[ay + 1] = (vertices[ay + 0] * lookAtMat[1] + vertices[ay + 2] * lookAtMat[4] + vertices[ay + 1] * lookAtMat[7]) * scale;
-            data[ay + 2] = (vertices[ay + 0] * lookAtMat[2] + vertices[ay + 2] * lookAtMat[5] + vertices[ay + 1] * lookAtMat[8]) * scale;
+            // data[ay + 0] = (vertices[ay + 0] * lookAtMat[0] + vertices[ay + 2] * lookAtMat[3] + vertices[ay + 1] * lookAtMat[6]) * scale;
+            // data[ay + 1] = (vertices[ay + 0] * lookAtMat[1] + vertices[ay + 2] * lookAtMat[4] + vertices[ay + 1] * lookAtMat[7]) * scale;
+            // data[ay + 2] = (vertices[ay + 0] * lookAtMat[2] + vertices[ay + 2] * lookAtMat[5] + vertices[ay + 1] * lookAtMat[8]) * scale;
 
         }
 

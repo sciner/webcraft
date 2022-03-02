@@ -19,6 +19,7 @@
     #define MASK_BIOME_FLAG 1
     #define NO_AO_FLAG 2
     #define NO_FOG_FLAG 3
+    #define LOOK_AT_CAMERA 4
 #endif
 
 #ifdef global_uniforms
@@ -157,17 +158,17 @@
 
 #ifdef vignetting_define_func
     // vignetting
-    const float outerRadius = .65, innerRadius = .4, intensity = .1;
+    const float outerRadius = .65, innerRadius = .25, intensity = .5;
     const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
 
     // vignetting draw block
     void drawVignetting() {
         vec2 relativePosition = gl_FragCoord.xy / u_resolution - .5;
-        relativePosition.y *= u_resolution.x / u_resolution.y;
+        relativePosition.x *= (u_resolution.x / u_resolution.y) * .5;
         float len = length(relativePosition);
         float vignette = smoothstep(outerRadius, innerRadius, len);
         float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
-        outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity);
+        outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity*1.5);
     }
     //--
 #endif
@@ -227,7 +228,8 @@
     int flagBiome = (flags >> MASK_BIOME_FLAG) & 1; 
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
- 
+    int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
+
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     //--

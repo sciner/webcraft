@@ -432,7 +432,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2 - this.fix_z_fighting,
+            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2 + this.fix_z_fighting,
         ]);
 
         this.sceneTree.updateMatrix();

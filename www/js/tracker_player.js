@@ -3,7 +3,7 @@ import {XMPlayer} from "./../vendors/xm.js";
 
 const MAX_AUDIBILITY_DIST = 64;
 const MAX_VOLUME = 128;
-const VOLUME_DISCRETE = 20;
+const VOLUME_DISCRETE = MAX_AUDIBILITY_DIST;
 const FADEIN_MS = 3000;
 
 export class Tracker_Player {
@@ -65,7 +65,8 @@ export class Tracker_Player {
             for(let [jukebox_pos, jukebox] of this.vc.entries()) {
                 if(jukebox.playing) {
                     const dist = jukebox_pos.distance(pos);
-                    let volume = Math.round((dist < MAX_AUDIBILITY_DIST ? (1 - dist / MAX_AUDIBILITY_DIST) : 0) * VOLUME_DISCRETE) / VOLUME_DISCRETE * MAX_VOLUME;
+                    let volume = Math.round((dist < MAX_AUDIBILITY_DIST ? (1 - dist / MAX_AUDIBILITY_DIST) : 0) * VOLUME_DISCRETE) / VOLUME_DISCRETE;
+                    volume *= MAX_VOLUME;
                     const pn = performance.now() - this.n_started;
                     if(pn < FADEIN_MS) {
                         volume *= (pn / FADEIN_MS);

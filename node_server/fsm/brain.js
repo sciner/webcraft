@@ -137,7 +137,7 @@ export class FSMBrain {
         this.sendState();
 
         let r = Math.random() * 5000;
-        if(r < 200) {
+        if(r < 500) {
             if(r < 100) {
                 // Random rotate
                 this.rotateSign = Math.sign(Math.random() - Math.random());

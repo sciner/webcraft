@@ -22,7 +22,7 @@
         "iron": {"mining": {"time": 10, "instruments": ["pickaxe"], "instrument_boost": 6}},
         "lava": {"mining": {"time": -1, "instruments": []}},
         "leaves": {"mining": {"time": 4, "instruments": ["shovel", "hoe"]}},
-        "netherite": {"mining": {"time": 20, "instruments": ["pickaxe"], "instrument_boost": 9}},
+        "netherite": {"mining": {"time": 20, "instruments": ["pickaxe"], "instrument_boost": 18}},
         "obsidian": {"mining": {"time": 15, "instruments": ["pickaxe"]}},
         "plant": {"mining": {"time": 0, "instruments": []}},
         "quartz": {"mining": {"time": 7, "instruments": ["pickaxe"]}},
