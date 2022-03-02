@@ -188,18 +188,14 @@ export default class style {
             if(block.extra_data.pressed) {
                 height /= 2;
             }
-        }
-        // Can change height
-        if(material.is_fluid) {
-            let bH = Math.min(block.power, .9);
-            if(neighbours.UP) {
-                if(neighbours.UP.material.is_fluid) {
-                    bH = 1.0;
-                }
+        } else if(material.is_fluid) {
+            if(neighbours.UP && neighbours.UP.material.is_fluid) {
+                height = 1.0;
+            } else {
+                height = Math.min(block.power, .9);
             }
-            height = bH;
         }
-        //
+        // Layering
         if(material.is_layering) {
             if(block.extra_data) {
                 height = block.extra_data?.height || height;

@@ -597,9 +597,10 @@ export function Physics(mcData, fake_world, options) {
                     vel.y += 0.1 * entity.jumpBoost
                 }
                 if (entity.control.sprint) {
+                    // @fixed Без этого фикса игрок притормаживает при беге с прыжками
                     const yaw = Math.PI - entity.yaw
-                    vel.x -= Math.sin(yaw) * 0.2
-                    vel.z += Math.cos(yaw) * 0.2
+                    vel.x += Math.sin(yaw) * 0.2
+                    vel.z -= Math.cos(yaw) * 0.2
                 }
                 entity.jumpTicks = physics.autojumpCooldown
             } else if(entity.flying) {
