@@ -185,14 +185,13 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    up:     new AABBSideParams(c_up, 0, 1),
-                    down:   new AABBSideParams(c_up, 0, 1),
-                    south:  new AABBSideParams(c_side, 0, 1),
-                    north:  new AABBSideParams(c_side, 0, 1),
-                    west:   new AABBSideParams(c_side, 0, 1),
-                    east:   new AABBSideParams(c_side, 0, 1),
+                    up:     new AABBSideParams(c_up, 0, 1, null, null, true),
+                    down:   new AABBSideParams(c_up, 0, 1, null, null, true),
+                    south:  new AABBSideParams(c_side, 0, 1, null, null, true),
+                    north:  new AABBSideParams(c_side, 0, 1, null, null, true),
+                    west:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                    east:   new AABBSideParams(c_side, 0, 1, null, null, true),
                 },
-                true,
                 pos
             );
         }
@@ -224,8 +223,7 @@ export default class style {
                 _aabb_chain_middle,
                 pivot,
                 matrix,
-                {north: new AABBSideParams(chain.texture, 0, 1)},
-                true,
+                {north: new AABBSideParams(chain.texture, 0, 1, null, null, true)},
                 chain.pos
             );
         }

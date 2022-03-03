@@ -68,11 +68,11 @@ export default class style {
         tex[1] += (add_uv[1] / TX_CNT);
 
         const faces = {
-            west: new AABBSideParams(tex, plane.flag, plane?.lm?.b || 1, plane.lm)
+            west: new AABBSideParams(tex, plane.flag, plane?.lm?.b || 1, plane.lm, null, true)
         };
 
         // Push vertices
-        pushAABB(vertices, aabb, pivot, matrix, faces, true, plane.pos);
+        pushAABB(vertices, aabb, pivot, matrix, faces, plane.pos);
 
     }
 
@@ -131,11 +131,13 @@ export default class style {
             tex[0] += (add_uv[0] / TX_CNT);
             tex[1] += (add_uv[1] / TX_CNT);
 
-            faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm)
+            face.autoUV = true;
+
+            faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
         }
 
         // Push vertices
-        pushAABB(vertices, aabb, pivot, matrix, faces, true, part.pos);
+        pushAABB(vertices, aabb, pivot, matrix, faces, part.pos);
 
     }
 

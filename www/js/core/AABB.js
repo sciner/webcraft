@@ -271,12 +271,13 @@ export class AABBPool {
 
 export class AABBSideParams {
 
-    constructor(uv, flag, anim, lm = null, axes = null) {
+    constructor(uv, flag, anim, lm = null, axes = null, autoUV) {
         this.uv     = uv;
         this.flag   = flag;
         this.anim   = anim;
         this.lm     = lm;
         this.axes   = axes;
+        this.autoUV = autoUV;
     }
 
 }
@@ -348,8 +349,7 @@ export function pushTransformed(
  * @param {boolean} [autoUV]
  * @param {Vector | number[]} [center] - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
-export function pushAABB(
-    vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
+export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, center) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;
@@ -385,7 +385,7 @@ export function pushAABB(
         } = PLANES[key];
 
         const {
-            uv, flag = 0, anim = 1
+            uv, flag = 0, anim = 1, autoUV = true
         } = sides[key];
 
         const lm = sides[key].lm || lm_default;

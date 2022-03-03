@@ -168,7 +168,7 @@
         float len = length(relativePosition);
         float vignette = smoothstep(outerRadius, innerRadius, len);
         float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
-        outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity*1.5);
+        outColor.rgb = mix(outColor.rgb, vignetteColor, vignetteOpacity);
     }
     //--
 #endif

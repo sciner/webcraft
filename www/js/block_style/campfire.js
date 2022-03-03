@@ -91,14 +91,13 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_stone, 0, 1),
-                down:   new AABBSideParams(c_stone, 0, 1),
-                south:  new AABBSideParams(c_stone, 0, 1),
-                north:  new AABBSideParams(c_stone, 0, 1),
-                west:   new AABBSideParams(c_stone, 0, 1),
-                east:   new AABBSideParams(c_stone, 0, 1),
+                up:     new AABBSideParams(c_stone, 0, 1, null, null, true),
+                down:   new AABBSideParams(c_stone, 0, 1, null, null, true),
+                south:  new AABBSideParams(c_stone, 0, 1, null, null, true),
+                north:  new AABBSideParams(c_stone, 0, 1, null, null, true),
+                west:   new AABBSideParams(c_stone, 0, 1, null, null, true),
+                east:   new AABBSideParams(c_stone, 0, 1, null, null, true),
             },
-            true,
             pos
         );
 
@@ -112,7 +111,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: Math.PI / 4,
                 translate: [.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, 0, 16)},
+                sides: {north: new AABBSideParams(textures.fire, 0, 16, null, null, true)},
                 anim: 8
             });
             chains.push({
@@ -122,7 +121,7 @@ export default class style {
                 uv: [.5, .5],
                 rot: -Math.PI / 4,
                 translate: [-.5, 0, 0],
-                sides: {north: new AABBSideParams(textures.fire, 0, 16)},
+                sides: {north: new AABBSideParams(textures.fire, 0, 16, null, null, true)},
                 anim: 8
             });
             style.pushChains(vertices, chains);
@@ -172,14 +171,13 @@ export default class style {
                 pivot,
                 item.matrix,
                 {
-                    up:     new AABBSideParams(c_planks_side, 0, 1),
-                    down:   new AABBSideParams(c_planks_side, 0, 1),
-                    south:  new AABBSideParams(c_planks_side, 0, 1),
-                    north:  new AABBSideParams(c_planks_side, 0, 1),
-                    west:   new AABBSideParams(c_planks_ends, 0, 1),
-                    east:   new AABBSideParams(c_planks_ends, 0, 1),
+                    up:     new AABBSideParams(c_planks_side, 0, 1, null, null, true),
+                    down:   new AABBSideParams(c_planks_side, 0, 1, null, null, true),
+                    south:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
+                    north:  new AABBSideParams(c_planks_side, 0, 1, null, null, true),
+                    west:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
+                    east:   new AABBSideParams(c_planks_ends, 0, 1, null, null, true),
                 },
-                true,
                 pos
             );
         }
@@ -212,7 +210,6 @@ export default class style {
                 pivot,
                 matrix,
                 chain.sides,
-                true,
                 chain.pos
             );
         }
