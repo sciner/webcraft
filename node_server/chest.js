@@ -45,6 +45,21 @@ export class Chest {
         let new_items = [...[params.drag_item], ...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
         let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
         //
+        if(player.onPutInventoryItems) {
+            let old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
+            let new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
+            const put_items = [];
+            for(let [key, item] of new_simple) {
+                let old_item = old_simple.get(key);
+                if(!old_item) {
+                    put_items.push(item);
+                }
+            }
+            for(let item of put_items) {
+                player.onPutInventoryItems({block_id: item.id});
+            }
+        }
+        //
         const sendChestToPlayers = (except_player_ids) => {
             let chunk_addr = getChunkAddr(this.#pos);
             const chunk = this.#world.chunks.get(chunk_addr);

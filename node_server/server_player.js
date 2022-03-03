@@ -6,6 +6,7 @@ import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
+import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
 
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
@@ -77,6 +78,24 @@ export class ServerPlayer extends Player {
         this.state = init_info.state;
         this.inventory = new PlayerInventory(this, init_info.inventory);
         this.game_mode.applyMode(init_info.state.game_mode, false);
+    }
+
+    // On crafted listener
+    onCrafted(recipe, item) {
+        PlayerEvent.trigger({
+            type: PlayerEvent.CRAFT,
+            player: this,
+            data: {recipe, item}
+        });
+    }
+
+    // On
+    onPutInventoryItems(item) {
+        PlayerEvent.trigger({
+            type: PlayerEvent.PUT_ITEM_TO_INVENTORY,
+            player: this,
+            data: {item}
+        });
     }
 
     /**
@@ -514,7 +533,6 @@ export class ServerPlayer extends Player {
                 }
             }
             if(near.length > 0) {
-                console.log('Pick up drop items: ' + near.length);
                 // 1. add items to inventory
                 for(const drop_item of near) {
                     for(const item of drop_item) {
@@ -537,6 +555,11 @@ export class ServerPlayer extends Player {
                     data: entity_ids
                 }];
                 chunk.sendAll(packets, []);
+                PlayerEvent.trigger({
+                    type: PlayerEvent.PICKUP_ITEMS,
+                    player: this,
+                    data: {items: near.flat()}
+                });
             }
         }
     }

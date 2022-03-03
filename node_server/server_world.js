@@ -4,6 +4,7 @@ import {ServerChat} from "./server_chat.js";
 import {ChestManager} from "./chest_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
+import {PlayerEvent} from "./player_event.js";
 
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -695,7 +696,11 @@ export class ServerWorld {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
                         if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                            this.onDestroyBlock(params.pos, params.destroy_block_id);
+                            PlayerEvent.trigger({
+                                type: PlayerEvent.DESTROY_BLOCK,
+                                player: server_player,
+                                data: {pos: params.pos, block_id: params.destroy_block_id}
+                            });
                         }
                     } else {
                         // console.error('Chunk not found in pos', chunk_addr, params);
@@ -718,10 +723,6 @@ export class ServerWorld {
                 cp.chunk.sendAll(cp.packets, []);
             }
         }
-    }
-
-    onDestroyBlock(pos, block_id) {
-        //
     }
 
 }
