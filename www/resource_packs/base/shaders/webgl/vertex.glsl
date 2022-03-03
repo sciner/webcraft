@@ -17,6 +17,13 @@ void main() {
     vec3 axisX = a_axisX;
     vec3 axisY = a_axisY;
 
+    if (flagLookAtCamera > 0) {
+        mat3 lookAtMat = inverse(mat3(u_worldView));
+        axisX = lookAtMat * axisX.xzy;
+        axisY = lookAtMat * axisY.xzy;
+    }
+
+
     // Animated textures
     if(v_color.b > 1.) {
         // v_color.b contain number of animation frames
@@ -35,15 +42,9 @@ void main() {
         v_normal = normalize(cross(axisX, axisY));
     }
 
-    if (flagLookAtCamera > 0) {
-        mat3 lookAtMat = inverse(mat3(u_worldView)); // u_worldView, uProjMatrix, uModelMatrix
-        axisX.xzy = axisX.xzy * lookAtMat;
-        axisY.xzy = axisY.xzy * lookAtMat;
-    }
-
     v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
 
-    vec3 pos = a_position + (a_axisX * a_quad.x) + (axisY * a_quad.y);
+    vec3 pos = a_position + (axisX * a_quad.x) + (axisY * a_quad.y);
 
     v_texcoord0 = v_uvCenter0 + a_uvSize * a_quad;
     v_texClamp0 = vec4(v_uvCenter0 - abs(a_uvSize * 0.5) + u_pixelSize * 0.5, v_uvCenter0 + abs(a_uvSize * 0.5) - u_pixelSize * 0.5);
