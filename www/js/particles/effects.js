@@ -3,9 +3,6 @@ import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { ChunkManager } from '../chunk_manager.js';
 import { Particles_Base } from './particles_base.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
-
-const { mat3, mat4 } = glMatrix;
 
 const pos_offset        = 0;
 const axisx_offset      = 3;
@@ -14,6 +11,7 @@ const uv_size_offset    = 11;
 const lm_offset         = 13;
 const STRIDE_FLOATS     = GeometryTerrain.strideFloats;
 const chunk_size        = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+const MIN_PERCENT       = .25;
 
 export class Particles_Effects extends Particles_Base {
 
@@ -57,7 +55,7 @@ export class Particles_Effects extends Particles_Base {
             1 / this.tx_cnt
         ];
         const vertices = [
-            x+.5, z+.5, y+.5,
+            x+.5 - this.chunk_coord.x, z+.5 - this.chunk_coord.z, y+.5 - this.chunk_coord.y,
             -1, 0, 0,
             0, 0, -1,
             ...c,
@@ -74,12 +72,13 @@ export class Particles_Effects extends Particles_Base {
             this.p_count--;
         }
         this.vertices.splice(vindex, STRIDE_FLOATS, ...vertices);
-        for(let i = 3; i < STRIDE_FLOATS; i++) {
+        for(let i = 0; i < STRIDE_FLOATS; i++) {
             this.buffer.data[vindex + i] = vertices[i];
             this.vertices[vindex + i] = vertices[i];
         }
         // this.buffer.data.splice(vindex, STRIDE_FLOATS, ...vertices);
         //
+        params.min_percent = ('min_percent' in params) ? params.min_percent : MIN_PERCENT;
         params.started = performance.now();
         params.pend = params.started + 1000 * params.life;
         this.vertices[vindex + lm_offset] = params;
@@ -102,25 +101,11 @@ export class Particles_Effects extends Particles_Base {
 
     update(render) {
 
-        // Lookat matricies
-        const view = render.viewMatrix;
-        mat3.fromMat4(this.lookAtMat, view);
-        mat3.invert(this.lookAtMat, this.lookAtMat);
-        mat4.scale(this.lookAtMat, this.lookAtMat, this.scale);
-
-        const lookAtMat = this.lookAtMat;
-
         //
         const data = this.buffer.data;
         const vertices = this.vertices;
 
         const pn = performance.now();
-        const MIN_PERCENT = .25;
-
-        const chCoord = this.chunk_coord;
-        const corrX = chCoord.x;
-        const corrY = chCoord.y;
-        const corrZ = chCoord.z;
 
         // Reset inactive particles
         if(!this.last_reset || (performance.now() - this.last_reset > 1000)) {
@@ -155,40 +140,20 @@ export class Particles_Effects extends Particles_Base {
             if(params.invert_percent) {
                 percent = 1 - percent;
             }
-            percent = Math.max(percent, ('min_percent' in params) ? params.min_percent : MIN_PERCENT);
+            percent = Math.max(percent, params.min_percent);
+            
             const scale = params.pend < pn ? 0 : percent;
-
             const ap = i + pos_offset;
-            const ax = i + axisx_offset;
-            const ay = i + axisy_offset;
 
-            data[i + lm_offset] = 0;
-
-            // pos
+            // Change position
             let addY = 0;
-            if(params.speed.y != 0) addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
-            data[ap + 0] = vertices[ap + 0] - corrX;
-            data[ap + 1] = vertices[ap + 1] - corrZ;
-            data[ap + 2] = vertices[ap + 2] - corrY + addY;
+            if(params.speed.y != 0) {
+                addY = (pn - params.started) * params.speed.y / 1000 * params.gravity;
+            }
 
-            /*
-            data[ax + 0] = vertices[ax + 0];
-            data[ax + 1] = vertices[ax + 1];
-            data[ax + 1] = vertices[ax + 2];
-            data[ay + 0] = vertices[ay + 0];
-            data[ay + 1] = vertices[ay + 1];
-            data[ay + 1] = vertices[ay + 2];
-            */
-
-            // Inline vec3.transformMat3 look at axis X
-            // data[ax + 0] = (vertices[ax + 0] * lookAtMat[0] + vertices[ax + 2] * lookAtMat[3] + vertices[ax + 1] * lookAtMat[6]) * scale;
-            // data[ax + 1] = (vertices[ax + 0] * lookAtMat[1] + vertices[ax + 2] * lookAtMat[4] + vertices[ax + 1] * lookAtMat[7]) * scale;
-            // data[ax + 2] = (vertices[ax + 0] * lookAtMat[2] + vertices[ax + 2] * lookAtMat[5] + vertices[ax + 1] * lookAtMat[8]) * scale;
-
-            // Inline vec3.transformMat3 look at axis Y
-            // data[ay + 0] = (vertices[ay + 0] * lookAtMat[0] + vertices[ay + 2] * lookAtMat[3] + vertices[ay + 1] * lookAtMat[6]) * scale;
-            // data[ay + 1] = (vertices[ay + 0] * lookAtMat[1] + vertices[ay + 2] * lookAtMat[4] + vertices[ay + 1] * lookAtMat[7]) * scale;
-            // data[ay + 2] = (vertices[ay + 0] * lookAtMat[2] + vertices[ay + 2] * lookAtMat[5] + vertices[ay + 1] * lookAtMat[8]) * scale;
+            // Change vertices data
+            data[i + lm_offset] = scale; // remove params object from data and store scale in R argument
+            data[ap + 2]        = vertices[ap + 2] + addY;
 
         }
 

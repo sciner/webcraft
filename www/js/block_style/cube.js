@@ -227,6 +227,7 @@ export default class style {
         let flags                       = material.light_power ? QUAD_FLAGS.NO_AO : 0;
         let sideFlags                   = flags;
         let upFlags                     = flags;
+        let autoUV                      = true;
 
         // Jukebox
         if(material.is_jukebox) {
@@ -350,9 +351,9 @@ export default class style {
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         let axes_up = null;
         if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SAND.id) {
-            let index = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % randoms.length;
-            const rv = randoms[index] % 4;
-            axes_up = UP_AXES[rv];
+            const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
+            axes_up = UP_AXES[rv % 4];
+            autoUV = false;
         }
 
         // Push vertices
@@ -363,7 +364,7 @@ export default class style {
         if(canDrawNORTH) sides.north = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, 1), flags | sideFlags, style.getAnimations(material, 'north'), lm);
         if(canDrawWEST) sides.west = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, 1), flags | sideFlags, style.getAnimations(material, 'west'), lm);
         if(canDrawEAST) sides.east = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, 1), flags | sideFlags, style.getAnimations(material, 'east'), lm);
-        pushAABB(vertices, aabb, pivot, matrix, sides, true, new Vector(x, y, z));
+        pushAABB(vertices, aabb, pivot, matrix, sides, autoUV, new Vector(x, y, z));
 
     }
 
