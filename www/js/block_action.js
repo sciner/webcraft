@@ -755,16 +755,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     }
                     break;
                 }
-                case 'painting': {
-                    const painting = await createPainting(world, pos);
-                    if(painting) {
-                        resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
-                        extra_data = painting;
-                        resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
-                    }
-                    return resp;
-                    break;
-                }
             }
         } else {
             //
@@ -784,6 +774,15 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     resp.decrement = true;
                     if(matBlock.sound) {
                         resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                    }
+                    return resp;
+                    break;
+                }
+                case BLOCK.PAINTING.id: {
+                    const painting = await createPainting(world, pos);
+                    if(painting) {
+                        resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
+                        resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: painting}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                     }
                     return resp;
                     break;
