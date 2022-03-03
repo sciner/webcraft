@@ -4,6 +4,7 @@ import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
+import {impl as alea} from '../vendors/alea.js';
 
 const _createBlockAABB = new AABB();
 
@@ -66,7 +67,7 @@ function calcRotate(rot, pos_n) {
 }
 
 // createPainting...
-async function createPainting(world, pos) {
+async function createPainting(e, world, pos) {
     const pos_n = pos.n;
     pos = new Vector(pos);
     if(pos_n.x == -1) {
@@ -210,7 +211,8 @@ async function createPainting(world, pos) {
             const paintings = await Resources.loadPainting();
             const col = paintings.sizes.get(item.name);
             const keys = Array.from(col.keys());
-            const image_name = keys[Math.floor(Math.random() * keys.length)];
+            const random = new alea(e.id);
+            const image_name = keys[Math.floor(random.double() * keys.length)];
             //
             return {
                 entity_id:  randomUUID(),
@@ -779,7 +781,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     break;
                 }
                 case BLOCK.PAINTING.id: {
-                    const painting = await createPainting(world, pos);
+                    const painting = await createPainting(e, world, pos);
                     if(painting) {
                         resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
                         resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: painting}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
