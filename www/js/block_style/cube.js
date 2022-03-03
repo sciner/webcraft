@@ -6,9 +6,6 @@ import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {CubeSym} from "../core/CubeSym.js";
 import { AABB, AABBSideParams, pushAABB } from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
-
-const {mat3} = glMatrix;
 
 let DIRT_BLOCKS = null;
 const pivotObj = {x: 0.5, y: .5, z: 0.5};

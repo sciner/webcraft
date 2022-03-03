@@ -40,7 +40,7 @@
             "image": "/textures/tool.png",
             "tx_cnt": 16
         },
-        "painting_frame": {
+        "painting": {
             "image": "/textures/painting.png",
             "tx_cnt": 32
         },

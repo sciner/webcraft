@@ -34,21 +34,6 @@ export class ChunkManager {
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
 
-        // Paintings
-        this.paintings = {
-            list: new VectorCollector(),
-            add: function(pos, item) {
-                this.list.set(pos, item);
-                Game.render.meshes.add(item);
-            },
-            destroyAllInAABB(aabb) {
-                for(let [pos, mesh] of this.list.entries(aabb)) {
-                    mesh.destroy();
-                    this.list.delete(pos);
-                }
-            }
-        };
-
         // Torches
         this.torches = {
             list: new VectorCollector(),
@@ -389,9 +374,7 @@ export class ChunkManager {
             this.torches.destroyAllInAABB(chunk.aabb);
             // 2. Destroy playing discs
             TrackerPlayer.destroyAllInAABB(chunk.aabb);
-            // 3.
-            this.paintings.destroyAllInAABB(chunk.aabb);
-            // 4. Call chunk destructor
+            // 3. Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;

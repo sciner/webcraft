@@ -1,10 +1,7 @@
 import {DIRECTION, QUAD_FLAGS, MULTIPLY} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 import {AABB} from '../core/AABB.js';
-import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 import { default as default_style } from './default.js';
-
-const {mat4} = glMatrix;
 
 const WIDTH =  12 / 32;
 const HEIGHT = 14 / 32;

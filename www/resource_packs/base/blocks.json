@@ -4720,26 +4720,28 @@
     {
         "id": 618,
         "name": "PAINTING",
-        "style": "extruder",
-        "spawnable": false,
-        "item": {"name": "painting"},
+        "style": "painting",
+        "inventory": {
+            "style": "extruder",
+            "texture": {
+                "id": "default",
+                "side": [7, 2]
+            }
+        },
+        "height": 0.125,
+        "transparent": true,
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
+        "tags": [
+            "no_drop_ao",
+            "no_random_pos",
+            "rotate_by_pos_n"
+        ],
         "texture": {
-            "id": "default",
-            "side": [7, 2]
-        }
-    },
-    {
-        "id": 619,
-        "name": "PAINTING_FRAME",
-        "max_in_stack": 1,
-        "spawnable": false,
-        "material": {"id": "wood"},
-        "texture": {
-            "id": "painting_frame",
-            "side": [29.5, 29.5]
+            "id": "painting",
+            "side": [0.875, 0.875]
         }
     },
     {

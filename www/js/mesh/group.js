@@ -143,7 +143,12 @@ export class MeshGroup {
                     ds = item.block.material.inventory_style;
                 }
             }
-            const mat_key = item.block.material.material_key;
+            let mat_key = item.block.material.material_key;
+            if(force_tex && (typeof force_tex == 'object') && ('id' in force_tex)) {
+                mat_key = mat_key.split('/');
+                mat_key[2] = force_tex.id;
+                mat_key = mat_key.join('/');
+            }
             //
             let mesh = this.meshes.get(mat_key);
             if(!mesh) {

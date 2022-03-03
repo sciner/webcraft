@@ -609,24 +609,6 @@ export class ServerWorld {
         if(actions.decrement_instrument) {
             server_player.inventory.decrement_instrument(actions.decrement_instrument);
         }
-        // Create painting
-        if(actions.create_painting) {
-            const params = actions.create_painting;
-            const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
-            await this.db.createPainting(this, server_player, pos, params);
-            server_player.inventory.decrement();
-            const cps = getChunkPackets(pos);
-            if(cps) {
-                if(!cps.chunk) {
-                    throw 'error_chunk_not_loaded';
-                }
-                cps.chunk.addPaintings([params], false);
-                cps.packets.push({
-                    name: ServerClient.CMD_CREATE_PAINTING,
-                    data: [params]
-                });
-            }
-        }
         // Stop playing discs
         if(Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
             for(let params of actions.stop_disc) {

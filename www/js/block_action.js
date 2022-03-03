@@ -67,19 +67,21 @@ function calcRotate(rot, pos_n) {
 
 // createPainting...
 async function createPainting(world, pos) {
-    if(pos.n.x == -1) {
+    const pos_n = pos.n;
+    pos = new Vector(pos);
+    if(pos_n.x == -1) {
         pos.z--;
     }
-    if(pos.n.z == 1) {
+    if(pos_n.z == 1) {
         pos.x--;
     }
     const center_pos = new Vector(pos);
     let field = null;
     let fixed_field = null;
-    if(pos.n.x) {
+    if(pos_n.x) {
         field = 'z';
         fixed_field = 'x';
-    } else if(pos.n.z) {
+    } else if(pos_n.z) {
         field = 'x';
         fixed_field = 'z';
     }
@@ -165,8 +167,8 @@ async function createPainting(world, pos) {
             bpos[fixed_field] = center_pos[fixed_field];
             //
             if(item.size[0] == 1) {
-                if(pos.n.x == -1) bpos.z++;
-                if(pos.n.z == 1) bpos.x++;
+                if(pos_n.x == -1) bpos.z++;
+                if(pos_n.z == 1) bpos.x++;
             }
             if(!painting_pos) {
                 painting_pos = new Vector(bpos);
@@ -174,7 +176,7 @@ async function createPainting(world, pos) {
             let pb = blocks.get(bpos);
             //
             bpos_back.set(bpos.x, bpos.y, bpos.z);
-            bpos_back[fixed_field] -= pos.n[fixed_field];
+            bpos_back[fixed_field] -= pos_n[fixed_field];
             let pb_back = blocks_back.get(bpos_back);
             if(!pb) {
                 pb = world.getBlock(bpos);
@@ -197,8 +199,8 @@ async function createPainting(world, pos) {
             let aabb = new AABB();
             const w = 2/16;
             painting_pos.y += item.move.y;
-            if(pos.n.x < 0) painting_pos.x += 1 - w;
-            if(pos.n.z < 0) painting_pos.z += 1 - w;
+            if(pos_n.x < 0) painting_pos.x += 1 - w;
+            if(pos_n.z < 0) painting_pos.z += 1 - w;
             const second_corner = new Vector(painting_pos);
             second_corner[field] += size[0];
             second_corner[fixed_field] += w;
@@ -216,7 +218,7 @@ async function createPainting(world, pos) {
                 size:       size,
                 image_name: image_name,
                 pos:        center_pos,
-                pos_n:      pos.n
+                pos_n:      pos_n
             };
             break;
         }
@@ -300,8 +302,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         decrement_instrument:   false,
         stop_disc:              [],
         drop_items:             [],
-        blocks:                 {list: []},
-        create_painting:        null
+        blocks:                 {list: []}
     };
     if(e.pos == false) {
         return resp;
@@ -553,6 +554,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             // throw 'error_deprecated_block';
             return resp;
         }
+        const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(player.rotate, pos.n) : calcRotate(player.rotate, pos.n);
         // Put plant into pot
         let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
         if(putPlantIntoPot) {
@@ -754,15 +756,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     break;
                 }
                 case 'painting': {
-                    resp.create_painting = await createPainting(world, pos);
-                    if(resp.create_painting) {
+                    const painting = await createPainting(world, pos);
+                    if(painting) {
                         resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
+                        extra_data = painting;
+                        resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                     }
+                    return resp;
                     break;
                 }
             }
         } else {
-            const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(player.rotate, pos.n) : calcRotate(player.rotate, pos.n);
             //
             const new_item = {
                 id: matBlock.id

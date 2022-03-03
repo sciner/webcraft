@@ -126,11 +126,15 @@ export default class style {
             texture_id = material.texture.id;
         }
 
+        if(force_tex && force_tex?.id) {
+            texture_id = force_tex.id;
+        }
+
         let tex = resource_pack.textures.get(texture_id);
         // Texture
         const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD, null, null, null, force_tex);
         if(!tex) {
-            console.log(block.id);
+            console.error(block.id);
         }
 
         let world = new FakeCloudWorld();

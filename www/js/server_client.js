@@ -45,7 +45,6 @@ export class ServerClient {
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
-	static CMD_CREATE_PAINTING          = 89;
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92;
 

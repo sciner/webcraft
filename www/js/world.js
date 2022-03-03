@@ -3,7 +3,6 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
-import {Particles_Painting} from "./particles/painting.js";
 
 /**
  * World generation unfo passed from server
@@ -93,13 +92,6 @@ export class World {
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
-
-            this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
-                for(let params of cmd.data) {
-                    const paiting = new Particles_Painting(params);
-                    this.chunkManager.paintings.add(params.pos, paiting);
-                }
-            });
 
             this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
