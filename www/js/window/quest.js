@@ -115,10 +115,11 @@ class CreativeQuestGroups extends Window {
         const GROUP_MARGIN = 10;
         let x = 0;
         let y = 0;
+        // each groups
         for(let i = 0; i < groups.length; i++) {
             const group = groups[i];
             this.max_height = y + GROUP_ROW_HEIGHT;
-            const lblGroup = new Button(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + i, group.title, null);
+            const lblGroup = new Button(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + group.id, group.title, null);
             //
             lblGroup.onMouseDown = function(e) {
                 let that = this;
@@ -126,6 +127,18 @@ class CreativeQuestGroups extends Window {
             };
             ct.add(lblGroup);
             y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
+            // each quests
+            for(let quest of group.quests) {
+                console.log(quest);
+                const lblQuest = new Label(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblQuest' + quest.id, null, quest.title + '.\n' + quest.description);
+                lblQuest.word_wrap = true;
+                lblQuest.onMouseDown = function(e) {
+                    let that = this;
+                    return false;
+                };
+                ct.add(lblQuest);
+                y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
+            }
         }
     }
 
