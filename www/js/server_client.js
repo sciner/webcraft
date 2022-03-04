@@ -48,6 +48,10 @@ export class ServerClient {
     static CMD_STOP_PLAY_DISC           = 91;
 	static CMD_WORLD_UPDATE_INFO        = 92;
 
+    // Quests
+    static CMD_QUEST_GET_ENABLED        = 93
+	static CMD_QUEST_ALL                = 94;
+
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
     static CMD_INVENTORY_SELECT         = 79; // Изменение текущего инструмента в руках
@@ -408,6 +412,10 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_DROP_ITEM, data: {
             hand: 1
         }});
+    }
+
+    LoadQuests() {
+        this.Send({name: ServerClient.CMD_QUEST_GET_ENABLED, data: null});
     }
 
 }

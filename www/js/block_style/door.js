@@ -2,7 +2,7 @@ import {DIRECTION, MULTIPLY, ROTATE, TX_CNT, Vector} from '../helpers.js';
 import {CubeSym, pushSym} from '../core/CubeSym.js';
 import {BLOCK} from "../blocks.js";
 
-const Z_FIGHT_ERROR = 0.001;
+const Z_FIGHT_ERROR = 1/200;
 
 // Дверь
 export default class style {

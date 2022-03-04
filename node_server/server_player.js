@@ -275,6 +275,11 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
+                case ServerClient.CMD_QUEST_GET_ENABLED: {
+                    this.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: this.world.quests.getEnabled(this)}]);
+                    break;
+                }
+
                 case ServerClient.CMD_INVENTORY_SELECT: {
                     this.inventory.setIndexes(cmd.data, false);
                     break;

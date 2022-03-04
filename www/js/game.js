@@ -341,6 +341,16 @@ export class GameClass {
                         }
                         break;
                     }
+                    // Tab (Quests)
+                    case KEY.TAB: {
+                        if(e.down) {
+                            if(!this.hud.wm.hasVisibleWindow()) {
+                                Game.hud.wm.getWindow('frmQuests').toggleVisibility();
+                                return true;
+                            }
+                        }
+                        break;
+                    }
                     // T (Open chat)
                     case KEY.T: {
                         if(!e.down) {

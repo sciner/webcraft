@@ -787,4 +787,42 @@ export class DBWorld {
         });
     }
 
+    // Return all quests
+    async loadQuests() {
+        // Groups
+        const groups = new Map();
+        const group_rows = await this.db.all('SELECT * FROM quest_group', {});
+        for(let row of group_rows) {
+            const g = {...row, quests: []};
+            groups.set(g.id, g);
+        }
+        // Quests
+        const quests = new Map();
+        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest', {});
+        for(let row of rows) {
+            const quest = {...row, actions: [], rewards: []};
+            delete(quest.quest_group_id);
+            let g = groups.get(row.quest_group_id);
+            g.quests.push(quest);
+            quests.set(quest.id, quest);
+        }
+        // Actions
+        rows = await this.db.all('SELECT * FROM quest_action', {});
+        for(let row of rows) {
+            const action = {...row};
+            delete(action.quest_id);
+            let q = quests.get(row.quest_id);
+            q.actions.push(action);
+        }
+        // Rewards
+        rows = await this.db.all('SELECT * FROM quest_reward', {});
+        for(let row of rows) {
+            const reward = {...row};
+            delete(reward.quest_id);
+            let q = quests.get(row.quest_id);
+            q.rewards.push(reward);
+        }
+        return Array.from(groups.values());
+    }
+
 }

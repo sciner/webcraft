@@ -63,6 +63,7 @@ globalThis.MOUSE = {};
 
 globalThis.KEY = {};
     KEY.BACKSPACE   = 8;
+    KEY.TAB         = 9;
     KEY.ENTER       = 13;
     KEY.SHIFT       = 16;
     KEY.ESC         = 27;
