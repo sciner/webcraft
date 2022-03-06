@@ -429,6 +429,8 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
+        // TrackerPlayer change volumes
+        TrackerPlayer.changePos(this.player.lerpPos);
         this.world.chunkManager.update(player.pos);
 
         // Picking target
