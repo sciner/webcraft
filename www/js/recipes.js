@@ -9,6 +9,7 @@ export class RecipeManager {
         this.all = [];
         this.crafting_shaped = {
             list: [],
+            grouped: [],
             map: new Map(),
             searchRecipe: function(pattern_array) {
                 for(let recipe of this.list) {
@@ -69,7 +70,7 @@ export class RecipeManager {
             const rn = runes(line);
             for(let j of rn) {
                 if(j != ' ') {
-                    break;
+                    return resp;
                 }
                 resp++;
             }
@@ -244,7 +245,30 @@ export class RecipeManager {
             ids.set(item.id, true);
             that.add(item);
         }
+        this.group();
         callback();
+    }
+
+    // Group
+    group() {
+        const map = new Map();
+        this.crafting_shaped.grouped = this.crafting_shaped.list.filter(
+            recipe => {
+                recipe.is_main = recipe.id.indexOf(':') < 0;
+                if(recipe.is_main) {
+                    map.set(recipe.id, recipe);
+                    recipe.subrecipes = [];
+                }
+                return recipe.is_main;
+            }
+        );
+        for(let recipe of this.crafting_shaped.list) {
+            if(!recipe.is_main) {
+                const group_recipe_id = recipe.id.split(':')[0];
+                const group = map.get(group_recipe_id);
+                group.subrecipes.push(recipe);
+            }
+        }
     }
 
 }
