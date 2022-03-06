@@ -81,7 +81,13 @@ export class QuestWindow extends Window {
     }
 
     setData(data) {
-        this.groups = new CreativeQuestGroups(16 * this.zoom, 45 * this.zoom, this.width - 32 * this.zoom, this.height - 45, 'wGroups');
+        this.groups = new CreativeQuestGroups(
+            16 * this.zoom,
+            45 * this.zoom,
+            (this.width - 32 * this.zoom) / 2,
+            this.height - (45 + 20) * this.zoom,
+            'wGroups'
+        );
         this.add(this.groups);
         this.groups.init(data);
     }
@@ -96,12 +102,13 @@ class CreativeQuestGroups extends Window {
         // Ширина / высота слота
         this.cell_size = 36 * this.zoom;
         this.max_height = 0;
+        this.wheel_scroll = 36 * this.zoom;
         //
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
         //
         this._wheel = function(e) {
-            this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.cell_size;
+            this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll;
             this.scrollY = Math.min(this.scrollY, 0);
             this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
         };
@@ -112,14 +119,13 @@ class CreativeQuestGroups extends Window {
         const ct = this;
         const GROUP_ROW_WIDTH = this.width;
         const GROUP_ROW_HEIGHT = 70;
-        const GROUP_MARGIN = 10;
+        const GROUP_MARGIN = 20;
         let x = 0;
         let y = 0;
-        // each groups
+        // Each groups
         for(let i = 0; i < groups.length; i++) {
             const group = groups[i];
-            this.max_height = y + GROUP_ROW_HEIGHT;
-            const lblGroup = new Button(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + group.id, group.title, null);
+            const lblGroup = new QuestGroup(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblGroup' + group.id, group.title, null);
             //
             lblGroup.onMouseDown = function(e) {
                 let that = this;
@@ -127,19 +133,79 @@ class CreativeQuestGroups extends Window {
             };
             ct.add(lblGroup);
             y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
-            // each quests
+            // Each quests
             for(let quest of group.quests) {
-                console.log(quest);
-                const lblQuest = new Label(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblQuest' + quest.id, null, quest.title + '.\n' + quest.description);
-                lblQuest.word_wrap = true;
-                lblQuest.onMouseDown = function(e) {
-                    let that = this;
-                    return false;
-                };
-                ct.add(lblQuest);
-                y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
+
+                const quest_text = quest.title.toUpperCase() + '\r\n\r\n' + quest.description.trim();
+
+                const vl = new VerticalLayout(x, y, GROUP_ROW_WIDTH, 'vl' + quest.id);
+                // const lblQuest = new Quest(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblQuest' + quest.id, null, quest_text);
+                const b = new Button(x, y, 500, 55, 'btnQuest' + quest.id, quest.title);
+
+                b.style.font.size = 24;
+
+                // vl.addChild(lblQuest);
+                vl.addChild(b);
+
+                ct.add(vl);
+
+                y += vl.height + GROUP_MARGIN;
+
             }
         }
+        this.calcMaxHeight();
+    }
+
+}
+
+class VerticalLayout extends Window {
+
+    constructor(x, y, w, id) {
+        super(x, y, w, 0, id, null, null);
+        this.style.background.color = '#ffcc0055';
+
+    }
+
+    addChild(w) {
+        w.x = 0;
+        w.y = this.height;
+        w.width = this.width;
+        w.updateMeasure(this.getRoot().ctx);
+        w.height = Math.max(w.height, w.__measure.text?.height);
+        this.add(w);
+        this.calcMaxHeight();
+        this.height = this.max_height;
+    }
+
+}
+
+class Quest extends Label {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text);
+        const s = this.style;
+        this.word_wrap = true;
+        s.font.size = 24;
+        s.padding.left = 30;
+        s.padding.top = 20;
+        s.border.hidden = true;
+        s.background.color = '#ffffff33';
+        s.textAlign.horizontal = 'left';
+        // s.textAlign.vertical = 'center';
+        this.updateMeasure(this.getRoot().ctx);
+    }
+
+}
+
+class QuestGroup extends Label {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text);
+        const s = this.style;
+        s.padding.left = 10;
+        s.textAlign.horizontal = 'left';
+        s.textAlign.vertical = 'middle';
+        s.border.hidden = true;
     }
 
 }

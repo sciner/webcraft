@@ -68,7 +68,7 @@ export class Window {
             }
         };
         // typeChar
-        this.typeChar       = function(e, charCode, typedChar) {
+        this.typeChar = function(e, charCode, typedChar) {
             for(let w of this.list.values()) {
                 if(w.visible) {
                     let fired = false;
@@ -85,10 +85,10 @@ export class Window {
                 }
             }
         };
-        this.style          = {
+        this.style = {
             color: '#3f3f3f',
             textAlign: {
-                horizonal: 'left',
+                horizontal: 'left',
                 vertical: 'top' // "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
             },
             padding: {
@@ -214,17 +214,23 @@ export class Window {
         let w = this.width;
         let h = this.height;
 
-        // let region = new Path2D();
-        // region.rect(x, y, w, h);
-
         // Save the default state
         ctx.save();
-        // ctx.clip(region, 'evenodd');
 
-        // this.applyStyle(ctx, ax, ay);
+        // Clipping
+        const p = this.parent;
+        if(p) {
+            const miny = Math.max(y, p.ay + p.y);
+            // Create clipping path
+            let region = new Path2D();
+            region.rect(x, miny, w, Math.min(h, p.height));
+            ctx.clip(region, 'nonzero');
+        }
+
         // fill background color
         ctx.fillStyle = this.style.background.color;
         ctx.fillRect(x, y, w, h);
+
         // draw image
         if(this.style.background.image) {
             const iw = this.style.background.image.width;
@@ -245,20 +251,27 @@ export class Window {
         }
         //if(this.title || this.text) {
         this.applyStyle(ctx, ax, ay);
+        this.updateMeasure(ctx);
         //}
         // Draw title
         if(this.title) {
             ctx.fillStyle = this.style.color;
-            if(this.style.font.shadow) {
+            const pos = {
+                x: x + (this.style.textAlign.horizontal == 'center' ? w / 2 : this.style.padding.left),
+                y: y + (this.style.textAlign.vertical == 'middle' ? h / 2 : this.style.padding.top)
+            };
+            // pos.x -= this.__measure.title.width / 2;
+            // pos.y -= this.__measure.title.height / 2;
+            /*if(this.style.font.shadow) {
                 ctx.save();
                 ctx.shadowOffsetX = this.style.font.shadow.x;
                 ctx.shadowOffsetY = this.style.font.shadow.y;
                 ctx.shadowBlur = this.style.font.shadow.blur;
                 ctx.shadowColor = this.style.font.shadow.color;
-                ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
+                ctx.fillText(this.title, pos.x, pos.y);
                 ctx.restore();
-            }
-            ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
+            }*/
+            ctx.fillText(this.title, pos.x, pos.y);
         }
         // print text
         //if(this.text) {
@@ -283,9 +296,58 @@ export class Window {
         ctx.restore();
         for(let w of this.list.values()) {
             if(w.visible) {
-                w.draw(ctx, ax+this.x, ay+this.y);
+                w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
             }
         }
+    }
+    updateMeasure(ctx) {
+        if(!this.__measure) {
+            this.__measure = {
+                title: {
+                    value: null,
+                    width: null,
+                    height: null
+                },
+                text: {
+                    value: null,
+                    width: null,
+                    height: null
+                }
+            }
+        }
+        // title
+        const mtl = this.__measure.title;
+        if(mtl.value != this.title) {
+            let mt = ctx.measureText(this.title);
+            mtl.value = this.title;
+            mtl.width = mt.width;
+            mtl.height = mt.actualBoundingBoxDescent;
+        }
+        // text
+        const mtxt = this.__measure.text;
+        if(mtxt.value != this.text) {
+            let mt = ctx.measureText(this.text);
+            mtxt.value = this.text;
+            //
+            if(this.word_wrap) {
+                this.applyStyle(ctx, 0, 0);
+                const lineHeight = this.style.font.size * 1.05;
+                const lines = this.calcPrintLines(this.text || '');
+                mtxt.height = lines.length * lineHeight;
+            } else {
+                mtxt.width = mt.width;
+                mtxt.height = mt.actualBoundingBoxDescent;
+            }
+        }
+    }
+    calcMaxHeight() {
+        let mh = 0;
+        for(let w of this.list.values()) {
+            if(w.y + w.height > mh) {
+                mh = w.y + w.height;
+            }
+        }
+        this.max_height = mh + this.style.padding.bottom;
     }
     hasVisibleWindow() {
         if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
@@ -325,11 +387,9 @@ export class Window {
         this.ax             = ax;
         this.ay             = ay;
         ctx.font            = this.style.font.size + 'px ' + this.style.font.family;
-        ctx.textAlign       = 'left';
-        ctx.textBaseline    = 'top';
         ctx.fillStyle       = this.style.color;
-        ctx.textAlign       = this.style.textAlign.horizontal;
-        ctx.textBaseline    = this.style.textAlign.vertical;
+        ctx.textAlign       = this.style.textAlign.horizontal || 'left';
+        ctx.textBaseline    = this.style.textAlign.vertical || 'top';
     }
     setBackground(url, image_size_mode) {
         let that = this;
@@ -382,7 +442,7 @@ export class Window {
                 let e2 = {...e};
                 let x = e2.x - (this.ax + w.x);
                 let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
+                if(x >= 0 && y >= 0 && x <= w.width && y <= w.height) {
                     e2.x = x + this.x;
                     e2.y = y + this.y - w.scrollY;
                     w._mousemove(e2);
