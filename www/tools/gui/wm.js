@@ -686,10 +686,10 @@ class Tooltip extends Label {
         this.style.font.size = 20;
         this.style.font.family = 'Ubuntu';
         this.style.padding = {
-            left: 5,
-            right: 5,
-            top: 5,
-            bottom: 5
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: 10
         };
         //
         this.need_update_size = false;

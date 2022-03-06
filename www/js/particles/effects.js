@@ -31,7 +31,7 @@ export class Particles_Effects extends Particles_Base {
         this.tx_cnt         = this.resource_pack.conf.textures[m[2]].tx_cnt;
 
         this.pos            = Vector.ZERO.clone();
-        this.chunk_addr     = chunk_addr;
+        this.chunk_addr     = chunk_addr.clone();
         this.chunk_coord    = chunk_addr.mul(chunk_size);
 
         this.max_count      = 32;
@@ -141,7 +141,7 @@ export class Particles_Effects extends Particles_Base {
                 percent = 1 - percent;
             }
             percent = Math.max(percent, params.min_percent);
-            
+
             const scale = params.pend < pn ? 0 : percent;
             const ap = i + pos_offset;
 

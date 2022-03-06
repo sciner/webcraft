@@ -90,6 +90,11 @@ export default class ChestWindow extends Window {
                 case KEY.ESC: {
                     if(!down) {
                         ct.hide();
+                        try {
+                            Game.setupMousePointer(true);
+                        } catch(e) {
+                            console.error(e);
+                        }
                     }
                     return true;
                 }

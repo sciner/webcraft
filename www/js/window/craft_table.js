@@ -88,6 +88,11 @@ export class CraftTable extends BaseCraftWindow {
                 case KEY.ESC: {
                     if(!down) {
                         ct.hide();
+                        try {
+                            Game.setupMousePointer(true);
+                        } catch(e) {
+                            console.error(e);
+                        }
                     }
                     return true;
                 }
