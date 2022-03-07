@@ -10,7 +10,6 @@ export class QuestPlayer {
     constructor(quest_manager, player) {
         this.quest_manager = quest_manager;
         this.player = player;
-        this.init();
     }
 
     async init() {

@@ -571,8 +571,9 @@ export class ServerPlayer extends Player {
         }
     }
 
-    initQuests() {
+    async initQuests() {
         this.quests = new QuestPlayer(this.world.quests, this);
+        await this.quests.init();
     }
 
 }

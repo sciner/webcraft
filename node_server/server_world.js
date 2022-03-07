@@ -289,7 +289,7 @@ export class ServerWorld {
         player.init(await this.db.registerUser(this, player));
         player.state.skin = skin;
         player.updateHands();
-        player.initQuests();
+        await player.initQuests();
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
