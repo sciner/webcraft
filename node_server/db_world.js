@@ -296,7 +296,7 @@ export class DBWorld {
             `INSERT INTO "quest_action_type" VALUES (5, 'Достигнуть координат');`,
             `CREATE TABLE "quest_group" ("id" INTEGER NOT NULL, "title" TEXT, PRIMARY KEY ("id"));`,
             `CREATE TABLE "quest_reward" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "block_id" INTEGER NOT NULL, "cnt" TEXT NOT NULL, PRIMARY KEY ("id"));`,
-            `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "state" TEXT, PRIMARY KEY ("id"));`
+            `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "actions" TEXT, PRIMARY KEY ("id"));`
         ]});
 
         for(let m of migrations) {
@@ -836,6 +836,41 @@ export class DBWorld {
             q.rewards.push(reward);
         }
         return Array.from(groups.values());
+    }
+
+    // loadPlayerQuests...
+    async loadPlayerQuests(player) {
+        let rows = await this.db.all("SELECT * FROM user_quest WHERE user_id = :user_id", {
+            ':user_id': player.session.user_id,
+        });
+        const resp = new Map();
+        for(let row of rows) {
+            row.actions = JSON.parse(row.actions);
+            resp.set(row.id, row);
+        }
+        return resp;
+    }
+
+    // savePlayerQuestActions...
+    async savePlayerQuestActions(player, quest_id, actions) {
+        const exist_row = await this.db.get('SELECT * FROM user_quest WHERE user_id = :user_id AND quest_id = :quest_id', {
+            ':user_id':         player.session.user_id,
+            ':quest_id':        quest_id
+        });
+        if(exist_row) {
+            await this.db.run('UPDATE user_quest SET actions = :actions WHERE user_id = :user_id AND quest_id = :quest_id', {
+                ':user_id':     player.session.user_id,
+                ':quest_id':    quest_id,
+                ':actions':     JSON.stringify(actions)
+            });
+        } else {
+            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, actions) VALUES (:dt, :user_id, :quest_id, :actions)', {
+                ':dt':          ~~(Date.now() / 1000),
+                ':user_id':     player.session.user_id,
+                ':quest_id':    quest_id,
+                ':actions':     JSON.stringify(actions)
+            });
+        }
     }
 
 }

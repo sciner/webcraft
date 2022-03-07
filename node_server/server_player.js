@@ -8,7 +8,7 @@ import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
-import {QuestPlayer} from "./quest_player.js";
+import {QuestPlayer} from "./quest/player.js";
 
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
@@ -357,6 +357,7 @@ export class ServerPlayer extends Player {
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        PlayerEvent.removeHandler(this.session.user_id);
         //
         //try {
         //    this.conn.close();

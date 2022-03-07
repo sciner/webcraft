@@ -1,5 +1,3 @@
-import {BLOCK} from "../www/js/blocks.js";
-
 // Static class, key game event handler
 export class PlayerEvent {
 
@@ -9,60 +7,21 @@ export class PlayerEvent {
     static CRAFT                     = 'craft'; // player crafted something
     static PUT_ITEM_TO_INVENTORY     = 'insert_item_to_inventory'; //
 
-    static sendMessage(player, message) {
-        player.world.chat.sendSystemChatMessageToSelectedPlayers(message, [player.session.user_id]);
+    static player_handlers           = new Map();
+
+    static addHandler(user_id, handler) {
+        PlayerEvent.player_handlers.set(user_id, handler);
+    }
+
+    static removeHandler(user_id) {
+        PlayerEvent.player_handlers.delete(user_id);
     }
 
     // On game event
     static trigger(e) {
-        switch(e.type) {
-
-            case PlayerEvent.SET_BLOCK: {
-                const block = BLOCK.fromId(e.data.block.id);
-                if(!block) {
-                    throw 'error_invalid_block';
-                }
-                const pos = e.data.pos.toHash();
-                PlayerEvent.sendMessage(e.player, `${e.player.session.username} set block ${block.name} on pos ${pos}`);
-                break;
-            }
-
-            case PlayerEvent.DESTROY_BLOCK: {
-                const block = BLOCK.fromId(e.data.block_id);
-                if(!block) {
-                    throw 'error_invalid_block';
-                }
-                const pos = e.data.pos.toHash();
-                PlayerEvent.sendMessage(e.player, `${e.player.session.username} destroy block ${block.name} on pos ${pos}`);
-                break;
-            }
-
-            case PlayerEvent.PICKUP_ITEMS: {
-                const items_string = JSON.stringify(e.data.items);
-                PlayerEvent.sendMessage(e.player, `${e.player.session.username} pick up dropped items ${items_string}`);
-                break;
-            }
-
-            case PlayerEvent.CRAFT: {
-                const item = e.data.item;
-                const block = BLOCK.fromId(item.block_id);
-                if(!block) {
-                    throw 'error_invalid_block';
-                }
-                PlayerEvent.sendMessage(e.player, `${e.player.session.username} crafted ${block.name} (count: ${item.count})`);
-                break;
-            }
-
-            case PlayerEvent.PUT_ITEM_TO_INVENTORY: {
-                const item = e.data.item;
-                const block = BLOCK.fromId(item.block_id);
-                if(!block) {
-                    throw 'error_invalid_block';
-                }
-                PlayerEvent.sendMessage(e.player, `${e.player.session.username} put item ${block.name} to inventory`);
-                break;
-            }
-
+        const player_handler = PlayerEvent.player_handlers.get(e.player.session.user_id);
+        if(player_handler) {
+            player_handler.trigger(e);
         }
     }
 

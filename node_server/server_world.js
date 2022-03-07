@@ -5,7 +5,7 @@ import {ChestManager} from "./chest_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
 import {PlayerEvent} from "./player_event.js";
-import {QuestManager} from "./quest_manager.js";
+import {QuestManager} from "./quest/manager.js";
 
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
