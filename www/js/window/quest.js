@@ -227,7 +227,7 @@ class QuestView extends Window {
         for(let item of quest.rewards) {
             const block = BLOCK.fromId(item.block_id);
             if(block) {
-                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' x ' + item.cnt);
+                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' × ' + item.cnt);
             }
         }
         lblRewards.text = rewards.join('\r\n\r\n');

@@ -8,6 +8,7 @@ import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
 import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
+import {QuestPlayer} from "./quest_player.js";
 
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
@@ -276,7 +277,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_QUEST_GET_ENABLED: {
-                    this.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: this.world.quests.getEnabled(this)}]);
+                    this.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: this.quests.getEnabled()}]);
                     break;
                 }
 
@@ -567,6 +568,10 @@ export class ServerPlayer extends Player {
                 });
             }
         }
+    }
+
+    initQuests() {
+        this.quests = new QuestPlayer(this.world.quests, this);
     }
 
 }

@@ -555,7 +555,7 @@ export class Window {
                     let str = words.slice(0, idx).join(' ');
                     let w = this.ctx.measureText(str).width;
                     // Wrap to next line if current is full
-                    if(w > this.width - 20) {
+                    if(w > this.width - this.style.padding.left - this.style.padding.right) {
                         if(idx == 1) {
                             idx = 2;
                         }

@@ -285,6 +285,19 @@ export class DBWorld {
         migrations.push({version: 26, queries: [
             `UPDATE world_modify set params = '{"id": 3}' where  params like '{"id":3,"rotate":{"x":-%'`,
         ]});
+        migrations.push({version: 27, queries: [
+            `CREATE TABLE "quest" ("id" INTEGER NOT NULL, "quest_group_id" INTEGER NOT NULL, "title" TEXT NOT NULL, "description" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_action" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "quest_action_type_id" INTEGER, "block_id" INTEGER, "cnt" integer, "pos" TEXT, "description" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_action_type" ("id" INTEGER NOT NULL, "title" TEXT, PRIMARY KEY ("id"));`,
+            `INSERT INTO "quest_action_type" VALUES (1, 'Добыть');`,
+            `INSERT INTO "quest_action_type" VALUES (2, 'Скрафтить');`,
+            `INSERT INTO "quest_action_type" VALUES (3, 'Установить блок');`,
+            `INSERT INTO "quest_action_type" VALUES (4, 'Использовать инструмент');`,
+            `INSERT INTO "quest_action_type" VALUES (5, 'Достигнуть координат');`,
+            `CREATE TABLE "quest_group" ("id" INTEGER NOT NULL, "title" TEXT, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "quest_reward" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "block_id" INTEGER NOT NULL, "cnt" TEXT NOT NULL, PRIMARY KEY ("id"));`,
+            `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "state" TEXT, PRIMARY KEY ("id"));`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {

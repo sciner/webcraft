@@ -11,7 +11,7 @@ export class QuestManager {
         this.groups = await this.#world.db.loadQuests();
     }
 
-    getEnabled(player) {
+    getEnabled() {
         return this.groups;
     }
 
