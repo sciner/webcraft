@@ -46,6 +46,7 @@ export class ServerWorld {
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         this.models         = new ModelManager();
         this.models.init();
+        await this.quests.init();
         this.ticks_stat     = {
             pn: null,
             last: 0,

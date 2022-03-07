@@ -4,7 +4,6 @@ export class QuestManager {
 
     constructor(world) {
         this.#world = world;
-        this.init();
     }
 
     async init() {

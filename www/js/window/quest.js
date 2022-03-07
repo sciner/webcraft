@@ -72,6 +72,7 @@ export class QuestWindow extends Window {
         }
 
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {
+            console.log(cmd.data);
             this.setData(cmd.data);
         });
 
