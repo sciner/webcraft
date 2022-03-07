@@ -2,7 +2,7 @@
 * Window Manager based ON 2D canvas 
 */
 
-import {RuneStrings} from "../../js/helpers.js";
+import {RuneStrings, deepAssign} from "../../js/helpers.js";
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
@@ -326,11 +326,11 @@ export class Window {
         // text
         const mtxt = this.__measure.text;
         if(mtxt.value != this.text) {
+            this.applyStyle(ctx, 0, 0);
             let mt = ctx.measureText(this.text);
             mtxt.value = this.text;
             //
             if(this.word_wrap) {
-                this.applyStyle(ctx, 0, 0);
                 const lineHeight = this.style.font.size * 1.05;
                 const lines = this.calcPrintLines(this.text || '');
                 mtxt.height = lines.length * lineHeight;
@@ -440,13 +440,12 @@ export class Window {
             w.hover = false;
             if(w.visible) {
                 let e2 = {...e};
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
+                let x = e2.x - w.x;
+                let y = e2.y - w.y;
                 if(x >= 0 && y >= 0 && x <= w.width && y <= w.height) {
-                    e2.x = x + this.x;
-                    e2.y = y + this.y - w.scrollY;
+                    e2.x = x;
+                    e2.y = y - w.scrollY;
                     w._mousemove(e2);
-                    // fire_mousemove.push({w: w, event: e2});
                     w.hover = true;
                 }
             }
@@ -613,6 +612,56 @@ export class Window {
             callback(this._loadCloseButtonImage);
         }
         image.src = '../../media/gui/close.png';
+    }
+    assignStyles(style) {
+        for(let param in style) {
+            let v = style[param];
+            switch(param) {
+                case 'padding': {
+                    if(!isNaN(v)) {
+                        v = {left: v, top: v, right: v, bottom: v};
+                    }
+                    this.style[param] = v;
+                    break;
+                }
+                default: {
+                    const options = {nonEnum: true, symbols: true, descriptors: true, proto: true};
+                    deepAssign(options)(this.style[param], v);
+                    break;
+                }
+            }
+        }
+    }
+    appendLayout(layout) {
+        for(let id in layout) {
+            const cl = layout[id];
+            let control = null;
+            switch(cl.type) {
+                case 'VerticalLayout': {
+                    control = new VerticalLayout(cl.x, cl.y, cl.width, id);
+                    if(cl.childs) {
+                        control.appendLayout(cl.childs);
+                    }
+                    break;
+                }
+                case 'Label': {
+                    control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                    if('word_wrap' in cl) {
+                        control.word_wrap = cl.word_wrap;
+                    }
+                    break;
+                }
+            }
+            if(control) {
+                if(cl.style) {
+                    control.assignStyles(cl.style);
+                }
+                this.add(control);
+                if('refresh' in control) {
+                    control.refresh();
+                }
+            }
+        }
     }
 }
 
@@ -935,6 +984,32 @@ export class WindowManager extends Window {
 
     _wm_setTooltipText(text) {
         this._wm_tooltip.setText(text);
+    }
+
+}
+
+export class VerticalLayout extends Window {
+
+    constructor(x, y, w, id) {
+        super(x, y, w, 0, id, null, null);
+        this.style.background.color = '#00000000';
+        this.style.border.hidden = true;
+    }
+
+    refresh() {
+        let y = 0;
+        for(let w of this.list.values()) {
+            w.x = 0;
+            w.y = y;
+            w.width = this.width;
+            w.updateMeasure(this.getRoot().ctx);
+            if(w.__measure.text?.height) {
+                w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+            }
+            y += w.height;
+        }
+        this.calcMaxHeight();
+        this.height = this.max_height;
     }
 
 }

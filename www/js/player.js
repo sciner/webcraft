@@ -137,7 +137,7 @@ export class Player {
             Game.hud.refresh();
         });
         // Quests
-        this.frmQuests = new QuestWindow(10, 10, 1600/2, 800/2, 'frmQuests', null, null, this);
+        this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
         Game.hud.wm.add(this.frmQuests);
         return true;
     }

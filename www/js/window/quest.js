@@ -1,7 +1,6 @@
-import {Button, Label, Window} from "../../tools/gui/wm.js";
-import {CraftTableInventorySlot} from "./base_craft_window.js";
-import { BLOCK } from "../blocks.js";
+import {Button, Label, Window, VerticalLayout} from "../../tools/gui/wm.js";
 import {ServerClient} from "../../js/server_client.js";
+import {BLOCK} from "../../js/blocks.js";
 
 export class QuestWindow extends Window {
 
@@ -81,20 +80,197 @@ export class QuestWindow extends Window {
     }
 
     setData(data) {
-        this.groups = new CreativeQuestGroups(
+
+        this.groups = new QuestMenu(
             16 * this.zoom,
             45 * this.zoom,
-            (this.width - 32 * this.zoom) / 2,
+            250 * this.zoom,
+            // (this.width - 32 * this.zoom) / 3,
             this.height - (45 + 20) * this.zoom,
             'wGroups'
         );
-        this.add(this.groups);
         this.groups.init(data);
+        this.add(this.groups);
+
+        //
+        this.quest_view = new QuestView(
+            (this.groups.x + this.groups.width + 16 * this.zoom),
+            45 * this.zoom,
+            (this.width - this.groups.width - (16 * 3) * this.zoom),
+            this.height - (45 + 20) * this.zoom,
+            'qView'
+        );
+        this.add(this.quest_view);
+
+        //
+        this.groups.setViewer(this.quest_view);
+
     }
 
 }
 
-class CreativeQuestGroups extends Window {
+class QuestView extends Window {
+
+    //
+    constructor(x, y, w, h, id, title, text) {
+
+        super(x, y, w, h, id, title, text);
+        // Ширина / высота слота
+        this.cell_size = 36 * this.zoom;
+        this.max_height = 0;
+        this.wheel_scroll = 36 * this.zoom;
+        //
+        this.style.background.color = '#ffffff22';
+        this.style.border.hidden = true;
+        //
+        this._wheel = function(e) {
+            this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll;
+            this.scrollY = Math.min(this.scrollY, 0);
+            this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
+        };
+
+        //
+        this.appendLayout({
+            questViewLayout: {
+                type: 'VerticalLayout',
+                x: 0,
+                y: 0,
+                width: this.width,
+                childs: {
+                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: 70, style: {padding: 20}, title: 'Quest title'},
+                    lDesc: {
+                        type: 'Label',
+                        word_wrap: true,
+                        style: {
+                            padding: 20,
+                            font: {size: 26},
+                            background: {color: '#ffffff22'}
+                        },
+                        title: null,
+                        text: 'Quest description'
+                    },
+                    l1: {
+                        type: 'Label',
+                        word_wrap: true,
+                        style: {
+                            padding: 20,
+                            font: {size: 26},
+                            background: {color: '#ffffff00'}
+                        },
+                        title: null,
+                        text: 'Task(s):'
+                    },
+                    lblActions: {
+                        type: 'Label',
+                        word_wrap: true,
+                        style: {
+                            padding: 20,
+                            font: {size: 26},
+                            background: {color: '#ffffff22'}
+                        },
+                        title: null,
+                        text: '1. ...\r\n2. ...'
+                    },
+                    l2: {
+                        type: 'Label',
+                        word_wrap: true,
+                        style: {
+                            padding: 20,
+                            font: {size: 26},
+                            background: {color: '#ffffff00'}
+                        },
+                        title: null,
+                        text: 'Reward(s):'
+                    },
+                    lblRewards: {
+                        type: 'Label',
+                        word_wrap: true,
+                        style: {
+                            padding: 20,
+                            font: {size: 26},
+                            background: {color: '#ffffff22'}
+                        },
+                        title: null,
+                        text: '1. ...\r\n2. ...'
+                    },
+                }
+            }
+        });
+
+        this.getWindow('questViewLayout').visible = false;
+
+    }
+
+    show(quest) {
+
+        // console.log(quest);
+
+        const ql = this.getWindow('questViewLayout');
+        const lblTitle = ql.getWindow('lblTitle');
+        const lDesc = ql.getWindow('lDesc');
+        const lblActions = ql.getWindow('lblActions');
+        const lblRewards = ql.getWindow('lblRewards');
+        
+        //
+        lblTitle.title = quest.title;
+        lDesc.text = quest.description;
+
+        // actions
+        let actions = [];
+        for(let item of quest.actions) {
+            actions.push((actions.length + 1) + '. ' + item.description);
+        }
+        lblActions.text = actions.join('\r\n\r\n');
+
+        // rewards
+        let rewards = [];
+        for(let item of quest.rewards) {
+            const block = BLOCK.fromId(item.block_id);
+            if(block) {
+                rewards.push((rewards.length + 1) + '. ' + block.name.replaceAll('_', ' ') + ' x ' + item.cnt);
+            }
+        }
+        lblRewards.text = rewards.join('\r\n\r\n');
+
+        ql.visible = true;
+
+        //
+        ql.refresh();
+        
+    }
+
+}
+
+class ToggleButton extends Button {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text);
+        this.toggled = false;
+        this.onMouseEnter = function() {
+            this.style.background.color = '#8892c9';
+            this.style.color = '#ffffff';
+        }
+        this.onMouseLeave = function() {
+            this.style.background.color = this.toggled ? '#7882b9' : '#00000000';
+            this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+        }
+    }
+
+    toggle() {
+        if(this.parent.__toggledButton) {
+            this.parent.__toggledButton.toggled = false;
+            this.parent.__toggledButton.onMouseLeave();
+            // console.log('reset toggled', this.parent.__toggledButton.id);
+        }
+        this.toggled = !this.toggled;
+        this.parent.__toggledButton = this;
+        this.style.background.color = this.toggled ? '#8892c9' : '#00000000';
+        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+    }
+
+}
+
+class QuestMenu extends Window {
 
     //
     constructor(x, y, w, h, id, title, text) {
@@ -114,12 +290,16 @@ class CreativeQuestGroups extends Window {
         };
     }
 
+    setViewer(quest_viewer) {
+        this.quest_viewer = quest_viewer;
+    }
+
     // Init
     init(groups) {
-        const ct = this;
-        const GROUP_ROW_WIDTH = this.width;
-        const GROUP_ROW_HEIGHT = 70;
-        const GROUP_MARGIN = 20;
+        const ct                = this;
+        const GROUP_ROW_WIDTH   = this.width;
+        const GROUP_ROW_HEIGHT  = 70;
+        const GROUP_MARGIN      = 20;
         let x = 0;
         let y = 0;
         // Each groups
@@ -135,64 +315,20 @@ class CreativeQuestGroups extends Window {
             y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
             // Each quests
             for(let quest of group.quests) {
-
-                const quest_text = quest.title.toUpperCase() + '\r\n\r\n' + quest.description.trim();
-
-                const vl = new VerticalLayout(x, y, GROUP_ROW_WIDTH, 'vl' + quest.id);
-                // const lblQuest = new Quest(x, y, GROUP_ROW_WIDTH, GROUP_ROW_HEIGHT, 'lblQuest' + quest.id, null, quest_text);
-                const b = new Button(x, y, 500, 55, 'btnQuest' + quest.id, quest.title);
-
+                const b = new ToggleButton(x, y, this.width, 55, 'btnQuest' + quest.id, quest.title);
                 b.style.font.size = 24;
-
-                // vl.addChild(lblQuest);
-                vl.addChild(b);
-
-                ct.add(vl);
-
-                y += vl.height + GROUP_MARGIN;
-
+                ct.add(b);
+                y += b.height + GROUP_MARGIN;
+                b.onMouseDown = (e) => {
+                    if(b.toggled) {
+                        return false;
+                    }
+                    this.quest_viewer.show(quest);
+                    b.toggle();
+                }
             }
         }
         this.calcMaxHeight();
-    }
-
-}
-
-class VerticalLayout extends Window {
-
-    constructor(x, y, w, id) {
-        super(x, y, w, 0, id, null, null);
-        this.style.background.color = '#ffcc0055';
-
-    }
-
-    addChild(w) {
-        w.x = 0;
-        w.y = this.height;
-        w.width = this.width;
-        w.updateMeasure(this.getRoot().ctx);
-        w.height = Math.max(w.height, w.__measure.text?.height);
-        this.add(w);
-        this.calcMaxHeight();
-        this.height = this.max_height;
-    }
-
-}
-
-class Quest extends Label {
-
-    constructor(x, y, w, h, id, title, text) {
-        super(x, y, w, h, id, title, text);
-        const s = this.style;
-        this.word_wrap = true;
-        s.font.size = 24;
-        s.padding.left = 30;
-        s.padding.top = 20;
-        s.border.hidden = true;
-        s.background.color = '#ffffff33';
-        s.textAlign.horizontal = 'left';
-        // s.textAlign.vertical = 'center';
-        this.updateMeasure(this.getRoot().ctx);
     }
 
 }
@@ -203,6 +339,8 @@ class QuestGroup extends Label {
         super(x, y, w, h, id, title, text);
         const s = this.style;
         s.padding.left = 10;
+        s.font.size = 36;
+        s.background.color = '#00000000';
         s.textAlign.horizontal = 'left';
         s.textAlign.vertical = 'middle';
         s.border.hidden = true;
