@@ -654,7 +654,7 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
-                    all.push(this.db.blockSet(this, null, params));
+                    all.push(this.db.blockSet(this, server_player, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     if(chunk) {
