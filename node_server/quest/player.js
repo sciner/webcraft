@@ -90,7 +90,7 @@ export class QuestPlayer {
                 }
             }
         }
-        this.sendMessage(`${e.player.session.username} set block ${block.name} on pos ${pos}`);
+        // this.sendMessage(`${e.player.session.username} set block ${block.name} on pos ${pos}`);
     }
 
     // Handler
@@ -100,7 +100,7 @@ export class QuestPlayer {
             throw 'error_invalid_block';
         }
         const pos = e.data.pos.toHash();
-        this.sendMessage(`${e.player.session.username} destroy block ${block.name} on pos ${pos}`);
+        // this.sendMessage(`${e.player.session.username} destroy block ${block.name} on pos ${pos}`);
     }
 
     // Handler
@@ -140,7 +140,7 @@ export class QuestPlayer {
                 }
             }
         }
-        this.sendMessage(`${e.player.session.username} crafted ${block.name} (count: ${item.count})`);
+        // this.sendMessage(`${e.player.session.username} crafted ${block.name} (count: ${item.count})`);
     }
 
     // Handler
