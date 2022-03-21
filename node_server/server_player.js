@@ -277,7 +277,7 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_QUEST_GET_ENABLED: {
-                    this.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: this.quests.getEnabled()}]);
+                    this.quests.sendAll();
                     break;
                 }
 

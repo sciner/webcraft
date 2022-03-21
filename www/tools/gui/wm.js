@@ -596,7 +596,7 @@ export class Window {
         }
         // Print lines
         for(let i in lines) {
-            const line = lines[i];
+            const line = lines[i].trim();
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }

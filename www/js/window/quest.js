@@ -1,6 +1,18 @@
 import {Button, Label, Window, VerticalLayout} from "../../tools/gui/wm.js";
+// import {QuestActionType} from "../../../node_server/quest/action_type.js";
 import {ServerClient} from "../../js/server_client.js";
 import {BLOCK} from "../../js/blocks.js";
+
+// QuestActionType
+export class QuestActionType {
+
+    static PICKUP       = 1; // Добыть
+    static CRAFT        = 2; // Скрафтить
+    static SET_BLOCK    = 3; // Установить блок
+    static USE_ITEM     = 4; // Использовать инструмент
+    static GOTO_COORD   = 5; // Достигнуть координат
+
+}
 
 export class QuestWindow extends Window {
 
@@ -72,7 +84,6 @@ export class QuestWindow extends Window {
         }
 
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {
-            console.log(cmd.data);
             this.setData(cmd.data);
         });
 
@@ -216,10 +227,35 @@ class QuestView extends Window {
         lblTitle.title = quest.title;
         lDesc.text = quest.description;
 
+        if(quest.is_completed) {
+            lblTitle.title = `✅ ${lblTitle.title}`; 
+        }
+
         // actions
         let actions = [];
-        for(let item of quest.actions) {
-            actions.push((actions.length + 1) + '. ' + item.description);
+        for(let action of quest.actions) {
+            let status = `🔘`; 
+            if(action.ok) {
+                status = '✅';
+            }
+            switch(action.quest_action_type_id) {
+                case QuestActionType.CRAFT:
+                case QuestActionType.SET_BLOCK:
+                case QuestActionType.PICKUP: {
+                    actions.push(`${status} ${action.description} ... ${action.value}/${action.cnt}`);
+                    break;
+                }
+                /*
+                case QuestActionType.USE_ITEM:
+                case QuestActionType.GOTO_COORD: {
+                    throw 'error_not_implemented';
+                    break;
+                }*/
+                default: {
+                    actions.push(`${status} ${action.description}`);
+                    break;
+                }
+            }
         }
         lblActions.text = actions.join('\r\n\r\n');
 
@@ -316,16 +352,18 @@ class QuestMenu extends Window {
             y += GROUP_ROW_HEIGHT + GROUP_MARGIN;
             // Each quests
             for(let quest of group.quests) {
-                const b = new ToggleButton(x, y, this.width, 55, 'btnQuest' + quest.id, quest.title);
-                b.style.font.size = 24;
-                ct.add(b);
-                y += b.height + GROUP_MARGIN;
-                b.onMouseDown = (e) => {
-                    if(b.toggled) {
+                let title = quest.title;
+                let status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
+                const tb = new ToggleButton(x, y, this.width, 55, 'btnQuest' + quest.id, `${status} ${title}`);
+                tb.style.font.size = 24;
+                ct.add(tb);
+                y += tb.height + GROUP_MARGIN;
+                tb.onMouseDown = (e) => {
+                    if(tb.toggled) {
                         return false;
                     }
                     this.quest_viewer.show(quest);
-                    b.toggle();
+                    tb.toggle();
                 }
             }
         }

@@ -299,30 +299,30 @@ export class DBWorld {
             `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "actions" TEXT, PRIMARY KEY ("id"));`
         ]});
         migrations.push({version: 28, queries: [
-            `INSERT INTO "quest" VALUES (1, 1, 'Добыть дубовые брёвна', 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.
-          
-            1-й шаг — Найдите дерево
-            Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.
-            Чтобы сломать бревно рукой нужно примерно 6 секунд.
+            `INSERT INTO "quest" VALUES (1, 1, 'Добыть дубовые брёвна', 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
+            `\r\n` +
+            `1-й шаг — Найдите дерево\r\n` +
+            `Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\r\n` +
+            `Чтобы сломать бревно рукой нужно примерно 6 секунд.\r\n` +
+            `\r\n` +
+            `2-й шаг — Подберите блок\r\n` +
+            `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.');`,
             
-            2-й шаг — Подберите блок
-            Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.');`,
-            
-            `INSERT INTO "quest" VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.
-            Земля (она же дёрн) может быть добыта чем угодно.');`,
+            `INSERT INTO "quest" VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
+            `Земля (она же дёрн) может быть добыта чем угодно.');`,
   
-            `INSERT INTO "quest" VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.
-            
-            1-й шаг
-            Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.
-            
-            2-й шаг
-            Поместите верстак в один из нижних слотов инвентаря
-            
-            3-й шаг
-            Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.
-            
-            Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее. Пример создания деревянной кирки из досок и палок.');`,
+            `INSERT INTO "quest" VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
+            `\r\n` +
+            `1-й шаг\r\n` +
+            `Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\r\n` +
+            `\r\n` +
+            `2-й шаг\r\n` +
+            `Поместите верстак в один из нижних слотов инвентаря\r\n` +
+            `\r\n` +
+            `3-й шаг\r\n` +
+            `Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\r\n` +
+            `\r\n` +
+            `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее. Пример создания деревянной кирки из досок и палок.');`,
             
             `INSERT INTO "quest_action" VALUES (1, 1, 1, 3, 5, NULL, 'Добыть 5 дубовых брёвен');`,
             `INSERT INTO "quest_action" VALUES (2, 2, 1, 2, 20, NULL, 'Выкопать 20 земляных блоков');`,
@@ -334,6 +334,11 @@ export class DBWorld {
             `INSERT INTO "quest_reward" VALUES (2, 2, 2, 20);`,
             `INSERT INTO "quest_reward" VALUES (3, 3, 130, 4);`,
             `INSERT INTO "quest_reward" VALUES (4, 3, 59, 4);`
+        ]});
+        migrations.push({version: 29, queries: [`alter table user_quest add column "is_completed" integer NOT NULL DEFAULT 0`]});
+        migrations.push({version: 30, queries: [
+            `alter table quest add column "is_default" integer NOT NULL DEFAULT 0`,
+            `update quest set is_default = 1 where id in(1, 2, 3)`
         ]});
 
         for(let m of migrations) {
@@ -877,35 +882,61 @@ export class DBWorld {
 
     // loadPlayerQuests...
     async loadPlayerQuests(player) {
-        let rows = await this.db.all("SELECT * FROM user_quest WHERE user_id = :user_id", {
+        let rows = await this.db.all(`SELECT
+                q.id,
+                q.quest_group_id,
+                q.title,
+                q.description,
+                uq.is_completed,
+                uq.actions,
+                json_object('id', g.id, 'title', g.title) as quest_group,
+                (select json_group_array(json_object('block_id', block_id, 'cnt', cnt)) from quest_reward qr where qr.quest_id = q.id) as rewards
+            FROM user_quest uq
+            left join quest q on q.id = uq.quest_id
+            left join quest_group g on g.id = q.quest_group_id
+            left join quest_action a on a.quest_id = q.id
+            WHERE user_id = :user_id`, {
             ':user_id': player.session.user_id,
         });
         const resp = new Map();
         for(let row of rows) {
             row.actions = JSON.parse(row.actions);
+            row.rewards = JSON.parse(row.rewards);
+            row.is_completed = row.is_completed != 0;
+            //
+            let ok_count = 0;
+            for(let action of row.actions) {
+                if(action.ok) {
+                    ok_count++;
+                }
+            }
+            //
+            row.in_progress = !row.is_completed && ok_count > 0;
             resp.set(row.id, row);
         }
         return resp;
     }
 
-    // savePlayerQuestActions...
-    async savePlayerQuestActions(player, quest_id, actions) {
+    // savePlayerQuest...
+    async savePlayerQuest(player, quest) {
         const exist_row = await this.db.get('SELECT * FROM user_quest WHERE user_id = :user_id AND quest_id = :quest_id', {
-            ':user_id':         player.session.user_id,
-            ':quest_id':        quest_id
+            ':user_id':             player.session.user_id,
+            ':quest_id':            quest.id
         });
         if(exist_row) {
-            await this.db.run('UPDATE user_quest SET actions = :actions WHERE user_id = :user_id AND quest_id = :quest_id', {
-                ':user_id':     player.session.user_id,
-                ':quest_id':    quest_id,
-                ':actions':     JSON.stringify(actions)
+            await this.db.run('UPDATE user_quest SET actions = :actions, is_completed = :is_completed WHERE user_id = :user_id AND quest_id = :quest_id', {
+                ':user_id':         player.session.user_id,
+                ':quest_id':        quest.id,
+                ':is_completed':    quest.is_completed ? 1 : 0,
+                ':actions':         JSON.stringify(quest.actions)
             });
         } else {
-            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, actions) VALUES (:dt, :user_id, :quest_id, :actions)', {
-                ':dt':          ~~(Date.now() / 1000),
-                ':user_id':     player.session.user_id,
-                ':quest_id':    quest_id,
-                ':actions':     JSON.stringify(actions)
+            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :actions)', {
+                ':dt':              ~~(Date.now() / 1000),
+                ':user_id':         player.session.user_id,
+                ':quest_id':        quest.id,
+                ':is_completed':    quest.is_completed ? 1 : 0,
+                ':actions':         JSON.stringify(quest.actions)
             });
         }
     }

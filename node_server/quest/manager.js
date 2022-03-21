@@ -14,4 +14,8 @@ export class QuestManager {
         return this.groups;
     }
 
+    async saveQuest(player, quest) {
+        return await this.#world.db.savePlayerQuest(player, quest);
+    }
+
 }

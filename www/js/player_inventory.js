@@ -141,6 +141,8 @@ export class PlayerInventory {
             inventory_icon_id:  block.inventory_icon_id,
             max_in_stack:       block.max_in_stack,
         }, mat);
+        mat.id = parseInt(mat.id);
+        mat.count = parseInt(mat.count);
         let item_max_count = mat.max_in_stack;
         // Update cell if exists
         for(let i in this.items) {
