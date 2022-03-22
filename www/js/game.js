@@ -13,11 +13,11 @@ import {Tracker_Player} from "./tracker_player.js";
 // TrackerPlayer
 globalThis.TrackerPlayer = new Tracker_Player();
 
-const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
+const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
 globalThis.UI_FONT = 'Ubuntu';
 
-// console.log(UI_ZOOM, RES_SCALE);
+console.log(UI_ZOOM, RES_SCALE, window.devicePixelRatio);
 
 export class GameClass {
 

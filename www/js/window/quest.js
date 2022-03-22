@@ -141,6 +141,10 @@ class QuestView extends Window {
             this.scrollY = Math.max(this.scrollY, Math.max(this.max_height - this.height, 0) * -1);
         };
 
+        const FONT_ZOOM = this.zoom / 2;
+        const PADDING = 20 * FONT_ZOOM;
+        const TITLE_LABEL_HEIGHT = 70 * FONT_ZOOM;
+
         //
         this.appendLayout({
             questViewLayout: {
@@ -149,13 +153,13 @@ class QuestView extends Window {
                 y: 0,
                 width: this.width,
                 childs: {
-                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: 70, style: {padding: 20}, title: 'Quest title'},
+                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: TITLE_LABEL_HEIGHT, style: {padding: PADDING, font: {size: 26 * FONT_ZOOM}}, title: 'Quest title'},
                     lDesc: {
                         type: 'Label',
                         word_wrap: true,
                         style: {
-                            padding: 20,
-                            font: {size: 26},
+                            padding: PADDING,
+                            font: {size: 26 * FONT_ZOOM},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -165,8 +169,8 @@ class QuestView extends Window {
                         type: 'Label',
                         word_wrap: true,
                         style: {
-                            padding: 20,
-                            font: {size: 26},
+                            padding: PADDING,
+                            font: {size: 26 * FONT_ZOOM},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -176,8 +180,8 @@ class QuestView extends Window {
                         type: 'Label',
                         word_wrap: true,
                         style: {
-                            padding: 20,
-                            font: {size: 26},
+                            padding: PADDING,
+                            font: {size: 26 * FONT_ZOOM},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -187,8 +191,8 @@ class QuestView extends Window {
                         type: 'Label',
                         word_wrap: true,
                         style: {
-                            padding: 20,
-                            font: {size: 26},
+                            padding: PADDING,
+                            font: {size: 26 * FONT_ZOOM},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -198,8 +202,8 @@ class QuestView extends Window {
                         type: 'Label',
                         word_wrap: true,
                         style: {
-                            padding: 20,
-                            font: {size: 26},
+                            padding: PADDING,
+                            font: {size: 26 * FONT_ZOOM},
                             background: {color: '#ffffff22'}
                         },
                         title: null,
@@ -319,6 +323,8 @@ class QuestMenu extends Window {
         //
         this.style.background.color = '#00000000';
         this.style.border.hidden = true;
+        const FONT_ZOOM = this.zoom / 2;
+        this.style.font.size = 20 * FONT_ZOOM;
         //
         this._wheel = function(e) {
             this.scrollY += Math.sign(e.original_event.wheelDeltaY) * this.wheel_scroll;
@@ -335,8 +341,10 @@ class QuestMenu extends Window {
     init(groups) {
         const ct                = this;
         const GROUP_ROW_WIDTH   = this.width;
-        const GROUP_ROW_HEIGHT  = 70;
-        const GROUP_MARGIN      = 20;
+        const FONT_ZOOM         = this.zoom / 2;
+        const GROUP_ROW_HEIGHT  = 70 * FONT_ZOOM;
+        const GROUP_MARGIN      = 20 * FONT_ZOOM;
+        const BUTTON_HEIGHT     = 55 * FONT_ZOOM; 
         let x = 0;
         let y = 0;
         // Each groups
@@ -354,8 +362,8 @@ class QuestMenu extends Window {
             for(let quest of group.quests) {
                 let title = quest.title;
                 let status = quest.is_completed ? '✅' : (quest.in_progress ? '🕒' : '🆕');
-                const tb = new ToggleButton(x, y, this.width, 55, 'btnQuest' + quest.id, `${status} ${title}`);
-                tb.style.font.size = 24;
+                const tb = new ToggleButton(x, y, this.width, BUTTON_HEIGHT, 'btnQuest' + quest.id, `${status} ${title}`);
+                tb.style.font.size = 26 * FONT_ZOOM;
                 ct.add(tb);
                 y += tb.height + GROUP_MARGIN;
                 tb.onMouseDown = (e) => {
@@ -377,8 +385,9 @@ class QuestGroup extends Label {
     constructor(x, y, w, h, id, title, text) {
         super(x, y, w, h, id, title, text);
         const s = this.style;
+        const FONT_ZOOM = this.zoom / 2;
         s.padding.left = 10;
-        s.font.size = 36;
+        s.font.size = 36 * FONT_ZOOM;
         s.background.color = '#00000000';
         s.textAlign.horizontal = 'left';
         s.textAlign.vertical = 'middle';
