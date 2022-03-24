@@ -926,7 +926,7 @@ export class DBWorld {
                 ':actions':         JSON.stringify(quest.actions)
             });
         } else {
-            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :in_progress, :actions)', {
+            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, in_progress, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :in_progress, :actions)', {
                 ':dt':              ~~(Date.now() / 1000),
                 ':user_id':         player.session.user_id,
                 ':quest_id':        quest.id,
