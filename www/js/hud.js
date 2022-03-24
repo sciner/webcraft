@@ -301,7 +301,6 @@ export class HUD {
         } else {
             this.text += 'NULL';
         }
-        this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total + '(' + Game.world.server.stat.in_packets.physical + ')';
         this.text += '\nGame mode: ' + player.game_mode.getCurrent().title;
         if(player.world.server.ping_value) {
             this.text += '\nPING: ' + Math.round(player.world.server.ping_value) + ' ms';
@@ -324,9 +323,18 @@ export class HUD {
             this.text += '\nLightmap: ' + Math.round(world.chunkManager.lightmap_count)
                 + ' / ' + Math.round(world.chunkManager.lightmap_bytes / 1024 / 1024) + 'Mb';
             //
-            this.text += '\nParticles: ' + Particles_Effects.current_count;
-            this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
         }
+        
+        // Draw trech info
+        const drawTechInfo = false;
+        if(drawTechInfo) {
+            this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total; // + '(' + Game.world.server.stat.in_packets.physical + ')';
+            if(Game.render) {
+                this.text += '\nParticles: ' + Particles_Effects.current_count;
+                this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
+            }
+        }
+
         // Console =)
         let playerBlockPos = player.getBlockPos();
         let chunk = player.overChunk;

@@ -132,7 +132,7 @@ export class QuestView extends Window {
         // actions
         let actions = [];
         for(let action of quest.actions) {
-            let status = `🔘`; 
+            let status = `🔲`; 
             if(action.ok) {
                 status = '✅';
             }

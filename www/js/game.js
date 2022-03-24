@@ -194,6 +194,12 @@ export class GameClass {
                 }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
+                    if(e.down && e.keyCode == KEY.TAB) {
+                        if(Game.hud.wm.getWindow('frmQuests').visible) {
+                            Game.hud.wm.getWindow('frmQuests').hide();
+                            return true;
+                        }
+                    }
                     return this.hud.wm.onKeyEvent(e);
                 }
                 //
