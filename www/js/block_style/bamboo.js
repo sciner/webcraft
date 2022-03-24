@@ -36,6 +36,9 @@ export default class style {
         let x = 0;
         let y = 0;
         let z = 0;
+        let margin = 0;
+
+        margin = for_physic ? 0 : 1/16;
 
         _temp_shift_pos.copyFrom(block.posworld).subSelf(block.tb.coord);
 
@@ -47,12 +50,12 @@ export default class style {
 
         let aabb = new AABB();
         aabb.set(
-            x + .5 - STALK_WIDTH / 2,
+            x + .5 - STALK_WIDTH / 2 - margin,
             y + 0,
-            z + .5 - STALK_WIDTH / 2,
-            x + .5 + STALK_WIDTH / 2,
+            z + .5 - STALK_WIDTH / 2 - margin,
+            x + .5 + STALK_WIDTH / 2 + margin,
             y + 1,
-            z + .5 + STALK_WIDTH / 2,
+            z + .5 + STALK_WIDTH / 2 + margin,
         );
         return [aabb];
     }

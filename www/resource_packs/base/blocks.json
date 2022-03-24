@@ -1045,6 +1045,9 @@
             11,
             0
         ],
+        "tags": [
+            "no_drop_ao"
+        ],
         "material": {
             "id": "stone"
         }
@@ -1077,6 +1080,7 @@
         "inventory_style": "extruder",
         "transparent": true,
         "width": 0.0625,
+        "planting": false,
         "texture": {
             "south": [
                 6,
@@ -5433,6 +5437,7 @@
         "name": "AZALEA",
         "style": "azalea",
         "transparent": true,
+        "planting": false,
         "inventory_style": "azalea",
         "sound": "madcraft:block.grass",
         "material": {
@@ -5452,6 +5457,7 @@
         "name": "FLOWERING_AZALEA",
         "style": "azalea",
         "transparent": true,
+        "planting": false,
         "inventory_style": "azalea",
         "sound": "madcraft:block.grass",
         "material": {
@@ -5498,7 +5504,6 @@
         "name": "BAMBOO",
         "style": "bamboo",
         "transparent": true,
-        "planting": true,
         "inventory": {
             "style": "extruder",
             "texture": [12, 28]

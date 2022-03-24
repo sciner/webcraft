@@ -834,7 +834,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             } else {
                 // Create block
                 // Посадить растения можно только на блок земли
-                if(BLOCK.isPlants(matBlock.id)) {
+                if(matBlock.planting) {
                     let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
                     if(!underBlock) {
                         return resp;

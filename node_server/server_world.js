@@ -705,11 +705,13 @@ export class ServerWorld {
                                 data: {pos: params.pos, block_id: params.destroy_block_id}
                             });
                         } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
-                            PlayerEvent.trigger({
-                                type: PlayerEvent.SET_BLOCK,
-                                player: server_player,
-                                data: {pos: block_pos.clone(), block: params.item}
-                            });
+                            if(server_player) {
+                                PlayerEvent.trigger({
+                                    type: PlayerEvent.SET_BLOCK,
+                                    player: server_player,
+                                    data: {pos: block_pos.clone(), block: params.item}
+                                });
+                            }
                         }
                     } else {
                         // console.error('Chunk not found in pos', chunk_addr, params);
