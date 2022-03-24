@@ -257,26 +257,13 @@ export class Window {
         if(this.title) {
             ctx.fillStyle = this.style.color;
             const pos = {
-                x: x + (this.style.textAlign.horizontal == 'center' ? w / 2 : this.style.padding.left),
-                y: y + (this.style.textAlign.vertical == 'middle' ? h / 2 : this.style.padding.top)
+                x: x + (this.style.textAlign.horizontal == 'center' ? w / 2 : this.style.padding.left + (this.style.textAlign.horizontal == 'right' ? this.width : 0)),
+                y: y + (this.style.textAlign.vertical == 'middle' ? h / 2 : this.style.padding.top + (this.style.textAlign.vertical == 'bottom' ? this.height : 0))
             };
-            // pos.x -= this.__measure.title.width / 2;
-            // pos.y -= this.__measure.title.height / 2;
-            /*if(this.style.font.shadow) {
-                ctx.save();
-                ctx.shadowOffsetX = this.style.font.shadow.x;
-                ctx.shadowOffsetY = this.style.font.shadow.y;
-                ctx.shadowBlur = this.style.font.shadow.blur;
-                ctx.shadowColor = this.style.font.shadow.color;
-                ctx.fillText(this.title, pos.x, pos.y);
-                ctx.restore();
-            }*/
             ctx.fillText(this.title, pos.x, pos.y);
         }
         // print text
-        //if(this.text) {
         this.print(this.text);
-        //}
         // draw border
         if(!this.style.border.hidden) {
             ctx.beginPath(); // Start a new path
@@ -1010,6 +997,40 @@ export class VerticalLayout extends Window {
         }
         this.calcMaxHeight();
         this.height = this.max_height;
+    }
+
+}
+
+// ToggleButton
+export class ToggleButton extends Button {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text);
+        this.toggled = false;
+        this.style.textAlign.horizontal = 'left';
+        this.style.padding.left = 10;
+        //
+        this.onMouseEnter = function() {
+            this.style.background.color = '#8892c9';
+            this.style.color = '#ffffff';
+        }
+        //
+        this.onMouseLeave = function() {
+            this.style.background.color = this.toggled ? '#7882b9' : '#00000000';
+            this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+        }
+    }
+
+    //
+    toggle() {
+        if(this.parent.__toggledButton) {
+            this.parent.__toggledButton.toggled = false;
+            this.parent.__toggledButton.onMouseLeave();
+        }
+        this.toggled = !this.toggled;
+        this.parent.__toggledButton = this;
+        this.style.background.color = this.toggled ? '#8892c9' : '#00000000';
+        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
     }
 
 }
