@@ -2,7 +2,7 @@
 * Window Manager based ON 2D canvas 
 */
 
-import {RuneStrings} from "../../js/helpers.js";
+import {RuneStrings, deepAssign} from "../../js/helpers.js";
 
 export const BLINK_PERIOD = 500; // период моргания курсора ввода текста (мс)
 
@@ -68,7 +68,7 @@ export class Window {
             }
         };
         // typeChar
-        this.typeChar       = function(e, charCode, typedChar) {
+        this.typeChar = function(e, charCode, typedChar) {
             for(let w of this.list.values()) {
                 if(w.visible) {
                     let fired = false;
@@ -85,10 +85,10 @@ export class Window {
                 }
             }
         };
-        this.style          = {
+        this.style = {
             color: '#3f3f3f',
             textAlign: {
-                horizonal: 'left',
+                horizontal: 'left',
                 vertical: 'top' // "top" || "hanging" || "middle" || "alphabetic" || "ideographic" || "bottom";
             },
             padding: {
@@ -214,17 +214,23 @@ export class Window {
         let w = this.width;
         let h = this.height;
 
-        // let region = new Path2D();
-        // region.rect(x, y, w, h);
-
         // Save the default state
         ctx.save();
-        // ctx.clip(region, 'evenodd');
 
-        // this.applyStyle(ctx, ax, ay);
+        // Clipping
+        const p = this.parent;
+        if(p) {
+            const miny = Math.max(y, p.ay + p.y);
+            // Create clipping path
+            let region = new Path2D();
+            region.rect(x, miny, w, Math.min(h, p.height));
+            ctx.clip(region, 'nonzero');
+        }
+
         // fill background color
         ctx.fillStyle = this.style.background.color;
         ctx.fillRect(x, y, w, h);
+
         // draw image
         if(this.style.background.image) {
             const iw = this.style.background.image.width;
@@ -245,25 +251,19 @@ export class Window {
         }
         //if(this.title || this.text) {
         this.applyStyle(ctx, ax, ay);
+        this.updateMeasure(ctx);
         //}
         // Draw title
         if(this.title) {
             ctx.fillStyle = this.style.color;
-            if(this.style.font.shadow) {
-                ctx.save();
-                ctx.shadowOffsetX = this.style.font.shadow.x;
-                ctx.shadowOffsetY = this.style.font.shadow.y;
-                ctx.shadowBlur = this.style.font.shadow.blur;
-                ctx.shadowColor = this.style.font.shadow.color;
-                ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
-                ctx.restore();
-            }
-            ctx.fillText(this.title, x + w / 2 + 1, y + h / 2 + 1);
+            const pos = {
+                x: x + (this.style.textAlign.horizontal == 'center' ? w / 2 : this.style.padding.left + (this.style.textAlign.horizontal == 'right' ? this.width : 0)),
+                y: y + (this.style.textAlign.vertical == 'middle' ? h / 2 : this.style.padding.top + (this.style.textAlign.vertical == 'bottom' ? this.height : 0))
+            };
+            ctx.fillText(this.title, pos.x, pos.y);
         }
         // print text
-        //if(this.text) {
         this.print(this.text);
-        //}
         // draw border
         if(!this.style.border.hidden) {
             ctx.beginPath(); // Start a new path
@@ -283,9 +283,58 @@ export class Window {
         ctx.restore();
         for(let w of this.list.values()) {
             if(w.visible) {
-                w.draw(ctx, ax+this.x, ay+this.y);
+                w.draw(ctx, ax+this.x, ay+this.y+this.scrollY);
             }
         }
+    }
+    updateMeasure(ctx) {
+        if(!this.__measure) {
+            this.__measure = {
+                title: {
+                    value: null,
+                    width: null,
+                    height: null
+                },
+                text: {
+                    value: null,
+                    width: null,
+                    height: null
+                }
+            }
+        }
+        // title
+        const mtl = this.__measure.title;
+        if(mtl.value != this.title) {
+            let mt = ctx.measureText(this.title);
+            mtl.value = this.title;
+            mtl.width = mt.width;
+            mtl.height = mt.actualBoundingBoxDescent;
+        }
+        // text
+        const mtxt = this.__measure.text;
+        if(mtxt.value != this.text) {
+            this.applyStyle(ctx, 0, 0);
+            let mt = ctx.measureText(this.text);
+            mtxt.value = this.text;
+            //
+            if(this.word_wrap) {
+                const lineHeight = this.style.font.size * 1.05;
+                const lines = this.calcPrintLines(this.text || '');
+                mtxt.height = lines.length * lineHeight;
+            } else {
+                mtxt.width = mt.width;
+                mtxt.height = mt.actualBoundingBoxDescent;
+            }
+        }
+    }
+    calcMaxHeight() {
+        let mh = 0;
+        for(let w of this.list.values()) {
+            if(w.y + w.height > mh) {
+                mh = w.y + w.height;
+            }
+        }
+        this.max_height = mh + this.style.padding.bottom;
     }
     hasVisibleWindow() {
         if(this._has_visible_window_cng == globalThis.wmGlobal.visible_change_count) {
@@ -325,11 +374,9 @@ export class Window {
         this.ax             = ax;
         this.ay             = ay;
         ctx.font            = this.style.font.size + 'px ' + this.style.font.family;
-        ctx.textAlign       = 'left';
-        ctx.textBaseline    = 'top';
         ctx.fillStyle       = this.style.color;
-        ctx.textAlign       = this.style.textAlign.horizontal;
-        ctx.textBaseline    = this.style.textAlign.vertical;
+        ctx.textAlign       = this.style.textAlign.horizontal || 'left';
+        ctx.textBaseline    = this.style.textAlign.vertical || 'top';
     }
     setBackground(url, image_size_mode) {
         let that = this;
@@ -380,13 +427,12 @@ export class Window {
             w.hover = false;
             if(w.visible) {
                 let e2 = {...e};
-                let x = e2.x - (this.ax + w.x);
-                let y = e2.y - (this.ay + w.y);
-                if(x >= 0 && y >= 0 && x < w.width && y < w.height) {
-                    e2.x = x + this.x;
-                    e2.y = y + this.y - w.scrollY;
+                let x = e2.x - w.x;
+                let y = e2.y - w.y;
+                if(x >= 0 && y >= 0 && x <= w.width && y <= w.height) {
+                    e2.x = x;
+                    e2.y = y - w.scrollY;
                     w._mousemove(e2);
-                    // fire_mousemove.push({w: w, event: e2});
                     w.hover = true;
                 }
             }
@@ -496,7 +542,7 @@ export class Window {
                     let str = words.slice(0, idx).join(' ');
                     let w = this.ctx.measureText(str).width;
                     // Wrap to next line if current is full
-                    if(w > this.width - 20) {
+                    if(w > this.width - this.style.padding.left - this.style.padding.right) {
                         if(idx == 1) {
                             idx = 2;
                         }
@@ -537,7 +583,7 @@ export class Window {
         }
         // Print lines
         for(let i in lines) {
-            const line = lines[i];
+            const line = lines[i].trim();
             this.ctx.fillText(line, x, y + (lineHeight * i));
         }
     }
@@ -553,6 +599,56 @@ export class Window {
             callback(this._loadCloseButtonImage);
         }
         image.src = '../../media/gui/close.png';
+    }
+    assignStyles(style) {
+        for(let param in style) {
+            let v = style[param];
+            switch(param) {
+                case 'padding': {
+                    if(!isNaN(v)) {
+                        v = {left: v, top: v, right: v, bottom: v};
+                    }
+                    this.style[param] = v;
+                    break;
+                }
+                default: {
+                    const options = {nonEnum: true, symbols: true, descriptors: true, proto: true};
+                    deepAssign(options)(this.style[param], v);
+                    break;
+                }
+            }
+        }
+    }
+    appendLayout(layout) {
+        for(let id in layout) {
+            const cl = layout[id];
+            let control = null;
+            switch(cl.type) {
+                case 'VerticalLayout': {
+                    control = new VerticalLayout(cl.x, cl.y, cl.width, id);
+                    if(cl.childs) {
+                        control.appendLayout(cl.childs);
+                    }
+                    break;
+                }
+                case 'Label': {
+                    control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
+                    if('word_wrap' in cl) {
+                        control.word_wrap = cl.word_wrap;
+                    }
+                    break;
+                }
+            }
+            if(control) {
+                if(cl.style) {
+                    control.assignStyles(cl.style);
+                }
+                this.add(control);
+                if('refresh' in control) {
+                    control.refresh();
+                }
+            }
+        }
     }
 }
 
@@ -875,6 +971,66 @@ export class WindowManager extends Window {
 
     _wm_setTooltipText(text) {
         this._wm_tooltip.setText(text);
+    }
+
+}
+
+export class VerticalLayout extends Window {
+
+    constructor(x, y, w, id) {
+        super(x, y, w, 0, id, null, null);
+        this.style.background.color = '#00000000';
+        this.style.border.hidden = true;
+    }
+
+    refresh() {
+        let y = 0;
+        for(let w of this.list.values()) {
+            w.x = 0;
+            w.y = y;
+            w.width = this.width;
+            w.updateMeasure(this.getRoot().ctx);
+            if(w.__measure.text?.height) {
+                w.height = w.__measure.text?.height + (w.style.padding.top + w.style.padding.bottom);
+            }
+            y += w.height;
+        }
+        this.calcMaxHeight();
+        this.height = this.max_height;
+    }
+
+}
+
+// ToggleButton
+export class ToggleButton extends Button {
+
+    constructor(x, y, w, h, id, title, text) {
+        super(x, y, w, h, id, title, text);
+        this.toggled = false;
+        this.style.textAlign.horizontal = 'left';
+        this.style.padding.left = 10;
+        //
+        this.onMouseEnter = function() {
+            this.style.background.color = '#8892c9';
+            this.style.color = '#ffffff';
+        }
+        //
+        this.onMouseLeave = function() {
+            this.style.background.color = this.toggled ? '#7882b9' : '#00000000';
+            this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
+        }
+    }
+
+    //
+    toggle() {
+        if(this.parent.__toggledButton) {
+            this.parent.__toggledButton.toggled = false;
+            this.parent.__toggledButton.onMouseLeave();
+        }
+        this.toggled = !this.toggled;
+        this.parent.__toggledButton = this;
+        this.style.background.color = this.toggled ? '#8892c9' : '#00000000';
+        this.style.color = this.toggled ? '#ffffff' : '#3f3f3f';
     }
 
 }

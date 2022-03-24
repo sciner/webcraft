@@ -166,9 +166,11 @@ export class RecipeWindow extends Window {
     addPaginatorButtons() {
         const ct = this;
         // Label
-        let lblPages = new Label(105 * this.zoom, 260 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
+        let lblPages = new Label(110 * this.zoom, 270 * this.zoom, 70 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
         lblPages.style.color = '#ffffff';
         lblPages.style.font.shadow.enable = true;
+        lblPages.style.textAlign.horizontal = 'center';
+        lblPages.style.textAlign.vertical = 'middle';
         lblPages.style.font.shadow.x = 1;
         lblPages.style.font.shadow.y = 1;
         ct.add(lblPages);

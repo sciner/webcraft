@@ -14,17 +14,10 @@ export default class MainMenu extends Window {
         const ct = this;
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        // ct.setBackground('./media/gui/form-crafting-table.png');
         ct.hide();
-        // Add labels to window
-        let lbl1 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl1', 'Menu');
-        lbl1.style.color = '#333333ff';
-        lbl1.style.textAlign.horizontal = 'center';
-        lbl1.style.textAlign.vertical = 'middle';
-        ct.add(lbl1);
+
         //
         let lbl2 = new Label(0, 0, this.width, 30 * this.zoom, 'lbl2', 'Menu');
-        lbl2.style.color = '#ffffffff';
         lbl2.style.textAlign.horizontal = 'center';
         lbl2.style.textAlign.vertical = 'middle';
         ct.add(lbl2);
@@ -38,19 +31,6 @@ export default class MainMenu extends Window {
         // Add buttons
         this.addReturnButton();
         this.addCloseButton();
-        
-        /*
-        // Load buttons background image
-        let image = new Image();
-        image.onload = function(e) {
-            ct.buttonBackground = this;
-            ct.btnReturn.style.background.image = this;
-            ct.btnClose.style.background.image = this;
-            ct.btnReturn.style.background.image_size_mode = 'stretch';
-            ct.btnClose.style.background.image_size_mode = 'stretch';
-        }
-        image.src = '../../media/gui/button_center.png';
-        */
 
     }
 

@@ -185,8 +185,6 @@ async function createPainting(e, world, pos) {
                 //
                 pb_back = world.getBlock(bpos_back);
                 blocks_back.set(bpos_back, pb_back);
-                // resp.blocks.list.push({pos: new Vector(bpos), item: {id: BLOCK.BRICK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                // resp.blocks.list.push({pos: new Vector(bpos_back), item: {id: BLOCK.CONCRETE.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
             }
             if((pb.id == 0 || pb.material.planting) && pb_back.id != 0) {
                 // ok
@@ -827,7 +825,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.decrement = true;
                     }
                 } else {
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     resp.decrement = true;
                 }
                 if(matBlock.sound) {

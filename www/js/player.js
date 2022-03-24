@@ -10,6 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
+import {QuestWindow} from "./window/index.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -27,9 +28,11 @@ export class Player {
 
     JoinToWorld(world, cb) {
         this.world = world;
+        //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
             cb(this.playerConnectedToWorld(cmd.data), cmd);
         });
+        //
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
 
@@ -133,6 +136,9 @@ export class Player {
             this.indicators = cmd.data.indicators;
             Game.hud.refresh();
         });
+        // Quests
+        this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
+        Game.hud.wm.add(this.frmQuests);
         return true;
     }
 

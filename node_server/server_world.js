@@ -5,6 +5,7 @@ import {ChestManager} from "./chest_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
 import {PlayerEvent} from "./player_event.js";
+import {QuestManager} from "./quest/manager.js";
 
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -39,11 +40,13 @@ export class ServerWorld {
         this.chests         = new ChestManager(this);
         this.chat           = new ServerChat(this);
         this.chunks         = new ServerChunkManager(this);
+        this.quests         = new QuestManager(this);
         this.players        = new Map(); // new PlayerManager(this);
         this.mobs           = new Map(); // Store refs to all loaded mobs in the world
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         this.models         = new ModelManager();
         this.models.init();
+        await this.quests.init();
         this.ticks_stat     = {
             pn: null,
             last: 0,
@@ -131,7 +134,6 @@ export class ServerWorld {
         //
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
-        //
         await this.restoreModifiedChunks();
         await this.chunks.initWorker();
         //
@@ -287,6 +289,7 @@ export class ServerWorld {
         player.init(await this.db.registerUser(this, player));
         player.state.skin = skin;
         player.updateHands();
+        await player.initQuests();
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
@@ -700,6 +703,12 @@ export class ServerWorld {
                                 type: PlayerEvent.DESTROY_BLOCK,
                                 player: server_player,
                                 data: {pos: params.pos, block_id: params.destroy_block_id}
+                            });
+                        } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                            PlayerEvent.trigger({
+                                type: PlayerEvent.SET_BLOCK,
+                                player: server_player,
+                                data: {pos: block_pos.clone(), block: params.item}
                             });
                         }
                     } else {

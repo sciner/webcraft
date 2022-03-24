@@ -311,7 +311,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
                 if(doubleClick && dropData.item.count < max_stack_count) {
                     let need_count = max_stack_count - dropData.item.count;
-                    // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
                     let slots = this.parent.getSlots();
                     for(let i in slots) {
