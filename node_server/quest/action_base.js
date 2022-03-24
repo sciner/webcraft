@@ -20,6 +20,7 @@ export class QuestActionBase {
 
     update() {
         this.ok = false;
+        this.in_progress = false;
     }
 
     // processTriggerEvent...

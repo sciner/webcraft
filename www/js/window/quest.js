@@ -83,7 +83,9 @@ export class QuestWindow extends Window {
             return false;
         }
 
+        //
         player.world.server.AddCmdListener([ServerClient.CMD_QUEST_ALL], (cmd) => {
+            console.log(cmd.data)
             this.setData(cmd.data);
         });
 
@@ -93,11 +95,14 @@ export class QuestWindow extends Window {
 
     setData(data) {
 
+        if(this.groups) {
+            return this.groups.update(data);
+        }
+
         this.groups = new QuestMenu(
             16 * this.zoom,
             45 * this.zoom,
             250 * this.zoom,
-            // (this.width - 32 * this.zoom) / 3,
             this.height - (45 + 20) * this.zoom,
             'wGroups'
         );
@@ -235,6 +240,8 @@ class QuestView extends Window {
             lblTitle.title = `✅ ${lblTitle.title}`; 
         }
 
+        this.quest = quest;
+
         // actions
         let actions = [];
         for(let action of quest.actions) {
@@ -335,6 +342,33 @@ class QuestMenu extends Window {
 
     setViewer(quest_viewer) {
         this.quest_viewer = quest_viewer;
+    }
+
+    // Update menu
+    update(groups) {
+        // save active menu
+        let active_quest = this.quest_viewer.quest;
+        // remove previous menu items
+        for(let id of this.list.keys()) {
+            this.delete(id);
+        }
+        // create menu items
+        this.init(groups);
+        // refresh quest view
+        if(active_quest) {
+            for(let id of this.list.keys()) {
+                if(id == `btnQuest${active_quest.id}`) {
+                    this.list.get(id).toggle();
+                }
+            }
+            for(let group of groups) {
+                for(let quest of group.quests) {
+                    if(quest.id == this.quest_viewer.quest.id) {
+                        this.quest_viewer.show(quest);
+                    }
+                }
+            }
+        }
     }
 
     // Init

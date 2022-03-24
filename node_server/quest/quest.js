@@ -60,10 +60,13 @@ export class Quest {
             return false;
         }
         let ok = true;
+        this.in_progress = false;
         for(let action of this.actions) {
+            if(action.in_progress) {
+                this.in_progress = true;
+            }
             if(!action.ok) {
                 ok = false;
-                break;
             }
         }
         //

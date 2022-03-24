@@ -340,6 +340,7 @@ export class DBWorld {
             `alter table quest add column "is_default" integer NOT NULL DEFAULT 0`,
             `update quest set is_default = 1 where id in(1, 2, 3)`
         ]});
+        migrations.push({version: 31, queries: [`alter table user_quest add column "in_progress" integer NOT NULL DEFAULT 0`]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -888,9 +889,10 @@ export class DBWorld {
                 q.title,
                 q.description,
                 uq.is_completed,
+                uq.in_progress,
                 uq.actions,
-                json_object('id', g.id, 'title', g.title) as quest_group,
-                (select json_group_array(json_object('block_id', block_id, 'cnt', cnt)) from quest_reward qr where qr.quest_id = q.id) as rewards
+                json_object('id', g.id, 'title', g.title) AS quest_group,
+                (SELECT json_group_array(json_object('block_id', block_id, 'cnt', cnt)) FROM quest_reward qr WHERE qr.quest_id = q.id) AS rewards
             FROM user_quest uq
             left join quest q on q.id = uq.quest_id
             left join quest_group g on g.id = q.quest_group_id
@@ -903,15 +905,7 @@ export class DBWorld {
             row.actions = JSON.parse(row.actions);
             row.rewards = JSON.parse(row.rewards);
             row.is_completed = row.is_completed != 0;
-            //
-            let ok_count = 0;
-            for(let action of row.actions) {
-                if(action.ok) {
-                    ok_count++;
-                }
-            }
-            //
-            row.in_progress = !row.is_completed && ok_count > 0;
+            row.in_progress = row.in_progress != 0;
             resp.set(row.id, row);
         }
         return resp;
@@ -924,18 +918,20 @@ export class DBWorld {
             ':quest_id':            quest.id
         });
         if(exist_row) {
-            await this.db.run('UPDATE user_quest SET actions = :actions, is_completed = :is_completed WHERE user_id = :user_id AND quest_id = :quest_id', {
+            await this.db.run('UPDATE user_quest SET actions = :actions, is_completed = :is_completed, in_progress = :in_progress WHERE user_id = :user_id AND quest_id = :quest_id', {
                 ':user_id':         player.session.user_id,
                 ':quest_id':        quest.id,
                 ':is_completed':    quest.is_completed ? 1 : 0,
+                ':in_progress':     quest.in_progress ? 1 : 0,
                 ':actions':         JSON.stringify(quest.actions)
             });
         } else {
-            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :actions)', {
+            await this.db.run('INSERT INTO user_quest(dt, user_id, quest_id, is_completed, actions) VALUES (:dt, :user_id, :quest_id, :is_completed, :in_progress, :actions)', {
                 ':dt':              ~~(Date.now() / 1000),
                 ':user_id':         player.session.user_id,
                 ':quest_id':        quest.id,
                 ':is_completed':    quest.is_completed ? 1 : 0,
+                ':in_progress':     quest.in_progress ? 1 : 0,
                 ':actions':         JSON.stringify(quest.actions)
             });
         }

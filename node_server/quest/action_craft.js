@@ -10,6 +10,7 @@ export class QuestActionCraft extends QuestActionBase {
 
     update() {
         this.ok = this.value >= this.cnt;
+        this.in_progress = this.value > 0;
     }
 
     // processTriggerEvent...
