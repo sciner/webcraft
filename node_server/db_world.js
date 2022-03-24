@@ -341,6 +341,7 @@ export class DBWorld {
             `update quest set is_default = 1 where id in(1, 2, 3)`
         ]});
         migrations.push({version: 31, queries: [`alter table user_quest add column "in_progress" integer NOT NULL DEFAULT 0`]});
+        migrations.push({version: 32, queries: [`delete from user_quest`]});
 
         for(let m of migrations) {
             if(m.version > version) {
