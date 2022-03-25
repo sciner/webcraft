@@ -9,9 +9,11 @@ import { BLOCK } from "../../www/js/blocks.js";
 export class Quest {
 
     #quest_player;
+    #next_quests;
 
     constructor(player, quest) {
         this.#quest_player  = player;
+        this.#next_quests   = quest.next_quests ? JSON.parse(quest.next_quests) : [];
         //
         this.id             = quest.id;
         this.title          = quest.title;
@@ -96,18 +98,22 @@ export class Quest {
                 server_player.inventory.increment(reward_item);
                 // отправить сообщение
                 this.#quest_player.sendMessage(`You have got reward ${block.name}x${reward_item.count}`);
-                // let vel = new Vector(0, .375, 0); // velocity for drop item
-                // world.createDropItems(server_player, pos, [reward_item], vel);
             }
         }
         // @todo Сделать доступными новые квесты в ветке
+        for(let next_quest_id of this.#next_quests) {
+            const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
+            await this.#quest_player.quest_manager.savePlayerQuest(this.#quest_player.player, next_quest);
+        }
         // отправить сообщение
         this.#quest_player.sendMessage(`You completed quest '${this.title}'`);
+        //
+        await this.#quest_player.loadQuests();
     }
 
     //
     async save() {
-        return this.#quest_player.quest_manager.saveQuest(this.#quest_player.player, this);
+        return await this.#quest_player.player.world.db.savePlayerQuest(this.#quest_player.player, this);
     }
 
 }

@@ -342,6 +342,11 @@ export class DBWorld {
         ]});
         migrations.push({version: 31, queries: [`alter table user_quest add column "in_progress" integer NOT NULL DEFAULT 0`]});
         migrations.push({version: 32, queries: [`delete from user_quest`]});
+        migrations.push({version: 33, queries: [
+            `UPDATE quest SET is_default = 0 WHERE id = 3`,
+            `ALTER TABLE quest ADD COLUMN "next_quests" TEXT`,
+            `UPDATE quest SET next_quests = '[3]' WHERE id = 1`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -580,51 +585,6 @@ export class DBWorld {
         return result.lastID;
     }
 
-    /**
-     * Create painting
-     * @param {ServerWorld} world 
-     * @param {ServerPlayer} player 
-     * @param {Object} params
-     * @return {number}
-     */
-    async createPainting(world, player, pos, params) {
-        const result = await this.db.run('INSERT INTO painting(user_id, dt, params, x, y, z, entity_id, image_name, world_id) VALUES(:user_id, :dt, :params, :x, :y, :z, :entity_id, :image_name, :world_id)', {
-            ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
-            ':params':          JSON.stringify(params),
-            ':x':               pos.x,
-            ':y':               pos.y,
-            ':z':               pos.z,
-            ':entity_id':       params.entity_id,
-            ':image_name':      params.image_name,
-            ':world_id':        world.info.id
-        });
-        return result.lastID;
-    }
-
-    // Load paintings
-    async loadPaintings(addr, size) {
-        let rows = await this.db.all('SELECT * FROM painting WHERE x >= :x_min AND x < :x_max AND y >= :y_min AND y < :y_max AND z >= :z_min AND z < :z_max', {
-            ':x_min': addr.x * size.x,
-            ':x_max': addr.x * size.x + size.x,
-            ':y_min': addr.y * size.y,
-            ':y_max': addr.y * size.y + size.y,
-            ':z_min': addr.z * size.z,
-            ':z_max': addr.z * size.z + size.z
-        });
-        let resp = new Map();
-        for(let row of rows) {
-            let item = JSON.parse(row.params);
-            // pos:        new Vector(row.x, row.y, row.z),
-            item.entity_id = row.entity_id;
-            if(!item.pos) {
-                item.pos = new Vector(row.x, row.y, row.z);
-            }
-            resp.set(item.entity_id, item);
-        }
-        return resp;
-    }
-
     // saveChestSlots...
     async saveChestSlots(chest) {
         const result = await this.db.run('UPDATE chest SET slots = :slots WHERE entity_id = :entity_id', {
@@ -844,8 +804,47 @@ export class DBWorld {
         });
     }
 
-    // Return all quests
-    async loadQuests() {
+    //
+    async loadQuest(quest_id) {
+        // Quests
+        let quest = null;
+        // const quests = new Map();
+        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest WHERE id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            quest = {...row, actions: [], rewards: []};
+            delete(quest.quest_group_id);
+            // quests.set(quest.id, quest);
+        }
+        if(!quest) {
+            return quest;
+        }
+        // Actions
+        rows = await this.db.all('SELECT * FROM quest_action WHERE quest_id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            const action = {...row};
+            delete(action.quest_id);
+            // let q = quests.get(row.quest_id);
+            quest.actions.push(action);
+        }
+        // Rewards
+        rows = await this.db.all('SELECT * FROM quest_reward WHERE quest_id = :quest_id', {
+            ':quest_id': quest_id
+        });
+        for(let row of rows) {
+            const reward = {...row};
+            delete(reward.quest_id);
+            // let q = quests.get(row.quest_id);
+            quest.rewards.push(reward);
+        }
+        return quest;
+    }
+
+    // Return default quests with groups
+    async loadDefaultQuests() {
         // Groups
         const groups = new Map();
         const group_rows = await this.db.all('SELECT * FROM quest_group', {});
@@ -855,7 +854,7 @@ export class DBWorld {
         }
         // Quests
         const quests = new Map();
-        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest', {});
+        let rows = await this.db.all('SELECT id, quest_group_id, title, description FROM quest WHERE is_default = 1', {});
         for(let row of rows) {
             const quest = {...row, actions: [], rewards: []};
             delete(quest.quest_group_id);
@@ -864,7 +863,7 @@ export class DBWorld {
             quests.set(quest.id, quest);
         }
         // Actions
-        rows = await this.db.all('SELECT * FROM quest_action', {});
+        rows = await this.db.all('SELECT * FROM quest_action WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
         for(let row of rows) {
             const action = {...row};
             delete(action.quest_id);
@@ -872,7 +871,7 @@ export class DBWorld {
             q.actions.push(action);
         }
         // Rewards
-        rows = await this.db.all('SELECT * FROM quest_reward', {});
+        rows = await this.db.all('SELECT * FROM quest_reward WHERE quest_id IN(SELECT id FROM quest WHERE is_default = 1)', {});
         for(let row of rows) {
             const reward = {...row};
             delete(reward.quest_id);
@@ -882,6 +881,17 @@ export class DBWorld {
         return Array.from(groups.values());
     }
 
+    // questsUserStarted...
+    async questsUserStarted(player) {
+        let row = await this.db.get("SELECT * FROM user_quest WHERE user_id = :user_id", {
+            ':user_id': player.session.user_id
+        });
+        if(!row) {
+            return false;
+        }
+        return true;
+    }
+
     // loadPlayerQuests...
     async loadPlayerQuests(player) {
         let rows = await this.db.all(`SELECT
@@ -889,6 +899,7 @@ export class DBWorld {
                 q.quest_group_id,
                 q.title,
                 q.description,
+                q.next_quests,
                 uq.is_completed,
                 uq.in_progress,
                 uq.actions,
@@ -897,17 +908,17 @@ export class DBWorld {
             FROM user_quest uq
             left join quest q on q.id = uq.quest_id
             left join quest_group g on g.id = q.quest_group_id
-            left join quest_action a on a.quest_id = q.id
             WHERE user_id = :user_id`, {
             ':user_id': player.session.user_id,
         });
-        const resp = new Map();
+        const resp = [];
         for(let row of rows) {
-            row.actions = JSON.parse(row.actions);
-            row.rewards = JSON.parse(row.rewards);
-            row.is_completed = row.is_completed != 0;
-            row.in_progress = row.in_progress != 0;
-            resp.set(row.id, row);
+            row.actions         = JSON.parse(row.actions);
+            row.quest_group     = JSON.parse(row.quest_group);
+            row.rewards         = JSON.parse(row.rewards);
+            row.is_completed    = row.is_completed != 0;
+            row.in_progress     = row.in_progress != 0;
+            resp.push(row);
         }
         return resp;
     }

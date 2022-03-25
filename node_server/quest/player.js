@@ -22,47 +22,56 @@ export class QuestPlayer {
         this.handlers.set(PlayerEvent.CRAFT, this.onCraft);
         this.handlers.set(PlayerEvent.PUT_ITEM_TO_INVENTORY, this.onItemToInventory);
         PlayerEvent.addHandler(this.player.session.user_id, this);
-        // Get all quests in game
-        const all_enabled_quest_groups = this.quest_manager.getEnabled();
-        // Load user quests from DB
-        let user_quests = await this.player.world.db.loadPlayerQuests(this.player);
-        let need_load = false;
-        for(let group of all_enabled_quest_groups) {
-            for(let quest of group.quests) {
-                if(!user_quests.has(quest.id)) {
-                    // Добавить в БД квест для игрока, если его ещё там не было
-                    await this.player.world.db.savePlayerQuest(this.player, quest);
-                    need_load = true;
+        //
+        await this.startQuests();
+        await this.loadQuests();
+    }
+
+    // Start quests
+    async startQuests() {
+        // 1. check if default not started
+        let quests_started = await this.quest_manager.questsUserStarted(this.player);
+        if(!quests_started) {
+            // Get all quests in game
+            const all_enabled_quest_groups = this.quest_manager.getDefaultQuests();
+            for(let group of all_enabled_quest_groups) {
+                for(let quest of group.quests) {
+                    // Start default user quests
+                    await this.quest_manager.savePlayerQuest(this.player, quest);
                 }
             }
         }
-        if(need_load) {
-            user_quests = await this.player.world.db.loadPlayerQuests(this.player);
-        }
+    }
+
+    async loadQuests() {
+        const user_quests = await this.quest_manager.loadPlayerQuests(this.player);
         // Init quest objects
-        this.groups = [];
+        this.groups = new Map();
         this.quests = new Map();
-        for(let g of all_enabled_quest_groups) {
-            const group = new QuestGroup(g);
-            const group_quests = JSON.parse(JSON.stringify(g.quests));
-            for(let quest_row of group_quests) {
-                const user_quest = user_quests.get(quest_row.id);
-                if(user_quest) {
-                    quest_row.actions = user_quest.actions;
-                    quest_row.is_completed = user_quest.is_completed;
-                    quest_row.in_progress = user_quest.in_progress;
-                }
-                const quest = new Quest(this, quest_row);
-                this.quests.set(quest.id, quest);
-                group.addQuest(quest);
+        //
+        for(let item of user_quests) {
+            let group = this.groups.get(item.quest_group.id);
+            if(!group) {
+                group = new QuestGroup(item.quest_group);
+                this.groups.set(group.id, group);
             }
-            this.groups.push(group);
+            const quest = new Quest(this, item);
+            this.quests.set(quest.id, quest);
+            group.addQuest(quest);
         }
+        //
+        this.groups = Array.from(this.groups.values());
     }
 
     // Return player quest groups
     getEnabled() {
         return this.groups;
+    }
+
+    // sendAll...
+    sendAll() {
+        const data = this.getEnabled();
+        this.player.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: data}]);
     }
 
     // Send message to player chat
@@ -159,12 +168,6 @@ export class QuestPlayer {
         if(handler) {
             handler.call(this, e);
         }
-    }
-
-    // sendAll...
-    sendAll() {
-        const data = this.getEnabled();
-        this.player.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: data}]);
     }
 
 }

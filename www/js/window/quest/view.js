@@ -44,8 +44,9 @@ export class QuestView extends Window {
                 x: 0,
                 y: 0,
                 width: this.width,
+                visible: false,
                 childs: {
-                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: TITLE_LABEL_HEIGHT, style: {padding: PADDING, font: {size: 26 * FONT_ZOOM}}, title: 'Quest title'},
+                    lblTitle: {type: 'Label', x: 0, y: 0, width: 0, height: TITLE_LABEL_HEIGHT, style: {padding: PADDING, font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'}}, title: 'Quest title'},
                     lDesc: {
                         type: 'Label',
                         word_wrap: true,
@@ -62,7 +63,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM},
+                            font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -84,7 +85,7 @@ export class QuestView extends Window {
                         word_wrap: true,
                         style: {
                             padding: PADDING,
-                            font: {size: 26 * FONT_ZOOM},
+                            font: {size: 26 * FONT_ZOOM, family: 'Ubuntu-Bold'},
                             background: {color: '#ffffff00'}
                         },
                         title: null,
@@ -105,7 +106,7 @@ export class QuestView extends Window {
             }
         });
 
-        this.getWindow('questViewLayout').visible = false;
+        // this.getWindow('questViewLayout').visible = false;
 
     }
 

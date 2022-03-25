@@ -620,6 +620,9 @@ export class Window {
         }
     }
     appendLayout(layout) {
+        let ignored_props = [
+            'x', 'y', 'width', 'height', 'childs', 'style', 'type'
+        ];
         for(let id in layout) {
             const cl = layout[id];
             let control = null;
@@ -633,15 +636,17 @@ export class Window {
                 }
                 case 'Label': {
                     control = new Label(cl.x, cl.y, cl.width | 0, cl.height | 0, id, cl?.title, cl?.text);
-                    if('word_wrap' in cl) {
-                        control.word_wrap = cl.word_wrap;
-                    }
                     break;
                 }
             }
             if(control) {
                 if(cl.style) {
                     control.assignStyles(cl.style);
+                }
+                for(let prop in cl) {
+                    if(ignored_props.indexOf(prop) < 0) {
+                        control[prop] = cl[prop];
+                    }
                 }
                 this.add(control);
                 if('refresh' in control) {
