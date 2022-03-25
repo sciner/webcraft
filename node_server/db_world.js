@@ -336,6 +336,9 @@ export class DBWorld {
             `\r\n` +
             `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее.' WHERE id = 3;`,
         ]});
+        migrations.push({version: 35, queries: [
+            `CREATE TABLE "chunk" ("id" INTEGER NOT NULL, "dt" integer, "addr" TEXT, "mobs_is_generated" integer NOT NULL DEFAULT 0, PRIMARY KEY ("id"));`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -942,6 +945,37 @@ export class DBWorld {
                 ':actions':         JSON.stringify(quest.actions)
             });
         }
+    }
+
+    // chunkMobsIsGenerated...
+    async chunkMobsIsGenerated(chunk_addr_hash) {
+        let row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+            ':addr': chunk_addr_hash
+        });
+        if(!row) {
+            return false;
+        }
+        return !!row['mobs_is_generated'];
+    }
+
+    // chunkMobsSetGenerated...
+    async chunkMobsSetGenerated(chunk_addr_hash, mobs_is_generated) {
+        let exist_row = await this.db.get("SELECT * FROM chunk WHERE addr = :addr", {
+            ':addr': chunk_addr_hash
+        });
+        if(exist_row) {
+            await this.db.run('UPDATE chunk SET mobs_is_generated = :mobs_is_generated WHERE addr = :addr', {
+                ':addr':                chunk_addr_hash,
+                ':mobs_is_generated':   mobs_is_generated
+            });
+        } else {
+            await this.db.run('INSERT INTO chunk(dt, addr, mobs_is_generated) VALUES (:dt, :addr, :mobs_is_generated)', {
+                ':dt':                  ~~(Date.now() / 1000),
+                ':addr':                chunk_addr_hash,
+                ':mobs_is_generated':   mobs_is_generated
+            });
+        }
+
     }
 
 }
