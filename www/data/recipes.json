@@ -296,6 +296,27 @@
         }
     },
     {
+        "id": "0843f2d8-b00b-42f5-a9cd-82834f7d6d69",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "##",
+            "#|",
+            " |"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": ["madcraft:cobblestone"]
+            }
+        },
+        "result": {
+            "item": "madcraft:stone_axe",
+            "count": 1
+        }
+    },
+    {
         "id": "f46c66b3-6d4b-4e49-b01e-19ccc1aa53c8",
         "type": "madcraft:crafting_shaped",
         "pattern": [
@@ -688,6 +709,27 @@
         },
         "result": {
             "item": "madcraft:iron_shovel",
+            "count": 1
+        }
+    },
+    {
+        "id": "7e02ff55-e53e-4fa3-962e-fc092439a2ed",
+        "type": "madcraft:crafting_shaped",
+        "pattern": [
+            "#",
+            "|",
+            "|"
+        ],
+        "key": {
+            "|": {
+                "item": "madcraft:stick"
+            },
+            "#": {
+                "item": "madcraft:cobblestone"
+            }
+        },
+        "result": {
+            "item": "madcraft:stone_shovel",
             "count": 1
         }
     },
