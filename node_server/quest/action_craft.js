@@ -14,13 +14,13 @@ export class QuestActionCraft extends QuestActionBase {
     }
 
     // processTriggerEvent...
-    processTriggerEvent(quest, e) {
+    async processTriggerEvent(quest, e) {
         const item = e.data.item;
         if(item.block_id == this.block_id) {
             this.value = (this.value | 0) + item.count;
             this.update();
             console.log(`Action changed: ${quest.title} ${this.value}/${this.cnt} ... ${this.ok}`);
-            this.save();
+            await this.save();
         }
     }
 

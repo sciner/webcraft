@@ -9,10 +9,12 @@ import { BLOCK } from "../../www/js/blocks.js";
 export class Quest {
 
     #quest_player;
+    #player;
     #next_quests;
 
-    constructor(player, quest) {
-        this.#quest_player  = player;
+    constructor(quest_player, quest) {
+        this.#quest_player  = quest_player;
+        this.#player        = quest_player.player;
         this.#next_quests   = quest.next_quests ? JSON.parse(quest.next_quests) : [];
         //
         this.id             = quest.id;
@@ -79,7 +81,7 @@ export class Quest {
 
     // Quest completed
     async complete() {
-        const server_player = this.#quest_player.player;
+        const server_player = this.#player;
         const world = server_player.world;
         const pos = server_player.state.pos.clone();
         //
@@ -103,7 +105,7 @@ export class Quest {
         // @todo Сделать доступными новые квесты в ветке
         for(let next_quest_id of this.#next_quests) {
             const next_quest = await this.#quest_player.quest_manager.loadQuest(next_quest_id);
-            await this.#quest_player.quest_manager.savePlayerQuest(this.#quest_player.player, next_quest);
+            await this.#quest_player.quest_manager.savePlayerQuest(this.#player, next_quest);
         }
         // отправить сообщение
         this.#quest_player.sendMessage(`You completed quest '${this.title}'`);
@@ -113,7 +115,7 @@ export class Quest {
 
     //
     async save() {
-        return await this.#quest_player.player.world.db.savePlayerQuest(this.#quest_player.player, this);
+        return await this.#quest_player.quest_manager.savePlayerQuest(this.#player, this);
     }
 
 }

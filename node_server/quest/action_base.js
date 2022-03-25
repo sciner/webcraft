@@ -14,8 +14,8 @@ export class QuestActionBase {
         this.update();
     }
 
-    save() {
-        return this.#quest.checkAndSave();
+    async save() {
+        return await this.#quest.checkAndSave();
     }
 
     update() {
@@ -24,7 +24,7 @@ export class QuestActionBase {
     }
 
     // processTriggerEvent...
-    processTriggerEvent(quest, e) {
+    async processTriggerEvent(quest, e) {
         // need to process player game event
     }
 

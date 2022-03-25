@@ -69,7 +69,8 @@ export class QuestPlayer {
     }
 
     // sendAll...
-    sendAll() {
+    async sendAll() {
+        await this.loadQuests();
         const data = this.getEnabled();
         this.player.sendPackets([{name: ServerClient.CMD_QUEST_ALL, data: data}]);
     }
@@ -80,7 +81,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    onSetBlock(e) {
+    async onSetBlock(e) {
         const block = BLOCK.fromId(e.data.block.id);
         if(!block) {
             throw 'error_invalid_block';
@@ -95,7 +96,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.SET_BLOCK) {
-                    action.processTriggerEvent(quest, e);
+                    await action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -103,7 +104,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    onDestroyBlock(e) {
+    async onDestroyBlock(e) {
         const block = BLOCK.fromId(e.data.block_id);
         if(!block) {
             throw 'error_invalid_block';
@@ -113,7 +114,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    onPickup(e) {
+    async onPickup(e) {
         for(let quest of this.quests.values()) {
             if(quest.is_completed) {
                 continue;
@@ -123,14 +124,14 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.PICKUP) {
-                    action.processTriggerEvent(quest, e);
+                    await action.processTriggerEvent(quest, e);
                 }
             }
         }
     }
 
     // Handler
-    onCraft(e) {
+    async onCraft(e) {
         const item = e.data.item;
         const block = BLOCK.fromId(item.block_id);
         if(!block) {
@@ -145,7 +146,7 @@ export class QuestPlayer {
                     continue;
                 }
                 if(action.quest_action_type_id == QuestActionType.CRAFT) {
-                    action.processTriggerEvent(quest, e);
+                    await action.processTriggerEvent(quest, e);
                 }
             }
         }
@@ -153,7 +154,7 @@ export class QuestPlayer {
     }
 
     // Handler
-    onItemToInventory(e) {
+    async onItemToInventory(e) {
         const item = e.data.item;
         const block = BLOCK.fromId(item.block_id);
         if(!block) {

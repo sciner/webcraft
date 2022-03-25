@@ -11,7 +11,6 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
-import { ServerWorld } from './server_world.js';
 
 export class DBWorld {
 
@@ -99,33 +98,27 @@ export class DBWorld {
             let row = await this.db.get('SELECT version FROM options');
             version = row.version;
         } catch(e) {
-            await this.db.get('begin transaction');
+            await this.db.get('BEGIN TRANSACTION');
             await this.db.get('CREATE TABLE "options" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "version" integer NOT NULL DEFAULT 0)');
-            await this.db.get('insert into options(version) values(0)');
-            await this.db.get('commit');
+            await this.db.get('INSERT INTO options(version) values(0)');
+            await this.db.get('COMMIT');
         }
-        // Version 0 -> 1
-        if (version == 0) {
-            await this.db.get('begin transaction');
-            await this.db.get('alter table user add column indicators text');
-            await this.db.run('UPDATE user SET indicators = :indicators', {
-                ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
-            });
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 1 -> 2
-        if (version == 1) {
-            await this.db.get('begin transaction');
-            await this.db.get('alter table user add column is_admin integer default 0');
-            await this.db.get('update user set is_admin = 1 where id in (select user_id from world)');
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 2 -> 3
-        if (version == 2) {
-            await this.db.get('begin transaction');
-            await this.db.get(`CREATE TABLE "entity" (
+        const migrations = [];
+        migrations.push({version: 1, queries: [
+            'ALTER TABLE user ADD COLUMN indicators text',
+            {
+                sql: 'UPDATE user SET indicators = :indicators',
+                placeholders: {
+                    ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
+                }
+            }
+        ]});
+        migrations.push({version: 2, queries: [
+            'alter table user add column is_admin integer default 0',
+            'update user set is_admin = 1 where id in (select user_id from world)',
+        ]});
+        migrations.push({version: 3, queries: [
+            `CREATE TABLE "entity" (
                 "id" INTEGER NOT NULL,
                 "dt" integer,
                 "entity_id" TEXT,
@@ -137,62 +130,32 @@ export class DBWorld {
                 "y" real,
                 "z" real,
                 PRIMARY KEY ("id")
-              )`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 3 -> 4
-        if (version == 3) {
-            await this.db.get('begin transaction');
-            await this.db.get(`alter table world add column "game_mode" TEXT DEFAULT 'survival'`);
-            await this.db.get(`alter table user add column "chunk_render_dist" integer DEFAULT 4`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 4 -> 5
-        if (version == 4) {
-            await this.db.get('begin transaction');
-            await this.db.get(`CREATE INDEX "world_modify_xyz" ON "world_modify" ("x", "y", "z")`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 5 -> 6
-        if(version == 5) {
-            await this.db.get('begin transaction');
-            await this.db.get(`update world_modify set params = replace(replace(replace(replace(replace(replace(replace(params,',"rotate":{"x":0,"y":0,"z":0}', ''), ',"entity_id":""', ''), ',"entity_id":null', ''), ',"extra_data":null', ''), ',"power":1', ''), '{"id":0}', ''), '{}', '') where params is not null`);
-            await this.db.get(`update world_modify set params = null where params is not null and params = ''`);
-            await this.db.get(`update world_modify set params = '{"id":2}' where params is not null and params like '{"id":2,%'`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-            await this.db.get('VACUUM');
-        }
-        // Version 6 -> 7
-        if(version == 6) {
-            await this.db.get('begin transaction');
-            await this.db.get(`update world_modify set params = '{"id":50,"rotate":{"x":0,"y":1,"z":0}}' where params is not null and params like '{"id":50,%'`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-            await this.db.get('VACUUM');
-        }
-        // Version 7 -> 8
-        if(version == 7) {
-            await this.db.get('begin transaction');
-            await this.db.get(`alter table entity add column "pos_spawn" TEXT NOT NULL DEFAULT ''`);
-            await this.db.get(`update entity set pos_spawn = '{"x":' || x || ',"y":' || y || ',"z":' || z || '}' where pos_spawn = '';`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 8 -> 9
-        if(version == 8) {
-            await this.db.get('begin transaction');
-            await this.db.get(`alter table chest add column "is_deleted" integer DEFAULT 0`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 9 -> 10
-        if (version == 9) {
-            await this.db.get('begin transaction');
-            await this.db.get(`CREATE TABLE "drop_item" (
+              )`
+        ]});
+        migrations.push({version: 4, queries: [
+            `alter table world add column "game_mode" TEXT DEFAULT 'survival'`,
+            `alter table user add column "chunk_render_dist" integer DEFAULT 4`
+        ]});
+        migrations.push({version: 5, queries: [
+            `CREATE INDEX "world_modify_xyz" ON "world_modify" ("x", "y", "z")`,
+        ]});
+        migrations.push({version: 6, queries: [
+            `update world_modify set params = replace(replace(replace(replace(replace(replace(replace(params,',"rotate":{"x":0,"y":0,"z":0}', ''), ',"entity_id":""', ''), ',"entity_id":null', ''), ',"extra_data":null', ''), ',"power":1', ''), '{"id":0}', ''), '{}', '') where params is not null`,
+            `update world_modify set params = null where params is not null and params = ''`,
+            `update world_modify set params = '{"id":2}' where params is not null and params like '{"id":2,%'`
+        ]});
+        migrations.push({version: 7, queries: [
+            `update world_modify set params = '{"id":50,"rotate":{"x":0,"y":1,"z":0}}' where params is not null and params like '{"id":50,%'`
+        ]});
+        migrations.push({version: 8, queries: [
+            `alter table entity add column "pos_spawn" TEXT NOT NULL DEFAULT ''`,
+            `update entity set pos_spawn = '{"x":' || x || ',"y":' || y || ',"z":' || z || '}' where pos_spawn = '';`
+        ]});
+        migrations.push({version: 9, queries: [
+            `alter table chest add column "is_deleted" integer DEFAULT 0`
+        ]});
+        migrations.push({version: 10, queries: [
+            `CREATE TABLE "drop_item" (
                 "id" INTEGER NOT NULL,
                 "dt" integer,
                 "entity_id" TEXT,
@@ -201,16 +164,14 @@ export class DBWorld {
                 "y" real,
                 "z" real,
                 PRIMARY KEY ("id")
-              )`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-        // Version 10 -> 11
-        if (version == 10) {
-            await this.db.get('begin transaction');
-            await this.db.get(`DROP INDEX "main"."world_modify_xyz";`);
-            await this.db.get(`ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20211227";`);
-            await this.db.get(`CREATE TABLE "main"."world_modify" (
+              )`,
+            ]});
+        migrations.push({version: 11, queries: [
+            `DROP INDEX "main"."world_modify_xyz";`,
+            //
+            `ALTER TABLE "main"."world_modify" RENAME TO "_world_modify_old_20211227";`,
+            //
+            `CREATE TABLE "main"."world_modify" (
                 "id" INTEGER,
                 "world_id" INTEGER NOT NULL,
                 "dt" integer,
@@ -224,36 +185,31 @@ export class DBWorld {
                 "extra_data" text,
                 PRIMARY KEY ("id"),
                 UNIQUE ("entity_id" ASC) ON CONFLICT ABORT
-              );`);
-            await this.db.get(`INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data" FROM "main"."_world_modify_old_20211227";`);
-            await this.db.get(`CREATE INDEX "main"."world_modify_xyz"
-            ON "world_modify" (
-              "x" ASC,
-              "y" ASC,
-              "z" ASC
-            );`);
-            await this.db.get(`DROP TABLE "_world_modify_old_20211227"`);
-            await this.db.get('update options set version = ' + (++version));
-            await this.db.get('commit');
-        }
-
-        const migrations = [];
+              );`,
+            //
+            `INSERT INTO "main"."world_modify" ("id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data") SELECT "id", "world_id", "dt", "user_id", "params", "user_session_id", "x", "y", "z", "entity_id", "extra_data" FROM "main"."_world_modify_old_20211227";`,
+            //
+            `CREATE INDEX "main"."world_modify_xyz" ON "world_modify" ("x" ASC, "y" ASC, "z" ASC);`,
+            `DROP TABLE "_world_modify_old_20211227"`
+        ]});
         migrations.push({version: 12, queries: [`alter table drop_item add column "is_deleted" integer DEFAULT 0`]});
         migrations.push({version: 13, queries: [`alter table user add column "game_mode" TEXT DEFAULT NULL`]});
         migrations.push({version: 14, queries: [`UPDATE user SET inventory = replace(inventory, '"index2":0', '"index2":-1')`]});
         migrations.push({version: 15, queries: [`UPDATE entity SET x = json_extract(pos_spawn, '$.x'), y = json_extract(pos_spawn, '$.y'), z = json_extract(pos_spawn, '$.z')`]});
-        migrations.push({version: 16, queries: [`CREATE TABLE "painting" (
-            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-            "user_id" integer NOT NULL,
-            "dt" integer NOT NULL,
-            "params" TEXT,
-            "x" integer NOT NULL,
-            "y" integer NOT NULL,
-            "z" integer NOT NULL,
-            "image_name" TEXT,
-            "entity_id" TEXT,
-            "world_id" INTEGER
-        );`]});
+        migrations.push({version: 16, queries: [
+            `CREATE TABLE "painting" (
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+                "user_id" integer NOT NULL,
+                "dt" integer NOT NULL,
+                "params" TEXT,
+                "x" integer NOT NULL,
+                "y" integer NOT NULL,
+                "z" integer NOT NULL,
+                "image_name" TEXT,
+                "entity_id" TEXT,
+                "world_id" INTEGER
+            );`
+        ]});
         migrations.push({version: 17, queries: [`alter table world_modify add column "ticks" INTEGER DEFAULT NULL`]});
         migrations.push({version: 18, queries: [`UPDATE world_modify SET params = '{"id":612}' WHERE params = '{"id":141}';`]});
         migrations.push({version: 19, queries: [`UPDATE world_modify SET extra_data = '{"stage":0}' WHERE params = '{"id":59}' OR params LIKE '{"id":59,%';`]});
@@ -298,8 +254,9 @@ export class DBWorld {
             `CREATE TABLE "quest_reward" ("id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "block_id" INTEGER NOT NULL, "cnt" TEXT NOT NULL, PRIMARY KEY ("id"));`,
             `CREATE TABLE "user_quest" ("id" INTEGER NOT NULL, "dt" TEXT, "user_id" INTEGER NOT NULL, "quest_id" INTEGER NOT NULL, "actions" TEXT, PRIMARY KEY ("id"));`
         ]});
+        //
         migrations.push({version: 28, queries: [
-            `INSERT INTO "quest" VALUES (1, 1, 'Добыть дубовые брёвна', 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (1, 1, 'Добыть дубовые брёвна', 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
             `\r\n` +
             `1-й шаг — Найдите дерево\r\n` +
             `Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\r\n` +
@@ -308,10 +265,10 @@ export class DBWorld {
             `2-й шаг — Подберите блок\r\n` +
             `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.');`,
             
-            `INSERT INTO "quest" VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (2, 2, 'Выкопать землю', 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
             `Земля (она же дёрн) может быть добыта чем угодно.');`,
   
-            `INSERT INTO "quest" VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
+            `INSERT INTO "quest"(id, quest_group_id, title, description) VALUES (3, 1, 'Скрафтить и установить верстак', 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
             `\r\n` +
             `1-й шаг\r\n` +
             `Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\r\n` +
@@ -323,13 +280,15 @@ export class DBWorld {
             `Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\r\n` +
             `\r\n` +
             `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее. Пример создания деревянной кирки из досок и палок.');`,
-            
+            // actions
             `INSERT INTO "quest_action" VALUES (1, 1, 1, 3, 5, NULL, 'Добыть 5 дубовых брёвен');`,
             `INSERT INTO "quest_action" VALUES (2, 2, 1, 2, 20, NULL, 'Выкопать 20 земляных блоков');`,
             `INSERT INTO "quest_action" VALUES (3, 3, 2, 58, 1, NULL, 'Скрафтить верстак');`,
             `INSERT INTO "quest_action" VALUES (4, 3, 3, 58, 1, NULL, 'Установить верстак в удобном для вас месте');`,
+            // groups
             `INSERT INTO "quest_group" VALUES (1, 'Основные задания');`,
             `INSERT INTO "quest_group" VALUES (2, 'Дополнительные задания');`,
+            // rewards
             `INSERT INTO "quest_reward" VALUES (1, 1, 3, 8);`,
             `INSERT INTO "quest_reward" VALUES (2, 2, 2, 20);`,
             `INSERT INTO "quest_reward" VALUES (3, 3, 130, 4);`,
@@ -347,15 +306,51 @@ export class DBWorld {
             `ALTER TABLE quest ADD COLUMN "next_quests" TEXT`,
             `UPDATE quest SET next_quests = '[3]' WHERE id = 1`
         ]});
+        migrations.push({version: 34, queries: [
+            `DELETE FROM user_quest;`,
+            `UPDATE quest SET is_default = 0, next_quests = '[2]' WHERE id = 3;`,
+            `UPDATE quest SET is_default = 0 WHERE id = 2;`,
+            // Update quest 1
+            `UPDATE quest SET description = 'Необходимо добыть бревна дуба. После этого вы сможете скрафтить орудия, для дальнейшего развития.\r\n` +
+            `\r\n` +
+            `1-й шаг — Найдите дерево\r\n` +
+            `Найдите любое дерево, подойдите к нему так близко, чтобы вокруг блока древесины, на которую вы нацелены появилась тонкая обводка. Зажмите левую кнопку мыши и не отпускайте, пока не будет добыто бревно.\r\n` +
+            `Чтобы сломать бревно рукой нужно примерно 6 секунд.\r\n` +
+            `\r\n` +
+            `2-й шаг — Подберите блок\r\n` +
+            `Подойдите ближе к выпавшему блоку, он попадёт в ваш инвентарь.' WHERE id = 1;`,
+            // Update quest 2
+            `UPDATE quest SET description = 'Это земляные работы. Почувствуй себя землекопом.\r\n` +
+            `Земля (она же дёрн) может быть добыта чем угодно.' WHERE id = 2;`,
+            // Update quest 3
+            `UPDATE quest SET description = 'Необходимо скрафтить и установить верстак. Без него вы не сможете дальше развиваться.\r\n` +
+            `\r\n` +
+            `1-й шаг\r\n` +
+            `Поместите 4 единицы досок в 4 слота инвентаря и заберите в правой части верстак.\r\n` +
+            `\r\n` +
+            `2-й шаг\r\n` +
+            `Поместите верстак в один из нижних слотов инвентаря\r\n` +
+            `\r\n` +
+            `3-й шаг\r\n` +
+            `Выйдите из инвентаря нажав клавишу «E». Выберите слот, в котором находится предмет крутя колесико мыши или клавишами 1-9. Установите верстак на землю правой кнопкой мыши.\r\n` +
+            `\r\n` +
+            `Теперь вы можете создавать сложные предметы в верстаке. Простые предметы, такие как доски и палки также можно создавать в верстаке. Вы можете забрать верстак с собой, сломав его руками, топор сделает это гораздо быстрее.' WHERE id = 3;`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
                 for(let query of m.queries) {
-                    await this.db.get(query);
+                    if (typeof query === 'string') {
+                        await this.db.get(query);
+                    } else {
+                        await this.db.run(query.sql, query.placeholders);
+                    }
                 }
-                await this.db.get('update options set version = ' + (++version));
+                await this.db.get('UPDATE options SET version = ' + (++version));
                 await this.db.get('commit');
+                // Auto vacuum
+                await this.db.get('VACUUM');
                 version = m.version;
                 console.info('Migration applied: ' + version);
             }
