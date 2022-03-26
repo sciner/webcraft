@@ -5,6 +5,9 @@ import {impl as alea} from "../../vendors/alea.js";
 import { CubeSym } from '../core/CubeSym.js';
 import {AABB} from '../core/AABB.js';
 import { default as default_style, TX_CNT, TX_SIZE} from './default.js';
+import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
 
 const DEFAULT_PLANES = [
     {"size": {"x": 0, "y": 16, "z": 16}, "uv": [8, 8], "rot": [0, 0.7853975, 0]},
@@ -99,8 +102,12 @@ export default class style {
             }
         }
 
+        // Matrix
+        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
+
         //
-        if(block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id) {
+        const is_grass = block.id == BLOCK.GRASS.id || block.id == BLOCK.TALL_GRASS.id || block.id == BLOCK.TALL_GRASS_TOP.id;
+        if(is_grass) {
             dy -= .15;
         }
         if(material.planting && !block.hasTag('no_random_pos')) {
@@ -108,6 +115,13 @@ export default class style {
             const r = randoms[index] * 4/16 - 2/16;
             dx = 0.5 - 0.5 + r;
             dz = 0.5 - 0.5 + r;
+            if(is_grass) {
+                dy -= .2 * randoms[index];
+                if(!matrix) {
+                    matrix = mat4.create();
+                }
+                mat4.rotateY(matrix, matrix, Math.PI*2 * randoms[index]);
+            }
         }
 
         pos.x += dx;
@@ -119,9 +133,6 @@ export default class style {
             style.lm.set(biome.dirt_color);
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
-
-        // Matrix
-        matrix = calcRotateMatrix(material, block.rotate, cardinal_direction, matrix);
 
         // Planes
         const planes = material.planes || DEFAULT_PLANES;

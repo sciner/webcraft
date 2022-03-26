@@ -3,7 +3,7 @@ import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
 import glMatrix from "../vendors/gl-matrix-3.3.min.js"
 
-const {mat3, mat4} = glMatrix;
+const {mat4} = glMatrix;
 
 export const TX_CNT = 32;
 
