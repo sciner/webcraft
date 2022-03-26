@@ -137,6 +137,34 @@
                 "base": "textures/fox/fox.png",
                 "arctic": "textures/fox/arctic_fox.png"
             }
+        },
+        "cow": {
+            "type": "json",
+            "geom": "json/cow.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/cow/cow.png",
+                "brown_mooshroom": "textures/cow/brown_mooshroom.png",
+                "mooshroom": "textures/cow/mooshroom.png"
+            }
+        },
+        "skeleton": {
+            "type": "json",
+            "geom": "json/skeleton.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/skeleton/skeleton.png",
+                "wither": "textures/skeleton/wither_skeleton.png"
+            }
+        },
+        "sheep": {
+            "type": "json",
+            "geom": "json/sheep.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/sheep/sheep.png"
+            }
         }
+
     }
 }
