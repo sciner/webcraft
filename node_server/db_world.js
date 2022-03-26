@@ -673,7 +673,7 @@ export class DBWorld {
                 skin:       row.skin,
                 indicators: JSON.parse(row.indicators)
             });
-            resp.set(item.entity_id, item);
+            resp.set(item.id, item);
         }
         return resp;
     }

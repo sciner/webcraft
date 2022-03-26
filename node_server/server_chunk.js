@@ -224,7 +224,7 @@ export class ServerChunk {
 
     // Add mob
     addMob(mob) {
-        this.mobs.set(mob.entity_id, mob);
+        this.mobs.set(mob.id, mob);
         let packets = [{
             name: ServerClient.CMD_MOB_ADDED,
             data: [mob]
