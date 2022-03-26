@@ -19,6 +19,9 @@ class MobGenerator {
         this.chunk = chunk;
         this.types = [];
         this.types.push({type: 'chicken', skin: 'base', count: 4});
+        this.types.push({type: 'chicken', skin: 'base', count: 4});
+        this.types.push({type: 'sheep', skin: 'base', count: 4});
+        this.types.push({type: 'cow', skin: 'base', count: 4});
         this.types.push({type: 'horse', skin: 'creamy', count: 2});
         this.types.push({type: 'pig', skin: 'base', count: 4});
         this.types.push({type: 'fox', skin: 'base', count: 1});
