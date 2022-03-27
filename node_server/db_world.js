@@ -339,6 +339,10 @@ export class DBWorld {
         migrations.push({version: 35, queries: [
             `CREATE TABLE "chunk" ("id" INTEGER NOT NULL, "dt" integer, "addr" TEXT, "mobs_is_generated" integer NOT NULL DEFAULT 0, PRIMARY KEY ("id"));`,
         ]});
+        migrations.push({version: 36, queries: [
+            `DELETE FROM entity;`,
+            `DELETE FROM chunk;`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
