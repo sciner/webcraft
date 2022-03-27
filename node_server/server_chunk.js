@@ -564,6 +564,14 @@ export class ServerChunk {
                         }
                         break;
                     }
+                    case 'dirt': {
+                        if(m.ticks % m.extra_data.max_ticks == 0) {
+                            updated_blocks.push({pos: new Vector(v.pos), item: {id: 2}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
+                        }
+                        break;
+                    }
                 }
             }
         }

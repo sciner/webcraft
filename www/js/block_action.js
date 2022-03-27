@@ -712,7 +712,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 case 'instrument': {
                     switch(matBlock.item.instrument_id) {
                         case 'shovel': {
-                            if(world_material.id == BLOCK.GRASS_DIRT.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;
@@ -726,7 +726,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             break;
                         }
                         case 'hoe': {
-                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT_PATH.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;

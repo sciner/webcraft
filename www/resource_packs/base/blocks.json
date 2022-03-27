@@ -34,9 +34,30 @@
         ]
     },
     {
+        "id": 18,
+        "name": "DIRT",
+        "sound": "madcraft:block.grass",
+        "tags": [
+            "dirt"
+        ],
+        "material": {
+            "id": "dirt"
+        },
+        "ticking": {
+            "type": "dirt"
+        },
+        "extra_data": {"calculated": [
+            {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+        ]},
+        "texture": {
+            "side": [2, 0]
+        }
+    },
+    {
         "id": 2,
         "name": "GRASS_DIRT",
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "DIRT", "count": 1, "chance": 1},
         "tags": [
             "mask_biome",
             "dirt"
@@ -2870,6 +2891,7 @@
         "passable": 1,
         "transparent": true,
         "style": "torch",
+        "is_fire": true,
         "inventory_style": "extruder",
         "sound": "madcraft:block.wood",
         "material": {
@@ -5543,6 +5565,7 @@
         "style": "campfire",
         "can_rotate": true,
         "transparent": true,
+        "is_fire": true,
         "inventory": {
             "style": "extruder",
             "texture": [8, 28]

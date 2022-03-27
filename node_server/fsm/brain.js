@@ -263,20 +263,20 @@ export class FSMBrain {
             .addSelf(this.#_temp.vec_add.set(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z)))
             .flooredSelf()
         const block_ahead = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-        if(block_ahead.material.is_fluid) {
+        if(block_ahead.material.is_fluid || block_ahead.material.is_fire) {
             return true;
         }
         //
         pos_ahead.y--;
         let block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-        if(block.material.is_fluid) {
+        if(block.material.is_fluid || block.material.is_fire) {
             return true;
         }
         // 2. do not fall
         if(block.id == 0) {
             pos_ahead.y--;
             block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-            if(block.id == 0) {
+            if(block.id == 0 || block.material.is_fire) {
                 return true;
             }
         }
