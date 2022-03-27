@@ -11,6 +11,10 @@ export class FSMBrain {
 
     #pos;
     #chunk_addr = new Vector();
+    #_temp = {
+        vec_ahead: new Vector(0, 0, 0),
+        vec_add: new Vector(0, 0, 0)
+    }
 
     constructor(mob) {
         this.mob            = mob;
@@ -217,6 +221,14 @@ export class FSMBrain {
             jump: this.checkInWater()
         });
 
+        // Do not enter liquids and do not fall
+        if(this.checkDangerAhead()) {
+            this.rotateSign = Math.sign(Math.random() - Math.random());
+            this.stack.replaceState(this.doRotate); // push new state, making it the active state.
+            this.sendState();
+            return;
+        }
+
         const pick = this.raycastFromHead();
         if (pick) {
             let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
@@ -241,6 +253,34 @@ export class FSMBrain {
         this.applyControl(delta);
         this.sendState();
 
+    }
+
+    // Do not enter liquids and do not fall
+    checkDangerAhead() {
+        const mob = this.mob;
+        // 1. do not enter liquids
+        const pos_ahead = this.#_temp.vec_ahead.copyFrom(mob.pos)
+            .addSelf(this.#_temp.vec_add.set(Math.sin(mob.rotate.z), 0, Math.cos(mob.rotate.z)))
+            .flooredSelf()
+        const block_ahead = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
+        if(block_ahead.material.is_fluid) {
+            return true;
+        }
+        //
+        pos_ahead.y--;
+        let block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
+        if(block.material.is_fluid) {
+            return true;
+        }
+        // 2. do not fall
+        if(block.id == 0) {
+            pos_ahead.y--;
+            block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
+            if(block.id == 0) {
+                return true;
+            }
+        }
+        return false;
     }
  
 }

@@ -117,7 +117,9 @@ export class ServerChunk {
         this.ticking_blocks = new Map();
         this.mobs           = new Map();
         this.drop_items     = new Map();
-        this.mobGenerator   = new MobGenerator(this);
+        if(['biome2'].indexOf(world.info.generator.id) >= 0) {
+            this.mobGenerator   = new MobGenerator(this);
+        }
         this.setState(CHUNK_STATE_NEW);
     }
 
