@@ -259,20 +259,20 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     93: BLOCK.GRAVEL,
                     106: BLOCK.STONE_BRICK,
                     114: BLOCK.CONCRETE,
-                    72: BLOCK.DIRT,
+                    72: BLOCK.GRASS_DIRT,
                     235: BLOCK.SNOW_BLOCK,
                     54: BLOCK.SPRUCE_PLANK,
                     150: BLOCK.OAK_LEAVES,
                     139: BLOCK.OAK_LEAVES,
                     58: BLOCK.OAK_TRUNK,
-                    107: BLOCK.DIRT,
+                    107: BLOCK.GRASS_DIRT,
                     144: BLOCK.OAK_LEAVES,
-                    143: BLOCK.DIRT,
+                    143: BLOCK.GRASS_DIRT,
                     253: BLOCK.OAK_PLANK,
                     238: BLOCK.SPRUCE_PLANK,
                     79: BLOCK.BIRCH_PLANK,
-                    184: BLOCK.DIRT,
-                    174: BLOCK.DIRT,
+                    184: BLOCK.GRASS_DIRT,
+                    174: BLOCK.GRASS_DIRT,
                 };
                 vox_templates.castle = {chunk: chunks[0], palette: palette};
             });
@@ -543,7 +543,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     setBlock(x, y, z, BLOCK.CONCRETE.id);
                                     return true;
                                 } else {
-                                    setBlock(x, y, z, BLOCK.DIRT.id);
+                                    setBlock(x, y, z, BLOCK.GRASS_DIRT.id);
                                     return true;
                                 }
                             }
@@ -766,7 +766,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     let block_id = map.info.plants.get(pos);
                     xyz.set(pos.x, pos.y - chunk_coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
-                    if(temp_block.id === BLOCK.DIRT.id || temp_block.id == 516) {
+                    if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516) {
                         temp_vec.set(pos.x, pos.y - chunk_coord.y, pos.z);
                         if(!chunk.tblocks.has(temp_vec)) {
                             if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {

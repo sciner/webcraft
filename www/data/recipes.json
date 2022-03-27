@@ -521,7 +521,7 @@
         ],
         "key": {
             "D": {
-                "item": "madcraft:dirt"
+                "item": "madcraft:grass_dirt"
             },
             "G": {
                 "item": "madcraft:gravel"
@@ -542,7 +542,7 @@
         ],
         "key": {
             "D": {
-                "item": "madcraft:dirt"
+                "item": "madcraft:grass_dirt"
             },
             "G": {
                 "item": "madcraft:gravel"

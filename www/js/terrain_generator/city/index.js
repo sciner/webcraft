@@ -62,7 +62,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             } else if (x == 1 || x == 13) {
                                 this.setBlock(chunk, x, 0, z, BLOCK.CONCRETE, false);
                             } else if(x) {
-                                this.setBlock(chunk, x, 0, z, BLOCK.DIRT, false);
+                                this.setBlock(chunk, x, 0, z, BLOCK.GRASS_DIRT, false);
                             }
                         }
                     }
@@ -123,7 +123,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     // территория строений
                                     // трава
                                     if (x >= 2 && x <= 12 && z >= 3 && z <= 13) {
-                                        this.setBlock(chunk, x, y, z, BLOCK.DIRT, false);
+                                        this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT, false);
                                     } else {
                                         this.setBlock(chunk, x, y, z, BLOCK.CONCRETE, false);
                                     }
@@ -170,7 +170,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         let y = 1;
                         for(let x = 3; x <= 11; x++) {
                             for(let z = 4; z <= 12; z++) {
-                                this.setBlock(chunk, x, y, z, BLOCK.DIRT, false);
+                                this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT, false);
                             }
                         }
                         this.plantTree({

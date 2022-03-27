@@ -712,7 +712,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 case 'instrument': {
                     switch(matBlock.item.instrument_id) {
                         case 'shovel': {
-                            if(world_material.id == BLOCK.DIRT.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;
@@ -726,7 +726,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                             break;
                         }
                         case 'hoe': {
-                            if(world_material.id == BLOCK.DIRT.id || world_material.id == BLOCK.DIRT_PATH.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT_PATH.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;
@@ -839,7 +839,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     if(!underBlock) {
                         return resp;
                     }
-                    if(underBlock.id != BLOCK.DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
+                    if(underBlock.id != BLOCK.GRASS_DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
                         return resp;
                     }
                     // Посадить семена можно только на вспаханную землю

@@ -199,7 +199,7 @@ export default class style {
         }
         //
         if(!DIRT_BLOCKS) {
-            DIRT_BLOCKS = [BLOCK.DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
+            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
         }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
             if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
@@ -346,7 +346,7 @@ export default class style {
 
         // Поворот текстуры травы в случайном направлении (для избегания эффекта мозаичности поверхности)
         let axes_up = null;
-        if(block.id == BLOCK.DIRT.id || block.id == BLOCK.SAND.id) {
+        if(block.id == BLOCK.GRASS_DIRT.id || block.id == BLOCK.SAND.id) {
             const rv = randoms[(z * CHUNK_SIZE_X + x + y * CHUNK_SIZE_Y) % randoms.length] | 0;
             axes_up = UP_AXES[rv % 4];
             autoUV = false;
