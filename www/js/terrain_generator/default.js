@@ -299,7 +299,6 @@ export class Default_Terrain_Generator {
             }
             py--;
         }
-
     }
 
 }
