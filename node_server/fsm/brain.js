@@ -276,7 +276,7 @@ export class FSMBrain {
         if(block.id == 0) {
             pos_ahead.y--;
             block = this.mob.getWorld().chunkManager.getBlock(pos_ahead);
-            if(block.id == 0 || block.material.is_fire) {
+            if(block.id == 0 || block.material.is_fire || block.material.is_fluid) {
                 return true;
             }
         }
