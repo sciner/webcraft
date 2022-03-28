@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Color, Vector} from '../../helpers.js';
-import { Default_Terrain_Generator } from '../default.js';
+import { Default_Terrain_Generator, alea } from '../default.js';
 import {BLOCK} from '../../blocks.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
@@ -14,8 +14,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     generate(chunk) {
 
-        // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANK.id : BLOCK.BIRCH_PLANK.id;
         let block_id = Math.abs(chunk.addr.x + chunk.addr.z) % 2 == 1 ? BLOCK.GRASS_DIRT.id : BLOCK.DIRT.id;
+        const aleaRandom = new alea(chunk.id);
 
         // setBlock
         let temp_vec2 = new Vector(0, 0, 0);
@@ -25,6 +25,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             chunk.tblocks.id[index] = block_id;
         };
 
+        //
+        const tree_height = {min: 5, max: 8};
+
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
@@ -33,7 +36,21 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
                 }
             }
-            this.plantTree({type: {percent: 1, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'test_tree'}, height: 7}, chunk, 7, 1, 7);
+            // Посадка дерева
+            this.plantTree(
+                {
+                    // рандомная высота дерева
+                    height: Math.round(aleaRandom.double() * (tree_height.max - tree_height.min) + tree_height.min),
+                    type: {
+                        trunk: BLOCK.OAK_TRUNK.id,
+                        leaves: BLOCK.OAK_LEAVES.id,
+                        style: 'test_tree'
+                    },
+                },
+                chunk,
+                // XYZ позиция в чанке
+                7, 1, 7
+            );
         }
 
         let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};

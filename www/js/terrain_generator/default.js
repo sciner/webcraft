@@ -75,7 +75,7 @@ export class Default_Terrain_Generator {
     }
 
     // setBlock
-    setBlock(chunk, x, y, z, block_type, force_replace) {
+    setBlock(chunk, x, y, z, block_type, force_replace, rotate) {
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             this.xyz_temp.set(x, y, z);
             if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
@@ -83,6 +83,10 @@ export class Default_Terrain_Generator {
                 if(!this.getVoxelBuilding(this.xyz_temp_coord)) {
                     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
                     chunk.tblocks.id[index] = block_type.id;
+                    if(rotate) {
+                        this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
+                        this.temp_tblock.rotate = rotate;
+                    }
                     // chunk.tblocks.delete(this.xyz_temp);
                     // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
                     // this.temp_tblock.id = block_type.id;
@@ -309,14 +313,16 @@ export class Default_Terrain_Generator {
 
     // Тестовое дерево
     plantTestTree(options, chunk, x, y, z) {
-        let ystart = y + options.height;
+        const TREE_HEIGHT = options.height; // рандомная высота дерева, переданная из генератора
+        let ystart = y + TREE_HEIGHT;
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
             this.setBlock(chunk, x, p, z, this.temp_block, true);
+            this.setBlock(chunk, x + 1, p, z, {id: BLOCK.VINES.id}, true, {x: 3, y: 0, z: 0});
         }
         // листва
-        let py = y + options.height;
+        let py = y + TREE_HEIGHT;
         let b = null;
         for(let rad of [1, 1, 2, 2]) {
             for(let i = x - rad; i <= x + rad; i++) {
@@ -326,7 +332,7 @@ export class Default_Terrain_Generator {
                             (i == x + rad && j == z + rad) || 
                             (i == x - rad && j == z + rad) ||
                             (i == x + rad && j == z - rad);
-                            let m2 = (py == y + options.height) ||
+                            let m2 = (py == y + TREE_HEIGHT) ||
                             (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
                         if(m && m2) {
                             continue;
