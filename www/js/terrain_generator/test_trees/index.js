@@ -15,7 +15,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     generate(chunk) {
 
         // let block_id = (chunk.addr.x + chunk.addr.z) % 2 == 0 ? BLOCK.DARK_OAK_PLANK.id : BLOCK.BIRCH_PLANK.id;
-        let block_id = BLOCK.GRASS_DIRT.id;
+        let block_id = Math.abs(chunk.addr.x + chunk.addr.z) % 2 == 1 ? BLOCK.GRASS_DIRT.id : BLOCK.DIRT.id;
 
         // setBlock
         let temp_vec2 = new Vector(0, 0, 0);
@@ -33,9 +33,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
                 }
             }
+            this.plantTree({type: {percent: 1, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'test_tree'}, height: 7}, chunk, 7, 1, 7);
         }
-
-        this.plantTree({type: {percent: 1, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood'}, height: 7}, chunk, 7, 1, 7);
 
         let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
