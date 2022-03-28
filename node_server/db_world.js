@@ -919,7 +919,7 @@ export class DBWorld {
             row.quest_group     = JSON.parse(row.quest_group);
             row.rewards         = JSON.parse(row.rewards);
             row.is_completed    = row.is_completed != 0;
-            row.in_progress     = row.in_progress != 0;
+            row.in_progress     = !row.is_completed && row.in_progress != 0;
             resp.push(row);
         }
         return resp;

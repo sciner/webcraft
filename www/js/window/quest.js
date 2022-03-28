@@ -83,6 +83,9 @@ export class QuestWindow extends Window {
 
     setData(data) {
 
+        this.data = data;
+        this.updateActive();
+
         if(this.groups) {
             return this.groups.update(data);
         }
@@ -110,6 +113,23 @@ export class QuestWindow extends Window {
         //
         this.groups.setViewer(this.quest_view);
 
+    }
+
+    updateActive() {
+        let quest_in_progress = null;
+        let quest_new = null;
+        for(let g of Game.hud.wm.getWindow('frmQuests').data) {
+            for(let q of g.quests) {
+                // console.log(q.title, q.is_completed, q.in_progress);
+                if(q.in_progress && !quest_in_progress) {
+                    quest_in_progress = q;
+                }
+                if(!q.in_progress && !q.is_completed && !quest_new) {
+                    quest_new = q;
+                }
+            }
+        }
+        this.active = quest_in_progress || quest_new;
     }
 
 }

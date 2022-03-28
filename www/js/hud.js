@@ -6,6 +6,17 @@ import {Helpers} from './helpers.js';
 import {Resources} from "./resources.js";
 import {Particles_Effects} from "./particles/effects.js";
 
+// QuestActionType
+export class QuestActionType {
+
+    static PICKUP       = 1; // Добыть
+    static CRAFT        = 2; // Скрафтить
+    static SET_BLOCK    = 3; // Установить блок
+    static USE_ITEM     = 4; // Использовать инструмент
+    static GOTO_COORD   = 5; // Достигнуть координат
+
+}
+
 export class HUD {
 
     zoom = UI_ZOOM;
@@ -325,7 +336,7 @@ export class HUD {
             //
         }
         
-        // Draw trech info
+        // Draw tech info
         const drawTechInfo = false;
         if(drawTechInfo) {
             this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total; // + '(' + Game.world.server.stat.in_packets.physical + ')';
@@ -378,10 +389,63 @@ export class HUD {
         }
         // let text = 'FPS: ' + Math.round(this.FPS.fps) + ' / ' + Math.round(1000 / Game.averageClockTimer.avg);
         this.drawText(this.text, 10 * this.zoom, 10 * this.zoom);
+        //
+        this.drawActiveQuest();
+    }
+
+    // Draw active quest
+    drawActiveQuest() {
+        const active_quest = Game.hud.wm.getWindow('frmQuests').active;
+        if(active_quest) {
+            if(!active_quest.mt) {
+                let quest_text = [active_quest.title];
+                for(let action of active_quest.actions) {
+                    let status = `🔲`; 
+                    if(action.ok) {
+                        status = '✅';
+                    }
+                    switch(action.quest_action_type_id) {
+                        case QuestActionType.CRAFT:
+                        case QuestActionType.SET_BLOCK:
+                        case QuestActionType.PICKUP: {
+                            quest_text.push(`${status} ${action.description} ... ${action.value}/${action.cnt}`);
+                            break;
+                        }
+                        /*
+                        case QuestActionType.USE_ITEM:
+                        case QuestActionType.GOTO_COORD: {
+                            throw 'error_not_implemented';
+                            break;
+                        }*/
+                        default: {
+                            quest_text.push(`${status} ${action.description}`);
+                            break;
+                        }
+                    }
+                }
+                quest_text.push('Нажми [TAB], чтобы увидеть подробности');
+                //
+                active_quest.mt = {width: 0, height: 0, text: null};
+                for(let str of quest_text) {
+                    let mt = this.ctx.measureText(str);
+                    active_quest.mt.height += mt.actualBoundingBoxDescent;
+                    if(mt.width > active_quest.mt.width) {
+                        active_quest.mt.width = mt.width;
+                    }
+                }
+                active_quest.mt.quest_text = quest_text.join('\n');
+            }
+            this.ctx.textAlign = 'left';
+            this.ctx.fillStyle = '#00000035';
+            this.ctx.fillRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
+            // this.ctx.strokeStyle = '#ffffff88';
+            this.ctx.strokeRect(this.width - active_quest.mt.width - 40 * this.zoom, 10 * this.zoom, active_quest.mt.width + 30 * this.zoom, active_quest.mt.height + 40 * this.zoom);
+            this.drawText(active_quest.mt.quest_text, this.width - active_quest.mt.width - 30 * this.zoom, 20 * this.zoom, '#ffffff00');
+        }
     }
 
     // Просто функция печати текста
-    drawText(str, x, y) {
+    drawText(str, x, y, fillStyle) {
         this.ctx.fillStyle = '#ffffff';
         str = str.split('\n');
         if(!this.strMeasures || this.strMeasures.length != str.length) {
@@ -394,12 +458,12 @@ export class HUD {
                     measure: this.ctx.measureText(str[i] + '|')
                 };
             }
-            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, this.strMeasures[i].measure);
+            this.drawTextBG(str[i], x, y + (26 * this.zoom) * i, this.strMeasures[i].measure, fillStyle);
         }
     }
 
     // Напечатать текст с фоном
-    drawTextBG(txt, x, y, mt) {
+    drawTextBG(txt, x, y, mt, fillStyle) {
         // lets save current state as we make a lot of changes
         this.ctx.save();
         // draw text from top - makes life easier at the moment
@@ -408,10 +472,14 @@ export class HUD {
         let width = mt.width;
         let height = mt.actualBoundingBoxDescent;
         // color for background
-        this.ctx.fillStyle = 'rgba(0, 0, 0, .35)';
+        this.ctx.fillStyle = fillStyle || 'rgba(0, 0, 0, .35)';
         if(txt) {
             // draw background rect assuming height of font
-            this.ctx.fillRect(x, y, width + 4 * this.zoom, height + 4 * this.zoom);
+            if(this.ctx.textAlign == 'right') {
+                this.ctx.fillRect(x - width, y, width + 4 * this.zoom, height + 4 * this.zoom);
+            } else {
+                this.ctx.fillRect(x, y, width + 4 * this.zoom, height + 4 * this.zoom);
+            }
         }
         // text color
         this.ctx.fillStyle = '#fff';
