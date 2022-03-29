@@ -83,11 +83,12 @@ BIOMES.SUBTROPICAL_DESERT = {
     dirt_color: new Color(845 / 1024, 990 / 1024, 0, 0),
     title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
     max_height: 6,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT, BLOCK.PODZOL],
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
-            {percent: 1, trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.25}}
+            {percent: .9, trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.25}},
+            {percent: .1, trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}}
         ]
     },
     plants: {
