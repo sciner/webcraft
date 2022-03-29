@@ -171,21 +171,23 @@ export class Chunk {
     drawBufferVertices(render, resource_pack, group, mat, vertices) {
         const v = vertices, key = v.key;
         let texMat = resource_pack.materials.get(key);
-        if (!texMat) {
+        if(!texMat) {
             texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
             resource_pack.materials.set(key, texMat);
         }
-        if (this.lightData) {
+        let dist = Game.player.lerpPos.distance(this.coord);
+        if(this.lightData && dist < 100) {
             this.getLightTexture(render);
-
-            if (!this.lightMats.has(key)) {
-                this.lightMats.set(key, texMat.getLightMat(this.lightTex));
+            let mat = this.lightMats.get(key);
+            if (!mat) {
+                mat = texMat.getLightMat(this.lightTex);
+                this.lightMats.set(key, mat);
             }
-
-            render.drawMesh(v.buffer, this.lightMats.get(key), this.coord);
+            render.drawMesh(v.buffer, mat, this.coord);
         } else {
             render.drawMesh(v.buffer, texMat, this.coord);
         }
+        render.drawMesh(v.buffer, texMat, this.coord);
         return true;
     }
 

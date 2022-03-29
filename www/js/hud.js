@@ -252,7 +252,7 @@ export class HUD {
 
         // Set style
         this.ctx.fillStyle      = '#ff0000';
-        this.ctx.font           = Math.round(20 * this.zoom) + 'px ' + UI_FONT;
+        this.ctx.font           = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
         this.ctx.textAlign      = 'left';
         this.ctx.textBaseline   = 'top';
 

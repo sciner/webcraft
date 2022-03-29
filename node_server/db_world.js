@@ -343,6 +343,10 @@ export class DBWorld {
             `DELETE FROM entity;`,
             `DELETE FROM chunk;`,
         ]});
+        migrations.push({version: 37, queries: [
+            `update quest_action set block_id = 18 where block_id = 2;`,
+            `update user_quest set actions = replace(actions, '"block_id":2,', '"block_id":18,');`,
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
