@@ -52,6 +52,7 @@ export class Resources {
 
         // Others
         all.push(loadImage('media/pickat_target.png').then((img) => { this.pickat.target = img}));
+        all.push(loadImage('media/debug_frame.png').then((img) => { this.pickat.debug = img}));
         all.push(fetch('/data/sounds.json').then(response => response.json()).then(json => { this.sounds = json;}));
         all.push(fetch('/sounds/main/sprite.json').then(response => response.json()).then(json => { this.sound_sprite_main = json;}));
 

@@ -336,12 +336,14 @@ export class MobModel extends NetworkPhysicObject {
         this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
         this.texture                    = null;
-        this.material = null;
+        this.material                   = null;
+        this.raycasted                  = false;
 
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
         this.aniframe                   = 0;
+        this.width                      = 0;
         this.height                     = 0;
         this.sneak                      = 1;
 
@@ -457,6 +459,9 @@ export class MobModel extends NetworkPhysicObject {
 
         // run render
         this.renderer.drawLayer(render, this);
+        if(this.aabb) {
+            this.aabb.draw(render, this.tPos, delta, this.raycasted);
+        }
     }
 
     /**

@@ -66,6 +66,8 @@ export class MobManager {
             type:           data.type,
             name:           data.name,
             indicators:     data.indicators,
+            width:          data.width,
+            height:         data.height,
             pos:            data.pos,
             rotate:         data.rotate,
             pitch:          data.rotate.x,

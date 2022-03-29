@@ -8,7 +8,8 @@ const point_precision = 1000;
 const side = new Vector(0, 0, 0);
 const leftTop = new Vector(0, 0, 0);
 const check = new Vector(0, 0, 0);
-const startBlock = new Vector(0,0,0);
+const startBlock = new Vector(0, 0, 0);
+const _mobLeft = new Vector(0, 0, 0);
 
 export class RaycasterResult {
 
@@ -17,7 +18,8 @@ export class RaycasterResult {
      * @param {Vector} leftTop
      * @param {Vector} side
      */
-    constructor(pos, leftTop, side) {
+    constructor(pos, leftTop, side, aabb) {
+        this.aabb = aabb;
         this.x = leftTop.x;
         this.y = leftTop.y;
         this.z = leftTop.z;
@@ -104,21 +106,41 @@ export class Raycaster {
                 break;
             }
 
-            leftTop.x = Math.floor(block.x);
-            leftTop.y = Math.floor(block.y);
-            leftTop.z = Math.floor(block.z);
+            leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
 
-            let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid; // b.id !== BLOCK.STILL_WATER.id;
+            // Mob raycaster
+            if(Game?.world?.mobs) {
+                for(let [_, mob] of Game.world.mobs.list) {
+                    mob.raycasted = false;
+                }
+                for(let [_, mob] of Game.world.mobs.list) {
+                    _mobLeft.set(leftTop.x + .5, leftTop.y + .5, leftTop.z + .5);
+                    if(mob.aabb && mob.aabb.center.distance(_mobLeft) < mob.width) {
+                        mob.raycasted = true;
+                        /*
+                        res = new RaycasterResult(mob.tPos, mob.tPos.flooredSelf(), side, mob.aabb);
+                        if(res.point.y == 1) {
+                            res.point.y = 0;
+                        }
+                        callback && callback(res);
+                        return res;
+                        */
+                        return null;
+                    }
+                }
+            }
+
+            let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid;
 
             if (hitShape) {
                 const shapes = BLOCK.getShapes(leftTop, b, this.world, false, true);
                 let flag = false;
 
-                for (let i=0;i<shapes.length;i++) {
+                for (let i = 0; i < shapes.length; i++) {
                     const shape = shapes[i];
 
-                    for(let j=0;j<3;j++) {
+                    for(let j = 0; j < 3; j++) {
                         const d = coord[j];
                         
                         if(dir[d] > eps && tMin + eps > (shape[j] + leftTop[d] - pos[d]) / dir[d]) {

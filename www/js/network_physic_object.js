@@ -1,7 +1,84 @@
-import {Mth, Vector} from './helpers.js';
-import { getChunkAddr } from "./chunk.js";
+import {Mth, Vector, Color} from './helpers.js';
+import { getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
 import { World } from './world.js';
+import { AABB, AABBSideParams, pushAABB } from './core/AABB.js';
 
+import {BLEND_MODES} from "./renders/BaseRenderer.js";
+import {Resources} from "./resources.js";
+import GeometryTerrain from "./geometry_terrain.js";
+const {mat4} = glMatrix;
+
+// AABBDrawable
+export class AABBDrawable extends AABB {
+
+    draw(render, pos, delta, do_draw) {
+        if(!this.mesh) {
+            const TARGET_TEXTURES = [.5, .5, 1, 1];
+            this.mesh = this.createTargetBuffer(null, TARGET_TEXTURES);
+        }
+        if(!this.material) {
+            // Material (damage)
+            let material_damage = render.renderBackend.createMaterial({
+                cullFace: true,
+                opaque: false,
+                blendMode: BLEND_MODES.MULTIPLY,
+                shader: render.defaultShader,
+            });
+            // Material (target)
+            this.material = material_damage.getSubMat(render.renderBackend.createTexture({
+                source: Resources.pickat.debug,
+                minFilter: 'nearest',
+                magFilter: 'nearest'
+            }));
+        }
+        let a_pos = new Vector(this.center);
+        this.chunk_coord = getChunkAddr(a_pos.x, a_pos.y, a_pos.z, this.chunk_coord);
+        this.chunk_coord.x *= CHUNK_SIZE_X;
+        this.chunk_coord.y *= CHUNK_SIZE_Y;
+        this.chunk_coord.z *= CHUNK_SIZE_Z;
+        this.modelMatrix = mat4.create();
+        a_pos.subSelf(this.chunk_coord);
+        mat4.translate(this.modelMatrix, this.modelMatrix, [a_pos.x, a_pos.z, a_pos.y - this.height / 2]);
+        if(do_draw) {
+            render.renderBackend.drawMesh(this.mesh, this.material, this.chunk_coord, this.modelMatrix);
+        }
+    }
+
+    // createTargetBuffer...
+    createTargetBuffer(pos, c) {
+        
+        const vertices  = [];
+        const lm        = new Color(0, 0, 0);
+        const flags     = 0, sideFlags = 0, upFlags = 0;
+        const pivot     = null;
+        const matrix    = null;
+        const aabb      = new AABB();
+
+        aabb.copyFrom(this);
+
+        pushAABB(
+            vertices,
+            aabb,
+            pivot,
+            matrix,
+            {
+                up:     new AABBSideParams(c, upFlags, 1, lm, null, false),
+                down:   new AABBSideParams(c, flags, 1, lm, null, false),
+                south:  new AABBSideParams(c, sideFlags, 1, lm, null, false),
+                north:  new AABBSideParams(c, sideFlags, 1, lm, null, false),
+                west:   new AABBSideParams(c, sideFlags, 1, lm, null, false),
+                east:   new AABBSideParams(c, sideFlags, 1, lm, null, false),
+            },
+            Vector.ZERO
+        );
+
+        return new GeometryTerrain(vertices);
+    }
+
+
+}
+
+// NetworkPhysicObject
 export class NetworkPhysicObject {
 
     constructor(pos, rotate) {
@@ -20,6 +97,7 @@ export class NetworkPhysicObject {
         this.latency = 50;
         this.tPos = new Vector();
         this.tRot = new Vector();
+        this.aabb = null;
 
         /**
          * @type {World}
@@ -130,6 +208,21 @@ export class NetworkPhysicObject {
 
     update() {
         this.processNetState();
+        this.updateAABB();
+    }
+
+    updateAABB() {
+        const w = this.width;
+        const h = this.height;
+        this.aabb = this.aabb || new AABBDrawable();
+        this.aabb.set(
+            this.tPos.x - w/2,
+            this.tPos.y,
+            this.tPos.z - w/2,
+            this.tPos.x + w/2,
+            this.tPos.y + h,
+            this.tPos.z + w/2
+        );
     }
 
 }
