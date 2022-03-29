@@ -457,7 +457,8 @@ let gameCtrl = async function($scope, $timeout) {
                 {id: 'biome2', title: 'Стандартный'},
                 {id: 'city', title: 'Город'},
                 {id: 'city2', title: 'Город 2'},
-                {id: 'flat', title: 'Плоский мир'}
+                {id: 'flat', title: 'Плоский мир'},
+                {id: 'test_trees', title: 'Тестовые деревья'}
             ],
             next: function() {
                 this.index = (this.index + 1) % this.list.length;
