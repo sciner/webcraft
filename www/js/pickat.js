@@ -4,6 +4,7 @@ import GeometryTerrain from "./geometry_terrain.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
 import { Raycaster } from "./Raycaster.js";
+import {getChunkAddr} from "./chunk.js";
 
 const {mat4} = glMatrix;
 
@@ -193,7 +194,25 @@ export class PickAt {
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
-            const a_pos = half.add(this.damage_block.pos);
+            let a_pos = half.add(this.damage_block.pos);
+
+            // Light
+            this.chunk_addr = getChunkAddr(this.damage_block.pos);
+            this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
+            const light = this.chunk.getLightTexture(render.renderBackend);
+            if(light) {
+                this.material_damage.changeLighTex(light);
+                this.modelMatrix = mat4.create();
+                mat4.translate(this.modelMatrix, this.modelMatrix, 
+                    [
+                        (a_pos.x - this.chunk.coord.x),
+                        (a_pos.z - this.chunk.coord.z),
+                        (a_pos.y - this.chunk.coord.y)
+                    ]
+                );
+                a_pos = this.chunk.coord;
+            }
+
             render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, this.modelMatrix);
         }
     }
@@ -270,7 +289,7 @@ export class PickAt {
         this.material_damage = this.render.renderBackend.createMaterial({
             cullFace: true,
             opaque: false,
-            blendMode: BLEND_MODES.NORMAL,
+            blendMode: BLEND_MODES.MULTIPLY,
             shader: this.render.defaultShader,
         });
         // Material (target)
