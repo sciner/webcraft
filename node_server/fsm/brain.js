@@ -234,8 +234,7 @@ export class FSMBrain {
             let block = this.mob.getWorld().chunkManager.getBlock(pick.x, pick.y, pick.z);
             if(block && !block.material.planting) {
                 let dist = mob.pos.distance(new Vector(pick.x + .5, pick.y, pick.z + .5));
-                if(dist < 1.0) {
-                    // console.log('Mob pick at block: ', block.material.name, dist);
+                if(dist < .5 + this.mob.width) {
                     this.rotateSign = Math.sign(Math.random() - Math.random());
                     this.stack.replaceState(this.doRotate); // push new state, making it the active state.
                     this.sendState();

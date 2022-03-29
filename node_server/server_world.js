@@ -454,8 +454,6 @@ export class ServerWorld {
                 throw 'error_not_permitted';
             }
             await this.createMob(params);
-            // let mob = await Mob.create(this, params);
-            // this.chunks.get(mob.chunk_addr)?.addMob(mob);
             return true;
         } catch(e) {
             console.log('e', e);
