@@ -396,7 +396,7 @@ export class BLOCK {
             block.tags.indexOf('leaves') >= 0 ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
             block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
-            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire'
+            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
             ) {
             group = 'doubleface';
         }

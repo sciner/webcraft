@@ -131,7 +131,9 @@ export default class style {
             tex[0] += (add_uv[0] / TX_CNT);
             tex[1] += (add_uv[1] / TX_CNT);
 
-            face.autoUV = true;
+            if(!('autoUV' in face)) {
+                face.autoUV = true;
+            }
 
             faces[k] = new AABBSideParams(tex, face.flag, anim, part.lm, null, face.autoUV)
         }

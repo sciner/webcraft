@@ -76,6 +76,35 @@ BIOMES.TEMPERATE_DESERT = {
     }
 };
 
+BIOMES.JUNGLE = {
+    block:      BLOCK.OAK_PLANK.id,
+    code:       'JUNGLE',
+    color:      '#c19a6b',
+    dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
+    title:      'ДЖУНГЛИ',
+    max_height: 82,
+    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT],
+    trees:      {
+        frequency: TREE_FREQUENCY * 4,
+        list: [
+            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
+            {percent: .3, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
+            {percent: .15, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
+            {percent: .05, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 2.6}}
+        ]
+    },
+    plants: {
+        frequency: .8,
+        list: [
+            {percent: .6, block: BLOCK.OAK_LEAVES.id},
+            {percent: .37, block: BLOCK.GRASS.id},
+            {percent: .01, block: BLOCK.TULIP.id},
+            {percent: .005, block: BLOCK.WATERMELON.id},
+            {percent: .005, block: BLOCK.DANDELION.id}
+        ]
+    }
+};
+
 BIOMES.SUBTROPICAL_DESERT = {
     block:      BLOCK.OAK_PLANK.id,
     code:       'SUBTROPICAL_DESERT',
@@ -374,7 +403,7 @@ BIOMES.getBiome = function(v_height, humidity, equator) {
             if (humidity < 0.83) return 'TEMPERATE_DECIDUOUS_FOREST'; // УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС
             return 'TEMPERATE_RAIN_FOREST'; // УМЕРЕННЫЙ ДОЖДЬ ЛЕС
         }
-        if (humidity < 0.16) return 'SUBTROPICAL_DESERT';
+        if (humidity < 0.16) return 'JUNGLE';
         if (humidity < 0.33) return 'GRASSLAND';
         if (humidity < 0.66) return 'TROPICAL_SEASONAL_FOREST';
         return 'TROPICAL_RAIN_FOREST';

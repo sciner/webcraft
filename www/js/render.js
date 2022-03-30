@@ -566,7 +566,7 @@ export class Renderer {
             }
         }
 
-        if(!player.game_mode.isSpectator()) {
+        if(!player.game_mode.isSpectator() && Game.hud.active) {
             this.drawInhandItem(delta);
         }
 

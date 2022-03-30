@@ -3357,6 +3357,30 @@
         "can_rotate": true
     },
     {
+        "id": 909,
+        "name": "WATERMELON",
+        "planting": false,
+        "mining_time": 1,
+        "material": {
+            "id": "plant"
+        },
+        "texture": {
+            "up": [
+                6,
+                8
+            ],
+            "down": [
+                6,
+                8
+            ],
+            "side": [
+                7,
+                8
+            ]
+        },
+        "can_rotate": true
+    },
+    {
         "id": 91,
         "name": "LIT_PUMPKIN",
         "planting": false,
@@ -5586,6 +5610,38 @@
         "texture": {
             "side": [31, 4],
             "up": [31, 5]
+        }
+    },
+    {
+        "id": 910,
+        "name": "COCOA_BEANS",
+        "passable": 1,
+        "style": "cocoa",
+        "transparent": true,
+        "inventory": {
+            "style": "extruder",
+            "texture": [10, 31]
+        },
+        "extra_data": {
+            "stage": 0
+        },
+        "ticking": {
+            "type": "stage",
+            "max_stage": 2,
+            "times_per_stage": 8
+        },
+        "texture": [22, 1],
+        "stage_textures": [
+            [22, 1],
+            [22, 2],
+            [22, 3]
+        ],
+        "tags": [
+            "no_set_on_top"
+        ],
+        "can_rotate": true,
+        "material": {
+            "id": "wood"
         }
     }
 ]
