@@ -356,15 +356,15 @@ export class Default_Terrain_Generator {
             dy,
         ].map((z) => z >>> 24)
         // ствол + лианы вокруг
+        let xyz = chunk.coord.add(new Vector(x, y, z));
+        let random = new alea('tree' + xyz.toHash());
         for (let p = y; p < ystart; p++) {
             this.setBlock(chunk, x, p, z, this.temp_block, true)
             let block_id = BLOCK.VINES.id;
             let extra_data = null;
-            if(this.fastRandoms.double(mainseed + p) < .4) {
-                if(arr[p % 7] % 2 == 0 && arr[p % 5] % 5 == 0 && p < y + 4) {
-                    block_id = BLOCK.COCOA_BEANS.id;
-                    extra_data = {stage: 2};
-                }
+            if(random.double() < .025 && p < y + 4) {
+                block_id = BLOCK.COCOA_BEANS.id;
+                extra_data = {stage: 2};
             }
             if ((p + arr[p % 7]) % 2 == 0)
                 this.setBlock(chunk, x + 1, p, z, { id: block_id }, false, {
