@@ -333,7 +333,7 @@ export class Default_Terrain_Generator {
 
     // Тропическое дерево
     plantTropicalTree(options, chunk, x, y, z) {
-        const TREE_HEIGHT = options.height * 2 // рандомная высота дерева, переданная из генератора
+        const TREE_HEIGHT = options.height // рандомная высота дерева, переданная из генератора
         let ystart = y + TREE_HEIGHT
         let maxW = Math.floor(TREE_HEIGHT / 2)
         let minW = Math.floor(TREE_HEIGHT / 3)

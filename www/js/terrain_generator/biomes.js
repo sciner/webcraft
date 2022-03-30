@@ -82,15 +82,17 @@ BIOMES.JUNGLE = {
     color:      '#c19a6b',
     dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
     title:      'ДЖУНГЛИ',
-    max_height: 75,
+    max_height: 68,
     dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT],
     trees:      {
         frequency: TREE_FREQUENCY * 4,
         list: [
-            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}},
-            {percent: .3, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
-            {percent: .15, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}},
-            {percent: .05, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 2.6}}
+            {percent: .025, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 16, max: 22}},
+            {percent: .1, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 9, max: 14}},
+            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 3, max: 8}},
+            {percent: .2, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
+            // bamboo
+            {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
         ]
     },
     plants: {
@@ -403,7 +405,7 @@ BIOMES.getBiome = function(v_height, humidity, equator) {
             if (humidity < 0.83) return 'TEMPERATE_DECIDUOUS_FOREST'; // УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС
             return 'TEMPERATE_RAIN_FOREST'; // УМЕРЕННЫЙ ДОЖДЬ ЛЕС
         }
-        if (humidity < 0.16) return 'JUNGLE';
+        if (humidity < 0.24) return 'JUNGLE';
         if (humidity < 0.33) return 'GRASSLAND';
         if (humidity < 0.66) return 'TROPICAL_SEASONAL_FOREST';
         return 'TROPICAL_RAIN_FOREST';
