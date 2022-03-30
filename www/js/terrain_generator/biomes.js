@@ -87,10 +87,10 @@ BIOMES.JUNGLE = {
     trees:      {
         frequency: TREE_FREQUENCY * 4,
         list: [
-            {percent: .025, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 16, max: 22}},
-            {percent: .1, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 9, max: 14}},
-            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 3, max: 8}},
-            {percent: .2, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
+            {percent: .025, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 16, max: 22}},
+            {percent: .1, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 9, max: 14}},
+            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 3, max: 8}},
+            {percent: .2, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
             // bamboo
             {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
         ]

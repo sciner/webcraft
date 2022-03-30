@@ -632,6 +632,24 @@
     {
         "id": 527,
         "name": "JUNGLE_LEAVES",
+        "transparent": false,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            10,
+            24
+        ],
+        "material": {
+            "id": "leaves"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome",
+            "leaves"
+        ]
+    },
+    {
+        "id": 991,
+        "name": "JUNGLE_LEAVES_FLOWER",
         "transparent": true,
         "sound": "madcraft:block.grass",
         "texture": [
