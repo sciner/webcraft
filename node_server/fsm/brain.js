@@ -22,6 +22,7 @@ export class FSMBrain {
         this.raycaster      = new Raycaster(mob.getWorld());
         this.rotateSign     = 1;
         this.#pos           = new Vector(0, 0, 0);
+        this.panic          = false;
     }
 
     /**
@@ -125,7 +126,7 @@ export class FSMBrain {
 
     applyControl(delta) {
         let pc = this.pc;
-        pc.tick(delta);
+        pc.tick(delta * (this.panic ? 3 : 1));
         this.mob.pos.copyFrom(pc.player.entity.position);
     }
 
@@ -141,8 +142,8 @@ export class FSMBrain {
         this.sendState();
 
         let r = Math.random() * 5000;
-        if(r < 500) {
-            if(r < 100) {
+        if(r < 500 || this.panic) {
+            if(r < 100 || this.panic) {
                 // Random rotate
                 this.rotateSign = Math.sign(Math.random() - Math.random());
                 this.stack.replaceState(this.doRotate); // push new state, making it the active state.
@@ -189,14 +190,19 @@ export class FSMBrain {
         }
         */
 
-        mob.rotate.z += delta * this.rotateSign;
+        mob.rotate.z += (delta * (this.panic ? 25 : 1)) * this.rotateSign;
 
         this.applyControl(delta);
         this.sendState();
 
-        if(Math.random() * 5000 < 300) {
-            this.stack.replaceState(this.standStill);
+        if(this.panic) {
+            this.stack.replaceState(this.goForward);
             return;
+        } else {
+            if(Math.random() * 5000 < 300) {
+                this.stack.replaceState(this.standStill);
+                return;
+            }
         }
     }
 

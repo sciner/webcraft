@@ -94,4 +94,16 @@ export class Mob {
         this.#world.mobs.delete(this.entity_id);
     }
 
+    punch(server_player, params) {
+        // console.log('params.interractMob id:', mob);
+        console.log('live', this.indicators.live.value);
+        // Add velocity for drop item
+        let velocity = new Vector(0, 0.5, 0);
+        this.addVelocity(velocity);
+        this.#brain.panic = true;
+        setTimeout(() => {
+            this.#brain.panic = false;
+        }, 3000);
+    }
+
 }

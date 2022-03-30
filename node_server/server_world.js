@@ -191,11 +191,7 @@ export class ServerWorld {
                     if(params.interractMob) {
                         const mob = world.mobs.get(params.interractMob);
                         if(mob) {
-                            // console.log('params.interractMob id:', mob);
-                            console.log('live', mob.indicators.live.value);
-                            // Add velocity for drop item
-                            let velocity = new Vector(0, 0.5, 0);
-                            mob.addVelocity(velocity);
+                            mob.punch(server_player, params);
                         }
                     } else {
                         const actions = await doBlockAction(params, world, player, currentInventoryItem);
