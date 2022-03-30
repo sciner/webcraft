@@ -82,7 +82,7 @@ BIOMES.JUNGLE = {
     color:      '#c19a6b',
     dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
     title:      'ДЖУНГЛИ',
-    max_height: 68,
+    max_height: 48,
     dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT],
     trees:      {
         frequency: TREE_FREQUENCY * 4,
@@ -168,20 +168,24 @@ BIOMES.TUNDRA = {
     dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0),
     title:      'ТУНДРА',
     max_height: 48,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.PODZOL],
     trees:      {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
             {percent: 0.01, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT * 3}},
-            {percent: 0.98, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT}}
+            {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
+            {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN_TOP.id, style: 'stump', height: {min: 1, max: 1}},
+            {percent: 0.68, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
-        frequency: .5,
+        frequency: .65,
         list: [
-            {percent: .9985, block: BLOCK.GRASS.id},
-            {percent: .0015, block: BLOCK.BROWN_MUSHROOM.id}
+            {percent: .68, block: BLOCK.GRASS.id},
+            {percent: .3, block: BLOCK.FERN.id},
+            {percent: .001, block: BLOCK.BROWN_MUSHROOM.id},
+            {percent: .009, block: BLOCK.DEAD_BUSH.id}
         ]
     }
 };

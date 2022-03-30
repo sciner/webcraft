@@ -5661,5 +5661,76 @@
         "material": {
             "id": "wood"
         }
+    },
+    {
+        "id": 992,
+        "name": "FERN",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "inventory_style": "extruder",
+        "texture": [
+            8,
+            18
+        ],
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome"
+        ]
+    },
+    {
+        "id": 993,
+        "name": "LARGE_FERN",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "inventory": {
+            "style": "extruder",
+            "texture": [8, 19]
+        },
+        "sound": "madcraft:block.grass",
+        "texture": [
+            8,
+            20
+        ],
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome"
+        ],
+        "next_part": {
+            "offset_pos": {"x": 0, "y": 1, "z": 0},
+            "id": 994
+        }
+    },
+    {
+        "id": 994,
+        "name": "LARGE_FERN_TOP",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "spawnable": false,
+        "sound": "madcraft:block.grass",
+        "texture": [
+            8,
+            19
+        ],
+        "material": {
+            "id": "plant"
+        },
+        "tags": [
+            "no_drop",
+            "mask_biome"
+        ],
+        "previous_part": {
+            "offset_pos": {"x": 0, "y": -1, "z": 0},
+            "id": 993
+        }
     }
 ]

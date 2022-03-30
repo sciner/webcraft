@@ -123,6 +123,11 @@ export class Default_Terrain_Generator {
                 this.plantStump(options, chunk, x, y, z)
                 break;
             }
+            // tundra_stone
+            case 'tundra_stone': {
+                this.plantTundraStone(options, chunk, x, y, z)
+                break;
+            }
             // дуб, берёза
             case 'wood': {
                 this.plantOak(options, chunk, x, y, z)
@@ -182,6 +187,24 @@ export class Default_Terrain_Generator {
         if(options.type.leaves) {
             this.temp_block.id = options.type.leaves;
             this.setBlock(chunk, x, ystart, z, this.temp_block, true);
+        }
+    }
+
+    // Tundra stone
+    plantTundraStone(options, chunk, x, y, z, block, force_replace) {
+        y--;
+        const ystart = y + options.height;
+        // ствол
+        this.temp_block.id = options.type.trunk;
+        for(let p = y; p < ystart; p++) {
+            for(let dx = -1; dx <= 1; dx++) {
+                for(let dz = -1; dz <= 1; dz++) {
+                    if(p != y && dx != 0 && dz != 0) {
+                        continue;
+                    }
+                    this.setBlock(chunk, x + dx, p, z + dz, this.temp_block, true);
+                }
+            }
         }
     }
 
