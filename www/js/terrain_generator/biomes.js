@@ -82,7 +82,7 @@ BIOMES.JUNGLE = {
     color:      '#c19a6b',
     dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
     title:      'ДЖУНГЛИ',
-    max_height: 82,
+    max_height: 75,
     dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT],
     trees:      {
         frequency: TREE_FREQUENCY * 4,

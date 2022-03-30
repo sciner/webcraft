@@ -163,10 +163,10 @@ export class Default_Terrain_Generator {
         // ствол
         this.temp_block.id = options.type.trunk;
         for(let p = y; p < ystart; p++) {
-            let extra_data = null;
-            if(p == ystart - 1) extra_data = {stage: 2};
-            if(p == ystart - 2) extra_data = {stage: 1};
-            if(p == ystart - 3) extra_data = {stage: 1};
+            let extra_data = {stage: 3};
+            if(p == ystart - 1) extra_data.stage = 2;
+            if(p == ystart - 2) extra_data.stage = 1;
+            if(p == ystart - 3) extra_data.stage = 1;
             this.setBlock(chunk, x, p, z, this.temp_block, true, null, extra_data);
         }
     }
@@ -362,35 +362,44 @@ export class Default_Terrain_Generator {
             this.setBlock(chunk, x, p, z, this.temp_block, true)
             let block_id = BLOCK.VINES.id;
             let extra_data = null;
-            if(random.double() < .025 && p < y + 4) {
-                block_id = BLOCK.COCOA_BEANS.id;
-                extra_data = {stage: 2};
+            const makeCocoa = () => {
+                if(random.double() < .04 && p < y + 4) {
+                    block_id = BLOCK.COCOA_BEANS.id;
+                    extra_data = {stage: 2};
+                }    
             }
-            if ((p + arr[p % 7]) % 2 == 0)
+            if ((p + arr[p % 7]) % 2 == 0) {
+                makeCocoa();
                 this.setBlock(chunk, x + 1, p, z, { id: block_id }, false, {
                     x: 3,
                     y: 0,
                     z: 0,
                 }, extra_data)
-            if ((p + arr[(p + 1) % 7]) % 2 == 0)
+            }
+            if ((p + arr[(p + 1) % 7]) % 2 == 0) {
+                makeCocoa();
                 this.setBlock(chunk, x - 1, p, z, { id: block_id }, false, {
                     x: 1,
                     y: 0,
                     z: 0,
                 }, extra_data)
+            }
             if ((p + arr[(p + 2) % 7]) % 2 == 0) {
+                makeCocoa();
                 this.setBlock(chunk, x, p, z + 1, { id: block_id }, false, {
                     x: 0,
                     y: 0,
                     z: 3,
                 }, extra_data)
             }
-            if ((p + arr[(p + 3) % 7]) % 2 == 0)
+            if ((p + arr[(p + 3) % 7]) % 2 == 0) {
+                makeCocoa();
                 this.setBlock(chunk, x, p, z - 1, { id: block_id }, false, {
                     x: 2,
                     y: 0,
                     z: 0,
                 }, extra_data)
+            }
         }
         // рисование кроны дерева
         const generateLeaves = (x, y, z, rad, rnd) => {
