@@ -389,6 +389,20 @@ export class MobModel extends NetworkPhysicObject {
              !this.currentChunk);
     }
 
+    // ударить кулаком
+    punch(e) {
+        // play punch
+        Game.sounds.play('madcraft:block.player', 'strong_atack');
+        // play mob cry
+        let tag = `madcraft:block.${this.type}`;
+        if(Game.sounds.tags.hasOwnProperty(tag)) {
+            Game.sounds.play(tag, 'hurt');
+        }
+        // make red
+        // let velocity = new Vector(0, 0.5, 0);
+        // mob.addVelocity(velocity);
+    }
+
     lazyInit(render) {
         if (this.initialised) {
             return;
@@ -459,9 +473,9 @@ export class MobModel extends NetworkPhysicObject {
 
         // run render
         this.renderer.drawLayer(render, this);
-        if(this.aabb) {
-            this.aabb.draw(render, this.tPos, delta, this.raycasted);
-        }
+        //if(this.aabb) {
+        //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
+        //}
     }
 
     /**

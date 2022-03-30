@@ -86,11 +86,15 @@ export class Player {
             return await this.onPickAtTarget(...args);
         }, async (e) => {
             // onInterractMob
-            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
-            this.world.server.Send({
-                name: ServerClient.CMD_PICKAT_ACTION,
-                data: e
-            });
+            let mob = Game.world.mobs.list.get(e.interractMob);
+            if(mob) {
+                mob.punch(e);
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e
+                });
+            }
         });
         // Player control
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});

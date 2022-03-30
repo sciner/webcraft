@@ -9,6 +9,13 @@
             "Eat2",
             "Eat3"
         ],
+        "strong_atack": [
+            "Strong_attack1",
+            "Strong_attack2",
+            "Strong_attack3",
+            "Strong_attack4",
+            "Strong_attack5"
+        ],
         "burp": [
             "Burp"
         ],
@@ -26,6 +33,72 @@
             "explode2",
             "explode3",
             "explode4"
+        ]
+    },
+    {
+        "type": "madcraft:block.chicken",
+        "hurt": [
+            "Chicken_hurt1",
+            "Chicken_hurt2"
+        ]
+    },
+    {
+        "type": "madcraft:block.sheep",
+        "hurt": [
+            "Sheep1",
+            "Sheep2",
+            "Sheep3"
+        ]
+    },
+    {
+        "type": "madcraft:block.cow",
+        "hurt": [
+            "Cow_hurt1",
+            "Cow_hurt2",
+            "Cow_hurt3"
+        ]
+    },
+    {
+        "type": "madcraft:block.pig",
+        "hurt": [
+            "Pig_idle1",
+            "Pig_idle2",
+            "Pig_idle3"
+        ]
+    },
+    {
+        "type": "madcraft:block.horse",
+        "hurt": [
+            "Horse_hurt1",
+            "Horse_hurt2",
+            "Horse_hurt3",
+            "Horse_hurt4"
+        ]
+    },
+    {
+        "type": "madcraft:block.fox",
+        "hurt": [
+            "Fox_hurt1",
+            "Fox_hurt2",
+            "Fox_hurt3",
+            "Fox_hurt4"
+        ]
+    },
+    {
+        "type": "madcraft:block.cat",
+        "hurt": [
+            "Cat_hurt1",
+            "Cat_hurt2",
+            "Cat_hurt3"
+        ]
+    },
+    {
+        "type": "madcraft:block.creeper",
+        "hurt": [
+            "Creeper_hurt1",
+            "Creeper_hurt2",
+            "Creeper_hurt3",
+            "Creeper_hurt4"
         ]
     },
     {
