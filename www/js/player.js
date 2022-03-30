@@ -84,6 +84,13 @@ export class Player {
         // pickAt
         this.pickAt                 = new PickAt(this.world, Game.render, async (...args) => {
             return await this.onPickAtTarget(...args);
+        }, async (e) => {
+            // onInterractMob
+            // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+            this.world.server.Send({
+                name: ServerClient.CMD_PICKAT_ACTION,
+                data: e
+            });
         });
         // Player control
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});

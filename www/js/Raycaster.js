@@ -32,6 +32,14 @@ export class RaycasterResult {
         }
     }
 
+    distance(vec) {
+        // Fast method
+        let x = this.x - vec.x;
+        let y = this.y - vec.y;
+        let z = this.z - vec.z;
+        return Math.sqrt(x * x + y * y + z * z);
+    }
+
 }
 
 export class Raycaster {
@@ -62,6 +70,78 @@ export class Raycaster {
         return this.get(pos, this._dir, distance, callback);
     }
 
+    // intersectSphere...
+    intersectSphere(sphere, origin = this.origin, direction = this.direction) {
+        const ray = tempVec3c;
+        ray.sub(sphere.center, origin);
+        const tca = ray.dot(direction);
+        const d2 = ray.dot(ray) - tca * tca;
+        const radius2 = sphere.radius * sphere.radius;
+        if (d2 > radius2) return 0;
+        const thc = Math.sqrt(radius2 - d2);
+        const t0 = tca - thc;
+        const t1 = tca + thc;
+        if (t0 < 0 && t1 < 0) return 0;
+        if (t0 < 0) return t1;
+        return t0;
+    }
+
+    // Ray AABB - Ray Axis aligned bounding box testing
+    intersectBox(box, origin, direction) {
+        let tmin, tmax, tYmin, tYmax, tZmin, tZmax;
+        const invdirx = 1 / direction.x;
+        const invdiry = 1 / direction.y;
+        const invdirz = 1 / direction.z;
+        const min = {x: box.x_min, y: box.y_min, z: box.z_min};
+        const max = {x: box.x_max, y: box.y_max, z: box.z_max};
+        tmin = ((invdirx >= 0 ? min.x : max.x) - origin.x) * invdirx;
+        tmax = ((invdirx >= 0 ? max.x : min.x) - origin.x) * invdirx;
+        tYmin = ((invdiry >= 0 ? min.y : max.y) - origin.y) * invdiry;
+        tYmax = ((invdiry >= 0 ? max.y : min.y) - origin.y) * invdiry;
+        if (tmin > tYmax || tYmin > tmax) return 0;
+        if (tYmin > tmin) tmin = tYmin;
+        if (tYmax < tmax) tmax = tYmax;
+        tZmin = ((invdirz >= 0 ? min.z : max.z) - origin.z) * invdirz;
+        tZmax = ((invdirz >= 0 ? max.z : min.z) - origin.z) * invdirz;
+        if (tmin > tZmax || tZmin > tmax) return 0;
+        if (tZmin > tmin) tmin = tZmin;
+        if (tZmax < tmax) tmax = tZmax;
+        if (tmax < 0) return 0;
+        return tmin >= 0 ? tmin : tmax;
+    }
+
+    // Mob raycaster
+    intersectMob(pos, dir, max_distance) {
+        const resp = {
+            mob_distance: null,
+            mob: null
+        };
+        if(Game?.world?.mobs) {
+            for(let [_, mob] of Game.world.mobs.list) {
+                mob.raycasted = false;
+                if(!mob.aabb) {
+                    continue;
+                }
+                if(mob.tPos.distance(pos) > max_distance) {
+                    continue;
+                }
+                if(this.intersectBox(mob.aabb, pos, dir)) {
+                    let dist = mob.tPos.distance(pos);
+                    if(resp.mob) {
+                        if(dist < resp.mob_distance) {
+                            resp.mob = mob;
+                            resp.mob_distance = dist;
+                        }
+                    } else {
+                        resp.mob = mob;
+                        resp.mob_distance = dist;
+                    }
+                }
+            }
+        }
+        return resp;
+    }
+
     /**
      * @param {Vector} pos 
      * @param {*} dir 
@@ -69,8 +149,9 @@ export class Raycaster {
      * @param {*} callback
      * @returns {null | RaycasterResult}
      */
-    get(pos, dir, pickat_distance, callback) {
-        pos = this._pos.copyFrom(pos);
+    get(origin, dir, pickat_distance, callback) {
+
+        const pos = this._pos.copyFrom(origin);
         startBlock.set(
             Math.floor(pos.x) + 0.5,
             Math.floor(pos.y) + 0.5,
@@ -86,7 +167,6 @@ export class Raycaster {
             this._block_vec = new Vector(0, 0, 0);
         }
         let block = this._block_vec.copyFrom(startBlock);
-
         while (Math.abs(block.x - startBlock.x) < pickat_distance
             && Math.abs(block.y - startBlock.y) < pickat_distance
             && Math.abs(block.z - startBlock.z) < pickat_distance
@@ -108,28 +188,6 @@ export class Raycaster {
 
             leftTop.copyFrom(block).flooredSelf();
             let b = this.world.chunkManager.getBlock(leftTop.x, leftTop.y, leftTop.z, this._blk);
-
-            // Mob raycaster
-            if(Game?.world?.mobs) {
-                for(let [_, mob] of Game.world.mobs.list) {
-                    mob.raycasted = false;
-                }
-                for(let [_, mob] of Game.world.mobs.list) {
-                    _mobLeft.set(leftTop.x + .5, leftTop.y + .5, leftTop.z + .5);
-                    if(mob.aabb && mob.aabb.center.distance(_mobLeft) < mob.width) {
-                        mob.raycasted = true;
-                        /*
-                        res = new RaycasterResult(mob.tPos, mob.tPos.flooredSelf(), side, mob.aabb);
-                        if(res.point.y == 1) {
-                            res.point.y = 0;
-                        }
-                        callback && callback(res);
-                        return res;
-                        */
-                        return null;
-                    }
-                }
-            }
 
             let hitShape = b.id > BLOCK.AIR.id && !b.material.is_fluid;
 
@@ -202,7 +260,23 @@ export class Raycaster {
                 break;
             }
         }
-     
+
+        let {mob_distance, mob} = this.intersectMob(origin, dir, pickat_distance);
+        if(mob) {
+            if(res) {
+                let res_vec = new Vector(res.x + .5, res.y + .5, res.z + .5);
+                if(mob_distance < res_vec.distance(origin)) {
+                    mob.raycasted = true;
+                }
+            } else {
+                mob.raycasted = true;
+            }
+            if(mob.raycasted) {
+                res = new RaycasterResult(pos, leftTop, side);
+                res.mob = mob;
+            }
+        }
+
         callback && callback(res);
         
         return res;

@@ -188,11 +188,22 @@ export class ServerWorld {
                         pos:        new Vector(server_player.state.pos),
                         rotate:     server_player.rotateDegree.clone()
                     };
-                    const actions = await doBlockAction(params, world, player, currentInventoryItem);
-                    // @todo Need to compare two actions
-                    // console.log(JSON.stringify(params.actions.blocks));
-                    // console.log(JSON.stringify(actions.blocks));
-                    await world.applyActions(server_player, actions);
+                    if(params.interractMob) {
+                        const mob = world.mobs.get(params.interractMob);
+                        if(mob) {
+                            // console.log('params.interractMob id:', mob);
+                            console.log('live', mob.indicators.live.value);
+                            // Add velocity for drop item
+                            let velocity = new Vector(0, 0.5, 0);
+                            mob.addVelocity(velocity);
+                        }
+                    } else {
+                        const actions = await doBlockAction(params, world, player, currentInventoryItem);
+                        // @todo Need to compare two actions
+                        // console.log(JSON.stringify(params.actions.blocks));
+                        // console.log(JSON.stringify(actions.blocks));
+                        await world.applyActions(server_player, actions);
+                    }
                 }
             }
         };

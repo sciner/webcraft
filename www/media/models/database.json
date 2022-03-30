@@ -164,7 +164,33 @@
             "skins": {
                 "base": "textures/sheep/sheep.png"
             }
+        },
+        "ocelot": {
+            "type": "json",
+            "geom": "json/ocelot.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/cat/ocelot.png"
+            }
+        },
+        "cat": {
+            "type": "json",
+            "geom": "json/ocelot.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "all_black": "textures/cat/all_black.png",
+                "black": "textures/cat/black.png",
+                "british_shorthair": "textures/cat/british_shorthair.png",
+                "calico": "textures/cat/calico.png",
+                "cat_collar": "textures/cat/cat_collar.png",
+                "jellie": "textures/cat/jellie.png",
+                "persian": "textures/cat/persian.png",
+                "ragdoll": "textures/cat/ragdoll.png",
+                "red": "textures/cat/red.png",
+                "siamese": "textures/cat/siamese.png",
+                "tabby": "textures/cat/tabby.png",
+                "white": "textures/cat/white.png"
+            }
         }
-
     }
 }

@@ -78,6 +78,11 @@ export class Mob {
         }
     }
 
+    addVelocity(vec) {
+        this.#brain.pc.player_state.vel.addSelf(vec);
+        this.#brain.pc.tick(0);
+    }
+
     // Save mob state to DB
     save() {
         this.#world.db.saveMob(this);

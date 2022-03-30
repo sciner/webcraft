@@ -14,7 +14,7 @@ const half = new Vector(0.5, 0.5, 0.5);
 
 export class PickAt {
 
-    constructor(world, render, onTarget) {
+    constructor(world, render, onTarget, onInterractMob) {
         this.world              = world;
         this.render             = render;
         //
@@ -35,6 +35,7 @@ export class PickAt {
             start:      null
         }
         this.onTarget           = onTarget; // (block, target_event, elapsed_time) => {...};
+        this.onInterractMob     = onInterractMob;
         //
         const modelMatrix = this.modelMatrix = mat4.create();
         mat4.scale(modelMatrix, modelMatrix, [1.002, 1.002, 1.002]);
@@ -58,6 +59,7 @@ export class PickAt {
         e.destroyBlock      = e.button_id == 1;
         e.cloneBlock        = e.button_id == 2;
         e.createBlock       = e.button_id == 3;
+        e.interractMob      = null;
         e.number            = 0;
         let damage_block = this.damage_block;
         damage_block.event = Object.assign(e, {number: 0});
@@ -119,8 +121,18 @@ export class PickAt {
         let bPos = this.get(pos, null, pickat_distance);
         let target_block = this.target_block;
         let damage_block = this.damage_block;
-        target_block.visible = !!bPos;
+        target_block.visible = !!bPos && !bPos.mob;
         if(bPos) {
+            if(bPos.mob) {
+                if(this.onInterractMob instanceof Function) {
+                    if(this.damage_block.event) {
+                        this.damage_block.event.interractMob = bPos.mob.id;
+                        this.onInterractMob(this.damage_block.event);
+                        this.damage_block.event = null;
+                    }
+                }
+                return;
+            }
             damage_block.pos = bPos;
             // Check if pick-at block changed
             let tbp = target_block.pos;
