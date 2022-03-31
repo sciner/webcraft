@@ -392,7 +392,6 @@ export class MobModel extends NetworkPhysicObject {
 
     // ударить кулаком
     punch(e) {
-        console.log('punch');
         // play punch
         Game.sounds.play('madcraft:block.player', 'strong_atack');
         // play mob cry
