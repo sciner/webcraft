@@ -338,6 +338,10 @@ export class Color {
         return new Color(this.r, this.g, this.b, this.a);
     }
 
+    toArray() {
+        return [this.r, this.g, this.b, this.a];
+    }
+
 }
 
 export class Vector {

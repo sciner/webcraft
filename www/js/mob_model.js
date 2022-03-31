@@ -1,7 +1,7 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 
@@ -369,6 +369,7 @@ export class MobModel extends NetworkPhysicObject {
         this.drawPos = {x: 0, y: 0, y: 0};
 
         this.lightTex = null;
+        this.tintColor = new Color(0, 0, 0, 0);
 
         this.posDirty = true;
 
@@ -391,6 +392,7 @@ export class MobModel extends NetworkPhysicObject {
 
     // ударить кулаком
     punch(e) {
+        console.log('punch');
         // play punch
         Game.sounds.play('madcraft:block.player', 'strong_atack');
         // play mob cry
@@ -399,6 +401,11 @@ export class MobModel extends NetworkPhysicObject {
             Game.sounds.play(tag, 'hurt');
         }
         // make red
+        this.tintColor.set(1, 0, 0, .3);
+        setTimeout(() => {
+            this.tintColor.set(0, 0, 0, 0);
+        }, 700);
+        // add velocity
         // let velocity = new Vector(0, 0.5, 0);
         // mob.addVelocity(velocity);
     }
@@ -431,6 +438,7 @@ export class MobModel extends NetworkPhysicObject {
         
         if (this.material) {
             this.material.lightTex = this.lightTex;
+            this.material.tintColor = this.tintColor;
         }
 
         

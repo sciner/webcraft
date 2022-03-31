@@ -27,6 +27,7 @@
     uniform vec3 u_camera_pos;
     // Fog
     uniform vec4 u_fogColor;
+    uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
     uniform float u_chunkBlockDist;
@@ -218,6 +219,7 @@
 
     // special effect for sunrise 
     outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
+    outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
 
 #endif
 
