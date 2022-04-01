@@ -1828,6 +1828,10 @@
         "material": {
             "id": "dirt"
         },
+        "tags": [
+            "mushroom_block",
+            "can_put_info_pot"
+        ],
         "texture": {
             "side": [14, 7],
             "down": [14, 8]
@@ -1840,6 +1844,7 @@
             "id": "dirt"
         },
         "tags": [
+            "mushroom_block",
             "can_put_info_pot"
         ],
         "texture": {

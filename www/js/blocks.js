@@ -1,5 +1,5 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
@@ -488,6 +488,7 @@ export class BLOCK {
         block.transparent       = this.parseBlockTransparent(block);
         block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
         block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
+        block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
         block.is_button         = block.tags.indexOf('button') >= 0;
         block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
@@ -606,6 +607,21 @@ export class BLOCK {
                 stage = Math.max(stage, 0);
                 stage = Math.min(stage, material.stage_textures.length - 1);
                 texture = material.stage_textures[stage];
+            }
+        }
+        // Mushroom block
+        if(material.is_mushroom_block) {
+            let t = block?.extra_data?.t;
+            if(block && t) {
+                texture = material.texture.down;
+                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = material.texture.side;
+            } else {
+                texture = material.texture.down;
             }
         }
         let c = this.calcTexture(texture, dir, tx_cnt);

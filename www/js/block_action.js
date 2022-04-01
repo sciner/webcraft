@@ -1,4 +1,4 @@
-import {ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
+import {DIRECTION_BIT, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
@@ -226,6 +226,7 @@ async function createPainting(e, world, pos) {
     return null;
 }
 
+// Drop block
 function dropBlock(player, block, resp, force) {
     /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
@@ -281,6 +282,29 @@ function dropBlock(player, block, resp, force) {
             resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
         }
     }
+}
+
+// getBlockNeighbours
+function getBlockNeighbours(world, pos) {
+    const neighbours = {
+        UP: null,
+        DOWN: null,
+        SOUTH: null,
+        NORTH: null,
+        WEST: null,
+        EAST: null
+    };
+    let v = new Vector(0, 0, 0);
+    // обходим соседние блоки
+    for(let i = 0; i < 6; i ++) {
+        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
+        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
+        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
+        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
+        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
+        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
+    }
+    return neighbours;
 }
 
 // Called to perform an action based on the player's block selection and input.
@@ -817,7 +841,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             };
             //
-            if(replaceBlock) {
+            /*if(replaceBlock) {
                 // Replace block
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
@@ -832,6 +856,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                 }
             } else {
+                */
                 // Create block
                 // Посадить растения можно только на блок земли
                 if(matBlock.planting) {
@@ -854,6 +879,19 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     if(!underBlock || underBlock.material.transparent) {
                         return resp;
                     }
+                }
+                if(matBlock.is_mushroom_block) {
+                    const neighbours = getBlockNeighbours(world, pos);
+                    let t = 0;
+                    if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
+                    if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
+                    if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
+                    if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
+                    if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
+                    if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
+                    let extra_data = t ? {t: t} : null;
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    return resp;
                 }
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
@@ -931,7 +969,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     }
                     resp.decrement = true;
                 }
-            }
+            //}
         }
     }
     return resp;

@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from '../blocks.js';
-import {Color, FastRandom, Vector} from '../helpers.js';
+import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 
@@ -370,30 +370,43 @@ export class Default_Terrain_Generator {
         // листва
         let py = y + options.height;
         let b = null;
-        for(let rad of [1, 1, 2, 2]) {
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    if(py < y + options.height - 1) {
-                        if(Math.abs(i-x) < 2 && Math.abs(j-z) < 2) {
+        for(let rad of [1, 2, 2, 2]) {
+            for(let i = -rad; i <= rad; i++) {
+                for(let j = -rad; j <= rad; j++) {
+                    if(py < y + options.height) {
+                        if(Math.abs(i) < 2 && Math.abs(j) < 2) {
                             continue;
                         }
                     }
-                    if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                        let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) || 
-                            (i == x - rad && j == z + rad) ||
-                            (i == x + rad && j == z - rad);
-                        let m2 = (py == y + options.height) ||
-                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                        if(m && m2) {
+                    if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
+                        let m = (i == -rad && j == -rad) ||
+                            (i == rad && j == rad) || 
+                            (i == -rad && j == rad) ||
+                            (i == rad && j == -rad);
+                        if(m && py < y + options.height) {
                             continue;
                         }
-                        this.xyz_temp_find.set(i, py, j);
+                        this.xyz_temp_find.set(i + x, py, j + z);
                         b = chunk.tblocks.get(this.xyz_temp_find, b);
                         let b_id = b.id;
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                             this.temp_block.id = options.type.leaves;
-                            this.setBlock(chunk, i, py, j, this.temp_block, false);
+                            // determining which side to cover with which texture
+                            let t = 0;
+                            if(py >= y + options.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                            if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                            if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                            if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                            if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            //
+                            if(py < y + options.height) {
+                                if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                                if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                                if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                                if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            }
+                            let extra_data = t ? {t: t} : null;
+                            this.setBlock(chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
                         }
                     }
                 }

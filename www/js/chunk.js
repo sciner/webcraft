@@ -175,7 +175,7 @@ export class Chunk {
             texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
             resource_pack.materials.set(key, texMat);
         }
-        let dist = Game.player.lerpPos.distance(this.coord);
+        let dist = 0; // Game.player.lerpPos.distance(this.coord);
         if(this.lightData && dist < 100) {
             this.getLightTexture(render);
             let mat = this.lightMats.get(key);
