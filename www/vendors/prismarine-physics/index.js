@@ -407,7 +407,7 @@ export function Physics(mcData, fake_world, options) {
 
             applyHeading(entity, strafe, forward, acceleration)
 
-            if (isOnLadder(world, pos)) {
+            if (entity.isOnLadder) {
                 vel.x = math.clamp(-physics.ladderMaxSpeed, vel.x, physics.ladderMaxSpeed)
                 vel.z = math.clamp(-physics.ladderMaxSpeed, vel.z, physics.ladderMaxSpeed)
                 vel.y = Math.max(vel.y, entity.control.sneak ? 0 : -physics.ladderMaxSpeed)
@@ -415,7 +415,7 @@ export function Physics(mcData, fake_world, options) {
 
             moveEntity(entity, world, vel.x, vel.y, vel.z)
 
-            if (isOnLadder(world, pos) && (entity.isCollidedHorizontally ||
+            if (entity.isOnLadder && (entity.isCollidedHorizontally ||
                 (supportFeature('climbUsingJump') && entity.control.jump))) {
                 vel.y = physics.ladderClimbSpeed // climb ladder
             }
@@ -570,6 +570,7 @@ export function Physics(mcData, fake_world, options) {
         const waterBB = getPlayerBB(pos).contract(0.001, 0.401, 0.001)
         const lavaBB = getPlayerBB(pos).contract(0.1, 0.4, 0.1)
 
+        entity.isOnLadder = isOnLadder(world, pos);
         entity.isInWater = isInWaterApplyCurrent(world, waterBB, vel)
         entity.isInLava = isMaterialInBB(world, lavaBB, lavaId)
         if(entity.onGround) {
@@ -705,6 +706,7 @@ export class PlayerState {
         this.isInWater              = bot.entity.isInWater
         this.isInLava               = bot.entity.isInLava
         this.isInWeb                = bot.entity.isInWeb
+        this.isOnLadder             = bot.entity.isOnLadder
         this.isCollidedHorizontally = bot.entity.isCollidedHorizontally
         this.isCollidedVertically   = bot.entity.isCollidedVertically
         this.jumpTicks              = bot.jumpTicks
@@ -748,6 +750,7 @@ export class PlayerState {
         bot.entity.isInWater                = this.isInWater
         bot.entity.isInLava                 = this.isInLava
         bot.entity.isInWeb                  = this.isInWeb
+        bot.entity.isOnLadder               = this.isOnLadder
         bot.entity.isCollidedHorizontally   = this.isCollidedHorizontally
         bot.entity.isCollidedVertically     = this.isCollidedVertically
         bot.jumpTicks                       = this.jumpTicks
