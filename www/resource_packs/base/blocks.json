@@ -1828,10 +1828,10 @@
         "material": {
             "id": "dirt"
         },
-        "texture": [
-            14,
-            7
-        ]
+        "texture": {
+            "side": [14, 7],
+            "down": [14, 8]
+        }
     },
     {
         "id": 100,
@@ -1842,10 +1842,18 @@
         "tags": [
             "can_put_info_pot"
         ],
-        "texture": [
-            13,
-            7
-        ]
+        "texture": {
+            "side": [13, 7],
+            "down": [14, 8]
+        }
+    },
+    {
+        "id": 995,
+        "name": "MUSHROOM_STRIPE",
+        "material": {
+            "id": "dirt"
+        },
+        "texture": [13, 8]
     },
     {
         "id": 102,

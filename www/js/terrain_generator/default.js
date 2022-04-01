@@ -133,6 +133,11 @@ export class Default_Terrain_Generator {
                 this.plantOak(options, chunk, x, y, z)
                 break;
             }
+            // mushroom
+            case 'mushroom': {
+                this.plantMushroom(options, chunk, x, y, z)
+                break;
+            }
             // акация
             case 'acacia': {
                 this.plantAcacia(options, chunk, x, y, z)
@@ -336,6 +341,49 @@ export class Default_Terrain_Generator {
                             (i == x - rad && j == z + rad) ||
                             (i == x + rad && j == z - rad);
                             let m2 = (py == y + options.height) ||
+                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
+                        if(m && m2) {
+                            continue;
+                        }
+                        this.xyz_temp_find.set(i, py, j);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
+                        let b_id = b.id;
+                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                            this.temp_block.id = options.type.leaves;
+                            this.setBlock(chunk, i, py, j, this.temp_block, false);
+                        }
+                    }
+                }
+            }
+            py--;
+        }
+    }
+
+    // Mushroom
+    plantMushroom(options, chunk, x, y, z) {
+        let ystart = y + options.height;
+        // ствол
+        for(let p = y; p < ystart; p++) {
+            this.temp_block.id = options.type.trunk;
+            this.setBlock(chunk, x, p, z, this.temp_block, true);
+        }
+        // листва
+        let py = y + options.height;
+        let b = null;
+        for(let rad of [1, 1, 2, 2]) {
+            for(let i = x - rad; i <= x + rad; i++) {
+                for(let j = z - rad; j <= z + rad; j++) {
+                    if(py < y + options.height - 1) {
+                        if(Math.abs(i-x) < 2 && Math.abs(j-z) < 2) {
+                            continue;
+                        }
+                    }
+                    if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
+                        let m = (i == x - rad && j == z - rad) ||
+                            (i == x + rad && j == z + rad) || 
+                            (i == x - rad && j == z + rad) ||
+                            (i == x + rad && j == z - rad);
+                        let m2 = (py == y + options.height) ||
                             (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
                         if(m && m2) {
                             continue;

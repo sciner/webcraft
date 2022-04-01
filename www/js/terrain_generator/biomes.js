@@ -354,20 +354,25 @@ BIOMES.TROPICAL_RAIN_FOREST = {
     block:      BLOCK.GLOWSTONE.id,
     code:       'TROPICAL_RAIN_FOREST',
     color:      '#16994f',
-    dirt_color: new Color(840 / 1024, 880 / 1024, 0, 0),
-    title:      'ТРОПИЧЕСКИЙ ЛЕС',
+    dirt_color: new Color(860 / 1024, 910 / 1024, 0, 0),
+    title:      'ГРИБНОЙ',
     max_height: 64,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.MYCELIUM, BLOCK.MOSS_BLOCK],
     trees:      {
-        frequency: TREE_FREQUENCY,
+        frequency: .0085,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
+            {percent: 0.69, trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 8, max: 12}},
+            {percent: 0.15, trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.BROWN_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 8}}
         ]
     },
     plants: {
-        frequency: 0,
-        list: []
+        frequency: .75,
+        list: [
+            {percent: .1, block: BLOCK.RED_MUSHROOM.id},
+            {percent: .1, block: BLOCK.BROWN_MUSHROOM.id},
+            {percent: .7, block: BLOCK.GRASS.id}
+        ]
     }
 };
 
