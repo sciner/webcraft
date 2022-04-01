@@ -84,6 +84,8 @@ export class GameClass {
         // Send player state
         this.sendStateInterval = setInterval(() => {
             this.sendPlayerState(player);
+            // TrackerPlayer change volumes
+            TrackerPlayer.changePos(this.player.lerpPos);
         }, 50);
 
         this.render.requestAnimationFrame(this.loop);
@@ -443,8 +445,6 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
-        // TrackerPlayer change volumes
-        TrackerPlayer.changePos(this.player.lerpPos);
         this.world.chunkManager.update(player.pos);
 
         // Picking target

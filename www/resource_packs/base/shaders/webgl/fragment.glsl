@@ -49,6 +49,7 @@ void main() {
 
     // Game
     if(u_fogOn) {
+
         // Read texture
         vec4 color = 
             mix(
@@ -67,29 +68,15 @@ void main() {
         }
 
         #include<local_light_pass>
-
         #include<ao_light_pass>
-
         #include<sun_light_pass>
 
         // Apply light
         color.rgb *= light;
-
         outColor = color;
 
         #include<fog_frag>
-        // outColor = vec4(gamma(outColor.rgb), outColor.a);
-
-        // Draw crosshair
         #include<crosshair_call_func>
-
-        // gamma
-        // outColor.rgb = pow(outColor.rgb, vec3(0.7));
-
-        // contrast
-        // outColor.rgb = outColor.rgb * 0.25 + 0.75* outColor.rgb * outColor.rgb *(3.0-2.0* outColor.rgb);
-
-        // vignetting
         #include<vignetting_call_func>
 
     } else {
