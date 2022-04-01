@@ -346,6 +346,8 @@ let gameCtrl = async function($scope, $timeout) {
         if(!session) {
             return;
         }
+        document.getElementById('main-pictures').remove();
+        document.getElementById('main-menu').remove();
         // Show Loading...
         Game.hud.draw();
         $timeout(async function(){

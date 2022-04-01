@@ -111,6 +111,7 @@ export class HUD {
                 let padding = 15;
                 /// draw text from top - makes life easier at the moment
                 ctx.textBaseline = 'top';
+                ctx.font = Math.round(18 * UI_ZOOM) + 'px ' + UI_FONT;
                 // Measure text
                 if(!this.prevSplashTextMeasure || this.prevSplashTextMeasure.text != txt) {
                     this.prevSplashTextMeasure = {
