@@ -184,7 +184,7 @@ export class MobAnimator extends Animator {
 
         let aniangle = 0;
         if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
-            animable.aniframe += (0.1 / 1000 * delta);
+            animable.aniframe += delta / 128;
             if(animable.aniframe > Math.PI) {
                 animable.aniframe  = -Math.PI;
             }

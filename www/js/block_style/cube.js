@@ -212,12 +212,13 @@ export default class style {
     // Pushes the vertices necessary for rendering a specific block into the array.
     static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
 
+        const material                  = block.material;
+
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z));
         }
 
-        const material                  = block.material;
         const {width, height, depth}    = style.calculateBlockSize(block, neighbours);
         const drawAllSides              = width != 1 || height != 1;
         let flags                       = material.light_power ? QUAD_FLAGS.NO_AO : 0;

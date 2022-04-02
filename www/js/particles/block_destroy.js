@@ -114,8 +114,8 @@ export default class Particles_Block_Destroy extends Particles_Base {
     // we can use external emitter or any animatin lib
     // because isolate view and math
     update (delta) {
+        delta *= 75;
         this.life -= delta / 100000;
-
         for(let p of this.particles) {
             p.x += p.dx * delta * p.speed;
             p.y += p.dy * delta * p.speed + (delta / 1000) * p.gravity;

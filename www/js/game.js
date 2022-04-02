@@ -445,7 +445,7 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
-        this.world.chunkManager.update(player.pos);
+        this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
         if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {

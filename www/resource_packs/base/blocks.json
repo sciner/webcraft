@@ -5595,6 +5595,7 @@
         },
         "tags": [
             "bamboo",
+            "can_put_info_pot",
             "no_drop_ao"
         ],
         "texture": {

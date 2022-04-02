@@ -47,7 +47,8 @@ export class FPSCounter {
             this.walkDistO = player.walkDist;
             // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.averageClockTimer.avg * 1000) / 1000);
         };
-        this.delta  = (now - this.t);
+        this.delta = this.prev_now ? (now - this.prev_now) : 0;
+        this.prev_now = now;
     }
 
     drawHUD(hud) {

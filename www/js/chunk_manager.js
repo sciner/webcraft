@@ -60,11 +60,11 @@ export class ChunkManager {
                         if(player_pos.distance(item.pos) < type_distance[item.type]) {
                             switch(item.type) {
                                 case 'torch': {
-                                    Game.render.meshes.addEffectParticle('torch_flame', item.pos);
+                                    meshes.addEffectParticle('torch_flame', item.pos);
                                     break;
                                 }
                                 case 'campfire': {
-                                    Game.render.meshes.addEffectParticle('campfire_flame', item.pos);
+                                    meshes.addEffectParticle('campfire_flame', item.pos);
                                     break;
                                 }
                             }
@@ -90,6 +90,7 @@ export class ChunkManager {
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+        this.timer60fps             = 0;
 
     }
 
@@ -382,7 +383,7 @@ export class ChunkManager {
     }
 
     // Update
-    update(player_pos) {
+    update(player_pos, delta) {
 
         if(!this.update_chunks || !this.worker_inited || !this.nearby) {
             return false;
@@ -439,7 +440,11 @@ export class ChunkManager {
             }
         }
 
-        this.torches.update(player_pos);
+        this.timer60fps += delta;
+        if(this.timer60fps >= 16.666) {
+            this.timer60fps = 0;
+            this.torches.update(player_pos);
+        }
 
     }
 

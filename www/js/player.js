@@ -517,7 +517,7 @@ export class Player {
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             if(this.walking && this.onGround) {
-                this.walking_frame += delta * (this.in_water ? .2 : 1);
+                this.walking_frame += (this.in_water ? .2 : 1) * delta;
             }
             this.prev_walking = this.walking;
             // Walking distance
@@ -528,11 +528,11 @@ export class Player {
             let f = 0;
             //if (this.onGround && !this.isDeadOrDying()) {
                 // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
-                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO) / delta);
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO)) / delta / 40;
             //} else {
                 //   f = 0.0F;
             //}
-            this.bob += (f - this.bob) * 0.4;
+            this.bob += (f - this.bob) * 0.4
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
