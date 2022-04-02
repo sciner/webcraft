@@ -747,8 +747,10 @@ export class Renderer {
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
     }
 
+    /*
     // Original bobView
     bobView(viewMatrix, p_109140_) {
+        console.log(34567);
         let player = this.world.localPlayer;
         if(player) {
             let f = player.walkDist - player.walkDistO;
@@ -765,7 +767,7 @@ export class Renderer {
                 0
             ]);
         }
-    }
+    }*/
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {

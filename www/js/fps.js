@@ -32,7 +32,6 @@ export class FPSCounter {
         if(diff >= PERIOD) {
             this.fps    = Math.round(this.cnt / ((now - this.t) / PERIOD) * MUL);
             this.cnt    = 0;
-            this.delta  = now - this.t;
             this.avg    = PERIOD / Game.averageClockTimer.avg;
             this.t      = now;
             //if(this.walkDistO > 0) {
@@ -48,6 +47,7 @@ export class FPSCounter {
             this.walkDistO = player.walkDist;
             // console.log('FPS: ' + Math.round(this.fps) + ' / ' + Math.round(this.avg) + ' / ' + Math.round(Game.averageClockTimer.avg * 1000) / 1000);
         };
+        this.delta  = (now - this.t);
     }
 
     drawHUD(hud) {

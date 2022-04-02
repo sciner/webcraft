@@ -182,10 +182,6 @@ export class MobAnimator extends Animator {
             return;
         }
 
-        if (delta > 1000) {
-            delta = 1000
-        }
-
         let aniangle = 0;
         if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
             animable.aniframe += (0.1 / 1000 * delta);

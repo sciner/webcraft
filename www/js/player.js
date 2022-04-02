@@ -507,8 +507,9 @@ export class Player {
             this.moving     = !this.lerpPos.equal(this.posO);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
+            this.isOnLadder = pc.player_state.isOnLadder;
             this.onGroundO  = this.onGround;
-            this.onGround   = pc.player_state.onGround;
+            this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
             // Check falling
@@ -527,7 +528,7 @@ export class Player {
             let f = 0;
             //if (this.onGround && !this.isDeadOrDying()) {
                 // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
-                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO));
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO) / delta);
             //} else {
                 //   f = 0.0F;
             //}

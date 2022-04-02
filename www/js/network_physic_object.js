@@ -129,7 +129,7 @@ export class NetworkPhysicObject {
         // chicken fix
         this._pos.y += 0.001;
 
-        this.moving = Math.abs(dx) + Math.abs(dz) > 0.01;
+        this.moving = Math.abs(dx) + Math.abs(dz) > 0.0001;
     }
 
     get clientTime() {
