@@ -102,7 +102,7 @@ export default class style {
     }
 
     //
-    static putIntoPot(vertices, material, pivot, matrix, pos) {
+    static putIntoPot(vertices, material, pivot, matrix, pos, biome) {
         const width = 8/32;
         const {x, y, z} = pos;
         let aabb = new AABB();
@@ -117,6 +117,19 @@ export default class style {
         let c_up = BLOCK.calcMaterialTexture(material, DIRECTION.UP);
         let c_down = BLOCK.calcMaterialTexture(material, DIRECTION.DOWN);
         let c_side = BLOCK.calcMaterialTexture(material, DIRECTION.LEFT);
+
+        let flags = 0;
+
+        // Texture color multiplier
+        let lm = MULTIPLY.COLOR.WHITE;
+        if(material.tags.indexOf('mask_biome') >= 0) {
+            lm = biome?.dirt_color || MULTIPLY.COLOR.GRASS;
+            flags = QUAD_FLAGS.MASK_BIOME;
+        } else if(material.tags.indexOf('mask_color') >= 0) {
+            flags = QUAD_FLAGS.MASK_BIOME;
+            lm = material.mask_color;
+        }
+
         // Push vertices down
         pushAABB(
             vertices,
@@ -124,12 +137,12 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_up, 0, 1, null, null, true),
-                down:   new AABBSideParams(c_down, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                north:  new AABBSideParams(c_side, 0, 1, null, null, true),
-                west:   new AABBSideParams(c_side, 0, 1, null, null, true),
-                east:   new AABBSideParams(c_side, 0, 1, null, null, true),
+                up:     new AABBSideParams(c_up, flags, 1, lm, null, true),
+                down:   new AABBSideParams(c_down, flags, 1, lm, null, true),
+                south:  new AABBSideParams(c_side, flags, 1, lm, null, true),
+                north:  new AABBSideParams(c_side, flags, 1, lm, null, true),
+                west:   new AABBSideParams(c_side, flags, 1, lm, null, true),
+                east:   new AABBSideParams(c_side, flags, 1, lm, null, true),
             },
             pos
         );
@@ -216,7 +229,7 @@ export default class style {
 
         // Pot
         if(block.hasTag('into_pot')) {
-            return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z));
+            return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z), biome);
         }
 
         const {width, height, depth}    = style.calculateBlockSize(block, neighbours);

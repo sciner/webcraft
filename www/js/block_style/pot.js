@@ -21,7 +21,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 class FakeBlock {
 
-    constructor(id, extra_data, pos, rotate, pivot, matrix, tags) {
+    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
@@ -29,6 +29,7 @@ class FakeBlock {
         this.tags = tags;
         this.pivot = pivot;
         this.matrix = matrix;
+        this.biome = biome;
     }
 
     getCardinalDirection() {
@@ -170,7 +171,8 @@ export default class style {
                 new Vector(0, 1, 0),
                 pivot,
                 matrix,
-                ['no_random_pos', 'into_pot']
+                ['no_random_pos', 'into_pot'],
+                biome
             );
             return [fb];
         }

@@ -554,6 +554,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -572,6 +573,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -590,6 +592,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -608,6 +611,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -626,6 +630,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -644,6 +649,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -662,6 +668,7 @@
         "tags": [
             "no_drop",
             "mask_biome",
+            "can_put_info_pot",
             "leaves"
         ]
     },
@@ -3395,6 +3402,9 @@
         "material": {
             "id": "plant"
         },
+        "tags": [
+            "can_put_info_pot"
+        ],
         "texture": {
             "up": [
                 6,

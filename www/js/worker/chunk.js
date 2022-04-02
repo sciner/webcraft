@@ -451,7 +451,7 @@ export class Chunk {
                         eb.pos.y,
                         eb.pos.z,
                         fake_neighbours,
-                        null,
+                        eb.biome,
                         null,
                         null,
                         eb.matrix,

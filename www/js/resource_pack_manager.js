@@ -131,7 +131,7 @@ export class ResourcePackManager {
         let i = 0;
         for(let color in COLOR_PALETTE) {
             const color_pos = COLOR_PALETTE[color];
-            const mask_color = new Color(color_pos[0], color_pos[1], 0);
+            const mask_color = new Color(color_pos[0], color_pos[1], 0, 1);
             const TX_CNT = 32;
             mask_color.r = (palette_pos.x + 0.25 * mask_color.r + 0.125) / TX_CNT;
             mask_color.g = (palette_pos.y + 0.25 * mask_color.g + 0.125) / TX_CNT;
@@ -143,6 +143,7 @@ export class ResourcePackManager {
                 "texture": {"side": [10, 17]},
                 "mask_color": mask_color,
                 "tags": [
+                    "can_put_info_pot",
                     "mask_color"
                 ]
             };
