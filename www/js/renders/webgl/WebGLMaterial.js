@@ -24,10 +24,14 @@ export class WebGLMaterial extends BaseMaterial {
         this.shader.bind();
 
         const prevMat = this.shader._material;
+        
+        gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
+
         if (prevMat === this && !this._dirty)
         {
             return;
         }
+
         if (prevMat)
         {
             prevMat.unbind();
@@ -58,7 +62,6 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(shader.u_blockSize, style.blockSize);
             gl.uniform1f(shader.u_pixelSize, style.pixelSize);
             gl.uniform1f(shader.u_mipmap, style.mipmap);
-            gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
         }
         if (WebGLMaterial.lightState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
