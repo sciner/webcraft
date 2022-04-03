@@ -128,6 +128,69 @@
             "skins": {
                 "base": "textures/spider.png"
             }
+        },
+        "fox": {
+            "type": "json",
+            "geom": "json/fox.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/fox/fox.png",
+                "arctic": "textures/fox/arctic_fox.png"
+            }
+        },
+        "cow": {
+            "type": "json",
+            "geom": "json/cow.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/cow/cow.png",
+                "brown_mooshroom": "textures/cow/brown_mooshroom.png",
+                "mooshroom": "textures/cow/mooshroom.png"
+            }
+        },
+        "skeleton": {
+            "type": "json",
+            "geom": "json/skeleton.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/skeleton/skeleton.png",
+                "wither": "textures/skeleton/wither_skeleton.png"
+            }
+        },
+        "sheep": {
+            "type": "json",
+            "geom": "json/sheep.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/sheep/sheep.png"
+            }
+        },
+        "ocelot": {
+            "type": "json",
+            "geom": "json/ocelot.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/cat/ocelot.png"
+            }
+        },
+        "cat": {
+            "type": "json",
+            "geom": "json/ocelot.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "all_black": "textures/cat/all_black.png",
+                "black": "textures/cat/black.png",
+                "british_shorthair": "textures/cat/british_shorthair.png",
+                "calico": "textures/cat/calico.png",
+                "cat_collar": "textures/cat/cat_collar.png",
+                "jellie": "textures/cat/jellie.png",
+                "persian": "textures/cat/persian.png",
+                "ragdoll": "textures/cat/ragdoll.png",
+                "red": "textures/cat/red.png",
+                "siamese": "textures/cat/siamese.png",
+                "tabby": "textures/cat/tabby.png",
+                "white": "textures/cat/white.png"
+            }
         }
     }
 }

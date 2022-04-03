@@ -65,7 +65,7 @@
                 <span style="margin-right: 1em;">Invite</span>
                 <img src="/media/icons-share.svg" style="height: 2em;" alt="Invite friend">
             </button>
-            <a href="https://discord.gg/QQw2zadu3T" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
+            <a href="https://discord.gg/C9zw4kNT2t" target="_blank" rel="noreferrer" class="btn2 btn-default visible_in_game_menu">
                 <span style="margin-right: 1em;">Discord</span>
                 <img src="/media/discord.png" style="height: 32px;" alt="Discord">
             </a>
@@ -153,12 +153,15 @@
                 <form>
                     <div>
                         <div class="my-worlds" ng-if="mygames.list.length > 0">
-                            <div ng-repeat="item in mygames.list track by item.id">
+                            <div ng-repeat="item in mygames.list track by item.id" ng-if="item.my">
                                 <button class="btn" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
+                            </div>
+                            <div ng-repeat="item in mygames.list track by item.id" ng-if="!item.my">
+                                <button class="btn btn-secondary" ng-click="StartWorld(item.guid)"><span>{{item.title}}</span></button>
                             </div>
                         </div>
                         <button class="btn btn-main" ng-click="newgame.open()">
-                            <span>New game...</span>
+                            <span>New world...</span>
                         </button>
                     </div>
                 </form>
@@ -184,6 +187,11 @@
                                 <input type="checkbox" id="input-mipmap" ng-model="settings.form.mipmap" style="width: 20px; height: 20px; margin-right: 10px;"></input>
                                 <label for="input-mipmap">Generate mipmap</label>
                             </div>
+                            <!-- Use light -->
+                            <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
+                                <input type="checkbox" id="input-use_light" ng-model="settings.form.use_light" style="width: 20px; height: 20px; margin-right: 10px;"></input>
+                                <label for="input-use_light">Use light</label>
+                            </div>
                             <!-- Render distance -->
                             <!-- <div style="display: flex; align-items: center; justify-content: center; margin: .2em 0 .5em 0;">
                                 <div>
@@ -197,19 +205,19 @@
                     <div style="font-size: 14px; padding: 1em 0 2em 0;">
                         <h4 class="text-center">Commands:</h4>
                         <div>
-                            <strong>WASD</strong> - Moving
-                            <br><strong>F4</strong> - Set position as spawnpoint
-                            <br><strong>R</strong> - Respawn
-                            <br><strong>0-9</strong> - Select block
-                            <br><strong>Left mouse button</strong> - Remove block
-                            <br><strong>Right mouse button</strong> - Set block
-                            <br><strong>Mouse wheel</strong> - Clone block under cursor
-                            <br><strong>Ctrl, Double W</strong> - Running
+                            <strong class="font-mono">WASD</strong> - Moving
+                            <br><strong class="font-mono">F4</strong> - Set position as spawnpoint
+                            <br><strong class="font-mono">R</strong> - Respawn
+                            <br><strong class="font-mono">0-9</strong> - Select block
+                            <br><strong class="font-mono">Left mouse button</strong> - Remove block
+                            <br><strong class="font-mono">Right mouse button</strong> - Set block
+                            <br><strong class="font-mono">Mouse wheel</strong> - Clone block under cursor
+                            <br><strong class="font-mono">Ctrl, Double W</strong> - Running
                             <br><br>Other:
                             <!-- <br><strong>F7</strong> - Draw player model at current pos
                             <br><strong>F8</strong> - Teleport to random location
                             <br><strong>F9</strong> - Night (toggle) -->
-                            <br><strong>F10</strong> - Change game mode
+                            <br><strong class="font-mono">F10</strong> - Change game mode
                         </div>
                     </div>
                 </form>

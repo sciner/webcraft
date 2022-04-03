@@ -14,6 +14,12 @@
     #define aoFactor 1.0
     #define CHUNK_SIZE vec3(18.0, 18.0, 84.0)
 
+    // bit shifts
+    #define NORMAL_UP_FLAG 0
+    #define MASK_BIOME_FLAG 1
+    #define NO_AO_FLAG 2
+    #define NO_FOG_FLAG 3
+    #define LOOK_AT_CAMERA 4
 #endif
 
 #ifdef global_uniforms
@@ -21,6 +27,7 @@
     uniform vec3 u_camera_pos;
     // Fog
     uniform vec4 u_fogColor;
+    uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
     uniform float u_chunkBlockDist;
@@ -74,31 +81,45 @@
     out vec3 v_world_pos;
     out vec3 v_chunk_pos;
     out vec3 v_position;
-    out vec2 v_texcoord;
-    out vec4 v_texClamp;
+    out vec2 v_texcoord0;
+    out vec2 v_texcoord1;
+    out vec4 v_texClamp0;
+    out vec4 v_texClamp1;
     out vec3 v_normal;
     out vec4 v_color;
-    out vec2 v_uvCenter;
+    out vec2 v_uvCenter0;
+    out vec2 v_uvCenter1; 
+    out float v_animInterp;
     out float v_lightMode;
+    out float v_useFog;
     //--
 #endif
 
 #ifdef terrain_attrs_frag
     // terrain shader attributes and varings
     in vec3 v_position;
-    in vec2 v_texcoord;
-    in vec4 v_texClamp;
+    in vec2 v_texcoord0;
+    in vec2 v_texcoord1;
+    in vec4 v_texClamp0;
+    in vec4 v_texClamp1;
     in vec4 v_color;
     in vec3 v_normal;
     in float v_fogDepth;
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
-    in vec2 v_uvCenter;
+    in vec2 v_uvCenter0;
+    in vec2 v_uvCenter1; 
+    in float v_animInterp;
     in float v_lightMode;
+    in float v_useFog;
 
     out vec4 outColor;
 #endif
 
+#ifdef sample_texture_define_func
+    // sample
+    float ()
+#endif
 
 #ifdef crosshair_define_func
     // crosshair draw block
@@ -138,13 +159,13 @@
 
 #ifdef vignetting_define_func
     // vignetting
-    const float outerRadius = .65, innerRadius = .4, intensity = .1;
+    const float outerRadius = .65, innerRadius = .25, intensity = .5;
     const vec3 vignetteColor = vec3(0.0, 0.0, 0.0); // red
 
     // vignetting draw block
     void drawVignetting() {
         vec2 relativePosition = gl_FragCoord.xy / u_resolution - .5;
-        relativePosition.y *= u_resolution.x / u_resolution.y;
+        relativePosition.x *= (u_resolution.x / u_resolution.y) * .5;
         float len = length(relativePosition);
         float vignette = smoothstep(outerRadius, innerRadius, len);
         float vignetteOpacity = smoothstep(innerRadius, outerRadius, len) * intensity; // note inner and outer swapped to switch darkness to opacity
@@ -159,20 +180,26 @@
     //--
 #endif
 
-#ifdef manual_mip
-    // apply manual mip
-    if (u_mipmap > 0.0) {
-        biome *= 0.5;
+#ifdef manual_mip_define_func
+    vec4 manual_mip (vec2 coord, vec2 size) {
+        vec2 mipOffset = vec2(0.0);
+        vec2 mipScale = vec2(1.0);
 
-        // manual implementation of EXT_shader_texture_lod
-        vec2 fw = fwidth(v_texcoord) * float(textureSize(u_texture, 0));
-        fw /= 1.4;
-        vec4 steps = vec4(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
-        mipOffset.x = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
-        mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
-        steps = vec4(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
-        mipOffset.y = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
-        mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+        // apply manual mip
+        if (u_mipmap > 0.0) {
+
+            // manual implementation of EXT_shader_texture_lod
+            vec2 fw = fwidth(coord) * float(size);
+            fw /= 1.4;
+            vec4 steps = vec4(step(2.0, fw.x), step(4.0, fw.x), step(8.0, fw.x), step(16.0, fw.x));
+            mipOffset.x = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
+            mipScale.x = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+            steps = vec4(step(2.0, fw.y), step(4.0, fw.y), step(8.0, fw.y), step(16.0, fw.y));
+            mipOffset.y = dot(steps, vec4(0.5, 0.25, 0.125, 0.0625));
+            mipScale.y = 0.5 / max(1.0, max(max(steps.x * 2.0, steps.y * 4.0), max(steps.z * 8.0, steps.w * 16.0)));
+        }
+
+        return vec4(mipOffset, mipScale);
     }
 #endif
 
@@ -180,23 +207,32 @@
     // Calc fog amount
     float fogDistance = length(v_world_pos.xy);
     float fogAmount = 0.;
-    if(fogDistance > u_chunkBlockDist) {
-        fogAmount = clamp(0.05 * (fogDistance - u_chunkBlockDist), 0., 1.);
-    }
+    float fogFactorDiv = max(1.0,  (1. - v_useFog) * 15.);
+    float refBlockDist = u_chunkBlockDist * fogFactorDiv;
+    float fogFactor = 0.05 / fogFactorDiv;
+
+    fogAmount = clamp(fogFactor * (fogDistance - refBlockDist), 0., 1.);
 
     // Apply fog
-    outColor = mix(outColor, u_fogColor, fogAmount);
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
+    outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
+
+    // special effect for sunrise 
+    outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
+    outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
 
 #endif
 
 #ifdef terrain_read_flags_vert
     // read flags
     int flags = int(a_flags);
-    int flagNormalUp = flags & 1;
-    int flagBiome = (flags >> 1) & 1; 
-    int flagNoAO = (flags >> 2) & 1;
- 
+    int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
+    int flagBiome = (flags >> MASK_BIOME_FLAG) & 1; 
+    int flagNoAO = (flags >> NO_AO_FLAG) & 1;
+    int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
+    int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
+
+    v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);
     //--
 #endif
@@ -238,6 +274,7 @@
     vec3 absNormal = abs(v_normal);
     vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
 
+    lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     float caveSample = texture(u_lightTex, lightCoord).a;
     float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
     float aoSample = 0.0;

@@ -75,6 +75,7 @@ export class PlayerManager {
 
         player.applyNetState({
             pos: data.pos,
+            sneak: !!data.sneak,
             rotate: data.rotate,
             time: time,
             hands: data.hands
@@ -109,6 +110,7 @@ export class PlayerManager {
             pitch:          player.rotate.x,
             yaw:            player.rotate.z,
             skin:           Game.skin.id,
+            sneak:          player.isSneak,
             username:       Game.App.session.username + ' Ghost',
             hands:          {left: {id: null}, right: {id: player.currentInventoryItem?.id}}
         }));

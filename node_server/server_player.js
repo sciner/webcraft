@@ -6,9 +6,10 @@ import { Raycaster, RaycasterResult } from "../www/js/Raycaster.js";
 import { ServerWorld } from "./server_world.js";
 import { PlayerInventory } from "../www/js/player_inventory.js";
 import { getChunkAddr } from "../www/js/chunk.js";
+import {PlayerEvent} from "./player_event.js";
 import config from "./config.js";
+import {QuestPlayer} from "./quest/player.js";
 
-const PLAYER_HEIGHT = 1.7;
 const MAX_PICK_UP_DROP_ITEMS_PER_TICK = 16;
 
 const CHECK_DROP_ITEM_CHUNK_OFFSETS = [
@@ -55,7 +56,6 @@ export class ServerPlayer extends Player {
         this.#_rotateDegree         = new Vector(0, 0, 0);
         this.chunks                 = new VectorCollector();
         this.nearby_chunk_addrs     = new VectorCollector();
-        this.height                 = PLAYER_HEIGHT;
         this.#forward               = new Vector(0, 1, 0);
         this.game_mode              = new GameMode(null, this);
         this.game_mode.onSelect     = async (mode) => {
@@ -72,12 +72,31 @@ export class ServerPlayer extends Player {
         this.checkDropItemIndex     = 0;
         this.checkDropItemTempVec   = new Vector();
         this.newInventoryStates     = [];
+        this.dt_connect             = new Date();
     }
 
     init(init_info) {
         this.state = init_info.state;
         this.inventory = new PlayerInventory(this, init_info.inventory);
         this.game_mode.applyMode(init_info.state.game_mode, false);
+    }
+
+    // On crafted listener
+    onCrafted(recipe, item) {
+        PlayerEvent.trigger({
+            type: PlayerEvent.CRAFT,
+            player: this,
+            data: {recipe, item}
+        });
+    }
+
+    // On
+    onPutInventoryItems(item) {
+        PlayerEvent.trigger({
+            type: PlayerEvent.PUT_ITEM_TO_INVENTORY,
+            player: this,
+            data: {item}
+        });
     }
 
     /**
@@ -108,9 +127,15 @@ export class ServerPlayer extends Player {
         //
         this.sendPackets([{
             name: ServerClient.CMD_HELLO,
-            data: `Welcome to MadCraft ver. 0.0.3 (${world.info.guid})`
+            data: `Welcome to MadCraft ver. 0.0.4 (${world.info.guid})`
         }]);
-        this.sendPackets([{name: ServerClient.CMD_WORLD_INFO, data: world.info}]);
+
+        this.sendWorldInfo(false);
+    }
+
+    // sendWorldInfo
+    sendWorldInfo(update) {
+        this.sendPackets([{name: update ? ServerClient.CMD_WORLD_UPDATE_INFO : ServerClient.CMD_WORLD_INFO, data: this.world.getInfo()}]);
     }
 
     async onMessage(response) {
@@ -133,6 +158,7 @@ export class ServerPlayer extends Player {
                 case ServerClient.CMD_CONNECT: {
                     let world_guid = cmd.data.world_guid;
                     this.session = await Game.db.GetPlayerSession(session_id);
+                    Log.append('CmdConnect', {world_guid, session: this.session});
                     world.onPlayer(this, skin);
                     break;
                 }
@@ -222,7 +248,7 @@ export class ServerPlayer extends Player {
 
                 // Request chest content
                 case ServerClient.CMD_LOAD_CHEST: {
-                    const chest = this.world.chests.get(cmd.data.entity_id);
+                    const chest = await this.world.chests.getByInfo(this, cmd.data);
                     if(chest) {
                         await chest.sendContentToPlayers([this]);
                     } else {
@@ -250,6 +276,11 @@ export class ServerPlayer extends Player {
                     break;
                 }
 
+                case ServerClient.CMD_QUEST_GET_ENABLED: {
+                    this.quests.sendAll();
+                    break;
+                }
+
                 case ServerClient.CMD_INVENTORY_SELECT: {
                     this.inventory.setIndexes(cmd.data, false);
                     break;
@@ -271,11 +302,17 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_GAMEMODE_NEXT: {
+                    if(!this.world.admins.checkIsAdmin(this)) {
+                        throw 'error_not_permitted';
+                    }
                     this.game_mode.next();
                     break;
                 }
 
                 case ServerClient.CMD_GAMEMODE_SET: {
+                    if(!this.world.admins.checkIsAdmin(this)) {
+                        throw 'error_not_permitted';
+                    }
                     this.game_mode.applyMode(cmd.data.id, true);
                     break;
                 }
@@ -320,6 +357,7 @@ export class ServerPlayer extends Player {
         for(let addr of this.chunks) {
             this.world.chunks.get(addr)?.removePlayer(this);
         }
+        PlayerEvent.removeHandler(this.session.user_id);
         //
         //try {
         //    this.conn.close();
@@ -431,7 +469,8 @@ export class ServerPlayer extends Player {
             pos:      this.state.pos,
             rotate:   this.state.rotate,
             skin:     this.state.skin,
-            hands:    this.state.hands
+            hands:    this.state.hands,
+            sneak:    this.state.sneak
         };
     }
 
@@ -501,7 +540,6 @@ export class ServerPlayer extends Player {
                 }
             }
             if(near.length > 0) {
-                console.log('Pick up drop items: ' + near.length);
                 // 1. add items to inventory
                 for(const drop_item of near) {
                     for(const item of drop_item) {
@@ -524,8 +562,18 @@ export class ServerPlayer extends Player {
                     data: entity_ids
                 }];
                 chunk.sendAll(packets, []);
+                PlayerEvent.trigger({
+                    type: PlayerEvent.PICKUP_ITEMS,
+                    player: this,
+                    data: {items: near.flat()}
+                });
             }
         }
+    }
+
+    async initQuests() {
+        this.quests = new QuestPlayer(this.world.quests, this);
+        await this.quests.init();
     }
 
 }

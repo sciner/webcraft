@@ -1,29 +1,30 @@
 import { DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector } from '../helpers.js';
-import { CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr } from "../chunk.js";
+import { CHUNK_SIZE_X, getChunkAddr } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
 import { BLOCK } from "../blocks.js";
-import { TBlock } from '../typed_blocks.js';
 import { ChunkManager } from '../chunk_manager.js';
+import { Particles_Base } from './particles_base.js';
 
 const push_plane = push_plane_style.getRegInfo().func;
-const {mat4} = glMatrix;
 
-export default class Particles_Block_Destroy {
+export default class Particles_Block_Destroy extends Particles_Base {
 
     // Constructor
     constructor(render, block, pos, small) {
+
+        super();
+
         const chunk_addr = getChunkAddr(pos.x, pos.y, pos.z);
         const chunk      = ChunkManager.instance.getChunk(chunk_addr);
 
         block = BLOCK.fromId(block.id);
 
-        this.chunk = chunk;
-        this.yaw        = -render.player.rotate.z;
+        this.chunk      = chunk;
         this.life       = .5;
         this.texture    = block.texture;
 
-        let flags       = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
+        let flags       = QUAD_FLAGS.NO_AO;
         let lm          = MULTIPLY.COLOR.WHITE;
 
         if(typeof this.texture != 'function' && typeof this.texture != 'object' && !(this.texture instanceof Array)) {
@@ -35,8 +36,6 @@ export default class Particles_Block_Destroy {
         this.material = this.resource_pack.getMaterial(block.material_key);
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
-            // lm          = cell.biome.dirt_color;
-            // lm          = {r: 0.8549351038055198, g: 0.8932889377166879, b: 0, a: 0};
             const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
             lm          = {r: chunk.dirt_colors[index], g: chunk.dirt_colors[index + 1], b: 0, a: 0};
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
@@ -53,10 +52,10 @@ export default class Particles_Block_Destroy {
         // particles count
         const count     = small ? 5 : 30;
 
-        this.pos        = new Vector(
-            pos.x + .5 - Math.cos(this.yaw + Math.PI / 2) * .5,
+        this.pos = new Vector(
+            pos.x + .5,
             pos.y + .5,
-            pos.z + .5 - Math.sin(this.yaw + Math.PI / 2) * .5
+            pos.z
         );
 
         this.vertices   = [];
@@ -87,6 +86,13 @@ export default class Particles_Block_Destroy {
                 x:              x,
                 y:              y,
                 z:              z,
+                sx:             x,
+                sy:             y,
+                sz:             z,
+
+                dx:             0,
+                dz:             0,
+                dy:             0,
                 vertices_count: 12,
                 gravity:        .06,
                 speed:          .00375
@@ -95,67 +101,30 @@ export default class Particles_Block_Destroy {
             this.particles.push(p);
 
             const d = Math.sqrt(p.x * p.x + p.z * p.z);
-            p.x = p.x / d * p.speed;
-            p.z = p.z / d * p.speed;
+            p.dx = p.x / d * p.speed;
+            p.dz = p.z / d * p.speed;
         }
 
-        this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
-        this.modelMatrix = mat4.create();
+        this.vertices = new Float32Array(this.vertices);
 
-        // for lighting
-        mat4.translate(this.modelMatrix,this.modelMatrix, 
-            [
-                (this.pos.x - chunk.coord.x),
-                (this.pos.z - chunk.coord.z),
-                (this.pos.y - chunk.coord.y)
-            ]
-        )
-
-        mat4.rotateZ(this.modelMatrix, this.modelMatrix, this.yaw);
-
+        // we should save start values
+        this.buffer = new GeometryTerrain(this.vertices.slice());
 
     }
 
-    // Draw
-    draw(render, delta) {
-        const light = this.chunk.getLightTexture(render.renderBackend);
-        //
-        this.life -= delta / 100000; 
-        //
-        let idx = 0;
+    // isolate draw and update
+    // we can use external emitter or any animatin lib
+    // because isolate view and math
+    update (delta) {
+        delta *= 75;
+        this.life -= delta / 100000;
         for(let p of this.particles) {
-            for(let i = 0; i < p.vertices_count; i++) {
-                let j = (idx + i) * GeometryTerrain.strideFloats;
-                this.vertices[j + 0] += p.x * delta * p.speed;
-                this.vertices[j + 1] += p.z * delta * p.speed;
-                this.vertices[j + 2] += (delta / 1000) * p.gravity;
-            }
-            idx += p.vertices_count;
+            p.x += p.dx * delta * p.speed;
+            p.y += p.dy * delta * p.speed + (delta / 1000) * p.gravity;
+            p.z += p.dz * delta * p.speed;
             p.gravity -= delta / 250000;
         }
 
-        this.buffer.updateInternal(this.vertices);
-        this.material.changeLighTex(light);
-
-        render.renderBackend.drawMesh(
-            this.buffer,
-            this.material,
-            this.chunk.coord,
-            this.modelMatrix
-        );
-
-        this.material.lightTex = null;
-    }
-
-    destroy(render) {
-        if (this.buffer) {
-            this.buffer.destroy();
-            this.buffer = null;
-        }
-    }
-
-    isAlive() {
-        return this.life > 0;
     }
 
 }

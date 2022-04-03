@@ -1,6 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../chunk.js";
 import {BLOCK} from '../blocks.js';
-import {Color, FastRandom, Vector} from '../helpers.js';
+import {Color, FastRandom, Vector, DIRECTION_BIT} from '../helpers.js';
 import noise from '../../vendors/perlin.js';
 import {impl as alea} from '../../vendors/alea.js';
 
@@ -18,6 +18,9 @@ export class Default_Terrain_Generator {
         this.xyz_temp_coord = new Vector(0, 0, 0);
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
+        this.maps = {
+            delete: function() {}
+        };
     }
 
     async setSeed(seed) {
@@ -58,9 +61,6 @@ export class Default_Terrain_Generator {
 
     }
 
-    deleteMap(addr) {
-    }
-
     //
     getVoxelBuilding(xyz) {
         for(var vb of this.voxel_buildings) {
@@ -75,7 +75,7 @@ export class Default_Terrain_Generator {
     }
 
     // setBlock
-    setBlock(chunk, x, y, z, block_type, force_replace) {
+    setBlock(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
         if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z && y >= 0 && y < chunk.size.y) {
             this.xyz_temp.set(x, y, z);
             if(force_replace || !chunk.tblocks.has(this.xyz_temp)) {
@@ -83,6 +83,11 @@ export class Default_Terrain_Generator {
                 if(!this.getVoxelBuilding(this.xyz_temp_coord)) {
                     let index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * this.xyz_temp.y + (this.xyz_temp.z * CHUNK_SIZE_X) + this.xyz_temp.x;
                     chunk.tblocks.id[index] = block_type.id;
+                    if(rotate || extra_data) {
+                        this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
+                        if(rotate) this.temp_tblock.rotate = rotate;
+                        if(extra_data) this.temp_tblock.extra_data = extra_data;
+                    }
                     // chunk.tblocks.delete(this.xyz_temp);
                     // this.temp_tblock = chunk.tblocks.get(this.xyz_temp, this.temp_tblock);
                     // this.temp_tblock.id = block_type.id;
@@ -105,7 +110,12 @@ export class Default_Terrain_Generator {
         switch(type.style) {
             // кактус
             case 'cactus': {
-                this.plantStump(options, chunk, x, y, z)
+                this.plantCactus(options, chunk, x, y, z)
+                break;
+            }
+            // бамбук
+            case 'bamboo': {
+                this.plantBamboo(options, chunk, x, y, z)
                 break;
             }
             // пенёк
@@ -113,9 +123,19 @@ export class Default_Terrain_Generator {
                 this.plantStump(options, chunk, x, y, z)
                 break;
             }
+            // tundra_stone
+            case 'tundra_stone': {
+                this.plantTundraStone(options, chunk, x, y, z)
+                break;
+            }
             // дуб, берёза
             case 'wood': {
                 this.plantOak(options, chunk, x, y, z)
+                break;
+            }
+            // mushroom
+            case 'mushroom': {
+                this.plantMushroom(options, chunk, x, y, z)
                 break;
             }
             // акация
@@ -128,6 +148,12 @@ export class Default_Terrain_Generator {
                 this.plantSpruce(options, chunk, x, y, z)
                 break;
             }
+            // тропическое дерево
+            case 'tropical_tree': {
+                this.plantTropicalTree(options, chunk, x, y, z)
+                break;
+            }
+            
         }
     }
 
@@ -138,6 +164,20 @@ export class Default_Terrain_Generator {
         this.temp_block.id = options.type.trunk;
         for(let p = y; p < ystart; p++) {
             this.setBlock(chunk, x, p, z, this.temp_block, true);
+        }
+    }
+
+    // Бамбук
+    plantBamboo(options, chunk, x, y, z, block, force_replace) {
+        const ystart = y + options.height;
+        // ствол
+        this.temp_block.id = options.type.trunk;
+        for(let p = y; p < ystart; p++) {
+            let extra_data = {stage: 3};
+            if(p == ystart - 1) extra_data.stage = 2;
+            if(p == ystart - 2) extra_data.stage = 1;
+            if(p == ystart - 3) extra_data.stage = 1;
+            this.setBlock(chunk, x, p, z, this.temp_block, true, null, extra_data);
         }
     }
 
@@ -152,6 +192,24 @@ export class Default_Terrain_Generator {
         if(options.type.leaves) {
             this.temp_block.id = options.type.leaves;
             this.setBlock(chunk, x, ystart, z, this.temp_block, true);
+        }
+    }
+
+    // Tundra stone
+    plantTundraStone(options, chunk, x, y, z, block, force_replace) {
+        y--;
+        const ystart = y + options.height;
+        // ствол
+        this.temp_block.id = options.type.trunk;
+        for(let p = y; p < ystart; p++) {
+            for(let dx = -1; dx <= 1; dx++) {
+                for(let dz = -1; dz <= 1; dz++) {
+                    if(p != y && dx != 0 && dz != 0) {
+                        continue;
+                    }
+                    this.setBlock(chunk, x + dx, p, z + dz, this.temp_block, true);
+                }
+            }
         }
     }
 
@@ -216,6 +274,7 @@ export class Default_Terrain_Generator {
     // Ель
     plantSpruce(options, chunk, x, y, z) {
         let ystart = y + options.height;
+        let b = null;
         // ствол
         for(let p = y; p < ystart; p++) {
             this.temp_block.id = options.type.trunk;
@@ -244,7 +303,7 @@ export class Default_Terrain_Generator {
                     if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
                         if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
                             this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
-                            let b = chunk.tblocks.get(this.xyz_temp_find);
+                            b = chunk.tblocks.get(this.xyz_temp_find, b);
                             let b_id = b.id;
                             if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                                 this.temp_block.id = options.type.leaves;
@@ -272,6 +331,7 @@ export class Default_Terrain_Generator {
         }
         // листва
         let py = y + options.height;
+        let b = null;
         for(let rad of [1, 1, 2, 2]) {
             for(let i = x - rad; i <= x + rad; i++) {
                 for(let j = z - rad; j <= z + rad; j++) {
@@ -286,7 +346,7 @@ export class Default_Terrain_Generator {
                             continue;
                         }
                         this.xyz_temp_find.set(i, py, j);
-                        let b = chunk.tblocks.get(this.xyz_temp_find);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
                         let b_id = b.id;
                         if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
                             this.temp_block.id = options.type.leaves;
@@ -297,7 +357,208 @@ export class Default_Terrain_Generator {
             }
             py--;
         }
+    }
 
+    // Mushroom
+    plantMushroom(options, chunk, x, y, z) {
+        let ystart = y + options.height;
+        // ствол
+        for(let p = y; p < ystart; p++) {
+            this.temp_block.id = options.type.trunk;
+            this.setBlock(chunk, x, p, z, this.temp_block, true);
+        }
+        // листва
+        let py = y + options.height;
+        let b = null;
+        for(let rad of [1, 2, 2, 2]) {
+            for(let i = -rad; i <= rad; i++) {
+                for(let j = -rad; j <= rad; j++) {
+                    if(py < y + options.height) {
+                        if(Math.abs(i) < 2 && Math.abs(j) < 2) {
+                            continue;
+                        }
+                    }
+                    if(i + x >= 0 && i + x < chunk.size.x && j + z >= 0 && j + z < chunk.size.z) {
+                        let m = (i == -rad && j == -rad) ||
+                            (i == rad && j == rad) || 
+                            (i == -rad && j == rad) ||
+                            (i == rad && j == -rad);
+                        if(m && py < y + options.height) {
+                            continue;
+                        }
+                        this.xyz_temp_find.set(i + x, py, j + z);
+                        b = chunk.tblocks.get(this.xyz_temp_find, b);
+                        let b_id = b.id;
+                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
+                            this.temp_block.id = options.type.leaves;
+                            // determining which side to cover with which texture
+                            let t = 0;
+                            if(py >= y + options.height - 1) t |= (1 << DIRECTION_BIT.UP); // up
+                            if(i == rad) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                            if(i == -rad) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                            if(j == rad) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                            if(j == -rad) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            //
+                            if(py < y + options.height) {
+                                if((j == -rad || j == rad) && i == rad - 1) t |= (1 << DIRECTION_BIT.EAST); // east x+
+                                if((j == -rad || j == rad) && i == -rad + 1) t |= (1 << DIRECTION_BIT.WEST); // west x-
+                                if((i == -rad || i == rad) && j == rad - 1) t |= (1 << DIRECTION_BIT.NORTH); // north z+
+                                if((i == -rad || i == rad) && j == -rad + 1) t |= (1 << DIRECTION_BIT.SOUTH); // south z-
+                            }
+                            let extra_data = t ? {t: t} : null;
+                            this.setBlock(chunk, i + x, py, j + z, this.temp_block, false, null, extra_data);
+                        }
+                    }
+                }
+            }
+            py--;
+        }
+    }
+
+    // Тропическое дерево
+    plantTropicalTree(options, chunk, x, y, z) {
+        const TREE_HEIGHT = options.height // рандомная высота дерева, переданная из генератора
+        let ystart = y + TREE_HEIGHT
+        let maxW = Math.floor(TREE_HEIGHT / 2)
+        let minW = Math.floor(TREE_HEIGHT / 3)
+        this.temp_block.id = options.type.trunk
+        let mainseed = x + z + chunk.coord.x + chunk.coord.y + chunk.coord.z + y
+        // получаю большое число
+        let cnt = Math.floor(
+            this.fastRandoms.double(mainseed + options.height) * Math.pow(2, 58)
+        )
+        let dy = Math.floor(cnt / 2 ** 32)
+        // преобразование числа в массив байт
+        let arr = [
+            cnt << 24,
+            cnt << 16,
+            cnt << 8,
+            cnt,
+            dy << 24,
+            dy << 16,
+            dy << 8,
+            dy,
+        ].map((z) => z >>> 24)
+        // ствол + лианы вокруг
+        let xyz = chunk.coord.add(new Vector(x, y, z));
+        let random = new alea('tree' + xyz.toHash());
+        for (let p = y; p < ystart; p++) {
+            this.setBlock(chunk, x, p, z, this.temp_block, true)
+            let block_id = BLOCK.VINES.id;
+            let extra_data = null;
+            const makeCocoa = () => {
+                if(random.double() < .04 && p < y + 4) {
+                    block_id = BLOCK.COCOA_BEANS.id;
+                    extra_data = {stage: 2};
+                }    
+            }
+            if ((p + arr[p % 7]) % 2 == 0) {
+                makeCocoa();
+                this.setBlock(chunk, x + 1, p, z, { id: block_id }, false, {
+                    x: 3,
+                    y: 0,
+                    z: 0,
+                }, extra_data)
+            }
+            if ((p + arr[(p + 1) % 7]) % 2 == 0) {
+                makeCocoa();
+                this.setBlock(chunk, x - 1, p, z, { id: block_id }, false, {
+                    x: 1,
+                    y: 0,
+                    z: 0,
+                }, extra_data)
+            }
+            if ((p + arr[(p + 2) % 7]) % 2 == 0) {
+                makeCocoa();
+                this.setBlock(chunk, x, p, z + 1, { id: block_id }, false, {
+                    x: 0,
+                    y: 0,
+                    z: 3,
+                }, extra_data)
+            }
+            if ((p + arr[(p + 3) % 7]) % 2 == 0) {
+                makeCocoa();
+                this.setBlock(chunk, x, p, z - 1, { id: block_id }, false, {
+                    x: 2,
+                    y: 0,
+                    z: 0,
+                }, extra_data)
+            }
+        }
+        // рисование кроны дерева
+        const generateLeaves = (x, y, z, rad, rnd) => {
+            for (let h = 0; h <= 1; h++) {
+                let w = Math.max(rad - h * 2, 5 - h)
+                let dx = Math.floor(x - w / 2)
+                let dz = Math.floor(z - w / 2)
+                let d = null
+                for (let a = dx; a <= dx + w; a++) {
+                    for (let b = dz; b <= dz + w; b++) {
+                        let l = Math.abs(Math.sqrt(Math.pow(a - x, 2) + Math.pow(b - z, 2)))
+                        if (l <= w / 2) {
+                            this.xyz_temp_find.set(a, y + h, d)
+                            d = chunk.tblocks.get(this.xyz_temp_find, d)
+                            let d_id = d.id
+                            if (!d_id || (d_id >= 0 && d_id != options.type.trunk)) {
+                                this.temp_block.id = options.type.leaves
+                                this.setBlock(chunk, a, y + h, b, this.temp_block, false)
+                                if (
+                                    rad % 2 == 0 &&
+                                    h == 0 &&
+                                    (a == dx || a == dx + w || b == dz || b == dz + w)
+                                ) {
+                                    for (
+                                        let t = 1;
+                                        t <= Math.floor(1 + rad * (arr[1 + (t % 6)] / 255));
+                                        t++
+                                    ) {
+                                        this.setBlock(
+                                            chunk,
+                                            a,
+                                            y + h - t,
+                                            b,
+                                            { id: BLOCK.VINES.id },
+                                            false,
+                                            {
+                                                x: a == dx ? 3 : a == dx + w ? 1 : b == dz + w ? 2 : 0,
+                                                y: 0,
+                                                z: b == dz ? 3 : 0,
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // построение веток дерева
+        for (let i = 0; i < arr[7]; i++) {
+            this.temp_block.id = options.type.trunk
+            let pos = Math.floor(
+                TREE_HEIGHT / 2.5 + (TREE_HEIGHT / 2) * (arr[6 - i] / 255)
+            )
+            let rad = Math.floor(minW + (maxW * arr[1 + i]) / 255 / 4)
+            let side = (i + (arr[7] % 2)) % 4
+            let x1 = x
+            let z1 = z
+            let dy = 0
+            for (let k = 0; k < rad; k++) {
+                x1 = side < 2 ? (side == 0 ? x1 - 1 : x1 + 1) : x1
+                z1 = side >= 2 ? (side == 2 ? z1 - 1 : z1 + 1) : z1
+                if (arr[k % 7] % 2 == 0) {
+                    dy++
+                }
+                this.setBlock(chunk, x1, y + pos + dy, z1, this.temp_block, true)
+            }
+
+            this.temp_block.id = options.type.leaves
+            generateLeaves(x1, y + pos + dy + 1, z1, rad, arr)
+        }
+        // рисуем крону основного дерева
+        this.temp_block.id = options.type.leaves
+        generateLeaves(x, ystart, z, Math.floor(minW + (maxW * arr[0]) / 255), arr)
     }
 
 }

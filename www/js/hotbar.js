@@ -1,9 +1,11 @@
 import { BLOCK } from "./blocks.js";
 import {Vector} from "./helpers.js";
 
-const live_shift_random = new Array(1024);
-for(let i = 0; i < live_shift_random.length; i++) {
-    live_shift_random[i] = Math.round(Math.random());
+const MAX_NAME_SHOW_TIME = 2000;
+
+const LIVE_SHIFT_RANDOM = new Array(1024);
+for(let i = 0; i < LIVE_SHIFT_RANDOM.length; i++) {
+    LIVE_SHIFT_RANDOM[i] = Math.round(Math.random());
 }
 
 export class Hotbar {
@@ -20,8 +22,8 @@ export class Hotbar {
         }
         this.image.src = './media/hotbar.png';
         //
-        this.itemNameO = null;
-        this.itemNameChangeTime = performance.now();
+        this.itemTitleO = null;
+        this.itemTitleChangeTime = performance.now();
         this.last_damage_time = null;
     }
 
@@ -91,40 +93,38 @@ export class Hotbar {
         // Draw item name in hotbar
         let currentInventoryItem = player.currentInventoryItem;
         if(currentInventoryItem) {
-            let itemName = currentInventoryItem?.name || BLOCK.fromId(currentInventoryItem.id)?.name;
-            itemName = itemName.replaceAll('_', ' ');
-            const max_name_show_time = 2000;
-            if(itemName != this.itemNameO) {
-                this.itemNameO = itemName;
-                this.itemNameChangeTime = performance.now();
+            let itemTitle = BLOCK.getBlockTitle(currentInventoryItem);
+            if(itemTitle != this.itemTitleO) {
+                this.itemTitleO = itemTitle;
+                this.itemTitleChangeTime = performance.now();
             }
-            const time_remains = performance.now() - this.itemNameChangeTime;
-            if(time_remains < max_name_show_time) {
+            const time_remains = performance.now() - this.itemTitleChangeTime;
+            if(time_remains < MAX_NAME_SHOW_TIME) {
                 // Text opacity
                 let alpha = 1;
-                alpha = Math.min(2 - (time_remains / max_name_show_time) * 2, 1);
+                alpha = Math.min(2 - (time_remains / MAX_NAME_SHOW_TIME) * 2, 1);
                 let aa = Math.ceil(255 * alpha).toString(16); if(aa.length == 1) {aa = '0' + aa;}
                 //
                 hud.ctx.textBaseline = 'bottom';
-                hud.ctx.font = Math.round(24 * this.zoom) + 'px Ubuntu';
+                hud.ctx.font = Math.round(24 * this.zoom) + 'px ' + UI_FONT;
                 const yMargin = mayGetDamaged ? 40 * this.zoom : 0;
                 // Measure text
-                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemName) {
+                if(!this.prevItemMeasure || this.prevItemMeasure.text != itemTitle) {
                     this.prevItemMeasure = {
-                        text: itemName,
-                        measure: hud.ctx.measureText(itemName)
+                        text: itemTitle,
+                        measure: hud.ctx.measureText(itemTitle)
                     };
                 }
                 const textWidth = this.prevItemMeasure.measure.width;
                 hud.ctx.fillStyle = '#000000' + aa;
-                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
+                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin);
                 hud.ctx.fillStyle = '#ffffff' + aa;
-                hud.ctx.fillText(itemName, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
+                hud.ctx.fillText(itemTitle, hud.width / 2 - textWidth / 2, hud_pos.y + cell_size - yMargin - 2 * this.zoom);
                 //
                 hud.refresh();
             }
         } else {
-            this.itemNameO = null;
+            this.itemTitleO = null;
         }
 
         if(mayGetDamaged) {
@@ -149,7 +149,7 @@ export class Hotbar {
             let calcShiftY = (i, live) => {
                 let shift_y = 0;
                 if(live < .35) {
-                    shift_y = live_shift_random[(spn + i) % live_shift_random.length] * 5;
+                    shift_y = LIVE_SHIFT_RANDOM[(spn + i) % LIVE_SHIFT_RANDOM.length] * 5;
                 }
                 return shift_y;
             };

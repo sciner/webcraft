@@ -12,7 +12,12 @@ export class CraftTableSlot extends Label {
 
     //
     get tooltip() {
-        return this.getItem()?.name.replaceAll('_', ' ') || null;
+        let resp = null;
+        let item = this.getItem();
+        if(item) {
+            resp = item.name.replaceAll('_', ' ') + ` (#${item.id})`;
+        }
+        return resp;
     }
 
     setItem(item) {
@@ -71,7 +76,7 @@ export class CraftTableSlot extends Label {
         if(item.count > 1) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = Math.round(18 * this.zoom) + 'px Ubuntu';
+            ctx.font                = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
             ctx.fillStyle           = '#000000ff';
             ctx.fillText(item.count, x + width + 2 * this.zoom, y + height + 2 * this.zoom);
             ctx.fillStyle           = '#ffffffff';
@@ -306,7 +311,6 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                 let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
                 if(doubleClick && dropData.item.count < max_stack_count) {
                     let need_count = max_stack_count - dropData.item.count;
-                    // console.log('dropData', dropData, need_count, this.parent.craft.slots);
                     // проверить крафт слоты
                     let slots = this.parent.getSlots();
                     for(let i in slots) {
@@ -574,11 +578,11 @@ export class BaseCraftWindow extends Window {
         if(recipe.size.height > this.area.size.height) {
             return false;
         }
+        let slot_index = recipe.start_index[this.area.size.width];
         //
         let pattern_array = recipe.getCroppedPatternArray(this.area.size);
         // Clear current craft recipe slots and result
         // Compare current slots recipe with new, then clear if not equals
-        let slot_index = 0;
         let current_slots_pattern = this.getCurrentSlotsPattern();
         if(this.recipes.patternsIsEqual(current_slots_pattern, pattern_array)) {
             // Find first item in craft slots
@@ -586,7 +590,7 @@ export class BaseCraftWindow extends Window {
                 let slot = this.craft.slots[i];
                 let item = slot.getItem();
                 if(item) {
-                    slot_index = i;
+                    slot_index = parseInt(i);
                     break;
                 }
             }
@@ -605,12 +609,12 @@ export class BaseCraftWindow extends Window {
                 }
                 let count = 1;
                 item.count += count;
-                // Game.world.server.sendInventoryDecrement(item_id, count);
+                Game.player.inventory.decrementByItemID(item_id, count, true);
             } else {
                 item = null;
             }
             slot.setItem(item);
-            slot_index++
+            slot_index++;
         }
     }
 

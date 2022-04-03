@@ -1,11 +1,13 @@
 import { Resources } from "./resources.js";
 import { SceneNode } from "./SceneNode.js";
 import * as ModelBuilder from "./modelBuilder.js";
-import { Helpers, Vector } from "./helpers.js";
+import { Color, Helpers, Vector } from "./helpers.js";
 import { ChunkManager } from "./chunk_manager.js";
 import { NetworkPhysicObject } from './network_physic_object.js';
 
 const {mat4, vec3, quat} = glMatrix;
+
+const SNEAK_ANGLE = 28.65 * Math.PI / 180;
 
 export class Traversable {
     constructor() {
@@ -61,6 +63,10 @@ export class TraversableRenderer {
     }
 
     drawTraversed(node, parent, render, traversable) {
+
+        if('visible' in node && !node.visible) {
+            return;
+        }
 
         if (!node.terrainGeometry) {
             return true;
@@ -158,6 +164,7 @@ export class MobAnimator extends Animator {
         parts['arm'] = arms;
         parts['leg'] = legs;
         parts['wing'] = wings;
+        parts['body'] = [tree.findNode('Body')].filter(Boolean);
 
         animable.parts = parts;
     }
@@ -175,13 +182,9 @@ export class MobAnimator extends Animator {
             return;
         }
 
-        if (delta > 1000) {
-            delta = 1000
-        }
-
         let aniangle = 0;
         if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
-            animable.aniframe += (0.1 / 1000 * delta);
+            animable.aniframe += delta / 128;
             if(animable.aniframe > Math.PI) {
                 animable.aniframe  = -Math.PI;
             }
@@ -256,20 +259,30 @@ export class MobAnimation {
     }
 
     leg({
-        part, index, aniangle, animable
+        part, index, aniangle, animable, isArm = 0
     }) {
         const x = index % 2;
         const y = index / 2 | 0;
         const sign = x ^ y ? 1 : -1;
 
         quat.identity(part.quat);
-        quat.rotateX(part.quat, part.quat, aniangle * sign);
+        quat.rotateX(part.quat, part.quat, aniangle * sign - (animable.sneak || 0) * SNEAK_ANGLE * (1 - 0.5 * (isArm | 0)));
+
+        part.updateMatrix();
+    }
+
+    body({
+        part, index, aniangle, animable
+    }) {
+        quat.identity(part.quat);
+        quat.rotateX(part.quat, part.quat, animable.sneak * SNEAK_ANGLE);
 
         part.updateMatrix();
     }
 
     arm(opts) {
         opts.index += 2;
+        opts.isArm = 1;
         return this.leg(opts);
     }
 
@@ -316,15 +329,19 @@ export class MobModel extends NetworkPhysicObject {
             new Vector(0, 0, 0)
         );
 
+        this.fix_z_fighting             = Math.random() / 100;
         this.sceneTree                  = null;
         this.texture                    = null;
-        this.material = null;
+        this.material                   = null;
+        this.raycasted                  = false;
 
         this.moving_timeout             = null;
         this.texture                    = null;
         this.nametag                    = null;
         this.aniframe                   = 0;
+        this.width                      = 0;
         this.height                     = 0;
+        this.sneak                      = 1;
 
         Object.assign(this, props);
 
@@ -348,6 +365,7 @@ export class MobModel extends NetworkPhysicObject {
         this.drawPos = {x: 0, y: 0, y: 0};
 
         this.lightTex = null;
+        this.tintColor = new Color(0, 0, 0, 0);
 
         this.posDirty = true;
 
@@ -366,6 +384,25 @@ export class MobModel extends NetworkPhysicObject {
              this.currentChunk &&
              this.currentChunk.in_frustum || 
              !this.currentChunk);
+    }
+
+    // ударить кулаком
+    punch(e) {
+        // play punch
+        Game.sounds.play('madcraft:block.player', 'strong_atack');
+        // play mob cry
+        let tag = `madcraft:block.${this.type}`;
+        if(Game.sounds.tags.hasOwnProperty(tag)) {
+            Game.sounds.play(tag, 'hurt');
+        }
+        // make red
+        this.tintColor.set(1, 0, 0, .3);
+        setTimeout(() => {
+            this.tintColor.set(0, 0, 0, 0);
+        }, 700);
+        // add velocity
+        // let velocity = new Vector(0, 0.5, 0);
+        // mob.addVelocity(velocity);
     }
 
     lazyInit(render) {
@@ -396,6 +433,7 @@ export class MobModel extends NetworkPhysicObject {
         
         if (this.material) {
             this.material.lightTex = this.lightTex;
+            this.material.tintColor = this.tintColor;
         }
 
         
@@ -413,7 +451,7 @@ export class MobModel extends NetworkPhysicObject {
         this.sceneTree.position.set([
             this.pos.x - this.drawPos.x,
             this.pos.z - this.drawPos.z,
-            this.pos.y - this.drawPos.y,
+            this.pos.y - this.drawPos.y - (this.sneak || 0) * 0.2 + this.fix_z_fighting,
         ]);
 
         this.sceneTree.updateMatrix();
@@ -438,6 +476,9 @@ export class MobModel extends NetworkPhysicObject {
 
         // run render
         this.renderer.drawLayer(render, this);
+        //if(this.aabb) {
+        //    this.aabb.draw(render, this.tPos, delta, this.raycasted);
+        //}
     }
 
     /**
@@ -491,7 +532,7 @@ export class MobModel extends NetworkPhysicObject {
         const asset = await Resources.getModelAsset(this.type);
 
         if (!asset) {
-            console.log("Can't lokate model for:", this.type);
+            console.log("Can't locate model for:", this.type);
             return null;
         }
 
@@ -504,7 +545,7 @@ export class MobModel extends NetworkPhysicObject {
         this.skin = this.skin || asset.baseSkin;
 
         if(!(this.skin in asset.skins)) {
-            console.warn("Can't locate skin: ", this.skin)
+            console.warn("Can't locate skin: ", asset, this.skin)
             this.skin = asset.baseSkin;
         }
 

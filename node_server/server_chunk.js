@@ -1,15 +1,109 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_BLOCKS, getChunkAddr} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
-import {TypedBlocks} from "../www/js/typed_blocks.js";
+import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
+import {impl as alea} from '../www/vendors/alea.js';
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
 export const CHUNK_STATE_LOADED            = 2;
 export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
+//
 export const STAGE_TIME_MUL                = 5; // 20;
 
+// Mob generator
+class MobGenerator {
+
+    constructor(chunk) {
+        this.chunk = chunk;
+        this.types = [];
+        this.types.push({type: 'chicken', skin: 'base', count: 4});
+        this.types.push({type: 'chicken', skin: 'base', count: 4});
+        this.types.push({type: 'sheep', skin: 'base', count: 4});
+        this.types.push({type: 'cow', skin: 'base', count: 4});
+        this.types.push({type: 'horse', skin: 'creamy', count: 2});
+        this.types.push({type: 'pig', skin: 'base', count: 4});
+        this.types.push({type: 'fox', skin: 'base', count: 1});
+    }
+
+    async generate() {
+        const chunk_addr_hash = this.chunk.addr.toHash();
+        // probability 1/10
+        this.random = new alea('chunk' + chunk_addr_hash);
+        this.can_generate = this.random.double() < .2;
+        if(!this.can_generate) {
+            return false;
+        }
+        // if generating early
+        if(await this.chunk.world.chunks.chunkMobsIsGenerated(chunk_addr_hash)) {
+            return false;
+        }
+        // check chunk is good place for mobs
+        if(this.chunk.tblocks) {
+            let material = null;
+            let pos2d = new Vector(0, 0, 0);
+            const blockIter = this.chunk.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0, 0, 0)));
+            let vc = new VectorCollector();
+            // Обход всех блоков данного чанка
+            for(let block of blockIter) {
+                material = block.material;
+                if(material.id == BLOCK.GRASS_DIRT.id) {
+                    pos2d.x = block.vec.x;
+                    pos2d.z = block.vec.z;
+                    vc.set(pos2d, block.vec.y);
+                }
+            }
+            //
+            if(vc.size > CHUNK_SIZE_X * CHUNK_SIZE_Z / 2) {
+                let cnt = 0;
+                let poses = [];
+                const pos_up = new Vector(0, 0, 0);
+                for(let [vec, y] of vc.entries()) {
+                    if(cnt++ % 2 == 0) {
+                        pos_up.copyFrom(vec);
+                        pos_up.y = y;
+                        //
+                        pos_up.y++;
+                        let up1 = this.chunk.tblocks.get(pos_up);
+                        let up1_id = up1.id;
+                        pos_up.y++;
+                        let up2 = this.chunk.tblocks.get(pos_up);
+                        let up2_id = up2.id;
+                        //
+                        if((up1_id == 0 || up1_id == 31) && (up2_id == 0 || up2_id == 31)) {
+                            const pos = new Vector(.5, y + 1, .5);
+                            pos.addSelf(vec).addSelf(this.chunk.coord);
+                            poses.push(pos);
+                        }
+                    }
+                }
+                if(poses.length > 0) {
+                    poses.sort(() => .5 - Math.random());
+                    const index = Math.floor(this.random.double() * this.types.length);
+                    const t = this.types[index];
+                    if(poses.length >= t.count) {
+                        for(let i = 0; i < t.count; i++) {
+                            const params = {
+                                pos: poses.shift(),
+                                rotate: new Vector(0, 0, this.random.double() * Math.PI * 2),
+                                ...t
+                            };
+                            // Spawn mob
+                            console.log('Spawn mob');
+                            await this.chunk.world.createMob(params);
+                        }
+                    }
+                }
+            }
+        }
+        // mark as generated
+        await this.chunk.world.chunks.chunkSetMobsIsGenerated(chunk_addr_hash, 1);
+    }
+
+}
+
+// Server chunk
 export class ServerChunk {
 
     constructor(world, addr) {
@@ -22,14 +116,25 @@ export class ServerChunk {
         this.modify_list    = new Map();
         this.ticking_blocks = new Map();
         this.mobs           = new Map();
-        this.painting       = new Map();
         this.drop_items     = new Map();
+        if(['biome2'].indexOf(world.info.generator.id) >= 0) {
+            this.mobGenerator   = new MobGenerator(this);
+        }
         this.setState(CHUNK_STATE_NEW);
     }
 
     // Set chunk init state
     setState(state_id) {
         this.load_state = state_id;
+    }
+
+    // generateMobs...
+    generateMobs() {
+        // Generate mobs
+        if(this.mobGenerator) {
+            this.mobGenerator.generate();
+            this.mobGenerator = null;
+        }
     }
 
     // Load state from DB
@@ -55,7 +160,7 @@ export class ServerChunk {
                 if(!block || block.id != m.id) {
                     block = BLOCK.fromId(m.id);
                 }
-                if(block.ticking) {
+                if(block.ticking && m.extra_data && !('notick' in m.extra_data)) {
                     this.addTickingBlock(pos, block);
                 }
             }
@@ -91,7 +196,6 @@ export class ServerChunk {
         if(this.load_state > CHUNK_STATE_LOADED) {
             this.sendMobs([player.session.user_id]);
             this.sendDropItems([player.session.user_id]);
-            this.sendPaintings([player.session.user_id]);
         }
     }
 
@@ -125,7 +229,7 @@ export class ServerChunk {
 
     // Add mob
     addMob(mob) {
-        this.mobs.set(mob.entity_id, mob);
+        this.mobs.set(mob.id, mob);
         let packets = [{
             name: ServerClient.CMD_MOB_ADDED,
             data: [mob]
@@ -141,20 +245,6 @@ export class ServerChunk {
             data: [drop_item]
         }];
         this.sendAll(packets);
-    }
-
-    // Add paintings
-    addPaintings(painting_list, notify_all) {
-        for(let painting of painting_list) {
-            this.painting.set(painting.entity_id, painting);
-        }
-        if(notify_all) {
-            let packets = [{
-                name: ServerClient.CMD_CREATE_PAINTING,
-                data: painting_list
-            }];
-            this.sendAll(packets);
-        }
     }
 
     // Send chunk for players
@@ -201,39 +291,13 @@ export class ServerChunk {
         this.world.sendSelected(packets, player_user_ids, []);
     }
 
-    sendPaintings(player_user_ids) {
-        // Send all drop items in this chunk
-        if (this.painting.size < 1) {
-            return;
-        }
-        let packets = [{
-            name: ServerClient.CMD_CREATE_PAINTING,
-            data: []
-        }];
-        for(const [_, painting] of this.painting) {
-            packets[0].data.push(painting);
-        }
-        this.world.sendSelected(packets, player_user_ids, []);
-    }
-
     // onBlocksGenerated ... Webworker callback method
     async onBlocksGenerated(args) {
-        this.tblocks            = new TypedBlocks(this.coord);
-        this.tblocks.count      = CHUNK_BLOCKS;
-        this.tblocks.buffer     = args.tblocks.buffer;
-        this.tblocks.id         = new Uint16Array(this.tblocks.buffer, 0, this.tblocks.count);
-        this.tblocks.power      = new VectorCollector(args.tblocks.power.list);
-        this.tblocks.rotate     = new VectorCollector(args.tblocks.rotate.list);
-        this.tblocks.entity_id  = new VectorCollector(args.tblocks.entity_id.list);
-        this.tblocks.texture    = new VectorCollector(args.tblocks.texture.list);
-        this.tblocks.extra_data = new VectorCollector(args.tblocks.extra_data.list);
-        this.tblocks.vertices   = new VectorCollector(args.tblocks.vertices.list);
-        this.tblocks.shapes     = new VectorCollector(args.tblocks.shapes.list);
-        this.tblocks.falling    = new VectorCollector(args.tblocks.falling.list);
+        this.tblocks = new TypedBlocks(this.coord);
+        this.tblocks.restoreState(args.tblocks);
         //
         this.mobs = await this.world.db.loadMobs(this.addr, this.size);
         this.drop_items = await this.world.db.loadDropItems(this.addr, this.size);
-        this.painting = await this.world.db.loadPaintings(this.addr, this.size);
         this.setState(CHUNK_STATE_BLOCKS_GENERATED);
         // Разошлем мобов всем игрокам, которые "контроллируют" данный чанк
         if(this.connections.size > 0) {
@@ -242,9 +306,6 @@ export class ServerChunk {
             }
             if(this.drop_items.size > 0) {
                 this.sendDropItems(Array.from(this.connections.keys()));
-            }
-            if(this.painting.size > 0) {
-                this.sendPaintings(Array.from(this.connections.keys()));
             }
         }
     }
@@ -314,11 +375,11 @@ export class ServerChunk {
                         rotate         : item.rotate ? new Vector(item.rotate).toAngles() : null
                     }
                     await this.world.createMob(params);
-                    await this.world.applyActions(null, {blocks: [
+                    await this.world.applyActions(null, {blocks: {list: [
                         {pos: item_pos, item: BLOCK.AIR},
                         {pos: under1.posworld, item: BLOCK.AIR},
                         {pos: under2.posworld, item: BLOCK.AIR}
-                    ]});
+                    ]}});
                 }
                 break;
             }
@@ -330,7 +391,7 @@ export class ServerChunk {
         this.modify_list.set(pos.toHash(), item);
         if(item && item.id) {
             let block = BLOCK.fromId(item.id);
-            if(block.ticking) {
+            if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
                 this.addTickingBlock(pos, block);
             }
         }
@@ -357,20 +418,137 @@ export class ServerChunk {
 
     // On world tick
     async tick() {
+        let that = this;
         let updated_blocks = [];
+        let ignore_coords = new VectorCollector();
+        let check_pos = new Vector(0, 0, 0);
         for(let [k, v] of this.ticking_blocks.entries()) {
             const m = this.modify_list.get(k);
             if(!m || m.id != v.block.id) {
                 this.deleteTickingBlock(v.pos);
                 continue;
             }
+            const ticking = v.block.ticking;
             if(Math.random() > .33) {
                 if(!m.ticks) {
                     m.ticks = 0;
                 }
                 m.ticks++;
-                const ticking = v.block.ticking;
                 switch(ticking.type) {
+                    case 'bamboo': {
+                        check_pos.copyFrom(v.pos);
+                        check_pos.y = 0;
+                        if(ignore_coords.has(check_pos)) {
+                            break;
+                            // continue;
+                        }
+                        if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
+                            //
+                            if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
+                                //
+                                const world = this.world;
+                                //
+                                function addNextBamboo(pos, block, stage) {
+                                    const next_pos = new Vector(pos);
+                                    next_pos.y++;
+                                    const new_item = {
+                                        id: block.id,
+                                        extra_data: {...block.extra_data}
+                                    };
+                                    new_item.extra_data.stage = stage;
+                                    let b = world.getBlock(next_pos);
+                                    if(b.id == 0) {
+                                        updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                                        // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
+                                        check_pos.copyFrom(next_pos);
+                                        check_pos.y = 0;
+                                        ignore_coords.set(check_pos, true);
+                                        return true;
+                                    }
+                                    return false;
+                                }
+                                //
+                                if(m.extra_data.stage == 0) {
+                                    addNextBamboo(v.pos, m, 1);
+                                    m.extra_data = null; // .stage = 3;
+                                    updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                } else {
+                                    let over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
+                                    let under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
+                                    if(m.extra_data.stage == 1) {
+                                        if(over1.id == 0) {
+                                            if(under1.id == m.id && (!under1.extra_data || under1.extra_data.stage == 3)) {
+                                                addNextBamboo(v.pos, m, 1);
+                                            }
+                                            if(under1.id == m.id && under1.extra_data && under1.extra_data.stage == 1) {
+                                                addNextBamboo(v.pos, m, 2);
+                                            }
+                                        } else if(over1.id == m.id && under1.id == m.id) {
+                                            if(over1.extra_data.stage == 2 && under1.extra_data && under1.extra_data.stage == 1) {
+                                                if(addNextBamboo(over1.posworld, m, 2)) {
+                                                    if(under1.extra_data.stage == 1) {
+                                                        const new_item = {...m};
+                                                        new_item.extra_data = {...new_item.extra_data};
+                                                        new_item.extra_data = null; // .stage = 3;
+                                                        updated_blocks.push({pos: under1.posworld, item: new_item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        if(m.extra_data.stage == 2) {
+                                            if(over1.id == m.id && under1.id == m.id) {
+                                                if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
+                                                    if(over1.posworld.distance(m.extra_data.pos) < m.extra_data.max_height - 1) {
+                                                        if(addNextBamboo(over1.posworld, m, 2)) {
+                                                            // replace current to 1
+                                                            const new_current = {...m};
+                                                            new_current.extra_data = {...new_current.extra_data};
+                                                            new_current.extra_data.stage = 1;
+                                                            updated_blocks.push({pos: v.pos, item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                            // set under to 3
+                                                            const new_under = {...m};
+                                                            new_under.extra_data = {...new_under.extra_data};
+                                                            new_under.extra_data = null; // .stage = 3;
+                                                            updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        }
+                                                    } else {
+                                                        // Limit height
+                                                        let pos = new Vector(v.pos);
+                                                        m.extra_data.notick = true;
+                                                        delete(m.extra_data.pos);
+                                                        delete(m.extra_data.max_height);
+                                                        updated_blocks.push({pos: pos, item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(pos);
+                                                        //
+                                                        const new_under = {...m};
+                                                        new_under.extra_data = {...under1.extra_data};
+                                                        new_under.extra_data.notick = true;
+                                                        delete(new_under.extra_data.pos);
+                                                        delete(new_under.extra_data.max_height);
+                                                        updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(under1.posworld);
+                                                        //
+                                                        const new_over = {...m};
+                                                        new_over.extra_data = {...over1.extra_data};
+                                                        new_over.extra_data.notick = true;
+                                                        delete(new_over.extra_data.pos);
+                                                        delete(new_over.extra_data.max_height);
+                                                        updated_blocks.push({pos: over1.posworld, item: new_over, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                                        that.deleteTickingBlock(over1.posworld);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
+                        }
+                        break;
+                    }
                     case 'stage': {
                         if(m.extra_data && m.extra_data.stage < ticking.max_stage) {
                             if(m.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
@@ -381,6 +559,14 @@ export class ServerChunk {
                                 updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                             }
                         } else {
+                            // Delete completed block from tickings
+                            this.deleteTickingBlock(v.pos);
+                        }
+                        break;
+                    }
+                    case 'dirt': {
+                        if(m.ticks % m.extra_data.max_ticks == 0) {
+                            updated_blocks.push({pos: new Vector(v.pos), item: {id: 2}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
                             // Delete completed block from tickings
                             this.deleteTickingBlock(v.pos);
                         }

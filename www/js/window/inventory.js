@@ -97,6 +97,26 @@ export default class InventoryWindow extends BaseCraftWindow {
             ct.add(btnClose);
         });
 
+        // Hook for keyboard input
+        this.onKeyEvent = (e) => {
+            const {keyCode, down, first} = e;
+            switch(keyCode) {
+                case KEY.E:
+                case KEY.ESC: {
+                    if(!down) {
+                        ct.hide();
+                        try {
+                            Game.setupMousePointer(true);
+                        } catch(e) {
+                            console.error(e);
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 
     addPlayerBox() {

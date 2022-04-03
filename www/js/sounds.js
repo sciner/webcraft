@@ -13,7 +13,7 @@ export class Sounds {
     }
 
     async add(item) {
-        for(let action of ['dig', 'place', 'open', 'close', 'hit']) {
+        for(let action of ['dig', 'place', 'open', 'close', 'hit', 'eat', 'burp', 'fuse', 'break', 'explode', 'click', 'hurt', 'strong_atack']) {
             if(item.hasOwnProperty(action)) {
                 let volume = 1.;
                 if(action == 'hit') {

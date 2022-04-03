@@ -24,15 +24,17 @@ export class Mob {
         this.type           = params.type;
         this.skin           = params.skin;
         this.indicators     = params.indicators;
-        this.pos            = params.pos;
+        this.pos            = new Vector(params.pos);
         this.pos_spawn      = params.pos_spawn;
-        this.rotate         = params.rotate;
+        this.rotate         = new Vector(params.rotate);
         // Private properties
         this.#chunk_addr    = new Vector();
         this.#forward       = new Vector(0, 1, 0);
         this.#brain         = Brains.get(this.type, this);
+        this.width          = this.#brain.pc.physics.playerHalfWidth * 2;
+        this.height         = this.#brain.pc.physics.playerHeight;
         // Сохраним моба в глобальном хранилище, чтобы не пришлось искать мобов по всем чанкам
-        world.mobs.set(this.entity_id, this);
+        world.mobs.set(this.id, this);
         this.save_offset = Math.round(Math.random() * this.save_per_tick);
     }
 
@@ -54,6 +56,13 @@ export class Mob {
 
     // Create new mob
     static async create(world, params) {
+        let model = world.models.list.get(params.type);
+        if(!model) {
+            throw "Can't locate model for: " + params.type;
+        }
+        if(!(params.skin in model.skins)) {
+            throw "Can't locate skin for: " + params.type + '/' + params.skin;
+        }
         params.indicators = world.db.getDefaultPlayerIndicators();
         let result = await world.db.createMob(params);
         params.id = result.id;
@@ -69,6 +78,11 @@ export class Mob {
         }
     }
 
+    addVelocity(vec) {
+        this.#brain.pc.player_state.vel.addSelf(vec);
+        this.#brain.pc.tick(0);
+    }
+
     // Save mob state to DB
     save() {
         this.#world.db.saveMob(this);
@@ -78,6 +92,18 @@ export class Mob {
         console.log('Mob unloaded: ' + this.entity_id);
         this.save();
         this.#world.mobs.delete(this.entity_id);
+    }
+
+    punch(server_player, params) {
+        // console.log('params.interractMob id:', mob);
+        console.log('live', this.indicators.live.value);
+        // Add velocity for drop item
+        let velocity = new Vector(0, 0.5, 0);
+        this.addVelocity(velocity);
+        this.#brain.panic = true;
+        setTimeout(() => {
+            this.#brain.panic = false;
+        }, 3000);
     }
 
 }

@@ -11,7 +11,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -20,7 +20,7 @@ export default class style {
         const cardinal_direction = block.getCardinalDirection();
 
         // Texture color multiplier
-        if(block.id == BLOCK.DIRT.id) {
+        if(block.id == BLOCK.GRASS_DIRT.id) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
         }
 

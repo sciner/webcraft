@@ -1,9 +1,62 @@
 import {MULTIPLY, DIRECTION, Color, Vector, QUAD_FLAGS} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
-import {pushTransformed} from '../block_style/cube.js';
 
-// const {mat4} = glMatrix;
 const {mat3, mat4} = glMatrix;
+
+const defaultPivot = [0.5, 0.5, 0.5];
+const defaultMatrix = mat3.create();
+
+export function pushTransformed(
+    vertices, mat, pivot,
+    cx, cz, cy,
+    x0, z0, y0,
+    ux, uz, uy,
+    vx, vz, vy,
+    c0, c1, c2, c3,
+    r, g, b,
+    flags
+) {
+    pivot = pivot || defaultPivot;
+    cx += pivot[0];
+    cy += pivot[1];
+    cz += pivot[2];
+    x0 -= pivot[0];
+    y0 -= pivot[1];
+    z0 -= pivot[2];
+
+    mat = mat || defaultMatrix;
+
+    let tx = 0;
+    let ty = 0;
+    let tz = 0;
+
+    // unroll mat4 matrix to mat3 + tx, ty, tz
+    if (mat.length === 16) {
+        mat3.fromMat4(tempMatrix, mat);
+
+        tx = mat[12];
+        ty = mat[14]; // flip
+        tz = mat[13]; // flip
+
+        mat = tempMatrix;
+    }
+
+    vertices.push(
+        cx + x0 * mat[0] + y0 * mat[1] + z0 * mat[2] + tx,
+        cz + x0 * mat[6] + y0 * mat[7] + z0 * mat[8] + ty,
+        cy + x0 * mat[3] + y0 * mat[4] + z0 * mat[5] + tz,
+
+        ux * mat[0] + uy * mat[1] + uz * mat[2],
+        ux * mat[6] + uy * mat[7] + uz * mat[8],
+        ux * mat[3] + uy * mat[4] + uz * mat[5],
+
+        vx * mat[0] + vy * mat[1] + vz * mat[2],
+        vx * mat[6] + vy * mat[7] + vz * mat[8],
+        vx * mat[3] + vy * mat[4] + vz * mat[5],
+
+        c0, c1, c2, c3, r, g, b, flags
+    );
+}
 
 // World
 class FakeCloudWorld {
@@ -60,7 +113,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome) {
+    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome, unknown, matrix, pivot, force_tex) {
         _x *= 2;
         _y *= 2;
         _z *= 2;
@@ -73,11 +126,15 @@ export default class style {
             texture_id = material.texture.id;
         }
 
+        if(force_tex && force_tex?.id) {
+            texture_id = force_tex.id;
+        }
+
         let tex = resource_pack.textures.get(texture_id);
         // Texture
-        const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD);
+        const c = BLOCK.calcMaterialTexture(material, DIRECTION.FORWARD, null, null, null, force_tex);
         if(!tex) {
-            console.log(block.id);
+            console.error(block.id);
         }
 
         let world = new FakeCloudWorld();
@@ -102,14 +159,14 @@ export default class style {
         const MUL               = 2; // Масштабирование получившейся фигуры
         const SCALE_FACTOR      = tex_w / MUL; // Сколько кубов умещается в 1-м
         const TEX_WIDTH_HALF    = tex_w / 2 * MUL;
-        let matrix              = mat3.create();
+        matrix                  = mat3.create();
         let scale               = new Vector(1, 1, tex_w / 32).divScalar(SCALE_FACTOR);
         mat4.scale(matrix, matrix, scale.toArray());
 
         // Size of one texture pixel
         const ts = tex.width / tex.tx_cnt;
 
-        let force_tex = [
+        force_tex = [
             c[0],
             c[1],
             0,

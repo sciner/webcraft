@@ -47,7 +47,7 @@ export class WebGLCubeShader extends WebGLUniversalShader {
         // we already can use uniforms
         // make only set default values
         this._makeUniforms({
-            'u_texture': this.texture, // load default texture to 0 slot
+            // 'u_texture': this.texture, // load default texture to 0 slot
             'u_viewMatrix': new Float32Array(16),
             'u_projMatrix': new Float32Array(16),
             'u_resolution': [1, 1],

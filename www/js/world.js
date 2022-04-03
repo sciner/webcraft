@@ -3,20 +3,19 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
-import {Particles_Painting} from "./particles/painting.js";
 
 /**
  * World generation unfo passed from server
  * @typedef {Object} TWorldInfo
  * @property {{id: string}} generator
- * @property {string} game_mode 
+ * @property {string} game_mode
  * @property {string} guid
  * @property {number} id
  * @property {{x: number, y: number, z: number}} pos_spawn
  * @property {string} seed
  * @property {Object} state
  * @property {string} title
- * @property {number} user_id 
+ * @property {number} user_id
  */
 
 // World container
@@ -24,13 +23,13 @@ export class World {
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
-    constructor(settings) {
+    constructor() {
+
         /**
          * @type {TWorldInfo}
          */
         this.info = null;
         this.localPlayer = null;
-        this.settings = settings;
         this.serverTimeShift = 0;
         this.latency = 0;
 
@@ -74,15 +73,18 @@ export class World {
             this.server = new ServerClient(ws);
             // Add listeners for server commands
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
-                this.hello = cmd; 
+                this.hello = cmd;
                 console.log(cmd.data);
-
                 this.queryTimeSync();
             });
 
             this.server.AddCmdListener([ServerClient.CMD_WORLD_INFO], (cmd) => {
-                this.setInfo(cmd.data);
+                this.setInfo(cmd);
                 res(cmd);
+            });
+
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_UPDATE_INFO], (cmd) => {
+                this.updateInfo(cmd);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
@@ -91,9 +93,9 @@ export class World {
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
-            this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
-                    Game.render.meshes.add(new Particles_Painting(params));
+                    TrackerPlayer.stop(params.pos);
                 }
             });
 
@@ -111,10 +113,11 @@ export class World {
     }
 
     // Это вызывается после того, как пришло состояние игрока от сервера после успешного подключения
-    setInfo(info) {
-        this.info                   = info;
-        this.dt_connected           = performance.now(); // Время, когда произошло подключение к серверу
- 
+    setInfo({data: info, time}) {
+        this.info           = info;
+        this.dt_connected   = time; // Серверное время, когда произошло подключение к серверу!
+        this.dt_update_time = time;
+
         // Init
         this.players.init();
         this.chunkManager.init();
@@ -122,21 +125,34 @@ export class World {
         this.drop_items.init();
     }
 
+    updateInfo({data: info, time}) {
+        this.info = info;
+        this.dt_update_time = time;
+    }
+
     joinPlayer(player) {}
 
     // Возвращает игровое время
     getTime() {
-        if(!this.world_state) {
+        if(!this.info?.calendar) {
             return null;
         }
-        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
-        let hours = time / 1000 | 0;
-        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
-        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
-        let hours_string = hours > 9 ? hours : '0' + hours;
+
+        const {
+            day_time, age
+        } = this.info.calendar;
+
+        const add       = (this.serverTime - this.dt_update_time) / 1000 / 1200 * 24000;
+        const time      = (day_time + add) % 24000;
+
+        const hours = time / 1000 | 0;
+        const minutes = (time - hours * 1000) / 1000 * 60 | 0;
+        const minutes_string = minutes.toFixed(0).padStart(2, '0');
+        const hours_string   = hours.toFixed(0).padStart(2, '0');
+
         return {
-            day:        this.world_state.age,
+            time:       time, // max value is 24_000
+            day:        age,
             hours:      hours,
             minutes:    minutes,
             string:     hours_string + ':' + minutes_string
@@ -146,4 +162,27 @@ export class World {
     getBlock(x, y, z) {
         return this.chunkManager.getBlock(x, y, z);
     }
+
+    // Change block extra_data
+    changeBlockExtraData(pos, extra_data) {
+        const e = {
+            id: +new Date(),
+            pos: pos, // {x: pos.x, y: pos.y, z: pos.z, n: Vector.ZERO, point: Vector.ZERO},
+            createBlock: false,
+            destroyBlock: false,
+            cloneBlock: false,
+            changeExtraData: true,
+            start_time: performance.now(),
+            shift_key: false,
+            button_id: MOUSE.BUTTON_RIGHT,
+            number: 1,
+            extra_data: extra_data
+        };
+        // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+        this.server.Send({
+            name: ServerClient.CMD_PICKAT_ACTION,
+            data: e
+        });
+    }
+
 }

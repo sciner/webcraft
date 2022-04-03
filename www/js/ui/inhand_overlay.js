@@ -89,7 +89,8 @@ export class InHandOverlay {
     }
 
     update (render, dt) {
-        dt /= 1000;
+
+        dt /= 20;
 
         const {
             player, renderBackend, camera

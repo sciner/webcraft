@@ -12,6 +12,7 @@ import Particles_Block_Drop from "./particles/block_drop.js";
 import { Particles_Asteroid } from "./particles/asteroid.js";
 import Particles_Raindrop from "./particles/raindrop.js";
 import Particles_Clouds from "./particles/clouds.js";
+
 import {MeshManager} from "./mesh_manager.js";
 import { Camera } from "./camera.js";
 import { InHandOverlay } from "./ui/inhand_overlay.js";
@@ -30,7 +31,7 @@ export const ZOOM_FACTOR        = 0.25;
 const BACKEND                   = 'webgl'; // disable webgpu temporary because require update to follow webgl
 const FOV_CHANGE_SPEED          = 75;
 const FOV_FLYING_CHANGE_SPEED   = 35;
-const FOV_NORMAL                = 75;
+const FOV_NORMAL                = 65;
 const FOV_FLYING                = FOV_NORMAL * 1.075;
 const FOV_WIDE                  = FOV_NORMAL * 1.15;
 const FOV_ZOOM                  = FOV_NORMAL * ZOOM_FACTOR;
@@ -57,7 +58,7 @@ export class Renderer {
         this.prevCamPos         = new Vector(0, 0, 0);
         this.prevCamRotate      = new Vector(0, 0, 0);
         this.frame              = 0;
-        this.env                = new Environment();
+        this.env                = new Environment(this);
 
         this.renderBackend = rendererProvider.getRenderer(
             this.canvas,
@@ -207,9 +208,12 @@ export class Renderer {
 
         const extruded = [];
         const regular = Array.from(all_blocks.values()).map((block, i) => {
-            const draw_style = block.inventory_style
+            let draw_style = block.inventory_style
                 ? block.inventory_style 
                 : block.style;
+            if('inventory' in block) {
+                draw_style = block.inventory.style;
+            }
             // pass extruded manually
             if (draw_style === 'extruder') {
                 block.inventory_icon_id = inventory_icon_id++;
@@ -252,8 +256,7 @@ export class Renderer {
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
         // larg for valid render results 
-        gu.testLightOn = true;
-        gu.fogColor = [0, 0, 0, 1];
+        gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
         gu.resolution = [target.width, target.height];
@@ -332,12 +335,18 @@ export class Renderer {
 
                 const resource_pack = material.resource_pack;
                 let texture_id = 'default';
-                if(typeof material.texture == 'object' && 'id' in material.texture) {
-                    texture_id = material.texture.id;
+                let texture = material.texture;
+                if('inventory' in material) {
+                    if('texture' in material.inventory) {
+                        texture = material.inventory.texture;
+                    }
+                }
+                if(typeof texture == 'object' && 'id' in texture) {
+                    texture_id = texture.id;
                 }
                 const tex = resource_pack.textures.get(texture_id);
                 // let imageData = tex.imageData;
-                const c = BLOCK.calcTexture(material.texture, DIRECTION.FORWARD, tex.tx_cnt);
+                const c = BLOCK.calcTexture(texture, DIRECTION.FORWARD, tex.tx_cnt);
 
                 let tex_w = Math.round(c[2] * tex.width);
                 let tex_h = Math.round(c[3] * tex.height);
@@ -429,9 +438,17 @@ export class Renderer {
         }
     }
 
-    update (delta, args) {
+    update(delta, args) {
+
         this.frame++;
-        
+
+        // Add jukebox animations
+        for(let [pos, disc] of TrackerPlayer.vc.entries()) {
+            if(Math.random() < .1) {
+                Game.render.meshes.addEffectParticle('music_note', pos);
+            }
+        }
+
         // this.env.computeFogRelativeSun();
         // todo - refact this
         // viewport is context-dependent
@@ -515,7 +532,7 @@ export class Renderer {
         globalUniforms.update();
 
         renderBackend.beginPass({
-            fogColor : this.env.actualFogColor
+            fogColor : this.env.interpolatedClearValue
         });
 
         this.env.draw(this);
@@ -549,7 +566,7 @@ export class Renderer {
             }
         }
 
-        if(!player.game_mode.isSpectator()) {
+        if(!player.game_mode.isSpectator() && Game.hud.active) {
             this.drawInhandItem(delta);
         }
 
@@ -635,13 +652,23 @@ export class Renderer {
 
     // drawMobs
     drawMobs(delta) {
-        if(this.world.mobs.list.size < 1) {
+        const mobs_count = this.world.mobs.list.size;
+        if(mobs_count < 1) {
             return;
         }
         const {renderBackend, defaultShader} = this;
         defaultShader.bind();
+        let prev_chunk = null;
+        let prev_chunk_addr = new Vector();
         for(let [id, mob] of this.world.mobs.list) {
-            mob.draw(this, this.camPos, delta);
+            const ca = mob.chunk_addr;
+            if(!prev_chunk || !prev_chunk_addr.equal(ca)) {
+                prev_chunk_addr.copyFrom(ca);
+                prev_chunk = this.world.chunkManager.getChunk(ca);
+            }
+            if(prev_chunk && prev_chunk.in_frustum) {
+                mob.draw(this, this.camPos, delta);
+            }
         }
     }
 
@@ -720,8 +747,10 @@ export class Renderer {
         this.frustum.setFromProjectionMatrix(this.camera.viewProjMatrix, this.camera.pos);
     }
 
+    /*
     // Original bobView
     bobView(viewMatrix, p_109140_) {
+        console.log(34567);
         let player = this.world.localPlayer;
         if(player) {
             let f = player.walkDist - player.walkDistO;
@@ -738,7 +767,7 @@ export class Renderer {
                 0
             ]);
         }
-    }
+    }*/
 
     // Original bobView
     bobView(player, viewMatrix, forDrop = false) {

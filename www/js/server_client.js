@@ -45,7 +45,12 @@ export class ServerClient {
 	static CMD_PLAY_SOUND               = 85;
 	static CMD_PARTICLE_BLOCK_DESTROY   = 87;
 	static CMD_PICKAT_ACTION            = 88;
-	static CMD_CREATE_PAINTING          = 89;
+    static CMD_STOP_PLAY_DISC           = 91;
+	static CMD_WORLD_UPDATE_INFO        = 92;
+
+    // Quests
+    static CMD_QUEST_GET_ENABLED        = 93
+	static CMD_QUEST_ALL                = 94;
 
     // Furnace / Печь
     static CMD_LOAD_FURNACE             = 91;
@@ -81,8 +86,14 @@ export class ServerClient {
         this.ping_time                  = null;
         this.ping_value                 = null;
         this.stat                       = {
-            out_packets: {},
-            in_packets: {}
+            out_packets: {
+                total: 0
+            },
+            in_packets: {
+                size: 0,
+                physical: 0,
+                total: 0
+            }
         };
         // Commands listeners
         this.cmdListeners               = new Map();
@@ -252,6 +263,8 @@ export class ServerClient {
             return;
         }
         //
+        this.stat.in_packets.physical++;
+        this.stat.in_packets.size += event.data.length;
         for(let cmd of cmds) {
             // console.log('server > ' + ServerClient.getCommandTitle(cmd.name));
             // stat
@@ -260,7 +273,8 @@ export class ServerClient {
             }
             let in_packets = this.stat.in_packets[cmd.name];
             in_packets.count++;
-            in_packets.size += event.data.length;
+            this.stat.in_packets.total++;
+            in_packets.size += JSON.stringify(cmd).length;
             //
             let listeners = null;
             if('user_guid' in cmd) {
@@ -306,6 +320,7 @@ export class ServerClient {
             }
             let out_packets = this.stat.out_packets[packet.name];
             out_packets.count++;
+            this.stat.out_packets.total++;
             out_packets.size += json.length;
             this.ws.send(json);
         }, 0);
@@ -338,8 +353,8 @@ export class ServerClient {
     }
 
     // Запрос содержимого сундука
-    LoadChest(entity_id) {
-        this.Send({name: ServerClient.CMD_LOAD_CHEST, data: {entity_id: entity_id}});
+    LoadChest(info) {
+        this.Send({name: ServerClient.CMD_LOAD_CHEST, data: info});
     }
 
     // Запрос содержимого печки
@@ -406,6 +421,10 @@ export class ServerClient {
         this.Send({name: ServerClient.CMD_DROP_ITEM, data: {
             hand: 1
         }});
+    }
+
+    LoadQuests() {
+        this.Send({name: ServerClient.CMD_QUEST_GET_ENABLED, data: null});
     }
 
 }

@@ -7,7 +7,7 @@ import uuid from 'uuid';
 
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
-import {ServerGame} from "./server_ws.js";
+import {ServerGame} from "./server_game.js";
 import {ServerStatic} from "./server_static.js";
 import {ServerAPI} from "./server_api.js";
 import {PluginManager} from "./plugin_manager.js";

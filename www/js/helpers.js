@@ -1,5 +1,9 @@
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
+import {default as runes} from "../vendors/runes.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
 
 export const TX_CNT = 32;
 
@@ -17,11 +21,11 @@ export const TX_CNT = 32;
 
 /**
  * Lerp any value between
- * @param {*} a 
- * @param {*} b 
- * @param {number} t 
- * @param {*} res 
- * @returns 
+ * @param {*} a
+ * @param {*} b
+ * @param {number} t
+ * @param {*} res
+ * @returns
  */
 export function lerpComplex (a, b, t, res) {
     const typeA = typeof a;
@@ -47,7 +51,7 @@ export function lerpComplex (a, b, t, res) {
         res = res || [];
 
         for (let i = 0; i < Math.min(a.length, b.length); i ++) {
-            res[i] = a[i] * (1 - t) + b[i] * t;            
+            res[i] = a[i] * (1 - t) + b[i] * t;
         }
 
         return res;
@@ -56,7 +60,7 @@ export function lerpComplex (a, b, t, res) {
     res = res || {};
 
     for (const key in a) {
-        
+
         res[key] = lerpComplex(
             a[key],
             b[key],
@@ -71,11 +75,11 @@ export function lerpComplex (a, b, t, res) {
 export class Mth {
     /**
      * Lerp any value between
-     * @param {*} a 
-     * @param {*} b 
-     * @param {number} t 
-     * @param {*} res 
-     * @returns 
+     * @param {*} a
+     * @param {*} b
+     * @param {number} t
+     * @param {*} res
+     * @returns
      */
     static lerpComplex = lerpComplex;
 
@@ -94,10 +98,10 @@ export class Mth {
     }
 
     static clamp (value, min, max) {
-        return value < min 
+        return value < min
             ? min : (
-                value > max 
-                    ? max 
+                value > max
+                    ? max
                     : value
             );
     }
@@ -108,22 +112,22 @@ export class Mth {
 
     /**
      * Compute a distance between over minimal arc
-     * @param {number} current 
-     * @param {number} target 
-     * @returns {number} 
+     * @param {number} current
+     * @param {number} target
+     * @returns {number}
      */
     static deltaAngle(current, target) {
         const delta = Mth.repeat((target - current), 360.0);
 
-        return delta > 180 
-            ? delta - 360.0 
+        return delta > 180
+            ? delta - 360.0
             : delta;
     }
 
     /**
      * Lerp angle with over minimal distance
-     * @param {number} a - start angle 
-     * @param {number} b - target angle 
+     * @param {number} a - start angle
+     * @param {number} b - target angle
      * @param {number} t - lerp factor
      * @returns {number}
      */
@@ -155,6 +159,28 @@ export class VectorCollector {
                 }
             }
         }
+    }
+
+    entries(aabb) {
+        const that = this;
+        return (function* () {
+            let vec = new Vector(0, 0, 0);
+            for (let [xk, x] of that.list) {
+                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
+                for (let [yk, y] of x) {
+                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
+                    for (let [zk, value] of y) {
+                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
+                        vec.set(xk|0, yk|0, zk|0);
+                        yield [vec, value];
+                    }
+                }
+            }
+        })()
+    }
+
+    kvpIterator(aabb) {
+        return this.entries(aabb);
     }
 
     clear(list) {
@@ -308,6 +334,14 @@ export class Color {
         return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
     }
 
+    clone() {
+        return new Color(this.r, this.g, this.b, this.a);
+    }
+
+    toArray() {
+        return [this.r, this.g, this.b, this.a];
+    }
+
 }
 
 export class Vector {
@@ -323,32 +357,55 @@ export class Vector {
     static ZP = new Vector(0.0, 0.0, 1.0);
     static ZERO = new Vector(0.0, 0.0, 0.0);
 
+    /**
+     *
+     * @param {Vector | {x: number, y: number, z: number} | number[]} [x]
+     * @param {number} [y]
+     * @param {number} [z]
+     */
     constructor(x, y, z) {
+        this.x = 0;
+        this.y = 0;
+        this.z = 0;
 
-        /*Vector.cnt++;
-        if(typeof window !== 'undefined') {
-            var err = new Error();
-            let stack = err.stack + '';
-            if(!Vector.traces.has(stack)) {
-                Vector.traces.set(stack, {count: 0});
-            }
-            Vector.traces.get(stack).count++;
-        }*/
+        this.set(x, y, z);
+    }
 
-        if(x instanceof Vector) {
-            this.x = x.x;
-            this.y = x.y;
-            this.z = x.z;
-            return;
-        } else if(typeof x == 'object') {
-            this.x = x.x;
-            this.y = x.y;
-            this.z = x.z;
-            return;
-        }
-        this.x = x || 0;
-        this.y = y || 0;
-        this.z = z || 0;
+    //Array like proxy for usign it in gl-matrix
+    get [0]() {
+        return this.x;
+    }
+
+    set [0](v) {
+        this.x = v;
+    }
+
+    get [1]() {
+        return this.y;
+    }
+
+    set [1](v) {
+        this.y = v;
+    }
+
+    get [2]() {
+        return this.z;
+    }
+
+    set [2](v) {
+        this.z = v;
+    }
+
+    // array like iterator
+    *[Symbol.iterator]() {
+        yield this.x;
+        yield this.y;
+        yield this.z;
+    }
+
+    // array like object lenght
+    get length() {
+        return 3;
     }
 
     /**
@@ -389,8 +446,8 @@ export class Vector {
      * @return {void}
      */
     lerpFromAngle(vec1, vec2, delta, rad = false) {
-        const coef = rad 
-            ? 180 / Math.PI 
+        const coef = rad
+            ? 180 / Math.PI
             : 1;
 
         this.x = Mth.lerpAngle(vec1.x * coef, vec2.x * coef, delta) / coef;
@@ -496,6 +553,23 @@ export class Vector {
         return vec1.sub(vec2).length();
     }
 
+
+    // distancePointLine...
+    distanceToLine(line_start, line_end, intersection = null) {
+        intersection = intersection || new Vector(0, 0, 0);
+        let dist = line_start.distance(line_end);
+        let u = (((this.x - line_start.x) * (line_end.x - line_start.x)) +
+            ((this.y - line_start.y) * (line_end.y - line_start.y)) +
+            ((this.z - line_start.z) * (line_end.z - line_start.z))) /
+            (dist * dist);
+        if(u < 0) u = 0;
+        if(u > 1) u = 1;
+        intersection.x = line_start.x + u * (line_end.x - line_start.x);
+        intersection.y = line_start.y + u * (line_end.y - line_start.y);
+        intersection.z = line_start.z + u * (line_end.z - line_start.z);
+        return this.distance(intersection);
+    }
+
     /**
      * @return {Vector}
      */
@@ -524,18 +598,21 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    round() {
-        return new Vector(
-            Math.round(this.x),
-            Math.round(this.y),
-            Math.round(this.z)
-        );
+    round(decimals) {
+        return this.roundSelf(decimals).clone();
     }
 
     /**
      * @returns {Vector}
      */
-    roundSelf() {
+    roundSelf(decimals) {
+        if(decimals) {
+            decimals = Math.pow(10, decimals);
+            this.x = Math.round(this.x * decimals) / decimals;
+            this.y = Math.round(this.y * decimals) / decimals;
+            this.z = Math.round(this.z * decimals) / decimals;
+            return this;
+        }
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);
@@ -638,10 +715,21 @@ export class Vector {
         return this;
     }
 
-    set(x, y, z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    /**
+     *
+     * @param {Vector | {x: number, y: number, z: number} | number[]} x
+     * @param {number} [y]
+     * @param {number} [z]
+     */
+    set(x, y = x, z = x) {
+        if (typeof x == "object" && x) {
+            return this.copy(x);
+        }
+
+        // maybe undef
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
         return this;
     }
 
@@ -656,6 +744,13 @@ export class Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
+        return this;
+    }
+
+    divScalarVec(vec) {
+        this.x /= vec.x;
+        this.y /= vec.y;
+        this.z /= vec.z;
         return this;
     }
 
@@ -677,6 +772,35 @@ export class Vector {
         return volx * voly * volz;
     }
 
+    /**
+     *
+     * @param {Vector | number[] | {x: number, y: number, z: number}} from
+     */
+    copy(from) {
+        if (from == null) {
+            return this;
+        }
+
+        // array like object with length 3 or more
+        // for gl-matix
+        if (from.length >= 3) {
+            this.x = from[0];
+            this.y = from[1];
+            this.z = from[2];
+
+            return this;
+        }
+
+        // object is simple and has x, y, z props
+        if ('x' in from) {
+            this.x = from.x;
+            this.y = from.y;
+            this.z = from.z;
+        }
+
+        return this;
+    }
+
 }
 
 export class Vec3 extends Vector {}
@@ -689,9 +813,11 @@ export let MULTIPLY = {
 };
 
 export let QUAD_FLAGS = {}
-    QUAD_FLAGS.NORMAL_UP = 1;
-    QUAD_FLAGS.MASK_BIOME = 2;
-    QUAD_FLAGS.NO_AO = 4;
+    QUAD_FLAGS.NORMAL_UP = 1 << 0;
+    QUAD_FLAGS.MASK_BIOME = 1 << 1;
+    QUAD_FLAGS.NO_AO = 1 << 2;
+    QUAD_FLAGS.NO_FOG = 1 << 3;
+    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
@@ -716,6 +842,19 @@ export let DIRECTION = {};
     DIRECTION.RIGHT     = CubeSym.ROT_Y3;
     DIRECTION.FORWARD   = CubeSym.ID;
     DIRECTION.BACK      = CubeSym.ROT_Y2;
+    // Aliases
+    DIRECTION.WEST      = DIRECTION.LEFT;
+    DIRECTION.EAST      = DIRECTION.RIGHT
+    DIRECTION.NORTH     = DIRECTION.FORWARD;
+    DIRECTION.SOUTH     = DIRECTION.BACK;
+
+export let DIRECTION_BIT = {};
+    DIRECTION_BIT.UP    = 0;
+    DIRECTION_BIT.DOWN  = 1;
+    DIRECTION_BIT.EAST  = 2;
+    DIRECTION_BIT.WEST  = 3;
+    DIRECTION_BIT.NORTH = 4;
+    DIRECTION_BIT.SOUTH = 5;
 
 // Direction names
 export let DIRECTION_NAME = {};
@@ -959,7 +1098,7 @@ if(typeof fetch === 'undefined') {
         // then we can use this inside a worker
         if (useCache) {
             const text = await respt.text();
-            
+
             Helpers.cache.set(cacheKey, text);
 
             return JSON.parse(text);
@@ -1127,4 +1266,196 @@ export class FastRandom {
         return this.int32s[offset];
     }
 
+}
+
+export class RuneStrings {
+
+    static toArray(str) {
+        return runes(str);
+    }
+
+    // Разделяет слово на строки, в которых максимум указанное в [chunk] количество букв (с учётом emoji)
+    static toChunks(str, chunk) {
+        const rs = runes(str);
+        if(rs.length > chunk) {
+            let i, j, resp = [];
+            for (i = 0, j = rs.length; i < j; i += chunk) {
+                resp.push(rs.slice(i, i + chunk).join(''));
+            }
+            return resp;
+        }
+        return [str];
+    }
+
+    // Разделяет длинные слова пробелами (с учётом emoji)
+    static splitLongWords(str, max_len) {
+        let text = str.replaceAll("\r", "¡");
+        let temp = text.split(' ');
+        for(let i in temp) {
+            let word = temp[i];
+            if(word) {
+                temp[i] = RuneStrings.toChunks(word, max_len).join(' ');
+            }
+        }
+        return temp.join(' ').replaceAll("¡", "\r");
+    }
+
+}
+
+// AlphabetTexture
+export class AlphabetTexture {
+
+    static width            = 1024;
+    static height           = 1024;
+    static char_size        = {width: 32, height: 32};
+    static char_size_norm   = {width: this.char_size.width / this.width, height: this.char_size.height / this.height};
+    static chars            = new Map();
+
+    static default_runes = RuneStrings.toArray('�•█—абвгдеёжзийклмнопрстуфхцчшщъыьэюя АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789~`@#№$;:\\/*-+()[]{}-^_&?!%=<>.,|"\'abcdefghjiklmnopqrstuvwxyzABCDEFGHJIKLMNOPQRSTUVWXYZ😂😃🧘🏻‍♂️🌍🌦️🚗📞🎉❤️🍆🏁💩👨‍👩‍👧‍👦👨‍👦‍👦👨‍👧‍👧👍👍🏾');
+
+    static init() {
+        if(this.chars_x) {
+            return false;
+        }
+        this.chars_x = Math.floor(this.width / this.char_size.width);
+        this.getStringUVs(AlphabetTexture.default_runes.join(''), true);
+    }
+
+    static indexToPos(index) {
+        const x = (index % this.chars_x) * this.char_size.width;
+        const y = Math.floor(index / this.chars_x) * this.char_size.height;
+        return {x: x, y: y};
+    }
+
+    static getStringUVs(str, init_new) {
+        this.init();
+        let chars = RuneStrings.toArray(str);
+        let resp = [];
+        for(let char of chars) {
+            if(init_new && !this.chars.has(char)) {
+                const index = this.chars.size;
+                let pos = this.indexToPos(index);
+                pos.xn = pos.x / this.width;
+                pos.yn = pos.y / this.height;
+                pos.char = char;
+                pos.index = index;
+                this.chars.set(char, pos);
+            }
+            let item = this.chars.has(char) ? this.chars.get(char) : this.chars.get('�');
+            if(char == "\r") {
+                item.char = char;
+            }
+            resp.push(item);
+        }
+        return resp;
+    }
+
+}
+
+export function fromMat3(a, b) {
+    a[ 0] = b[ 0];
+    a[ 1] = b[ 1];
+    a[ 2] = b[ 2];
+
+    a[ 4] = b[ 3];
+    a[ 5] = b[ 4];
+    a[ 6] = b[ 5];
+
+    a[ 8] = b[ 6];
+    a[ 9] = b[ 7];
+    a[10] = b[ 8];
+
+    a[ 3] = a[ 7] = a[11] =
+    a[12] = a[13] = a[14] = 0;
+    a[15] = 1.0;
+
+    return a;
+}
+
+// calcRotateMatrix
+export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
+    // Can rotate
+    if(material.can_rotate) {
+        //
+        if(rotate) {
+
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+                /*
+                // Use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+                */
+            } else if(rotate.y != 0) {
+                if(material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                    matrix = mat4.create();
+                    if(rotate.y == 1) {
+                        // on the floor
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
+                    } else {
+                        // on the ceil
+                        mat4.rotateZ(matrix, matrix, Math.PI);
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
+                    }
+                }
+            }
+        }
+    }
+    return matrix;
+}
+
+function toType(a) {
+    // Get fine type (object, array, function, null, error, date ...)
+    return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
+}
+
+function isDeepObject(obj) {
+    return "Object" === toType(obj);
+}
+
+export function deepAssign(options) {
+    return function deepAssignWithOptions (target, ...sources) {
+        sources.forEach( (source) => {
+
+            if (!isDeepObject(source) || !isDeepObject(target))
+                return;
+
+            // Copy source's own properties into target's own properties
+            function copyProperty(property) {
+                const descriptor = Object.getOwnPropertyDescriptor(source, property);
+                //default: omit non-enumerable properties
+                if (descriptor.enumerable || options.nonEnum) {
+                    // Copy in-depth first
+                    if (isDeepObject(source[property]) && isDeepObject(target[property]))
+                        descriptor.value = deepAssign(options)(target[property], source[property]);
+                    //default: omit descriptors
+                    if (options.descriptors)
+                        Object.defineProperty(target, property, descriptor); // shallow copy descriptor
+                    else
+                        target[property] = descriptor.value; // shallow copy value only
+                }
+            }
+
+            // Copy string-keyed properties
+            Object.getOwnPropertyNames(source).forEach(copyProperty);
+
+            //default: omit symbol-keyed properties
+            if (options.symbols)
+                Object.getOwnPropertySymbols(source).forEach(copyProperty);
+
+            //default: omit prototype's own properties
+            if (options.proto)
+                // Copy souce prototype's own properties into target prototype's own properties
+                deepAssign(Object.assign({},options,{proto:false})) (// Prevent deeper copy of the prototype chain
+                    Object.getPrototypeOf(target),
+                    Object.getPrototypeOf(source)
+                );
+
+        });
+        return target;
+    }
 }

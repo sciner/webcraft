@@ -4,6 +4,8 @@ import {ServerChat} from "./server_chat.js";
 import {ChestManager} from "./chest_manager.js";
 import {WorldAdminManager} from "./admin_manager.js";
 import {ModelManager} from "./model_manager.js";
+import {PlayerEvent} from "./player_event.js";
+import {QuestManager} from "./quest/manager.js";
 
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
@@ -38,11 +40,13 @@ export class ServerWorld {
         this.chests         = new ChestManager(this);
         this.chat           = new ServerChat(this);
         this.chunks         = new ServerChunkManager(this);
+        this.quests         = new QuestManager(this);
         this.players        = new Map(); // new PlayerManager(this);
         this.mobs           = new Map(); // Store refs to all loaded mobs in the world
         this.all_drop_items = new Map(); // Store refs to all loaded drop items in the world
         this.models         = new ModelManager();
         this.models.init();
+        await this.quests.init();
         this.ticks_stat     = {
             pn: null,
             last: 0,
@@ -57,6 +61,7 @@ export class ServerWorld {
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                packets_queue_send: {min: Infinity, max: -Infinity, avg: 0, sum: 0}
             },
             start() {
                 this.pn = performance.now();
@@ -87,9 +92,48 @@ export class ServerWorld {
             }
         };
         //
+        this.packets_queue = {
+            list: new Map(),
+            add: function(user_ids, packets) {
+                for(let user_id of user_ids) {
+                    let arr = this.list.get(user_id);
+                    if(!arr) {
+                        arr = [];
+                        this.list.set(user_id, arr);
+                    }
+                    arr.push(...packets);
+                }
+            },
+            send: function() {
+                for(let [user_id, packets] of this.list) {
+                    // Group mob update packets
+                    let mob_update_packet = null;
+                    packets = packets.filter(p => {
+                        if(p.name == ServerClient.CMD_MOB_UPDATE) {
+                            if(!mob_update_packet) {
+                                mob_update_packet = {name: p.name, data: []}
+                            }
+                            mob_update_packet.data.push(
+                                p.data.id,
+                                p.data.pos.x, p.data.pos.y, p.data.pos.z,
+                                // p.data.rotate.x, p.data.rotate.y,
+                                p.data.rotate.z
+                            );
+                            return false;
+                        }
+                        return true;
+                    });
+                    if(mob_update_packet) {
+                        packets.push(mob_update_packet);
+                    }
+                    that.sendSelected(packets, [user_id], []);
+                }
+                this.list.clear();
+            }
+        };
+        //
         this.admins = new WorldAdminManager(this);
         await this.admins.load();
-        //
         await this.restoreModifiedChunks();
         await this.chunks.initWorker();
         //
@@ -140,17 +184,51 @@ export class ServerWorld {
                     const player = {
                         radius:     0.7,
                         height:     server_player.height,
+                        username:   server_player.session.username,
                         pos:        new Vector(server_player.state.pos),
                         rotate:     server_player.rotateDegree.clone()
                     };
-                    const actions = await doBlockAction(params, world, player, currentInventoryItem);
-                    // @todo Need to compare two actions
-                    // console.log(JSON.stringify(params.actions.blocks));
-                    // console.log(JSON.stringify(actions.blocks));
-                    await world.applyActions(server_player, actions);
+                    if(params.interractMob) {
+                        const mob = world.mobs.get(params.interractMob);
+                        if(mob) {
+                            mob.punch(server_player, params);
+                        }
+                    } else {
+                        const actions = await doBlockAction(params, world, player, currentInventoryItem);
+                        // @todo Need to compare two actions
+                        // console.log(JSON.stringify(params.actions.blocks));
+                        // console.log(JSON.stringify(actions.blocks));
+                        await world.applyActions(server_player, actions);
+                    }
                 }
             }
         };
+    }
+
+    getInfo() {
+        console.log(this.info);
+        this.updateWorldCalendar();
+        return this.info;
+    }
+
+    // updateWorldCalendar
+    updateWorldCalendar() {
+        this.info.calendar = {
+            age: null,
+            day_time: null,
+        };
+        const currentTime = ((+new Date()) / 1000) | 0;
+        // возраст в реальных секундах
+        const diff_sec = currentTime - this.info.dt;
+        // один игровой день в реальных секундах
+        const game_day_in_real_seconds = 86400 / GAME_ONE_SECOND // 1200
+        // возраст в игровых днях
+        let add = (this.info.add_time / GAME_DAY_SECONDS);
+        const age = diff_sec / game_day_in_real_seconds + add;
+        // возраст в ЦЕЛЫХ игровых днях
+        this.info.calendar.age = Math.floor(age);
+        // количество игровых секунд прошедших в текущем игровом дне
+        this.info.calendar.day_time = Math.round((age - this.info.calendar.age) * GAME_DAY_SECONDS);
     }
 
     // World tick
@@ -192,6 +270,10 @@ export class ServerWorld {
         }
         this.ticks_stat.add('chest_confirm_queue');
         //
+        this.packets_queue.send();
+        this.ticks_stat.add('packets_queue_send');
+        //
+        //
         this.ticks_stat.end();
         //
         let elapsed = performance.now() - started;
@@ -199,7 +281,7 @@ export class ServerWorld {
                 this.tick()
             }, 
             elapsed < 50 ? (50 - elapsed) : 0    
-        ); 
+        );
     }
 
     save() {
@@ -214,6 +296,7 @@ export class ServerWorld {
         player.init(await this.db.registerUser(this, player));
         player.state.skin = skin;
         player.updateHands();
+        await player.initQuests();
         // 2. Add new connection
         if (this.players.has(player.session.user_id)) {
             console.log('OnPlayer delete previous connection for: ' + player.session.username);
@@ -270,28 +353,6 @@ export class ServerWorld {
     }
 
     /**
-     * Возвращает игровое время
-     * @return {Object}
-     */
-    getTime() {
-        if(!this.world_state) {
-            return null;
-        }
-        let add = (performance.now() - this.dt_connected) / 1000 / 1200 * 24000 | 0;
-        let time = (this.world_state.day_time + 6000 + add) % 24000 | 0;
-        let hours = time / 1000 | 0;
-        let minutes = (time - hours * 1000) / 1000 * 60 | 0;
-        let minutes_string = minutes > 9 ? minutes : '0' + minutes;
-        let hours_string = hours > 9 ? hours : '0' + hours;
-        return {
-            day:        this.world_state.age,
-            hours:      hours,
-            minutes:    minutes,
-            string:     hours_string + ':' + minutes_string
-        };
-    }
-
-    /**
      * Send commands for all except player id list
      * @param {Object[]} packets
      * @param {number[]} except_players  ID of players
@@ -322,6 +383,12 @@ export class ServerWorld {
             if(player) {
                 player.sendPackets(packets);
             }
+        }
+    }
+
+    sendUpdatedInfo() {
+        for(let p of this.players.values()) {
+            p.sendWorldInfo(true);
         }
     }
 
@@ -383,6 +450,7 @@ export class ServerWorld {
         }
         player.state.pos                = new Vector(params.pos);
         player.state.rotate             = new Vector(params.rotate);
+        player.state.sneak              = !!params.sneak;
         player.position_changed         = true;
     }
 
@@ -393,8 +461,6 @@ export class ServerWorld {
                 throw 'error_not_permitted';
             }
             await this.createMob(params);
-            // let mob = await Mob.create(this, params);
-            // this.chunks.get(mob.chunk_addr)?.addMob(mob);
             return true;
         } catch(e) {
             console.log('e', e);
@@ -552,34 +618,26 @@ export class ServerWorld {
         if(actions.decrement_instrument) {
             server_player.inventory.decrement_instrument(actions.decrement_instrument);
         }
-        // Create painting
-        if(actions.create_painting) {
-            const params = actions.create_painting;
-            const pos = new Vector(params.aabb[0], params.aabb[1], params.aabb[2]).floored();
-            await this.db.createPainting(this, server_player, pos, params);
-            server_player.inventory.decrement();
-            const cps = getChunkPackets(pos);
-            if(cps) {
-                if(!cps.chunk) {
-                    throw 'error_chunk_not_loaded';
+        // Stop playing discs
+        if(Array.isArray(actions.stop_disc) && actions.stop_disc.length > 0) {
+            for(let params of actions.stop_disc) {
+                const cps = getChunkPackets(params.pos);
+                if(cps) {
+                    if(cps.chunk) {
+                        cps.packets.push({
+                            name: ServerClient.CMD_STOP_PLAY_DISC,
+                            data: actions.stop_disc
+                        });
+                    }
                 }
-                cps.chunk.addPaintings([params], false);
-                cps.packets.push({
-                    name: ServerClient.CMD_CREATE_PAINTING,
-                    data: [params]
-                });
             }
         }
         // Create drop items
         if(actions.drop_items && actions.drop_items.length > 0) {
-            if(server_player.game_mode.isSurvival()) {
-                for(let di of actions.drop_items) {
+            for(let di of actions.drop_items) {
+                if(di.force || server_player.game_mode.isSurvival()) {
                     // Add velocity for drop item
-                    this.temp_vec.set(
-                        0,
-                        .375,
-                        0,
-                    );
+                    this.temp_vec.set(0, .375, 0);
                     this.createDropItems(server_player, di.pos, di.items, this.temp_vec);
                 }
             }
@@ -591,8 +649,12 @@ export class ServerWorld {
             let chunk = null;
             const ignore_check_air = (actions.blocks.options && 'ignore_check_air' in actions.blocks.options) ? !!actions.blocks.options.ignore_check_air : false;
             const on_block_set = actions.blocks.options && 'on_block_set' in actions.blocks.options ? !!actions.blocks.options.on_block_set : true;
-            await this.db.TransactionBegin();
+            const use_tx = actions.blocks.list.length > 1;
+            if(use_tx) {
+                await this.db.TransactionBegin();
+            }
             try {
+                let all = [];
                 for(let params of actions.blocks.list) {
                     params.item = BLOCK.convertItemToDBItem(params.item);
                     chunk_addr = getChunkAddr(params.pos, chunk_addr);
@@ -600,7 +662,7 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
-                    await this.db.blockSet(this, null, params);
+                    all.push(this.db.blockSet(this, server_player, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);
                     if(chunk) {
@@ -641,13 +703,34 @@ export class ServerWorld {
                         if(on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
+                        if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
+                            PlayerEvent.trigger({
+                                type: PlayerEvent.DESTROY_BLOCK,
+                                player: server_player,
+                                data: {pos: params.pos, block_id: params.destroy_block_id}
+                            });
+                        } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                            if(server_player) {
+                                PlayerEvent.trigger({
+                                    type: PlayerEvent.SET_BLOCK,
+                                    player: server_player,
+                                    data: {pos: block_pos.clone(), block: params.item}
+                                });
+                            }
+                        }
                     } else {
-                        console.error('Chunk not found in pos', chunk_addr, params);
+                        // console.error('Chunk not found in pos', chunk_addr, params);
                     }
                 }
-                await this.db.TransactionCommit();
+                await Promise.all(all);
+                if(use_tx) {
+                    await this.db.TransactionCommit();
+                }
             } catch(e) {
-                await this.db.TransactionRollback();
+                console.log('error', e);
+                if(use_tx) {
+                    await this.db.TransactionRollback();
+                }
                 throw e;
             }
         }
