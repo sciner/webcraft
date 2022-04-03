@@ -311,44 +311,70 @@ export class Default_Terrain_Generator {
         }
     }
 
+    //Крона
+	plantCrown(options, chunk, x, y, z, size) {
+		let random = new alea(chunk.coord.add(new Vector(x, y + size, z)).toHash());
+		for (let p = 0; p <= size; ++p) {
+			let radius = size - p;
+			for (let i = -radius; i <= radius; ++i) {
+				for (let j = -radius; j <= radius; ++j) {
+					if ((random.double() < 0.5) && (Math.sqrt(i*i + j*j) <= radius)){
+						let block = this.getBlock(chunk, x + i, y + p, z + j);
+						if (block == null || block.id == 0)
+							this.setBlock(chunk, x + i, y + p, z + j, {id: options.type.leaves}, true);
+					}
+				}
+			}
+		}
+    }
+
     // Тестовое дерево
     plantTestTree(options, chunk, x, y, z) {
-        const TREE_HEIGHT = options.height; // рандомная высота дерева, переданная из генератора
-        let ystart = y + TREE_HEIGHT;
-        // ствол
-        for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
+        let random = new alea(chunk.coord.add(new Vector(x, y, z)).toHash());
+		
+		// ствол
+		let ystart = y + options.height;
+        for(let p = y; p < ystart; ++p) {
+            this.setBlock(chunk, x, p, z, {id: options.type.trunk}, true);
             this.setBlock(chunk, x + 1, p, z, {id: BLOCK.VINES.id}, true, {x: 3, y: 0, z: 0});
         }
-        // листва
-        let py = y + TREE_HEIGHT;
-        let b = null;
-        for(let rad of [1, 1, 2, 2]) {
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    if(i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z) {
-                        let m = (i == x - rad && j == z - rad) ||
-                            (i == x + rad && j == z + rad) || 
-                            (i == x - rad && j == z + rad) ||
-                            (i == x + rad && j == z - rad);
-                            let m2 = (py == y + TREE_HEIGHT) ||
-                            (i + chunk.coord.x + j + chunk.coord.z + py) % 3 > 0;
-                        if(m && m2) {
-                            continue;
-                        }
-                        this.xyz_temp_find.set(i, py, j);
-                        b = chunk.tblocks.get(this.xyz_temp_find, b);
-                        let b_id = b.id;
-                        if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                            this.temp_block.id = options.type.leaves;
-                            this.setBlock(chunk, i, py, j, this.temp_block, false);
-                        }
+
+        //Ветки
+        for (let p = 0; p < 4; ++p) {
+            let rnd_direct = parseInt(random.double() * 3.0);
+            let dx = (rnd_direct == 0 || rnd_direct == 1) ? -1 : 1;
+            let dz = (rnd_direct == 2 || rnd_direct == 1) ? -1 : 1;
+            let dy = parseInt(random.double() * 3.0) + 1;
+            let dn = parseInt(random.double() * (options.height - 2));
+            let sx = 0, sy = 0, sz = 0, m = 0;
+            for (let n = 0; n < dn; ++n) {
+                let set = false;
+                let bx = this.getBlock(chunk, x + dx + sx, ystart + sy - dy, z + sz);
+                let bz = this.getBlock(chunk, x + sx, ystart + sy - dy, z + sz + dz);
+                if (((m % 3) == 0) && (m != 0))
+                    sy++;
+                if ((sy - dy < ystart)) {
+                    if (random.double() < 0.4 && (bx == null || bx.id == 0)) {
+                        m++;
+                        sx += dx;
+                        this.setBlock(chunk, x + sx, ystart + sy - dy, z + sz, { id: options.type.trunk }, true);
+                    } else if (random.double() < 0.4 && (bz == null || bz.id == 0)) {
+                        m++;
+                        sz += dz;
+                        this.setBlock(chunk, x + sx, ystart + sy - dy, z + sz, { id: options.type.trunk }, true);
+                    } else if (random.double() < 0.4 && (bz == null || bz.id == 0) && (bx == null || bx.id == 0)) {
+                        m++;
+                        sz += dz;
+                        sx += dx;
+                        this.setBlock(chunk, x + sx, ystart + sy - dy, z + sz, { id: options.type.trunk }, true);
                     }
                 }
             }
-            py--;
+            if (m > 1)
+                this.plantCrown(options, chunk, x + sx, ystart + sy - dy, z + sz, 4);
         }
-    }
 
+		//выводим основную крону
+		this.plantCrown(options, chunk, x, ystart - 1, z, 6);
+    }
 }
