@@ -234,7 +234,7 @@ export class Player {
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
             const pos = player.lerpPos;
-            let world_block = world.chunkManager.getBlock(pos.x, Math.ceil(pos.y) - 1, pos.z);
+            let world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
             if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
