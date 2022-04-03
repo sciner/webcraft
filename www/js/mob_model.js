@@ -291,7 +291,8 @@ export class MobAnimation {
     }) {
 
         const deltaY = animable._prevPos.y - animable._pos.y;
-        let p = part.frame = part.frame === undefined ? 0 : (part.frame + delta / 1000);
+        // 16 - because we base that reference FPS is 60, this means that time should be 16.6
+        let p = part.frame = part.frame === undefined ? 0 : (part.frame + delta / 16.6);
 
         const x = index % 2;
         const y = index / 2 | 0;

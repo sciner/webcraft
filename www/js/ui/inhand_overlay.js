@@ -90,7 +90,7 @@ export class InHandOverlay {
 
     update (render, dt) {
 
-        dt /= 20;
+        dt /= 16.6;
 
         const {
             player, renderBackend, camera
@@ -118,7 +118,7 @@ export class InHandOverlay {
         }
 
         if (this.changeAnimation) {
-            this.changAnimationTime += 0.05;
+            this.changAnimationTime += 0.05 * dt;
             
             if (this.changAnimationTime > 0.5) {
                 this.reconstructInHandItem(id);
