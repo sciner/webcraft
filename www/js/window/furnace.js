@@ -137,7 +137,7 @@ export default class FurnaceWindow extends BaseCraftWindow {
         }, 50);
     }
 
-    // Пришло содержимое сундука от сервера
+    // Пришло содержимое печки от сервера
     setData(entity) {
         // пришло содержимое другой печки (не просматриваемой в данный момент)
         if(entity.item.entity_id != this.entity_id) {

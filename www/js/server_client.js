@@ -54,7 +54,7 @@ export class ServerClient {
 
     // Furnace / Печь
     static CMD_LOAD_FURNACE             = 91;
-    static CMD_FURNACE_CONTENT          = 92;
+    static CMD_FURNACE_CONTENT          = 95;
 
     // Inventory
     static CMD_INVENTORY_STATE          = 66;
