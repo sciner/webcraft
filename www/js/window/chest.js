@@ -90,6 +90,11 @@ export default class ChestWindow extends Window {
                 case KEY.ESC: {
                     if(!down) {
                         ct.hide();
+                        try {
+                            Game.setupMousePointer(true);
+                        } catch(e) {
+                            console.error(e);
+                        }
                     }
                     return true;
                 }
@@ -128,7 +133,7 @@ export default class ChestWindow extends Window {
     confirmAction() {
         const params = {
             drag_item: Game.hud.wm.drag?.item?.item,
-            chest: {entity_id: this.entity_id, slots: {}},
+            chest: {entity_id: this.info.entity_id, slots: {}},
             inventory_slots: []
         };
         params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
@@ -154,13 +159,13 @@ export default class ChestWindow extends Window {
     }
 
     // Запрос содержимого сундука
-    load(entity_id) {
+    load(info) {
         let that = this;
         this.lbl1.setText('LOADING...');
-        this.entity_id  = entity_id;
-        this.loading    = true;
+        this.info = info;
+        this.loading = true;
         this.clear();
-        this.server.LoadChest(this.entity_id);
+        this.server.LoadChest(info);
         setTimeout(function() {
             that.show();
         }, 50);
@@ -169,8 +174,11 @@ export default class ChestWindow extends Window {
     // Пришло содержимое сундука от сервера
     setData(chest) {
         // пришло содержимое другого сундука (не просматриваемого в данный момент)
-        if(chest.item.entity_id != this.entity_id) {
-            return;
+        if(chest.item.entity_id != this.info.entity_id) {
+            if(!this.info.pos.equal(chest.pos)) {
+                return;
+            }
+            this.info.entity_id = chest.item.entity_id;
         }
         this.lbl1.setText('CHEST');
         this.clear();

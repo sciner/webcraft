@@ -87,7 +87,7 @@ export class SceneNode {
         }
 
         for (let child of this.children) {
-            if (child.name === name) {
+            if (child.name.toLowerCase() === name.toLowerCase()) {
                 return child;
             }
 

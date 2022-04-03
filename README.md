@@ -1,7 +1,9 @@
 # MadCraft
 Minecraft clone on JS
 
-Demo: https://madcraft.io/
+- Demo: https://madcraft.io/
+- Discord: https://discord.gg/C9zw4kNT2t
+- Youtube: https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos
 
 # Run and play
 ```
@@ -73,3 +75,5 @@ const packets = [{
 }];
 chunk.sendAll(packets, []);
 ```
+
+XM player: https://github.com/a1k0n/jsxm/

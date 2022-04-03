@@ -43,7 +43,7 @@ export class Particles_Asteroid extends NetworkPhysicObject {
             BLOCK.ANDESITE.id,
             BLOCK.GRANITE.id,
             BLOCK.GRASS.id,
-            BLOCK.DIRT.id,
+            BLOCK.GRASS_DIRT.id,
             BLOCK.CONCRETE.id,
             BLOCK.OAK_STAIRS.id,
             BLOCK.GRAVEL.id,

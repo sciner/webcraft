@@ -1,4 +1,4 @@
-import {BLOCK, ITEM_INVENTORY_PROPS} from "./blocks.js";
+import {BLOCK} from "./blocks.js";
 import {Helpers, Vector} from "./helpers.js";
 import {ServerClient} from "./server_client.js";
 import {InventoryComparator} from "./inventory_comparator.js";
@@ -57,15 +57,25 @@ export class PlayerInventory {
         const state = params.state;
         if('items' in state) {
             let equal = this.player.game_mode.isCreative();
+            const old_items = this.items;
+            const new_items = state.items;
             if(!equal) {
-                equal = await InventoryComparator.checkEqual(this.items, state.items, params.used_recipes);
+                equal = await InventoryComparator.checkEqual(old_items, new_items, params.used_recipes);
             }
             if(equal) {
                 // apply new
-                this.applyNewItems(state.items, true);
+                this.applyNewItems(new_items, true);
                 // send current to player
                 this.refresh(true);
                 console.log('Applied new state');
+                //
+                if(this.player.onCrafted) {
+                    const rm = await InventoryComparator.getRecipeManager();
+                    for(let recipe_id of params.used_recipes) {
+                        const recipe = rm.getRecipe(recipe_id);
+                        this.player.onCrafted(recipe, {block_id: recipe.result.item_id, count: recipe.result.count});
+                    }
+                }
             } else {
                 // send current to player
                 this.refresh(true);
@@ -131,6 +141,8 @@ export class PlayerInventory {
             inventory_icon_id:  block.inventory_icon_id,
             max_in_stack:       block.max_in_stack,
         }, mat);
+        mat.id = parseInt(mat.id);
+        mat.count = parseInt(mat.count);
         let item_max_count = mat.max_in_stack;
         // Update cell if exists
         for(let i in this.items) {
@@ -251,7 +263,7 @@ export class PlayerInventory {
         if(mat.id < 2 || mat.deprecated) {
             return false;
         }
-        while(mat.previous_part) {
+        while(mat.previous_part && mat.previous_part.id != mat.id) {
             let b = BLOCK.fromId(mat.previous_part.id);
             mat = {id: b.id, previous_part: b.previous_part};
         }

@@ -1,4 +1,3 @@
-
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { decodeCubes, fillCube } from "../bedrockJsonParser.js";
 import GeometryTerrain from "../geometry_terrain.js";

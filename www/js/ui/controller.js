@@ -63,14 +63,20 @@ globalThis.MOUSE = {};
 
 globalThis.KEY = {};
     KEY.BACKSPACE   = 8;
+    KEY.TAB         = 9;
     KEY.ENTER       = 13;
     KEY.SHIFT       = 16;
     KEY.ESC         = 27;
     KEY.SPACE       = 32;
     KEY.PAGE_UP     = 33;
     KEY.PAGE_DOWN   = 34;
+    KEY.END         = 35;
+    KEY.HOME        = 36;
+    KEY.ARROW_LEFT  = 37;
     KEY.ARROW_UP    = 38;
+    KEY.ARROW_RIGHT = 39;
     KEY.ARROW_DOWN  = 40;
+    KEY.DEL         = 46;
     KEY.A           = 65;
     KEY.C           = 67;
     KEY.D           = 68;
@@ -294,6 +300,7 @@ let gameCtrl = async function($scope, $timeout) {
         form: {
             texture_pack: 'base',
             render_distance: 4,
+            use_light: true,
             mipmap: false
         },
         save: function() {
@@ -339,6 +346,8 @@ let gameCtrl = async function($scope, $timeout) {
         if(!session) {
             return;
         }
+        document.getElementById('main-pictures').remove();
+        document.getElementById('main-menu').remove();
         // Show Loading...
         Game.hud.draw();
         $timeout(async function(){
@@ -368,6 +377,7 @@ let gameCtrl = async function($scope, $timeout) {
     // My games
     $scope.mygames = {
         list: [],
+        shared_worlds: [],
         loading: false,
         load: function() {
             let session = $scope.App.getSession();
@@ -378,7 +388,14 @@ let gameCtrl = async function($scope, $timeout) {
             that.loading = true;
             $scope.App.MyWorlds({}, (worlds) => {
                 $timeout(() => {
+                    that.shared_worlds = [];
                     that.list = worlds;
+                    for(let w of worlds) {
+                        w.my = w.user_id == session.user_id;
+                        if(!w.my) {
+                            that.shared_worlds.push(w);
+                        }
+                    }
                     that.loading = false;
                     $scope.loadingComplete();
                 });
@@ -442,7 +459,8 @@ let gameCtrl = async function($scope, $timeout) {
                 {id: 'biome2', title: 'Стандартный'},
                 {id: 'city', title: 'Город'},
                 {id: 'city2', title: 'Город 2'},
-                {id: 'flat', title: 'Плоский мир'}
+                {id: 'flat', title: 'Плоский мир'},
+                {id: 'test_trees', title: 'Тестовые деревья'}
             ],
             next: function() {
                 this.index = (this.index + 1) % this.list.length;

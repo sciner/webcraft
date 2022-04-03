@@ -8,7 +8,7 @@
 in vec3 v_texCoord;
 out vec4 outColor;
 
-const vec3 sunColor = vec3(1., 0.93, 0.59);
+const vec3 sunColor = vec3(1., 0.93, 0.29);
 const vec3 moonColor = vec3(0.9);
 const vec3 baseColor = vec3(0.4627, 0.767, 1.0);
 

@@ -12,27 +12,33 @@ const PLANES = {
     up: {
         // axisX , axisY. axisY is flips sign!
         axes  : [[1, 0, 0], /**/ [0, 1, 0]],
+        flip  : [1, 1],
         // origin offset realtive center
         offset : [0.5, 0.5, 1.0],
     },
     down: {
         axes  : [[1, 0, 0], /**/ [0, -1, 0]],
+        flip  : [1, 1],
         offset: [0.5, 0.5, 0.0],
     },
     south: {
         axes  : [[1, 0, 0], /**/ [0, 0, 1]],
+        flip  : [1, 1],
         offset: [0.5, 0.0, 0.5],
     },
     north: {
         axes  : [[1, 0, 0], /**/ [0, 0, -1]],
+        flip  : [-1, 1],
         offset: [0.5, 1.0, 0.5],
     },
     east: {
         axes  : [[0, 1, 0], /**/ [0, 0, 1]],
+        flip  : [1, 1],
         offset: [1.0, 0.5, 0.5],
     },
     west: {
         axes  : [[0, 1, 0], /**/ [0, 0, -1]],
+        flip  : [-1, 1],
         offset: [-0.0, 0.5, 0.5],
     }
 }
@@ -221,6 +227,28 @@ export class AABB {
         if(y > this.y_max) this.y_max = y;
         if(z < this.z_min) this.z_min = z;
         if(z > this.z_max) this.z_max = z;
+        return this;
+    }
+
+    // Expand same for all sides
+    expand(x, y, z) {
+        this.x_min -= x;
+        this.x_max += x;
+        this.y_min -= y;
+        this.y_max += y;
+        this.z_min -= z;
+        this.z_max += z;
+        return this;
+    }
+
+    div(value) {
+        this.x_min /= value;
+        this.x_max /= value;
+        this.y_min /= value;
+        this.y_max /= value;
+        this.z_min /= value;
+        this.z_max /= value;
+        return this;
     }
 
 }
@@ -243,10 +271,13 @@ export class AABBPool {
 
 export class AABBSideParams {
 
-    constructor(uv, flag, anim) {
-        this.uv = uv;
-        this.flag = flag;
-        this.anim = anim;
+    constructor(uv, flag, anim, lm = null, axes = null, autoUV) {
+        this.uv     = uv;
+        this.flag   = flag;
+        this.anim   = anim;
+        this.lm     = lm;
+        this.axes   = axes;
+        this.autoUV = autoUV;
     }
 
 }
@@ -318,14 +349,13 @@ export function pushTransformed(
  * @param {boolean} [autoUV]
  * @param {Vector | number[]} [center] - center wicha AABB is placed, same as [x, y, z] in push transformed
  */
-export function pushAABB(
-    vertices, aabb, pivot = null, matrix = null, sides, autoUV, center) {
+export function pushAABB(vertices, aabb, pivot = null, matrix = null, sides, center) {
 
     matrix = matrix || defaultMatrix;
     center = center || defalutCenter;
     pivot  = pivot  || defaultPivot; 
 
-    const lm              = MULTIPLY.COLOR.WHITE;
+    const lm_default      = MULTIPLY.COLOR.WHITE;
     const globalFlags     = 0;
     const x               = center.x;
     const y               = center.y;
@@ -345,24 +375,28 @@ export function pushAABB(
     ];
 
     for(const key in sides) {
+
         if (!(key in PLANES)) {
             continue;
         }
 
         const {
-            axes, offset,
+            /*axes,*/ offset, flip
         } = PLANES[key];
 
         const {
-            uv, flag = 0, anim = 1
+            uv, flag = 0, anim = 1, autoUV = true
         } = sides[key];
+
+        const lm = sides[key].lm || lm_default;
+        const axes = sides[key].axes || PLANES[key].axes;
 
         let uvSize0;
         let uvSize1;
 
         if(autoUV) {
-            uvSize0 = -vec3.dot(axes[0], size) * Math.abs(uv[2]);
-            uvSize1 = -vec3.dot(axes[1], size) * Math.abs(uv[3]);
+            uvSize0 = vec3.dot(axes[0], size) * (uv[2]) * flip[0];
+            uvSize1 = -vec3.dot(axes[1], size) * (uv[3]) * flip[1];
         } else {
             uvSize0 = uv[2];
             uvSize1 = -uv[3];
@@ -380,7 +414,7 @@ export function pushAABB(
             size[0] * axes[0][0],
             size[1] * axes[0][1],
             size[2] * axes[0][2],
-            //axisY
+            // axisY
             size[0] * axes[1][0],
             size[1] * axes[1][1],
             size[2] * axes[1][2],

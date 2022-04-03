@@ -23,14 +23,28 @@ export class RecipeSlot extends Window {
             if(!this.can_make) {
                 return;
             }
-            this.parent.craft_window.autoRecipe(this.recipe);
-            this.parent.paginator.update();
+            for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
+                if(this.canMake(recipe)) {
+                    this.parent.craft_window.autoRecipe(recipe);
+                    this.parent.paginator.update();
+                    break;
+                }
+            }
         };
     }
 
+    canMake(recipe) {
+        return Game.player.inventory.hasResources(recipe.need_resources).length == 0;
+    }
+
     update() {
-        let inventory = Game.player.inventory;
-        this.can_make = inventory.hasResources(this.recipe.need_resources).length == 0;
+        this.can_make = false;
+        for(let recipe of [this.recipe, ...this.recipe.subrecipes]) {
+            this.can_make = this.canMake(recipe)
+            if(this.can_make) {
+                break;
+            }
+        }
         if(this.can_make) {
             let craft_area_size = this.parent.craft_window.area.size;
             this.can_make = this.recipe.size.width <= craft_area_size.width &&
@@ -106,7 +120,7 @@ export class RecipeWindow extends Window {
         ct.setBackground('./media/gui/form-recipe.png');
         ct.hide();
 
-        let items_count = this.recipe_manager.crafting_shaped.list.length;
+        let items_count = this.recipe_manager.crafting_shaped.grouped.length;
 
         let that = this;
 
@@ -152,9 +166,11 @@ export class RecipeWindow extends Window {
     addPaginatorButtons() {
         const ct = this;
         // Label
-        let lblPages = new Label(105 * this.zoom, 260 * this.zoom, 40 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
+        let lblPages = new Label(110 * this.zoom, 270 * this.zoom, 70 * this.zoom, 40 * this.zoom, 'lblPages', '1 / 2');
         lblPages.style.color = '#ffffff';
         lblPages.style.font.shadow.enable = true;
+        lblPages.style.textAlign.horizontal = 'center';
+        lblPages.style.textAlign.vertical = 'middle';
         lblPages.style.font.shadow.x = 1;
         lblPages.style.font.shadow.y = 1;
         ct.add(lblPages);
@@ -191,11 +207,11 @@ export class RecipeWindow extends Window {
         let sx          = 22 * this.zoom;
         let sy          = 62 * this.zoom;
         let xcnt        = 5;
-        let list        = this.recipe_manager.crafting_shaped.list;
+        let list        = this.recipe_manager.crafting_shaped.grouped;
         let min_index   = this.paginator.page * this.items_per_page;
         let max_index   = min_index + this.items_per_page;
-        //
         this.recipes    = [];
+        //
         for(let index in list) {
             if(index < min_index) {
                 continue;
@@ -206,7 +222,7 @@ export class RecipeWindow extends Window {
             let recipe = list[index];
             let item_id = recipe.result.item_id;
             let block = BLOCK.fromId(item_id);
-            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + i, null, null, recipe, block);
+            let lblRecipe = new RecipeSlot(sx + (i % xcnt) * sz, sy + Math.floor(i / xcnt) * sz, sz, sz, 'lblRecipeSlot' + recipe.id, null, null, recipe, block);
             lblRecipe.tooltip = block.name.replaceAll('_', ' ') + ` (#${item_id})`;
             this.recipes.push(lblRecipe);
             ct.add(lblRecipe);

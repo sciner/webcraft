@@ -88,9 +88,11 @@ export function fillCube({
     xX += Math.sign(xX) * inflate;
     xY += Math.sign(xY) * inflate;
     xZ += Math.sign(xZ) * inflate;
+
     yX += Math.sign(yX) * inflate;
     yY += Math.sign(yY) * inflate;
     yZ += Math.sign(yZ) * inflate;
+    
     zX += Math.sign(zX) * inflate;
     zY += Math.sign(zY) * inflate;
     zZ += Math.sign(zZ) * inflate;
@@ -161,7 +163,12 @@ export function fillCube({
  * @param {IGeoTreeBones} bone
  * @param {IGeoTreeDescription} description
  */
-export function decodeCubes(bone, description) {
+/**
+ *
+ * @param {IGeoTreeBones} bone
+ * @param {IGeoTreeDescription} description
+ */
+ export function decodeCubes(bone, description) {
     const data = [];
     // only for 1.8 should apply flip
     const offset = bone.bind_pose_rotation ? bone.pivot : null;
@@ -180,17 +187,19 @@ export function decodeCubes(bone, description) {
             pivot[2] * SCALE_RATIO
         );
 
+        const inf = (c.inflate || 0);
+
         // set scale by keep offset when scale is 0 to prevent z-fight
         vec3.set(computeScale,
-            size[0] * SCALE_RATIO || Z_FIGHT_OFFSET,
-            size[1] * SCALE_RATIO || Z_FIGHT_OFFSET,
-            size[2] * SCALE_RATIO || Z_FIGHT_OFFSET
+            (size[0] + inf * 2) * SCALE_RATIO || Z_FIGHT_OFFSET,
+            (size[1] + inf * 2) * SCALE_RATIO || Z_FIGHT_OFFSET,
+            (size[2] + inf * 2) * SCALE_RATIO || Z_FIGHT_OFFSET
         );
 
         vec3.set(computePos,
-            (origin[0] - pivot[0]) * SCALE_RATIO,
-            (origin[1] - pivot[1]) * SCALE_RATIO,
-            (origin[2] - pivot[2]) * SCALE_RATIO
+            (origin[0] - pivot[0] - inf) * SCALE_RATIO,
+            (origin[1] - pivot[1] - inf) * SCALE_RATIO,
+            (origin[2] - pivot[2] - inf) * SCALE_RATIO
         );
 
         // interference
@@ -223,11 +232,10 @@ export function decodeCubes(bone, description) {
         computeMatrix[13] += computePivot[1];
         computeMatrix[14] += computePivot[2];
 
-
         fillCube({
                 matrix: computeMatrix,
                 uvPoint: c.uv,
-                inflate: (c.inflate || 0) * SCALE_RATIO,
+                inflate: 0,
                 size: size,
                 textureSize: [description.texture_width, description.texture_height],
                 mirror: c.mirror || bone.mirror,
@@ -246,12 +254,13 @@ export function decodeJsonGeometryTree(json, variant = null) {
     /**
      * @type {IGeoTreeBones[]}
      */
-    let bones;
-    let name = '';
+    let geometries = [];
+    // let bones = [];
+    // let name = '';
     /**
      * @type {IGeoTreeDescriptionNew}
      */
-    let description;
+    // let description;
 
     // new format
     if (json["minecraft:geometry"]) {
@@ -266,19 +275,39 @@ export function decodeJsonGeometryTree(json, variant = null) {
                     : blob.find(e => e.description.identifier === variant))
                 : blob[0]
             ) || blob[0];
-            
-        bones = dataset.bones;
-        description = dataset.description;
-        name = description.identifier;
+        geometries.push({
+            bones:          dataset.bones,
+            description:    dataset.description,
+            name:           dataset.description.identifier
+        });
     } else {
         // old
-        const id = Object.keys(json).filter(e => e !== 'format_version')[0];
-
-        description = json[id];
-        description.texture_height = description['textureheight'];
-        description.texture_width = description['texturewidth'];
-        bones = json[id].bones;
-        name = id;
+        const ids = Object.keys(json).filter(e => ['format_version', 'type'].indexOf(e) < 0);
+        for(let id of ids) {
+            const description = json[id];
+            if(typeof description == 'object') {
+                if('bones' in description) {
+                    // texture width
+                    if('texturewidth' in description) {
+                        description.texture_width = description['texturewidth'];
+                    } else {
+                        throw 'texturewidth not found';
+                    }
+                    // texture height
+                    if('textureheight' in description) {
+                        description.texture_height = description['textureheight'];
+                    } else {
+                        throw 'textureheight not found';
+                    }
+                    //
+                    geometries.push({
+                        bones:          description.bones,
+                        description:    description,
+                        name:           id
+                    });
+                }
+            }
+        }
     }
 
     /**
@@ -287,55 +316,68 @@ export function decodeJsonGeometryTree(json, variant = null) {
     const tree = {};
     const root = new SceneNode();
 
-    root.name = name;
+    root.name = geometries[0].name;
     root.source = json;
 
-    for(let node of bones) {
-        const sceneNode = new SceneNode();
+    for(let geom of geometries) {
 
-        if (!node.parent) {
-            root.addChild(sceneNode);
+        for(let node of geom.bones) {
+
+            if('visible' in node && !node.visible)  {
+                continue;
+            }
+
+            const sceneNode = new SceneNode();
+
+            if (!node.parent) {
+                root.addChild(sceneNode);
+            }
+
+            sceneNode.source = node;
+            sceneNode.name = node.name;
+
+            if (node.cubes) {
+                sceneNode.terrainGeometry = node.terrainGeometry || decodeCubes(
+                    node,
+                    geom.description,
+                );
+
+                // store already parsed geometry for node
+                node.terrainGeometry = sceneNode.terrainGeometry;
+            }
+
+            if (node.rotation) {
+                // MAGIC, we MUST flip axis
+                quat.fromEuler(
+                    sceneNode.quat,
+                    node.rotation[0],
+                    node.rotation[2],
+                    -node.rotation[1]
+                )
+            }
+
+            if (node.pivot) {
+                sceneNode.pivot.set([
+                    node.pivot[0] * SCALE_RATIO,
+                    node.pivot[2] * SCALE_RATIO,
+                    node.pivot[1] * SCALE_RATIO
+                ]);
+            }
+
+            if(node.name in tree) {
+                tree[node.name].addChild(sceneNode);
+                sceneNode.updateMatrix();
+            } else {
+                tree[node.name] = sceneNode;
+                sceneNode.updateMatrix();
+            }
+
         }
 
-        sceneNode.source = node;
-        sceneNode.name = node.name;
-
-        if (node.cubes) {
-            sceneNode.terrainGeometry = node.terrainGeometry || decodeCubes(
-                node,
-                description,
-            );
-
-            // store already parsed geometry for node
-            node.terrainGeometry = sceneNode.terrainGeometry;
-        }
-
-        if (node.rotation) {
-            // MAGIC, we MUST flip axis
-            quat.fromEuler(
-                sceneNode.quat,
-                node.rotation[0],
-                node.rotation[2],
-                -node.rotation[1]
-            )
-        }
-
-        if (node.pivot) {
-            sceneNode.pivot.set([
-                node.pivot[0] * SCALE_RATIO,
-                node.pivot[2] * SCALE_RATIO,
-                node.pivot[1] * SCALE_RATIO
-            ]);
-        }
-
-        sceneNode.updateMatrix();
-
-        tree[node.name] = sceneNode;
     }
 
     for(const key in tree) {
         const sceneNode = tree[key];
-
         if (sceneNode.source.parent) {
             tree[sceneNode.source.parent].addChild(sceneNode);
         }

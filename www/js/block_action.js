@@ -1,9 +1,10 @@
-import {ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
+import {DIRECTION_BIT, ROTATE, Vector, VectorCollector, Helpers} from "./helpers.js";
 import { AABB } from './core/AABB.js';
 import {CubeSym} from './core/CubeSym.js';
 import {BLOCK} from "./blocks.js";
 import {ServerClient} from "./server_client.js";
 import { Resources } from "./resources.js";
+import {impl as alea} from '../vendors/alea.js';
 
 const _createBlockAABB = new AABB();
 
@@ -17,19 +18,27 @@ const sides = [
 ];
 
 const rotates = [
-    new Vector(CubeSym.ROT_Z3, 0, 0),
-    new Vector(CubeSym.ROT_Z, 0, 0),
+    new Vector(13, 0, 0), // CubeSym.ROT_Z3
+    new Vector(22, 0, 0), // CubeSym.ROT_Z
     new Vector(CubeSym.ROT_Y3, 0, 0),
-    new Vector(CubeSym.NEG_Y, 0, 0),
-    new Vector(CubeSym.ROT_X3, 0, 0),
+    new Vector(CubeSym.ROT_X2, 0, 0),
+    new Vector(18, 0, 0), // CubeSym.ROT_X3
     new Vector(CubeSym.ROT_X, 0, 0)
 ];
 
-function calcRotateByPosN(pos_n) {
-    for(let i in sides) {
-        let side = sides[i];
-        if(side.equal(pos_n)) {
-            return rotates[i];
+function calcRotateByPosN(rot, pos_n) {
+    if (Math.abs(pos_n.y) === 1) {
+        rot = new Vector(rot);
+        rot.x = BLOCK.getCardinalDirection(rot);
+        rot.z = 0;
+        rot.y = pos_n.y; // mark that is up
+        return rot;
+    } else {
+        for(let i in sides) {
+            let side = sides[i];
+            if(side.equal(pos_n)) {
+                return rotates[i];
+            }
         }
     }
     throw 'error_invalid_pos_n';
@@ -42,7 +51,7 @@ function calcRotate(rot, pos_n) {
     rot.x = 0;
     rot.y = 0;
     // top normal
-    if (Math.abs(pos_n.y) === 1) {                        
+    if (Math.abs(pos_n.y) === 1) {
         rot.x = BLOCK.getCardinalDirection(rot);
         rot.z = 0;
         rot.y = pos_n.y; // mark that is up
@@ -58,20 +67,22 @@ function calcRotate(rot, pos_n) {
 }
 
 // createPainting...
-async function createPainting(world, pos) {
-    if(pos.n.x == -1) {
+async function createPainting(e, world, pos) {
+    const pos_n = pos.n;
+    pos = new Vector(pos);
+    if(pos_n.x == -1) {
         pos.z--;
     }
-    if(pos.n.z == 1) {
+    if(pos_n.z == 1) {
         pos.x--;
     }
     const center_pos = new Vector(pos);
     let field = null;
     let fixed_field = null;
-    if(pos.n.x) {
+    if(pos_n.x) {
         field = 'z';
         fixed_field = 'x';
-    } else if(pos.n.z) {
+    } else if(pos_n.z) {
         field = 'x';
         fixed_field = 'z';
     }
@@ -157,8 +168,8 @@ async function createPainting(world, pos) {
             bpos[fixed_field] = center_pos[fixed_field];
             //
             if(item.size[0] == 1) {
-                if(pos.n.x == -1) bpos.z++;
-                if(pos.n.z == 1) bpos.x++;
+                if(pos_n.x == -1) bpos.z++;
+                if(pos_n.z == 1) bpos.x++;
             }
             if(!painting_pos) {
                 painting_pos = new Vector(bpos);
@@ -166,7 +177,7 @@ async function createPainting(world, pos) {
             let pb = blocks.get(bpos);
             //
             bpos_back.set(bpos.x, bpos.y, bpos.z);
-            bpos_back[fixed_field] -= pos.n[fixed_field];
+            bpos_back[fixed_field] -= pos_n[fixed_field];
             let pb_back = blocks_back.get(bpos_back);
             if(!pb) {
                 pb = world.getBlock(bpos);
@@ -174,8 +185,6 @@ async function createPainting(world, pos) {
                 //
                 pb_back = world.getBlock(bpos_back);
                 blocks_back.set(bpos_back, pb_back);
-                // resp.blocks.list.push({pos: new Vector(bpos), item: {id: BLOCK.BRICK.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                // resp.blocks.list.push({pos: new Vector(bpos_back), item: {id: BLOCK.CONCRETE.id}, action_id: ServerClient.BLOCK_ACTION_CREATE});
             }
             if((pb.id == 0 || pb.material.planting) && pb_back.id != 0) {
                 // ok
@@ -189,8 +198,8 @@ async function createPainting(world, pos) {
             let aabb = new AABB();
             const w = 2/16;
             painting_pos.y += item.move.y;
-            if(pos.n.x < 0) painting_pos.x += 1 - w;
-            if(pos.n.z < 0) painting_pos.z += 1 - w;
+            if(pos_n.x < 0) painting_pos.x += 1 - w;
+            if(pos_n.z < 0) painting_pos.z += 1 - w;
             const second_corner = new Vector(painting_pos);
             second_corner[field] += size[0];
             second_corner[fixed_field] += w;
@@ -200,14 +209,16 @@ async function createPainting(world, pos) {
             const paintings = await Resources.loadPainting();
             const col = paintings.sizes.get(item.name);
             const keys = Array.from(col.keys());
-            const image_name = keys[Math.floor(Math.random() * keys.length)];
+            const random = new alea(e.id);
+            const image_name = keys[Math.floor(random.double() * keys.length)];
             //
             return {
                 entity_id:  randomUUID(),
                 aabb:       aabb.toArray(),
                 size:       size,
                 image_name: image_name,
-                pos_n:      pos.n
+                pos:        center_pos,
+                pos_n:      pos_n
             };
             break;
         }
@@ -215,11 +226,12 @@ async function createPainting(world, pos) {
     return null;
 }
 
-function dropBlock(player, block, resp) {
-    const isSurvival = true; // player.game_mode.isSurvival()
+// Drop block
+function dropBlock(player, block, resp, force) {
+    /*const isSurvival = true; // player.game_mode.isSurvival()
     if(!isSurvival) {
         return;
-    }
+    }*/
     if(block.material.tags.indexOf('no_drop') >= 0) {
         return;
     }
@@ -235,7 +247,7 @@ function dropBlock(player, block, resp) {
             }
             if(ok) {
                 const item = {id: drop_block.id, count: block.material.drop_item?.count || 1};
-                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+                resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
             }
         } else {
             console.error('error_invalid_drop_item', block.material.drop_item);
@@ -267,9 +279,32 @@ function dropBlock(player, block, resp) {
             items.push({id: block.id, count: 1});
         }
         for(let item of items) {
-            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item]});
+            resp.drop_items.push({pos: block.posworld.add(new Vector(.5, 0, .5)), items: [item], force: !!force});
         }
     }
+}
+
+// getBlockNeighbours
+function getBlockNeighbours(world, pos) {
+    const neighbours = {
+        UP: null,
+        DOWN: null,
+        SOUTH: null,
+        NORTH: null,
+        WEST: null,
+        EAST: null
+    };
+    let v = new Vector(0, 0, 0);
+    // обходим соседние блоки
+    for(let i = 0; i < 6; i ++) {
+        neighbours.UP       = world.getBlock(v.set(pos.x, pos.y + 1, pos.z));
+        neighbours.DOWN     = world.getBlock(v.set(pos.x, pos.y - 1, pos.z));
+        neighbours.SOUTH    = world.getBlock(v.set(pos.x, pos.y, pos.z - 1));
+        neighbours.NORTH    = world.getBlock(v.set(pos.x, pos.y, pos.z + 1));
+        neighbours.WEST     = world.getBlock(v.set(pos.x - 1, pos.y, pos.z));
+        neighbours.EAST     = world.getBlock(v.set(pos.x + 1, pos.y, pos.z));
+    }
+    return neighbours;
 }
 
 // Called to perform an action based on the player's block selection and input.
@@ -281,7 +316,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         chat_message:           null,
         create_chest:           null,
         delete_chest:           null,
-        play_sound:             null,
+        play_sound:             [],
         load_chest:             null,
         open_window:            null,
         clone_block:            false,
@@ -289,9 +324,9 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         reset_target_event:     false,
         decrement:              false,
         decrement_instrument:   false,
+        stop_disc:              [],
         drop_items:             [],
-        blocks:                 {list: []},
-        create_painting:        null
+        blocks:                 {list: []}
     };
     if(e.pos == false) {
         return resp;
@@ -314,7 +349,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
     let entity_id       = world_block ? world_block.entity_id : null;
     //
     let isEditTrapdoor  = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('trapdoor') >= 0 || world_material.tags.indexOf('door') >= 0);
-    let isEditSign  = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    let isEditSign      = e.changeExtraData && world_material && world_material.tags.indexOf('sign') >= 0;
+    let eatCake         = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('cake') >= 0);
     // Edit sign
     if(isEditSign) {
         if(!extra_data) {
@@ -333,6 +369,22 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
         }
+    // Eat cake
+    } else if (eatCake) {
+        if(!extra_data || typeof extra_data.pieces == 'undefined') {
+            extra_data = {...world_material.extra_data};
+        }
+        if(extra_data?.pieces) {
+            extra_data.pieces--;
+            if(extra_data.pieces == 0) {
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.AIR.id}, destroy_block_id: world_material.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'burp', pos: new Vector(pos)});
+            } else {
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.reset_target_pos = true;
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'eat', pos: new Vector(pos)});
+            }
+        }
     // Edit trapdoor
     } else if(isEditTrapdoor) {
         // Trapdoor
@@ -344,7 +396,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         }
         extra_data.opened = extra_data && !extra_data.opened;
         if(world_material.sound) {
-            resp.play_sound = {tag: world_material.sound, action: 'open'};
+            resp.play_sound.push({tag: world_material.sound, action: 'open', pos: new Vector(pos)});
         }
         resp.reset_target_pos = true;
         resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
@@ -369,6 +421,20 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(world_block.id == BLOCK.CHEST.id) {
                 resp.delete_chest = {pos: new Vector(pos), entity_id: world_block.entity_id};
             }
+            // Remove plant from pot
+            if(world_material && world_material.tags.indexOf('pot') >= 0) {
+                if(extra_data?.item_id) {
+                    let drop_item_id = extra_data?.item_id;
+                    extra_data = extra_data ? extra_data : {};
+                    extra_data.item_id = null;
+                    delete(extra_data.item_id);
+                    resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                    resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
+                    // Create drop item
+                    resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: drop_item_id}], force: true});
+                    return resp;
+                }
+            }
             if(!world_material || NO_DESTRUCTABLE_BLOCKS.indexOf(world_material.id) < 0) {
                 //
                 const cv = new VectorCollector();
@@ -378,13 +444,29 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         return false;
                     }
                     cv.add(block.posworld, true);
-                    resp.blocks.list.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                    resp.blocks.list.push({pos: block.posworld, item: {id: BLOCK.AIR.id}, destroy_block_id: block.id, action_id: ServerClient.BLOCK_ACTION_DESTROY});
                     //
                     if(block.material.sound) {
-                        resp.play_sound = {tag: block.material.sound, action: 'dig'};
+                        resp.play_sound.push({tag: block.material.sound, action: 'dig', pos: new Vector(pos)});
+                    }
+                    //
+                    if(block.material.is_jukebox) {
+                        // If disc exists inside jukebox
+                        if(block.extra_data && block.extra_data.disc) {
+                            const disc_id = block.extra_data.disc.id;
+                            // Drop disc
+                            dropBlock(player, {
+                                id: disc_id,
+                                material: BLOCK.fromId(disc_id),
+                                posworld: block.posworld.clone(),
+                                extra_data: null
+                            }, resp, false);
+                            // Stop play disc
+                            resp.stop_disc.push({pos: block.posworld.clone()});
+                        }
                     }
                     // Drop block if need
-                    dropBlock(player, block, resp);
+                    dropBlock(player, block, resp, false);
                     // Destroy connected blocks
                     for(let cn of ['next_part', 'previous_part']) {
                         let part = block.material[cn];
@@ -441,13 +523,55 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         break;
                     }
                     case BLOCK.CHEST.id: {
-                        resp.load_chest = entity_id;
+                        resp.load_chest = {
+                            pos: new Vector(pos),
+                            entity_id: entity_id
+                        };
+                        break;
+                    }
+                    case BLOCK.FURNACE.id: {
+                        resp.open_window = 'frmFurnace';
                         break;
                     }
                 }
                 resp.reset_target_event = true;
                 return resp;
             }
+        }
+        // Jukebox & music disc
+        if(!e.shiftKey && world_material.is_jukebox) {
+            if(extra_data && 'disc' in extra_data) {
+                const disc_id = extra_data.disc.id;
+                pos = new Vector(pos);
+                // Drop disc
+                dropBlock(player, {
+                    id: disc_id,
+                    material: BLOCK.fromId(disc_id),
+                    posworld: new Vector(pos),
+                    extra_data: null
+                }, resp, false);
+                resp.blocks.list.push({pos: pos.clone(), item: {id: world_material.id, rotate: rotate, extra_data: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.stop_disc.push({pos: pos.clone()});
+                return resp;
+            }
+        }
+        // Buttons
+        if(!e.shiftKey && world_material.is_button) {
+            extra_data = extra_data || {}
+            extra_data.pressed = !extra_data.pressed ? 1 : 0;
+            if(extra_data && 'pressed' in extra_data) {
+                pos = new Vector(pos);
+                resp.blocks.list.push({pos: pos, item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.play_sound.push({tag: 'madcraft:block.player', action: 'click', pos: new Vector(pos)});
+                resp.reset_target_pos = true;
+                return resp;
+            }
+        }
+        // Fuse TNT
+        if(!e.shiftKey && world_material.name == 'TNT') {
+            resp.play_sound.push({tag: 'madcraft:block.player', action: 'fuse', pos: new Vector(pos)});
+            // resp.play_sound.push({tag: 'madcraft:block.player', action: 'explode', pos: new Vector(pos)});
+            return resp;
         }
         // 2. Проверка инвентаря
         if(!currentInventoryItem || currentInventoryItem.count < 1) {
@@ -456,6 +580,42 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         const matBlock = BLOCK.fromId(currentInventoryItem.id);
         if(matBlock.deprecated) {
             // throw 'error_deprecated_block';
+            return resp;
+        }
+        const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(player.rotate, pos.n) : calcRotate(player.rotate, pos.n);
+        // Put plant into pot
+        let putPlantIntoPot = !e.shiftKey && createBlock && world_material && (world_material.tags.indexOf('pot') >= 0) && (matBlock.planting || [BLOCK.CACTUS.id].indexOf(matBlock.id) >= 0 || matBlock.tags.indexOf('can_put_info_pot') >= 0);
+        if(putPlantIntoPot) {
+            extra_data = extra_data ? extra_data : {};
+            if(extra_data.item_id) {
+                // do nothing
+                // resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
+            } else {
+                extra_data.item_id = matBlock.id;
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
+                resp.decrement = true;
+            }
+            return resp;
+        }
+        // Jukebox & music disc
+        if(!e.shiftKey && world_material.tags.indexOf('jukebox') >= 0) {
+            if(matBlock.item && matBlock.item && matBlock.item.name == 'music_disc') {
+                const discs = await Resources.loadMusicDiscs();
+                for(let disc of discs) {
+                    if(disc.id == matBlock.id) {
+                        extra_data = {
+                            disc: {...disc},
+                            dt: +new Date()
+                        }
+                        resp.blocks.list.push({pos: new Vector(pos), item: {id: world_material.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                        resp.decrement = true;
+                    }
+                }
+                return resp;
+            }
+        }
+        if(matBlock && matBlock?.item?.name == 'music_disc') {
             return resp;
         }
         // 3. If is egg
@@ -528,7 +688,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 8. Некоторые блоки можно ставить только на что-то сверху
-        let setOnlyToTop = !!matBlock.layering && !matBlock.layering.slab;
+        let setOnlyToTop = !!matBlock.is_layering && !matBlock.layering.slab;
         if(setOnlyToTop && pos.n.y != 1) {
             return resp;
         }
@@ -538,8 +698,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             return resp;
         }
         // 10. "Наслаивание" блока друг на друга, при этом блок остается 1, но у него увеличивается высота (максимум до 1)
-        let isLayering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.layering;
-        if(isLayering) {
+        let is_layering = world_material.id == matBlock.id && pos.n.y == 1 && world_material.is_layering;
+        if(is_layering) {
             const layering = world_material.layering;
             let new_extra_data = null;
             pos.y--;
@@ -577,12 +737,12 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
         }
         // 12. Запрет на списание инструментов как блоков
-        if(matBlock.item && matBlock.item) {
+        if(matBlock.item) {
             switch(matBlock.item.name) {
                 case 'instrument': {
                     switch(matBlock.item.instrument_id) {
                         case 'shovel': {
-                            if(world_material.id == BLOCK.DIRT.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;
@@ -590,13 +750,13 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.DIRT_PATH.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                                 resp.decrement = true;
                                 if(matBlock.sound) {
-                                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                                 }
                             }
                             break;
                         }
                         case 'hoe': {
-                            if(world_material.id == BLOCK.DIRT.id || world_material.id == BLOCK.DIRT_PATH.id) {
+                            if(world_material.id == BLOCK.GRASS_DIRT.id || world_material.id == BLOCK.DIRT_PATH.id || world_material.id == BLOCK.DIRT.id) {
                                 const extra_data = null;
                                 pos.x -= pos.n.x;
                                 pos.y -= pos.n.y;
@@ -604,7 +764,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                                 resp.blocks.list.push({pos: new Vector(pos), item: {id: BLOCK.FARMLAND.id, rotate: rotate, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_REPLACE});
                                 resp.decrement = true;
                                 if(matBlock.sound) {
-                                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                                 }
                             }
                             break;
@@ -619,22 +779,14 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.blocks.list.push({pos: new Vector(pos), item: {id: emitBlock.id, rotate: rotate, extra_data: extra_data}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
                         if(emitBlock.sound) {
-                            resp.play_sound = {tag: emitBlock.sound, action: 'place'};
+                            resp.play_sound.push({tag: emitBlock.sound, action: 'place', pos: new Vector(pos)});
                         }
                         return resp;
                     }
                     break;
                 }
-                case 'painting': {
-                    resp.create_painting = await createPainting(world, pos);
-                    if(resp.create_painting) {
-                        resp.play_sound = {tag: 'madcraft:block.wood', action: 'place'};
-                    }
-                    break;
-                }
             }
         } else {
-            const orientation = matBlock.tags.indexOf('rotate_by_pos_n') >= 0 ? calcRotateByPosN(pos.n) : calcRotate(player.rotate, pos.n);
             //
             const new_item = {
                 id: matBlock.id
@@ -651,7 +803,16 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     resp.create_chest = {pos: new Vector(pos), item: new_item};
                     resp.decrement = true;
                     if(matBlock.sound) {
-                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                        resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
+                    }
+                    return resp;
+                    break;
+                }
+                case BLOCK.PAINTING.id: {
+                    const painting = await createPainting(e, world, pos);
+                    if(painting) {
+                        resp.play_sound.push({tag: 'madcraft:block.wood', action: 'place', pos: new Vector(pos)});
+                        resp.blocks.list.push({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: painting}, action_id: replaceBlock ? ServerClient.BLOCK_ACTION_REPLACE : ServerClient.BLOCK_ACTION_CREATE});
                     }
                     return resp;
                     break;
@@ -686,7 +847,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             };
             //
-            if(replaceBlock) {
+            /*if(replaceBlock) {
                 // Replace block
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
@@ -694,21 +855,22 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.decrement = true;
                     }
                 } else {
-                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE}); // ServerClient.BLOCK_ACTION_REPLACE
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     resp.decrement = true;
                 }
                 if(matBlock.sound) {
-                    resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                 }
             } else {
+                */
                 // Create block
                 // Посадить растения можно только на блок земли
-                if(BLOCK.isPlants(matBlock.id)) {
+                if(matBlock.planting) {
                     let underBlock = world.getBlock(new Vector(pos.x, pos.y - 1, pos.z));
                     if(!underBlock) {
                         return resp;
                     }
-                    if(underBlock.id != BLOCK.DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
+                    if(underBlock.id != BLOCK.GRASS_DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
                         return resp;
                     }
                     // Посадить семена можно только на вспаханную землю
@@ -724,13 +886,26 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         return resp;
                     }
                 }
+                if(matBlock.is_mushroom_block) {
+                    const neighbours = getBlockNeighbours(world, pos);
+                    let t = 0;
+                    if(neighbours.UP && neighbours.UP.material.transparent) t |= (1 << DIRECTION_BIT.UP);
+                    if(neighbours.DOWN && neighbours.DOWN.material.transparent) t |= (1 << DIRECTION_BIT.DOWN);
+                    if(neighbours.EAST && neighbours.EAST.material.transparent) t |= (1 << DIRECTION_BIT.EAST);
+                    if(neighbours.WEST && neighbours.WEST.material.transparent) t |= (1 << DIRECTION_BIT.WEST);
+                    if(neighbours.SOUTH && neighbours.SOUTH.material.transparent) t |= (1 << DIRECTION_BIT.SOUTH);
+                    if(neighbours.NORTH && neighbours.NORTH.material.transparent) t |= (1 << DIRECTION_BIT.NORTH);
+                    let extra_data = t ? {t: t} : null;
+                    pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
+                    return resp;
+                }
                 if(matBlock.item || matBlock.is_entity) {
                     if(matBlock.is_entity) {
                         pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                         resp.decrement = true;
                         let b = BLOCK.fromId(matBlock.id);
                         if(b.sound) {
-                            resp.play_sound = {tag: b.sound, action: 'place'};
+                            resp.play_sound.push({tag: b.sound, action: 'place', pos: new Vector(pos)});
                         }
                     }
                 } else {
@@ -796,11 +971,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     }
                     pushBlock({pos: new Vector(pos), item: {id: matBlock.id, rotate: orientation, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_CREATE});
                     if(matBlock.sound) {
-                        resp.play_sound = {tag: matBlock.sound, action: 'place'};
+                        resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                     }
                     resp.decrement = true;
                 }
-            }
+            //}
         }
     }
     return resp;

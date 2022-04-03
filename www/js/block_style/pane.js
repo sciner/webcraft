@@ -20,7 +20,7 @@ export default class style {
         const cardinal_direction = block.getCardinalDirection();
 
         // Texture color multiplier
-        if(block.id == BLOCK.DIRT.id) {
+        if(block.id == BLOCK.GRASS_DIRT.id) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
         }
 

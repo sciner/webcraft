@@ -499,7 +499,7 @@ class PresetInterpolationTask extends InterpolateTask {
 const ENV_GRAD_COLORS = {
     [0]  : new Color(0x020202, 0),
     [35] : new Color(0x250a07, 0.15),
-    [46] : new Color(0x963b25, 0.25),
+    [46] : new Color(0xffa866 /*0x963b25*/, 0.25),
     [57] : new Color(0xe3ad59, 0.0),
     [62] : new Color(0xbdd7ea, 0.0), // as fog
     [100]: new Color(0xbdd7ea, 0.0), // as fog
@@ -654,17 +654,17 @@ export class Environment {
         this.skyBox = renderBackend.createCubeMap({
             code: Resources.codeSky,
             uniforms: {
-                u_brightness: 1.0,
-                u_textureOn: true
+                u_brightness: 1.0
+                // u_textureOn: true
             },
-            sides: [
+            /*sides: [
                 Resources.sky.posx,
                 Resources.sky.negx,
                 Resources.sky.posy,
                 Resources.sky.negy,
                 Resources.sky.posz,
                 Resources.sky.negz
-            ]
+            ]*/
         });
     }
 
@@ -747,7 +747,7 @@ export class Environment {
 
     _interpolate(delta = 0) {
         for(const t of this._tasks.values()) {
-            t.update(delta / 60);
+            t.update(delta);
 
             if (t.done) {
                 this._taskDone(t);

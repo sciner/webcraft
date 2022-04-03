@@ -8,12 +8,14 @@ import {HUD} from "./hud.js";
 import {Sounds} from "./sounds.js";
 import {Kb} from "./kb.js";
 import {Hotbar} from "./hotbar.js";
+import {Tracker_Player} from "./tracker_player.js";
 
-const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.2 / 352), 1);
+// TrackerPlayer
+globalThis.TrackerPlayer = new Tracker_Player();
+
+const RES_SCALE = Math.max(Math.round(window.screen.availWidth * 0.21 / 352), 1);
 globalThis.UI_ZOOM = Math.max(Math.round(window.devicePixelRatio), 1) * RES_SCALE;
 globalThis.UI_FONT = 'Ubuntu';
-
-// console.log(UI_ZOOM, RES_SCALE);
 
 export class GameClass {
 
@@ -27,6 +29,7 @@ export class GameClass {
         this.current_player_state = {
             rotate:             new Vector(),
             pos:                new Vector(),
+            sneak:              false,
             ping:               0
         };
     }
@@ -81,6 +84,8 @@ export class GameClass {
         // Send player state
         this.sendStateInterval = setInterval(() => {
             this.sendPlayerState(player);
+            // TrackerPlayer change volumes
+            TrackerPlayer.changePos(this.player.lerpPos);
         }, 50);
 
         this.render.requestAnimationFrame(this.loop);
@@ -191,6 +196,12 @@ export class GameClass {
                 }
                 // Windows
                 if(this.hud.wm.hasVisibleWindow()) {
+                    if(e.down && e.keyCode == KEY.TAB) {
+                        if(Game.hud.wm.getWindow('frmQuests').visible) {
+                            Game.hud.wm.getWindow('frmQuests').hide();
+                            return true;
+                        }
+                    }
                     return this.hud.wm.onKeyEvent(e);
                 }
                 //
@@ -342,6 +353,16 @@ export class GameClass {
                         }
                         break;
                     }
+                    // Tab (Quests)
+                    case KEY.TAB: {
+                        if(e.down) {
+                            if(!this.hud.wm.hasVisibleWindow()) {
+                                Game.hud.wm.getWindow('frmQuests').toggleVisibility();
+                                return true;
+                            }
+                        }
+                        break;
+                    }
                     // T (Open chat)
                     case KEY.T: {
                         if(!e.down) {
@@ -374,7 +395,7 @@ export class GameClass {
                     return true;
                 }
                 player.zoom = !!kb.keys[KEY.C];
-                if(e.ctrlKey) {
+                if(e.ctrlKey && !player.isSneak) {
                     player.controls.sprint = !!kb.keys[KEY.W];
                 } else {
                     if(!e.down) {
@@ -430,7 +451,7 @@ export class GameClass {
             player.lastUpdate = null;
         }
 
-        this.world.chunkManager.update(player.pos);
+        this.world.chunkManager.update(player.pos, delta);
 
         // Picking target
         if (player.pickAt && Game.hud.active && player.game_mode.canBlockAction()) {
@@ -465,6 +486,7 @@ export class GameClass {
     sendPlayerState(player) {
         this.current_player_state.rotate.copyFrom(player.rotate).multiplyScalar(10000).roundSelf().divScalar(10000);
         this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
+        this.current_player_state.sneak = player.isSneak;
         this.ping = Math.round(this.player.world.server.ping_value);
         const current_player_state_json = JSON.stringify(this.current_player_state);
         if(current_player_state_json != this.prev_player_state) {

@@ -1,11 +1,12 @@
 import { CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z } from "./chunk.js";
-import { DIRECTION, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
+import { DIRECTION, DIRECTION_BIT, ROTATE, TX_CNT, Vector, Vector4 } from './helpers.js';
 import { ResourcePackManager } from './resource_pack_manager.js';
 import { Resources } from "./resources.js";
 import { CubeSym } from "./core/CubeSym.js";
 import { AABB } from './core/AABB.js';
 
 export const TRANS_TEX                      = [4, 12];
+export const WATER_BLOCKS_ID                = [200, 202];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 
 // Свойства, которые могут сохраняться в БД
@@ -118,6 +119,25 @@ export class BLOCK {
     static resource_pack_manager    = null;
     static max_id                   = 0;
     static MASK_BIOME_BLOCKS        = [];
+    static MASK_COLOR_BLOCKS        = [];
+
+    static getBlockTitle(block) {
+        if(!block || !('id' in block)) {
+            return '';
+        }
+        let mat = null;
+        if('name' in block && 'title' in block) {
+            mat = block;
+        } else {
+            mat = BLOCK.fromId(block.id);
+        }
+        let resp = mat.name;
+        if(mat.title) {
+            resp += ` (${mat.title})`;
+        }
+        resp = resp.replaceAll('_', ' ');
+        return resp;
+    }
 
     static getLightPower(material) {
         if (!material) {
@@ -229,7 +249,7 @@ export class BLOCK {
         let is_trapdoor = block.tags.indexOf('trapdoor') >= 0;
         let is_stairs = block.tags.indexOf('stairs') >= 0;
         let is_door = block.tags.indexOf('door') >= 0;
-        let is_slab = block.layering && block.layering.slab;
+        let is_slab = block.is_layering && block.layering.slab;
         if(is_trapdoor || is_stairs || is_door || is_slab) {
             extra_data = {
                 point: new Vector(pos.point.x, pos.point.y, pos.point.z)
@@ -268,6 +288,29 @@ export class BLOCK {
             }
         } else if(block.extra_data) {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
+            // Execute calculated extra_data fields:
+            if('calculated' in extra_data) {
+                const calculated = extra_data.calculated;
+                delete(extra_data.calculated);
+                for(let g of calculated) {
+                    if(!('name' in g)) {
+                        throw 'error_generator_name_not_set';
+                    }
+                    switch(g.type) {
+                        case 'pos': {
+                            extra_data[g.name] = new Vector(pos);
+                            break;
+                        }
+                        case 'random_int': {
+                            if(!('min_max' in g)) {
+                                throw 'error_generator_min_max_not_set';
+                            }
+                            extra_data[g.name] = Math.round(Math.random() * (g.min_max[1] - g.min_max[0]) + g.min_max[0]);
+                            break;
+                        }
+                    }
+                }
+            }
         }
         return extra_data;
     }
@@ -308,10 +351,10 @@ export class BLOCK {
             return true;
         }
         let block = BLOCK.BLOCK_BY_ID.get(block_id);
-        if(block.fluid) {
+        if(block.is_fluid) {
             return true;
         }
-        if(block.layering) {
+        if(block.is_layering) {
             let height = extra_data ? (extra_data.height ? parseFloat(extra_data.height) : 1) : block.height;
             return !isNaN(height) && height == block.height && block_id != replace_with_block_id;
         }
@@ -344,12 +387,17 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if([200, 202].indexOf(block.id) >= 0 || block.style == 'pane') {
+        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane') {
             // если это блок воды или облако
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
-        } else if(block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' || block.style == 'door' || block.style == 'redstone') {
+        } else if(block.id == 649 ||
+            block.tags.indexOf('leaves') >= 0 ||
+            block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||
+            block.style == 'door' || block.style == 'redstone' || block.style == 'pot' || block.style == 'lantern' ||
+            block.style == 'azalea' || block.style == 'bamboo' || block.style == 'campfire' || block.style == 'cocoa'
+            ) {
             group = 'doubleface';
         }
         return group;
@@ -438,7 +486,11 @@ export class BLOCK {
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
         block.transparent       = this.parseBlockTransparent(block);
-        block.is_water          = block.is_fluid && [200, 202].indexOf(block.id) >= 0;
+        block.is_water          = block.is_fluid && WATER_BLOCKS_ID.indexOf(block.id) >= 0;
+        block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
+        block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
+        block.is_button         = block.tags.indexOf('button') >= 0;
+        block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;
         block.material_key      = BLOCK.makeBlockMaterialKey(resource_pack, block);
@@ -491,6 +543,9 @@ export class BLOCK {
         }
         if(block.tags.indexOf('mask_biome') >= 0 && BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) < 0) {
             BLOCK.MASK_BIOME_BLOCKS.push(block.id)
+        }
+        if(block.tags.indexOf('mask_color') >= 0 && BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) < 0) {
+            BLOCK.MASK_COLOR_BLOCKS.push(block.id)
         }
         // Parse tags
         for(let tag of block.tags) {
@@ -552,6 +607,21 @@ export class BLOCK {
                 stage = Math.max(stage, 0);
                 stage = Math.min(stage, material.stage_textures.length - 1);
                 texture = material.stage_textures[stage];
+            }
+        }
+        // Mushroom block
+        if(material.is_mushroom_block) {
+            let t = block?.extra_data?.t;
+            if(block && t) {
+                texture = material.texture.down;
+                if(dir == DIRECTION.UP && (t >> DIRECTION_BIT.UP) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.DOWN && (t >> DIRECTION_BIT.DOWN) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.WEST && (t >> DIRECTION_BIT.WEST) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.EAST && (t >> DIRECTION_BIT.EAST) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.NORTH && (t >> DIRECTION_BIT.NORTH) % 2 != 0) texture = material.texture.side;
+                if(dir == DIRECTION.SOUTH && (t >> DIRECTION_BIT.SOUTH) % 2 != 0) texture = material.texture.side;
+            } else {
+                texture = material.texture.down;
             }
         }
         let c = this.calcTexture(texture, dir, tx_cnt);
@@ -713,7 +783,7 @@ export class BLOCK {
             return shapes;
         }
         let f = !!expanded ? .001 : 0;
-        if(!material.passable && (material.style != 'planting')) {
+        if(!material.passable && !material.planting) {
             switch(material.style) {
                 case 'fence': {
                     let height = for_physic ? 1.5 : 1;
@@ -956,26 +1026,7 @@ export class BLOCK {
                             ...styleVariant.aabb(b, for_physic).map(aabb => aabb.toArray())
                         );
                     } else {
-                        let shift_y = 0;
-                        let height = material.height ? material.height : 1;
-                        // Высота наслаеваемых блоков хранится в extra_data
-                        if(material.layering) {
-                            if(b.extra_data) {
-                                height = b.extra_data?.height || height;
-                            }
-                            if(material.layering.slab) {
-                                let on_ceil = this.isOnCeil(b);
-                                if(on_ceil) {
-                                    shift_y = material.layering.height;
-                                }
-                            }
-                        }
-                        if(material.width) {
-                            let hw = material.width / 2;
-                            shapes.push([.5-hw, shift_y - f, .5-hw, .5+hw, shift_y + height + f, .5+hw]);
-                        } else {
-                            shapes.push([0, shift_y - f, 0, 1, shift_y + height + f, 1]);
-                        }
+                        console.error('Deprecated');
                     }
                     break;
                 }

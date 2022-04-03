@@ -8,7 +8,9 @@
         },
         "texture": {
             "id": "lodestone",
-            "side": [0, 0]
+            "side": [1, 0],
+            "up": [0, 0],
+            "down": [0, 0]
         }
     }
 ]

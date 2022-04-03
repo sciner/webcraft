@@ -1,6 +1,9 @@
 import { CubeSym } from "./core/CubeSym.js";
 import {impl as alea} from "../vendors/alea.js";
 import {default as runes} from "../vendors/runes.js";
+import glMatrix from "../vendors/gl-matrix-3.3.min.js"
+
+const {mat4} = glMatrix;
 
 export const TX_CNT = 32;
 
@@ -158,19 +161,26 @@ export class VectorCollector {
         }
     }
 
-    kvpIterator() {
+    entries(aabb) {
         const that = this;
         return (function* () {
             let vec = new Vector(0, 0, 0);
             for (let [xk, x] of that.list) {
+                if(aabb && (xk < aabb.x_min || xk > aabb.x_max)) continue;
                 for (let [yk, y] of x) {
+                    if(aabb && (yk < aabb.y_min || yk > aabb.y_max)) continue;
                     for (let [zk, value] of y) {
+                        if(aabb && (zk < aabb.z_min || zk > aabb.z_max)) continue;
                         vec.set(xk|0, yk|0, zk|0);
                         yield [vec, value];
                     }
                 }
             }
         })()
+    }
+
+    kvpIterator(aabb) {
+        return this.entries(aabb);
     }
 
     clear(list) {
@@ -322,6 +332,14 @@ export class Color {
      */
     toCSS()  {
         return 'rgb(' + [this.r, this.g, this.b, this.a].join(',') + ')';
+    }
+
+    clone() {
+        return new Color(this.r, this.g, this.b, this.a);
+    }
+
+    toArray() {
+        return [this.r, this.g, this.b, this.a];
     }
 
 }
@@ -535,6 +553,23 @@ export class Vector {
         return vec1.sub(vec2).length();
     }
 
+
+    // distancePointLine...
+    distanceToLine(line_start, line_end, intersection = null) {
+        intersection = intersection || new Vector(0, 0, 0);
+        let dist = line_start.distance(line_end);
+        let u = (((this.x - line_start.x) * (line_end.x - line_start.x)) +
+            ((this.y - line_start.y) * (line_end.y - line_start.y)) +
+            ((this.z - line_start.z) * (line_end.z - line_start.z))) /
+            (dist * dist);
+        if(u < 0) u = 0;
+        if(u > 1) u = 1;
+        intersection.x = line_start.x + u * (line_end.x - line_start.x);
+        intersection.y = line_start.y + u * (line_end.y - line_start.y);
+        intersection.z = line_start.z + u * (line_end.z - line_start.z);
+        return this.distance(intersection);
+    }
+
     /**
      * @return {Vector}
      */
@@ -563,18 +598,21 @@ export class Vector {
     /**
      * @return {Vector}
      */
-    round() {
-        return new Vector(
-            Math.round(this.x),
-            Math.round(this.y),
-            Math.round(this.z)
-        );
+    round(decimals) {
+        return this.roundSelf(decimals).clone();
     }
 
     /**
      * @returns {Vector}
      */
-    roundSelf() {
+    roundSelf(decimals) {
+        if(decimals) {
+            decimals = Math.pow(10, decimals);
+            this.x = Math.round(this.x * decimals) / decimals;
+            this.y = Math.round(this.y * decimals) / decimals;
+            this.z = Math.round(this.z * decimals) / decimals;
+            return this;
+        }
         this.x = Math.round(this.x);
         this.y = Math.round(this.y);
         this.z = Math.round(this.z);
@@ -688,9 +726,10 @@ export class Vector {
             return this.copy(x);
         }
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        // maybe undef
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
         return this;
     }
 
@@ -705,6 +744,13 @@ export class Vector {
         this.x /= scalar;
         this.y /= scalar;
         this.z /= scalar;
+        return this;
+    }
+
+    divScalarVec(vec) {
+        this.x /= vec.x;
+        this.y /= vec.y;
+        this.z /= vec.z;
         return this;
     }
 
@@ -771,6 +817,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.MASK_BIOME = 1 << 1;
     QUAD_FLAGS.NO_AO = 1 << 2;
     QUAD_FLAGS.NO_FOG = 1 << 3;
+    QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front
@@ -795,6 +842,19 @@ export let DIRECTION = {};
     DIRECTION.RIGHT     = CubeSym.ROT_Y3;
     DIRECTION.FORWARD   = CubeSym.ID;
     DIRECTION.BACK      = CubeSym.ROT_Y2;
+    // Aliases
+    DIRECTION.WEST      = DIRECTION.LEFT;
+    DIRECTION.EAST      = DIRECTION.RIGHT
+    DIRECTION.NORTH     = DIRECTION.FORWARD;
+    DIRECTION.SOUTH     = DIRECTION.BACK;
+
+export let DIRECTION_BIT = {};
+    DIRECTION_BIT.UP    = 0;
+    DIRECTION_BIT.DOWN  = 1;
+    DIRECTION_BIT.EAST  = 2;
+    DIRECTION_BIT.WEST  = 3;
+    DIRECTION_BIT.NORTH = 4;
+    DIRECTION_BIT.SOUTH = 5;
 
 // Direction names
 export let DIRECTION_NAME = {};
@@ -1290,4 +1350,112 @@ export class AlphabetTexture {
         return resp;
     }
 
+}
+
+export function fromMat3(a, b) {
+    a[ 0] = b[ 0];
+    a[ 1] = b[ 1];
+    a[ 2] = b[ 2];
+
+    a[ 4] = b[ 3];
+    a[ 5] = b[ 4];
+    a[ 6] = b[ 5];
+
+    a[ 8] = b[ 6];
+    a[ 9] = b[ 7];
+    a[10] = b[ 8];
+
+    a[ 3] = a[ 7] = a[11] =
+    a[12] = a[13] = a[14] = 0;
+    a[15] = 1.0;
+
+    return a;
+}
+
+// calcRotateMatrix
+export function calcRotateMatrix(material, rotate, cardinal_direction, matrix) {
+    // Can rotate
+    if(material.can_rotate) {
+        //
+        if(rotate) {
+
+            if (CubeSym.matrices[cardinal_direction][4] <= 0) {
+                matrix = fromMat3(new Float32Array(16), CubeSym.matrices[cardinal_direction]);
+                /*
+                // Use matrix instead!
+                if (matrix) {
+                    mat3.multiply(tempMatrix, matrix, CubeSym.matrices[cardinal_direction]);
+                    matrix = tempMatrix;
+                } else {
+                    matrix = CubeSym.matrices[cardinal_direction];
+                }
+                */
+            } else if(rotate.y != 0) {
+                if(material.tags.indexOf('rotate_by_pos_n') >= 0 ) {
+                    matrix = mat4.create();
+                    if(rotate.y == 1) {
+                        // on the floor
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI);
+                    } else {
+                        // on the ceil
+                        mat4.rotateZ(matrix, matrix, Math.PI);
+                        mat4.rotateY(matrix, matrix, (rotate.x / 4) * (2 * Math.PI) + Math.PI*2);
+                    }
+                }
+            }
+        }
+    }
+    return matrix;
+}
+
+function toType(a) {
+    // Get fine type (object, array, function, null, error, date ...)
+    return ({}).toString.call(a).match(/([a-z]+)(:?\])/i)[1];
+}
+
+function isDeepObject(obj) {
+    return "Object" === toType(obj);
+}
+
+export function deepAssign(options) {
+    return function deepAssignWithOptions (target, ...sources) {
+        sources.forEach( (source) => {
+
+            if (!isDeepObject(source) || !isDeepObject(target))
+                return;
+
+            // Copy source's own properties into target's own properties
+            function copyProperty(property) {
+                const descriptor = Object.getOwnPropertyDescriptor(source, property);
+                //default: omit non-enumerable properties
+                if (descriptor.enumerable || options.nonEnum) {
+                    // Copy in-depth first
+                    if (isDeepObject(source[property]) && isDeepObject(target[property]))
+                        descriptor.value = deepAssign(options)(target[property], source[property]);
+                    //default: omit descriptors
+                    if (options.descriptors)
+                        Object.defineProperty(target, property, descriptor); // shallow copy descriptor
+                    else
+                        target[property] = descriptor.value; // shallow copy value only
+                }
+            }
+
+            // Copy string-keyed properties
+            Object.getOwnPropertyNames(source).forEach(copyProperty);
+
+            //default: omit symbol-keyed properties
+            if (options.symbols)
+                Object.getOwnPropertySymbols(source).forEach(copyProperty);
+
+            //default: omit prototype's own properties
+            if (options.proto)
+                // Copy souce prototype's own properties into target prototype's own properties
+                deepAssign(Object.assign({},options,{proto:false})) (// Prevent deeper copy of the prototype chain
+                    Object.getPrototypeOf(target),
+                    Object.getPrototypeOf(source)
+                );
+
+        });
+        return target;
+    }
 }

@@ -1,7 +1,8 @@
-import {BLOCK} from "../blocks.js";
+import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
+import { AABB } from '../core/AABB.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -63,6 +64,15 @@ export class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.aabb = new AABB();
+        this.aabb.set(
+            this.coord.x,
+            this.coord.y,
+            this.coord.z,
+            this.coord.x + this.size.x,
+            this.coord.y + this.size.y,
+            this.coord.z + this.size.z
+        );
         this.id = this.addr.toHash();
         this.emitted_blocks = new VectorCollector();
     }
@@ -159,11 +169,7 @@ export class Chunk {
     setBlock(x, y, z, orig_type, is_modify, power, rotate, entity_id, extra_data) {
         // fix rotate
         if(rotate && typeof rotate === 'object') {
-            rotate = new Vector(
-                Math.round(rotate.x * 10) / 10,
-                Math.round(rotate.y * 10) / 10,
-                Math.round(rotate.z * 10) / 10
-            );
+            rotate = new Vector(rotate).roundSelf(1);
         } else {
             rotate = null;
         }
@@ -345,6 +351,27 @@ export class Chunk {
             this.vertices.get(material_key).list.push(...vertices);
         };
 
+        const waterInWater = function(material, neighbours) {
+            if(WATER_BLOCKS_ID.indexOf(material.id) >= 0) {
+                let n1 = neighbours.UP?.id || 0;
+                let n2 = neighbours.DOWN?.id || 0;
+                let n3 = neighbours.SOUTH?.id || 0;
+                let n4 = neighbours.NORTH?.id || 0;
+                let n5 = neighbours.EAST?.id || 0;
+                let n6 = neighbours.WEST?.id || 0;
+                if(
+                    (WATER_BLOCKS_ID.indexOf(n1) >= 0) &&
+                    (WATER_BLOCKS_ID.indexOf(n2) >= 0) &&
+                    (WATER_BLOCKS_ID.indexOf(n3) >= 0) &&
+                    (WATER_BLOCKS_ID.indexOf(n4) >= 0) &&
+                    (WATER_BLOCKS_ID.indexOf(n5) >= 0) &&
+                    (WATER_BLOCKS_ID.indexOf(n6) >= 0)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
             material = block.material;
@@ -371,18 +398,12 @@ export class Chunk {
                 }
             }
             // if block is fluid
-            if(material.fluid) {
+            if(material.is_fluid) {
                 this.fluid_blocks.push(block.pos);
             }
             */
-            if(material.id == 202
-                && (neighbours.UP?.id || 0) == 202
-                && (neighbours.DOWN?.id || 0) == 202
-                && (neighbours.SOUTH?.id || 0) == 202
-                && (neighbours.NORTH?.id || 0) == 202
-                && (neighbours.EAST?.id || 0) == 202
-                && (neighbours.WEST?.id || 0) == 202) {
-                    continue;
+            if(waterInWater(material, neighbours)) {
+                continue;
             }
             if(block.vertices === null) {
                 block.vertices = [];
@@ -430,7 +451,7 @@ export class Chunk {
                         eb.pos.y,
                         eb.pos.z,
                         fake_neighbours,
-                        null,
+                        eb.biome,
                         null,
                         null,
                         eb.matrix,

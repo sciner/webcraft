@@ -1,12 +1,11 @@
 import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
-import {Chunk, getChunkAddr, CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getLocalChunkCoord, ALLOW_NEGATIVE_Y} from "./chunk.js";
+import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
-import { Resources } from "./resources.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 4;
+const MAX_APPLY_VERTICES_COUNT  = 20;
 export const MAX_Y_MARGIN       = 3;
-
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
 export const GROUPS_NO_TRANSPARENT = ['regular', 'doubleface'];
 
@@ -28,11 +27,52 @@ export class ChunkManager {
     static instance;
 
     constructor(world) {
+
         ChunkManager.instance = this;
 
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+
+        // Torches
+        this.torches = {
+            list: new VectorCollector(),
+            add: function(args) {
+                this.list.set(args.block_pos, args);
+            },
+            delete(pos) {
+                this.list.delete(pos);
+            },
+            destroyAllInAABB(aabb) {
+                for(let [pos, _] of this.list.entries(aabb)) {
+                    this.list.delete(pos);
+                }
+            },
+            update(player_pos) {
+                const meshes = Game.render.meshes;
+                const type_distance = {
+                    torch: 12,
+                    campfire: 96
+                };
+                // Add torches animations if need
+                for(let [_, item] of this.list.entries()) {
+                    if(Math.random() < .23) {
+                        if(player_pos.distance(item.pos) < type_distance[item.type]) {
+                            switch(item.type) {
+                                case 'torch': {
+                                    meshes.addEffectParticle('torch_flame', item.pos);
+                                    break;
+                                }
+                                case 'campfire': {
+                                    meshes.addEffectParticle('campfire_flame', item.pos);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
 
         // rendering
         this.poses                  = [];
@@ -47,17 +87,18 @@ export class ChunkManager {
         this.lightmap_bytes         = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
-        this.worker_counter         = 2;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
+        this.timer60fps             = 0;
 
     }
 
-    init () {
+    init() {
+        
         const world                   = this.world;
         const that                    = this;
-        //
+
         // Add listeners for server commands
         this.world.server.AddCmdListener([ServerClient.CMD_NEARBY_CHUNKS], (cmd) => {this.updateNearby(cmd.data)});
         this.world.server.AddCmdListener([ServerClient.CMD_CHUNK_LOADED], (cmd) => {
@@ -111,6 +152,20 @@ export class ChunkManager {
                     }
                     break;
                 }
+                case 'play_disc': {
+                    TrackerPlayer.loadAndPlay('/media/disc/' + args.filename, args.pos, args.dt);
+                    break;
+                }
+                case 'add_torch': {
+                    that.torches.add(args);
+                    break;
+                }
+                case 'maps_created': {
+                    // chunkManager.postWorkerMessage(['createMaps', {addr: {x: 1, y: 1, z: 1}}]);
+                    // console.log('maps_created', args.length * 4);
+                    console.log('maps_created', args);
+                    break;
+                }
             }
         }
         // Light worker messages receiver
@@ -139,6 +194,9 @@ export class ChunkManager {
         const world_guid = world_info.guid;
         const settings = world.settings;
         const resource_cache = Helpers.getCache();
+
+        this.use_light                = !!settings.use_light;
+        this.worker_counter           = this.use_light ? 2 : 1;
 
         this.postWorkerMessage(['init', {
             generator,
@@ -189,7 +247,7 @@ export class ChunkManager {
                 v2.length = 0;
             }
         }
-        let applyVerticesCan = 20;
+        let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let chunk of this.poses) {
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {
@@ -302,7 +360,9 @@ export class ChunkManager {
 
     // postLightWorkerMessage
     postLightWorkerMessage(data) {
-        this.lightWorker.postMessage(data);
+        if(this.use_light) {
+            this.lightWorker.postMessage(data);
+        }
     }
 
     // Remove chunk
@@ -311,6 +371,11 @@ export class ChunkManager {
         let chunk = this.chunks.get(addr);
         if(chunk) {
             this.vertices_length_total -= chunk.vertices_length;
+            // 1. Delete torch emmiters
+            this.torches.destroyAllInAABB(chunk.aabb);
+            // 2. Destroy playing discs
+            TrackerPlayer.destroyAllInAABB(chunk.aabb);
+            // 3. Call chunk destructor
             chunk.destruct();
             this.chunks.delete(addr)
             this.rendered_chunks.total--;
@@ -318,7 +383,7 @@ export class ChunkManager {
     }
 
     // Update
-    update(player_pos) {
+    update(player_pos, delta) {
 
         if(!this.update_chunks || !this.worker_inited || !this.nearby) {
             return false;
@@ -374,6 +439,13 @@ export class ChunkManager {
                 }
             }
         }
+
+        this.timer60fps += delta;
+        if(this.timer60fps >= 16.666) {
+            this.timer60fps = 0;
+            this.torches.update(player_pos);
+        }
+
     }
 
     // Возвращает блок по абслютным координатам
@@ -440,7 +512,7 @@ export class ChunkManager {
         let startx = pos.x;
         let all_blocks = BLOCK.getAll();
         for(let [id, block] of all_blocks) {
-            if(block.fluid || block.item || !block.spawnable) {
+            if(block.is_fluid || block.item || !block.spawnable) {
                 continue;
             }
             if(cnt % d == 0) {

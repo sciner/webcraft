@@ -71,9 +71,8 @@ export default class style {
                 pivot,
                 matrix,
                 {
-                    south:  new AABBSideParams(c, 0, 1)
+                    south:  new AABBSideParams(c, 0, 1, null, null, false)
                 },
-                false,
                 center
             );
             cx++;
@@ -112,9 +111,8 @@ export default class style {
                     pivot,
                     matrix,
                     {
-                        south:  new AABBSideParams(c, 0, 1)
+                        south:  new AABBSideParams(c, 0, 1, null, null, false)
                     },
-                    false,
                     center
                 );
                 cx++;

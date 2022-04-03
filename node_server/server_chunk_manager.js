@@ -1,11 +1,8 @@
-import {ServerChunk} from "./server_chunk.js";
-
+import {ServerChunk, CHUNK_STATE_NEW, CHUNK_STATE_BLOCKS_GENERATED} from "./server_chunk.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr, ALLOW_NEGATIVE_Y} from "../www/js/chunk.js";
 import {SpiralGenerator, Vector, VectorCollector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
-
-// import {ChunkManager} from "../www/js/chunk_manager.js";
 
 export const MAX_Y_MARGIN = 3;
 
@@ -81,8 +78,10 @@ export class ServerChunkManager {
         this.unloadInvalidChunks();
         //
         for(let chunk of this.all) {
-            if(chunk.load_state == 0) {
+            if(chunk.load_state == CHUNK_STATE_NEW) {
                 chunk.load();
+            } else if(chunk.load_state == CHUNK_STATE_BLOCKS_GENERATED) {
+                chunk.generateMobs();
             }
         }
         // Tick for chunks
@@ -213,6 +212,16 @@ export class ServerChunkManager {
             return chunk.getBlock(x, y, z);
         }
         return this.DUMMY;
+    }
+
+    // chunkMobsIsGenerated
+    async chunkMobsIsGenerated(chunk_addr_hash) {
+        return await this.world.db.chunkMobsIsGenerated(chunk_addr_hash);
+    }
+
+    // chunkSetMobsIsGenerated
+    async chunkSetMobsIsGenerated(chunk_addr_hash) {
+        return await this.world.db.chunkMobsSetGenerated(chunk_addr_hash, 1);
     }
 
 }

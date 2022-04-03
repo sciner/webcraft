@@ -21,7 +21,7 @@ export default class style {
 
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
-        if(block.id == BLOCK.DIRT.id) {
+        if(block.id == BLOCK.GRASS_DIRT.id) {
             lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
         }
 

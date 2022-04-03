@@ -1,4 +1,4 @@
-import {Helpers, ROTATE, Vector} from "./helpers.js";
+import {Helpers, Vector} from "./helpers.js";
 import {getChunkAddr} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {PickAt} from "./pickat.js";
@@ -10,11 +10,14 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
+import {QuestWindow} from "./window/index.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
 const PREV_ACTION_MIN_ELAPSED           = .2 * 1000;
 const CONTINOUS_BLOCK_DESTROY_MIN_TIME  = .2; // минимальное время (мс) между разрушениями блоков без отжимания кнопки разрушения
+const SNEAK_HEIGHT                      = 6/16; // in blocks
+const SNEAK_CHANGE_PERIOD               = 150; // in msec
 
 // Creates a new local player manager.
 export class Player {
@@ -25,9 +28,11 @@ export class Player {
 
     JoinToWorld(world, cb) {
         this.world = world;
+        //
         this.world.server.AddCmdListener([ServerClient.CMD_CONNECTED], (cmd) => {
             cb(this.playerConnectedToWorld(cmd.data), cmd);
         });
+        //
         this.world.server.Send({name: ServerClient.CMD_CONNECT, data: {world_guid: world.info.guid}});
     }
 
@@ -51,6 +56,7 @@ export class Player {
         this.world.chunkManager.setRenderDist(data.state.chunk_render_dist);
         this._eye_pos               = new Vector(0, 0, 0);
         // Position
+        this._height                = PLAYER_HEIGHT;
         this.pos                    = new Vector(data.state.pos.x, data.state.pos.y, data.state.pos.z);
         this.prevPos                = new Vector(this.pos);
         this.lerpPos                = new Vector(this.pos);
@@ -78,6 +84,17 @@ export class Player {
         // pickAt
         this.pickAt                 = new PickAt(this.world, Game.render, async (...args) => {
             return await this.onPickAtTarget(...args);
+        }, async (e) => {
+            // onInterractMob
+            let mob = Game.world.mobs.list.get(e.interractMob);
+            if(mob) {
+                mob.punch(e);
+                // @server Отправляем на сервер инфу о взаимодействии с окружающим блоком
+                this.world.server.Send({
+                    name: ServerClient.CMD_PICKAT_ACTION,
+                    data: e
+                });
+            }
         });
         // Player control
         this.pr                     = new PrismarinePlayerControl(this.world, this.pos, {});
@@ -97,7 +114,6 @@ export class Player {
         this.onGroundO              = false;
         this.walking_frame          = 0;
         this.zoom                   = false;
-        this.height                 = PLAYER_HEIGHT;
         this.walkDist               = 0;
         this.walkDistO              = 0;
         this.bob                    = 0;
@@ -131,9 +147,56 @@ export class Player {
             this.indicators = cmd.data.indicators;
             Game.hud.refresh();
         });
+        // Quests
+        this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
+        Game.hud.wm.add(this.frmQuests);
         return true;
     }
 
+    // Return player is sneak
+    get isSneak() {
+        // Get current player control
+        const pc = this.getPlayerControl();
+        if(pc instanceof PrismarinePlayerControl) {
+            if(pc.player_state.control.sneak && pc.player_state.onGround) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Return player height
+    get height() {
+        let sneak = this.isSneak;
+        //
+        const target_height = PLAYER_HEIGHT - (sneak ? SNEAK_HEIGHT : 0);
+        // If sneak changed
+        if(this.sneak !== sneak) {
+            this.sneak = sneak;
+            this.pn_start_change_sneak = performance.now();
+            this._sneak_period = Math.abs(target_height - this._height) / SNEAK_HEIGHT;
+            if(this._sneak_period == 0) {
+                this._height = target_height
+            } else {
+                this._height_diff = target_height - this._height;
+                this._height_before_change = this._height;
+            }
+        }
+        //
+        if(this._height != target_height) {
+            const elapsed = performance.now() - this.pn_start_change_sneak;
+            if(elapsed < SNEAK_CHANGE_PERIOD * this._sneak_period) {
+                // Interpolate between current and target heights
+                const percent = elapsed / (SNEAK_CHANGE_PERIOD * this._sneak_period);
+                this._height = this._height_before_change + (this._height_diff * percent);
+            } else {
+                this._height = target_height;
+            }
+        }
+        return this._height;
+    }
+
+    //
     addRotate(vec3) {
         this.setRotate(
             this.rotate.addSelf(vec3)
@@ -160,6 +223,9 @@ export class Player {
     // Сделан шаг игрока по поверхности (для воспроизведения звука шагов)
     onStep(step_side) {
         this.steps_count++;
+        if(this.isSneak) {
+            return;
+        }
         let world = this.world;
         let player = this;
         if(!player || player.in_water || !player.walking || !player.controls.enabled) {
@@ -167,13 +233,8 @@ export class Player {
         }
         let f = player.walkDist - player.walkDistO;
         if(f > 0) {
-            const pos = player.getBlockPos().clone();
-            let world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            const isLayering = world_block && world_block.material?.layering;
-            if(!isLayering) {
-                pos.y--;
-                world_block = world.chunkManager.getBlock(pos.x, pos.y, pos.z);
-            }
+            const pos = player.lerpPos;
+            let world_block = world.chunkManager.getBlock(Math.floor(pos.x), Math.ceil(pos.y) - 1, Math.floor(pos.z));
             if(world_block && world_block.id > 0 && world_block.material && (!world_block.material.passable || world_block.material.passable == 1)) {
                 let default_sound   = 'madcraft:block.stone';
                 let action          = 'hit';
@@ -305,7 +366,9 @@ export class Player {
             Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
         }
         if(actions.play_sound) {
-            Game.sounds.play(actions.play_sound.tag, actions.play_sound.action);
+            for(let item of actions.play_sound) {
+                Game.sounds.play(item.tag, item.action);
+            }
         }
         if(actions.reset_target_pos) {
             this.pickAt.resetTargetPos();
@@ -323,6 +386,7 @@ export class Player {
                     case ServerClient.BLOCK_ACTION_REPLACE:
                     case ServerClient.BLOCK_ACTION_MODIFY:
                     case ServerClient.BLOCK_ACTION_DESTROY: {
+                        this.world.chunkManager.torches.delete(mod.pos);
                         this.world.chunkManager.setBlock(mod.pos.x, mod.pos.y, mod.pos.z, mod.item, true, null, mod.item.rotate, null, mod.item.extra_data, mod.action_id);
                         break;
                     }
@@ -394,7 +458,6 @@ export class Player {
     // Updates this local player (gravity, movement)
     update() {
         this.inMiningProcess = false;
-
         // View
         if(this.lastUpdate) {
             if(!this.overChunk) {
@@ -440,14 +503,13 @@ export class Player {
                     this.lerpPos.lerpFrom(this.prevPos, this.pos, pc.timeAccumulator / PHYSICS_TIMESTEP);
                 }
             }
-            this.lerpPos.x = Math.round(this.lerpPos.x * 1000) / 1000;
-            this.lerpPos.y = Math.round(this.lerpPos.y * 1000) / 1000;
-            this.lerpPos.z = Math.round(this.lerpPos.z * 1000) / 1000;
+            this.lerpPos.roundSelf(3);
             this.moving     = !this.lerpPos.equal(this.posO);
             this.running    = this.controls.sprint;
             this.in_water_o = this.in_water;
+            this.isOnLadder = pc.player_state.isOnLadder;
             this.onGroundO  = this.onGround;
-            this.onGround   = pc.player_state.onGround;
+            this.onGround   = pc.player_state.onGround || this.isOnLadder;
             this.in_water   = pc.player_state.isInWater;
             let velocity    = pc.player_state.vel;
             // Check falling
@@ -455,7 +517,7 @@ export class Player {
             // Walking
             this.walking = (Math.abs(velocity.x) > 0 || Math.abs(velocity.z) > 0) && !this.getFlying() && !this.in_water;
             if(this.walking && this.onGround) {
-                this.walking_frame += delta * (this.in_water ? .2 : 1);
+                this.walking_frame += (this.in_water ? .2 : 1) * delta;
             }
             this.prev_walking = this.walking;
             // Walking distance
@@ -466,11 +528,11 @@ export class Player {
             let f = 0;
             //if (this.onGround && !this.isDeadOrDying()) {
                 // f = Math.min(0.1, this.getDeltaMovement().horizontalDistance());
-                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO));
+                f = Math.min(0.1, this.lerpPos.horizontalDistance(this.posO)) / delta / 40;
             //} else {
                 //   f = 0.0F;
             //}
-            this.bob += (f - this.bob) * 0.4;
+            this.bob += (f - this.bob) * 0.4
             //
             this.blockPos = this.getBlockPos();
             if(!this.blockPos.equal(this.blockPosO)) {
@@ -486,8 +548,7 @@ export class Player {
             if(this.eyes_in_water) {
                 // если в воде, то проверим еще высоту воды
                 let headBlockOver = this.world.chunkManager.getBlock(this.blockPos.x, (hby + 1) | 0, this.blockPos.z);
-                let blockOverIsFluid = (headBlockOver.properties.fluid || headBlockOver.material.is_fluid);
-                if(!blockOverIsFluid) {
+                if(!headBlockOver.material.is_fluid) {
                     let power = Math.min(this.headBlock.power, .9);
                     this.eyes_in_water = (hby < (hby | 0) + power + .01) ? this.headBlock.material : null;
                 }

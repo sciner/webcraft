@@ -11,7 +11,8 @@ export class Brain extends FSMBrain {
         this.pc             = this.createPlayerControl(this, {
             baseSpeed: 1/2,
             playerHeight: 0.8,
-            stepHeight: 1
+            stepHeight: 1,
+            playerHalfWidth: .25
         });
         // Начинаем с просто "Стоять"
         this.stack.pushState(this.standStill);

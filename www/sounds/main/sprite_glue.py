@@ -20,7 +20,7 @@ sound_final = silence
 
 for file in filelist:
     print(file)
-    if '.ogg' == file[-4:]:
+    if '.ogg' == file[-4:] or '.oga' == file[-4:]:
         sound = AudioSegment.from_ogg("../" + file)
     elif '.mp3' == file[-4:]:
         sound = AudioSegment.from_mp3("../" + file)

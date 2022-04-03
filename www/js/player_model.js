@@ -212,10 +212,13 @@ export class PlayerModel extends MobModel {
 
         const angZ = 180 * (this.yaw + Math.PI/2 + Math.atan2(camPos.z - this.pos.z, camPos.x - this.pos.x)) / Math.PI;
         const angX = 0; // @todo
-        
+
+        this.nametag.visible = !this.sneak;
+
         quat.fromEuler(this.nametag.quat, angX, 0, angZ);
         this.nametag.updateMatrix();
     }
+
     // Returns the texture and vertex buffer for drawing the name
     // tag of the specified player over head.
     /**
@@ -226,7 +229,7 @@ export class PlayerModel extends MobModel {
      */
     buildPlayerName(username, render) {
         username        = username.replace( /&lt;/g, "<" ).replace( /&gt;/g, ">" ).replace( /&quot;/, "\"" );
-        let gl          = this.gl;
+
         let canvas      = this.textCanvas;
         let ctx         = this.textContext;
         let w           = ctx.measureText(username).width + 16;

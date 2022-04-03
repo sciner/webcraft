@@ -28,7 +28,8 @@ import { pushSym } from "../core/CubeSym.js";
     xp, yp, zp,
     flags,
     sym = 0,
-    dx = 0, dy = 0, dz = 0
+    dx = 0, dy = 0, dz = 0,
+    ignore_back_side
 ) {
     [z, y]   = [y, z];
     [zp, yp] = [yp, zp];
@@ -51,13 +52,15 @@ import { pushSym } from "../core/CubeSym.js";
 
     if (x_dir) {
         if(rot) {
-            pushSym(vertices, sym,
-                x, y, z,
-                dx, dy, dz,
-                xp, yp, 0,
-                0, 0, -zp,
-                c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+            if(!ignore_back_side) {
+                pushSym(vertices, sym,
+                    x, y, z,
+                    dx, dy, dz,
+                    xp, yp, 0,
+                    0, 0, -zp,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b, flags);
+            }
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
@@ -66,13 +69,15 @@ import { pushSym } from "../core/CubeSym.js";
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags);
         } else {
-            pushSym(vertices, sym,
-                x, y, z,
-                dx, dy, dz,
-                xp, 0, 0,
-                0, 0, -zp,
-                c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+            if(!ignore_back_side) {
+                pushSym(vertices, sym,
+                    x, y, z,
+                    dx, dy, dz,
+                    xp, 0, 0,
+                    0, 0, -zp,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b, flags);
+            }
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
@@ -83,13 +88,15 @@ import { pushSym } from "../core/CubeSym.js";
         }
     } else {
         if(rot) {
-            pushSym(vertices, sym,
-                x, y, z,
-                dx, dy, dz,
-                -xp, -yp, 0,
-                0, 0, -zp,
-                c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+            if(!ignore_back_side) {
+                pushSym(vertices, sym,
+                    x, y, z,
+                    dx, dy, dz,
+                    -xp, -yp, 0,
+                    0, 0, -zp,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b, flags);
+            }
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
@@ -98,13 +105,15 @@ import { pushSym } from "../core/CubeSym.js";
                 c[0], c[1], -c[2], c[3],
                 lm.r, lm.g, lm.b, flags);
         } else {
-            pushSym(vertices, sym,
-                x, y, z,
-                dx, dy, dz,
-                0, yp, 0,
-                0, 0, -zp,
-                c[0], c[1], c[2], c[3],
-                lm.r, lm.g, lm.b, flags);
+            if(!ignore_back_side) {
+                pushSym(vertices, sym,
+                    x, y, z,
+                    dx, dy, dz,
+                    0, yp, 0,
+                    0, 0, -zp,
+                    c[0], c[1], c[2], c[3],
+                    lm.r, lm.g, lm.b, flags);
+            }
             pushSym(vertices, sym,
                 x, y, z,
                 dx, dy, dz,
@@ -225,14 +234,15 @@ export default class style {
         };
     }
 
-    static func(vertices, x, y, z, c, lm, x_dir, rot, xp, yp, zp, flags) {
+    static func(vertices, x, y, z, c, lm, x_dir, rot, xp, yp, zp, flags, ignore_back_side) {
         return pushPlanedGeom(
             vertices,
             x, y, z,
             c, lm,
             x_dir, rot,
             xp, yp, zp,
-            flags, 0, 0, 0, 0
+            flags, 0, 0, 0, 0,
+            ignore_back_side
         );
     }
 

@@ -3,7 +3,6 @@ import {MobManager} from "./mob_manager.js";
 import {DropItemManager} from "./drop_item_manager.js";
 import {PlayerManager} from "./player_manager.js";
 import {ServerClient} from "./server_client.js";
-import {Particles_Painting} from "./particles/painting.js";
 
 /**
  * World generation unfo passed from server
@@ -24,13 +23,13 @@ export class World {
     static MIN_LATENCY = 60;
     static TIME_SYNC_PERIOD = 10000;
 
-    constructor(settings) {
+    constructor() {
+
         /**
          * @type {TWorldInfo}
          */
         this.info = null;
         this.localPlayer = null;
-        this.settings = settings;
         this.serverTimeShift = 0;
         this.latency = 0;
 
@@ -76,7 +75,6 @@ export class World {
             this.server.AddCmdListener([ServerClient.CMD_HELLO], (cmd) => {
                 this.hello = cmd;
                 console.log(cmd.data);
-
                 this.queryTimeSync();
             });
 
@@ -85,15 +83,19 @@ export class World {
                 res(cmd);
             });
 
+            this.server.AddCmdListener([ServerClient.CMD_WORLD_UPDATE_INFO], (cmd) => {
+                this.updateInfo(cmd);
+            });
+
             this.server.AddCmdListener([ServerClient.CMD_PARTICLE_BLOCK_DESTROY], (cmd) => {
                 Game.render.destroyBlock(cmd.data.item, cmd.data.pos, false);
             });
 
             this.server.AddCmdListener([ServerClient.CMD_SYNC_TIME], this.onTimeSync.bind(this));
 
-            this.server.AddCmdListener([ServerClient.CMD_CREATE_PAINTING], (cmd) => {
+            this.server.AddCmdListener([ServerClient.CMD_STOP_PLAY_DISC], (cmd) => {
                 for(let params of cmd.data) {
-                    Game.render.meshes.add(new Particles_Painting(params));
+                    TrackerPlayer.stop(params.pos);
                 }
             });
 
@@ -114,12 +116,18 @@ export class World {
     setInfo({data: info, time}) {
         this.info           = info;
         this.dt_connected   = time; // Серверное время, когда произошло подключение к серверу!
+        this.dt_update_time = time;
 
         // Init
         this.players.init();
         this.chunkManager.init();
         this.mobs.init();
         this.drop_items.init();
+    }
+
+    updateInfo({data: info, time}) {
+        this.info = info;
+        this.dt_update_time = time;
     }
 
     joinPlayer(player) {}
@@ -134,8 +142,8 @@ export class World {
             day_time, age
         } = this.info.calendar;
 
-        const add       = (this.serverTime - this.dt_connected) / 1000 / 1200 * 24000;
-        const time      = (day_time + 6000 + add) % 24000;
+        const add       = (this.serverTime - this.dt_update_time) / 1000 / 1200 * 24000;
+        const time      = (day_time + add) % 24000;
 
         const hours = time / 1000 | 0;
         const minutes = (time - hours * 1000) / 1000 * 60 | 0;

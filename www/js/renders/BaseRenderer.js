@@ -1,4 +1,4 @@
-import {Vector} from '../helpers.js';
+import {Color, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
 import { BaseUBO, Struct, UNIFORM_TYPE } from './UBO.js';
 
@@ -319,9 +319,10 @@ export class BaseMaterial {
         this.ignoreDepth = options.ignoreDepth || false;
         this.mipmap = options.mipmap || false;
         this.blendMode = options.blendMode || BLEND_MODES.NORMAL;
+        this.tintColor = options.tintColor || new Color(0, 0, 0, 0);
     }
 
-    changeLighTex (light) {
+    changeLighTex(light) {
         this.lightTex = light;
     }
 
@@ -446,6 +447,7 @@ export class BaseTerrainShader extends BaseShader {
         this.mipmap = 0;
         this.addPos = [0,0,0];
         this.texture = null;
+        this.tintColor = new Color(0, 0, 0, 0);
     }
 
     bind() {

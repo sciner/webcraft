@@ -16,6 +16,7 @@ export class Chat {
         this.active                 = false;
         this.buffer                 = [];
         this.history_max_messages   = 64;
+        this.resetCarriage();
         this.messages = {
             list: [],
             send: function(text) {
@@ -94,10 +95,22 @@ export class Chat {
         });
     }
 
+    // Reset carriage
+    resetCarriage() {
+        this.carriage = this.buffer.length;
+    }
+
+    // Move carriage
+    moveCarriage(cnt) {
+        this.carriage += cnt;
+        this.carriage = Math.min(Math.max(this.carriage, 0), this.buffer.length);
+    }
+
     //
     historyNavigate(go_back) {
         this.history.navigate(go_back, this.buffer, (new_buffer) => {
             this.buffer = new_buffer;
+            this.resetCarriage();
         });
     }
 
@@ -107,6 +120,7 @@ export class Chat {
         }
         this.history.reset();
         this.buffer = start_buffer;
+        this.resetCarriage();
         this.active = true;
         this.open_time = performance.now();
         Game.hud.refresh();
@@ -125,16 +139,27 @@ export class Chat {
         if(charCode == 13) {
             return this.submit();
         }
-        this.buffer.push(ch);
+        if(this.carriage < this.buffer.length) {
+            this.buffer.splice(this.carriage, 0, ch);
+        } else {
+            this.buffer.push(ch);
+        }
+        this.moveCarriage(1);
     }
 
     pasteText(text) {
         if(!this.active) {
             return false;
         }
-        let chars = text.trim().split('');
+        text = text.trim();
+        let chars = text.split('');
         if(chars.length > 0) {
-            this.buffer.push(...chars);
+            if(this.carriage < this.buffer.length) {
+                this.buffer.splice(this.carriage, 0, ...chars);
+            } else {
+                this.buffer.push(...chars);
+            }
+            this.moveCarriage(chars.length);
         }
     }
     
@@ -143,8 +168,28 @@ export class Chat {
             return;
         }
         if(this.buffer.length > 0) {
-            this.buffer.pop();
+            if(this.carriage == this.buffer.length) {
+                this.buffer.pop();
+            } else {
+                this.buffer.splice(this.carriage - 1, 1);
+            }
+            this.moveCarriage(-1);
         }
+    }
+
+    onKeyDel() {
+        if(this.carriage < this.buffer.length) {
+            this.buffer.splice(this.carriage, 1);
+            this.moveCarriage(0);
+        }
+    }
+
+    onKeyHome() {
+        this.moveCarriage(-this.buffer.length);
+    }
+
+    onKeyEnd() {
+        this.moveCarriage(this.buffer.length);
     }
     
     keyPress(keyCode) {
@@ -156,6 +201,7 @@ export class Chat {
     sendMessage(text) {
         this.active = true;
         this.buffer = text.split('');
+        this.resetCarriage();
         this.submit();
         this.active = false;
     }
@@ -210,6 +256,7 @@ export class Chat {
         }
         this.history.add(this.buffer);
         this.buffer = [];
+        this.resetCarriage();
         this.close();
     }
 
@@ -236,8 +283,10 @@ export class Chat {
 
         hud.ctx.save();
 
+        const CHAT_INPUT_FONT = 'UbuntuMono-Regular'; // UI_FONT
+
         // Calc text size
-        hud.ctx.font            = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
+        hud.ctx.font            = Math.round(18 * this.zoom) + 'px ' + CHAT_INPUT_FONT;
         hud.ctx.textAlign       = 'left';
         hud.ctx.textBaseline    = 'top';
 
@@ -254,7 +303,18 @@ export class Chat {
             let text = this.buffer.join('');
             let how_long_open = Math.round(now - this.open_time);
             if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
-                text += '_';
+                if(this.carriage == this.buffer.length) {
+                    text += '_';
+                } else {
+                    // const carriage_height = 4;
+                    const text_start = this.buffer.slice(0, this.carriage).join('');
+                    // const ch = this.buffer[this.carriage];
+                    let m_start = hud.ctx.measureText(text_start).width;
+                    // let m_width = hud.ctx.measureText(ch).width;
+                    // hud.ctx.fillStyle = '#ffffffaa';
+                    hud.drawText('_', margin + padding + m_start, hud.height - top + padding);
+                    // hud.ctx.fillRect(margin + padding + m_start, hud.height - top + this.line_height - carriage_height, m_width, carriage_height);
+                }
             }
             hud.drawText(text, margin + padding, hud.height - top + padding);
         }
@@ -325,6 +385,41 @@ export class Chat {
             case KEY.BACKSPACE: {
                 if(down) {
                     this.backspace();
+                    break;
+                }
+                return true;
+            }
+            case KEY.DEL: {
+                if(down) {
+                    this.onKeyDel();
+                    break;
+                }
+                return true;
+            }
+            case KEY.HOME: {
+                if(down) {
+                    this.onKeyHome();
+                    break;
+                }
+                return true;
+            }
+            case KEY.END: {
+                if(down) {
+                    this.onKeyEnd();
+                    break;
+                }
+                return true;
+            }
+            case KEY.ARROW_LEFT: {
+                if(down) {
+                    this.moveCarriage(-1);
+                    break;
+                }
+                return true;
+            }
+            case KEY.ARROW_RIGHT: {
+                if(down) {
+                    this.moveCarriage(1);
                     break;
                 }
                 return true;
