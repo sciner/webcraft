@@ -584,12 +584,14 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         if(putPlantIntoPot) {
             extra_data = extra_data ? extra_data : {};
             if(extra_data.item_id) {
-                resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
+                // do nothing
+                // resp.drop_items.push({pos: world_block.posworld.add(new Vector(.5, 0, .5)), items: [{id: extra_data.item_id}], force: true});
+            } else {
+                extra_data.item_id = matBlock.id;
+                resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
+                resp.decrement = true;
             }
-            extra_data.item_id = matBlock.id;
-            resp.blocks.list.push({pos: new Vector(pos), item: {id: world_block.id, extra_data: extra_data}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-            resp.play_sound.push({tag: 'madcraft:block.cloth', action: 'hit', pos: new Vector(pos)});
-            resp.decrement = true;
             return resp;
         }
         // Jukebox & music disc
