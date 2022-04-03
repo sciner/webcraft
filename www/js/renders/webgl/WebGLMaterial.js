@@ -27,6 +27,12 @@ export class WebGLMaterial extends BaseMaterial {
 
         this.shader.bind();
 
+        if (this._newShader) {
+            this.shader.uniforms['u_tintColor'].value = this.tintColor.toArray();
+        } else {
+           gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
+        }
+
         const prevMat = this.shader._material;
         if (prevMat === this && !this._dirty)
         {

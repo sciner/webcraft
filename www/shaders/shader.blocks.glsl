@@ -62,7 +62,6 @@
     uniform vec3 u_camera_pos;
     // Fog
     uniform vec4 u_fogColor;
-    uniform vec4 u_tintColor;
     uniform vec4 u_fogAddColor;
     uniform bool u_fogOn;
     uniform float u_chunkBlockDist;
@@ -85,6 +84,8 @@
     uniform float u_mipmap;
     uniform float u_blockSize;
     uniform float u_opaqueThreshold;
+    uniform vec4 u_tintColor;
+
     //--
 
 #endif

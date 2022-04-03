@@ -63,6 +63,10 @@ export class WebGLTerrainShaderNew extends WebGLUniversalShader {
                 type : UNIFORM_TYPE.FLOAT,
                 value: 0.5
             },
+            u_tintColor: {
+                type: UNIFORM_TYPE.VEC4,
+                value: [0,0,0,0]
+            }
         });
 
         // legacy

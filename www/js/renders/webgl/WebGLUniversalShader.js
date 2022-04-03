@@ -31,7 +31,7 @@ const p = WebGL2RenderingContext.prototype;
     'uniform1f'       : (gl, ptr, value) => gl.uniform1f(ptr, value),
     'uniform2fv'      : (gl, ptr, value) => gl.uniform2fv(ptr, value),
     'uniform3fv'      : (gl, ptr, value) => gl.uniform3fv(ptr, 'x' in value ? [value.x, value.y, value.z] : value),
-    'uniform4fv'      : (gl, ptr, value) => gl.uniform3fv(ptr, value),
+    'uniform4fv'      : (gl, ptr, value) => gl.uniform4fv(ptr, value),
 }
 
 const GL_TYPE_FUNC = {
