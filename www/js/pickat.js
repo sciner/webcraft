@@ -206,16 +206,15 @@ export class PickAt {
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
+            
+            const matrix = mat4.create();
             let a_pos = half.add(this.damage_block.pos);
 
             // Light
             this.chunk_addr = getChunkAddr(this.damage_block.pos);
             this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
-            const light = this.chunk.getLightTexture(render.renderBackend);
-            if(light) {
-                this.material_damage.changeLighTex(light);
-                this.modelMatrix = mat4.create();
-                mat4.translate(this.modelMatrix, this.modelMatrix, 
+            if(this.chunk) {
+                mat4.translate(matrix, matrix, 
                     [
                         (a_pos.x - this.chunk.coord.x),
                         (a_pos.z - this.chunk.coord.z),
@@ -224,8 +223,12 @@ export class PickAt {
                 );
                 a_pos = this.chunk.coord;
             }
+            const light = this.chunk.getLightTexture(render.renderBackend);
+            if(light) {
+                this.material_damage.changeLighTex(light);
+            }
 
-            render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, this.modelMatrix);
+            render.renderBackend.drawMesh(damage_block.mesh, this.material_damage, a_pos, matrix || this.modelMatrix);
         }
     }
 
