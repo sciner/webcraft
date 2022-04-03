@@ -747,7 +747,7 @@ export class Environment {
 
     _interpolate(delta = 0) {
         for(const t of this._tasks.values()) {
-            t.update(delta / 60);
+            t.update(delta);
 
             if (t.done) {
                 this._taskDone(t);
