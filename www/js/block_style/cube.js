@@ -263,7 +263,7 @@ export default class style {
         }
 
         // Leaves
-        if(material.tags.indexOf('leaves') >= 0) {
+        if(material.transparent && material.tags.indexOf('leaves') >= 0) {
             if(neighbours.SOUTH.material.tags.indexOf('leaves') > 0) {
                 canDrawSOUTH = false;
             }
