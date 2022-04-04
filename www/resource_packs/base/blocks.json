@@ -896,13 +896,114 @@
         "transparent": true,
         "style": "planting",
         "sound": "madcraft:block.grass",
-        "material": {
-            "id": "plant"
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "oak",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [4, 8]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+            ]
         },
-        "texture": [
-            21,
-            13
-        ]
+        "texture": [21, 13]
+    },
+    {
+        "id": 997,
+        "name": "BIRCH_SAPLING",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "birch",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [4, 8]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+            ]
+        },
+        "texture": [20, 13]
+    },
+    {
+        "id": 998,
+        "name": "ACACIA_SAPLING",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "acacia",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [5, 12]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [100, 500]}
+            ]
+        },
+        "texture": [22, 13]
+    },
+    {
+        "id": 999,
+        "name": "SPRUCE_SAPLING",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "spruce",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [6, 24]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [150, 500]}
+            ]
+        },
+        "texture": [23, 13]
+    },
+    {
+        "id": 1000,
+        "name": "DARK_OAK_SAPLING",
+        "passable": 1,
+        "transparent": true,
+        "deprecated": true,
+        "spawnable": false,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "dark_oak",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [12, 24]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [50, 500]}
+            ]
+        },
+        "texture": [24, 13]
+    },
+    {
+        "id": 1001,
+        "name": "TROPICAL_TREE_SAPLING",
+        "passable": 1,
+        "transparent": true,
+        "style": "planting",
+        "sound": "madcraft:block.grass",
+        "material": {"id": "plant"},
+        "tags": ["sapling"],
+        "ticking": {"type": "sapling"},
+        "extra_data": {
+            "style": "tropical_tree",
+            "calculated": [
+                {"type": "random_int", "name": "height", "min_max": [3, 22]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [100, 750]}
+            ]
+        },
+        "texture": [25, 13]
     },
     {
         "id": 13,

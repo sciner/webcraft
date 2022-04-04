@@ -305,7 +305,7 @@ export class BLOCK {
                             if(!('min_max' in g)) {
                                 throw 'error_generator_min_max_not_set';
                             }
-                            extra_data[g.name] = Math.round(Math.random() * (g.min_max[1] - g.min_max[0]) + g.min_max[0]);
+                            extra_data[g.name] = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
                             break;
                         }
                     }
@@ -490,6 +490,7 @@ export class BLOCK {
         block.is_jukebox        = block.tags.indexOf('jukebox') >= 0;
         block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
         block.is_button         = block.tags.indexOf('button') >= 0;
+        block.is_sapling        = block.tags.indexOf('sapling') >= 0;
         block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;

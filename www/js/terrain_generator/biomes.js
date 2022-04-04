@@ -7,6 +7,16 @@ const TREE_MIN_HEIGHT       = 4;
 const TREE_MAX_HEIGHT       = 8;
 const TREE_FREQUENCY        = 0.015;
 
+export const TREES = {
+    BIRCH:          {trunk: BLOCK.BIRCH_TRUNK.id, leaves: BLOCK.BIRCH_LEAVES.id, style: 'wood', height: {min: 4, max: 8}},
+    OAK:            {trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: 4, max: 8}},
+    ACACIA:         {trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: 5, max: 12}},
+    SPRUCE:         {trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: 22}},
+    TROPICAL_TREE:  {trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 22}},
+    RED_MUSHROOM:   {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}},
+    BROWN_MUSHROOM: {trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 12}},
+};
+
 let biome_stat = {
     height:     {min: 999999999, max: -99999},
     humidity:   {min: 999999999, max: -99999},
@@ -87,10 +97,10 @@ BIOMES.JUNGLE = {
     trees:      {
         frequency: TREE_FREQUENCY * 4,
         list: [
-            {percent: .025, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 16, max: 22}},
-            {percent: .1, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 9, max: 14}},
-            {percent: .4, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 3, max: 8}},
-            {percent: .2, trunk: BLOCK.JUNGLE_TRUNK.id, leaves: BLOCK.JUNGLE_LEAVES.id, style: 'tropical_tree', height: {min: 1, max: 1}},
+            {percent: .025, ...TREES.TROPICAL_TREE, height: {min: 16, max: 22}},
+            {percent: .1, ...TREES.TROPICAL_TREE, height: {min: 9, max: 14}},
+            {percent: .4, ...TREES.TROPICAL_TREE, height: {min: 3, max: 8}},
+            {percent: .2, ...TREES.TROPICAL_TREE, height: {min: 1, max: 1}},
             // bamboo
             {percent: .1, trunk: BLOCK.BAMBOO.id, leaves: null, style: 'bamboo', height: {min: 6, max: 20}}
         ]
@@ -118,8 +128,8 @@ BIOMES.SUBTROPICAL_DESERT = {
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
-            {percent: .9, trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'acacia', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.25}},
-            {percent: .1, trunk: BLOCK.ACACIA_TRUNK.id, leaves: BLOCK.ACACIA_LEAVES.id, style: 'tropical_tree', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}}
+            {percent: .9, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.25}},
+            {percent: .1, ...TREES.ACACIA, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT * 1.5}}
         ]
     },
     plants: {
@@ -173,10 +183,10 @@ BIOMES.TUNDRA = {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.01, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT * 3}},
+            {percent: 0.01, ...TREES.SPRUCE, height: {min: 6, max: 24}},
             {percent: 0.1, trunk: BLOCK.MOSS_STONE.id, leaves: null, style: 'tundra_stone', height: {min: 2, max: 2}},
             {percent: 0.2, trunk: BLOCK.LARGE_FERN.id, leaves: BLOCK.LARGE_FERN_TOP.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.68, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 6, max: TREE_MAX_HEIGHT}}
+            {percent: 0.681, ...TREES.SPRUCE, height: {min: 6, max: 11}}
         ]
     },
     plants: {
@@ -202,7 +212,7 @@ BIOMES.TAIGA = {
         frequency: TREE_FREQUENCY,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.SPRUCE, height: {min: 7, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
@@ -223,7 +233,7 @@ BIOMES.SNOW = {
         frequency: TREE_FREQUENCY,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.SPRUCE_TRUNK.id, leaves: BLOCK.SPRUCE_LEAVES.id, style: 'spruce', height: {min: 7, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.SPRUCE, height: {min: 7, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
@@ -275,7 +285,7 @@ BIOMES.GRASSLAND = {
     trees:      {
         frequency: TREE_FREQUENCY / 10,
         list: [
-            {percent: 0.99, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     }
 };
@@ -292,7 +302,7 @@ BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
         frequency: TREE_FREQUENCY,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.BIRCH_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.BIRCH, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
@@ -316,7 +326,7 @@ BIOMES.TEMPERATE_RAIN_FOREST = {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
@@ -338,8 +348,7 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
         frequency: TREE_FREQUENCY / 2,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.99, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.OAK_LEAVES.id, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
-            // {percent: 0.99, trunk: BLOCK.OAK_TRUNK, leaves: BLOCK.OAK_LEAVES, style: 'wood', height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
+            {percent: 0.99, ...TREES.OAK, height: {min: TREE_MIN_HEIGHT, max: TREE_MAX_HEIGHT}}
         ]
     },
     plants: {
@@ -362,8 +371,8 @@ BIOMES.TROPICAL_RAIN_FOREST = {
         frequency: .0085,
         list: [
             {percent: 0.01, trunk: BLOCK.OAK_TRUNK.id, leaves: BLOCK.RED_MUSHROOM.id, style: 'stump', height: {min: 1, max: 1}},
-            {percent: 0.69, trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.RED_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 8, max: 12}},
-            {percent: 0.15, trunk: BLOCK.MUSHROOM_STRIPE.id, leaves: BLOCK.BROWN_MUSHROOM_BLOCK.id, style: 'mushroom', height: {min: 5, max: 8}}
+            {percent: 0.69, ...TREES.RED_MUSHROOM, height: {min: 8, max: 12}},
+            {percent: 0.15, ...TREES.BROWN_MUSHROOM, height: {min: 5, max: 8}}
         ]
     },
     plants: {
