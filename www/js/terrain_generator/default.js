@@ -297,11 +297,14 @@ export class Default_Terrain_Generator {
         let step = 0;
         let temp_rad = 0;
         for(let y = ystart - 1; y > ystart - (options.height - 1); y--) {
-            if(step++ % 2 == 0) {
+            step++
+            if(step % 2 == 0) {
                 rad = Math.min(Math.round(r), max_rad);
                 temp_rad = rad;
-            }
-             else {
+            } else if(step == 1) {
+                rad = options.height % 2;
+                temp_rad = rad;
+            } else {
                 rad = temp_rad - 1;
             }
             for(let i = x - rad; i <= x + rad; i++) {
@@ -323,55 +326,12 @@ export class Default_Terrain_Generator {
                     }
                 }
             }
-            r = step / options.height * max_rad;
-        }
-        /*
-        let ystart = y + options.height;
-        let b = null;
-        // ствол
-        for(let p = y; p < ystart; p++) {
-            this.temp_block.id = options.type.trunk;
-            this.setBlock(chunk, x, p, z, this.temp_block, true);
-        }
-        // листва
-        let r = 1;
-        let rad = Math.round(r);
-        if(x >= 0 && x < chunk.size.x && z >= 0 && z < chunk.size.z) {
-            this.temp_block.id = options.type.leaves;
-            this.setBlock(chunk, x, ystart, z, this.temp_block, false);
-            if(options.biome_code == 'SNOW') {
-                this.temp_block.id = BLOCK.SNOW.id;
-                this.setBlock(chunk, x, ystart + 1, z, this.temp_block, false);
+            r = Math.sqrt(step);
+            if(r < 1.5) {
+                this.temp_block.id = options.type.leaves;
+                this.setBlock(chunk, x, y, z, this.temp_block, true);
             }
         }
-        let step = 0;
-        for(let y = ystart - 1; y > ystart - (options.height - 1); y--) {
-            if(step++ % 2 == 0) {
-                rad = Math.min(Math.round(r), 3);
-            } else {
-                rad = 1;
-            }
-            for(let i = x - rad; i <= x + rad; i++) {
-                for(let j = z - rad; j <= z + rad; j++) {
-                    if(!check_chunk_size || (i >= 0 && i < chunk.size.x && j >= 0 && j < chunk.size.z)) {
-                        if(rad == 1 || Math.sqrt(Math.pow(x - i, 2) + Math.pow(z - j, 2)) <= rad) {
-                            this.xyz_temp_find.set(i + chunk.coord.x, y + chunk.coord.y, j + chunk.coord.z);
-                            b = chunk.tblocks.get(this.xyz_temp_find, b);
-                            let b_id = b.id;
-                            if(!b_id || b_id >= 0 && b_id != options.type.trunk) {
-                                this.temp_block.id = options.type.leaves;
-                                this.setBlock(chunk, i, y, j, this.temp_block, false);
-                                if(options.biome_code == 'SNOW') {
-                                    this.temp_block.id = BLOCK.SNOW.id;
-                                    this.setBlock(chunk, i, y + 1, j, this.temp_block, false);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            r += .9;
-        }*/
     }
 
     // Дуб, берёза
