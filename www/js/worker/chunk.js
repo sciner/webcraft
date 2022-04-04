@@ -1,6 +1,7 @@
 import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
 import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
+import {ChunkCluster} from "../terrain_generator/chunk_cluster.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
 
@@ -64,6 +65,7 @@ export class Chunk {
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.cluster = ChunkCluster.get(this.coord);
         this.aabb = new AABB();
         this.aabb.set(
             this.coord.x,

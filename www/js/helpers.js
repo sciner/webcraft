@@ -740,6 +740,13 @@ export class Vector {
         return this;
     }
 
+    multiplyVecSelf(vec) {
+        this.x *= vec.x;
+        this.y *= vec.y;
+        this.z *= vec.z;
+        return this;
+    }
+
     divScalar(scalar) {
         this.x /= scalar;
         this.y /= scalar;

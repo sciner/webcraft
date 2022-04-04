@@ -1,12 +1,17 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import {Vector, Helpers, Color, VectorCollector} from '../helpers.js';
+import {ChunkCluster} from "./chunk_cluster.js";
 import {BLOCK} from "../blocks.js";
 import {BIOMES} from "./biomes.js";
 
 export const SMOOTH_RAD         = 3;
 export const NO_SMOOTH_BIOMES   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
 
+const PLANT_MARGIN              = 0;
+const TREE_MARGIN               = 3;
+
+// Map cell
 export class MapCell {
 
     constructor(value, humidity, equator, biome, block) {
@@ -20,6 +25,7 @@ export class MapCell {
 
 }
 
+// Map
 export class Map {
 
     static _cells;
@@ -96,11 +102,12 @@ export class Map {
     // Генерация растительности
     generateVegetation() {
         let chunk           = this.chunk;
-        let aleaRandom      = new alea(chunk.seed + '_' + chunk.coord.toString());
         this.trees          = [];
         this.plants         = new VectorCollector();
-        let biome           = null;
         let dirt_block_ids  = [];
+        let aleaRandom      = null;
+        let biome           = null;
+        let cluster         = null;
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let cell = this.cells[x][z];
@@ -108,10 +115,19 @@ export class Map {
                     biome = BIOMES[cell.biome.code];
                     dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
                 }
-                let y = cell.value2;
-                // Если наверху блок земли
+                // Растения, цветы, трава (только если на поверхности блок земли)
                 if(dirt_block_ids.indexOf(cell.block) >= 0) {
-                    // Динамическая рассадка растений
+                    let y = cell.value2;
+                    //
+                    if(!aleaRandom) {
+                        aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
+                        cluster = ChunkCluster.get(chunk.coord);
+                    }
+                    //
+                    if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
+                        continue;
+                    }
+                    //
                     let rnd = aleaRandom.double();
                     if(rnd > 0 && rnd <= biome.plants.frequency) {
                         let s = 0;
@@ -124,22 +140,21 @@ export class Map {
                                 } else if(p.trunk) {
                                     this.plants.add(new Vector(x, y, z), p.trunk);
                                     this.plants.add(new Vector(x, y + 1, z), p.leaves);
-                                    /*
-                                    if(p.leaves) {
-                                        this.plants.add(new Vector(x, y + 1, z), p.leaves.id);
-                                    }*/
                                 }
                                 break;
                             }
                         }
                     }
-                    // Посадка деревьев
+                    // Деревья
                     if(rnd > 0 && rnd <= biome.trees.frequency) {
                         let s = 0;
                         let r = rnd / biome.trees.frequency;
                         for(let type of biome.trees.list) {
                             s += type.percent;
                             if(r < s) {
+                                if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
+                                    break;
+                                }
                                 let r = aleaRandom.double();
                                 const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
                                 const rad = Math.max(parseInt(height / 2), 2);

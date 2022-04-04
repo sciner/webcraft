@@ -105,6 +105,12 @@ export class Default_Terrain_Generator {
 
     // plantTree...
     plantTree(options, chunk, x, y, z, check_chunk_size) {
+        const cell_x = x + chunk.coord.x;
+        const cell_y = y + chunk.coord.y - 1;
+        const cell_z = z + chunk.coord.z;
+        if(chunk.cluster.cellIsOccupied(cell_x, cell_y, cell_z)) {
+            return;
+        }
         const type = options.type;
         // листва над стволом
         switch(type.style) {
