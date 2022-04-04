@@ -43,6 +43,7 @@ export default class Particles_Raindrop {
 
     // Draw
     draw(render, delta) {
+        delta *= 100;
         let gl      = render.gl;
         this.life   -= delta / 100000;
         delta       /= 1000;
