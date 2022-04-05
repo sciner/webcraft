@@ -246,53 +246,6 @@ export class BaseTexture {
     }
 }
 
-export class BaseTexture3D {
-    constructor(context, {
-        width = 1,
-        height = 1,
-        depth = 1,
-        type = 'u8',
-        filter = 'nearest',
-        data = null
-    } = {}) {
-        this.width = width;
-        this.height = height;
-        this.depth = depth;
-        this.minFilter = filter;
-        this.magFilter = filter;
-        this.type = type;
-        this.data = data;
-
-        this.context = context;
-        this.id = BaseRenderer.ID++;
-        this.dirty = true;
-        this.prevLength = 0;
-    }
-
-    upload() {
-        this.context._textures[this.id] = this;
-        this.dirty = false;
-    }
-
-    destroy() {
-        delete this.context._textures[this.id];
-    }
-
-    update(data) {
-        this.dirty = true;
-        if (data) {
-            this.data = data;
-        }
-    }
-
-    bind() {
-    }
-
-    isSimilar() {
-        return false;
-    }
-}
-
 export const BLEND_MODES = {
     NORMAL: 0,
     ADD: 1,
@@ -395,7 +348,7 @@ export class BaseTerrainShader extends BaseShader {
     bind() {
     }
     unbind() {
-        
+
     }
 
     update() {
@@ -686,7 +639,7 @@ export default class BaseRenderer {
     }
 
     /**
-     * @deprecated 
+     * @deprecated
      * @see beginPass
      * @param {BaseRenderTarget} target
      */
@@ -714,10 +667,10 @@ export default class BaseRenderer {
     _configure() {
 
     }
- 
+
     /**
-     * Begin render pass to specific target 
-     * @param {PassOptions} param0 
+     * Begin render pass to specific target
+     * @param {PassOptions} param0
      */
     beginPass({
         fogColor = [0,0,0,0],
@@ -734,8 +687,8 @@ export default class BaseRenderer {
 
         const { size } = this;
 
-        const limit = target 
-            ? target 
+        const limit = target
+            ? target
             : size;
 
         const x = viewport
@@ -758,12 +711,12 @@ export default class BaseRenderer {
         this._viewport[0] = x;
         this._viewport[1] = y;
         this._viewport[2] = width;
-        this._viewport[3] = height; 
+        this._viewport[3] = height;
 
         this._clearColor[0] = fogColor[0] || 0;
         this._clearColor[1] = fogColor[1] || 0;
         this._clearColor[2] = fogColor[2] || 0;
-        this._clearColor[3] = fogColor[3] || 0;        
+        this._clearColor[3] = fogColor[3] || 0;
     }
 
     /**
@@ -774,16 +727,16 @@ export default class BaseRenderer {
     }
 
     /**
-     * @deprecated 
+     * @deprecated
      * @see beginPass
-     * @param {} fogColor 
+     * @param {} fogColor
      */
     beginFrame(fogColor) {
 
     }
 
     /**
-     * @deprecated 
+     * @deprecated
      * @see endPass
      */
     endFrame() {
