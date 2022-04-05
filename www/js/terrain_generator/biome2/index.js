@@ -158,7 +158,7 @@ export class TerrainMap {
                 let cluster_max_height = null;
                 if(!cluster.is_empty) {
                     if(cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
-                        cluster_max_height = 1;
+                        cluster_max_height = cluster.max_height;
                     }
                 }
                 // Высота горы в точке
@@ -354,6 +354,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Maps
         let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
+        let cluster                     = ChunkCluster.get(chunk.coord);
         this.map                        = map;
         this.caveManager.addSpiral(chunk.addr);
 
@@ -486,7 +487,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
             // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
-            function nearTree(xyz) {
+            function nearTree(xyz, value2) {
+                if(!cluster.is_empty) {
+                    if(xyz.y > value2 - 3 && xyz.y < value2 + 1) {
+                        if(cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2)) {
+                            return true;
+                        }
+                    }
+                }
                 const near_rad = 5;
                 // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
                 _createBlockAABB_second.set(
@@ -719,7 +727,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 if(line.is_treasure) {
                                     drawTreasureRoom(line, xyz, x, y, z);
                                     continue;
-                                } else if(!nearTree(xyz)) {
+                                } else if(!nearTree(xyz, value)) {
                                     continue;
                                 }
                             }

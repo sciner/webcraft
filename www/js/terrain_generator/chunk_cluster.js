@@ -1,5 +1,5 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../chunk.js";
-import {Color, Vector, VectorCollector} from "../helpers.js";
+import {Vector, VectorCollector} from "../helpers.js";
 import {impl as alea} from '../../vendors/alea.js';
 
 const CLUSTER_PADDING   = 4;
@@ -37,15 +37,22 @@ export class ChunkCluster {
 
     // constructor
     constructor(addr) {
-        this.addr       = addr;
-        this.coord      = addr.multiplyVecSelf(CLUSTER_SIZE);
-        this.id         = addr.toHash();
-        this.randoms    = new alea(this.id);
-        this.is_empty   = this.addr.y != 0 || this.randoms.double() > 1/8;
-        this.mask       = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.addr           = addr;
+        this.coord          = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.id             = addr.toHash();
+        this.randoms        = new alea(this.id);
+        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         if(this.is_empty) {
             return;
         }
+        //
+        this.civil          = this.randoms.double() < .5;
+        this.max_height     = this.civil ? 1 : 30;
+        this.wall_block     = this.civil ? 98 : 7;
+        this.road_block     = this.civil ? 12 : 468;
+        this.basement_block = this.civil ? 546 : 8;
+        //
         for(let g = 0; g < 16; g++) {
             let x = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
             let z = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
@@ -56,15 +63,15 @@ export class ChunkCluster {
             if(this.randoms.double() < .5) {
                 // horizontal
                 for(let i = 0; i < w; i++) {
-                    this.mask[z * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, 468, 5, null);
-                    this.mask[(z + 1) * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, 468, 5, null);
+                    this.mask[z * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
+                    this.mask[(z + 1) * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
                 }
                 this.addBuilding(x + 3, z + 3, 11, 11);
             } else {
                 // vertical
                 for(let i = z; i < z + w; i++) {
-                    this.mask[i * CLUSTER_SIZE.x + x] = new ClusterPoint(1, 468, 5, null);
-                    this.mask[i * CLUSTER_SIZE.x + (x + 1)] = new ClusterPoint(1, 468, 5, null);
+                    this.mask[i * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.road_block, 5, null);
+                    this.mask[i * CLUSTER_SIZE.x + (x + 1)] = new ClusterPoint(1, this.road_block, 5, null);
                 }
                 this.addBuilding(x + 3, z + 3, 11, 11);
             }
@@ -78,9 +85,11 @@ export class ChunkCluster {
                 const x = dx + i;
                 const z = dz + j;
                 if(i == 0 || j == 0 || i == width - 1 || j == depth - 1) {
-                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, 546, 1, null);
+                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.basement_block, 3, null);
+                } else if(i == 1 || j == 1 || i == width - 2 || j == depth - 2) {
+                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(8, this.wall_block, 1, null);
                 } else {
-                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(8, 98, 5, null);
+                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.basement_block, 1, null);
                 }
             }
         }
@@ -91,6 +100,8 @@ export class ChunkCluster {
         if(this.is_empty) {
             return false;
         }
+        //
+        const randoms = new alea('cluster_chunk_' + chunk.id);
         //
         const setBlock = (x, y, z, block_id, rotate) => {
             // temp_vec2.set(x, y, z);
@@ -124,10 +135,14 @@ export class ChunkCluster {
                     }
                     for(let k = 0; k < point.height; k++) {
                         let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
-                        //let block_id = getBlock(i, y, j);
-                        //if(block_id && (block_id == cell.biome.dirt_block)) {
+                        // let block_id = getBlock(i, y, j);
+                        // if(block_id && (block_id == cell.biome.dirt_block))
+                        if(!this.civil && point.block_id == this.road_block) {
+                            if(randoms.double() < .1) {
+                                continue;
+                            }
+                        }
                         setBlock(i, y, j, point.block_id, null);
-                        //}
                     }
                 }
             }
