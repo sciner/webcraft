@@ -150,6 +150,7 @@ export class TerrainMap {
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
         const cluster               = ChunkCluster.get(chunk.coord);
+        const H                     = 68;
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
@@ -173,8 +174,12 @@ export class TerrainMap {
                 // Экватор
                 let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
                 // Get biome
-                let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
-                value = value * (cluster_max_height ? cluster_max_height : biome.max_height) + 68;
+                let biome = BIOMES.getBiome((value * 64 + H) / 255, humidity, equator);
+                if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
+                    value = value * biome.max_height + H;
+                } else {
+                    value = value * (cluster_max_height ? cluster_max_height : biome.max_height) + H;
+                }
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 2500);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);
