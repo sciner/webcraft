@@ -13,7 +13,7 @@ import { AABB } from '../../core/AABB.js';
 import {ChunkCluster} from "../chunk_cluster.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
-const MAP_CLUSTER_MARGIN = 2;
+const MAP_CLUSTER_MARGIN = 5;
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 // Ores
