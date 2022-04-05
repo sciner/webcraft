@@ -10,8 +10,10 @@ import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
+import {ChunkCluster} from "../chunk_cluster.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
+const MAP_CLUSTER_MARGIN = 2;
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 // Ores
@@ -142,15 +144,23 @@ export class TerrainMap {
             return cached;
         }
         const options               = GENERATOR_OPTIONS;
-        const SX                    = chunk.coord.x;
-        const SZ                    = chunk.coord.z;
         // Result map
         let map                     = new Map(chunk, options);
+        //
+        const SX                    = chunk.coord.x;
+        const SZ                    = chunk.coord.z;
+        const cluster               = ChunkCluster.get(chunk.coord);
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
+                let cluster_max_height = null;
+                if(!cluster.is_empty) {
+                    if(cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
+                        cluster_max_height = 1;
+                    }
+                }
                 // Высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
@@ -164,7 +174,7 @@ export class TerrainMap {
                 let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
                 // Get biome
                 let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
-                value = value * biome.max_height + 68;
+                value = value * (cluster_max_height ? cluster_max_height : biome.max_height) + 68;
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 2500);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);

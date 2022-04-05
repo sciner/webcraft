@@ -1,8 +1,9 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../chunk.js";
 import {Color, Vector, VectorCollector} from "../helpers.js";
+import {impl as alea} from '../../vendors/alea.js';
 
 const CLUSTER_PADDING   = 4;
-const CLUSTER_SIZE      = new Vector(64, 128, 64);
+const CLUSTER_SIZE      = new Vector(128, 128, 128);
 const temp_vec2         = new Vector(0, 0, 0);
 
 // ChunkCluster
@@ -24,17 +25,28 @@ export class ChunkCluster {
 
     // constructor
     constructor(addr) {
-        this.addr = addr;
-        this.coord = addr.multiplyVecSelf(CLUSTER_SIZE);
-        this.is_empty = this.addr.y != 0;
-        this.mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.addr       = addr;
+        this.coord      = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.id         = addr.toHash();
+        this.randoms    = new alea(this.id);
+        this.is_empty   = this.addr.y != 0 || this.randoms.double() > 1/8;
+        this.mask       = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         if(this.is_empty) {
             return;
         }
-        for(let x = CLUSTER_PADDING; x < CLUSTER_SIZE.x - CLUSTER_PADDING; x++) {
-            for(let z = CLUSTER_PADDING; z < CLUSTER_SIZE.z - CLUSTER_PADDING; z++) {
-                if(x < CLUSTER_PADDING + 2 || z < CLUSTER_PADDING + 2 || x >= CLUSTER_SIZE.x - CLUSTER_PADDING - 2 || z >= CLUSTER_SIZE.z - CLUSTER_PADDING - 2) {
-                    this.mask[z * CLUSTER_SIZE.x + x] = new Color(8, 0, 1);
+        for(let g = 0; g < 8; g++) {
+            let x = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
+            let z = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
+            let w = Math.round(this.randoms.double() * (64 - CLUSTER_PADDING));
+            if(this.randoms.double() < .5) {
+                for(let i = 0; i < w; i++) {
+                    this.mask[z * CLUSTER_SIZE.x + (x + i)] = new Color(8, 0, 1);
+                    this.mask[(z + 1) * CLUSTER_SIZE.x + (x + i)] = new Color(8, 0, 1);
+                }
+            } else {
+                for(let i = z; i < z + w; i++) {
+                    this.mask[i * CLUSTER_SIZE.x + x] = new Color(8, 0, 1);
+                    this.mask[i * CLUSTER_SIZE.x + (x + 1)] = new Color(8, 0, 1);
                 }
             }
         }
