@@ -34,10 +34,13 @@ export class ChunkCluster {
         if(this.is_empty) {
             return;
         }
-        for(let g = 0; g < 8; g++) {
+        for(let g = 0; g < 16; g++) {
             let x = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
             let z = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
             let w = Math.round(this.randoms.double() * (64 - CLUSTER_PADDING));
+            x = Math.ceil(x / 12) * 12;
+            z = Math.ceil(z / 12) * 12;
+            w = Math.ceil(w / 12) * 12;
             if(this.randoms.double() < .5) {
                 for(let i = 0; i < w; i++) {
                     this.mask[z * CLUSTER_SIZE.x + (x + i)] = new Color(8, 0, 1);
