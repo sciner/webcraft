@@ -73,6 +73,9 @@ export class ChunkCluster {
                 let info = this.mask[z * CLUSTER_SIZE.x + x];
                 if(info && info.r) {
                     const cell = map.info.cells[i][j];
+                    if(cell.biome.code == 'OCEAN') {
+                        continue;
+                    }
                     for(let k = 0; k < info.r; k++) {
                         let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
                         let block_id = getBlock(i, y, j);

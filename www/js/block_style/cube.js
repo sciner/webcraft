@@ -275,6 +275,16 @@ export default class style {
             }
         }
 
+        // Glass
+        if(material.transparent && material.tags.indexOf('glass') >= 0) {
+            if(neighbours.SOUTH.material.tags.indexOf('glass') >= 0) canDrawSOUTH = false;
+            if(neighbours.NORTH.material.tags.indexOf('glass') >= 0) canDrawNORTH = false;
+            if(neighbours.WEST.material.tags.indexOf('glass') >= 0) canDrawWEST = false;
+            if(neighbours.EAST.material.tags.indexOf('glass') >= 0) canDrawEAST = false;
+            if(neighbours.UP.material.tags.indexOf('glass') >= 0) canDrawUP = false;
+            if(neighbours.DOWN.material.tags.indexOf('glass') >= 0) canDrawDOWN = false;
+        }
+
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {

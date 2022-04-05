@@ -387,7 +387,7 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane') {
+        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
             // если это блок воды или облако
             group = 'transparent';
         } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {

@@ -1078,6 +1078,7 @@
             "id": "glass"
         },
         "tags": [
+            "glass",
             "no_drop_ao"
         ]
     },
