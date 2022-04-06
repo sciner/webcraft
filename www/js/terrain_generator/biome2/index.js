@@ -182,7 +182,7 @@ export class TerrainMap {
                 if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
                     value = value * biome.max_height + H;
                 } else {
-                    value = value * (cluster_max_height ? cluster_max_height : biome.max_height) + H;
+                    value = value * (cluster_max_height ? Math.min(cluster_max_height, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
                 }
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 2500);
@@ -768,6 +768,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
+            if(!chunk.cluster.is_empty) {
+                chunk.cluster.fillBlocks(this.maps, chunk, map);
+            }
+
             // Plant trees
             for(const m of maps) {
                 for(let p of m.info.trees) {
@@ -803,10 +807,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
-        }
-
-        if(!chunk.cluster.is_empty) {
-            chunk.cluster.generateBlocks(this.maps, chunk, map);
         }
 
         return map;
