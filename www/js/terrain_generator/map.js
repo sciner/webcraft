@@ -1,7 +1,6 @@
 import {impl as alea} from '../../vendors/alea.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import {Vector, Helpers, Color, VectorCollector} from '../helpers.js';
-import {ChunkCluster} from "./chunk_cluster.js";
 import {BLOCK} from "../blocks.js";
 import {BIOMES} from "./biomes.js";
 
@@ -35,6 +34,7 @@ export class Map {
         this.options        = options;
         this.trees          = [];
         this.plants         = [];
+        this.smoothed       = false;
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
         this.chunk          = {
             size: chunk.size,
@@ -121,7 +121,7 @@ export class Map {
                     //
                     if(!aleaRandom) {
                         aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
-                        cluster = ChunkCluster.get(chunk.coord);
+                        cluster = ChunkCluster.getForCoord(chunk.coord);
                     }
                     //
                     if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {

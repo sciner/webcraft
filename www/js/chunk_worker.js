@@ -51,7 +51,11 @@ async function preLoad () {
     // load module
     await import('./blocks.js').then(module => {
         globalThis.BLOCK = module.BLOCK;
-        //return BLOCK.init(settings);
+        // return BLOCK.init(settings);
+    });
+    // load module
+    await import('./terrain_generator/chunk_cluster.js').then(module => {
+        globalThis.ChunkCluster = module.ChunkCluster;
     });
 
     console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);

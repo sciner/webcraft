@@ -10,7 +10,6 @@ import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
-import {ChunkCluster} from "../chunk_cluster.js";
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
 const MAP_CLUSTER_MARGIN = 5;
@@ -91,6 +90,11 @@ export class TerrainMap {
         return this.maps_cache.delete(addr);
     }
 
+    // Return map
+    get(addr) {
+        return this.maps_cache.get(addr);
+    }
+
     // Generate maps
     generateAround(chunk_addr, smooth, vegetation, rad = 1) {
         const noisefn               = this.noisefn;
@@ -149,7 +153,7 @@ export class TerrainMap {
         //
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
-        const cluster               = ChunkCluster.get(chunk.coord);
+        const cluster               = ChunkCluster.getForCoord(chunk.coord);
         const H                     = 68;
         //
         for(let x = 0; x < chunk.size.x; x++) {
@@ -251,7 +255,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.islands                = [];
         this.extruders              = [];
         //
-        this.maps = new TerrainMap(this.seed, this.world_id, this.noisefn);
+        this.maps                   = new TerrainMap(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
             // Костыль для NodeJS
@@ -340,7 +344,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // Generate
     generate(chunk) {
-
         const chunk_coord               = chunk.coord;
         let xyz                         = new Vector(0, 0, 0);
         let temp_vec                    = new Vector(0, 0, 0);
@@ -359,7 +362,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Maps
         let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
-        let cluster                     = ChunkCluster.get(chunk.coord);
+        let cluster                     = chunk.cluster; // ChunkCluster.getForCoord(chunk.coord);
         this.map                        = map;
         this.caveManager.addSpiral(chunk.addr);
 
@@ -802,9 +805,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         }
 
-
         if(!chunk.cluster.is_empty) {
-            chunk.cluster.generateBlocks(chunk, map);
+            chunk.cluster.generateBlocks(this.maps, chunk, map);
         }
 
         return map;
