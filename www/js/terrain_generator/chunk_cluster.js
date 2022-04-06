@@ -106,7 +106,7 @@ export class ChunkCluster {
         };
         this.buildings.set(building.coord, building);
         //
-        this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, this.road_block, 1, null);
+        this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, this.basement_block, 1, null);
         //
         for(let i = 0; i < size.x; i++) {
             for(let j = 0; j < size.z; j++) {
