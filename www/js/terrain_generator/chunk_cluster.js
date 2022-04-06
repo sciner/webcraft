@@ -1,5 +1,6 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE, getChunkAddr} from "../chunk.js";
-import {Vector, VectorCollector} from "../helpers.js";
+import {DIRECTION, Vector, VectorCollector} from "../helpers.js";
+import {BLOCK} from "../blocks.js";
 import {impl as alea} from '../../vendors/alea.js';
 import { AABB } from '../core/AABB.js';
 
@@ -11,6 +12,44 @@ const USE_ROAD_AS_GANGWAY   = false;
 
 const CLUSTER_SIZE          = new Vector(128, 128, 128);
 const temp_vec2             = new Vector(0, 0, 0);
+
+const building_size_x       = new Vector(6, 5, 5);
+const building_size_z       = new Vector(5, 5, 6);
+
+class Building {
+
+    constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        this.cluster        = cluster;
+        this.id             = id;
+        this.seed           = seed;
+        this.coord          = coord;
+        this.aabb           = aabb;
+        this.entrance       = entrance;
+        this.door_bottom    = door_bottom;
+        this.door_direction = door_direction;
+        this.size           = size;
+        this.materials      = null;
+        if(cluster.flat) {
+            if(seed < .5) {
+                this.materials  = {
+                    wall: BLOCK.STONE_BRICK,
+                    door: BLOCK.SPRUCE_DOOR
+                };
+            } else {
+                this.materials  = {
+                    wall: BLOCK.BRICK,
+                    door: BLOCK.DARK_OAK_DOOR
+                };
+            }
+        } else {
+            this.materials  = {
+                wall: BLOCK.OAK_PLANK,
+                door: BLOCK.OAK_DOOR
+            };
+        }
+    }
+
+}
 
 class ClusterPoint {
 
@@ -46,14 +85,13 @@ export class ChunkCluster {
 
     // constructor
     constructor(addr) {
-        this.addr           = addr;
-        this.coord          = addr.multiplyVecSelf(CLUSTER_SIZE);
-        this.id             = addr.toHash();
-        this.randoms        = new alea(this.id);
-        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/2;
-        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.buildings      = new VectorCollector();
-        const building_size = new Vector(11, 10, 11);
+        this.addr               = addr;
+        this.coord              = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.id                 = addr.toHash();
+        this.randoms            = new alea(this.id);
+        this.is_empty           = this.addr.y != 0 || this.randoms.double() > 1/2;
+        this.mask               = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.buildings          = new VectorCollector();
         if(!this.is_empty) {
             this.flat           = this.randoms.double() >= .5;
             this.max_height     = this.flat ? 1 : 30;
@@ -75,35 +113,38 @@ export class ChunkCluster {
                         this.mask[z * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
                         this.mask[(z + 1) * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
                     }
-                    const entrance_pos = new Vector(x + 3 + 3, Infinity, z + 2);
-                    this.addBuilding(x + 3, z + 3, building_size, entrance_pos, entrance_pos.add(new Vector(0, 0, 1)));
+                    const entrance_pos = new Vector(x + 3 + 2, Infinity, z + 2);
+                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_x, entrance_pos, entrance_pos.add(new Vector(0, 0, 1)), DIRECTION.NORTH);
                 } else {
                     // along Z axis
                     for(let i = z; i < z + w; i++) {
                         this.mask[i * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.road_block, 5, null);
                         this.mask[i * CLUSTER_SIZE.x + (x + 1)] = new ClusterPoint(1, this.road_block, 5, null);
                     }
-                    const entrance_pos = new Vector(x + 2, Infinity, z + 3 + 3);
-                    this.addBuilding(x + 3, z + 3, building_size, entrance_pos, entrance_pos.add(new Vector(1, 0, 0)));
+                    const entrance_pos = new Vector(x + 2, Infinity, z + 3 + 2);
+                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_z, entrance_pos, entrance_pos.add(new Vector(1, 0, 0)), DIRECTION.EAST);
                 }
             }
         }
     }
 
     // Add building
-    addBuilding(dx, dz, size, entrance, door_bottom) {
+    addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
         const coord = new Vector(dx + this.coord.x, 0, dz + this.coord.z);
         if(this.buildings.has(coord)) {
             return false;
         }
-        const building = {
-            id:             coord.toHash(),
-            coord:          coord.clone(),
-            aabb:           new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z),
-            entrance:       entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
-            door_bottom:    door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
-            size:           size
-        };
+        const building = new Building(
+            this,
+            coord.toHash(),
+            seed,
+            coord.clone(),
+            new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z),
+            entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
+            door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
+            door_direction,
+            size
+        );
         this.buildings.set(building.coord, building);
         //
         this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, this.basement_block, 1, null);
@@ -113,20 +154,23 @@ export class ChunkCluster {
                 const x = dx + i;
                 const z = dz + j;
                 // Draw building basement over heightmap
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(5, this.basement_block, 1, null, building);
+                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(4, this.basement_block, 1, null, building);
             }
         }
         return true;
     }
 
     // Set block
-    setBlock(chunk, x, y, z, block_id, rotate) {
+    setBlock(chunk, x, y, z, block_id, rotate, extra_data) {
         temp_vec2.x = x;
         temp_vec2.y = y;
         temp_vec2.z = z;
         const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
         if(rotate) {
             chunk.tblocks.rotate.set(temp_vec2, rotate);
+        }
+        if(extra_data) {
+            chunk.tblocks.extra_data.set(temp_vec2, extra_data);
         }
         chunk.tblocks.id[index] = block_id;
     };
@@ -294,14 +338,14 @@ export class ChunkCluster {
         const xyz = new Vector(0, 0, 0);
         for(let i = 0; i < building.size.x; i++) {
             for(let j = 0; j < building.size.z; j++) {
-                for(let k = 0; k < building.size.y; k++) {
+                for(let k = 0; k < building.size.y - 1; k++) {
                     const x = building.coord.x - chunk.coord.x + i;
                     const y = building.coord.y - chunk.coord.y + k;
                     const z = building.coord.z - chunk.coord.z + j;
                     xyz.copyFrom(building.coord).add(i, k, j);
                     if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
                         if(i < 1 || j < 1 || k < 1 || i > building.size.x - 2 || j > building.size.z - 2 || k > building.size.y - 1) {
-                            this.setBlock(chunk, x, y, z, this.wall_block, null);
+                            this.setBlock(chunk, x, y, z, building.materials.wall.id, null);
                         } else {
                             this.setBlock(chunk, x, y, z, 0, null);
                         }
@@ -309,13 +353,33 @@ export class ChunkCluster {
                 }
             }
         }
+        // roof
+        if(building.door_direction == DIRECTION.EAST) {
+            for(let i = -1; i < building.size.x + 1; i++) {
+                const x = building.coord.x - chunk.coord.x + i;
+                const y = building.coord.y - chunk.coord.y + 3;
+                const z = building.coord.z - chunk.coord.z - 1;
+                if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
+                    this.setBlock(chunk, x, y, z, 534, {x: 2, y: 0, z: 0});
+                }
+            }
+        }
         // doorway
+        this.addDoor(chunk, building.door_bottom, building.materials.door, building.door_direction);
+    }
+
+    addDoor(chunk, pos, block, dir) {
+        const door_blocks = [block.id, block.next_part.id];
         for(let k of [0, 1]) {
-            const x = building.door_bottom.x - chunk.coord.x;
-            const y = building.door_bottom.y - chunk.coord.y + k;
-            const z = building.door_bottom.z - chunk.coord.z;
+            const x = pos.x - chunk.coord.x;
+            const y = pos.y - chunk.coord.y + k;
+            const z = pos.z - chunk.coord.z;
             if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                this.setBlock(chunk, x, y, z, 0, null);
+                if(dir == DIRECTION.EAST) {
+                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 0, y: 0, z: 0}, {point: {x: 0.7, y: 0, z: 0}, opened: true});
+                } else if(dir == DIRECTION.NORTH) {
+                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 1, y: 0, z: 0}, {point: {x: 0.7, y: 0, z: 0}, opened: true});
+                }
             }
         }
     }
