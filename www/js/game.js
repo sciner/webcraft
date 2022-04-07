@@ -611,10 +611,10 @@ export class GameClass {
     // drawPerf
     drawPerf() {
         var timers = [
-            {name: 'init', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0}
+            {name: 'init', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
         ];
         var cnt = 0;
         for(let chunk of this.world.chunkManager.chunks.values()) {
@@ -625,11 +625,14 @@ export class GameClass {
                     if(t < tim.min) tim.min = t;
                     if(t > tim.max) tim.max = t;
                     tim.total += t;
+                    if(t > 0) {
+                        tim.cnt_more_zero++;
+                    }
                 }
             }
         }
         for(var tim of timers) {
-            tim.avg = Math.round(tim.total / cnt * 100) / 100;
+            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1; // Math.round(tim.total / cnt * 100) / 100;
             tim.total = Math.round(tim.total * 100) / 100;
             tim.cnt = cnt;
         }
