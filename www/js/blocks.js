@@ -387,11 +387,11 @@ export class BLOCK {
     static getBlockStyleGroup(block) {
         let group = 'regular';
         // make vertices array
-        if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+        if(block.tags && (block.tags.indexOf('alpha') >= 0)) {
             // если это блок воды или облако
-            group = 'transparent';
-        } else if(block.tags && (block.tags.indexOf('glass') >= 0 || block.tags.indexOf('alpha') >= 0)) {
             group = 'doubleface_transparent';
+        } else if(WATER_BLOCKS_ID.indexOf(block.id) >= 0 || block.style == 'pane' || block.tags.indexOf('glass') >= 0) {
+            group = 'transparent';
         } else if(block.id == 649 ||
             block.tags.indexOf('leaves') >= 0 ||
             block.style == 'planting' || block.style == 'chain' || block.style == 'ladder' ||

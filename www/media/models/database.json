@@ -189,7 +189,16 @@
                 "red": "textures/cat/red.png",
                 "siamese": "textures/cat/siamese.png",
                 "tabby": "textures/cat/tabby.png",
-                "white": "textures/cat/white.png"
+                "white": "textures/cat/white.png",
+                "base": "textures/cat/white.png"
+            }
+        },
+        "npc": {
+            "type": "json",
+            "geom": "json/npc.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/npc/npc_1.png"
             }
         }
     }

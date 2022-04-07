@@ -36,14 +36,16 @@ class Building {
                     wall: BLOCK.STONE_BRICK,
                     door: BLOCK.SPRUCE_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK
+                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    light: BLOCK.LANTERN
                 };
             } else {
                 this.materials  = {
                     wall: BLOCK.BRICK,
                     door: BLOCK.DARK_OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK
+                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    light: BLOCK.LANTERN
                 };
             }
         } else {
@@ -52,14 +54,16 @@ class Building {
                     wall: BLOCK.OAK_PLANK,
                     door: BLOCK.OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK
+                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    light: BLOCK.TORCH
                 };
             } else {
                 this.materials  = {
                     wall: BLOCK.OAK_PLANK,
                     door: BLOCK.OAK_DOOR,
                     roof: BLOCK.DARK_OAK_STAIRS,
-                    roof_block: BLOCK.DARK_OAK_PLANK
+                    roof_block: BLOCK.DARK_OAK_PLANK,
+                    light: BLOCK.TORCH
                 };
             }
         }
@@ -390,11 +394,21 @@ export class ChunkCluster {
         }
         // window
         if(building.door_direction == DIRECTION.EAST) {
+            const window_rot = {x: 3, y: 0, z: 0};
             let w_pos = building.door_bottom.clone().add(new Vector(0, 1, 2));
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, {x: 3, y: 0, z: 0});
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.x += building.size.x - 1;
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.z -= 2;
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
         } else if(building.door_direction == DIRECTION.NORTH) {
+            const window_rot = {x: 2, y: 0, z: 0};
             let w_pos = building.door_bottom.clone().add(new Vector(2, 1, 0));
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, {x: 2, y: 0, z: 0});
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.z += building.size.z - 1;
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.x -= 2;
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
         }
         // roof
         if(building.door_direction == DIRECTION.EAST) {
@@ -418,6 +432,24 @@ export class ChunkCluster {
         }
         // door
         this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction);
+        // light
+        if(building.door_direction == DIRECTION.EAST) {
+            let light_rot = {x: 1, y: 0, z: 0};
+            let l_pos = building.door_bottom.clone().add(new Vector(-1, 1, 1));
+            if(building.materials.light.id == BLOCK.LANTERN.id) {
+                light_rot.y = -1;
+                l_pos.y += 2;
+            }
+            this.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            let light_rot = {x: 2, y: 0, z: 0};
+            let l_pos = building.door_bottom.clone().add(new Vector(1, 1, -1));
+            if(building.materials.light.id == BLOCK.LANTERN.id) {
+                light_rot.y = -1;
+                l_pos.y += 2;
+            }
+            this.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
+        }
     }
 
     drawQuboid(chunk, pos, size, block) {
