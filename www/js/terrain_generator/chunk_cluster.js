@@ -8,13 +8,14 @@ const CLUSTER_PADDING       = 4;
 const STREET_WIDTH          = 15;
 const ROAD_DAMAGE_FACTOR    = 0.05;
 const WATER_LINE            = 64;
-const USE_ROAD_AS_GANGWAY   = false;
+const USE_ROAD_AS_GANGWAY   = .1;
+const BUILDING_AABB_MARGIN  = 3; // cecause building must calling to draw from neighbours chunks
 
 const CLUSTER_SIZE          = new Vector(128, 128, 128);
 const temp_vec2             = new Vector(0, 0, 0);
 
-const building_size_x       = new Vector(6, 5, 5);
-const building_size_z       = new Vector(5, 5, 6);
+const building_size_x       = new Vector(7, 5, 5);
+const building_size_z       = new Vector(5, 5, 7);
 
 class Building {
 
@@ -33,19 +34,34 @@ class Building {
             if(seed < .5) {
                 this.materials  = {
                     wall: BLOCK.STONE_BRICK,
-                    door: BLOCK.SPRUCE_DOOR
+                    door: BLOCK.SPRUCE_DOOR,
+                    roof: BLOCK.DARK_OAK_STAIRS,
+                    roof_block: BLOCK.DARK_OAK_PLANK
                 };
             } else {
                 this.materials  = {
                     wall: BLOCK.BRICK,
-                    door: BLOCK.DARK_OAK_DOOR
+                    door: BLOCK.DARK_OAK_DOOR,
+                    roof: BLOCK.DARK_OAK_STAIRS,
+                    roof_block: BLOCK.DARK_OAK_PLANK
                 };
             }
         } else {
-            this.materials  = {
-                wall: BLOCK.OAK_PLANK,
-                door: BLOCK.OAK_DOOR
-            };
+            if(seed < .5) {
+                this.materials  = {
+                    wall: BLOCK.OAK_PLANK,
+                    door: BLOCK.OAK_DOOR,
+                    roof: BLOCK.DARK_OAK_STAIRS,
+                    roof_block: BLOCK.DARK_OAK_PLANK
+                };
+            } else {
+                this.materials  = {
+                    wall: BLOCK.OAK_PLANK,
+                    door: BLOCK.OAK_DOOR,
+                    roof: BLOCK.DARK_OAK_STAIRS,
+                    roof_block: BLOCK.DARK_OAK_PLANK
+                };
+            }
         }
     }
 
@@ -85,19 +101,20 @@ export class ChunkCluster {
 
     // constructor
     constructor(addr) {
-        this.addr               = addr;
-        this.coord              = addr.multiplyVecSelf(CLUSTER_SIZE);
-        this.id                 = addr.toHash();
-        this.randoms            = new alea(this.id);
-        this.is_empty           = this.addr.y != 0 || this.randoms.double() > 1/2;
-        this.mask               = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.buildings          = new VectorCollector();
+        this.addr                   = addr;
+        this.coord                  = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.id                     = addr.toHash();
+        this.randoms                = new alea(this.id);
+        this.is_empty               = this.addr.y != 0 || this.randoms.double() > 1/2;
+        this.mask                   = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.buildings              = new VectorCollector();
+        this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
         if(!this.is_empty) {
-            this.flat           = this.randoms.double() >= .5;
-            this.max_height     = this.flat ? 1 : 30;
-            this.wall_block     = this.flat ? 98 : 7;
-            this.road_block     = this.flat ? 12 : 468;
-            this.basement_block = this.flat ? 546 : 8;
+            this.flat               = this.randoms.double() >= .5;
+            this.max_height         = this.flat ? 1 : 30;
+            this.wall_block         = this.flat ? 98 : 7;
+            this.road_block         = this.flat ? 12 : 468;
+            this.basement_block     = this.flat ? 546 : 8;
             // create roads
             for(let g = 0; g < 16; g++) {
                 let x = Math.round(this.randoms.double() * 64) + CLUSTER_PADDING;
@@ -139,7 +156,7 @@ export class ChunkCluster {
             coord.toHash(),
             seed,
             coord.clone(),
-            new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z),
+            new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
             entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
             door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
             door_direction,
@@ -162,6 +179,11 @@ export class ChunkCluster {
 
     // Set block
     setBlock(chunk, x, y, z, block_id, rotate, extra_data) {
+        if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
+            // ok
+        } else {
+            return false;
+        }
         temp_vec2.x = x;
         temp_vec2.y = y;
         temp_vec2.z = z;
@@ -173,6 +195,13 @@ export class ChunkCluster {
             chunk.tblocks.extra_data.set(temp_vec2, extra_data);
         }
         chunk.tblocks.id[index] = block_id;
+        return true;
+    }
+
+    // Return block from pos
+    getBlock(chunk, x, y, z) {
+        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        return chunk.tblocks.id[index];
     };
 
     // Fill chunk blocks
@@ -184,12 +213,6 @@ export class ChunkCluster {
         const START_Z           = chunk.coord.z - this.coord.z;
         const CHUNK_Y_BOTTOM    = chunk.coord.y;
         const randoms           = new alea('cluster_chunk_' + chunk.id);
-        /*
-            const getBlock = (x, y, z) => {
-                const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
-                return chunk.tblocks.id[index];
-            };
-        */
         // each all buildings
         for(let [_, b] of this.buildings.entries()) {
             if(b.entrance.y == Infinity) {
@@ -239,7 +262,7 @@ export class ChunkCluster {
                     }
                     const cell = map.info.cells[i][j];
                     if(cell.biome.code == 'OCEAN') {
-                        if(USE_ROAD_AS_GANGWAY && point.block_id == this.road_block) {
+                        if(point.block_id == this.road_block && this.use_road_as_gangway) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
                                 this.setBlock(chunk, i, y, j, 7, null);
@@ -334,41 +357,164 @@ export class ChunkCluster {
         return false;
     }
 
+    //
     drawBuild1(chunk, building) {
+        const bx = building.coord.x - chunk.coord.x;
+        const by = building.coord.y - chunk.coord.y;
+        const bz = building.coord.z - chunk.coord.z;
+        // 4 walls
+        this.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
+        //
+        if(building.door_direction == DIRECTION.EAST) {
+            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
+            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
+            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            this.setBlock(chunk, bx + 2, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + 3, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + 2, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + 3, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+            this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+        }
+        // roof gable
+        if(building.door_direction == DIRECTION.EAST) {
+            let q_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y, building.coord.z + Math.floor(building.size.z / 2));
+            this.drawQuboid(chunk, q_pos, new Vector(building.size.x + 2, 1, 1), building.materials.roof_block);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            let q_pos = new Vector(building.coord.x + Math.floor(building.size.x / 2), building.coord.y + building.size.y, building.coord.z - 1);
+            this.drawQuboid(chunk, q_pos, new Vector(1, 1, building.size.z + 2), building.materials.roof_block);
+        }
+        // window
+        if(building.door_direction == DIRECTION.EAST) {
+            let w_pos = building.door_bottom.clone().add(new Vector(0, 1, 2));
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, {x: 3, y: 0, z: 0});
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            let w_pos = building.door_bottom.clone().add(new Vector(2, 1, 0));
+            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, {x: 2, y: 0, z: 0});
+        }
+        // roof
+        if(building.door_direction == DIRECTION.EAST) {
+            // south side
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z - 1);
+            let roof_size = new Vector(building.size.x + 2, 4, 0);
+            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.SOUTH, building.materials.roof);
+            // north side
+            roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z + building.size.z);
+            roof_size = new Vector(building.size.x + 2, 4, 0);
+            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.NORTH, building.materials.roof);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            // west side
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z - 1);
+            let roof_size = new Vector(0, 4, building.size.z + 2);
+            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.WEST, building.materials.roof);
+            // east side
+            roof_pos = new Vector(building.coord.x + building.size.x, building.coord.y + 2, building.coord.z - 1);
+            roof_size = new Vector(0, 4, building.size.z + 2);
+            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
+        }
+        // door
+        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction);
+    }
+
+    drawQuboid(chunk, pos, size, block) {
+        const bx = pos.x - chunk.coord.x;
+        const by = pos.y - chunk.coord.y;
+        const bz = pos.z - chunk.coord.z;
+        for(let i = 0; i < size.x; i++) {
+            for(let j = 0; j < size.z; j++) {
+                for(let k = 0; k < size.y; k++) {
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    this.setBlock(chunk, x, y, z, block.id, null);
+                }
+            }
+        }
+    }
+
+    // Draw walls
+    draw4Walls(chunk, pos, size, block) {
+        const bx = pos.x - chunk.coord.x;
+        const by = pos.y - chunk.coord.y;
+        const bz = pos.z - chunk.coord.z;
         const xyz = new Vector(0, 0, 0);
-        for(let i = 0; i < building.size.x; i++) {
-            for(let j = 0; j < building.size.z; j++) {
-                for(let k = 0; k < building.size.y - 1; k++) {
-                    const x = building.coord.x - chunk.coord.x + i;
-                    const y = building.coord.y - chunk.coord.y + k;
-                    const z = building.coord.z - chunk.coord.z + j;
-                    xyz.copyFrom(building.coord).add(i, k, j);
-                    if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                        if(i < 1 || j < 1 || k < 1 || i > building.size.x - 2 || j > building.size.z - 2 || k > building.size.y - 1) {
-                            this.setBlock(chunk, x, y, z, building.materials.wall.id, null);
-                        } else {
-                            this.setBlock(chunk, x, y, z, 0, null);
-                        }
+        for(let i = 0; i < size.x; i++) {
+            for(let j = 0; j < size.z; j++) {
+                for(let k = 0; k < size.y - 1; k++) {
+                    const x = bx + i;
+                    const y = by + k;
+                    const z = bz + j;
+                    xyz.copyFrom(pos).add(i, k, j);
+                    if(i < 1 || j < 1 || k < 1 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
+                        this.setBlock(chunk, x, y, z, block.id, null);
+                    } else {
+                        this.setBlock(chunk, x, y, z, 0, null);
                     }
                 }
             }
         }
-        // roof
-        if(building.door_direction == DIRECTION.EAST) {
-            for(let i = -1; i < building.size.x + 1; i++) {
-                const x = building.coord.x - chunk.coord.x + i;
-                const y = building.coord.y - chunk.coord.y + 3;
-                const z = building.coord.z - chunk.coord.z - 1;
-                if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                    this.setBlock(chunk, x, y, z, 534, {x: 2, y: 0, z: 0});
-                }
-            }
-        }
-        // doorway
-        this.addDoor(chunk, building.door_bottom, building.materials.door, building.door_direction);
     }
 
-    addDoor(chunk, pos, block, dir) {
+    // Add pitched roof
+    drawPitchedRoof(chunk, pos, size, dir, block) {
+        switch(dir) {
+            // Look to north
+            case DIRECTION.NORTH: {
+                for(let i = 0; i < size.x; i++) {
+                    for(let k = 0; k < size.y; k++) {
+                        const x = pos.x - chunk.coord.x + i;
+                        const y = pos.y - chunk.coord.y + k;
+                        const z = pos.z - chunk.coord.z - k;
+                        this.setBlock(chunk, x, y, z, block.id, {x: 0, y: 0, z: 0});
+                    }
+                }    
+                break;
+            }
+            // Look to south
+            case DIRECTION.SOUTH: {
+                for(let i = 0; i < size.x; i++) {
+                    for(let k = 0; k < size.y; k++) {
+                        const x = pos.x - chunk.coord.x + i;
+                        const y = pos.y - chunk.coord.y + k;
+                        const z = pos.z - chunk.coord.z + k;
+                        this.setBlock(chunk, x, y, z, block.id, {x: 2, y: 0, z: 0});
+                    }
+                }    
+                break;
+            }
+            // Look to west
+            case DIRECTION.WEST: {
+                for(let j = 0; j < size.z; j++) {
+                    for(let k = 0; k < size.y; k++) {
+                        const x = pos.x - chunk.coord.x + k;
+                        const y = pos.y - chunk.coord.y + k;
+                        const z = pos.z - chunk.coord.z + j;
+                        this.setBlock(chunk, x, y, z, block.id, {x: 1, y: 0, z: 0});
+                    }
+                }
+                break;
+            }
+            // Look to east
+            case DIRECTION.EAST: {
+                for(let j = 0; j < size.z; j++) {
+                    for(let k = 0; k < size.y; k++) {
+                        const x = pos.x - chunk.coord.x - k;
+                        const y = pos.y - chunk.coord.y + k;
+                        const z = pos.z - chunk.coord.z + j;
+                        this.setBlock(chunk, x, y, z, block.id, {x: 3, y: 0, z: 0});
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Draw door
+    drawDoor(chunk, pos, block, dir) {
         const door_blocks = [block.id, block.next_part.id];
         for(let k of [0, 1]) {
             const x = pos.x - chunk.coord.x;

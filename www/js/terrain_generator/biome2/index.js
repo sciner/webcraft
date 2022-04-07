@@ -797,8 +797,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         temp_vec.set(pos.x, pos.y - chunk_coord.y, pos.z);
                         if(!chunk.tblocks.has(temp_vec)) {
                             if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
-                                setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
+                                // check over block
+                                xyz.y += 2;
+                                temp_block = chunk.tblocks.get(xyz, temp_block);
+                                if(temp_block.id == 0) {
+                                    //
+                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
+                                    setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
+                                } else {
+                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);    
+                                }
                             } else {
                                 setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
                             }
