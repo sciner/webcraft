@@ -235,7 +235,7 @@ export class ClusterVilage extends ClusterBase {
             this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
         }
         // npc
-        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + 1 + chunk.coord.y, bz + Math.round(building.size.z/2) + chunk.coord.z);
+        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + chunk.coord.y + 1, bz + Math.round(building.size.z/2) + chunk.coord.z);
         this.addNPC(chunk, npc_pos);
         // roof gable
         if(building.door_direction == DIRECTION.EAST) {

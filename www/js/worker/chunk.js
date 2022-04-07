@@ -310,9 +310,7 @@ export class Chunk {
         }
 
         // Create map of lowest blocks that are still lit
-        let tm                  = performance.now();
-        this.fluid_blocks       = [];
-        this.gravity_blocks     = [];
+        let tm = performance.now();
 
         let group_templates = {
             regular: {
@@ -335,9 +333,6 @@ export class Chunk {
 
         const tmpVector = new Vector();
 
-        // Add vertices for blocks
-        this.vertices = new Map();
-
         this.neighbour_chunks = {
             nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
             px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
@@ -347,9 +342,22 @@ export class Chunk {
             pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
         };
 
-        const cache = BLOCK_CACHE;
-        const blockIter = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
-        let material = null;
+        // Check neighbour chunks available
+        if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
+            console.error('todo_unobtainable_chunk');
+            this.dirty              = false;
+            this.tm                 = performance.now() - tm;
+            this.neighbour_chunks   = null;
+            return false;
+        }
+
+        this.fluid_blocks           = [];
+        this.gravity_blocks         = [];
+        this.vertices               = new Map(); // Add vertices for blocks
+
+        const cache                 = BLOCK_CACHE;
+        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
+        let material                = null;
 
         // addVerticesToGroup...
         const addVerticesToGroup = (material_group, material_key, vertices) => {

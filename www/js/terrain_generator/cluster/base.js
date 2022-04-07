@@ -107,8 +107,13 @@ export class ClusterBase {
 
     // Add NPC
     addNPC(chunk, pos) {
-        this.setBlock(chunk, pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z, BLOCK.MOB_SPAWN.id, null, this.generateNPCSpawnExtraData());
+        let rel_pos = pos.sub(chunk.coord);
+        if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= CHUNK_SIZE_X || rel_pos.y >= CHUNK_SIZE_Y || rel_pos.z >= CHUNK_SIZE_Z) {
+            return false;
+        }
+        this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, BLOCK.MOB_SPAWN.id, null, this.generateNPCSpawnExtraData());
         chunk.addTickingBlock(pos);
+        return true;
     }
 
     //

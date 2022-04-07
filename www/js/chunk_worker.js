@@ -240,7 +240,7 @@ if(typeof process !== 'undefined') {
 function buildVertices(chunk, return_map) {
     chunk.dirty = true;
     chunk.timers.build_vertices = performance.now();
-    chunk.buildVertices();
+    let is_builded = chunk.buildVertices();
     chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
     let resp = {
         key:                    chunk.key,

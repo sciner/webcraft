@@ -55,6 +55,9 @@ class TreeGenerator extends Default_Terrain_Generator {
                             _temp_vec.y += y;
                             _temp_vec.z += z;
                             let near_block = world.getBlock(_temp_vec);
+                            if(!near_block) {
+                                return -1;
+                            }
                             if(near_block.id > 0 && ['leaves', 'plant', 'dirt'].indexOf(near_block.material.material.id) < 0) {
                                 return resp_max_height;
                             }
@@ -68,6 +71,9 @@ class TreeGenerator extends Default_Terrain_Generator {
         //
         let tree_height = m.extra_data.height;
         let max_height = getMaxFreeHeight();
+        if(max_height < 0) {
+            return updated_blocks;
+        }
         //
         if(max_height < tree_type.height.min) {
             console.error('not free space for sapling', tree_type, max_height);
@@ -84,16 +90,22 @@ class TreeGenerator extends Default_Terrain_Generator {
             }
         };
         //
+        let is_invalid_operation = false;
         this.setBlock = function(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
             _temp_vec.set(x, y, z);
             let near_block = world.getBlock(_temp_vec);
+            if(!near_block) {
+                is_invalid_operation = true;
+                return false;
+            }
             if(near_block.id == 0 || near_block.material.material.id == 'leaves' || near_block.material.material.id == 'plant' || near_block.material.is_sapling) {
                 updated_blocks.push({pos: new Vector(x, y, z), item: {id: block_type.id, extra_data: extra_data, rotate: rotate}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                return true;
             }
+            return false;
         };
         this.plantTree({height: tree_height, type: {...tree_type, style: tree_style}}, chunk, pos.x, pos.y, pos.z, false);
-        // console.log(updated_blocks.length);
-        return updated_blocks;
+        return is_invalid_operation ? [] : updated_blocks;
     }
 
 }
@@ -715,8 +727,10 @@ export class ServerChunk {
                             // Spawn mob
                             console.log('Spawn mob', v.pos.toHash());
                             await this.world.createMob(params);
-                            //
-                            updated_blocks.push({pos: v.pos, item: {id: BLOCK.AIR.id}, action_id: ServerClient.BLOCK_ACTION_DESTROY});
+                            const upd_blocks = [
+                                {pos: v.pos.clone(), item: {id: BLOCK.AIR.id, extra_data: null, rotate: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
+                            ];
+                            updated_blocks.push(...upd_blocks);
                             // Delete completed block from tickings
                             this.deleteTickingBlock(v.pos);
                         }
