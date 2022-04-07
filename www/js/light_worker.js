@@ -676,6 +676,8 @@ class Chunk {
                 }
         }
 
+        let upPortal = false;
+
         for (let portal of portals) {
             const other = portal.toRegion;
             const p = portal.aabb;
@@ -684,6 +686,10 @@ class Chunk {
             const shift2 = other.shiftCoord;
             const bytes2 = other.uint8View;
             const sy2 = outer2.x * outer2.z, sx2 = 1, sz2 = outer2.x;
+
+            if (other.aabb.y_min > aabb.y_min) {
+                upPortal = true;
+            }
 
             for (let x = p.x_min; x < p.x_max; x++)
                 for (let y = p.y_min; y < p.y_max; y++)
@@ -727,6 +733,13 @@ class Chunk {
                         }
                     }
         }
+
+        if (upPortal) {
+            // fix for black chunks in case respawn above y=80
+            // there's a chunk above us => dont try to upload texture before the queue goes down to center of chunk
+            world.dayLightSrc.add(this, (outerSize.x >> 1) * sx + (outerSize.z >> 1) * sz + (outerSize.y >> 1) * sy);
+        }
+
 
         // add light to queue
         for (let y = aabb.y_min; y < aabb.y_max; y++)
