@@ -121,7 +121,7 @@ export class Map {
                     //
                     if(!aleaRandom) {
                         aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
-                        cluster = ChunkCluster.getForCoord(chunk.coord);
+                        cluster = ClusterManager.getForCoord(chunk.coord);
                     }
                     //
                     if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {

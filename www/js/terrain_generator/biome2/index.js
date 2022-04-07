@@ -153,7 +153,7 @@ export class TerrainMap {
         //
         const SX                    = chunk.coord.x;
         const SZ                    = chunk.coord.z;
-        const cluster               = ChunkCluster.getForCoord(chunk.coord);
+        const cluster               = ClusterManager.getForCoord(chunk.coord);
         const H                     = 68;
         //
         for(let x = 0; x < chunk.size.x; x++) {
@@ -362,7 +362,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Maps
         let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
-        let cluster                     = chunk.cluster; // ChunkCluster.getForCoord(chunk.coord);
+        let cluster                     = chunk.cluster; // ClusterManager.getForCoord(chunk.coord);
         this.map                        = map;
         this.caveManager.addSpiral(chunk.addr);
 
