@@ -288,26 +288,37 @@ export class BLOCK {
             }
         } else if(block.extra_data) {
             extra_data = JSON.parse(JSON.stringify(block.extra_data));
-            // Execute calculated extra_data fields:
-            if('calculated' in extra_data) {
-                const calculated = extra_data.calculated;
-                delete(extra_data.calculated);
-                for(let g of calculated) {
-                    if(!('name' in g)) {
-                        throw 'error_generator_name_not_set';
+            extra_data = BLOCK.calculateExtraData(extra_data, pos);
+        }
+        return extra_data;
+    }
+
+    // Execute calculated extra_data fields
+    static calculateExtraData(extra_data, pos) {
+        if('calculated' in extra_data) {
+            const calculated = extra_data.calculated;
+            delete(extra_data.calculated);
+            for(let g of calculated) {
+                if(!('name' in g)) {
+                    throw 'error_generator_name_not_set';
+                }
+                switch(g.type) {
+                    case 'pos': {
+                        extra_data[g.name] = new Vector(pos);
+                        break;
                     }
-                    switch(g.type) {
-                        case 'pos': {
-                            extra_data[g.name] = new Vector(pos);
-                            break;
+                    case 'random_int': {
+                        if(!('min_max' in g)) {
+                            throw 'error_generator_min_max_not_set';
                         }
-                        case 'random_int': {
-                            if(!('min_max' in g)) {
-                                throw 'error_generator_min_max_not_set';
-                            }
-                            extra_data[g.name] = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
-                            break;
+                        extra_data[g.name] = Math.floor(Math.random() * (g.min_max[1] - g.min_max[0] + 1) + g.min_max[0]);
+                        break;
+                    }
+                    case 'random_item': {
+                        if(!('items' in g)) {
+                            throw 'error_generator_items_not_set';
                         }
+                        extra_data[g.name] = g.items.length > 0 ? g.items[g.items.length * Math.random() | 0] : null;
                     }
                 }
             }

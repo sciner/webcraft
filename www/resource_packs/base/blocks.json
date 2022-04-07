@@ -898,7 +898,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "oak",
             "calculated": [
@@ -917,7 +919,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "birch",
             "calculated": [
@@ -936,7 +940,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "acacia",
             "calculated": [
@@ -955,7 +961,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "spruce",
             "calculated": [
@@ -976,7 +984,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "dark_oak",
             "calculated": [
@@ -995,7 +1005,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "tropical_tree",
             "calculated": [
@@ -5504,6 +5516,17 @@
         "can_rotate": true,
         "material": {
             "id": "iron"
+        },
+        "ticking": {
+            "type": "spawnmob"
+        },
+        "extra_data": {
+            "type": "mob",
+            "limit": {},
+            "calculated": [
+                {"type": "random_item", "name": "skin", "items": []},
+                {"type": "random_int", "name": "max_ticks", "min_max": [1000000, 1000000]}
+            ]
         },
         "texture_animations": {
             "side": 2

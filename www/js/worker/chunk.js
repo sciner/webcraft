@@ -63,6 +63,7 @@ export class Chunk {
         Object.assign(this, args);
         this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        this.ticking_blocks = new VectorCollector();
         this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
         this.cluster = ChunkCluster.getForCoord(this.coord);
         this.aabb = new AABB();
@@ -111,6 +112,14 @@ export class Chunk {
             tblocks:    this.tblocks,
             map:        this.map
         };
+    }
+
+    addTickingBlock(pos) {
+        this.ticking_blocks.set(pos, pos);
+    }
+
+    deleteTickingBlock(pos) {
+        this.ticking_blocks.delete(pos);
     }
 
     //

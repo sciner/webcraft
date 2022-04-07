@@ -149,10 +149,11 @@ async function onMessageFunc(e) {
             if(from_cache) {
                 let chunk = world.chunks.get(args.addr);
                 worker.postMessage(['blocks_generated', {
-                    key:        chunk.key,
-                    addr:       chunk.addr,
-                    tblocks:    chunk.tblocks,
-                    map:        chunk.map
+                    key:            chunk.key,
+                    addr:           chunk.addr,
+                    tblocks:        chunk.tblocks,
+                    ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
+                    map:            chunk.map
                 }]);
             } else {
                 let ci = world.createChunk(args);

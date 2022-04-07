@@ -53,11 +53,18 @@ export class WorkerWorld {
         let chunk = new Chunk(this.chunkManager, args);
         chunk.init();
         this.chunks.add(args.addr, chunk);
+        // Ticking blocks
+        let ticking_blocks = [];
+        for(let k of chunk.ticking_blocks.keys()) {
+            ticking_blocks.push(k.toHash());
+        }
+        // Return chunk object
         return {
-            key:        chunk.key,
-            addr:       chunk.addr,
-            tblocks:    chunk.tblocks,
-            map:        chunk.map
+            key:            chunk.key,
+            addr:           chunk.addr,
+            tblocks:        chunk.tblocks,
+            ticking_blocks: ticking_blocks,
+            map:            chunk.map
         };
     }
 

@@ -20,6 +20,7 @@ const building_size_z       = new Vector(5, 5, 7);
 class Building {
 
     constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        this.randoms        = new alea(coord.toHash());
         this.cluster        = cluster;
         this.id             = id;
         this.seed           = seed;
@@ -384,6 +385,10 @@ export class ChunkCluster {
             this.setBlock(chunk, bx + 3, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
             this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
         }
+        // npc
+        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + 1 + chunk.coord.y, bz + Math.round(building.size.z/2) + chunk.coord.z);
+        this.setBlock(chunk, npc_pos.x - chunk.coord.x, npc_pos.y - chunk.coord.y, npc_pos.z - chunk.coord.z, BLOCK.MOB_SPAWN.id, null, this.generateNPCSpawnExtraData(building));
+        chunk.addTickingBlock(npc_pos);
         // roof gable
         if(building.door_direction == DIRECTION.EAST) {
             let q_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y, building.coord.z + Math.floor(building.size.z / 2));
@@ -431,7 +436,7 @@ export class ChunkCluster {
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
         }
         // door
-        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction);
+        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction, building.randoms.double() > .5, true);
         // light
         if(building.door_direction == DIRECTION.EAST) {
             let light_rot = {x: 1, y: 0, z: 0};
@@ -546,7 +551,7 @@ export class ChunkCluster {
     }
 
     // Draw door
-    drawDoor(chunk, pos, block, dir) {
+    drawDoor(chunk, pos, block, dir, opened, left) {
         const door_blocks = [block.id, block.next_part.id];
         for(let k of [0, 1]) {
             const x = pos.x - chunk.coord.x;
@@ -554,11 +559,23 @@ export class ChunkCluster {
             const z = pos.z - chunk.coord.z;
             if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
                 if(dir == DIRECTION.EAST) {
-                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 0, y: 0, z: 0}, {point: {x: 0.7, y: 0, z: 0}, opened: true});
+                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 1, y: 0, z: 0}, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
                 } else if(dir == DIRECTION.NORTH) {
-                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 1, y: 0, z: 0}, {point: {x: 0.7, y: 0, z: 0}, opened: true});
+                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 2, y: 0, z: 0}, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
                 }
             }
+        }
+    }
+
+    // Return extra data for block MOB_SPAWN
+    generateNPCSpawnExtraData(building) {
+        return {
+            "type": "npc",
+            "limit": {"count": 1},
+            "calculated": [
+                {"type": "random_item", "name": "skin", "items": [1, 2, 3, 4, 5, 6, 7, 10]},
+                {"type": "random_int", "name": "max_ticks", "min_max": [1, 1]}
+            ]
         }
     }
 
