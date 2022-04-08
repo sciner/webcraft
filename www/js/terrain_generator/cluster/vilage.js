@@ -266,20 +266,20 @@ export class ClusterVilage extends ClusterBase {
         // roof
         if(building.door_direction == DIRECTION.EAST) {
             // south side
-            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z - 1);
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
             let roof_size = new Vector(building.size.x + 2, 4, 0);
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.SOUTH, building.materials.roof);
             // north side
-            roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z + building.size.z);
+            roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z + building.size.z);
             roof_size = new Vector(building.size.x + 2, 4, 0);
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.NORTH, building.materials.roof);
         } else if(building.door_direction == DIRECTION.NORTH) {
             // west side
-            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + 2, building.coord.z - 1);
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
             let roof_size = new Vector(0, 4, building.size.z + 2);
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.WEST, building.materials.roof);
             // east side
-            roof_pos = new Vector(building.coord.x + building.size.x, building.coord.y + 2, building.coord.z - 1);
+            roof_pos = new Vector(building.coord.x + building.size.x, building.coord.y + building.size.y - 3, building.coord.z - 1);
             roof_size = new Vector(0, 4, building.size.z + 2);
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
         }
