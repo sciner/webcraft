@@ -624,7 +624,7 @@ export class Renderer {
             if(!this.rainTim) {
                 this.rainTim = setInterval(() => {
                     let pos = this.player.pos;
-                    this.rainDrop(new Vector(pos.x, pos.y + 20, pos.z));
+                    this.rainDrop(new Vector(pos.x, pos.y, pos.z));
                 }, 25);
             }
         } else {
