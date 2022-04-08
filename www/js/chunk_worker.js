@@ -214,6 +214,8 @@ async function onMessageFunc(e) {
                 if(item) {
                     result.push(item);
                     chunk.vertices = null;
+                } else {
+                    chunk.dirty = true;
                 }
             }
             // 5. Send result to chunk manager
