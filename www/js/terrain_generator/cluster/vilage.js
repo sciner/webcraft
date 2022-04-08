@@ -92,8 +92,8 @@ export class ClusterVilage extends ClusterBase {
         // each all buildings
         for(let [_, b] of this.buildings.entries()) {
             if(b.entrance.y == Infinity) {
-                b.aabb.y_min = chunk.coord.y;
-                b.aabb.y_max = b.aabb.y_min + b.size.y;
+                b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
+                b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
             }
             // если строение частично или полностью находится в этом чанке
             if(b.aabb.intersect(chunk.aabb)) {
@@ -114,8 +114,8 @@ export class ClusterVilage extends ClusterBase {
                         const cell          = entrance_map_info.cells[entrance_x][entrance_z];
                         b.entrance.y        = cell.value2 - 1;
                         b.coord.y           = b.entrance.y;
-                        b.aabb.y_min        = b.entrance.y;
-                        b.aabb.y_max        = b.aabb.y_min + b.size.y;
+                        b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
+                        b.aabb.y_max        = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
                         b.door_bottom.y     = cell.value2;
                     }
                 }
