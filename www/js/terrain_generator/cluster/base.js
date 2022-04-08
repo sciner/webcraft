@@ -69,7 +69,7 @@ export class ClusterBase {
                         if(point.block_id == this.road_block && this.use_road_as_gangway) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
-                                this.setBlock(chunk, i, y, j, 7, null);
+                                this.setBlock(chunk, i, y, j, BLOCK.OAK_PLANK.id, null);
                             }
                         }
                         continue;

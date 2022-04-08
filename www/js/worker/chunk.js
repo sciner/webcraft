@@ -312,6 +312,25 @@ export class Chunk {
         // Create map of lowest blocks that are still lit
         let tm = performance.now();
 
+        const tmpVector = new Vector();
+
+        this.neighbour_chunks = {
+            nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
+            px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y + 1, this.addr.z)),
+            nz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z - 1)),
+            pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
+        };
+
+        // Check neighbour chunks available
+        if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
+            this.tm                 = performance.now() - tm;
+            this.neighbour_chunks   = null;
+            console.error('todo_unobtainable_chunk');
+            return false;
+        }
+
         let group_templates = {
             regular: {
                 list: [],
@@ -330,26 +349,6 @@ export class Chunk {
                 is_transparent: true
             },
         };
-
-        const tmpVector = new Vector();
-
-        this.neighbour_chunks = {
-            nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
-            px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
-            ny: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y - 1, this.addr.z)),
-            py: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y + 1, this.addr.z)),
-            nz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z - 1)),
-            pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
-        };
-
-        // Check neighbour chunks available
-        if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
-            console.error('todo_unobtainable_chunk');
-            this.dirty              = false;
-            this.tm                 = performance.now() - tm;
-            this.neighbour_chunks   = null;
-            return false;
-        }
 
         this.fluid_blocks           = [];
         this.gravity_blocks         = [];
