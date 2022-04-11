@@ -284,7 +284,8 @@ export class ClusterVilage extends ClusterBase {
             this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
         }
         // door
-        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction, building.randoms.double() > .5, true);
+        const door_random = new alea(building.door_bottom.toHash())
+        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction, door_random.double() > .5, true);
         // light
         if(building.door_direction == DIRECTION.EAST) {
             let light_rot = {x: 1, y: 0, z: 0};
