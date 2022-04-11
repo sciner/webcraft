@@ -5,82 +5,108 @@ import { BLOCK } from "../blocks.js";
 
 const push_plane = push_plane_style.getRegInfo().func;
 
-const RAIN_X = 10;
-const RAIN_Y = 12;
-const RAIN_Z = 10;
-
+/**
+ * Draw rain over player
+ * @class Particles_Raindrop
+ * @param {Renderer} gl Renderer
+ * @param {Vector} pos Player position
+ */
 export default class Particles_Raindrop {
 
-    // Constructor
     constructor(gl, pos) {
 
-        this.yaw = 0;//-Game.player.rotate.z;
-        this.life = 0.5;
-        this.pos = new Vector(pos.x, pos.y - 20, pos.z);
-        let lm = new Color(0, 0, 0, 0);
-        const b = BLOCK.STILL_WATER;
-        this.texture = b.texture;
-        let c = BLOCK.calcTexture(this.texture, DIRECTION.FORWARD); // полная текстура
-        this.vertices = [];
-        this.particles = [];
-        this.map = []
+        const RAIN_X = 18;      // количество блоков по x на которые льет дождь
+        const RAIN_Y = 18;      // количество блоков высоты дождя
+        const RAIN_Z = 18;      // количество блоков по z на которые льет дождь
+        const LENGTH_Y = 2;     // плотность дождя по высоте, не должно быть больше RAIN_Y
+        const RAIN_COUNT = 500; // rain density
+        const RAIN_SPEED = 0.4; // rain speed
 
-        // карта высот
+        let vertices = [];
+        let map = [];
+        let b = BLOCK.STILL_WATER;
+        let texture = b.texture;
+        let c = BLOCK.calcTexture(texture, DIRECTION.FORWARD);
+        let lm = new Color(0, 0, 0, 0);
+
+        this.speed = RAIN_SPEED;
+        this.life = LENGTH_Y / (100.0 * this.speed);
+        this.pos = new Vector(pos.x, pos.y, pos.z);
+
+        // Heightmap
         for (let i = 0; i <= RAIN_X; ++i) {
-            this.map[i] = [];
+            map[i] = [];
             for (let j = 0; j <= RAIN_Z; ++j) {
                 for (let p = RAIN_Y; p > 0; --p) {
-                    let block = Game.world.getBlock(parseInt(this.pos.x + i - RAIN_X / 2.0), p + parseInt(this.pos.y), parseInt(this.pos.z + j - RAIN_Z / 2.0));
+                    let block = Game.world.getBlock(Math.floor(this.pos.x + i - RAIN_X / 2.0), p + Math.floor(this.pos.y), Math.floor(this.pos.z + j - RAIN_Z / 2.0));
                     if (block.id > 0) {
-                        if(block.material.material.id == 'leaves') {
-                            if(Math.random() < .2) continue;
+                        if ((block.material.material.id == 'leaves') && (Math.random() < 0.2)) {
+                            continue;
                         }
-                        this.map[i][j] = p;
+                        map[i][j] = p;
                         break;
                     }
                 }
             }
         }
 
-        for (let i = 0; i < 250; i++) {
-            const sz = Math.random() * (2/16) + 1/16; // часть текстуры
+        for (let i = 0; i < RAIN_COUNT; i++) {
+            const sz = Math.random() * (2 / 16) + 1 / 16; // part of texture
             const half = sz / TX_CNT;
-            // случайная позиция в текстуре
+            // random position im texture
             let cx = c[0] + Math.random() * (half * 3);
             let cy = c[1] + Math.random() * (half * 3);
             let c_half = [cx - c[2] / 2 + half / 2, cy - c[3] / 2 + half / 2, half, half];
-            // случайная позиция частицы (в границах блока)
+            // random particle position
             let x = Math.random() * RAIN_X;
             let z = Math.random() * RAIN_Z;
-            let ix = Math.round(x - 0.5);
+            let ix = Math.round(x);
             let iz = Math.round(z);
-            let y = RAIN_Y;
-            if (!this.map[ix][iz])
-                y = Math.random() * RAIN_Y;
-            else
-                y = -20;
-            push_plane(this.vertices, x - RAIN_X / 2.0, y, z - RAIN_Z / 2.0, c_half, lm, true, false, sz / 20, sz, null, QUAD_FLAGS.NORMAL_UP);
+            let y = 100;
+            if (!map[ix][iz]) {
+                y = Math.random() * (RAIN_Y - LENGTH_Y) + LENGTH_Y;
+            } else {
+                y = Math.random() * LENGTH_Y + LENGTH_Y + map[ix][iz] + 1;
+            }
+            if (Math.random() < 0.5) {
+                push_plane(vertices, x - RAIN_X / 2.0, y, z - RAIN_Z / 2.0, c_half, lm, true, false, sz / 20, sz, null, QUAD_FLAGS.NORMAL_UP);
+            } else {
+                push_plane(vertices, x - RAIN_X / 2.0, y, z - RAIN_Z / 2.0, c_half, lm, false, false, null, sz, sz / 20, QUAD_FLAGS.NORMAL_UP);
+            }
         }
 
-        this.buffer = new GeometryTerrain(new Float32Array(this.vertices));
+        this.buffer = new GeometryTerrain(new Float32Array(vertices));
         this.resource_pack = b.resource_pack
         this.material = this.resource_pack.getMaterial(b.material_key);
     }
 
-    // Draw
+    /**
+     * Draw particles
+     * @param {Renderer} render Renderer
+     * @param {float} delta Delta time from previous call
+     * @memberOf Particles_Raindrop
+     */
     draw(render, delta) {
-        delta *= 15
-        let gl = render.gl;
+        delta *= 25;
         this.life -= delta / 100000;
         delta /= 1000;
-        this.pos.y += delta * -.40;
+        this.pos.y -= delta * this.speed;
         render.renderBackend.drawMesh(this.buffer, this.material, this.pos, this.modelMatrix);
     }
 
+    /**
+     * Destructor
+     * @memberOf Particles_Raindrop
+     */
     destroy(render) {
         this.buffer.destroy();
     }
 
+    /**
+     * Check particle status
+     * @return {boolean}
+     * @memberOf Particles_Raindrop
+     */
     isAlive() {
         return this.life > 0;
     }
