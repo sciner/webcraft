@@ -24,7 +24,7 @@ export class WebGLMaterial extends BaseMaterial {
         this.shader.bind();
 
         const prevMat = this.shader._material;
-        
+
         gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
 
         if (prevMat === this && !this._dirty)
@@ -65,7 +65,8 @@ export class WebGLMaterial extends BaseMaterial {
         }
         if (WebGLMaterial.lightState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
-            tex.bind(5);
+            const base = tex.baseTexture || tex;
+            base.bind(5);
             WebGLMaterial.lightState = this.lightTex;
         }
         if (this.blendMode !== BLEND_MODES.NORMAL) {

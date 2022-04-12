@@ -33,6 +33,7 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+        this.lightPool = null;
 
         // Torches
         this.torches = {
@@ -95,7 +96,7 @@ export class ChunkManager {
     }
 
     init() {
-        
+
         const world                   = this.world;
         const that                    = this;
 
@@ -313,7 +314,7 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {*} addr 
+     * @param {*} addr
      * @returns Chunk
      */
     getChunk(addr) {

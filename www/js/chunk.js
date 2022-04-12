@@ -4,6 +4,7 @@ import {TypedBlocks} from "./typed_blocks.js";
 import {Sphere} from "./frustum.js";
 import {BLOCK} from "./blocks.js";
 import {AABB} from './core/AABB.js';
+import {CubeTexturePool} from "./light/CubeTexturePool.js";
 
 export const CHUNK_SIZE_X                   = 16;
 export const CHUNK_SIZE_Y                   = 40;
@@ -152,8 +153,20 @@ export class Chunk {
             return null;
         }
 
+        const cm = this.getChunkManager();
+        if (!cm.lightPool) {
+            cm.lightPool = new CubeTexturePool({
+                defWidth: CHUNK_SIZE_X + 2,
+                defHeight: CHUNK_SIZE_Z + 2,
+                defDepth: (CHUNK_SIZE_Y + 2) * 2,
+                type: 'rgba8unorm',
+                filter: 'linear',
+                renderer: render
+            });
+        }
+
         if (!this.lightTex) {
-            const lightTex = this.lightTex = render.createTexture3D({
+            const lightTex = this.lightTex = cm.lightPool.alloc({
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * 2,
@@ -161,8 +174,8 @@ export class Chunk {
                 filter: 'linear',
                 data: this.lightData
             })
-            this.getChunkManager().lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
-            this.getChunkManager().lightmap_count ++;
+            cm.lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
+            cm.lightmap_count ++;
         }
 
         return this.lightTex;
@@ -244,7 +257,7 @@ export class Chunk {
         if (lightTex) {
             chunkManager.lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
             chunkManager.lightmap_count--;
-            lightTex.destroy();
+            chunkManager.lightPool.dealloc(lightTex);
         }
         this.lightTex = null;
         // Run webworker method

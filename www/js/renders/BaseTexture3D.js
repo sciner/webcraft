@@ -1,3 +1,4 @@
+import {Vector} from '../helpers.js';
 import BaseRenderer from "./BaseRenderer.js";
 
 export class BaseTexture3D {
@@ -12,6 +13,7 @@ export class BaseTexture3D {
         this.width = width;
         this.height = height;
         this.depth = depth;
+        this.offset = new Vector(0, 0, 0);
         this.minFilter = filter;
         this.magFilter = filter;
         this.type = type;
@@ -25,6 +27,8 @@ export class BaseTexture3D {
         this.regionsToUpdate = [];
         this.allowSubRegions = false;
         this.useSubRegions = false;
+        this.ownerPool = null;
+        this.isRegion = false;
     }
 
     upload() {
@@ -54,15 +58,17 @@ export class BaseTexture3D {
 export class TextureRegion3D {
     constructor(context, {
         baseTexture = null,
-        size = null,
-        offset = null,
+        width = 0,
+        height = 0,
+        depth = 0,
+        offset = new Vector(0, 0, 0),
         type = null,
         data = null,
     } = {}) {
         this.baseTexture = baseTexture;
-        this.width = size.x;
-        this.height = size.y;
-        this.depth = size.z;
+        this.width = width || baseTexture.width;
+        this.height = height || baseTexture.height;
+        this.depth = depth || baseTexture.depth;
         this.offset = offset;
         this.size = size;
         this.type = type;
@@ -72,6 +78,8 @@ export class TextureRegion3D {
         this.context = context;
         this.id = BaseRenderer.ID++;
         this.dirty = data !== null;
+        this.ownerPool = null;
+        this.isRegion = true;
     }
 
     dispose() {
