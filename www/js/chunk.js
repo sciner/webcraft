@@ -210,7 +210,7 @@ export class Chunk {
             }
             this.vertices.delete(key);
         }
-        // Добавление чанка в отрисовщик
+        // Add chunk to renderer
         for(let [key, v] of Object.entries(args.vertices)) {
             if(v.list.length > 0) {
                 let temp = key.split('/');
@@ -219,7 +219,7 @@ export class Chunk {
                 v.resource_pack_id    = temp[0];
                 v.material_group      = temp[1];
                 v.texture_id          = temp[2];
-                v.key = key;
+                v.key                 = key;
                 this.vertices.set(key, v);
                 delete(v.list);
             }
@@ -228,13 +228,13 @@ export class Chunk {
             // @todo
         }
         chunkManager.vertices_length_total += this.vertices_length;
-        this.dirty                 = false;
+        this.dirty = false;
     }
 
-    // destruct chunk
+    // Destruct chunk
     destruct() {
         let chunkManager = this.getChunkManager();
-        // Destroy buffers
+        // destroy buffers
         for(let [_, v] of this.vertices) {
             if(v.buffer) {
                 v.buffer.destroy();
@@ -247,21 +247,21 @@ export class Chunk {
             lightTex.destroy();
         }
         this.lightTex = null;
-        // Run webworker method
+        // run webworker method
         chunkManager.postWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
         chunkManager.postLightWorkerMessage(['destructChunk', {key: this.key, addr: this.addr}]);
-        // Remove particles mesh
+        // remove particles mesh
         const PARTICLE_EFFECTS_ID = 'particles_effects_' + this.addr.toHash();
         Game.render.meshes.remove(PARTICLE_EFFECTS_ID, Game.render);
     }
 
-    // buildVertices
+    // Build vertices
     buildVertices() {
         if(this.buildVerticesInProgress) {
             return;
         }
         this.buildVerticesInProgress = true;
-        // Run webworker method
+        // run webworker method
         this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key], addrs: [this.addr]}]);
         return true;
     }

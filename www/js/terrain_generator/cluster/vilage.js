@@ -3,6 +3,7 @@ import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
 import {ClusterBase, CLUSTER_SIZE} from "./base.js";
 import {impl as alea} from '../../../vendors/alea.js';
+import { BLOCK } from "../../blocks.js";
 
 const CLUSTER_PADDING       = 4;
 const STREET_WIDTH          = 15;
@@ -41,6 +42,7 @@ export class ClusterVilage extends ClusterBase {
             this.wall_block         = this.flat ? 98 : 7;
             this.road_block         = this.flat ? 12 : 468;
             this.basement_block     = this.flat ? 546 : 8;
+            //
             const addRoadBlock      = (x, z) => {
                 // remove one part of road randomly
                 if(ROAD_DAMAGE_FACTOR > 0 && !this.flat) {
@@ -64,21 +66,17 @@ export class ClusterVilage extends ClusterBase {
                     for(let i = 0; i < w; i++) {
                         addRoadBlock(x + i, z);
                         addRoadBlock(x + i, z + 1);
-                        // this.mask[z * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
-                        // this.mask[(z + 1) * CLUSTER_SIZE.x + (x + i)] = new ClusterPoint(1, this.road_block, 5, null);
                     }
                     const entrance_pos = new Vector(x + 3 + 2, Infinity, z + 2);
-                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_x, entrance_pos, entrance_pos.add(new Vector(0, 0, 1)), DIRECTION.NORTH);
+                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_x.clone(), entrance_pos, entrance_pos.add(new Vector(0, 0, 1)), DIRECTION.NORTH);
                 } else {
                     // along Z axis
                     for(let i = z; i < z + w; i++) {
                         addRoadBlock(x, i);
                         addRoadBlock(x + 1, i);
-                        // this.mask[i * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.road_block, 5, null);
-                        // this.mask[i * CLUSTER_SIZE.x + (x + 1)] = new ClusterPoint(1, this.road_block, 5, null);
                     }
                     const entrance_pos = new Vector(x + 2, Infinity, z + 3 + 2);
-                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_z, entrance_pos, entrance_pos.add(new Vector(1, 0, 0)), DIRECTION.EAST);
+                    this.addBuilding(this.randoms.double(), x + 3, z + 3, building_size_z.clone(), entrance_pos, entrance_pos.add(new Vector(1, 0, 0)), DIRECTION.EAST);
                 }
             }
         }
@@ -135,20 +133,41 @@ export class ClusterVilage extends ClusterBase {
         if(this.buildings.has(coord)) {
             return false;
         }
-        const building = new Building(
-            this,
-            coord.toHash(),
-            seed,
-            coord.clone(),
-            new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
-            entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
-            door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
-            door_direction,
-            size
-        );
+        let building = null;
+        let entrance_block = this.basement_block;
+        if(seed < .285) {
+            size.y = 2;
+            size.x += Math.round(this.randoms.double() * 4);
+            size.z += Math.round(this.randoms.double() * 4);
+            building = new Farmland(
+                this,
+                coord.toHash(),
+                seed,
+                coord.clone(),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
+                entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
+                door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
+                door_direction,
+                size
+            );
+            entrance_block = this.road_block;
+        } else {
+            building = new Building1(
+                this,
+                coord.toHash(),
+                seed,
+                coord.clone(),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
+                entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
+                door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
+                door_direction,
+                size
+            );
+        }
+        //
         this.buildings.set(building.coord, building);
         //
-        this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, this.basement_block, 1, null);
+        this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, entrance_block, 1, null);
         //
         for(let i = 0; i < size.x; i++) {
             for(let j = 0; j < size.z; j++) {
@@ -169,13 +188,6 @@ export class ClusterVilage extends ClusterBase {
             for(let j = 0; j < building.size.z; j++) {
                 const x = building.coord.x - chunk.coord.x + i;
                 const z = building.coord.z - chunk.coord.z + j;
-                /*
-                let y = building.coord.y - chunk.coord.y;
-                if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                    // set block
-                    this.setBlock(chunk, x, y, z, this.basement_block, null);
-                }
-                */
                 // fix basement height
                 const pz = START_Z + z;
                 const px = START_X + x;
@@ -207,102 +219,7 @@ export class ClusterVilage extends ClusterBase {
         }
         // draw building
         if(!building.hidden) {
-            this.drawBuild1(chunk, building);
-        }
-    }
-
-    //
-    drawBuild1(chunk, building) {
-        const bx = building.coord.x - chunk.coord.x;
-        const by = building.coord.y - chunk.coord.y;
-        const bz = building.coord.z - chunk.coord.z;
-        // 4 walls
-        this.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
-        //
-        if(building.door_direction == DIRECTION.EAST) {
-            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
-            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
-            this.setBlock(chunk, bx, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
-        } else if(building.door_direction == DIRECTION.NORTH) {
-            this.setBlock(chunk, bx + 2, by + building.size.y - 1, bz, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + 3, by + building.size.y - 1, bz, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + 2, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + 3, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
-            this.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
-        }
-        // npc
-        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + chunk.coord.y + 1, bz + Math.round(building.size.z/2) + chunk.coord.z);
-        this.addNPC(chunk, npc_pos);
-        // roof gable
-        if(building.door_direction == DIRECTION.EAST) {
-            let q_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y, building.coord.z + Math.floor(building.size.z / 2));
-            this.drawQuboid(chunk, q_pos, new Vector(building.size.x + 2, 1, 1), building.materials.roof_block);
-        } else if(building.door_direction == DIRECTION.NORTH) {
-            let q_pos = new Vector(building.coord.x + Math.floor(building.size.x / 2), building.coord.y + building.size.y, building.coord.z - 1);
-            this.drawQuboid(chunk, q_pos, new Vector(1, 1, building.size.z + 2), building.materials.roof_block);
-        }
-        // window
-        if(building.door_direction == DIRECTION.EAST) {
-            const window_rot = {x: 3, y: 0, z: 0};
-            let w_pos = building.door_bottom.clone().add(new Vector(0, 1, 2));
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.x += building.size.x - 1;
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.z -= 2;
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-        } else if(building.door_direction == DIRECTION.NORTH) {
-            const window_rot = {x: 2, y: 0, z: 0};
-            let w_pos = building.door_bottom.clone().add(new Vector(2, 1, 0));
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.z += building.size.z - 1;
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-            w_pos.x -= 2;
-            this.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
-        }
-        // roof
-        if(building.door_direction == DIRECTION.EAST) {
-            // south side
-            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
-            let roof_size = new Vector(building.size.x + 2, 4, 0);
-            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.SOUTH, building.materials.roof);
-            // north side
-            roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z + building.size.z);
-            roof_size = new Vector(building.size.x + 2, 4, 0);
-            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.NORTH, building.materials.roof);
-        } else if(building.door_direction == DIRECTION.NORTH) {
-            // west side
-            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
-            let roof_size = new Vector(0, 4, building.size.z + 2);
-            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.WEST, building.materials.roof);
-            // east side
-            roof_pos = new Vector(building.coord.x + building.size.x, building.coord.y + building.size.y - 3, building.coord.z - 1);
-            roof_size = new Vector(0, 4, building.size.z + 2);
-            this.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
-        }
-        // door
-        const door_random = new alea(building.door_bottom.toHash())
-        this.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction, door_random.double() > .5, true);
-        // light
-        if(building.door_direction == DIRECTION.EAST) {
-            let light_rot = {x: 1, y: 0, z: 0};
-            let l_pos = building.door_bottom.clone().add(new Vector(-1, 1, 1));
-            if(building.materials.light.id == BLOCK.LANTERN.id) {
-                light_rot.y = -1;
-                l_pos.y += 2;
-            }
-            this.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
-        } else if(building.door_direction == DIRECTION.NORTH) {
-            let light_rot = {x: 2, y: 0, z: 0};
-            let l_pos = building.door_bottom.clone().add(new Vector(1, 1, -1));
-            if(building.materials.light.id == BLOCK.LANTERN.id) {
-                light_rot.y = -1;
-                l_pos.y += 2;
-            }
-            this.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
+            building.draw(this, chunk);
         }
     }
 
@@ -322,6 +239,52 @@ class Building {
         this.door_direction = door_direction;
         this.size           = size;
         this.materials      = null;
+    }
+
+    //
+    draw(cluster, chunk) {
+        const building = this;
+        //
+        // const bx = building.coord.x - chunk.coord.x;
+        // const by = building.coord.y - chunk.coord.y;
+        // const bz = building.coord.z - chunk.coord.z;
+        // 4 walls
+        // cluster.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
+        cluster.drawQuboid(chunk, building.coord, building.size, BLOCK.OAK_TRUNK);
+    }
+
+}
+
+// Farmland
+class Farmland extends Building {
+
+    constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        //
+        super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        //
+        this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
+    }
+
+    draw(cluster, chunk) {
+        super.draw(cluster, chunk);
+        const building = this;
+        let padded = building.size.clone().addSelf(new Vector(-2, -1, -2));
+        let pos = building.coord.clone().addSelf(new Vector(1, 1, 1));
+        cluster.drawQuboid(chunk, pos, padded, BLOCK.FARMLAND);
+        //
+        pos.addSelf(new Vector(0, 1, 0));
+        cluster.drawQuboid(chunk, pos, padded, this.seeds, null, {stage: 7, complete: true});
+    }
+
+}
+
+// Building1
+class Building1 extends Building {
+
+    constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        //
+        super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        //
         if(cluster.flat) {
             if(seed < .5) {
                 this.materials  = {
@@ -358,6 +321,103 @@ class Building {
                     light: BLOCK.TORCH
                 };
             }
+        }
+    }
+
+    //
+    draw(cluster, chunk) {
+        const building = this;
+        //
+        const bx = building.coord.x - chunk.coord.x;
+        const by = building.coord.y - chunk.coord.y;
+        const bz = building.coord.z - chunk.coord.z;
+        // 4 walls
+        cluster.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
+        //
+        if(building.door_direction == DIRECTION.EAST) {
+            cluster.setBlock(chunk, bx, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 2, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 3, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + building.size.x - 1, by + building.size.y - 1, bz + 4, building.materials.wall.id, null);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            cluster.setBlock(chunk, bx + 2, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + 3, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + 4, by + building.size.y - 1, bz, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + 2, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + 3, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+            cluster.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
+        }
+        // npc
+        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + chunk.coord.y + 1, bz + Math.round(building.size.z/2) + chunk.coord.z);
+        cluster.addNPC(chunk, npc_pos);
+        // roof gable
+        if(building.door_direction == DIRECTION.EAST) {
+            let q_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y, building.coord.z + Math.floor(building.size.z / 2));
+            cluster.drawQuboid(chunk, q_pos, new Vector(building.size.x + 2, 1, 1), building.materials.roof_block);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            let q_pos = new Vector(building.coord.x + Math.floor(building.size.x / 2), building.coord.y + building.size.y, building.coord.z - 1);
+            cluster.drawQuboid(chunk, q_pos, new Vector(1, 1, building.size.z + 2), building.materials.roof_block);
+        }
+        // window
+        if(building.door_direction == DIRECTION.EAST) {
+            const window_rot = {x: 3, y: 0, z: 0};
+            let w_pos = building.door_bottom.clone().add(new Vector(0, 1, 2));
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.x += building.size.x - 1;
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.z -= 2;
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            const window_rot = {x: 2, y: 0, z: 0};
+            let w_pos = building.door_bottom.clone().add(new Vector(2, 1, 0));
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.z += building.size.z - 1;
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+            w_pos.x -= 2;
+            cluster.setBlock(chunk, w_pos.x - chunk.coord.x, w_pos.y - chunk.coord.y, w_pos.z - chunk.coord.z, BLOCK.GLASS_PANE.id, window_rot);
+        }
+        // roof
+        if(building.door_direction == DIRECTION.EAST) {
+            // south side
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
+            let roof_size = new Vector(building.size.x + 2, 4, 0);
+            cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.SOUTH, building.materials.roof);
+            // north side
+            roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z + building.size.z);
+            roof_size = new Vector(building.size.x + 2, 4, 0);
+            cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.NORTH, building.materials.roof);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            // west side
+            let roof_pos = new Vector(building.coord.x - 1, building.coord.y + building.size.y - 3, building.coord.z - 1);
+            let roof_size = new Vector(0, 4, building.size.z + 2);
+            cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.WEST, building.materials.roof);
+            // east side
+            roof_pos = new Vector(building.coord.x + building.size.x, building.coord.y + building.size.y - 3, building.coord.z - 1);
+            roof_size = new Vector(0, 4, building.size.z + 2);
+            cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, building.materials.roof);
+        }
+        // door
+        const door_random = new alea(building.door_bottom.toHash())
+        cluster.drawDoor(chunk, building.door_bottom, building.materials.door, building.door_direction, door_random.double() > .5, true);
+        // light
+        if(building.door_direction == DIRECTION.EAST) {
+            let light_rot = {x: 1, y: 0, z: 0};
+            let l_pos = building.door_bottom.clone().add(new Vector(-1, 1, 1));
+            if(building.materials.light.id == BLOCK.LANTERN.id) {
+                light_rot.y = -1;
+                l_pos.y += 2;
+            }
+            cluster.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            let light_rot = {x: 2, y: 0, z: 0};
+            let l_pos = building.door_bottom.clone().add(new Vector(1, 1, -1));
+            if(building.materials.light.id == BLOCK.LANTERN.id) {
+                light_rot.y = -1;
+                l_pos.y += 2;
+            }
+            cluster.setBlock(chunk, l_pos.x - chunk.coord.x, l_pos.y - chunk.coord.y, l_pos.z - chunk.coord.z, building.materials.light.id, light_rot);
         }
     }
 

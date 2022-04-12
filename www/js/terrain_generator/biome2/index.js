@@ -35,7 +35,7 @@ const ORE_RANDOMS = [
 const MAP_SCALE = .5;
 const GENERATOR_OPTIONS = {
     WATER_LINE:             63, // Ватер-линия
-    SCALE_EQUATOR:          1280 * MAP_SCALE, // Масштаб для карты экватора
+    SCALE_EQUATOR:          1280 * MAP_SCALE * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * MAP_SCALE, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот

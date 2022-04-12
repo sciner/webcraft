@@ -482,9 +482,30 @@ export class GameClass {
         this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
         this.current_player_state.sneak = player.isSneak;
         this.ping = Math.round(this.player.world.server.ping_value);
-        const current_player_state_json = JSON.stringify(this.current_player_state);
-        if(current_player_state_json != this.prev_player_state) {
-            this.prev_player_state = current_player_state_json;
+        const cs = this.current_player_state;
+        const ps = this.prev_player_state;
+        let not_equal = !ps ||
+            (
+                ps.rotate.x != cs.rotate.x ||
+                ps.rotate.y != cs.rotate.y ||
+                ps.rotate.z != cs.rotate.z ||
+                ps.pos.x != cs.pos.x ||
+                ps.pos.y != cs.pos.y ||
+                ps.pos.z != cs.pos.z ||
+                ps.sneak != cs.sneak ||
+                ps.ping != cs.ping
+            );
+        if(not_equal) {
+            if(!this.prev_player_state) {
+                this.prev_player_state = JSON.parse(JSON.stringify(cs));
+                this.prev_player_state.rotate = new Vector(cs.rotate);
+                this.prev_player_state.pos = new Vector(cs.pos);
+            } else {
+                this.prev_player_state.rotate.copyFrom(cs.rotate);
+                this.prev_player_state.pos.copyFrom(cs.pos);
+                this.prev_player_state.sneak = cs.sneak;
+                this.prev_player_state.ping = this.current_player_state.ping;
+            }
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state

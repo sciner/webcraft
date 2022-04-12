@@ -117,7 +117,7 @@ export class ClusterBase {
     }
 
     //
-    drawQuboid(chunk, pos, size, block) {
+    drawQuboid(chunk, pos, size, block, rotate, extra_data) {
         const bx = pos.x - chunk.coord.x;
         const by = pos.y - chunk.coord.y;
         const bz = pos.z - chunk.coord.z;
@@ -127,7 +127,7 @@ export class ClusterBase {
                     const x = bx + i;
                     const y = by + k;
                     const z = bz + j;
-                    this.setBlock(chunk, x, y, z, block.id, null);
+                    this.setBlock(chunk, x, y, z, block.id, rotate, extra_data);
                 }
             }
         }

@@ -553,7 +553,6 @@ export class Vector {
         return vec1.sub(vec2).length();
     }
 
-
     // distancePointLine...
     distanceToLine(line_start, line_end, intersection = null) {
         intersection = intersection || new Vector(0, 0, 0);
@@ -1221,9 +1220,8 @@ export class AverageClockTimer {
         this.max        = null,
         this.avg        = null,
         this.sum        = 0,
-        this.history    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.history_index = 0;
+        this.history    = new Array(60).fill(0);
     }
 
     add(value) {
@@ -1234,9 +1232,14 @@ export class AverageClockTimer {
         if(this.max === null || this.max < value) {
             this.max = value;
         }
-        this.sum -= this.history.shift();
+        //
         this.sum += value;
-        this.history.push(value);
+        this.history_index++;
+        if(this.history_index == this.history.length) {
+            this.history_index = 0;
+        }
+        this.sum -= this.history[this.history_index];
+        this.history[this.history_index] = value;
         this.avg = (this.sum / this.history.length) || 0;
     }
 
