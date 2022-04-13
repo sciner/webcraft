@@ -212,7 +212,7 @@ export default class style {
         }
         //
         if(!DIRT_BLOCKS) {
-            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
+            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id, BLOCK.PODZOL.id];
         }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
             if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {

@@ -13,10 +13,12 @@ export class ClusterBase {
     constructor(addr) {
         this.addr        = addr;
         this.coord       = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.size        = CLUSTER_SIZE.clone();
         this.id          = addr.toHash();
         this.randoms     = new alea(this.id);
-        this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/2;
+        this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/4;
         this.mask        = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.max_height  = null;
     }
 
     // Set block
@@ -74,10 +76,20 @@ export class ClusterBase {
                         }
                         continue;
                     }
-                    for(let k = 0; k < point.height; k++) {
-                        let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
-                        if(y >= 0 && y < CHUNK_SIZE_Y) {
-                            this.setBlock(chunk, i, y, j, point.block_id, null);
+                    //
+                    if(point.height > 0) {
+                        for(let k = 0; k < point.height; k++) {
+                            let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
+                            if(y >= 0 && y < CHUNK_SIZE_Y) {
+                                this.setBlock(chunk, i, y, j, point.block_id, null);
+                            }
+                        }
+                    } else {
+                        for(let k = point.height; k <= 0; k++) {
+                            let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
+                            if(y >= 0 && y < CHUNK_SIZE_Y) {
+                                this.setBlock(chunk, i, y, j, k == point.height ? point.block_id : BLOCK.AIR.id, null);
+                            }
                         }
                     }
                 }

@@ -37,7 +37,7 @@ export class ClusterVilage extends ClusterBase {
         this.buildings              = new VectorCollector();
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
         if(!this.is_empty) {
-            this.flat               = this.randoms.double() >= .5;
+            this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
             this.wall_block         = this.flat ? 98 : 7;
             this.road_block         = this.flat ? 12 : 468;
@@ -129,7 +129,8 @@ export class ClusterVilage extends ClusterBase {
 
     // Add building
     addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
-        const coord = new Vector(dx + this.coord.x, 0, dz + this.coord.z);
+        const dy = 0;
+        const coord = new Vector(dx + this.coord.x, dy, dz + this.coord.z);
         if(this.buildings.has(coord)) {
             return false;
         }
@@ -144,7 +145,7 @@ export class ClusterVilage extends ClusterBase {
                 coord.toHash(),
                 seed,
                 coord.clone(),
-                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, dy, coord.z).pad(BUILDING_AABB_MARGIN),
                 entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
                 door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
                 door_direction,
@@ -157,7 +158,7 @@ export class ClusterVilage extends ClusterBase {
                 coord.toHash(),
                 seed,
                 coord.clone(),
-                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, 0, coord.z).pad(BUILDING_AABB_MARGIN),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, dy, coord.z).pad(BUILDING_AABB_MARGIN),
                 entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
                 door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
                 door_direction,
