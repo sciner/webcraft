@@ -124,11 +124,12 @@ let gameCtrl = async function($scope, $timeout) {
         cell_map: [],
         complex_buildings: [],
         cb_cell_map: [],
+        house_list: [],
         settings: {
             size: 128,
-            road_dist: 3,
+            road_dist: 2,
             margin: 8,
-            quant: 15,
+            quant: 10,
             init_depth: 2,
             road_ext_value: 0, // Это значение расширения дороги, 0 = один пиксель
             house_intencity: 0.3,
@@ -152,16 +153,18 @@ let gameCtrl = async function($scope, $timeout) {
                 this.cell_map = [];
                 this.cb_cell_map = [];
                 this.complex_buildings = [];
-                const center_x_corr = 0; //Math.floor((Math.random() - Math.random()) * 10);
-                const center_z_corr = 0; // Math.floor((Math.random() - Math.random()) * 10);
+                const center_x_corr = Math.floor((this.randoms.double() - this.randoms.double()) * 10);
+                const center_z_corr = Math.floor((this.randoms.double() - this.randoms.double()) * 10);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth);
                 for(let cb_key in this.complex_buildings) {
                     // Если не пересекается с существующими complex_building, то отправляем на карту
                     let cb_building = this.complex_buildings[cb_key];
-                    this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
+                    let house = this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
+                    if(house !== null) {
+                        this.house_list[cb_building.z * this.settings.size + cb_building.z] = house;
+                    }
                 }
-
             }
             t = performance.now() - t;
             //console.log(t);
@@ -226,17 +229,20 @@ let gameCtrl = async function($scope, $timeout) {
                     }
                     let building_rnd = this.randoms.double(); // (branch_rnd * house_cell_z * house_cell_x) % 1;
                     if(building_rnd < settings.house_intencity || building_rnd > (1-settings.house_intencity)) {
-                        if (this.put_building(house_cell_x, house_cell_z)) {
+                        let house = this.put_building(house_cell_x, house_cell_z);
+                        if (house !== null) {
                             // Калькуляция точки начала и конца дорожки для обычного дома
                             let dot_pos_x = house_cell_x, dot_pos_z = house_cell_z;
                             if (axe === DIR_HOR) {
-                                dot_pos_x += Math.round(settings.quant / 2) + settings.road_ext_value;
-                                dot_pos_z += side_mod > 0 ? 1 : (settings.quant - settings.road_dist + settings.road_ext_value) + 1;
+                                dot_pos_x += Math.round(settings.quant / 2 +settings.road_ext_value / 2);
+                                dot_pos_z += side_mod > 0 ? 1 : (settings.quant + 1 - settings.road_dist);
                             } else {
-                                dot_pos_x += side_mod > 0 ? 1 : (settings.quant - settings.road_dist + settings.road_ext_value) + 1;
-                                dot_pos_z += Math.round(settings.quant / 2) + settings.road_ext_value;
+                                dot_pos_x += side_mod > 0 ? 1 : (settings.quant  + 1 - settings.road_dist);
+                                dot_pos_z += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
                             }
-                            this.put_path(dot_pos_x, dot_pos_z, axe === DIR_HOR ? 0 : 1, axe === DIR_HOR ? 1 : 0);
+                            // Добавляем house в реестр по координате
+                            house.door = this.put_path(dot_pos_x, dot_pos_z, axe === DIR_HOR ? 0 : 1, axe === DIR_HOR ? 1 : 0);
+                            this.house_list[house_cell_z * settings.size + house_cell_x] = house;
                         }
                     }
                 }
@@ -270,36 +276,36 @@ let gameCtrl = async function($scope, $timeout) {
             }
         },
         put_path(x, z, x_dir, z_dir) {
-            let xprint = x;
-            let zprint = z;
+            let xprint = x, zprint = z;
             for (var process = 0; process < this.settings.road_dist + this.settings.road_ext_value - 1; process++) {
-                if(xprint >= this.settings.margin
-                    && xprint < (this.settings.size - this.settings.margin)
-                    && zprint >= this.settings.margin
-                    && zprint < (this.settings.size - this.settings.margin)
-                ) {
-                    this.map[zprint * this.settings.size + xprint] = 1;
-                }
+                this.put_dot(xprint, zprint, 1);
                 xprint += x_dir;
                 zprint += z_dir;
             }
+            // Возвращает координату двери и ее направленность
+            let door = {
+                x: z_dir === 0 ? x : xprint - x_dir,
+                z: x_dir === 0 ? z : zprint - z_dir,
+                door_x_axe: x_dir, door_z_axe: z_dir,
+            }
+            return door;
         },
         put_building(x, z) {
             const settings = this.settings;
             let key = z * settings.size + x;
             if(this.cell_map[key] !== undefined) {
-                return false;
+                return null;
             }
             this.cell_map[key] = 1;
             // Отступы от дорог
             x += settings.road_dist;
             z += settings.road_dist;
-            let x_size = settings.quant - settings.road_dist * 2;
+            let x_size = settings.quant - settings.road_dist * 2 - settings.road_ext_value;
             let z_size = x_size;
             // Проверка удаленности дома от границы кластера
             if(x >= settings.margin
                 && (x + x_size) < (settings.size - settings.margin)
-                && (z) >= settings.margin
+                && z >= settings.margin
                 && (z + z_size) < (settings.size - settings.margin)
             ) {
                 // Отрисовка площадки под дом
@@ -308,6 +314,26 @@ let gameCtrl = async function($scope, $timeout) {
                         this.map[(z + z_cursor + settings.road_ext_value) * settings.size + (x + x_cursor + settings.road_ext_value)] = 2;
                     }
                 }
+                let house = {
+                    x: x,
+                    z: z,
+                    width: x_size,
+                    height: z_size,
+                    door: null,
+                };
+                return house;
+            } else {
+                return null;
+            }
+        },
+        put_dot(x, z, value) {
+            const settings = this.settings;
+            if(x >= settings.margin
+                && x < (settings.size - settings.margin)
+                && z >= settings.margin
+                && z < (settings.size - settings.margin)
+            ) {
+                this.map[z * settings.size + x] = value;
                 return true;
             } else {
                 return false;
@@ -331,14 +357,12 @@ let gameCtrl = async function($scope, $timeout) {
             }
             for(let lcm_key in local_cb_cell_map) {
                 if(this.cb_cell_map[lcm_key] !== undefined) {
-                    return false;
+                    return null;
                 } else {
                     this.cb_cell_map[lcm_key] = 1;
 
                 }
             }
-            // Тут можно затирать массив объектов с обычными домами из local_cb_cell_map, т.к. на их месте растет сложный дом
-            // ... и положить сложный дом с известной размерностью и известным направлением входа (path_dir: сверху или слева)
             // Заполняем сектор занятости карты
             if(x >= 0
                 && (x + cell_count_x * settings.quant + settings.road_ext_value - 1) < settings.size
@@ -365,11 +389,26 @@ let gameCtrl = async function($scope, $timeout) {
                 // Отрисовка площадки под дом
                 for(let x_cursor = 0; x_cursor < x_size; x_cursor++) {
                     for(let z_cursor = 0; z_cursor < z_size; z_cursor++) {
-                        // Отрисовка площадки под дом
                         this.map[(z + z_cursor) * settings.size + (x + x_cursor)] = 2;
                     }
                 }
-                // Отрисовка дороги
+                // Отрисовка дороги вокруг дома, чтобы не было разрывов
+                // Снизу
+                for(let x_cursor = 0; x_cursor <= settings.quant * cell_count_x + settings.road_ext_value; x_cursor++) {
+                    for(let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                        this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), 1);
+                    }
+                }
+                // Слева и справа с половины, если вход слева
+                if(path_dir === 'left') {
+                    for (let z_cursor = Math.ceil(settings.quant * cell_count_z / 2); z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
+                        for (let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                            this.put_dot((x_init + road_step), (z_init + z_cursor), 1);
+                            this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), 1);
+                        }
+                    }
+                }
+                // Отрисовка тропинки
                 let path_x = x_init + 1;
                 let path_z = z_init + 1;
                 if(path_dir === 'up') {
@@ -377,10 +416,25 @@ let gameCtrl = async function($scope, $timeout) {
                 } else {
                     path_z = z_init + (cell_count_z * settings.quant) / 2;
                 }
-                this.put_path(path_x, path_z, path_dir === 'up' ? 0 : 1, path_dir === 'up' ? 1 : 0);
-                return true;
+                // Затираем обычные дома под сложным домом
+                for(let x_cell = x_init; x_cell <= x_init + (settings.quant * cell_count_x); x_cell += settings.quant) {
+                    for(let z_cell = z_init; z_cell <= z_init + (settings.quant * cell_count_z); z_cell += settings.quant) {
+                        if(this.house_list[z_cell * settings.size + x_cell] !== undefined) {
+                            delete this.house_list[z_cell * settings.size + x_cell];
+                        }
+                    }
+                }
+                // Возвращаем дом
+                let house = {
+                    x: x,
+                    z: z,
+                    width: x_size,
+                    height: z_size,
+                    door: this.put_path(path_x, path_z, path_dir === 'up' ? 0 : 1, path_dir === 'up' ? 1 : 0),
+                };
+                return house;
             } else {
-                return false;
+                return null;
             }
         }
     };
@@ -713,7 +767,7 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    // New world
+    // New worldsandbox_canvas
     $scope.newgame = {
         loading: false,
         form: {
