@@ -126,13 +126,13 @@ let gameCtrl = async function($scope, $timeout) {
         cb_cell_map: [],
         house_list: new Map(),
         settings: {
-            size: 128,
-            road_dist: 2,
-            margin: 8,
-            quant: 10,
-            init_depth: 2,
-            road_ext_value: 0, // Это значение расширения дороги, 0 = один пиксель
-            house_intencity: 0.2,
+            size:               128,
+            road_dist:          2,
+            margin:             8,
+            quant:              15,
+            init_depth:         2,
+            road_ext_value:     1, // Это значение расширения дороги, 0 = один пиксель
+            house_intencity:    0.2,
             colors: {
                 'house': 2,
             }
@@ -141,10 +141,8 @@ let gameCtrl = async function($scope, $timeout) {
             $scope.current_window.show('sandbox');
             this.generator();
         },
-        generator: function () {
+        generate: function () {
             this.randoms = new alea(+new Date());
-            const cnv = document.getElementById('sandbox_canvas');
-            const ctx = cnv.getContext('2d');
             let t = performance.now();
             const cnt = 1;
             for(let i = 0; i < cnt; i++) {
@@ -167,22 +165,30 @@ let gameCtrl = async function($scope, $timeout) {
             }
             t = performance.now() - t;
             console.log(t / cnt);
-            console.log(this.complex_buildings)
+            console.log(this.complex_buildings);
+            this.draw();
+        },
+        draw() {
             // Распечатка канваса
+            const cnv = document.getElementById('sandbox_canvas');
+            const ctx = cnv.getContext('2d');
             const scale = 4;
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
-            for (var x_iter = 0; x_iter < this.settings.size; x_iter++) {
-                for (var z_iter = 0; z_iter < this.settings.size; z_iter++) {
-                    const cell = this.map[z_iter * this.settings.size + x_iter]
+            for (var x = 0; x < this.settings.size; x++) {
+                for (var z = 0; z < this.settings.size; z++) {
+                    const cell = this.map[z * this.settings.size + x]
                     if(cell === 1) {
                         ctx.fillStyle = "#000000";
                     } else if(cell === 2) {
                         ctx.fillStyle = "#FF000088";
                     } else {
-                        continue;
+                        if((x+z) % 2 == 0) {
+                            continue;
+                        }
+                        ctx.fillStyle = "#00000022";
                     }
-                    ctx.fillRect(x_iter * scale, z_iter * scale, 1 * scale, 1 * scale);
+                    ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
                 }
             }
         },
@@ -442,7 +448,7 @@ let gameCtrl = async function($scope, $timeout) {
         }
     };
 
-    $scope.sandbox.generator();
+    $scope.sandbox.generate();
 
     //
     $scope.App.onLogin = (e) => {};
