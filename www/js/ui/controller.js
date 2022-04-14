@@ -142,7 +142,8 @@ let gameCtrl = async function($scope, $timeout) {
             this.generator();
         },
         generate: function () {
-            this.randoms = new alea(+new Date());
+            const k = +new Date();
+            this.randoms = new alea(k);
             let t = performance.now();
             const cnt = 1;
             for(let i = 0; i < cnt; i++) {
@@ -164,7 +165,9 @@ let gameCtrl = async function($scope, $timeout) {
                 }
             }
             t = performance.now() - t;
+            console.log(k);
             console.log(t / cnt);
+            console.log(this.house_list);
             console.log(this.complex_buildings);
             this.draw();
         },
@@ -175,8 +178,8 @@ let gameCtrl = async function($scope, $timeout) {
             const scale = 4;
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
-            for (var x = 0; x < this.settings.size; x++) {
-                for (var z = 0; z < this.settings.size; z++) {
+            for(var x = 0; x < this.settings.size; x++) {
+                for(var z = 0; z < this.settings.size; z++) {
                     const cell = this.map[z * this.settings.size + x]
                     if(cell === 1) {
                         ctx.fillStyle = "#000000";
@@ -191,6 +194,11 @@ let gameCtrl = async function($scope, $timeout) {
                     ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
                 }
             }
+            //
+            for(let b of this.house_list.values()) {
+                ctx.fillStyle = "#0000ff55";
+                ctx.fillRect(b.x * scale, b.z * scale, b.width * scale, b.height * scale);
+            }
         },
         push_branch(x, z, axe, depth) {
             // Один рандом на ветку
@@ -204,7 +212,7 @@ let gameCtrl = async function($scope, $timeout) {
             rnd = rnd > .75 ? .75 : rnd;
             const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
             const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
-            for (var process = 0; process <= (pre_part + post_part); process++) {
+            for(var process = 0; process <= (pre_part + post_part); process++) {
                 let xprint = x - (pre_part - process) * is_x_mod;
                 let zprint = z - (pre_part - process) * is_z_mod;
                 if(xprint >= settings.margin
@@ -256,7 +264,8 @@ let gameCtrl = async function($scope, $timeout) {
                     }
                 }
                 // В одном случае из ста делаем комбо дом затирая 2-4 ячейки, тут нам известно с какой стороны рисовать тропу к дому
-                // Сложные дома справа, поэтому тропинки либо слева направо, либо сверху вниз, так проще реализация, для разнообразия карту можно вращать
+                // Сложные дома справа, поэтому тропинки либо слева направо, либо сверху вниз,
+                // так проще реализация, для разнообразия карту можно вращать
                 const cb_random_param = (1 - settings.house_intencity);
                 if(branch_rnd > cb_random_param && positions[dir] > 1) {
                     this.complex_buildings.set(z * settings.size + x, {
@@ -317,19 +326,19 @@ let gameCtrl = async function($scope, $timeout) {
                 && z >= settings.margin
                 && (z + z_size) < (settings.size - settings.margin)
             ) {
-                // Отрисовка площадки под дом
-                for(var x_cursor = 0; x_cursor < x_size + 1; x_cursor++) {
-                    for(var z_cursor = 0; z_cursor < z_size + 1; z_cursor++) {
-                        this.map[(z + z_cursor + settings.road_ext_value) * settings.size + (x + x_cursor + settings.road_ext_value)] = 2;
-                    }
-                }
                 let house = {
-                    x: x,
-                    z: z,
-                    width: x_size,
-                    height: z_size,
+                    x: x + settings.road_ext_value,
+                    z: z + settings.road_ext_value,
+                    width: x_size + 1,
+                    height: z_size + 1,
                     door: null,
                 };
+                // Отрисовка площадки под дом
+                for(var x_cursor = 0; x_cursor < house.width; x_cursor++) {
+                    for(var z_cursor = 0; z_cursor < house.height; z_cursor++) {
+                        this.map[(house.z + z_cursor) * settings.size + (house.x + x_cursor)] = 2;
+                    }
+                }
                 return house;
             } else {
                 return null;
