@@ -122,9 +122,9 @@ let gameCtrl = async function($scope, $timeout) {
     $scope.sandbox = {
         map: [],
         cell_map: [],
-        complex_buildings: [],
+        complex_buildings: new Map(),
         cb_cell_map: [],
-        house_list: [],
+        house_list: new Map(),
         settings: {
             size: 128,
             road_dist: 2,
@@ -151,17 +151,17 @@ let gameCtrl = async function($scope, $timeout) {
                 this.map = new Array(this.settings.size * this.settings.size).fill(0);
                 this.cell_map = [];
                 this.cb_cell_map = [];
-                this.complex_buildings = [];
+                this.complex_buildings.clear();
+                this.house_list.clear();
                 const center_x_corr = Math.floor(this.randoms.double() * 20 - 10);
                 const center_z_corr = Math.floor(this.randoms.double() * 20 - 10);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth);
-                for(let cb_key in this.complex_buildings) {
+                for(let [cb_key, cb_building] of this.complex_buildings.entries()) {
                     // Если не пересекается с существующими complex_building, то отправляем на карту
-                    let cb_building = this.complex_buildings[cb_key];
                     let house = this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
                     if(house !== null) {
-                        this.house_list[cb_building.z * this.settings.size + cb_building.z] = house;
+                        this.house_list.set(cb_building.z * this.settings.size + cb_building.z, house);
                     }
                 }
             }
@@ -178,7 +178,7 @@ let gameCtrl = async function($scope, $timeout) {
                     if(cell === 1) {
                         ctx.fillStyle = "#000000";
                     } else if(cell === 2) {
-                        ctx.fillStyle = "#FF0000";
+                        ctx.fillStyle = "#FF000088";
                     } else {
                         continue;
                     }
@@ -245,7 +245,7 @@ let gameCtrl = async function($scope, $timeout) {
                             }
                             // Добавляем house в реестр по координате
                             house.door = this.put_path(dot_pos_x, dot_pos_z, axe === DIR_HOR ? 0 : 1, axe === DIR_HOR ? 1 : 0);
-                            this.house_list[house_cell_z * settings.size + house_cell_x] = house;
+                            this.house_list.set(house_cell_z * settings.size + house_cell_x, house);
                         }
                     }
                 }
@@ -253,7 +253,7 @@ let gameCtrl = async function($scope, $timeout) {
                 // Сложные дома справа, поэтому тропинки либо слева направо, либо сверху вниз, так проще реализация, для разнообразия карту можно вращать
                 const cb_random_param = (1 - settings.house_intencity);
                 if(branch_rnd > cb_random_param && positions[dir] > 1) {
-                    this.complex_buildings[z * settings.size + x] = ({
+                    this.complex_buildings.set(z * settings.size + x, {
                         x: x,
                         z: z,
                         cell_count_x: is_x_mod ? 2 : branch_rnd > cb_random_param ? 2 : 1,
@@ -422,8 +422,8 @@ let gameCtrl = async function($scope, $timeout) {
                 // Затираем обычные дома под сложным домом
                 for(let x_cell = x_init; x_cell <= x_init + (settings.quant * cell_count_x); x_cell += settings.quant) {
                     for(let z_cell = z_init; z_cell <= z_init + (settings.quant * cell_count_z); z_cell += settings.quant) {
-                        if(this.house_list[z_cell * settings.size + x_cell] !== undefined) {
-                            delete this.house_list[z_cell * settings.size + x_cell];
+                        if(this.house_list.has(z_cell * settings.size + x_cell)) {
+                            this.house_list.delete(z_cell * settings.size + x_cell);
                         }
                     }
                 }
