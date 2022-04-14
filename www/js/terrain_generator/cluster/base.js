@@ -158,7 +158,7 @@ export class ClusterBase {
                     const y = by + k;
                     const z = bz + j;
                     xyz.copyFrom(pos).add(i, k, j);
-                    if(i < 1 || j < 1 || k < 1 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
+                    if(i < 1 || j < 1 || k < 0 || i > size.x - 2 || j > size.z - 2 || k > size.y - 1) {
                         this.setBlock(chunk, x, y, z, block.id, null);
                     } else {
                         this.setBlock(chunk, x, y, z, 0, null);

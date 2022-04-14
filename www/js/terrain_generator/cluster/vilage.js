@@ -111,7 +111,7 @@ export class ClusterVilage extends ClusterBase {
                         const entrance_z    = b.entrance.z - entrance_map_info.chunk.coord.z;
                         const cell          = entrance_map_info.cells[entrance_x][entrance_z];
                         b.entrance.y        = cell.value2 - 1;
-                        b.coord.y           = b.entrance.y;
+                        b.coord.y           = b.entrance.y + b.coord.y;
                         b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
                         b.aabb.y_max        = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
                         b.door_bottom.y     = cell.value2;
@@ -129,53 +129,83 @@ export class ClusterVilage extends ClusterBase {
 
     // Add building
     addBuilding(seed, dx, dz, size, entrance, door_bottom, door_direction) {
-        const dy = 0;
+        let dy = 1;
         const coord = new Vector(dx + this.coord.x, dy, dz + this.coord.z);
         if(this.buildings.has(coord)) {
             return false;
         }
         let building = null;
         let entrance_block = this.basement_block;
-        if(seed < .285) {
+        if(seed < .12) {
+            // Water well
+            coord.y = -14;
+            size.y = 21;
+            size.x = size.z = 3;
+            building = new WaterWell(
+                this,
+                coord.toHash(),
+                seed,
+                coord.clone(),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
+                entrance.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
+                door_bottom.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
+                door_direction,
+                size
+            );
+            //
+            entrance_block = this.road_block;
+            //
+            for(let i = 0; i < building.size.x + 2; i++) {
+                for(let j = 0; j < building.size.z + 2; j++) {
+                    const x = dx + i - 1;
+                    const z = dz + j - 1;
+                    // Draw building basement over heightmap
+                    this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.road_block, 1, null, building);
+                }
+            }
+        } else if(seed < .285) {
+            // Farmland
             size.y = 2;
             size.x += Math.round(this.randoms.double() * 4);
             size.z += Math.round(this.randoms.double() * 4);
+            //
             building = new Farmland(
                 this,
                 coord.toHash(),
                 seed,
                 coord.clone(),
-                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, dy, coord.z).pad(BUILDING_AABB_MARGIN),
-                entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
-                door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
+                entrance.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
+                door_bottom.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
                 door_direction,
                 size
             );
             entrance_block = this.road_block;
         } else {
+            // Building #1
             building = new Building1(
                 this,
                 coord.toHash(),
                 seed,
                 coord.clone(),
-                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, dy, coord.z).pad(BUILDING_AABB_MARGIN),
-                entrance.add(new Vector(this.coord.x, 0, this.coord.z)),
-                door_bottom.add(new Vector(this.coord.x, 0, this.coord.z)),
+                new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN),
+                entrance.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
+                door_bottom.add(new Vector(this.coord.x, this.coord.y, this.coord.z)),
                 door_direction,
                 size
             );
         }
         //
         this.buildings.set(building.coord, building);
-        //
+        // 1. entrance mask
         this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, entrance_block, 1, null);
-        //
-        for(let i = 0; i < size.x; i++) {
-            for(let j = 0; j < size.z; j++) {
+        // 2. building mask
+        for(let i = 0; i < building.size.x; i++) {
+            for(let j = 0; j < building.size.z; j++) {
                 const x = dx + i;
                 const z = dz + j;
                 // Draw building basement over heightmap
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(4, this.basement_block, 1, null, building);
+                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
             }
         }
         return true;
@@ -251,7 +281,15 @@ class Building {
         // const bz = building.coord.z - chunk.coord.z;
         // 4 walls
         // cluster.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
-        cluster.drawQuboid(chunk, building.coord, building.size, BLOCK.OAK_TRUNK);
+        cluster.drawQuboid(chunk, building.coord, building.size, BLOCK.TEST);
+    }
+
+    drawBasement(cluster, chunk, height) {
+        const building = this;
+        // quboid
+        const coord = building.coord.clone().add(new Vector(0, -height, 0));
+        const size = building.size.clone().add(new Vector(0, -building.size.y + 4, 0));
+        cluster.drawQuboid(chunk, coord, size, BLOCK.fromId(this.cluster.basement_block));
     }
 
 }
@@ -267,14 +305,65 @@ class Farmland extends Building {
     }
 
     draw(cluster, chunk) {
-        super.draw(cluster, chunk);
+        // super.draw(cluster, chunk);
+        this.drawBasement(cluster, chunk, 4);
         const building = this;
-        let padded = building.size.clone().addSelf(new Vector(-2, -1, -2));
-        let pos = building.coord.clone().addSelf(new Vector(1, 1, 1));
-        cluster.drawQuboid(chunk, pos, padded, BLOCK.FARMLAND);
+        cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_TRUNK);
+        let inner_size = building.size.clone().addSelf(new Vector(-2, -1, -2));
+        let pos = building.coord.clone().addSelf(new Vector(1, 0, 1));
+        cluster.drawQuboid(chunk, pos, inner_size, BLOCK.FARMLAND);
         //
         pos.addSelf(new Vector(0, 1, 0));
-        cluster.drawQuboid(chunk, pos, padded, this.seeds, null, {stage: 7, complete: true});
+        cluster.drawQuboid(chunk, pos, inner_size, this.seeds, null, {stage: 7, complete: true});
+    }
+
+}
+
+class WaterWell extends Building {
+
+    constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+    }
+
+    //
+    draw(cluster, chunk) {
+        const building = this;
+        const bx = building.coord.x - chunk.coord.x;
+        const by = building.coord.y - chunk.coord.y;
+        const bz = building.coord.z - chunk.coord.z;
+        // 4 walls
+        const walls_size = building.size.clone().add(new Vector(0, -4, 0));
+        cluster.draw4Walls(chunk, building.coord, walls_size, BLOCK.OAK_PLANK);
+        const q_pos = building.coord.add(new Vector(1, 1, 1));
+        const q_size = walls_size.add(new Vector(-2, -2, -2));
+        cluster.drawQuboid(chunk, q_pos, q_size, BLOCK.STILL_WATER);
+        //
+        let rot = null;
+        const roof_support_shift = {x: 0, z: 0};
+        const roof_step = {x: 0, z: 0};
+        if(building.door_direction == DIRECTION.EAST) {
+            roof_support_shift.x = 1;
+            roof_step.z = walls_size.z - 1;
+        } else if(building.door_direction == DIRECTION.NORTH) {
+            roof_support_shift.z = 1;
+            roof_step.x = walls_size.x - 1;
+        }
+        // roof supports
+        cluster.setBlock(chunk, bx + roof_support_shift.x,                    by + building.size.y - 5,     bz + roof_support_shift.z, BLOCK.COBBLESTONE_WALL.id, rot);
+        cluster.setBlock(chunk, bx + roof_support_shift.x + roof_step.x, by + building.size.y - 5,          bz + roof_support_shift.z + roof_step.z, BLOCK.COBBLESTONE_WALL.id, rot);
+        cluster.setBlock(chunk, bx + roof_support_shift.x,                    by + building.size.y - 5 + 1, bz + roof_support_shift.z, BLOCK.OAK_FENCE.id, rot);
+        cluster.setBlock(chunk, bx + roof_support_shift.x + roof_step.x, by + building.size.y - 5 + 1,      bz + roof_support_shift.z + roof_step.z, BLOCK.OAK_FENCE.id, rot);
+        // center of roof
+        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 3, bz + 1, BLOCK.OAK_SLAB.id, rot);
+        // roof
+        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 1, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 2, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 2, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz + 1, BLOCK.OAK_STAIRS.id, {x: 3, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 3, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 0, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 0, y: 0, z: 0});
+        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz + 1, BLOCK.OAK_STAIRS.id, {x: 1, y: 0, z: 0});
     }
 
 }
@@ -327,6 +416,8 @@ class Building1 extends Building {
 
     //
     draw(cluster, chunk) {
+        this.drawBasement(cluster, chunk, 4);
+        //
         const building = this;
         //
         const bx = building.coord.x - chunk.coord.x;
@@ -351,7 +442,7 @@ class Building1 extends Building {
             cluster.setBlock(chunk, bx + 4, by + building.size.y - 1, bz + building.size.z - 1, building.materials.wall.id, null);
         }
         // npc
-        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + chunk.coord.y + 1, bz + Math.round(building.size.z/2) + chunk.coord.z);
+        const npc_pos = new Vector(bx + Math.round(building.size.x/2) + chunk.coord.x, by + chunk.coord.y, bz + Math.round(building.size.z/2) + chunk.coord.z);
         cluster.addNPC(chunk, npc_pos);
         // roof gable
         if(building.door_direction == DIRECTION.EAST) {
