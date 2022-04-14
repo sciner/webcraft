@@ -132,7 +132,7 @@ let gameCtrl = async function($scope, $timeout) {
             quant: 10,
             init_depth: 2,
             road_ext_value: 0, // Это значение расширения дороги, 0 = один пиксель
-            house_intencity: 0.3,
+            house_intencity: 0.2,
             colors: {
                 'house': 2,
             }
@@ -145,16 +145,15 @@ let gameCtrl = async function($scope, $timeout) {
             this.randoms = new alea(+new Date());
             const cnv = document.getElementById('sandbox_canvas');
             const ctx = cnv.getContext('2d');
-            // var random_seed = Math.random();
-            // random_seed = .1211112;
             let t = performance.now();
-            for(let i = 0; i < 1; i++) {
+            const cnt = 1;
+            for(let i = 0; i < cnt; i++) {
                 this.map = new Array(this.settings.size * this.settings.size).fill(0);
                 this.cell_map = [];
                 this.cb_cell_map = [];
                 this.complex_buildings = [];
-                const center_x_corr = Math.floor((this.randoms.double() - this.randoms.double()) * 10);
-                const center_z_corr = Math.floor((this.randoms.double() - this.randoms.double()) * 10);
+                const center_x_corr = Math.floor(this.randoms.double() * 20 - 10);
+                const center_z_corr = Math.floor(this.randoms.double() * 20 - 10);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth);
                 this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth);
                 for(let cb_key in this.complex_buildings) {
@@ -167,8 +166,12 @@ let gameCtrl = async function($scope, $timeout) {
                 }
             }
             t = performance.now() - t;
-            //console.log(t);
+            console.log(t / cnt);
+            console.log(this.complex_buildings)
             // Распечатка канваса
+            const scale = 4;
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
             for (var x_iter = 0; x_iter < this.settings.size; x_iter++) {
                 for (var z_iter = 0; z_iter < this.settings.size; z_iter++) {
                     const cell = this.map[z_iter * this.settings.size + x_iter]
@@ -177,9 +180,9 @@ let gameCtrl = async function($scope, $timeout) {
                     } else if(cell === 2) {
                         ctx.fillStyle = "#FF0000";
                     } else {
-                        ctx.fillStyle = "#FFFFFF";
+                        continue;
                     }
-                    ctx.fillRect( x_iter, z_iter, 1, 1);
+                    ctx.fillRect(x_iter * scale, z_iter * scale, 1 * scale, 1 * scale);
                 }
             }
         },
