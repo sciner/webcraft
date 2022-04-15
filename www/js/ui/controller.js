@@ -1,4 +1,4 @@
-import {Vector, Helpers} from '../helpers.js';
+import {Vector, Helpers, DIRECTION} from '../helpers.js';
 import {UIApp} from './app.js';
 import {TexturePackManager} from './texture_pack-manager.js';
 import {SkinManager} from './skin-manager.js';
@@ -248,17 +248,17 @@ let gameCtrl = async function($scope, $timeout) {
                     if(building_rnd < settings.house_intencity || building_rnd > (1-settings.house_intencity)) {
                         let house = this.put_building(house_cell_x, house_cell_z);
                         if (house !== null) {
-                            // Калькуляция точки начала и конца дорожки для обычного дома
+                            // Калькуляция точки начала и направления. Тропа всегда идет от дороги к двери дома.
                             let dot_pos_x = house_cell_x, dot_pos_z = house_cell_z;
                             if (axe === DIR_HOR) {
-                                dot_pos_x += Math.round(settings.quant / 2 +settings.road_ext_value / 2);
-                                dot_pos_z += side_mod > 0 ? 1 : (settings.quant + 1 - settings.road_dist);
+                                dot_pos_x += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
+                                dot_pos_z += side_mod > 0 ? settings.road_ext_value : settings.quant;
                             } else {
-                                dot_pos_x += side_mod > 0 ? 1 : (settings.quant  + 1 - settings.road_dist);
+                                dot_pos_x += side_mod > 0 ? settings.road_ext_value : settings.quant;
                                 dot_pos_z += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
                             }
                             // Добавляем house в реестр по координате
-                            house.door = this.put_path(dot_pos_x, dot_pos_z, axe === DIR_HOR ? 0 : 1, axe === DIR_HOR ? 1 : 0);
+                            house.door = this.put_path(dot_pos_x, dot_pos_z, axe === DIR_VER ? side_mod : 0, axe === DIR_HOR ? side_mod : 0);
                             this.house_list.set(house_cell_z * settings.size + house_cell_x, house);
                         }
                     }
@@ -294,19 +294,22 @@ let gameCtrl = async function($scope, $timeout) {
             }
         },
         put_path(x, z, x_dir, z_dir) {
-            let xprint = x, zprint = z;
-            for (var process = 0; process < this.settings.road_dist + this.settings.road_ext_value - 1; process++) {
+            let xprint = x, zprint = z, dest = this.settings.road_dist;
+            for (var process = 0; process < dest; process++) {
                 this.put_dot(xprint, zprint, 1);
                 xprint += x_dir;
                 zprint += z_dir;
             }
             // Возвращает координату двери и ее направленность
             let door = {
-                x: z_dir === 0 ? x : xprint - x_dir,
-                z: x_dir === 0 ? z : zprint - z_dir,
-                door_x_axe: x_dir, door_z_axe: z_dir,
+                x: x_dir === 0 ? x : x + dest * x_dir,
+                z: z_dir === 0 ? z : z + dest * z_dir,
+                direction: this.get_door_front_direction(x_dir, z_dir),
             }
             return door;
+        },
+        get_door_front_direction(x_dir, z_dir) {
+            return x_dir === 0 ? (z_dir < 0 ? DIRECTION.SOUTH : DIRECTION.NORTH) : (x_dir < 0 ?  DIRECTION.EAST : DIRECTION.WEST);
         },
         put_building(x, z) {
             const settings = this.settings;
@@ -422,11 +425,13 @@ let gameCtrl = async function($scope, $timeout) {
                     }
                 }
                 // Отрисовка тропинки
-                let path_x = x_init + 1;
-                let path_z = z_init + 1;
+                let path_x = x_init;
+                let path_z = z_init;
                 if(path_dir === 'up') {
                     path_x = x_init + (cell_count_x * settings.quant) / 2;
+                    path_z += settings.road_ext_value;
                 } else {
+                    path_x += settings.road_ext_value;
                     path_z = z_init + (cell_count_z * settings.quant) / 2;
                 }
                 // Затираем обычные дома под сложным домом
