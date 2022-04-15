@@ -20,7 +20,6 @@ const TYPES = {
 export class WebGLTexture3D extends BaseTexture3D {
     constructor(context, options) {
         super(context, options);
-        this.allowSubRegions = true;
     }
 
     bind(location) {

@@ -1,41 +1,50 @@
 import {Vector} from '../helpers.js';
-import {BaseTexture3D} from "../renders/BaseTexture3D.js";
+import {BaseTexture3D, RegionTexture3D} from "../renders/BaseTexture3D.js";
 
 export class GridCubeTexture {
-    constructor({ textureOptions, dims }) {
+    constructor({ textureOptions, dims, context }) {
         this.textureOptions = textureOptions;
         this.dims = dims;
         this.freeRegions = []
         this.allocatedRegions = []
+        this.context = context;
     }
 
     init() {
-        const { dims, textureOptions } = this;
-
-        this.baseTexture = new BaseTexture3D(textureOptions);
+        const { dims, context } = this;
+        const to = this.textureOptions;
+        const baseTexture = this.baseTexture = new BaseTexture3D(context, {
+            width: dims.x * to.width,
+            height: dims.x * to.height,
+            depth: dims.x * to.depth,
+            filter: to.filter,
+            type: to.type
+        });
 
         for (let i = 0; i < dims.x; i++)
             for (let j = 0; j < dims.y; j++)
                 for (let k = 0; k < dims.z; k++) {
-
+                    const tex = new RegionTexture3D(context, {
+                        baseTexture,
+                        ...to,
+                        offset: new Vector(i * to.width, j * to.height, k * to.depth),
+                        data: null
+                    })
+                    this.freeRegions.push(tex);
                 }
-    }
-
-    allocate() {
     }
 }
 
 export class CubeTexturePool {
-    constructor({
-        defWidth = 16,
-        defHeight = 16,
-        defDepth = 40,
+    constructor(context, {
+        defWidth = 18,
+        defHeight = 18,
+        defDepth = 42,
         bigWidth = 128,
         bigHeight = 128,
         bigDepth = 128,
         type = 'rgba8unorm',
-        filter = 'linear',
-        renderer
+        filter = 'linear'
     }) {
         this.bigWidth = bigWidth;
         this.bigHeight = bigHeight;
@@ -45,65 +54,101 @@ export class CubeTexturePool {
             height: defHeight,
             depth: defDepth,
             filter, type,
-            context: renderer
         }
+        this.context = context;
         this.singles = []
+        this.fromPool = []
         this.pools = []
-        this.renderer = renderer
         this.currentPoolIndex = 0
     }
 
     alloc({width, height, depth, type, filter, data}) {
         const { defTex } = this;
-        // if (width !== this.defTex.width || height !== this.defTex.height || depth !== this.defTex.depth) {
+        if (width !== this.defTex.width || height !== this.defTex.height || depth !== this.defTex.depth) {
             // create a single
-            const tex = this.renderer.createTexture3D(
+            const tex = this.context.createTexture3D(
                 {width, height, depth, type, filter, data})
             tex.ownerPool = this;
             this.singles.push(tex);
             return tex;
-        // } else {
-            // 1. choose pool
-
-        // }
+        } else {
+            const tex = this.findFreeRegion();
+            tex.ownerPool = this;
+            this.fromPool.push(tex);
+        }
     }
 
     findFreeRegion() {
+        const { defTex, pools, context } = this;
+
         let cur = this.currentPoolIndex;
         let repeat = 0;
         let selected = null;
-        while (repeat < this.pools.length) {
-            if (this.pools[cur].freeRegions.length > 0) {
-                selected = this.pools[cur];
+        while (repeat < pools.length) {
+            if (pools[cur].freeRegions.length > 0) {
+                selected = pools[cur];
                 break;
             }
-            cur = (cur + 1) % this.pools.length
+            cur = (cur + 1) % pools.length
             repeat++
         }
         if (!selected) {
             let newCube = new GridCubeTexture(
                 {
+                    context,
                     textureOptions: this.defTex,
                     dims: new Vector(
-                        Math.floor(this.bigWidth / this.defWidth),
-                        Math.floor(this.bigHeight / this.defHeight),
-                        Math.floor(this.bigDepth / this.defDepth),
+                        Math.floor(this.bigWidth / defTex.width),
+                        Math.floor(this.bigHeight / defTex.height),
+                        Math.floor(this.bigDepth / defTex.depth),
                     )
                 }
             )
+            newCube.init();
+            cur = pools.length;
+            pools.push(newCube);
         }
+        this.currentPoolIndex = cur;
+        const tex = pools[cur].freeRegions.pop();
+        pools[cur].allocatedRegions.push(tex);
+        return tex;
     }
 
     dealloc(tex) {
-        // if (tex.isRegion) {
-            const ind = this.singles.indexOf(tex);
+        const { pools, singles } = this;
+        if (tex.ownerPool !== this) {
+            // wtf
+            return;
+        }
+        if (tex.isRegion) {
+            // regions
+            let found = null;
+            for (let i = 0; i < pools.length; i++) {
+                if (pools[i].baseTexture === tex.baseTexture) {
+                    found = this.pools[i];
+                }
+            }
+            if (!found) {
+                // wtf 2
+                return;
+            }
+            const ind1 = found.allocatedRegions.indexOf(tex);
+            if (ind1 >= 0) {
+                found.allocatedRegions.splice(ind1, 1);
+            } else {
+                // wtf 3
+                return;
+            }
+            found.freeRegions.push(tex);
+            tex.dispose();
+        } else {
+            // singles
+            const ind = singles.indexOf(tex);
             if (ind >= 0) {
-                this.singles.splice(ind, 1);
+                singles.splice(ind, 1);
                 tex.destroy();
             }
-        // } else {
-        //
-        // }
+        }
     }
 
     destroy() {

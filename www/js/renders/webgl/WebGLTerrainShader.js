@@ -4,9 +4,9 @@ import WebGLRenderer from "./index.js";
 
 export class WebGLTerrainShader extends BaseTerrainShader {
     /**
-     * 
-     * @param {WebGLRenderer} context 
-     * @param {*} options 
+     *
+     * @param {WebGLRenderer} context
+     * @param {*} options
      */
     constructor(context, options) {
         super(context, options);
@@ -52,6 +52,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         // depends on material
         this.u_texture          = gl.getUniformLocation(program, 'u_texture');
         this.u_lightTex         = gl.getUniformLocation(program, 'u_lightTex');
+        this.u_lightOffset      = gl.getUniformLocation(program, 'u_lightOffset');
+        this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
         // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');

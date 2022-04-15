@@ -63,11 +63,17 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(shader.u_pixelSize, style.pixelSize);
             gl.uniform1f(shader.u_mipmap, style.mipmap);
         }
-        if (WebGLMaterial.lightState !== this.lightTex) {
+        if (WebGLMaterial.lightRegionState !== this.lightTex) {
             const tex = this.lightTex || this.context._emptyTex3D;
             const base = tex.baseTexture || tex;
-            base.bind(5);
-            WebGLMaterial.lightState = this.lightTex;
+            if (WebGLMaterial.lightState !== base) {
+                base.bind(5);
+                WebGLMaterial.lightState = base;
+
+                gl.uniform3f(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z);
+                gl.uniform3f(shader.u_lightSize, 1. / tex.width, 1. / tex.height, 1. / tex.depth);
+            }
+            WebGLMaterial.lightRegionState = this.lightTex;
         }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {
@@ -127,4 +133,5 @@ export class WebGLMaterial extends BaseMaterial {
 
     static texState = null;
     static lightState = null;
+    static lightRegionState = null;
 }

@@ -25,7 +25,6 @@ export class BaseTexture3D {
         this.prevLength = 0;
 
         this.regionsToUpdate = [];
-        this.allowSubRegions = false;
         this.useSubRegions = false;
         this.ownerPool = null;
         this.isRegion = false;
@@ -55,7 +54,7 @@ export class BaseTexture3D {
     }
 }
 
-export class TextureRegion3D {
+export class RegionTexture3D {
     constructor(context, {
         baseTexture = null,
         width = 0,
