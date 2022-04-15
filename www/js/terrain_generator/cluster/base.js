@@ -246,6 +246,7 @@ export class ClusterBase {
             if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
                 let rot = {x: dir, y: 0, z: 0};
                 this.setBlock(chunk, x, y, z, door_blocks[k], rot, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
+                // this.setBlock(chunk, x, y, z - 1, BLOCK.AIR.id, null, null);
             }
         }
     }

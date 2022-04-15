@@ -471,9 +471,11 @@ class Building1 extends Building {
             let light_rot = {x: dir, y: 0, z: 0};
             let l_pos = building.door_bottom.clone().addSelf(new Vector(1 * sign, 1, 1 * -sign)).subSelf(chunk.coord);
             if(mat.light.id == BLOCK.LANTERN.id) {
-                light_rot.y += 1;
-                l_pos.y += 2;
+                light_rot.y = -1;
+                l_pos.y += 3;
                 l_pos.x -= 1 * sign;
+                cluster.setBlock(chunk, l_pos.x, l_pos.y, l_pos.z, BLOCK.SMOOTH_STONE_SLAB.id, null, {point: {x: 0, y: 0, z: .55}});
+                l_pos.y--;
             }
             cluster.setBlock(chunk, l_pos.x, l_pos.y, l_pos.z, mat.light.id, light_rot);
         }
@@ -530,11 +532,11 @@ class Building1 extends Building {
             if(building.size.x % 2 == 0) {
                 roof_height++;
             }
-            // south side
+            // west side
             let roof_pos = new Vector(coord.x - 1, coord.y + building.size.y - minus_y, coord.z - 1);
             let roof_size = new Vector(0, roof_height, building.size.z + roof_size_add);
             cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.WEST, mat.roof);
-            // north side
+            // east side
             roof_pos = new Vector(coord.x + building.size.x, coord.y + building.size.y - minus_y, coord.z - 1);
             roof_size = new Vector(0, roof_height, building.size.z + roof_size_add);
             cluster.drawPitchedRoof(chunk, roof_pos, roof_size, DIRECTION.EAST, mat.roof);

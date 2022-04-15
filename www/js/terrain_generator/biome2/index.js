@@ -182,7 +182,7 @@ export class TerrainMap {
                 if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
                     value = value * biome.max_height + H;
                 } else {
-                    value = value * (cluster_max_height ? Math.min(cluster_max_height, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
+                    value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
                 }
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 2500);
