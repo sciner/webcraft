@@ -378,19 +378,6 @@ let gameCtrl = async function($scope, $timeout) {
                     return null;
                 } else {
                     this.cb_cell_map[lcm_key] = 1;
-
-                }
-            }
-            // Заполняем сектор занятости карты
-            if(x >= 0
-                && (x + cell_count_x * settings.quant + settings.road_ext_value - 1) < settings.size
-                && z >= 0
-                && (z + cell_count_x * settings.quant + settings.road_ext_value - 1) < settings.size
-            ) {
-                for (let x_cursor = settings.road_ext_value + 1; x_cursor < cell_count_x * settings.quant; x_cursor++) {
-                    for (let z_cursor = settings.road_ext_value + 1; z_cursor < cell_count_z * settings.quant; z_cursor++) {
-                        this.map[(z + z_cursor) * settings.size + (x + x_cursor)] = 0;
-                    }
                 }
             }
             // Отступы от дорог
@@ -404,7 +391,13 @@ let gameCtrl = async function($scope, $timeout) {
                 && (z) >= settings.margin
                 && (z + z_size) < (settings.size - settings.margin)
             ) {
-                // Отрисовка площадки под дом
+                // Зачистка территории под сложный дом
+                for (let x_cursor = settings.road_ext_value + 1; x_cursor < cell_count_x * settings.quant; x_cursor++) {
+                    for (let z_cursor = settings.road_ext_value + 1; z_cursor < cell_count_z * settings.quant; z_cursor++) {
+                        this.map[(z_init + z_cursor) * settings.size + (x_init + x_cursor)] = 0;
+                    }
+                }
+                // Отрисовка площадки под дом на карте
                 for(let x_cursor = 0; x_cursor < x_size; x_cursor++) {
                     for(let z_cursor = 0; z_cursor < z_size; z_cursor++) {
                         this.map[(z + z_cursor) * settings.size + (x + x_cursor)] = 2;
