@@ -106,13 +106,14 @@ export class ClusterVilage extends ClusterBase {
                 door_direction,
                 size
             );
-            // building.aabb.y_max += 10; // Math.ceil(Math.max(size.x, size.z) / 2); // - BUILDING_AABB_MARGIN;
         }
         //
         this.buildings.set(building.coord, building);
         // 1. entrance mask
         this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, entrance_block, 1, null);
         // 2. building mask
+        dx = building.coord.x - this.coord.x;
+        dz = building.coord.z - this.coord.z;
         for(let i = 0; i < building.size.x; i++) {
             for(let j = 0; j < building.size.z; j++) {
                 const x = dx + i;
