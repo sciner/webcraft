@@ -7,6 +7,20 @@ export const CLUSTER_SIZE = new Vector(128, 128, 128);
 const WATER_LINE            = 64;
 const temp_vec2             = new Vector(0, 0, 0);
 
+export class ClusterPoint {
+
+    constructor(height, block_id, margin, info, building) {
+        this.height         = height;
+        this.block_id       = block_id;
+        this.margin         = margin;
+        this.info           = info;
+        this.building       = building;
+        this.height_fixed   = false;
+        this.hidden         = false;
+    }
+
+}
+
 export class ClusterBase {
 
     // constructor
@@ -230,11 +244,8 @@ export class ClusterBase {
             const y = pos.y - chunk.coord.y + k;
             const z = pos.z - chunk.coord.z;
             if(x >= 0 && y >= 0 && z >= 0 && x < CHUNK_SIZE_X && y < CHUNK_SIZE_Y && z < CHUNK_SIZE_Z) {
-                if(dir == DIRECTION.EAST) {
-                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 1, y: 0, z: 0}, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
-                } else if(dir == DIRECTION.NORTH) {
-                    this.setBlock(chunk, x, y, z, door_blocks[k], {x: 2, y: 0, z: 0}, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
-                }
+                let rot = {x: dir, y: 0, z: 0};
+                this.setBlock(chunk, x, y, z, door_blocks[k], rot, {point: {x: 0, y: 0, z: 0}, opened: opened, left: left});
             }
         }
     }
