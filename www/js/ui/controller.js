@@ -160,7 +160,7 @@ let gameCtrl = async function($scope, $timeout) {
                     // Если не пересекается с существующими complex_building, то отправляем на карту
                     let house = this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
                     if(house !== null) {
-                        this.house_list.set(cb_building.z * this.settings.size + cb_building.z, house);
+                        this.house_list.set(cb_building.z * this.settings.size + cb_building.x, house);
                     }
                 }
             }
@@ -212,7 +212,7 @@ let gameCtrl = async function($scope, $timeout) {
             rnd = rnd > .75 ? .75 : rnd;
             const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
             const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
-            for(var process = 0; process <= (pre_part + post_part); process++) {
+            for(var process = 0; process <= (pre_part + post_part) + settings.road_ext_value; process++) {
                 let xprint = x - (pre_part - process) * is_x_mod;
                 let zprint = z - (pre_part - process) * is_z_mod;
                 if(xprint >= settings.margin
@@ -263,9 +263,9 @@ let gameCtrl = async function($scope, $timeout) {
                         }
                     }
                 }
-                // В одном случае из ста делаем комбо дом затирая 2-4 ячейки, тут нам известно с какой стороны рисовать тропу к дому
+                // Иногда делаем сложный дом затирая 2-4 ячейки, тут нам известно с какой стороны рисовать тропу к дому
                 // Сложные дома справа, поэтому тропинки либо слева направо, либо сверху вниз,
-                // так проще реализация, для разнообразия карту можно вращать
+                // Для разнообразия карту можно вращать
                 const cb_random_param = (1 - settings.house_intencity);
                 if(branch_rnd > cb_random_param && positions[dir] > 1) {
                     this.complex_buildings.set(z * settings.size + x, {
@@ -403,20 +403,22 @@ let gameCtrl = async function($scope, $timeout) {
                         this.map[(z + z_cursor) * settings.size + (x + x_cursor)] = 2;
                     }
                 }
-                // Отрисовка дороги вокруг дома, чтобы не было разрывов
-                // Снизу
                 for(let x_cursor = 0; x_cursor <= settings.quant * cell_count_x + settings.road_ext_value; x_cursor++) {
                     for(let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
                         this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), 1);
                     }
                 }
-                // Слева и справа с половины, если вход слева
-                if(path_dir === 'left') {
-                    for (let z_cursor = Math.ceil(settings.quant * cell_count_z / 2); z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
-                        for (let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
-                            this.put_dot((x_init + road_step), (z_init + z_cursor), 1);
-                            this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), 1);
-                        }
+                // Отрисовка дороги вокруг сложного дома для обеспечения соединенности всех дорог
+                for(let x_cursor = 0; x_cursor <= settings.quant * cell_count_x + settings.road_ext_value; x_cursor++) {
+                    for(let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                        this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), 1);
+                        this.put_dot((x_init + x_cursor), (z_init + road_step), 1);
+                    }
+                }
+                for (let z_cursor = 0; z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
+                    for (let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                        this.put_dot((x_init + road_step), (z_init + z_cursor), 1);
+                        this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), 1);
                     }
                 }
                 // Отрисовка тропинки
@@ -428,8 +430,8 @@ let gameCtrl = async function($scope, $timeout) {
                     path_z = z_init + (cell_count_z * settings.quant) / 2;
                 }
                 // Затираем обычные дома под сложным домом
-                for(let x_cell = x_init; x_cell <= x_init + (settings.quant * cell_count_x); x_cell += settings.quant) {
-                    for(let z_cell = z_init; z_cell <= z_init + (settings.quant * cell_count_z); z_cell += settings.quant) {
+                for(let x_cell = x_init; x_cell < x_init + (settings.quant * cell_count_x); x_cell += settings.quant) {
+                    for(let z_cell = z_init; z_cell < z_init + (settings.quant * cell_count_z); z_cell += settings.quant) {
                         if(this.house_list.has(z_cell * settings.size + x_cell)) {
                             this.house_list.delete(z_cell * settings.size + x_cell);
                         }
