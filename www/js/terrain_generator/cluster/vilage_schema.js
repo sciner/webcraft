@@ -77,15 +77,15 @@ export class VilageSchema {
                 }
             }
         }
-        // Установка домов вдоль линии
-        // Количество ячеек для строений в pre_part и post_part
+        // Installation of houses along the line
+        // Number of cells for buildings in pre_part and post_part
         const positions = [Math.floor(pre_part / settings.quant), Math.floor(post_part / settings.quant)];
         for(let dir in positions) {
             let sign = dir === '1' ? 1 : -1;
             for(let i = 0; i < positions[dir]; i++) {
-                // Справа или слева
-                let side_mod = (branch_rnd * (i + 7)) % 1 > .5 ? 1 : -1; // Слева
-                // Дом по правой стороне от линии
+                // Right or Left
+                let side_mod = (branch_rnd * (i + 7)) % 1 > .5 ? 1 : -1; // left
+                // House on the right side of the line
                 let q_mod = sign === -1 ? settings.quant : 0;
                 let house_cell_x = x + (sign * settings.quant * i - q_mod) * is_x_mod;
                 let house_cell_z = z + (sign * settings.quant * i - q_mod) * is_z_mod;
@@ -129,7 +129,7 @@ export class VilageSchema {
                 });
             }
         }
-        // Установка домов вдоль линии дороги
+        // Installation of houses along the road line
         const next_dir = axe === DIR_VER ? DIR_HOR : DIR_VER;
         if(depth > 0) {
             let inc_amount = 0;
@@ -139,7 +139,6 @@ export class VilageSchema {
                 this.push_branch(x + (inc_amount * is_x_mod), z + (settings.quant * is_z_mod), next_dir, depth - 1, new_branch_rnd);
             }
             if(pre_part >= settings.quant) {
-                // let new_branch_rnd = ((x - (inc_amount * is_x_mod)) * (z - (settings.quant * is_z_mod)) / 1000) % 1;
                 inc_amount = settings.quant * Math.floor(pre_part / settings.quant);
                 this.push_branch(x - (inc_amount * is_x_mod), z - (settings.quant * is_z_mod), next_dir, depth - 1, branch_rnd);
             }
@@ -162,7 +161,7 @@ export class VilageSchema {
         return door;
     }
 
-    // Возвращает координату двери и ее направленность
+    // Returns the coordinate of the door and its direction
     get_door_front_direction(x_dir, z_dir) {
         return x_dir === 0 ? (z_dir < 0 ? DIRECTION.NORTH : DIRECTION.SOUTH) : (x_dir < 0 ?  DIRECTION.EAST : DIRECTION.WEST);
     }
@@ -255,16 +254,16 @@ export class VilageSchema {
             && (z + z_size) < (settings.size - settings.margin)
         ) {
             // Зачистка территории под сложный дом
-            for (let x_cursor = settings.road_ext_value + 1; x_cursor < cell_count_x * settings.quant; x_cursor++) {
-                for (let z_cursor = settings.road_ext_value + 1; z_cursor < cell_count_z * settings.quant; z_cursor++) {
-                    this.map[(z_init + z_cursor) * settings.size + (x_init + x_cursor)] = null;
+            for (let i = settings.road_ext_value + 1; i < cell_count_x * settings.quant; i++) {
+                for (let j = settings.road_ext_value + 1; j < cell_count_z * settings.quant; j++) {
+                    this.map[(z_init + j) * settings.size + (x_init + i)] = null;
                 }
             }
             // Отрисовка площадки под дом на карте
             if(this.fill_house_map) {
-                for(let x_cursor = 0; x_cursor < x_size; x_cursor++) {
-                    for(let z_cursor = 0; z_cursor < z_size; z_cursor++) {
-                        this.map[(z + z_cursor) * settings.size + (x + x_cursor)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin);
+                for(let i = 0; i < x_size; i++) {
+                    for(let j = 0; j < z_size; j++) {
+                        this.map[(z + j) * settings.size + (x + i)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin);
                     }
                 }
             }
@@ -297,10 +296,10 @@ export class VilageSchema {
                 path_z = z_init + (cell_count_z * settings.quant) / 2;
             }
             // Затираем обычные дома под сложным домом
-            for(let x_cell = x_init; x_cell < x_init + (settings.quant * cell_count_x); x_cell += settings.quant) {
-                for(let z_cell = z_init; z_cell < z_init + (settings.quant * cell_count_z); z_cell += settings.quant) {
-                    if(this.house_list.has(z_cell * settings.size + x_cell)) {
-                        this.house_list.delete(z_cell * settings.size + x_cell);
+            for(let i = x_init; i < x_init + (settings.quant * cell_count_x); i += settings.quant) {
+                for(let j = z_init; j < z_init + (settings.quant * cell_count_z); j += settings.quant) {
+                    if(this.house_list.has(j * settings.size + i)) {
+                        this.house_list.delete(j * settings.size + i);
                     }
                 }
             }

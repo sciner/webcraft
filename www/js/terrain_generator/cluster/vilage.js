@@ -73,7 +73,8 @@ export class ClusterVilage extends ClusterBase {
             );
             //
             entrance_block = this.road_block;
-            //
+            dx = building.coord.x - this.coord.x;
+            dz = building.coord.z - this.coord.z;
             for(let i = 0; i < building.size.x + 2; i++) {
                 for(let j = 0; j < building.size.z + 2; j++) {
                     const x = dx + i - 1;
