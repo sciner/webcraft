@@ -15,15 +15,12 @@ export class VilageSchema {
             size:               128,
             road_dist:          2,
             margin:             8,
-            quant:              15,
+            quant:              11,
             init_depth:         2,
             road_margin:        1,
             house_margin:       5,
             road_ext_value:     1, // Это значение расширения дороги, 0 = один пиксель
-            house_intencity:    0.2,
-            colors: {
-                'house': 2,
-            }
+            house_intencity:    0.2
         };
     }
 

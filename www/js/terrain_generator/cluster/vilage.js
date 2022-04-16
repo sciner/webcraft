@@ -288,28 +288,28 @@ class Building {
         //
         if(size.x > max_size.x) {
             size.x = max_size.x;
-            if(door_direction == DIRECTION.NORTH) {
-                coord.x = entrance.x - Math.ceil(size.x / 2);
-            } else if(door_direction == DIRECTION.SOUTH) {
-                coord.x = entrance.x - (Math.floor(size.x / 2) - 1) * sign;
-            } else if(door_direction == DIRECTION.EAST) {
-                coord.x = entrance.x - (size.x - 1);
-            } else {
-                coord.x = entrance.x;
-            }
+        }
+        if(door_direction == DIRECTION.NORTH) {
+            coord.x = entrance.x - Math.ceil(size.x / 2);
+        } else if(door_direction == DIRECTION.SOUTH) {
+            coord.x = entrance.x - (Math.floor(size.x / 2) - 1) * sign;
+        } else if(door_direction == DIRECTION.EAST) {
+            coord.x = entrance.x - (size.x - 1);
+        } else {
+            coord.x = entrance.x;
         }
         //
         if(size.z > max_size.z) {
             size.z = max_size.z;
-            if(door_direction == DIRECTION.NORTH) {
-                coord.z = entrance.z - (size.z - 1);
-            } else if(door_direction == DIRECTION.SOUTH) {
-                // do nothing
-            } else if(door_direction == DIRECTION.EAST) {
-                coord.z = entrance.z - Math.ceil(size.z / 2)
-            } else {
-                coord.z = entrance.z - (Math.floor(size.z / 2) - 1) * sign;
-            }
+        }
+        if(door_direction == DIRECTION.NORTH) {
+            coord.z = entrance.z - (size.z - 1);
+        } else if(door_direction == DIRECTION.SOUTH) {
+            // do nothing
+        } else if(door_direction == DIRECTION.EAST) {
+            coord.z = entrance.z - Math.ceil(size.z / 2)
+        } else {
+            coord.z = entrance.z - (Math.floor(size.z / 2) - 1) * sign;
         }
     }
 
