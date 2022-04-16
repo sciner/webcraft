@@ -150,7 +150,7 @@ export class VilageSchema {
     putPathToDoor(x, z, x_dir, z_dir) {
         let xprint = x, zprint = z, dest = this.settings.road_dist;
         for (var process = 0; process < dest; process++) {
-            this.put_dot(xprint, zprint, this.cluster.road_block, 1, this.settings.road_margin);
+            this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block, 1, this.settings.road_margin);
             xprint += x_dir;
             zprint += z_dir;
         }

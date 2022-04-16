@@ -60,9 +60,6 @@ export class ClusterVilage extends ClusterBase {
         let entrance_block = this.basement_block;
         if(seed < .12) {
             // Water well
-            coord.y = -14;
-            size.y = 21;
-            size.x = size.z = 3;
             building = new WaterWell(
                 this,
                 coord.toHash(),
@@ -138,6 +135,16 @@ export class ClusterVilage extends ClusterBase {
             return false;
         }
         let t = performance.now();
+        //
+        const entranceAhead = new Vector(0, 0, 0);
+        const getAheadMove = (dir) => {
+            entranceAhead.set(0, 0, 0);
+            if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
+            else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
+            else if(dir == DIRECTION.EAST) {entranceAhead.x++;}
+            else {entranceAhead.x--;}
+            return entranceAhead;
+        }
         // each all buildings
         for(let b of this.buildings.values()) {
             if(b.entrance.y == Infinity) {
@@ -149,23 +156,31 @@ export class ClusterVilage extends ClusterBase {
                 // у строения до этого момента нет точной информации о вертикальной позиции двери (а значит и пола)
                 if(b.entrance.y == Infinity) {
                     // забираем карту того участка, где дверь, чтобы определить точный уровень пола
-                    const map_addr = getChunkAddr(b.entrance);
-                    map_addr.y = 0;
-                    let entrance_map_info = maps.get(map_addr);
-                    if(entrance_map_info) {
-                        // if map not smoothed
-                        if(!entrance_map_info.smoothed) {
-                            // generate around maps and smooth current
-                            entrance_map_info = maps.generateAround(map_addr, true, true)[4].info;
+                    let value2 = 0;
+                    for(let entrance of [b.entrance, b.entrance.clone().addSelf(getAheadMove(b.door_direction))]) {
+                        const map_addr = getChunkAddr(entrance);
+                        map_addr.y = 0;
+                        let entrance_map_info = maps.get(map_addr);
+                        if(entrance_map_info) {
+                            // if map not smoothed
+                            if(!entrance_map_info.smoothed) {
+                                // generate around maps and smooth current
+                                entrance_map_info = maps.generateAround(map_addr, true, true)[4].info;
+                            }
+                            const entrance_x    = entrance.x - entrance_map_info.chunk.coord.x;
+                            const entrance_z    = entrance.z - entrance_map_info.chunk.coord.z;
+                            const cell          = entrance_map_info.cells[entrance_x][entrance_z];
+                            if(cell.value2 > value2) {
+                                value2 = cell.value2;
+                            }
                         }
-                        const entrance_x    = b.entrance.x - entrance_map_info.chunk.coord.x;
-                        const entrance_z    = b.entrance.z - entrance_map_info.chunk.coord.z;
-                        const cell          = entrance_map_info.cells[entrance_x][entrance_z];
-                        b.entrance.y        = cell.value2 - 1;
+                    }
+                    if(value2 > 0) {
+                        b.entrance.y        = value2 - 1;
                         b.coord.y           = b.entrance.y + b.coord.y;
                         b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
                         b.aabb.y_max        = b.aabb.y_min + b.size.y * 3; // + BUILDING_AABB_MARGIN * 5;
-                        b.door_bottom.y     = cell.value2;
+                        b.door_bottom.y     = value2;
                     }
                 }
                 if(b.entrance.y == Infinity) {
@@ -328,6 +343,9 @@ class Farmland extends Building {
 class WaterWell extends Building {
 
     constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
+        coord.y = -14;
+        size.y = 21;
+        Building.limitSize([3], seed, coord, size, entrance, door_direction);
         super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
     }
 
@@ -432,8 +450,14 @@ class Building1 extends Building {
 
         let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
 
+        // quboid
+        // if(dir != DIRECTION.SOUTH) return;
+        // const c = building.coord.clone().add(new Vector(-2, 0, -2));
+        // const size = building.size.clone().add(new Vector(4, -this.size.y + 1, 4));
+        // cluster.drawQuboid(chunk, c, size, BLOCK.AIR);
+
         this.drawBasement(cluster, chunk, 4);
-        
+
         //
         const bx = coord.x - chunk.coord.x;
         const by = coord.y - chunk.coord.y;
