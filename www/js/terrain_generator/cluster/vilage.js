@@ -188,10 +188,10 @@ export class ClusterVilage extends ClusterBase {
         const START_Z = chunk.coord.z - this.coord.z;
         for(let i = 0; i < building.size.x; i++) {
             let bx = building.coord.x + i;
-            if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
+            // if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
             for(let j = 0; j < building.size.z; j++) {
                 let bz = building.coord.z + j;
-                if(bz < chunk.coord.z || bz > chunk.coord.z + chunk.size.z) continue;
+                // if(bz < chunk.coord.z || bz > chunk.coord.z + chunk.size.z) continue;
                 const x = bx - chunk.coord.x;
                 const z = bz - chunk.coord.z;
                 // fix basement height
