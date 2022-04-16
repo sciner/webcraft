@@ -538,7 +538,7 @@ export default class BaseRenderer {
         this._emptyTex3D = this.createTexture3D({
             data: new Uint8Array(255)
         })
-
+        this._emptyTex3D.isEmpty = true;
 
         this.globalUniforms = new GlobalUniformGroup();
 

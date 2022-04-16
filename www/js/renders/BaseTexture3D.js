@@ -28,6 +28,7 @@ export class BaseTexture3D {
         this.useSubRegions = false;
         this.ownerPool = null;
         this.isRegion = false;
+        this.isEmpty = false;
     }
 
     upload() {
@@ -89,14 +90,15 @@ export class RegionTexture3D {
     update(data) {
         if (!this.baseTexture.useSubRegions) {
             this.baseTexture.update(data);
+            return;
         }
 
         this.allocated = true;
         if (!this.dirty) {
+            this.dirty = true;
             this.baseTexture.dirty = true;
             this.baseTexture.regionsToUpdate.push(this);
         }
-        this.dirty = true;
         this.data = data;
     }
 }
