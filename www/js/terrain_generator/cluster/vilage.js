@@ -330,6 +330,7 @@ class Farmland extends Building {
         // super.draw(cluster, chunk);
         this.drawBasement(cluster, chunk, 4);
         const building = this;
+        cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size.add(new Vector(0, 5, 0)), BLOCK.AIR);
         cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_TRUNK);
         let inner_size = building.size.clone().addSelf(new Vector(-2, -1, -2));
         let pos = building.coord.clone().addSelf(new Vector(1, 0, 1));
@@ -396,8 +397,25 @@ class WaterWell extends Building {
 // Building1
 class Building1 extends Building {
 
+    static MAX_SIZES = [7, 7, 7, 9];
+
     constructor(cluster, id, seed, coord, entrance, door_bottom, door_direction, size) {
-        Building.limitSize([7, 7, 7, 9], seed, coord, size, entrance, door_direction);
+        if(size.x > 11 && size.z > 11) {
+            // draw fence
+            const dx = coord.x - cluster.coord.x;
+            const dz = coord.z - cluster.coord.z;
+            let fence_point = new ClusterPoint(2, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id], 1, null, null, 1);
+            for(let i = 0; i < size.x; i++) {
+                for(let j = 0; j < size.z; j++) {
+                    if(i == 0 || j == 0 || i == size.x - 1 || j == size.z - 1) {
+                        const x = dx + i;
+                        const z = dz + j;
+                        cluster.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                    }
+                }
+            }
+        }
+        Building.limitSize(Building1.MAX_SIZES, seed, coord, size, entrance, door_direction);
         //
         const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);

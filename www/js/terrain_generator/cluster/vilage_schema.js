@@ -63,6 +63,7 @@ export class VilageSchema {
         rnd = rnd > .75 ? .75 : rnd;
         const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
         const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
+        const road_point = new ClusterPoint(1, this.cluster.road_block, 5, null);
         for(var process = 0; process <= (pre_part + post_part) + settings.road_ext_value; process++) {
             let xprint = x - (pre_part - process) * is_x_mod;
             let zprint = z - (pre_part - process) * is_z_mod;
@@ -73,7 +74,7 @@ export class VilageSchema {
             ) {
                 // fill road blocks
                 for(let road_step = 0; road_step <= settings.road_ext_value; road_step++) {
-                    this.map[(zprint + (road_step * is_x_mod)) * settings.size + (xprint + (road_step * is_z_mod))] = new ClusterPoint(1, this.cluster.road_block, 5, null);
+                    this.map[(zprint + (road_step * is_x_mod)) * settings.size + (xprint + (road_step * is_z_mod))] = road_point;
                 }
             }
         }

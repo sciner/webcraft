@@ -9,7 +9,7 @@ const temp_vec2             = new Vector(0, 0, 0);
 
 export class ClusterPoint {
 
-    constructor(height, block_id, margin, info, building) {
+    constructor(height, block_id, margin, info, building, y_shift) {
         this.height         = height;
         this.block_id       = block_id;
         this.margin         = margin;
@@ -17,6 +17,7 @@ export class ClusterPoint {
         this.building       = building;
         this.height_fixed   = false;
         this.hidden         = false;
+        this.y_shift        = y_shift | 0;
     }
 
 }
@@ -92,10 +93,11 @@ export class ClusterBase {
                     }
                     //
                     if(point.height > 0) {
+                        const is_array = Array.isArray(point.block_id);
                         for(let k = 0; k < point.height; k++) {
-                            let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1;
+                            let y = cell.value2 + k - CHUNK_Y_BOTTOM - 1 + point.y_shift;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
-                                this.setBlock(chunk, i, y, j, point.block_id, null);
+                                this.setBlock(chunk, i, y, j, is_array ? point.block_id[k] : point.block_id, null);
                             }
                         }
                     } else {
