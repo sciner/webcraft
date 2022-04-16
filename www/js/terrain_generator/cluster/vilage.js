@@ -164,7 +164,7 @@ export class ClusterVilage extends ClusterBase {
                         b.entrance.y        = cell.value2 - 1;
                         b.coord.y           = b.entrance.y + b.coord.y;
                         b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
-                        b.aabb.y_max        = b.aabb.y_min + b.size.y * 2; // + BUILDING_AABB_MARGIN * 5;
+                        b.aabb.y_max        = b.aabb.y_min + b.size.y * 3; // + BUILDING_AABB_MARGIN * 5;
                         b.door_bottom.y     = cell.value2;
                     }
                 }
