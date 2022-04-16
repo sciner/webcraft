@@ -48,6 +48,7 @@ export class WebGLTexture3D extends BaseTexture3D {
         gl.bindTexture(target, this.texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
+        this.dirty = false;
         if (this.useSubRegions) {
             this.uploadSubs();
         } else {

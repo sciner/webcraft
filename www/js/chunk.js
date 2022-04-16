@@ -155,13 +155,12 @@ export class Chunk {
 
         const cm = this.getChunkManager();
         if (!cm.lightPool) {
-            cm.lightPool = new CubeTexturePool({
+            cm.lightPool = new CubeTexturePool(render,{
                 defWidth: CHUNK_SIZE_X + 2,
                 defHeight: CHUNK_SIZE_Z + 2,
                 defDepth: (CHUNK_SIZE_Y + 2) * 2,
                 type: 'rgba8unorm',
                 filter: 'linear',
-                renderer: render
             });
         }
 

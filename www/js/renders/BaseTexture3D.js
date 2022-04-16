@@ -69,7 +69,6 @@ export class RegionTexture3D {
         this.height = height || baseTexture.height;
         this.depth = depth || baseTexture.depth;
         this.offset = offset;
-        this.size = size;
         this.type = type;
         this.data = data;
         this.allocated = false;
@@ -93,6 +92,7 @@ export class RegionTexture3D {
 
         this.allocated = true;
         if (!this.dirty) {
+            this.baseTexture.dirty = true;
             this.baseTexture.regionsToUpdate.push(this);
         }
         this.dirty = true;

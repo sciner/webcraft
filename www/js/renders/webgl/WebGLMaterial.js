@@ -71,7 +71,7 @@ export class WebGLMaterial extends BaseMaterial {
                 WebGLMaterial.lightState = base;
 
                 gl.uniform3f(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z);
-                gl.uniform3f(shader.u_lightSize, 1. / tex.width, 1. / tex.height, 1. / tex.depth);
+                gl.uniform4f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth, tex.depth / base.depth);
             }
             WebGLMaterial.lightRegionState = this.lightTex;
         }

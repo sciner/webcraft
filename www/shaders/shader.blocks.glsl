@@ -49,7 +49,7 @@
     uniform sampler2D u_texture;
     uniform lowp sampler3D u_lightTex;
     uniform vec3 u_lightOffset;
-    uniform vec3 u_lightSize;
+    uniform vec4 u_lightSize;
 
     uniform float u_mipmap;
     uniform float u_blockSize;
@@ -272,13 +272,13 @@
 
 #ifdef ao_light_pass
     // global illumination
-    vec3 lightCoord = (v_chunk_pos + 0.5 + u_lightOffset) * u_lightSize;
+    vec3 lightCoord = (v_chunk_pos + 0.5 + u_lightOffset) * u_lightSize.xyz;
     vec3 absNormal = abs(v_normal);
-    vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + u_lightOffset) * u_lightSize;
+    vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + u_lightOffset) * u_lightSize.xyz;
 
-    lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
+    // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     float caveSample = texture(u_lightTex, lightCoord).a;
-    float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
+    float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5 * u_lightSize.w)).a;
     float aoSample = 0.0;
 
     if (v_lightMode > 0.5) {

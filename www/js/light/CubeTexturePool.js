@@ -13,13 +13,14 @@ export class GridCubeTexture {
     init() {
         const { dims, context } = this;
         const to = this.textureOptions;
-        const baseTexture = this.baseTexture = new BaseTexture3D(context, {
+        const baseTexture = this.baseTexture = this.context.createTexture3D({
             width: dims.x * to.width,
             height: dims.x * to.height,
             depth: dims.x * to.depth,
             filter: to.filter,
             type: to.type
         });
+        baseTexture.useSubRegions = true;
 
         for (let i = 0; i < dims.x; i++)
             for (let j = 0; j < dims.y; j++)
@@ -75,6 +76,7 @@ export class CubeTexturePool {
             const tex = this.findFreeRegion();
             tex.ownerPool = this;
             this.fromPool.push(tex);
+            return tex;
         }
     }
 
