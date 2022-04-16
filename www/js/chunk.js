@@ -173,8 +173,6 @@ export class Chunk {
                 filter: 'linear',
                 data: this.lightData
             })
-            cm.lightmap_bytes += lightTex.depth * lightTex.width * lightTex.height * 4;
-            cm.lightmap_count ++;
         }
 
         return this.lightTex;
@@ -254,8 +252,6 @@ export class Chunk {
         }
         const { lightTex } = this;
         if (lightTex) {
-            chunkManager.lightmap_bytes -= lightTex.depth * lightTex.width * lightTex.height * 4;
-            chunkManager.lightmap_count--;
             chunkManager.lightPool.dealloc(lightTex);
         }
         this.lightTex = null;

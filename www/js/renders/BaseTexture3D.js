@@ -83,6 +83,7 @@ export class RegionTexture3D {
     dispose() {
         this.allocated = false;
         this.dirty = false;
+        this.data = null;
     }
 
     update(data) {
@@ -96,8 +97,6 @@ export class RegionTexture3D {
             this.baseTexture.regionsToUpdate.push(this);
         }
         this.dirty = true;
-        if (data) {
-            this.data = data;
-        }
+        this.data = data;
     }
 }

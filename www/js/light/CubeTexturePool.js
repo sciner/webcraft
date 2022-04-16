@@ -8,6 +8,7 @@ export class GridCubeTexture {
         this.freeRegions = []
         this.allocatedRegions = []
         this.context = context;
+        this.baseTexture = null;
     }
 
     init() {
@@ -61,6 +62,9 @@ export class CubeTexturePool {
         this.fromPool = []
         this.pools = []
         this.currentPoolIndex = 0
+
+        this.totalBytes = 0;
+        this.totalRegions = 0;
     }
 
     alloc({width, height, depth, type, filter, data}) {
@@ -71,11 +75,13 @@ export class CubeTexturePool {
                 {width, height, depth, type, filter, data})
             tex.ownerPool = this;
             this.singles.push(tex);
+            this.totalRegions++;
             return tex;
         } else {
             const tex = this.findFreeRegion();
             tex.ownerPool = this;
             this.fromPool.push(tex);
+            this.totalRegions++;
             return tex;
         }
     }
@@ -107,6 +113,8 @@ export class CubeTexturePool {
                 }
             )
             newCube.init();
+            const base = newCube.baseTexture;
+            this.totalBytes += base.width * base.height * base.depth;
             cur = pools.length;
             pools.push(newCube);
         }
@@ -142,12 +150,14 @@ export class CubeTexturePool {
                 return;
             }
             found.freeRegions.push(tex);
+            this.totalRegions--;
             tex.dispose();
         } else {
             // singles
             const ind = singles.indexOf(tex);
             if (ind >= 0) {
                 singles.splice(ind, 1);
+                this.totalRegions--;
                 tex.destroy();
             }
         }

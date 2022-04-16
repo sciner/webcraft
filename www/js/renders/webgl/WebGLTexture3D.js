@@ -89,6 +89,7 @@ export class WebGLTexture3D extends BaseTexture3D {
             if (!region.dirty) {
                 continue;
             }
+            region.dirty = false;
             gl.texSubImage3D(target, 0, region.offset.x, region.offset.y, region.offset.z,
                 region.width, region.height, region.depth,
                 gl[FORMATS[this.type]], gl[TYPES[this.type]], region.data);
