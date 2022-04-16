@@ -13,9 +13,6 @@ const ROAD_DAMAGE_FACTOR    = 0.05;
 const USE_ROAD_AS_GANGWAY   = .1;
 const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
-const building_size_x       = new Vector(7, 5, 5);
-const building_size_z       = new Vector(5, 5, 7);
-
 //
 export class ClusterVilage extends ClusterBase {
 
@@ -30,8 +27,16 @@ export class ClusterVilage extends ClusterBase {
             this.road_block         = this.flat ? 12 : 468;
             this.basement_block     = this.flat ? 546 : 8;
             //
+            let t = performance.now();
+            this.timers = {
+                generate: 0,
+                fill_blocks: 0,
+                add_buildings: 0,
+                fill_blocks_count: 0
+            };
             let vs = new VilageSchema(this);
             let resp = vs.generate(this.id);
+            this.timers.generate = performance.now() - t; t = performance.now();
             this.mask = resp.mask;
             for(let house of resp.houses.values()) {
                 const size = new Vector(house.width, 5, house.depth);
@@ -39,6 +44,8 @@ export class ClusterVilage extends ClusterBase {
                 const door_bottom = new Vector(house.door.x, Infinity, house.door.z);
                 this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, door_bottom, house.door.direction);
             }
+            this.timers.add_buildings = performance.now() - t; t = performance.now();
+            console.log(this.addr.toHash(), this.timers)
         }
     }
 
@@ -130,8 +137,9 @@ export class ClusterVilage extends ClusterBase {
         if(this.is_empty) {
             return false;
         }
+        let t = performance.now();
         // each all buildings
-        for(let [_, b] of this.buildings.entries()) {
+        for(let b of this.buildings.values()) {
             if(b.entrance.y == Infinity) {
                 b.aabb.y_min = chunk.coord.y - BUILDING_AABB_MARGIN;
                 b.aabb.y_max = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 2;
@@ -156,7 +164,7 @@ export class ClusterVilage extends ClusterBase {
                         b.entrance.y        = cell.value2 - 1;
                         b.coord.y           = b.entrance.y + b.coord.y;
                         b.aabb.y_min        = b.entrance.y - BUILDING_AABB_MARGIN;
-                        b.aabb.y_max        = b.aabb.y_min + b.size.y + BUILDING_AABB_MARGIN * 5;
+                        b.aabb.y_max        = b.aabb.y_min + b.size.y * 2; // + BUILDING_AABB_MARGIN * 5;
                         b.door_bottom.y     = cell.value2;
                     }
                 }
@@ -167,7 +175,11 @@ export class ClusterVilage extends ClusterBase {
                 }
             }
         }
-        super.fillBlocks(maps, chunk, map);
+        super.fillBlocks(chunk, map);
+        //
+        this.timers.fill_blocks += performance.now() - t;
+        this.timers.fill_blocks_count++;
+        // console.log(this.addr.toHash(), this.timers)
     }
 
     // Draw part of building on map
@@ -175,9 +187,13 @@ export class ClusterVilage extends ClusterBase {
         const START_X = chunk.coord.x - this.coord.x;
         const START_Z = chunk.coord.z - this.coord.z;
         for(let i = 0; i < building.size.x; i++) {
+            let bx = building.coord.x + i;
+            if(bx < chunk.coord.x || bx > chunk.coord.x + chunk.size.x) continue;
             for(let j = 0; j < building.size.z; j++) {
-                const x = building.coord.x - chunk.coord.x + i;
-                const z = building.coord.z - chunk.coord.z + j;
+                let bz = building.coord.z + j;
+                if(bz < chunk.coord.z || bz > chunk.coord.z + chunk.size.z) continue;
+                const x = bx - chunk.coord.x;
+                const z = bz - chunk.coord.z;
                 // fix basement height
                 const pz = START_Z + z;
                 const px = START_X + x;
@@ -233,14 +249,8 @@ class Building {
 
     //
     draw(cluster, chunk) {
-        const building = this;
-        //
-        // const bx = building.coord.x - chunk.coord.x;
-        // const by = building.coord.y - chunk.coord.y;
-        // const bz = building.coord.z - chunk.coord.z;
         // 4 walls
-        // cluster.draw4Walls(chunk, building.coord, building.size, building.materials.wall);
-        cluster.drawQuboid(chunk, building.coord, building.size, BLOCK.TEST);
+        cluster.drawQuboid(chunk, this.coord, this.size, BLOCK.TEST);
     }
 
     drawBasement(cluster, chunk, height) {
@@ -419,9 +429,6 @@ class Building1 extends Building {
         const dir       = building.door_direction;
         const coord     = building.coord;
         const mat       = building.materials;
-
-        // if(dir != DIRECTION.NORTH && dir != DIRECTION.SOUTH) return;
-        // if(dir != DIRECTION.WEST && dir != DIRECTION.EAST) return;
 
         let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
 

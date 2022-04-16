@@ -63,7 +63,7 @@ export class ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(maps, chunk, map) {
+    fillBlocks(chunk, map) {
         if(this.is_empty) {
             return false;
         }

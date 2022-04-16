@@ -57,7 +57,7 @@ export class ClusterPyramid extends ClusterBase {
         if(this.is_empty) {
             return false;
         }
-        super.fillBlocks(maps, chunk, map);
+        super.fillBlocks(chunk, map);
     }
 
 }
