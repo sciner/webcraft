@@ -34,7 +34,7 @@ export class ClusterVilage extends ClusterBase {
                 add_buildings: 0,
                 fill_blocks_count: 0
             };
-            let vs = new VilageSchema(this);
+            let vs = this.schema = new VilageSchema(this);
             let resp = vs.generate(this.id);
             this.timers.generate = performance.now() - t; t = performance.now();
             this.mask = resp.mask;
