@@ -3,14 +3,14 @@ import {BLOCK} from '../../js/blocks.js';
 
 const blocks = [];
 blocks.push({id: 2, name: 'GRASS_DIRT', color: '#15810e'});
-blocks.push({id: 8, name: 'COBBLESTONE', color: '#555'});
-blocks.push({id: 85, name: 'OAK_FENCE', color: '#725c39'});
-blocks.push({id: 468, name: 'DIRT_PATH', color: '#746645'});
-blocks.push({id: 98, name: 'STONE_BRICK', color: '#515151'});
 blocks.push({id: 7, name: 'OAK_PLANK', color: '#725c39'});
+blocks.push({id: 8, name: 'COBBLESTONE', color: '#555'});
 blocks.push({id: 12, name: 'OAK_GRAVEL', color: '#535b64'});
-blocks.push({id: 546, name: 'POLISHED_ANDESITE', color: '#aaa'});
+blocks.push({id: 85, name: 'OAK_FENCE', color: '#725c39'});
+blocks.push({id: 98, name: 'STONE_BRICK', color: '#515151'});
 blocks.push({id: 139, name: 'COBBLESTONE_WALL', color: '#555'});
+blocks.push({id: 468, name: 'DIRT_PATH', color: '#746645'});
+blocks.push({id: 546, name: 'POLISHED_ANDESITE', color: '#aaa'});
 
 const colors = new Map();
 for(let b of blocks) {
@@ -67,13 +67,15 @@ class Sandbox {
             }
         }
         //
-        ctx.font = '12px Arial';
+        ctx.font = '9px Arial';
         ctx.textBaseline = 'top';
-        for(let b of this.cluster.schema.house_list.values()) {
+        const cx = this.cluster.coord.x;
+        const cz = this.cluster.coord.z;
+        for(let b of this.cluster.buildings.values()) {
             ctx.fillStyle = "#0000ff55";
-            ctx.fillRect(b.x * scale, b.z * scale, b.width * scale, b.height * scale);
-            // ctx.fillStyle = "#fff";
-            // ctx.fillText(`${b.x}x${b.z}`, (b.x + 1) * scale, (b.z + 1) * scale);
+            ctx.fillRect((b.coord.x - cx) * scale, (b.coord.z - cz) * scale, b.width * scale, b.height * scale);
+            ctx.fillStyle = "#fff";
+            ctx.fillText(`${b.size.x}x${b.size.z}`, (b.coord.x - cx) * scale + 1, (b.coord.z - cz) * scale + 1);
         }
     }
 

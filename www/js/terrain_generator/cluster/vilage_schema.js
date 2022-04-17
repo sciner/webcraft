@@ -8,9 +8,10 @@ globalThis.DIR_VER = 1;
 
 export class VilageSchema {
     
-    constructor(cluster) {
+    constructor(cluster, settings) {
         this.cluster = cluster;
         this.fill_house_map = false;
+        this.fill_house_door_path = false;
         this.settings = {
             size:               128,
             road_dist:          2,
@@ -26,7 +27,7 @@ export class VilageSchema {
 
     generate(seed) {
         this.randoms            = new alea(seed);
-        this.map                = new Array(this.settings.size * this.settings.size).fill(0);
+        this.mask               = new Array(this.settings.size * this.settings.size).fill(0);
         this.cell_map           = [];
         this.cb_cell_map        = [];
         this.complex_buildings  = new Map();
@@ -35,21 +36,21 @@ export class VilageSchema {
         const center_z_corr = Math.floor(this.randoms.double() * 20 - 10);
         this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_HOR, this.settings.init_depth);
         this.push_branch((this.settings.size / 2) + center_x_corr, (this.settings.size / 2) + center_z_corr, DIR_VER, this.settings.init_depth);
-        for(let [cb_key, cb_building] of this.complex_buildings.entries()) {
-            // Если не пересекается с существующими complex_building, то отправляем на карту
+        for(let cb_building of this.complex_buildings.values()) {
+            // if it does not intersect with existing complex_building, then we send it to the map
             let house = this.put_building_complex(cb_building.x, cb_building.z, cb_building.cell_count_x, cb_building.cell_count_z, cb_building.path_dir);
             if(house !== null) {
                 this.house_list.set(cb_building.z * this.settings.size + cb_building.x, house);
             }
         }
         return {
-            mask: this.map,
+            mask: this.mask,
             houses: this.house_list
         }
     }
 
     push_branch(x, z, axe, depth) {
-        // Один рандом на ветку
+        // One random per branch
         let branch_rnd = this.randoms.double();
         const settings = this.settings;
         let ln = (depth + 1) * settings.quant + 25;
@@ -71,7 +72,7 @@ export class VilageSchema {
             ) {
                 // fill road blocks
                 for(let road_step = 0; road_step <= settings.road_ext_value; road_step++) {
-                    this.map[(zprint + (road_step * is_x_mod)) * settings.size + (xprint + (road_step * is_z_mod))] = road_point;
+                    this.mask[(zprint + (road_step * is_x_mod)) * settings.size + (xprint + (road_step * is_z_mod))] = road_point;
                 }
             }
         }
@@ -107,7 +108,7 @@ export class VilageSchema {
                             dot_pos_x += side_mod > 0 ? settings.road_ext_value : settings.quant;
                             dot_pos_z += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
                         }
-                        // Добавляем house в реестр по координате
+                        // Add house to the registry by coordinate
                         house.door = this.putPathToDoor(dot_pos_x, dot_pos_z, axe === DIR_VER ? side_mod : 0, axe === DIR_HOR ? side_mod : 0);
                         this.house_list.set(house_cell_z * settings.size + house_cell_x, house);
                     }
@@ -146,8 +147,10 @@ export class VilageSchema {
     // Make road to door and return door object
     putPathToDoor(x, z, x_dir, z_dir) {
         let xprint = x, zprint = z, dest = this.settings.road_dist;
-        for (var process = 0; process < dest; process++) {
-            this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block, 1, this.settings.road_margin);
+        for(var process = 0; process < dest; process++) {
+            if(this.fill_house_door_path) {
+                this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block, 1, this.settings.road_margin);
+            }
             xprint += x_dir;
             zprint += z_dir;
         }
@@ -171,7 +174,7 @@ export class VilageSchema {
             return null;
         }
         this.cell_map[key] = 1;
-        // Отступы от дорог
+        // Road margins
         x += settings.road_dist;
         z += settings.road_dist;
         let x_size = settings.quant - settings.road_dist * 2 - settings.road_ext_value;
@@ -189,11 +192,11 @@ export class VilageSchema {
                 depth:  z_size + 1,
                 door:   null
             };
-            // Отрисовка площадки под дом
+            // Drawing house perimeter
             if(this.fill_house_map) {
                 for(var i = 0; i < house.width; i++) {
                     for(var j = 0; j < house.depth; j++) {
-                        this.map[(house.z + j) * settings.size + (house.x + i)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin, null);
+                        this.mask[(house.z + j) * settings.size + (house.x + i)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin, null);
                     }
                 }
             }
@@ -210,7 +213,7 @@ export class VilageSchema {
             && z >= settings.margin
             && z < (settings.size - settings.margin)
         ) {
-            this.map[z * settings.size + x] = new ClusterPoint(height, block_id, margin ? margin: 5, null);
+            this.mask[z * settings.size + x] = new ClusterPoint(height, block_id, margin ? margin: 5, null);
             return true;
         } else {
             return false;
@@ -254,14 +257,14 @@ export class VilageSchema {
             // Зачистка территории под сложный дом
             for (let i = settings.road_ext_value + 1; i < cell_count_x * settings.quant; i++) {
                 for (let j = settings.road_ext_value + 1; j < cell_count_z * settings.quant; j++) {
-                    this.map[(z_init + j) * settings.size + (x_init + i)] = null;
+                    this.mask[(z_init + j) * settings.size + (x_init + i)] = null;
                 }
             }
             // Отрисовка площадки под дом на карте
             if(this.fill_house_map) {
                 for(let i = 0; i < x_size; i++) {
                     for(let j = 0; j < z_size; j++) {
-                        this.map[(z + j) * settings.size + (x + i)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin);
+                        this.mask[(z + j) * settings.size + (x + i)] = new ClusterPoint(1, this.cluster.basement_block, this.settings.house_margin);
                     }
                 }
             }

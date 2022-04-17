@@ -14,6 +14,17 @@ const USE_ROAD_AS_GANGWAY   = .1;
 const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
 //
+const entranceAhead = new Vector(0, 0, 0);
+const getAheadMove = (dir) => {
+    entranceAhead.set(0, 0, 0);
+    if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
+    else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
+    else if(dir == DIRECTION.EAST) {entranceAhead.x++;}
+    else {entranceAhead.x--;}
+    return entranceAhead;
+}
+
+//
 export class ClusterVilage extends ClusterBase {
 
     constructor(addr) {
@@ -45,7 +56,6 @@ export class ClusterVilage extends ClusterBase {
                 this.addBuilding(this.randoms.double(), house.x, house.z, size, entrance_pos, door_bottom, house.door.direction);
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
-            console.log(this.addr.toHash(), this.timers)
         }
     }
 
@@ -115,9 +125,7 @@ export class ClusterVilage extends ClusterBase {
         }
         //
         this.buildings.set(building.coord, building);
-        // 1. entrance mask
-        this.mask[entrance.z * CLUSTER_SIZE.x + entrance.x] = new ClusterPoint(1, entrance_block, 1, null);
-        // 2. building mask
+        // 1. building mask
         dx = building.coord.x - this.coord.x;
         dz = building.coord.z - this.coord.z;
         for(let i = 0; i < building.size.x; i++) {
@@ -128,6 +136,13 @@ export class ClusterVilage extends ClusterBase {
                 this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(building.coord.y, this.basement_block, 3, null, building);
             }
         }
+        // 2. entrance mask
+        if(building.draw_entrance) {
+            let ahead = getAheadMove(building.door_direction);
+            const ex = building.entrance.x - this.coord.x + ahead.x;
+            const ez = building.entrance.z - this.coord.z + ahead.z;
+            this.mask[ez * CLUSTER_SIZE.x + ex] = new ClusterPoint(1, this.basement_block, 3, null, null);
+        }
         return true;
     }
 
@@ -137,16 +152,6 @@ export class ClusterVilage extends ClusterBase {
             return false;
         }
         let t = performance.now();
-        //
-        const entranceAhead = new Vector(0, 0, 0);
-        const getAheadMove = (dir) => {
-            entranceAhead.set(0, 0, 0);
-            if(dir == DIRECTION.NORTH) {entranceAhead.z++;}
-            else if(dir == DIRECTION.SOUTH) {entranceAhead.z--;}
-            else if(dir == DIRECTION.EAST) {entranceAhead.x++;}
-            else {entranceAhead.x--;}
-            return entranceAhead;
-        }
         // each all buildings
         for(let b of this.buildings.values()) {
             if(b.entrance.y == Infinity) {
@@ -262,6 +267,7 @@ class Building {
         this.door_direction = door_direction;
         this.size           = size;
         this.materials      = null;
+        this.draw_entrance  = true;
     }
 
     //
@@ -279,7 +285,9 @@ class Building {
     }
 
     // Limit building size
-    static limitSize(max_sizes, seed, coord, size, entrance, door_direction) {
+    static limitSize(max_sizes, seed, coord, size, entrance, door_bottom, door_direction) {
+        const orig_coord = coord.clone();
+        const orig_size = size.clone();
         const dir = door_direction;
         let sign = (dir == DIRECTION.NORTH || dir == DIRECTION.EAST)  ? -1 : 1;
         const max_size = {
@@ -312,6 +320,32 @@ class Building {
         } else {
             coord.z = entrance.z - (Math.floor(size.z / 2) - 1) * sign;
         }
+        // Fix exit ouside first area 
+        if(door_direction == DIRECTION.NORTH || door_direction == DIRECTION.SOUTH) {
+            const shift_start = orig_coord.x - coord.x;
+            const shift_end = (coord.x + size.x) - (orig_coord.x + orig_size.x);
+            if(shift_start < 0) {
+                coord.x += shift_start;
+                entrance.x += shift_start;
+                door_bottom.x += shift_start;
+            } else if(shift_end < 0) {
+                coord.x -= shift_end;
+                entrance.x -= shift_end;
+                door_bottom.x -= shift_end;
+            }
+        } else {
+            const shift_start = orig_coord.z - coord.z;
+            const shift_end = (coord.z + size.z) - (orig_coord.z + orig_size.z);
+            if(shift_start < 0) {
+                coord.z += shift_start;
+                entrance.z += shift_start;
+                door_bottom.z += shift_start;
+            } else if(shift_end < 0) {
+                coord.z -= shift_end;
+                entrance.z -= shift_end;
+                door_bottom.z -= shift_end;
+            }
+        }
     }
 
 }
@@ -320,11 +354,12 @@ class Building {
 class Farmland extends Building {
 
     constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
-        Building.limitSize([3, 5, 7, 7, 9, 9, 9, 11, 11, 11, 15, 15, 17, 19], seed, coord, size, entrance, door_direction);
+        Building.limitSize([3, 5, 7, 7, 9, 9, 9, 11, 11, 11, 15, 15, 17, 19], seed, coord, size, entrance, door_bottom, door_direction);
         //
         super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         //
         this.seeds = this.randoms.double() < .5 ? BLOCK.CARROT_SEEDS : BLOCK.WHEAT_SEEDS;
+        this.draw_entrance = false;
     }
 
     draw(cluster, chunk) {
@@ -348,8 +383,9 @@ class WaterWell extends Building {
     constructor(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         coord.y = -14;
         size.y = 21;
-        Building.limitSize([3], seed, coord, size, entrance, door_direction);
+        Building.limitSize([3], seed, coord, size, entrance, door_bottom, door_direction);
         super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
+        this.draw_entrance = false;
     }
 
     //
@@ -416,7 +452,7 @@ class Building1 extends Building {
                 }
             }
         }
-        Building.limitSize(Building1.MAX_SIZES, seed, coord, size, entrance, door_direction);
+        Building.limitSize(Building1.MAX_SIZES, seed, coord, size, entrance, door_bottom, door_direction);
         //
         const aabb = new AABB().set(0, 0, 0, size.x, size.y, size.z).translate(coord.x, coord.y, coord.z).pad(BUILDING_AABB_MARGIN);
         super(cluster, id, seed, coord, aabb, entrance, door_bottom, door_direction, size);
