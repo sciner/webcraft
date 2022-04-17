@@ -67,10 +67,9 @@ export class ClusterVilage extends ClusterBase {
             return false;
         }
         let building = null;
-        let entrance_block = this.basement_block;
         if(!this.waterwell || seed < .12) {
-            this.waterwell = true;
             // Water well
+            this.waterwell = true;
             building = new WaterWell(
                 this,
                 coord.toHash(),
@@ -83,7 +82,6 @@ export class ClusterVilage extends ClusterBase {
                 size
             );
             //
-            entrance_block = this.road_block;
             dx = building.coord.x - this.coord.x;
             dz = building.coord.z - this.coord.z;
             for(let i = 0; i < building.size.x + 2; i++) {
@@ -94,8 +92,9 @@ export class ClusterVilage extends ClusterBase {
                     this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, this.road_block, 1, null, building);
                 }
             }
-        } else if(seed < .285) {
+        } else if(!this.farmland || seed < .285) {
             // Farmland
+            this.farmland = true;
             size.y = 2;
             //
             building = new Farmland(
@@ -109,7 +108,6 @@ export class ClusterVilage extends ClusterBase {
                 door_direction,
                 size
             );
-            entrance_block = this.road_block;
         } else {
             // Building #1
             building = new Building1(
