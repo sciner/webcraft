@@ -58,7 +58,8 @@ export class ClusterVilage extends ClusterBase {
         }
         let building = null;
         let entrance_block = this.basement_block;
-        if(seed < .12) {
+        if(!this.waterwell || seed < .12) {
+            this.waterwell = true;
             // Water well
             building = new WaterWell(
                 this,

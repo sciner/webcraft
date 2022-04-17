@@ -2,9 +2,15 @@ import {BLOCK} from '../../js/blocks.js';
 // await BLOCK.init({texture_pack: 'base'});
 
 const blocks = [];
-blocks.push({id: 2, name: 'COBBLESTONE', color: '#c0c0c0ff'});
-blocks.push({id: 8, name: 'COBBLESTONE_WALL', color: '#a0a0a0ff'});
-blocks.push({id: 468, name: 'OAK_FENCE', color: '#a39565ff'});
+blocks.push({id: 2, name: 'GRASS_DIRT', color: '#15810e'});
+blocks.push({id: 8, name: 'COBBLESTONE', color: '#555'});
+blocks.push({id: 85, name: 'OAK_FENCE', color: '#725c39'});
+blocks.push({id: 468, name: 'DIRT_PATH', color: '#746645'});
+blocks.push({id: 98, name: 'STONE_BRICK', color: '#515151'});
+blocks.push({id: 7, name: 'OAK_PLANK', color: '#725c39'});
+blocks.push({id: 12, name: 'OAK_GRAVEL', color: '#535b64'});
+blocks.push({id: 546, name: 'POLISHED_ANDESITE', color: '#aaa'});
+blocks.push({id: 139, name: 'COBBLESTONE_WALL', color: '#555'});
 
 const colors = new Map();
 for(let b of blocks) {
@@ -20,9 +26,18 @@ let ctx = cnv.getContext('2d', { alpha: false });
 
 class Sandbox {
 
-    generate() {
-        const addr = new Vector(180, 0, 180);
-        this.cluster = new ClusterVilage(addr.clone());
+    generate(vec) {
+        while(true) {
+            let addr = vec ? vec : new Vector((Math.random() * 999) | 0, (Math.random() * 999) | 0);
+            let tm = performance.now();
+            this.cluster = new ClusterVilage(addr);
+            if(this.cluster.is_empty) {
+                vec = null;
+            } else {
+                document.getElementById('timer').innerHTML = (Math.round((performance.now() - tm) * 1000) / 1000) + ' ms';
+                break;
+            }
+        }
         this.settings = this.cluster.schema.settings;
         this.draw();
     }
@@ -30,7 +45,7 @@ class Sandbox {
     // Распечатка канваса
     draw() {
         const scale = 4;
-        ctx.fillStyle = "#22aa00";
+        ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
         for(var x = 0; x < this.settings.size; x++) {
             for(var z = 0; z < this.settings.size; z++) {
@@ -64,5 +79,5 @@ class Sandbox {
 
 }
 
-const sandbox = new Sandbox();
-sandbox.generate();
+const sandbox = globalThis.sandbox = new Sandbox();
+sandbox.generate(new Vector(180, 0, 180));
