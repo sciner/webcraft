@@ -57,18 +57,23 @@ export class WebGLTexture3D extends BaseTexture3D {
                 gl.texImage3D(target, 0, gl[FORMATS[this.type]],
                     this.width, this.height, this.depth,
                     0, gl[FORMATS[this.type]], gl[TYPES[this.type]], data);
+                this.updateStyle();
             } else {
                 gl.texSubImage3D(target, 0, 0, 0, 0,
                     this.width, this.height, this.depth,
                     gl[FORMATS[this.type]], gl[TYPES[this.type]], data);
             }
         }
+        super.upload();
+    }
 
+    updateStyle() {
+        const { gl } = this.context;
+        const target = gl.TEXTURE_3D;
         gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, gl[TEXTURE_FILTER_GL[this.minFilter]] || gl.NEAREST);
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, gl[TEXTURE_FILTER_GL[this.magFilter]] || gl.NEAREST);
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        super.upload();
     }
 
     uploadSubs() {
@@ -78,10 +83,11 @@ export class WebGLTexture3D extends BaseTexture3D {
         const target = gl.TEXTURE_3D;
         const sz = this.width * this.height * this.depth * 4;
         if (this.prevLength !== sz) {
+            this.prevLength = sz;
             gl.texImage3D(target, 0, gl[FORMATS[this.type]],
                 this.width, this.height, this.depth,
                 0, gl[FORMATS[this.type]], gl[TYPES[this.type]], new Uint8Array(sz));
-            this.prevLength = sz;
+            this.updateStyle();
         }
 
         for (let i=0;i<this.regionsToUpdate.length;i++) {
