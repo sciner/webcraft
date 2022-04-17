@@ -316,7 +316,7 @@ export class MineGenerator {
      * @param {alea} random ссылка на модуль рандома
      * @param {float} chance вероятность замены
      */
-    genBoxAir(chunk, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, random = null, chance = null, block_rotate = null) {
+    genBoxAir(chunk, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, random = null, chance = null, block_rotate) {
         for (let x = minX; x <= maxX; ++x) {
             for (let y = minY; y <= maxY; ++y) {
                 for (let z = minZ; z <= maxZ; ++z) {

@@ -187,7 +187,6 @@ export class Chunk {
         } else {
             render.drawMesh(v.buffer, texMat, this.coord);
         }
-        render.drawMesh(v.buffer, texMat, this.coord);
         return true;
     }
 
