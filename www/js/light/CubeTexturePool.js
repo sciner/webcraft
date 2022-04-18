@@ -80,6 +80,9 @@ export class CubeTexturePool {
         } else {
             const tex = this.findFreeRegion();
             tex.ownerPool = this;
+            if (data) {
+                tex.update(data);
+            }
             this.fromPool.push(tex);
             this.totalRegions++;
             return tex;
