@@ -1,6 +1,12 @@
 import {impl as alea} from '../../../vendors/alea.js';
 import {ClusterPoint} from './base.js';
-import {DIRECTION} from "../../helpers.js";
+import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
+
+let randoms = new Array(1024);
+let a = new alea('random_road_damage');
+for(let i = 0; i < randoms.length; i++) {
+    randoms[i] = a.double();
+}
 
 // Dev sandbox
 globalThis.DIR_HOR = 0;
@@ -8,26 +14,32 @@ globalThis.DIR_VER = 1;
 
 export class VilageSchema {
     
-    constructor(cluster, settings) {
+    constructor(cluster, settings = {}) {
         this.cluster = cluster;
         this.fill_house_map = false;
         this.fill_house_door_path = false;
+        if(!settings) {
+            settings = {};
+        }
         this.settings = {
             size:               128,
             road_dist:          2,
             margin:             8,
-            quant:              11,
+            quant:              12,
             init_depth:         2,
             road_margin:        1,
             house_margin:       5,
-            road_ext_value:     1, // Это значение расширения дороги, 0 = один пиксель
-            house_intencity:    0.2
+            road_ext_value:     2, // Это значение расширения дороги, 0 = один пиксель
+            house_intencity:    0.2,
+            road_damage_factor: 0,
+            ...settings
         };
     }
 
     generate(seed) {
         this.randoms            = new alea(seed);
-        this.mask               = new Array(this.settings.size * this.settings.size).fill(0);
+        this.crossroads         = new VectorCollector();
+        this.mask               = new Array(this.settings.size * this.settings.size);
         this.cell_map           = [];
         this.cb_cell_map        = [];
         this.complex_buildings  = new Map();
@@ -43,25 +55,69 @@ export class VilageSchema {
                 this.house_list.set(cb_building.z * this.settings.size + cb_building.x, house);
             }
         }
+        //
+        const light_point = new ClusterPoint(1, 69, 3, null);
+        for(let [vec, cr] of this.crossroads.entries()) {
+            if(cr.cnt > 1) {
+                if(this.fill_house_map) {
+                    this.mask[vec.z * this.settings.size + vec.x] = light_point;
+                }
+                let house = {
+                    x:          vec.x,
+                    z:          vec.z,
+                    width:      1,
+                    depth:      1,
+                    crossroad:  true,
+                    door:       {x: vec.x, z: vec.z, direction: DIRECTION.NORTH}
+                };
+                this.house_list.set(vec.z * this.settings.size + vec.x, house);
+            }
+        }
+        //
         return {
             mask: this.mask,
             houses: this.house_list
         }
     }
 
-    push_branch(x, z, axe, depth) {
+    // Add crossroad point
+    addCrossRoad(x, z) {
+        let vec = new Vector(x, 0, z);
+        let cr = this.crossroads.get(vec);
+        if(cr) {
+            cr.cnt++;
+            return;
+        }
+        this.crossroads.set(vec, {cnt: 1});
+    } 
+
+    //
+    isDamagedRoad() {
+        if(!this.settings.road_damage_factor) {
+            return false;
+        }
+        if(!this.damage_road_index) {
+            this.damage_road_index = 0;
+        }
+        const r = randoms[this.damage_road_index++ % randoms.length];
+        return r <= this.settings.road_damage_factor;
+    }
+
+    push_branch(x, z, axis, depth) {
         // One random per branch
         let branch_rnd = this.randoms.double();
         const settings = this.settings;
         let ln = (depth + 1) * settings.quant + 25;
-        const is_x_mod = axe === DIR_HOR ? 1 : 0;
-        const is_z_mod = axe === DIR_VER ? 1 : 0;
+        const is_x_mod = axis === DIR_HOR ? 1 : 0;
+        const is_z_mod = axis === DIR_VER ? 1 : 0;
         var rnd = branch_rnd;
         rnd = rnd > .25 ? rnd : .25;
         rnd = rnd > .75 ? .75 : rnd;
         const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
         const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
         const road_point = new ClusterPoint(1, this.cluster.road_block, 5, null);
+        this.addCrossRoad(x - (pre_part) * is_x_mod + 1, z - (pre_part) * is_z_mod + 1);
+        this.addCrossRoad(x - (pre_part - post_part) * is_x_mod + 1, z - (pre_part - post_part) * is_z_mod + 1);
         for(var process = 0; process <= (pre_part + post_part) + settings.road_ext_value; process++) {
             let xprint = x - (pre_part - process) * is_x_mod;
             let zprint = z - (pre_part - process) * is_z_mod;
@@ -72,7 +128,12 @@ export class VilageSchema {
             ) {
                 // fill road blocks
                 for(let road_step = 0; road_step <= settings.road_ext_value; road_step++) {
-                    this.mask[(zprint + (road_step * is_x_mod)) * settings.size + (xprint + (road_step * is_z_mod))] = road_point;
+                    if(this.isDamagedRoad()) {
+                        continue;
+                    }
+                    const dx = (xprint + (road_step * is_z_mod));
+                    const dz = (zprint + (road_step * is_x_mod));
+                    this.mask[dz * settings.size + dx] = road_point;
                 }
             }
         }
@@ -89,7 +150,7 @@ export class VilageSchema {
                 let house_cell_x = x + (sign * settings.quant * i - q_mod) * is_x_mod;
                 let house_cell_z = z + (sign * settings.quant * i - q_mod) * is_z_mod;
                 if(side_mod < 0) {
-                    if(axe === DIR_HOR) {
+                    if(axis === DIR_HOR) {
                         house_cell_z -= settings.quant;
                     } else {
                         house_cell_x -= settings.quant;
@@ -101,7 +162,7 @@ export class VilageSchema {
                     if (house !== null) {
                         // Калькуляция точки начала и направления. Тропа всегда идет от дороги к двери
                         let dot_pos_x = house_cell_x, dot_pos_z = house_cell_z;
-                        if (axe === DIR_HOR) {
+                        if (axis === DIR_HOR) {
                             dot_pos_x += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
                             dot_pos_z += side_mod > 0 ? settings.road_ext_value : settings.quant;
                         } else {
@@ -109,7 +170,7 @@ export class VilageSchema {
                             dot_pos_z += Math.round(settings.quant / 2 + settings.road_ext_value / 2);
                         }
                         // Add house to the registry by coordinate
-                        house.door = this.putPathToDoor(dot_pos_x, dot_pos_z, axe === DIR_VER ? side_mod : 0, axe === DIR_HOR ? side_mod : 0);
+                        house.door = this.putPathToDoor(dot_pos_x, dot_pos_z, axis === DIR_VER ? side_mod : 0, axis === DIR_HOR ? side_mod : 0);
                         this.house_list.set(house_cell_z * settings.size + house_cell_x, house);
                     }
                 }
@@ -124,12 +185,12 @@ export class VilageSchema {
                     z: z,
                     cell_count_x: is_x_mod ? 2 : branch_rnd > cb_random_param ? 2 : 1,
                     cell_count_z: is_z_mod ? 2 : branch_rnd < (1 - cb_random_param) ? 2 : 1,
-                    path_dir: axe === DIR_HOR ? 'up' : 'left'
+                    path_dir: axis === DIR_HOR ? 'up' : 'left'
                 });
             }
         }
         // Installation of houses along the road line
-        const next_dir = axe === DIR_VER ? DIR_HOR : DIR_VER;
+        const next_dir = axis === DIR_VER ? DIR_HOR : DIR_VER;
         if(depth > 0) {
             let inc_amount = 0;
             if(post_part >= settings.quant) {
@@ -270,18 +331,27 @@ export class VilageSchema {
             }
             for(let x_cursor = 0; x_cursor <= settings.quant * cell_count_x + settings.road_ext_value; x_cursor++) {
                 for(let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                    if(this.isDamagedRoad()) {
+                        continue;
+                    }
                     this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block, 1, this.settings.road_margin);
                 }
             }
             // Отрисовка дороги вокруг сложного дома для обеспечения соединенности всех дорог
             for(let x_cursor = 0; x_cursor <= settings.quant * cell_count_x + settings.road_ext_value; x_cursor++) {
                 for(let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                    if(this.isDamagedRoad()) {
+                        continue;
+                    }
                     this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block, 1, this.settings.road_margin);
                     this.put_dot((x_init + x_cursor), (z_init + road_step), this.cluster.road_block, 1, this.settings.road_margin);
                 }
             }
             for (let z_cursor = 0; z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
                 for (let road_step = 0; road_step < 1 + settings.road_ext_value; road_step++) {
+                    if(this.isDamagedRoad()) {
+                        continue;
+                    }
                     this.put_dot((x_init + road_step), (z_init + z_cursor), this.cluster.road_block, 1, this.settings.road_margin);
                     this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), this.cluster.road_block, 1, this.settings.road_margin);
                 }

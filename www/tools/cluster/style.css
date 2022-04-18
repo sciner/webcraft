@@ -1,8 +1,15 @@
+body {
+    background-color: #141d21;
+    color: rgba(255, 255, 255, .5);
+    font-family: monospace;
+}
+
 #canvas2D {
     background: #aaddff;
     position: fixed;
     right: 10px;
     top: 10px;
+    font-family: monospace;
 }
 
 #timer {

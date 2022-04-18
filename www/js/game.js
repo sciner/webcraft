@@ -374,27 +374,29 @@ export class GameClass {
                 } else {
                     kb.keys[e.keyCode] = e.down ? performance.now() : false;
                 }
-                player.controls.back    = !!(kb.keys[KEY.S] && !kb.keys[KEY.W]);
-                player.controls.forward = !!(kb.keys[KEY.W] && !kb.keys[KEY.S]);
-                player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
-                player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
-                player.controls.jump    = !!(kb.keys[KEY.SPACE]);
-                player.controls.sneak   = e.shiftKey;
-                // 0...9 (Select material)
-                if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
-                    if(e.keyCode == 48) {
-                        e.keyCode = 58;
+                if(!kb.keys[KEY.WIN]) {
+                    player.controls.back    = !!(kb.keys[KEY.S] && !kb.keys[KEY.W]);
+                    player.controls.forward = !!(kb.keys[KEY.W] && !kb.keys[KEY.S]);
+                    player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
+                    player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
+                    player.controls.jump    = !!(kb.keys[KEY.SPACE]);
+                    player.controls.sneak   = e.shiftKey;
+                    // 0...9 (Select material)
+                    if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
+                        if(e.keyCode == 48) {
+                            e.keyCode = 58;
+                        }
+                        player.inventory.select(e.keyCode - 49);
+                        return true;
                     }
-                    player.inventory.select(e.keyCode - 49);
-                    return true;
-                }
-                player.zoom = !!kb.keys[KEY.C];
-                if(e.ctrlKey && !player.isSneak) {
-                    player.controls.sprint = !!kb.keys[KEY.W];
-                } else {
-                    if(!e.down) {
-                        if(e.keyCode == KEY.W) {
-                            player.controls.sprint = false;
+                    player.zoom = !!kb.keys[KEY.C];
+                    if(e.ctrlKey && !player.isSneak) {
+                        player.controls.sprint = !!kb.keys[KEY.W];
+                    } else {
+                        if(!e.down) {
+                            if(e.keyCode == KEY.W) {
+                                player.controls.sprint = false;
+                            }
                         }
                     }
                 }

@@ -1688,6 +1688,19 @@
         }
     },
     {
+        "id": 63,
+        "name": "FARMLAND_WET",
+        "transparent": true,
+        "height": 0.9375,
+        "texture": {
+            "up": [6, 5],
+            "side": [2, 0]
+        },
+        "material": {
+            "id": "dirt"
+        }
+    },
+    {
         "id": 67,
         "name": "COBBLESTONE_STAIRS",
         "style": "stairs",

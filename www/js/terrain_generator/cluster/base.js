@@ -144,6 +144,36 @@ export class ClusterBase {
         return true;
     }
 
+    // Add fence
+    addFence(coord, size) {
+        const dx = coord.x - this.coord.x;
+        const dz = coord.z - this.coord.z;
+        let fence_point = new ClusterPoint(2, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id], 1, null, null, 1);
+        for(let i = 0; i < size.x; i++) {
+            for(let j = 0; j < size.z; j++) {
+                if(i == 0 || j == 0 || i == size.x - 1 || j == size.z - 1) {
+                    const x = dx + i;
+                    const z = dz + j;
+                    this.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                }
+            }
+        }
+    }
+
+    // Add road platform
+    addRoadPlatform(coord, size, road_block_id) {
+        const dx = coord.x - this.coord.x;
+        const dz = coord.z - this.coord.z;
+        for(let i = 0; i < size.x + 2; i++) {
+            for(let j = 0; j < size.z + 2; j++) {
+                const x = dx + i - 1;
+                const z = dz + j - 1;
+                // Draw road around plot
+                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, road_block_id, 1, null, null);
+            }
+        }
+    }
+
     //
     drawQuboid(chunk, pos, size, block, rotate, extra_data) {
         const bx = pos.x - chunk.coord.x;
