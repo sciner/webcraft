@@ -27,6 +27,7 @@ export class ClusterVilage extends ClusterBase {
     constructor(addr) {
         super(addr);
         this.buildings              = new VectorCollector();
+        this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
         if(!this.is_empty) {
             this.flat               = this.randoms.double() >= .8;
@@ -34,7 +35,7 @@ export class ClusterVilage extends ClusterBase {
             this.wall_block         = this.flat ? 98 : 7;
             this.road_block         = this.flat ? 12 : 468;
             this.basement_block     = this.flat ? 546 : 8;
-            this.building_palette  = this.createBuildingPalette({
+            this.building_palette   = this.createBuildingPalette({
                 crossroad: [
                     {class: StreetLight, max_count: Infinity, chance: 1}
                 ],
@@ -80,7 +81,6 @@ export class ClusterVilage extends ClusterBase {
     createBuildingPalette(rules) {
         let that = this;
         let resp = {};
-        that.randoms = new alea(this.id);
         for(let k in rules) {
             resp[k] = {
                 list: rules[k],

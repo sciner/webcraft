@@ -807,6 +807,25 @@ export class Vector {
         return this;
     }
 
+    addByCardinalDirectionSelf(vec, dir) {
+        dir = dir % 4;
+        this.y += vec.y;
+        if(dir == DIRECTION.SOUTH) {
+            this.x -= vec.x;
+            this.z -= vec.z;
+        } else if(dir == DIRECTION.NORTH) {
+            this.x += vec.x;
+            this.z += vec.z;
+        } else if(dir == DIRECTION.WEST) {
+            this.z += vec.x;
+            this.x -= vec.z;
+        } else  if(dir == DIRECTION.EAST) {
+            this.z -= vec.x;
+            this.x += vec.z;
+        }
+        return this;
+    }
+
 }
 
 export class Vec3 extends Vector {}
