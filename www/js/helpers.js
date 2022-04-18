@@ -807,21 +807,23 @@ export class Vector {
         return this;
     }
 
-    addByCardinalDirectionSelf(vec, dir) {
+    addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
+        const x_sign = mirror_x ? -1 : 1;
+        const z_sign = mirror_z ? -1 : 1;
         dir = dir % 4;
         this.y += vec.y;
         if(dir == DIRECTION.SOUTH) {
-            this.x -= vec.x;
-            this.z -= vec.z;
+            this.x -= vec.x * x_sign;
+            this.z -= vec.z * z_sign;
         } else if(dir == DIRECTION.NORTH) {
-            this.x += vec.x;
-            this.z += vec.z;
+            this.x += vec.x * x_sign;
+            this.z += vec.z * z_sign;
         } else if(dir == DIRECTION.WEST) {
-            this.z += vec.x;
-            this.x -= vec.z;
+            this.z += vec.x * x_sign;
+            this.x -= vec.z * z_sign;
         } else  if(dir == DIRECTION.EAST) {
-            this.z -= vec.x;
-            this.x += vec.z;
+            this.z -= vec.x * x_sign;
+            this.x += vec.z * z_sign;
         }
         return this;
     }

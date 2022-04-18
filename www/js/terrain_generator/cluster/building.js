@@ -368,7 +368,7 @@ export class WaterWell extends Building {
 // Building1
 export class Building1 extends Building {
 
-    static MAX_SIZES = [7, 7, 7, 9];
+    static MAX_SIZES = [7];
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         const orig_coord = coord.clone();
@@ -432,6 +432,36 @@ export class Building1 extends Building {
         this.wallBlocks = this.createPalette([
             {value: this.materials.wall, chance: 1}
         ]);
+        // Blocks
+        const dir                = this.door_direction;
+        const mirror_x           = dir % 2 == 1;
+        const has_crafting_table = this.randoms.double() <= .4;
+        const has_chandelier     = this.randoms.double() <= .8;
+        const has_chest          = this.randoms.double() <= .5;
+        this.blocks = {
+            mirror_x:       mirror_x,
+            mirror_z:       false,
+            list:           [
+                {move: new Vector(-1, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(-1, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(0, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(0, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(1, 2, 5), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(1, 2, 4), block_id: BLOCK.SPRUCE_PLANK.id},
+                {move: new Vector(2, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id},
+                {move: new Vector(2, 2, 4), block_id: BLOCK.SPRUCE_SLAB.id},
+                {move: new Vector(3, 2, 5), block_id: BLOCK.SPRUCE_SLAB.id},
+                {move: new Vector(3, 2, 4), block_id: BLOCK.SPRUCE_SLAB.id},
+                {move: new Vector(2, 1, 3), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
+                {move: new Vector(2, 0, 2), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: new Vector(dir, 0, 0)},
+                {move: new Vector(-1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 3, 4), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(1, 3, 4), block_id: BLOCK.OAK_FENCE.id},
+            ]
+        }
+        if(has_chest) {
+            this.blocks.list.push({move: new Vector(-1, 3, 5), block_id: BLOCK.CHEST.id, rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0}});
+        }
     }
 
     //
@@ -490,6 +520,14 @@ export class Building1 extends Building {
         const door_random = new alea(building.door_bottom.toHash());
         cluster.drawDoor(chunk, building.door_bottom, mat.door, dir, door_random.double() > .5, true);
 
+        // second floor
+        const vec = new Vector(0, 0, 0);
+        const block_coord = building.door_bottom.clone().subSelf(chunk.coord);
+        for(let item of this.blocks.list) {
+            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
+            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
+        }
+
         // roof
         this.drawPitchedRoof(chunk, coord, building.size, dir, mat.roof, mat.roof_block, this.wallBlocks);
 
@@ -511,7 +549,7 @@ export class BuildingS extends Building {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.materials  = {
             wall:           BLOCK.COBBLESTONE,
-            door:           BLOCK.OAK_DOOR,
+            door:           BLOCK.SPRUCE_DOOR,
             wall_corner:    BLOCK.OAK_TRUNK,
             roof:           BLOCK.OAK_STAIRS,
             roof_block:     BLOCK.OAK_PLANK,
@@ -534,6 +572,31 @@ export class BuildingS extends Building {
                 const dz = centerOfHay.z - cluster.coord.z;
                 this.addHays(dx, dz);
             }
+        }
+        // Blocks
+        const dir                = this.door_direction;
+        const mirror_x           = dir % 2 == 1;
+        const has_crafting_table = this.randoms.double() <= .4;
+        const has_chandelier     = this.randoms.double() <= .8;
+        this.blocks = {
+            mirror_x:       mirror_x,
+            mirror_z:       false,
+            list:           []
+        }
+        if(this.seed < .7) {
+            this.blocks.list.push(...[
+                {move: new Vector(0, 0, 3), block_id: BLOCK.SPRUCE_FENCE.id},
+                {move: new Vector(0, 1, 3), block_id: BLOCK.SPRUCE_TRAPDOOR.id, extra_data: {opened: false, point: {x: 0, y: 0, z: 0}}},
+                {move: new Vector(1, 0, 3), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: {x: (dir + 3 + (mirror_x ? 2 : 0)) % 4, y: 0, z: 0}}
+            ]);
+        } else {
+            this.blocks.list.push({move: new Vector(1, 0, 3), block_id: BLOCK.SPRUCE_STAIRS.id, rotate: {x: dir, y: 0, z: 0}});
+        }
+        if(has_crafting_table) {
+            this.blocks.list.push({move: new Vector(-1, 0, 1), block_id: BLOCK.CRAFTING_TABLE.id, rotate: {x: dir, y: 0, z: 0}});
+        }
+        if(has_chandelier) {
+            this.blocks.list.push({move: new Vector(0, 3, 2), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}});
         }
     }
 
@@ -575,14 +638,13 @@ export class BuildingS extends Building {
         const door_random = new alea(building.door_bottom.toHash());
         cluster.drawDoor(chunk, building.door_bottom, mat.door, dir, door_random.double() > .5, true);
 
-        // table and chair
-        const table_pos = building.door_bottom.clone().subSelf(chunk.coord);
-        const chair_pos = table_pos.clone();
-        table_pos.addByCardinalDirectionSelf(new Vector(0, 0, 3), dir + 2);
-        chair_pos.addByCardinalDirectionSelf(new Vector(1, 0, 3), dir + 2);
-        cluster.setBlock(chunk, table_pos.x, table_pos.y, table_pos.z, BLOCK.SPRUCE_FENCE.id);
-        cluster.setBlock(chunk, table_pos.x, table_pos.y + 1, table_pos.z, BLOCK.SPRUCE_TRAPDOOR.id, null, {opened: false, point: {x: 0, y: 0, z: 0}});
-        cluster.setBlock(chunk, chair_pos.x, chair_pos.y, chair_pos.z, BLOCK.SPRUCE_STAIRS.id, {x: (dir+3)%4, y: 0, z: 0});
+        // table and chair and more
+        const vec = new Vector(0, 0, 0);
+        const block_coord = building.door_bottom.clone().subSelf(chunk.coord);
+        for(let item of this.blocks.list) {
+            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
+            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
+        }
 
         // wall corners
         const corner_size = new Vector(1, building.size.y - 1, 1);

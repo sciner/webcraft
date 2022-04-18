@@ -149,12 +149,17 @@ export class ClusterBase {
         const dx = coord.x - this.coord.x;
         const dz = coord.z - this.coord.z;
         let fence_point = new ClusterPoint(2, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id], 1, null, null, 1);
+        let fence_point_torch = new ClusterPoint(3, [BLOCK.COBBLESTONE_WALL.id, BLOCK.OAK_FENCE.id, BLOCK.TORCH.id], 1, null, null, 1);
         for(let i = 0; i < size.x; i++) {
             for(let j = 0; j < size.z; j++) {
                 if(i == 0 || j == 0 || i == size.x - 1 || j == size.z - 1) {
                     const x = dx + i;
                     const z = dz + j;
-                    this.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                    if((i+j+coord.x+coord.z) % 20 == 0) {
+                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point_torch;
+                    } else {
+                        this.mask[z * CLUSTER_SIZE.x + x] = fence_point;
+                    }
                 }
             }
         }
