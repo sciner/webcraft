@@ -2,6 +2,7 @@ import {impl as alea} from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
 import { AABB } from '../../core/AABB.js';
 import {DIRECTION, Vector} from "../../helpers.js";
+import {CLUSTER_SIZE, ClusterPoint} from "./base.js";
 
 export const BUILDING_AABB_MARGIN  = 3; // because building must calling to draw from neighbours chunks
 
@@ -98,6 +99,21 @@ export class Building {
                 coord.z -= shift_end;
                 entrance.z -= shift_end + shift_entrance_value;
                 door_bottom.z -= shift_end + shift_entrance_value;
+            }
+        }
+    }
+
+    addHays(dx, dz) {
+        const rad = 2 + Math.round(this.randoms.double() * 1);
+        for(let i = -rad; i < rad; i++) {
+            for(let j = -rad; j < rad; j++) {
+                const x = dx + i;
+                const z = dz + j;
+                let h = Math.round(this.randoms.double() * 2);
+                if(h == 0) {
+                    continue;
+                }
+                this.cluster.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(h, BLOCK.HAY_BLOCK.id, 1, null, null, 1); 
             }
         }
     }
@@ -404,6 +420,13 @@ export class Building1 extends Building {
         if(this.is_big_building) {
             // draw fence
             cluster.addFence(orig_coord, orig_size);
+            //
+            if(this.randoms.double() < .75) {
+                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-11, 0, 6), door_direction + 2);
+                const dx = centerOfHay.x - cluster.coord.x;
+                const dz = centerOfHay.z - cluster.coord.z;
+                this.addHays(dx, dz);
+            }
         }
         //
         this.wallBlocks = this.createPalette([
@@ -504,6 +527,13 @@ export class BuildingS extends Building {
         if(orig_size.x > 11 && orig_size.z > 11) {
             // draw fence
             cluster.addFence(orig_coord, orig_size);
+            //
+            if(this.randoms.double() < .75) {
+                const centerOfHay = door_bottom.clone().addByCardinalDirectionSelf(new Vector(-10, 0, 6), door_direction + 2);
+                const dx = centerOfHay.x - cluster.coord.x;
+                const dz = centerOfHay.z - cluster.coord.z;
+                this.addHays(dx, dz);
+            }
         }
     }
 
