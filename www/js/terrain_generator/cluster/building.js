@@ -171,7 +171,7 @@ export class Farmland extends Building {
 
     draw(cluster, chunk) {
         // super.draw(cluster, chunk);
-        this.drawBasement(cluster, chunk, 4);
+        this.drawBasement(cluster, chunk, 4, BLOCK.DIRT.id);
         const building = this;
         cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size.add(new Vector(0, 5, 0)), BLOCK.AIR);
         cluster.drawQuboid(chunk, building.coord.add(new Vector(0, -1, 0)), building.size, BLOCK.OAK_TRUNK);

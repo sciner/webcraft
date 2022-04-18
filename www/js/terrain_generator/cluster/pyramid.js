@@ -1,11 +1,6 @@
-import {getChunkAddr} from "../../chunk.js";
-import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
-import { AABB } from '../../core/AABB.js';
+import {Vector} from "../../helpers.js";
 import {ClusterBase, CLUSTER_SIZE} from "./base.js";
-import {impl as alea} from '../../../vendors/alea.js';
 import { BLOCK } from "../../blocks.js";
-
-const USE_ROAD_AS_GANGWAY   = .1;
 
 export class ClusterPoint {
 

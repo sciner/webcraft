@@ -8,7 +8,7 @@ import {impl as alea} from '../../../vendors/alea.js';
 
 const CLUSTER_PADDING       = 8;
 const ROAD_DAMAGE_FACTOR    = 0.15;
-const USE_ROAD_AS_GANGWAY   = .1;
+const USE_ROAD_AS_GANGWAY   = 0;
 
 //
 const entranceAhead = new Vector(0, 0, 0);
