@@ -16,8 +16,8 @@ export class GridCubeTexture {
         const to = this.textureOptions;
         const baseTexture = this.baseTexture = this.context.createTexture3D({
             width: dims.x * to.width,
-            height: dims.x * to.height,
-            depth: dims.x * to.depth,
+            height: dims.y * to.height,
+            depth: dims.z * to.depth,
             filter: to.filter,
             type: to.type
         });
@@ -114,7 +114,7 @@ export class CubeTexturePool {
             )
             newCube.init();
             const base = newCube.baseTexture;
-            this.totalBytes += base.width * base.height * base.depth;
+            this.totalBytes += base.width * base.height * base.depth * 4;
             cur = pools.length;
             pools.push(newCube);
         }

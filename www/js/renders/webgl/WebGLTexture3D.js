@@ -48,7 +48,6 @@ export class WebGLTexture3D extends BaseTexture3D {
         gl.bindTexture(target, this.texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
-        this.dirty = false;
         if (this.useSubRegions) {
             this.uploadSubs();
         } else {
@@ -78,7 +77,6 @@ export class WebGLTexture3D extends BaseTexture3D {
 
     uploadSubs() {
         const { gl } = this.context;
-        const { data } = this;
 
         const target = gl.TEXTURE_3D;
         const sz = this.width * this.height * this.depth * 4;
