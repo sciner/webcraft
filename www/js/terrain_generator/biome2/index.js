@@ -6,6 +6,7 @@ import {Map, MapCell} from './../map.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
+import {MineGenerator} from "../mine/mine_generator.js";
 
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
@@ -221,6 +222,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH'];
+        this.mine = new MineGenerator(this, 180, 0, 173);
     }
 
     async init() {
@@ -474,6 +476,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 return false;
             }
+            
+            
 
             // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
             function nearTree(xyz) {
@@ -781,6 +785,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
         }
+        
+        this.mine.generate(chunk);
 
         return map;
 

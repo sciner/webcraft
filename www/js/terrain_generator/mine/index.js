@@ -8,7 +8,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
     constructor(seed, world_id) {
         super();
         this.setSeed(0);
-        this.mine = new MineGenerator(180, 0, 173);
+        this.mine = new MineGenerator(this, 180, 2, 173);
     }
 
     async init() {}
@@ -17,7 +17,8 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
                 for(let z = 0; z < chunk.size.z; z++) {
-                    for(let y = 0; y < 6; y++) {
+                    let n = (chunk.addr.x == 180 && chunk.addr.z == 173) ? 0 : 1;
+                    for(let y = 0; y <= n; y++) {
                         this.setBlock(chunk, x, y, z, BLOCK.GRASS_DIRT);
                     }
                 }
@@ -26,9 +27,6 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         
         this.mine.generate(chunk);
         
-        /*if (chunk.addr.z == 173 && chunk.addr.x == 181)
-            this.mineSmallHal(chunk, DIRECTION_BIT.EAST);
-        */
         let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
 
