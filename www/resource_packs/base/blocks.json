@@ -1633,6 +1633,25 @@
         ]
     },
     {
+        "id": 45,
+        "name": "COBBLESTONE_SLAB",
+        "transparent": true,
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "COBBLESTONE"
+        },
+        "texture": [
+            0,
+            1
+        ]
+    },
+    {
         "id": 48,
         "name": "MOSS_STONE",
         "sound": "madcraft:block.stone",

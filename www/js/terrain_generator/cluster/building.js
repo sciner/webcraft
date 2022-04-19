@@ -138,6 +138,17 @@ export class Building {
         };
         return resp;
     }
+
+    // Draw blocks
+    drawBlocks(cluster, chunk) {
+        const vec = new Vector(0, 0, 0);
+        const block_coord = this.door_bottom.clone().subSelf(chunk.coord);
+        const dir = this.door_direction;
+        for(let item of this.blocks.list) {
+            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
+            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
+        }
+    }
     
     //
     drawPitchedRoof(chunk, coord, size, dir, roof_block, roof_ridge_block, roof_gable_block) {
@@ -276,30 +287,55 @@ export class Farmland extends Building {
 
 }
 
+// Street light
 export class StreetLight extends Building {
 
     constructor(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size) {
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         this.draw_entrance = false;
+        // Blocks
+        const mirror_x           = door_direction % 2 == 1;
+        this.blocks = {
+            mirror_x:       mirror_x,
+            mirror_z:       false,
+            list:           []
+        }
+        if(seed > .75) {
+            this.blocks.list.push(...[
+                {move: new Vector(0, -1, 0), block_id: BLOCK.COBBLESTONE.id},
+                {move: new Vector(0, 0, 0), block_id: BLOCK.COBBLESTONE_WALL.id},
+                {move: new Vector(0, 1, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 3, 0), block_id: BLOCK.COBBLESTONE_WALL.id},
+                {move: new Vector(0, 4, 0), block_id: BLOCK.COBBLESTONE.id},
+                {move: new Vector(0, 4, -1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
+                {move: new Vector(0, 4, 1), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
+                {move: new Vector(-1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
+                {move: new Vector(1, 4, 0), block_id: BLOCK.OAK_SLAB.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
+                {move: new Vector(0, 3, -1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.NORTH, -1, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.SOUTH, -1, 0)},
+                {move: new Vector(-1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.EAST, -1, 0)},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.LANTERN.id, rotate: new Vector(DIRECTION.WEST, -1, 0)},
+            ]);
+        } else {
+            this.blocks.list.push(...[
+                {move: new Vector(0, -1, 0), block_id: BLOCK.COBBLESTONE.id},
+                {move: new Vector(0, 0, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 1, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 3, 0), block_id: BLOCK.GRAY_WOOL.id},
+                {move: new Vector(0, 3, -1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.NORTH, 0, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.SOUTH, 0, 0)},
+                {move: new Vector(-1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.EAST, 0, 0)},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.TORCH.id, rotate: new Vector(DIRECTION.WEST, 0, 0)},
+            ]);
+        }
     }
 
     //
     draw(cluster, chunk) {
-        const building = this;
-        const bx = building.coord.x - chunk.coord.x;
-        const by = building.coord.y - chunk.coord.y;
-        const bz = building.coord.z - chunk.coord.z;
-        //
-        cluster.setBlock(chunk, bx, by - 1, bz, BLOCK.COBBLESTONE.id);
-        for(let y = 0; y < this.size.y - 2; y++) {
-            cluster.setBlock(chunk, bx, by + y, bz, BLOCK.OAK_FENCE.id);
-        }
-        let ly = this.size.y - 2;
-        cluster.setBlock(chunk, bx, by + ly, bz, BLOCK.GRAY_WOOL.id);
-        cluster.setBlock(chunk, bx, by + ly, bz + 1, BLOCK.TORCH.id, {x: DIRECTION.NORTH, y: 0, z: 0});
-        cluster.setBlock(chunk, bx, by + ly, bz - 1, BLOCK.TORCH.id, {x: DIRECTION.SOUTH, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 1, by + ly, bz, BLOCK.TORCH.id, {x: DIRECTION.EAST, y: 0, z: 0});
-        cluster.setBlock(chunk, bx - 1, by + ly, bz, BLOCK.TORCH.id, {x: DIRECTION.WEST, y: 0, z: 0});
+        // draw blocks
+        this.drawBlocks(cluster, chunk);
     }
 
 }
@@ -316,51 +352,78 @@ export class WaterWell extends Building {
         cluster.addRoadPlatform(coord, size, cluster.road_block);
         //
         this.draw_entrance = false;
-        //
-        this.wallBlocks = this.createPalette([
-            {value: BLOCK.OAK_PLANK, chance: 1}
-        ]);
+        // Blocks
+        const dir = door_direction;
+        const mirror_x = door_direction % 2 == 1;
+        this.blocks = {
+            mirror_x:       mirror_x,
+            mirror_z:       false,
+            list:           []
+        }
+        if(seed < .75) {
+            this.wallBlocks = this.createPalette([
+                {value: BLOCK.OAK_PLANK, chance: 1}
+            ]);
+            this.blocks.list.push(...[
+                {move: new Vector(0, 1, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
+                {move: new Vector(2, 1, 1), block_id: BLOCK.COBBLESTONE_WALL.id},
+                {move: new Vector(0, 2, 1), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(2, 2, 1), block_id: BLOCK.OAK_FENCE.id},
+                //
+                {move: new Vector(0, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
+                {move: new Vector(2, 3, 0), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(2, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(2, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
+                {move: new Vector(1, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
+                {move: new Vector(0, 3, 2), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.OAK_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+                //
+                {move: new Vector(1, 4, 1), block_id: BLOCK.OAK_SLAB.id},
+            ]);
+        } else {
+            this.wallBlocks = this.createPalette([
+                {value: BLOCK.COBBLESTONE, chance: 1}
+            ]);
+            this.blocks.list.push(...[
+                {move: new Vector(0, 1, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 2, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(2, 1, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(2, 2, 0), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 1, 2), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(0, 2, 2), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(2, 1, 2), block_id: BLOCK.OAK_FENCE.id},
+                {move: new Vector(2, 2, 2), block_id: BLOCK.OAK_FENCE.id},
+                //
+                {move: new Vector(0, 3, 0), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(1, 3, 0), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(2, 3, 0), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(2, 3, 1), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(2, 3, 2), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(1, 3, 2), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(0, 3, 2), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                {move: new Vector(0, 3, 1), block_id: BLOCK.COBBLESTONE_SLAB.id},
+                //
+                {move: new Vector(1, 3, 1), block_id: BLOCK.COBBLESTONE.id},
+                //
+                {move: new Vector(1, 0, 0), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 0) % 4, 0, 0)},
+                {move: new Vector(2, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 1 + (mirror_x?2:0)) % 4, 0, 0)},
+                {move: new Vector(1, 0, 2), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 2) % 4, 0, 0)},
+                {move: new Vector(0, 0, 1), block_id: BLOCK.COBBLESTONE_STAIRS.id, rotate: new Vector((dir + 3 + (mirror_x?2:0)) % 4, 0, 0)},
+            ]);
+        }
     }
 
     //
     draw(cluster, chunk) {
         const building = this;
-        const bx = building.coord.x - chunk.coord.x;
-        const by = building.coord.y - chunk.coord.y;
-        const bz = building.coord.z - chunk.coord.z;
         // 4 walls
         const walls_size = building.size.clone().add(new Vector(0, -4, 0));
         cluster.draw4Walls(chunk, building.coord, walls_size, this.wallBlocks);
         const q_pos = building.coord.add(new Vector(1, 1, 1));
         const q_size = walls_size.add(new Vector(-2, -2, -2));
         cluster.drawQuboid(chunk, q_pos, q_size, BLOCK.STILL_WATER);
-        //
-        let rot = null;
-        const roof_support_shift = {x: 0, z: 0};
-        const roof_step = {x: 0, z: 0};
-        if(building.door_direction == DIRECTION.EAST || building.door_direction == DIRECTION.WEST) {
-            roof_support_shift.z = 1;
-            roof_step.x = walls_size.x - 1;
-        } else {
-            roof_support_shift.z = 1;
-            roof_step.x = walls_size.x - 1;
-        }
-        // roof supports
-        cluster.setBlock(chunk, bx + roof_support_shift.x,                    by + building.size.y - 5,     bz + roof_support_shift.z, BLOCK.COBBLESTONE_WALL.id, rot);
-        cluster.setBlock(chunk, bx + roof_support_shift.x + roof_step.x, by + building.size.y - 5,          bz + roof_support_shift.z + roof_step.z, BLOCK.COBBLESTONE_WALL.id, rot);
-        cluster.setBlock(chunk, bx + roof_support_shift.x,                    by + building.size.y - 5 + 1, bz + roof_support_shift.z, BLOCK.OAK_FENCE.id, rot);
-        cluster.setBlock(chunk, bx + roof_support_shift.x + roof_step.x, by + building.size.y - 5 + 1,      bz + roof_support_shift.z + roof_step.z, BLOCK.OAK_FENCE.id, rot);
-        // center of roof
-        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 3, bz + 1, BLOCK.OAK_SLAB.id, rot);
-        // roof
-        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 1, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 2, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz, BLOCK.OAK_STAIRS.id, {x: 2, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz + 1, BLOCK.OAK_STAIRS.id, {x: 3, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 2, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 3, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 1, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 0, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz + 2, BLOCK.OAK_STAIRS.id, {x: 0, y: 0, z: 0});
-        cluster.setBlock(chunk, bx + 0, by + building.size.y - 5 + 2, bz + 1, BLOCK.OAK_STAIRS.id, {x: 1, y: 0, z: 0});
+        this.drawBlocks(cluster, chunk);
     }
 
 }
@@ -520,13 +583,8 @@ export class Building1 extends Building {
         const door_random = new alea(building.door_bottom.toHash());
         cluster.drawDoor(chunk, building.door_bottom, mat.door, dir, door_random.double() > .5, true);
 
-        // second floor
-        const vec = new Vector(0, 0, 0);
-        const block_coord = building.door_bottom.clone().subSelf(chunk.coord);
-        for(let item of this.blocks.list) {
-            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
-            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
-        }
+        // draw blocks
+        this.drawBlocks(cluster, chunk);
 
         // roof
         this.drawPitchedRoof(chunk, coord, building.size, dir, mat.roof, mat.roof_block, this.wallBlocks);
@@ -638,13 +696,8 @@ export class BuildingS extends Building {
         const door_random = new alea(building.door_bottom.toHash());
         cluster.drawDoor(chunk, building.door_bottom, mat.door, dir, door_random.double() > .5, true);
 
-        // table and chair and more
-        const vec = new Vector(0, 0, 0);
-        const block_coord = building.door_bottom.clone().subSelf(chunk.coord);
-        for(let item of this.blocks.list) {
-            vec.copyFrom(block_coord).addByCardinalDirectionSelf(item.move, dir + 2, this.blocks.mirror_x, this.blocks.mirror_z);
-            cluster.setBlock(chunk, vec.x, vec.y, vec.z, item.block_id, item.rotate, item.extra_data);
-        }
+        // draw blocks
+        this.drawBlocks(cluster, chunk);
 
         // wall corners
         const corner_size = new Vector(1, building.size.y - 1, 1);

@@ -44,7 +44,7 @@ export class ClusterVilage extends ClusterBase {
                     {class: Farmland, max_count: 1, chance: 1}
                 ],
                 others: [
-                    {class: WaterWell, max_count: Infinity, chance: 0.12},
+                    {class: WaterWell, max_count: 2, chance: 0.12},
                     {class: Farmland, max_count: Infinity, chance: 0.285},
                     {class: Building1, max_count: Infinity, chance: 0.7025},
                     {class: BuildingS, max_count: Infinity, chance: 1}
