@@ -9,7 +9,7 @@ export class MineGenerator {
     constructor(world, x, y, z, options = {}) {
         
         this.size_x = (options.size_x) ? options.size_x : 20;
-        this.size_z = (options.size_z) ? options.size_z : 21;
+        this.size_z = (options.size_z) ? options.size_z : 20;
         this.chance_hal = (options.chance_hal) ? options.chance_hal : 0.5;
         this.chance_cross = (options.chance_cross) ? options.chance_cross : 0.2;
         
@@ -27,9 +27,8 @@ export class MineGenerator {
                 break;
         }
         
-        console.log("[INFO]MineGenerator: generation " + this.map.length + " nodes");
-
-
+        console.log("/r/n[INFO]MineGenerator: generation " + this.map.length + " nodes");
+        
         this.voxel_buildings = [];
     }
     
@@ -48,9 +47,17 @@ export class MineGenerator {
             this.genNodeCross(chunk, node.dir);
         } else if (node.type == "hal") {
             this.genNodeHal(chunk, node.dir);
+        } else if (node.type == "room") {
+            this.genNodeSideRoom(chunk, node.dir);
         }
-     }
-     
+    }
+    
+    genNodeSideRoom(chunk, dir){
+        this.genBox(chunk, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
+        this.genBox(chunk, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
+        this.genBox(chunk, 1, 1, 1, 8, 3, 4, dir);
+    }
+    
     genNodeEnter(chunk, dir){
         this.genBox(chunk, 0, 1, 8, 15, 50, 15, dir);
         this.genBox(chunk, 0, 0, 0, 15, 0, 15, dir, BLOCK.OAK_PLATE);
@@ -64,11 +71,10 @@ export class MineGenerator {
         this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0});
         vec.set(15, 3, 8).rotY(dir); 
         this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0});
-     }
+    }
      
     genNodeCross(chunk, dir){
         this.genBox(chunk, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.05);
-        //this.genBox(chunk, 0, 0, 11, 15, 3, 15, dir, BLOCK.OAK_PLATE, random, 0.05);
         
         this.genBox(chunk, 0, 1, 1, 1, 3, 3, dir);
         this.genBox(chunk, 1, 1, 0, 3, 3, 15, dir);
@@ -118,8 +124,8 @@ export class MineGenerator {
             
              this.genBoxNoAir(chunk, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_SLAB, 0.25);
             
-            this.genBoxAir(chunk, 1, 3, n - 1, 1, 3, n + 1, dir, BLOCK.MOSS_STONE, 0.25); //добавить из окружения
-            this.genBoxAir(chunk, 3, 3, n - 1, 3, 3, n + 1, dir, BLOCK.MOSS_STONE, 0.25);
+            this.genBoxAir(chunk, 1, 3, n - 1, 1, 3, n + 1, dir, BLOCK.COBBLESTONE, 0.25); //добавить из окружения
+            this.genBoxAir(chunk, 3, 3, n - 1, 3, 3, n + 1, dir, BLOCK.DIRT, 0.25);
             
             //путина
             this.genBoxAir(chunk, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
@@ -252,7 +258,6 @@ export class MineGenerator {
      * @param {number} maxZ
      * @param {Block} block
      * @param {DIRECTION} dir поворот внутри чанка
-     * @param {alea} random ссылка на модуль рандома
      * @param {float} chance вероятность установки
      */
     genBox(chunk, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION.NORTH, blocks = {id : 0}, chance = 1){
@@ -278,9 +283,9 @@ export class MineGenerator {
      * @param {number} maxY
      * @param {number} maxZ
      * @param {Block} block
-     * @param {DIRECTION_BIT} dir поворот внутри чанка
-     * @param {alea} random ссылка на модуль рандома
+     * @param {DIRECTION} dir поворот внутри чанка
      * @param {float} chance вероятность замены
+     * @param {Vector} block_rotate поворот блока
      */
     genBoxAir(chunk, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, chance = 1, block_rotate = null) {
         for (let x = minX; x <= maxX; ++x) {
@@ -307,8 +312,7 @@ export class MineGenerator {
      * @param {number} maxY
      * @param {number} maxZ
      * @param {Block} block
-     * @param {DIRECTION_BIT} dir поворот внутри чанка
-     * @param {alea} random ссылка на модуль рандома
+     * @param {DIRECTION} dir поворот внутри чанка
      * @param {float} chance вероятность замены
      */
     genBoxNoAir(chunk, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION_BIT.NORTH, block = {id : 0}, chance = 1) {
