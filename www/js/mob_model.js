@@ -342,7 +342,7 @@ export class MobModel extends NetworkPhysicObject {
         this.aniframe                   = 0;
         this.width                      = 0;
         this.height                     = 0;
-        this.sneak                      = 1;
+        this.sneak                      = 0;
 
         Object.assign(this, props);
 

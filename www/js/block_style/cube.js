@@ -212,7 +212,7 @@ export default class style {
         }
         //
         if(!DIRT_BLOCKS) {
-            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id];
+            DIRT_BLOCKS = [BLOCK.GRASS_DIRT.id, BLOCK.DIRT_PATH.id, BLOCK.SNOW_DIRT.id, BLOCK.PODZOL.id, BLOCK.MYCELIUM.id];
         }
         if(DIRT_BLOCKS.indexOf(block.id) >= 0) {
             if(neighbours.UP && neighbours.UP.material && (!neighbours.UP.material.transparent || neighbours.UP.material.is_fluid || (neighbours.UP.id == BLOCK.DIRT_PATH.id))) {
@@ -273,6 +273,16 @@ export default class style {
             if(neighbours.UP.material.tags.indexOf('leaves') > 0) {
                 canDrawUP = false;
             }
+        }
+
+        // Glass
+        if(material.transparent && material.tags.indexOf('glass') >= 0) {
+            if(neighbours.SOUTH.material.tags.indexOf('glass') >= 0) canDrawSOUTH = false;
+            if(neighbours.NORTH.material.tags.indexOf('glass') >= 0) canDrawNORTH = false;
+            if(neighbours.WEST.material.tags.indexOf('glass') >= 0) canDrawWEST = false;
+            if(neighbours.EAST.material.tags.indexOf('glass') >= 0) canDrawEAST = false;
+            if(neighbours.UP.material.tags.indexOf('glass') >= 0) canDrawUP = false;
+            if(neighbours.DOWN.material.tags.indexOf('glass') >= 0) canDrawDOWN = false;
         }
 
         // Texture color multiplier

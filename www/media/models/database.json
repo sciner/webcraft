@@ -189,7 +189,36 @@
                 "red": "textures/cat/red.png",
                 "siamese": "textures/cat/siamese.png",
                 "tabby": "textures/cat/tabby.png",
-                "white": "textures/cat/white.png"
+                "white": "textures/cat/white.png",
+                "base": "textures/cat/white.png"
+            }
+        },
+        "npc": {
+            "type": "json",
+            "geom": "json/npc.geo.json",
+            "baseSkin": "base",
+            "skins": {
+                "base": "textures/npc/npc_1.png",
+                "1": "textures/npc/npc_1.png",
+                "2": "textures/npc/npc_2.png",
+                "3": "textures/npc/npc_3.png",
+                "4": "textures/npc/npc_4.png",
+                "5": "textures/npc/npc_5.png",
+                "6": "textures/npc/npc_6.png",
+                "7": "textures/npc/npc_7.png",
+                "8": "textures/npc/npc_8.png",
+                "9": "textures/npc/npc_9.png",
+                "10": "textures/npc/npc_10.png",
+                "scientist_1": "textures/npc/npc_scientist_1.png",
+                "scientist_2": "textures/npc/npc_scientist_2.png",
+                "scientist_3": "textures/npc/npc_scientist_3.png",
+                "scientist_4": "textures/npc/npc_scientist_4.png",
+                "scientist_5": "textures/npc/npc_scientist_5.png",
+                "scientist_6": "textures/npc/npc_scientist_6.png",
+                "scientist_7": "textures/npc/npc_scientist_7.png",
+                "scientist_8": "textures/npc/npc_scientist_8.png",
+                "scientist_9": "textures/npc/npc_scientist_9.png",
+                "scientist_10": "textures/npc/npc_scientist_10.png"
             }
         }
     }

@@ -231,7 +231,7 @@ export class ChunkManager {
             let margin              = Math.max(Game.player.state.chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
             this.poses.length = 0;
-            for (let i = 0; i<spiral_moves_3d.length;i++) {
+            for (let i = 0; i < spiral_moves_3d.length; i++) {
                 const item = spiral_moves_3d[i];
                 pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z); // pos.add(item.pos)
                 const chunk = this.chunks.get(pos_temp);

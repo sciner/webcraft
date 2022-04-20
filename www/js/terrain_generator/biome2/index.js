@@ -12,6 +12,7 @@ import {BIOMES} from "../biomes.js";
 import { AABB } from '../../core/AABB.js';
 
 const DEFAULT_CHEST_ROTATE = new Vector(3, 1, 0);
+const MAP_CLUSTER_MARGIN = 5;
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 // Ores
@@ -34,7 +35,7 @@ const ORE_RANDOMS = [
 const MAP_SCALE = .5;
 const GENERATOR_OPTIONS = {
     WATER_LINE:             63, // Ватер-линия
-    SCALE_EQUATOR:          1280 * MAP_SCALE, // Масштаб для карты экватора
+    SCALE_EQUATOR:          1280 * MAP_SCALE * 3, // Масштаб для карты экватора
     SCALE_BIOM:             640  * MAP_SCALE, // Масштаб для карты шума биомов
     SCALE_HUMIDITY:         320  * MAP_SCALE, // Масштаб для карты шума влажности
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
@@ -87,6 +88,11 @@ export class TerrainMap {
     // Delete map for unused chunk
     delete(addr) {
         return this.maps_cache.delete(addr);
+    }
+
+    // Return map
+    get(addr) {
+        return this.maps_cache.get(addr);
     }
 
     // Generate maps
@@ -142,15 +148,24 @@ export class TerrainMap {
             return cached;
         }
         const options               = GENERATOR_OPTIONS;
-        const SX                    = chunk.coord.x;
-        const SZ                    = chunk.coord.z;
         // Result map
         let map                     = new Map(chunk, options);
+        //
+        const SX                    = chunk.coord.x;
+        const SZ                    = chunk.coord.z;
+        const cluster               = ClusterManager.getForCoord(chunk.coord);
+        const H                     = 68;
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = SX + x;
                 let pz = SZ + z;
+                let cluster_max_height = null;
+                if(!cluster.is_empty) {
+                    if(cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
+                        cluster_max_height = cluster.max_height;
+                    }
+                }
                 // Высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 
                     noisefn(px / 1650, pz / 1650) * .1 + // 10 | 1650
@@ -163,8 +178,12 @@ export class TerrainMap {
                 // Экватор
                 let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
                 // Get biome
-                let biome = BIOMES.getBiome((value * 64 + 68) / 255, humidity, equator);
-                value = value * biome.max_height + 68;
+                let biome = BIOMES.getBiome((value * 64 + H) / 255, humidity, equator);
+                if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
+                    value = value * biome.max_height + H;
+                } else {
+                    value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
+                }
                 value = parseInt(value);
                 value = Helpers.clamp(value, 4, 2500);
                 biome = BIOMES.getBiome(value / 255, humidity, equator);
@@ -236,7 +255,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.islands                = [];
         this.extruders              = [];
         //
-        this.maps = new TerrainMap(this.seed, this.world_id, this.noisefn);
+        this.maps                   = new TerrainMap(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
             // Костыль для NodeJS
@@ -325,7 +344,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     // Generate
     generate(chunk) {
-
         const chunk_coord               = chunk.coord;
         let xyz                         = new Vector(0, 0, 0);
         let temp_vec                    = new Vector(0, 0, 0);
@@ -344,6 +362,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         // Maps
         let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
+        let cluster                     = chunk.cluster; // ClusterManager.getForCoord(chunk.coord);
         this.map                        = map;
         this.caveManager.addSpiral(chunk.addr);
 
@@ -476,7 +495,14 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
             // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
-            function nearTree(xyz) {
+            function nearTree(xyz, value2) {
+                if(!cluster.is_empty) {
+                    if(xyz.y > value2 - 3 && xyz.y < value2 + 1) {
+                        if(cluster.cellIsOccupied(xyz.x, xyz.y, xyz.z, 2)) {
+                            return true;
+                        }
+                    }
+                }
                 const near_rad = 5;
                 // const check_only_current_map = (x >= near_rad && y >= near_rad && z >= near_rad && x < CHUNK_SIZE_X - near_rad &&  y < CHUNK_SIZE_Y - near_rad && z < CHUNK_SIZE_Z - near_rad);
                 _createBlockAABB_second.set(
@@ -659,10 +685,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             //
             for(let x = 0; x < size_x; x++) {
-                //if(chunk.coord.x + x < 2800) continue;
                 for(let z = 0; z < size_z; z++) {
-
-                    //if(chunk.coord.z + z > 2900) continue;
 
                     const cell              = map.info.cells[x][z];
                     const biome             = cell.biome;
@@ -712,7 +735,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 if(line.is_treasure) {
                                     drawTreasureRoom(line, xyz, x, y, z);
                                     continue;
-                                } else if(!nearTree(xyz)) {
+                                } else if(!nearTree(xyz, value)) {
                                     continue;
                                 }
                             }
@@ -745,6 +768,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
+            if(!chunk.cluster.is_empty) {
+                chunk.cluster.fillBlocks(this.maps, chunk, map);
+            }
+
             // Plant trees
             for(const m of maps) {
                 for(let p of m.info.trees) {
@@ -770,8 +797,16 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         temp_vec.set(pos.x, pos.y - chunk_coord.y, pos.z);
                         if(!chunk.tblocks.has(temp_vec)) {
                             if(idx++ % 7 == 0 && temp_vec.y < CHUNK_SIZE_Y - 2 && block_id == BLOCK.GRASS.id) {
-                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
-                                setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
+                                // check over block
+                                xyz.y += 2;
+                                temp_block = chunk.tblocks.get(xyz, temp_block);
+                                if(temp_block.id == 0) {
+                                    //
+                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
+                                    setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
+                                } else {
+                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);    
+                                }
                             } else {
                                 setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
                             }

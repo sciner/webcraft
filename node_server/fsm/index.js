@@ -6,7 +6,7 @@ export class Brains {
         if(Brains.list.size > 0) {
             return;
         }
-        for(let type of ['chicken', 'creeper', 'horse', 'fox', 'pig', 'snow_golem', 'cow', 'sheep']) {
+        for(let type of ['chicken', 'creeper', 'horse', 'fox', 'pig', 'snow_golem', 'cow', 'sheep', 'npc']) {
             await import(`./brain/${type}.js`).then(module => {
                 this.list.set(type, module.Brain);
             });

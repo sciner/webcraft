@@ -703,19 +703,21 @@ export class ServerWorld {
                         if(on_block_set) {
                             chunk.onBlockSet(block_pos.clone(), params.item)
                         }
-                        if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
-                            PlayerEvent.trigger({
-                                type: PlayerEvent.DESTROY_BLOCK,
-                                player: server_player,
-                                data: {pos: params.pos, block_id: params.destroy_block_id}
-                            });
-                        } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
-                            if(server_player) {
+                        if(server_player) {
+                            if(params.action_id == ServerClient.BLOCK_ACTION_DESTROY) {
                                 PlayerEvent.trigger({
-                                    type: PlayerEvent.SET_BLOCK,
+                                    type: PlayerEvent.DESTROY_BLOCK,
                                     player: server_player,
-                                    data: {pos: block_pos.clone(), block: params.item}
+                                    data: {pos: params.pos, block_id: params.destroy_block_id}
                                 });
+                            } else if(params.action_id == ServerClient.BLOCK_ACTION_CREATE) {
+                                if(server_player) {
+                                    PlayerEvent.trigger({
+                                        type: PlayerEvent.SET_BLOCK,
+                                        player: server_player,
+                                        data: {pos: block_pos.clone(), block: params.item}
+                                    });
+                                }
                             }
                         }
                     } else {
