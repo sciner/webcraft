@@ -1,33 +1,38 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
-import {DIRECTION} from '../../helpers.js';
-import {Color, Vector} from '../../helpers.js';
+import {Color, Vector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 
 const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
-
+/**
+ * Draw mines
+ * @class MineGenerator
+ * @param {World} world world
+ * @param {number} x x chunk positon
+ * @param {number} y y chunk positon
+ * @param {number} z z chunk positon
+ * @param {object} options options
+ */
 export class MineGenerator {
     constructor(world, x, y, z, options = {}) {
-        
         this.size_x = (options.size_x) ? options.size_x : 20;
         this.size_z = (options.size_z) ? options.size_z : 20;
         this.chance_hal = (options.chance_hal) ? options.chance_hal : 0.5;
         this.chance_cross = (options.chance_cross) ? options.chance_cross : 0.2;
-        
-        
+        this.chance_side_room = (options.chance_side_room) ? options.chance_side_room : 0.5;
         this.world = world;
         this.x = x;
         this.y = y;
         this.z = z;
-        this.rnd = Math.random();
         this.random = new alea(x + "mine" + y + "mine" + z);
         for (let i = 0; i < 1000; ++i) {
             this.map = [];
             this.genNodeMine(0, 0, 0, DIRECTION.SOUTH);
-            if (this.map.length > ((this.size_x + this.size_z) / 2))
+            if (this.map.length > ((this.size_x + this.size_z) / 2)){
                 break;
+            }
         }
         
-        console.log("/r/n[INFO]MineGenerator: generation " + this.map.length + " nodes");
+        console.log("[INFO]MineGenerator: generation " + this.map.length + " nodes");
         
         this.voxel_buildings = [];
     }
@@ -56,6 +61,13 @@ export class MineGenerator {
         this.genBox(chunk, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
         this.genBox(chunk, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
         this.genBox(chunk, 1, 1, 1, 8, 3, 4, dir);
+        
+        let vec = new Vector(0, 0, 0);
+        vec.set(8, 3, 4).rotY(dir); 
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
+        
+        vec.set(1, 1, 1).rotY(dir); 
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.CHEST, true, LANTERN_ROT_UP);
     }
     
     genNodeEnter(chunk, dir){
@@ -64,13 +76,13 @@ export class MineGenerator {
         
         let vec = new Vector(0, 0, 0);
         vec.set(15, 3, 15).rotY(dir); 
-        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0}); 
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP); 
         vec.set(0, 3, 15).rotY(dir); 
-        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0}); 
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP); 
         vec.set(0, 3, 8).rotY(dir); 
-        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0});
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
         vec.set(15, 3, 8).rotY(dir); 
-        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, {x: 0, y: -1, z: 0});
+        this.setBlock(chunk, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
     }
      
     genNodeCross(chunk, dir){
@@ -141,7 +153,6 @@ export class MineGenerator {
         }
     }
     
-    
     genNodeMine(x, y, z, dir) {
         if (x > this.size_x || x < 0 || z > this.size_z || z < 0)
             return;
@@ -183,7 +194,9 @@ export class MineGenerator {
             return;
         }
         
-        this.map.push({"x" : new_x, "y": new_y, "z": new_z, "dir": dir, "type": "room"});
+        if (this.random.double() < this.chance_side_room) {
+            this.map.push({"x" : new_x, "y": new_y, "z": new_z, "dir": dir, "type": "room"});
+        }
     }
     
     findNodeMine(x, y, z){

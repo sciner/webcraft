@@ -376,11 +376,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
             chunk.tblocks.id[index] = block_id;
         };
+        
+       
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
 
-            this.generateBottomCaves(chunk, aleaRandom, setBlock);
+            this.generateBottomCaves(chunk, aleaRandom, setBlock); 
+            
+            
 
         } else {
 
