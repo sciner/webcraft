@@ -30,7 +30,7 @@ export class ClusterBase {
         this.coord       = addr.multiplyVecSelf(CLUSTER_SIZE);
         this.size        = CLUSTER_SIZE.clone();
         this.id          = addr.toHash();
-        this.randoms     = new alea(this.id);
+        this.randoms     = new alea(`villages_${this.id}`);
         this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/4;
         this.mask        = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height  = null;

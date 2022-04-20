@@ -1,20 +1,6 @@
 import {Vector} from "../../helpers.js";
-import {ClusterBase, CLUSTER_SIZE} from "./base.js";
+import {ClusterBase, ClusterPoint, CLUSTER_SIZE} from "./base.js";
 import { BLOCK } from "../../blocks.js";
-
-export class ClusterPoint {
-
-    constructor(height, block_id, margin, info, building) {
-        this.height         = height;
-        this.block_id       = block_id;
-        this.margin         = margin;
-        this.info           = info;
-        this.building       = building;
-        this.height_fixed   = false;
-        this.hidden         = false;
-    }
-
-}
 
 //
 export class ClusterPyramid extends ClusterBase {
@@ -25,8 +11,14 @@ export class ClusterPyramid extends ClusterBase {
         this.is_empty = false;
         if(!this.is_empty) {
             const block = BLOCK.MOSSY_STONE_BRICKS;
+            let points = new Map();
             const addBlock = (x, z, height) => {
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(height, block.id, 5, null);
+                let point = points.get(height);
+                if(!point) {
+                    point = new ClusterPoint(height, block.id, 5, null);
+                    points.set(height, point);
+                }
+                this.mask[z * CLUSTER_SIZE.x + x] = point;
             };
             const rad = 32;
             const center = this.size.clone().divScalar(2);

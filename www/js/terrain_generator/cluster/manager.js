@@ -1,6 +1,7 @@
 import {Vector, VectorCollector} from "../../helpers.js";
 import {ClusterVilage} from "./vilage.js";
 import {ClusterPyramid} from "./pyramid.js";
+import {ClusterEmpty} from "./empty.js";
 import {CLUSTER_SIZE} from "./base.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
@@ -19,10 +20,12 @@ export class ClusterManager {
         }
         const rand = new alea(addr.toHash());
         const r = rand.double();
-        if(r <= .01) {
+        if(r <= .1) {
             cluster = new ClusterPyramid(addr.clone());
-        } else {
+        } else if(r > .6 && r < .8) {
             cluster = new ClusterVilage(addr.clone());
+        } else {
+            cluster = new ClusterEmpty(addr.clone());
         }
         ClusterManager.all.set(addr, cluster);
         return cluster;
