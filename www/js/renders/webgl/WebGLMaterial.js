@@ -72,13 +72,17 @@ export class WebGLMaterial extends BaseMaterial {
             let tex = this.lightTex || this.context._emptyTex3D;
             let base = tex.baseTexture || tex;
 
-            //TODO: zero logic
-            if (prevBase !== base || base.dirty) {
-                gl.uniform3f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth);
-                base.bind(5);
+            if (prevBase.hasEmpty && tex.isEmpty) {
+                gl.uniform4f(shader.u_lightOffset,0, 0, 0, 0);
+            } else {
+                //TODO: zero logic
+                if (prevBase !== base || base.dirty) {
+                    gl.uniform3f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth);
+                    base.bind(5);
+                }
+                gl.uniform4f(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z, tex.depth / base.depth);
+                WebGLMaterial.lightState = this.lightTex;
             }
-            gl.uniform4f(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z, tex.depth / base.depth);
-            WebGLMaterial.lightState = this.lightTex;
         }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {

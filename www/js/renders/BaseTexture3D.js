@@ -29,6 +29,7 @@ export class BaseTexture3D {
         this.ownerPool = null;
         this.isRegion = false;
         this.isEmpty = false;
+        this.hasEmpty = false;
     }
 
     upload() {
@@ -79,6 +80,7 @@ export class RegionTexture3D {
         this.dirty = data !== null;
         this.ownerPool = null;
         this.isRegion = true;
+        this.isEmpty = false;
     }
 
     dispose() {

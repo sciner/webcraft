@@ -22,10 +22,14 @@ export class GridCubeTexture {
             type: to.type
         });
         baseTexture.useSubRegions = true;
+        const hasEmpty = baseTexture.hasEmpty = dims.x + dims.y + dims.z > 3;
 
         for (let i = 0; i < dims.x; i++)
             for (let j = 0; j < dims.y; j++)
                 for (let k = 0; k < dims.z; k++) {
+                    if (i + j + k === 0 && hasEmpty) {
+                        continue;
+                    }
                     const tex = new RegionTexture3D(context, {
                         baseTexture,
                         ...to,
