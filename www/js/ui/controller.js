@@ -87,6 +87,7 @@ globalThis.KEY = {};
     KEY.T           = 84;
     KEY.V           = 86;
     KEY.W           = 87;
+    KEY.WIN         = 91;
     KEY.F1          = 112;
     KEY.F2          = 113;
     KEY.F3          = 114;

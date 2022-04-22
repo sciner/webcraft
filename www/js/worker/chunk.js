@@ -8,12 +8,12 @@ import { AABB } from '../core/AABB.js';
 const DIRTY_REBUILD_RAD = 1;
 
 const CC = [
-    {x:  0, y:  1, z:  0},
-    {x:  0, y: -1, z:  0},
-    {x:  0, y:  0, z: -1},
-    {x:  0, y:  0, z:  1},
-    {x: -1, y:  0, z:  0},
-    {x:  1, y:  0, z:  0}
+    {x:  0, y:  1, z:  0, name: 'UP'},
+    {x:  0, y: -1, z:  0, name: 'DOWN'},
+    {x:  0, y:  0, z: -1, name: 'SOUTH'},
+    {x:  0, y:  0, z:  1, name: 'NORTH'},
+    {x: -1, y:  0, z:  0, name: 'WEST'},
+    {x:  1, y:  0, z:  0, name: 'EAST'}
 ];
 
 const BLOCK_CACHE = Array.from({length: 6}, _ => new TBlock(null, new Vector(0,0,0)));
@@ -61,10 +61,14 @@ export class Chunk {
     constructor(chunkManager, args) {
         this.chunkManager = chunkManager;
         Object.assign(this, args);
-        this.addr = new Vector(this.addr.x, this.addr.y, this.addr.z);
-        this.size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
-        this.coord = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
-        this.aabb = new AABB();
+        this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
+        this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
+        this.coord          = new Vector(this.addr.x * CHUNK_SIZE_X, this.addr.y * CHUNK_SIZE_Y, this.addr.z * CHUNK_SIZE_Z);
+        this.id             = this.addr.toHash();
+        this.ticking_blocks = new VectorCollector();
+        this.emitted_blocks = new VectorCollector();
+        this.cluster        = ClusterManager.getForCoord(this.coord);
+        this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,
             this.coord.y,
@@ -73,8 +77,6 @@ export class Chunk {
             this.coord.y + this.size.y,
             this.coord.z + this.size.z
         );
-        this.id = this.addr.toHash();
-        this.emitted_blocks = new VectorCollector();
     }
 
     init() {
@@ -110,6 +112,14 @@ export class Chunk {
             tblocks:    this.tblocks,
             map:        this.map
         };
+    }
+
+    addTickingBlock(pos) {
+        this.ticking_blocks.set(pos, pos);
+    }
+
+    deleteTickingBlock(pos) {
+        this.ticking_blocks.delete(pos);
     }
 
     //
@@ -239,9 +249,9 @@ export class Chunk {
         neighbours.pcnt = 0;
 
         // обходим соседние блоки
-        for(let i = 0; i < 6; i ++) {
+        let i = 0;
+        for(let p of CC) {
 
-            const p = CC[i];
             const cb = (cache && cache[i]) || new TBlock(null, new Vector());
             const v = cb.vec;
             const ax = pos.x + p.x;
@@ -266,19 +276,7 @@ export class Chunk {
                 b = this.tblocks.get(v.set(ax, ay, az), cb);
             }
 
-            if(p.y == 1) {
-                neighbours.UP = b;
-            } else if(p.y == -1) {
-                neighbours.DOWN = b;
-            } else if(p.z == -1) {
-                neighbours.SOUTH = b;
-            } else if(p.z == 1) {
-                neighbours.NORTH = b;
-            } else if(p.x == -1) {
-                neighbours.WEST = b;
-            } else if(p.x == 1) {
-                neighbours.EAST = b;
-            }
+            neighbours[p.name] = b;
 
             let properties = b?.properties;
             if(!properties || properties.transparent || properties.fluid) {
@@ -287,6 +285,7 @@ export class Chunk {
                 neighbours.pcnt = -40;
             }
             neighbours.pcnt++;
+            i++;
         }
 
         return neighbours;
@@ -300,9 +299,26 @@ export class Chunk {
         }
 
         // Create map of lowest blocks that are still lit
-        let tm                  = performance.now();
-        this.fluid_blocks       = [];
-        this.gravity_blocks     = [];
+        let tm = performance.now();
+
+        const tmpVector = new Vector();
+
+        this.neighbour_chunks = {
+            nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
+            px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
+            ny: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y - 1, this.addr.z)),
+            py: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y + 1, this.addr.z)),
+            nz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z - 1)),
+            pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
+        };
+
+        // Check neighbour chunks available
+        if(!this.neighbour_chunks.nx || !this.neighbour_chunks.px || !this.neighbour_chunks.ny || !this.neighbour_chunks.py || !this.neighbour_chunks.nz || !this.neighbour_chunks.pz) {
+            this.tm                 = performance.now() - tm;
+            this.neighbour_chunks   = null;
+            console.error('todo_unobtainable_chunk');
+            return false;
+        }
 
         let group_templates = {
             regular: {
@@ -323,23 +339,13 @@ export class Chunk {
             },
         };
 
-        const tmpVector = new Vector();
+        this.fluid_blocks           = [];
+        this.gravity_blocks         = [];
+        this.vertices               = new Map(); // Add vertices for blocks
 
-        // Add vertices for blocks
-        this.vertices = new Map();
-
-        this.neighbour_chunks = {
-            nx: world.chunkManager.getChunk(tmpVector.set(this.addr.x - 1, this.addr.y, this.addr.z)),
-            px: world.chunkManager.getChunk(tmpVector.set(this.addr.x + 1, this.addr.y, this.addr.z)),
-            ny: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y - 1, this.addr.z)),
-            py: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y + 1, this.addr.z)),
-            nz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z - 1)),
-            pz: world.chunkManager.getChunk(tmpVector.set(this.addr.x, this.addr.y, this.addr.z + 1))
-        };
-
-        const cache = BLOCK_CACHE;
-        const blockIter = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
-        let material = null;
+        const cache                 = BLOCK_CACHE;
+        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
+        let material                = null;
 
         // addVerticesToGroup...
         const addVerticesToGroup = (material_group, material_key, vertices) => {
@@ -352,20 +358,14 @@ export class Chunk {
         };
 
         const waterInWater = function(material, neighbours) {
-            if(WATER_BLOCKS_ID.indexOf(material.id) >= 0) {
-                let n1 = neighbours.UP?.id || 0;
-                let n2 = neighbours.DOWN?.id || 0;
-                let n3 = neighbours.SOUTH?.id || 0;
-                let n4 = neighbours.NORTH?.id || 0;
-                let n5 = neighbours.EAST?.id || 0;
-                let n6 = neighbours.WEST?.id || 0;
-                if(
-                    (WATER_BLOCKS_ID.indexOf(n1) >= 0) &&
-                    (WATER_BLOCKS_ID.indexOf(n2) >= 0) &&
-                    (WATER_BLOCKS_ID.indexOf(n3) >= 0) &&
-                    (WATER_BLOCKS_ID.indexOf(n4) >= 0) &&
-                    (WATER_BLOCKS_ID.indexOf(n5) >= 0) &&
-                    (WATER_BLOCKS_ID.indexOf(n6) >= 0)) {
+            if(material.is_water) {
+                let n1 = neighbours.UP?.material.is_water;
+                let n2 = neighbours.DOWN?.material.is_water
+                let n3 = neighbours.SOUTH?.material.is_water
+                let n4 = neighbours.NORTH?.material.is_water
+                let n5 = neighbours.EAST?.material.is_water
+                let n6 = neighbours.WEST?.material.is_water
+                if(n1 && n2 && n3 && n4 && n5 && n6) {
                     return true;
                 }
             }
@@ -375,6 +375,7 @@ export class Chunk {
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
             material = block.material;
+            // @todo iterator not fired air blocks
             if(block.id == BLOCK.AIR.id || !material || material.item) {
                 if(this.emitted_blocks.has(block.pos)) {
                     console.log('delete emitter');
@@ -388,20 +389,7 @@ export class Chunk {
             if(neighbours.pcnt == 6) {
                 continue;
             }
-            /*
-            // if block with gravity
-            // @todo Проверить с чанка выше (тут пока грязный хак с y > 0)
-            if(material.gravity && block.pos.y > 0 && block.falling) {
-                let block_under = this.tblocks.get(block.pos.sub(new Vector(0, 1, 0)));
-                if([BLOCK.AIR.id, BLOCK.GRASS.id].indexOf(block_under.id) >= 0) {
-                    this.gravity_blocks.push(block.pos);
-                }
-            }
-            // if block is fluid
-            if(material.is_fluid) {
-                this.fluid_blocks.push(block.pos);
-            }
-            */
+            //
             if(waterInWater(material, neighbours)) {
                 continue;
             }
@@ -419,7 +407,7 @@ export class Chunk {
                 );
                 if(Array.isArray(resp)) {
                     this.emitted_blocks.set(block.pos, resp);
-                } else {
+                } else if(this.emitted_blocks.size > 0) {
                     this.emitted_blocks.delete(block.pos);
                 }
             }

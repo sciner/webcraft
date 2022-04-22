@@ -41,7 +41,7 @@ export default class style {
             vertices.push(xpos, zpos, y_top,
                 xw, 0, 0,
                 0, zw, 0,
-                c[0], c[1], c[2] * xw, c[3] * zw,
+                c[0], c[1], c[2] * xw, -c[3] * zw,
                 lm.r, lm.g, lm.b, flags | upFlags);
             // Bottom
             vertices.push(xpos, zpos, y_bottom,
@@ -71,7 +71,7 @@ export default class style {
             vertices.push(xpos + xw/2, zpos, y_bottom + yw/2,
                 0, zw, 0,
                 0, 0, yw,
-                c[0], c[1], -c[2] * zw, c[3] * yw,
+                c[0], c[1], -c[2] * zw, -c[3] * yw,
                 lm.r, lm.g, lm.b, flags | sideFlags);
         }
 

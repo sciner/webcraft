@@ -51,7 +51,11 @@ async function preLoad () {
     // load module
     await import('./blocks.js').then(module => {
         globalThis.BLOCK = module.BLOCK;
-        //return BLOCK.init(settings);
+        // return BLOCK.init(settings);
+    });
+    // load module
+    await import('./terrain_generator/cluster/manager.js').then(module => {
+        globalThis.ClusterManager = module.ClusterManager;
     });
 
     console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
@@ -145,10 +149,11 @@ async function onMessageFunc(e) {
             if(from_cache) {
                 let chunk = world.chunks.get(args.addr);
                 worker.postMessage(['blocks_generated', {
-                    key:        chunk.key,
-                    addr:       chunk.addr,
-                    tblocks:    chunk.tblocks,
-                    map:        chunk.map
+                    key:            chunk.key,
+                    addr:           chunk.addr,
+                    tblocks:        chunk.tblocks,
+                    ticking_blocks: Array.from(chunk.ticking_blocks.keys()),
+                    map:            chunk.map
                 }]);
             } else {
                 let ci = world.createChunk(args);
@@ -167,16 +172,18 @@ async function onMessageFunc(e) {
                 if(chunk) {
                     // 4. Rebuild vertices list
                     const item = buildVertices(chunk, false);
-                    item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
-                    let index = 0;
-                    for(let z = 0; z < chunk.size.z; z++) {
-                        for(let x = 0; x < chunk.size.x; x++) {
-                            item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.r;
-                            item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.g;
+                    if(item) {
+                        item.dirt_colors = new Float32Array(chunk.size.x * chunk.size.z * 2);
+                        let index = 0;
+                        for(let z = 0; z < chunk.size.z; z++) {
+                            for(let x = 0; x < chunk.size.x; x++) {
+                                item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.r;
+                                item.dirt_colors[index++] = chunk.map.info.cells[x][z].biome.dirt_color.g;
+                            }
                         }
+                        results.push(item);
+                        chunk.vertices = null;
                     }
-                    results.push(item);
-                    chunk.vertices = null;
                 }
             }
             worker.postMessage(['vertices_generated', results]);
@@ -186,7 +193,7 @@ async function onMessageFunc(e) {
             let chunks = new VectorCollector();
             for(let m of args) {
                 // 1. Get chunk
-                let chunk = world.chunks.get(m.addr);
+                let chunk = world.getChunk(m.addr);
                 if(chunk) {
                     // 2. Set block
                     if(m.type) {
@@ -203,8 +210,13 @@ async function onMessageFunc(e) {
             // 4. Rebuild vertices list
             let result = [];
             for(let chunk of chunks) {
-                result.push(buildVertices(chunk, false));
-                chunk.vertices = null;
+                let item = buildVertices(chunk, false);
+                if(item) {
+                    result.push(item);
+                    chunk.vertices = null;
+                } else {
+                    chunk.dirty = true;
+                }
             }
             // 5. Send result to chunk manager
             worker.postMessage(['vertices_generated', result]);
@@ -233,10 +245,15 @@ if(typeof process !== 'undefined') {
 
 // Rebuild vertices list
 function buildVertices(chunk, return_map) {
+    let prev_dirty = chunk.dirty;
+    let pm = performance.now();
     chunk.dirty = true;
-    chunk.timers.build_vertices = performance.now();
-    chunk.buildVertices();
-    chunk.timers.build_vertices = Math.round((performance.now() - chunk.timers.build_vertices) * 1000) / 1000;
+    let is_builded = chunk.buildVertices();
+    if(!is_builded) {
+        chunk.dirty = prev_dirty;
+        return null;
+    }
+    chunk.timers.build_vertices = Math.round((performance.now() - pm) * 1000) / 1000;
     let resp = {
         key:                    chunk.key,
         addr:                   chunk.addr,

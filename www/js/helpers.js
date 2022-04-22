@@ -553,7 +553,6 @@ export class Vector {
         return vec1.sub(vec2).length();
     }
 
-
     // distancePointLine...
     distanceToLine(line_start, line_end, intersection = null) {
         intersection = intersection || new Vector(0, 0, 0);
@@ -740,6 +739,13 @@ export class Vector {
         return this;
     }
 
+    multiplyVecSelf(vec) {
+        this.x *= vec.x;
+        this.y *= vec.y;
+        this.z *= vec.z;
+        return this;
+    }
+
     divScalar(scalar) {
         this.x /= scalar;
         this.y /= scalar;
@@ -823,6 +829,27 @@ export class Vector {
         return this;
     }
 
+    addByCardinalDirectionSelf(vec, dir, mirror_x = false, mirror_z = false) {
+        const x_sign = mirror_x ? -1 : 1;
+        const z_sign = mirror_z ? -1 : 1;
+        dir = dir % 4;
+        this.y += vec.y;
+        if(dir == DIRECTION.SOUTH) {
+            this.x -= vec.x * x_sign;
+            this.z -= vec.z * z_sign;
+        } else if(dir == DIRECTION.NORTH) {
+            this.x += vec.x * x_sign;
+            this.z += vec.z * z_sign;
+        } else if(dir == DIRECTION.WEST) {
+            this.z += vec.x * x_sign;
+            this.x -= vec.z * z_sign;
+        } else  if(dir == DIRECTION.EAST) {
+            this.z -= vec.x * x_sign;
+            this.x += vec.z * z_sign;
+        }
+        return this;
+    }
+
 }
 
 export class Vec3 extends Vector {}
@@ -901,12 +928,6 @@ export class Helpers {
         return Helpers.cache;
     }
 
-    static getRandomInt(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
     // clamp
     static clamp(x, min, max) {
         if(!min) {
@@ -947,7 +968,7 @@ export class Helpers {
     static getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min)) + min; //Максимум не включается, минимум включается
+        return Math.floor(Math.random() * (max - min)) + min; // Максимум не включается, минимум включается
     }
 
     static createSkinLayer2(text, image, callback) {
@@ -1242,9 +1263,8 @@ export class AverageClockTimer {
         this.max        = null,
         this.avg        = null,
         this.sum        = 0,
-        this.history    = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        this.history_index = 0;
+        this.history    = new Array(60).fill(0);
     }
 
     add(value) {
@@ -1255,9 +1275,14 @@ export class AverageClockTimer {
         if(this.max === null || this.max < value) {
             this.max = value;
         }
-        this.sum -= this.history.shift();
+        //
         this.sum += value;
-        this.history.push(value);
+        this.history_index++;
+        if(this.history_index == this.history.length) {
+            this.history_index = 0;
+        }
+        this.sum -= this.history[this.history_index];
+        this.history[this.history_index] = value;
         this.avg = (this.sum / this.history.length) || 0;
     }
 

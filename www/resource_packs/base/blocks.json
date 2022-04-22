@@ -898,7 +898,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "oak",
             "calculated": [
@@ -917,7 +919,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "birch",
             "calculated": [
@@ -936,7 +940,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "acacia",
             "calculated": [
@@ -955,7 +961,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "spruce",
             "calculated": [
@@ -976,7 +984,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "dark_oak",
             "calculated": [
@@ -995,7 +1005,9 @@
         "sound": "madcraft:block.grass",
         "material": {"id": "plant"},
         "tags": ["sapling"],
-        "ticking": {"type": "sapling"},
+        "ticking": {
+            "type": "sapling"
+        },
         "extra_data": {
             "style": "tropical_tree",
             "calculated": [
@@ -1078,6 +1090,7 @@
             "id": "glass"
         },
         "tags": [
+            "glass",
             "no_drop_ao"
         ]
     },
@@ -1620,6 +1633,25 @@
         ]
     },
     {
+        "id": 45,
+        "name": "COBBLESTONE_SLAB",
+        "transparent": true,
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "stone"
+        },
+        "height": 0.5,
+        "layering": {
+            "height": 0.5,
+            "slab": true,
+            "full_block_name": "COBBLESTONE"
+        },
+        "texture": [
+            0,
+            1
+        ]
+    },
+    {
         "id": 48,
         "name": "MOSS_STONE",
         "sound": "madcraft:block.stone",
@@ -1668,6 +1700,19 @@
         "height": 0.9375,
         "texture": {
             "up": [7, 5],
+            "side": [2, 0]
+        },
+        "material": {
+            "id": "dirt"
+        }
+    },
+    {
+        "id": 63,
+        "name": "FARMLAND_WET",
+        "transparent": true,
+        "height": 0.9375,
+        "texture": {
+            "up": [6, 5],
             "side": [2, 0]
         },
         "material": {
@@ -1980,6 +2025,7 @@
         },
         "tags": [
             "glass",
+            "alpha",
             "no_drop_ao"
         ],
         "texture": [
@@ -5502,6 +5548,17 @@
         "can_rotate": true,
         "material": {
             "id": "iron"
+        },
+        "ticking": {
+            "type": "spawnmob"
+        },
+        "extra_data": {
+            "type": "mob",
+            "limit": {},
+            "calculated": [
+                {"type": "random_item", "name": "skin", "items": []},
+                {"type": "random_int", "name": "max_ticks", "min_max": [1000000, 1000000]}
+            ]
         },
         "texture_animations": {
             "side": 2

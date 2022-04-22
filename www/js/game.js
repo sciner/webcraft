@@ -374,27 +374,29 @@ export class GameClass {
                 } else {
                     kb.keys[e.keyCode] = e.down ? performance.now() : false;
                 }
-                player.controls.back    = !!(kb.keys[KEY.S] && !kb.keys[KEY.W]);
-                player.controls.forward = !!(kb.keys[KEY.W] && !kb.keys[KEY.S]);
-                player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
-                player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
-                player.controls.jump    = !!(kb.keys[KEY.SPACE]);
-                player.controls.sneak   = e.shiftKey;
-                // 0...9 (Select material)
-                if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
-                    if(e.keyCode == 48) {
-                        e.keyCode = 58;
+                if(!kb.keys[KEY.WIN]) {
+                    player.controls.back    = !!(kb.keys[KEY.S] && !kb.keys[KEY.W]);
+                    player.controls.forward = !!(kb.keys[KEY.W] && !kb.keys[KEY.S]);
+                    player.controls.right   = !!(kb.keys[KEY.D] && !kb.keys[KEY.A]);
+                    player.controls.left    = !!(kb.keys[KEY.A] && !kb.keys[KEY.D]);
+                    player.controls.jump    = !!(kb.keys[KEY.SPACE]);
+                    player.controls.sneak   = e.shiftKey;
+                    // 0...9 (Select material)
+                    if(!e.down && (e.keyCode >= 48 && e.keyCode <= 57)) {
+                        if(e.keyCode == 48) {
+                            e.keyCode = 58;
+                        }
+                        player.inventory.select(e.keyCode - 49);
+                        return true;
                     }
-                    player.inventory.select(e.keyCode - 49);
-                    return true;
-                }
-                player.zoom = !!kb.keys[KEY.C];
-                if(e.ctrlKey && !player.isSneak) {
-                    player.controls.sprint = !!kb.keys[KEY.W];
-                } else {
-                    if(!e.down) {
-                        if(e.keyCode == KEY.W) {
-                            player.controls.sprint = false;
+                    player.zoom = !!kb.keys[KEY.C];
+                    if(e.ctrlKey && !player.isSneak) {
+                        player.controls.sprint = !!kb.keys[KEY.W];
+                    } else {
+                        if(!e.down) {
+                            if(e.keyCode == KEY.W) {
+                                player.controls.sprint = false;
+                            }
                         }
                     }
                 }
@@ -482,9 +484,30 @@ export class GameClass {
         this.current_player_state.pos.copyFrom(player.lerpPos).multiplyScalar(1000).roundSelf().divScalar(1000);
         this.current_player_state.sneak = player.isSneak;
         this.ping = Math.round(this.player.world.server.ping_value);
-        const current_player_state_json = JSON.stringify(this.current_player_state);
-        if(current_player_state_json != this.prev_player_state) {
-            this.prev_player_state = current_player_state_json;
+        const cs = this.current_player_state;
+        const ps = this.prev_player_state;
+        let not_equal = !ps ||
+            (
+                ps.rotate.x != cs.rotate.x ||
+                ps.rotate.y != cs.rotate.y ||
+                ps.rotate.z != cs.rotate.z ||
+                ps.pos.x != cs.pos.x ||
+                ps.pos.y != cs.pos.y ||
+                ps.pos.z != cs.pos.z ||
+                ps.sneak != cs.sneak ||
+                ps.ping != cs.ping
+            );
+        if(not_equal) {
+            if(!this.prev_player_state) {
+                this.prev_player_state = JSON.parse(JSON.stringify(cs));
+                this.prev_player_state.rotate = new Vector(cs.rotate);
+                this.prev_player_state.pos = new Vector(cs.pos);
+            } else {
+                this.prev_player_state.rotate.copyFrom(cs.rotate);
+                this.prev_player_state.pos.copyFrom(cs.pos);
+                this.prev_player_state.sneak = cs.sneak;
+                this.prev_player_state.ping = this.current_player_state.ping;
+            }
             this.player.world.server.Send({
                 name: ServerClient.CMD_PLAYER_STATE,
                 data: this.current_player_state
@@ -611,10 +634,10 @@ export class GameClass {
     // drawPerf
     drawPerf() {
         var timers = [
-            {name: 'init', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0},
-            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0}
+            {name: 'init', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'generate_terrain', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'apply_modify', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0},
+            {name: 'build_vertices', min: 99999, max: 0, avg: 0, total: 0, cnt_more_zero: 0}
         ];
         var cnt = 0;
         for(let chunk of this.world.chunkManager.chunks.values()) {
@@ -625,11 +648,14 @@ export class GameClass {
                     if(t < tim.min) tim.min = t;
                     if(t > tim.max) tim.max = t;
                     tim.total += t;
+                    if(t > 0) {
+                        tim.cnt_more_zero++;
+                    }
                 }
             }
         }
         for(var tim of timers) {
-            tim.avg = Math.round(tim.total / cnt * 100) / 100;
+            tim.avg = tim.cnt_more_zero > 0 ? Math.round(tim.total / tim.cnt_more_zero * 100) / 100 : -1; // Math.round(tim.total / cnt * 100) / 100;
             tim.total = Math.round(tim.total * 100) / 100;
             tim.cnt = cnt;
         }
