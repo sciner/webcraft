@@ -1,5 +1,5 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
-import {Color, Vector, DIRECTION} from '../../helpers.js';
+import {Color, Vector, VectorCollector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 
 const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
