@@ -3,6 +3,8 @@ import {Color, Vector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 
 const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
+export const MINE_SIZE = new Vector(128, 40, 128);
+
 /**
  * Draw mines
  * @class MineGenerator
@@ -13,6 +15,9 @@ const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
  * @param {object} options options
  */
 export class MineGenerator {
+
+    static all = new VectorCollector();
+
     constructor(world, x, y, z, options = {}) {
         this.size_x = (options.size_x) ? options.size_x : 20;
         this.size_z = (options.size_z) ? options.size_z : 20;
@@ -36,7 +41,19 @@ export class MineGenerator {
         
         this.voxel_buildings = [];
     }
-    
+
+    // getForCoord
+    static getForCoord(generator, coord) {
+        const addr = new Vector(coord.x, 0, coord.z).divScalarVec(MINE_SIZE).flooredSelf();
+        let mine = MineGenerator.all.get(addr);
+        if(mine) {
+            return mine;
+        }
+        mine = new MineGenerator(generator, addr.x, addr.y, addr.z);
+        MineGenerator.all.set(addr, mine);
+        return mine;
+    }
+
     generate(chunk){
         let x = chunk.addr.x - this.x;
         let y = chunk.addr.y - this.y;

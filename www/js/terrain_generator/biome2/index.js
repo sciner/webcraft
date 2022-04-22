@@ -241,7 +241,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
         this.OCEAN_BIOMES = ['OCEAN', 'BEACH'];
-        this.mine = new MineGenerator(this, 180, 0, 173);
     }
 
     async init() {
@@ -402,8 +401,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         if(chunk.addr.y < -1) {
 
             this.generateBottomCaves(chunk, aleaRandom, setBlock); 
-            
-            
 
         } else {
 
@@ -824,8 +821,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
 
         }
-        
-        this.mine.generate(chunk);
+
+        const mine = MineGenerator.getForCoord(this, chunk.coord);
+        mine.generate(chunk);
 
         return map;
 
