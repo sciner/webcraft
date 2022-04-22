@@ -27,15 +27,17 @@ export class GridCubeTexture {
         for (let i = 0; i < dims.x; i++)
             for (let j = 0; j < dims.y; j++)
                 for (let k = 0; k < dims.z; k++) {
-                    if (i + j + k === 0 && hasEmpty) {
-                        continue;
-                    }
+
                     const tex = new RegionTexture3D(context, {
                         baseTexture,
                         ...to,
                         offset: new Vector(i * to.width, j * to.height, k * to.depth),
                         data: null
                     })
+                    if (i + j + k === 0 && hasEmpty) {
+                        baseTexture.emptyRegion = tex;
+                        continue;
+                    }
                     this.freeRegions.push(tex);
                 }
     }

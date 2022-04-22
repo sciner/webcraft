@@ -539,6 +539,7 @@ export default class BaseRenderer {
             data: new Uint8Array(255)
         })
         this._emptyTex3D.isEmpty = true;
+        this._emptyTex3D.emptyRegion = this._emptyTex3D;
 
         this.globalUniforms = new GlobalUniformGroup();
 

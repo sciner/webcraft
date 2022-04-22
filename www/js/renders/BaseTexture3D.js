@@ -29,7 +29,7 @@ export class BaseTexture3D {
         this.ownerPool = null;
         this.isRegion = false;
         this.isEmpty = false;
-        this.hasEmpty = false;
+        this.emptyRegion = null;
     }
 
     upload() {

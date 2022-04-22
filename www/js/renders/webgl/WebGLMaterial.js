@@ -72,8 +72,9 @@ export class WebGLMaterial extends BaseMaterial {
             let tex = this.lightTex || this.context._emptyTex3D;
             let base = tex.baseTexture || tex;
 
-            if (prevBase.hasEmpty && tex.isEmpty) {
+            if (prevBase.emptyRegion && tex.isEmpty) {
                 gl.uniform4f(shader.u_lightOffset,0, 0, 0, 0);
+                WebGLMaterial.lightState = prevBase.emptyRegion;
             } else {
                 //TODO: zero logic
                 if (prevBase !== base || base.dirty) {
