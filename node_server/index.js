@@ -3,7 +3,7 @@ import express from "express";
 import compression from "compression";
 import fs from 'fs';
 import {Worker} from "worker_threads";
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 
 import {BLOCK} from "../www/js/blocks.js";
 import {Resources} from "../www/js/resources.js";
