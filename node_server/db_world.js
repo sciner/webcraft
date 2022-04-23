@@ -351,6 +351,17 @@ export class DBWorld {
             `DELETE FROM entity;`,
             `DELETE FROM chunk;`,
         ]});
+        
+        migrations.push({version: 39, queries: [
+            `CREATE TABLE IF NOT EXISTS "teleport_points" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "user_id" integer NOT NULL,
+            "x" integer NOT NULL,
+            "y" integer NOT NULL,
+            "z" integer NOT NULL,
+            "title" VARCHER(50)
+            );`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
