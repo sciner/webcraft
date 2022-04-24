@@ -1,7 +1,7 @@
 import path from 'path'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { copyFile } from 'fs/promises';
 
 import {Vector} from '../www/js/helpers.js';
