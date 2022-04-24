@@ -48,9 +48,9 @@ export default class TeleportPlugin {
                         let title = args[2].trim();
                         if (subcmd == "add") {
                             if (this.chTitle(title)){
-                                let x = player.state.pos.x;
-                                let y = player.state.pos.y;
-                                let z = player.state.pos.z;
+                                let x = Math.round(player.state.pos.x * 100);
+                                let y = Math.round(player.state.pos.y * 100);
+                                let z = Math.round(player.state.pos.z * 100);
                                 let row = await world.db.getTeleportPoint(id, title);
                                 if (!row) {
                                     await world.db.addTeleportPoint(id, title, x, y, z);
@@ -66,7 +66,7 @@ export default class TeleportPlugin {
                             if (this.chTitle(title)){
                                 let row = await world.db.getTeleportPoint(id, title);
                                 if (row) {
-                                    let pos = new Vector(row.x, row.y, row.z);
+                                    let pos = new Vector(row.x / 100, row.y / 100, row.z / 100);
                                     world.teleportPlayer(player, {place_id: null, pos: pos});
                                 } else{
                                     this.sendMessage("Точка с именем " + title + " не найдена", player);
