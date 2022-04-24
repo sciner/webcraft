@@ -1,4 +1,4 @@
-import {BaseTexture3D} from "../BaseRenderer.js";
+import {BaseTexture3D} from "../BaseTexture3D.js";
 
 const FORMATS = {
     'rgba8unorm': 'rgba8unorm',

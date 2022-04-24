@@ -292,6 +292,7 @@ export class WebGPUMaterial extends BaseMaterial {
         if (!this._skinGroup || texture !== this.lastState.texture
             || lightTex !== this.lastState.lightTex) {
             texture.bind();
+            const lightBase = lightTex.baseTexture || lightTex;
             lightTex.bind();
             this._skinGroup = device.createBindGroup({
                 layout: this.pipeline.getBindGroupLayout(1),
@@ -318,11 +319,11 @@ export class WebGPUMaterial extends BaseMaterial {
                     },
                     {
                         binding: 4,
-                        resource: lightTex.sampler,
+                        resource: lightBase.sampler,
                     },
                     {
                         binding: 5,
-                        resource: lightTex.view,
+                        resource: lightBase.view,
                     },
                 ]
             });

@@ -33,6 +33,7 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+        this.lightPool = null;
 
         // Torches
         this.torches = {
@@ -83,8 +84,6 @@ export class ChunkManager {
 
         this.update_chunks          = true;
         this.vertices_length_total  = 0;
-        this.lightmap_count         = 0;
-        this.lightmap_bytes         = 0;
         // this.dirty_chunks           = [];
         this.worker_inited          = false;
         this.worker                 = new Worker('./js/chunk_worker.js'/*, {type: 'module'}*/);
@@ -94,8 +93,16 @@ export class ChunkManager {
 
     }
 
+    get lightmap_count() {
+        return this.lightPool ? this.lightPool.totalRegions : 0;
+    }
+
+    get lightmap_bytes() {
+        return this.lightPool ? this.lightPool.totalBytes : 0;
+    }
+
     init() {
-        
+
         const world                   = this.world;
         const that                    = this;
 
@@ -313,7 +320,7 @@ export class ChunkManager {
 
     /**
      * Return chunk by address
-     * @param {*} addr 
+     * @param {*} addr
      * @returns Chunk
      */
     getChunk(addr) {
