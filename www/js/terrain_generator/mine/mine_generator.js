@@ -17,23 +17,22 @@ export class MineGenerator {
 
     static all = new VectorCollector();
 
-    constructor(generator, addr, options = {}) {
-        this.size_x = (options.size_x) ? options.size_x : SIZE_CLUSTER;
-        this.size_z = (options.size_z) ? options.size_z : SIZE_CLUSTER;
+    constructor(generator, pos, options = {}) {
+        this.size_cluster = (options.size_cluster) ? options.size_cluster : 8;
         this.chance_hal = (options.chance_hal) ? options.chance_hal : 0.5;
         this.chance_cross = (options.chance_cross) ? options.chance_cross : 0.2;
         this.chance_side_room = (options.chance_side_room) ? options.chance_side_room : 0.5;
         this.generator = generator;
-        this.x = addr.x * SIZE_CLUSTER;
-        this.y = addr.y * SIZE_CLUSTER;
-        this.z = addr.z * SIZE_CLUSTER;
+        this.x = pos.x * this.size_cluster;
+        this.y = pos.y * this.size_cluster;
+        this.z = pos.z * this.size_cluster;
         this._get_vec = new Vector(0, 0, 0);
         this.random = new alea(this.x + "mine" + this.y + "mine" + this.z);
         this.bottom_y = Math.floor(this.random.double() * 30);
         for (let i = 0; i < 1000; ++i) {
             this.map = new VectorCollector();
             this.genNodeMine(0, 0, 0, DIRECTION.SOUTH);
-            if (this.map.size > ((this.size_x + this.size_z) / 2)) {
+            if (this.map.size > this.size_cluster) {
                 break;
             }
         }

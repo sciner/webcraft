@@ -1,4 +1,4 @@
-import {Color, DIRECTION_BIT} from '../../helpers.js';
+import {Color, Vector, DIRECTION_BIT} from '../../helpers.js';
 import {MineGenerator} from './mine_generator.js';
 import { Default_Terrain_Generator } from '../default.js';
 import {BLOCK} from '../../blocks.js';
@@ -8,7 +8,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
     constructor(seed, world_id) {
         super();
         this.setSeed(0);
-        this.mine = new MineGenerator(this, 180, 0, 173);
+        this.mine = new MineGenerator(this, new Vector(22, 0, 22));
     }
 
     async init() {}
