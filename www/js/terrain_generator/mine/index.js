@@ -8,7 +8,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
     constructor(seed, world_id) {
         super();
         this.setSeed(0);
-        this.mine = new MineGenerator(this, new Vector(22, 0, 22));
+        this.mine = new MineGenerator(this, new Vector(22, 0, 22), {chance_hal: 0.2});
     }
 
     async init() {}

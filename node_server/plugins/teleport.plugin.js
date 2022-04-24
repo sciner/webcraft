@@ -30,22 +30,30 @@ export default class TeleportPlugin {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
-            const world = player.world;
+            let world = player.world;
             switch(cmd) {
                 case '/teleport': {
-                    args = chat.parseCMD(args, ['string', 'string', 'string']);
                     let subcmd = args[1];
                     let id = player.session.user_id;
-                    if (args.length == 3){
+                    if (args.length == 5){
+                        if (subcmd == "go") {
+                            let x = parseFloat(args[2]);
+                            let y = parseFloat(args[3]);
+                            let z = parseFloat(args[4]);
+                            let pos = new Vector(x, y, z);
+                            world.teleportPlayer(player, {place_id: null, pos: pos});
+                            return true;
+                        }
+                    } else if (args.length == 3){
                         let title = args[2].trim();
                         if (subcmd == "add") {
                             if (this.chTitle(title)){
-                                let x = player.state.pos.x;
-                                let y = player.state.pos.y;
-                                let z = player.state.pos.z;
+                                let x = Math.round(player.state.pos.x * 100);
+                                let y = Math.round(player.state.pos.y * 100);
+                                let z = Math.round(player.state.pos.z * 100);
                                 let row = await world.db.getTeleportPoint(id, title);
-                                await world.db.addTeleportPoint(id, title, x, y, z);
                                 if (!row) {
+                                    await world.db.addTeleportPoint(id, title, x, y, z);
                                     this.sendMessage("Точка " + title + " добавлена", player);
                                 } else {
                                     this.sendMessage("Точка с именем " + title + " уже существует", player);
@@ -58,7 +66,7 @@ export default class TeleportPlugin {
                             if (this.chTitle(title)){
                                 let row = await world.db.getTeleportPoint(id, title);
                                 if (row) {
-                                    const pos = new Vector(row.x, row.y, row.z);
+                                    let pos = new Vector(row.x / 100, row.y / 100, row.z / 100);
                                     world.teleportPlayer(player, {place_id: null, pos: pos});
                                 } else{
                                     this.sendMessage("Точка с именем " + title + " не найдена", player);
