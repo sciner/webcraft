@@ -24,7 +24,7 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
             }
         }
         
-        this.mine.generate(chunk);
+        this.mine.fillBlocks(chunk);
         
         let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
         let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
