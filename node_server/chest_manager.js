@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { v4 as uuid } from 'uuid';
 import {Vector, VectorCollector } from "../www/js/helpers.js";
 import { Chest } from './chest.js';
 import {ServerClient} from "../www/js/server_client.js";
@@ -21,8 +21,8 @@ export class ChestManager {
     }
 
     /**
-     * Create chest 
-     * @param {*} player 
+     * Create chest
+     * @param {*} player
      * @param {ParamBlockSet} params
      * @returns {Chest}
      */
@@ -69,7 +69,7 @@ export class ChestManager {
 
     /**
      * Return chest by entity_id
-     * @param {string} entity_id 
+     * @param {string} entity_id
      * @returns Chest|null
      */
     get(entity_id) {
@@ -147,7 +147,7 @@ export class ChestManager {
 
     /**
      * Return chest on this block position
-     * @param {Vector} pos 
+     * @param {Vector} pos
      * @returns Chest|null
      */
     getOnPos(pos) {

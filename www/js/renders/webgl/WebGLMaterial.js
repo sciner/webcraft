@@ -24,7 +24,7 @@ export class WebGLMaterial extends BaseMaterial {
         this.shader.bind();
 
         const prevMat = this.shader._material;
-        
+
         gl.uniform4fv(shader.u_tintColor, this.tintColor.toArray());
 
         if (prevMat === this && !this._dirty)
@@ -63,10 +63,27 @@ export class WebGLMaterial extends BaseMaterial {
             gl.uniform1f(shader.u_pixelSize, style.pixelSize);
             gl.uniform1f(shader.u_mipmap, style.mipmap);
         }
-        if (WebGLMaterial.lightState !== this.lightTex) {
-            const tex = this.lightTex || this.context._emptyTex3D;
-            tex.bind(5);
-            WebGLMaterial.lightState = this.lightTex;
+
+        // TODO: move it to batcher
+        if (WebGLMaterial.lightState !== this.lightTex || this.lightTex && this.lightTex.dirty) {
+            const prevTex = WebGLMaterial.lightState || this.context._emptyTex3D;
+            const prevBase = prevTex.baseTexture || prevTex;
+
+            let tex = this.lightTex || this.context._emptyTex3D;
+            let base = tex.baseTexture || tex;
+
+            if (prevBase.emptyRegion && tex.isEmpty) {
+                gl.uniform4f(shader.u_lightOffset,0, 0, 0, 0);
+                WebGLMaterial.lightState = prevBase.emptyRegion;
+            } else {
+                //TODO: zero logic
+                if (prevBase !== base || base.dirty) {
+                    gl.uniform3f(shader.u_lightSize, 1. / base.width, 1. / base.height, 1. / base.depth);
+                    base.bind(5);
+                }
+                gl.uniform4f(shader.u_lightOffset, tex.offset.x, tex.offset.y, tex.offset.z, tex.depth / base.depth);
+                WebGLMaterial.lightState = this.lightTex;
+            }
         }
         if (this.blendMode !== BLEND_MODES.NORMAL) {
             switch (this.blendMode) {

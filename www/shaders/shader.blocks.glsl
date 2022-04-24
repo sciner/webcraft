@@ -48,6 +48,8 @@
     // global uniforms fragment part
     uniform sampler2D u_texture;
     uniform lowp sampler3D u_lightTex;
+    uniform vec4 u_lightOffset;
+    uniform vec3 u_lightSize;
 
     uniform float u_mipmap;
     uniform float u_blockSize;
@@ -88,7 +90,7 @@
     out vec3 v_normal;
     out vec4 v_color;
     out vec2 v_uvCenter0;
-    out vec2 v_uvCenter1; 
+    out vec2 v_uvCenter1;
     out float v_animInterp;
     out float v_lightMode;
     out float v_useFog;
@@ -108,7 +110,7 @@
     in vec3 v_world_pos;
     in vec3 v_chunk_pos;
     in vec2 v_uvCenter0;
-    in vec2 v_uvCenter1; 
+    in vec2 v_uvCenter1;
     in float v_animInterp;
     in float v_lightMode;
     in float v_useFog;
@@ -217,7 +219,7 @@
     outColor.rgb = mix(outColor.rgb, u_fogAddColor.rgb, u_fogAddColor.a * light);
     outColor = mix(outColor, vec4(u_fogColor.rgb, 1.), fogAmount);
 
-    // special effect for sunrise 
+    // special effect for sunrise
     outColor.rgb = mix(outColor.rgb, u_fogColor.rgb, u_fogColor.a);
     outColor.rgb = mix(outColor.rgb, u_tintColor.rgb, u_tintColor.a);
 
@@ -227,7 +229,7 @@
     // read flags
     int flags = int(a_flags);
     int flagNormalUp = (flags >> NORMAL_UP_FLAG)  & 1;
-    int flagBiome = (flags >> MASK_BIOME_FLAG) & 1; 
+    int flagBiome = (flags >> MASK_BIOME_FLAG) & 1;
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
@@ -270,13 +272,13 @@
 
 #ifdef ao_light_pass
     // global illumination
-    vec3 lightCoord = (v_chunk_pos + 0.5) / CHUNK_SIZE;
+    vec3 lightCoord = (v_chunk_pos + 0.5 + u_lightOffset.xyz) * u_lightSize;
     vec3 absNormal = abs(v_normal);
-    vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5) / CHUNK_SIZE;
+    vec3 aoCoord = (v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + u_lightOffset.xyz) * u_lightSize;
 
-    lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
+    // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
     float caveSample = texture(u_lightTex, lightCoord).a;
-    float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5)).a;
+    float daySample = 1.0 - texture(u_lightTex, lightCoord + vec3(0.0, 0.0, 0.5 * u_lightOffset.w)).a;
     float aoSample = 0.0;
 
     if (v_lightMode > 0.5) {
