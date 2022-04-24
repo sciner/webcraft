@@ -488,7 +488,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                     } else {
                         let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                        let r = randoms[randoms_index++ % randoms.length];
+                        let r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
                         if(dist < line.rad + r * 1) {
                             return line;
                         }
@@ -496,8 +496,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
                 return false;
             }
-            
-            
 
             // Проверка того, чтобы под деревьями не удалялась земля (в радиусе 5 блоков)
             function nearTree(xyz, value2) {
