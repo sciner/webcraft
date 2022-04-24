@@ -4,7 +4,9 @@ import {impl as alea} from '../../../vendors/alea.js';
 import { AABB } from "../../core/AABB.js";
 
 const SIZE_CLUSTER = 8;
-const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
+const LANTERN_ROT_UP = new Vector(0, -1, 0);
+const LANTERN_CHANCE = 0.02;
+const CHEST_ROT = new Vector(DIRECTION.SOUTH, 1, 0);
 export const MINE_SIZE = new Vector(CHUNK_SIZE_X * SIZE_CLUSTER, 40, CHUNK_SIZE_Z * SIZE_CLUSTER);
 export const NODE_SIZE = new Vector(CHUNK_SIZE_X, 4, CHUNK_SIZE_Z);
 export const NODE_COUNT = new Vector(MINE_SIZE.x / NODE_SIZE.x, MINE_SIZE.y / NODE_SIZE.y, MINE_SIZE.z / NODE_SIZE.z);
@@ -144,17 +146,20 @@ export class MineGenerator {
 
     // Generate sideroom node
     genNodeSideRoom(chunk, node) {
+
         const dir = node.dir;
+
         this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
-        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
+        // this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
         this.genBox(chunk, node, 1, 1, 1, 8, 3, 4, dir);
         
         let vec = new Vector(0, 0, 0);
         vec.set(8, 3, 4).rotY(dir); 
         this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.LANTERN, true, LANTERN_ROT_UP);
         
-        vec.set(1, 1, 1).rotY(dir); 
-        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, LANTERN_ROT_UP);
+        vec.set(1, 1, 1).rotY(dir);
+        const chest_rot = CHEST_ROT;
+        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot);
     }
 
     // Generate enter node
@@ -172,10 +177,10 @@ export class MineGenerator {
         };
 
         let vec = new Vector(0, 0, 0);
-        addFloorDecor(vec.set(15, 3, 15).rotY(dir), BLOCK.LANTERN);
-        addFloorDecor(vec.set(0, 3, 15).rotY(dir), BLOCK.LANTERN);
-        addFloorDecor(vec.set(0, 3, 8).rotY(dir), BLOCK.LANTERN);
-        addFloorDecor(vec.set(15, 3, 8).rotY(dir), BLOCK.LANTERN);
+        if(node.random.double() < .5) addFloorDecor(vec.set(15, 3, 15).rotY(dir), BLOCK.LANTERN);
+        if(node.random.double() < .5) addFloorDecor(vec.set(0, 3, 15).rotY(dir), BLOCK.LANTERN);
+        if(node.random.double() < .5) addFloorDecor(vec.set(0, 3, 8).rotY(dir), BLOCK.LANTERN);
+        if(node.random.double() < .5) addFloorDecor(vec.set(15, 3, 8).rotY(dir), BLOCK.LANTERN);
 
     }
 
@@ -199,11 +204,11 @@ export class MineGenerator {
             // опоры
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_SLAB);
+            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
             
             this.genBox(chunk, node, n, 1, 14, n, 2, 14, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 1, 12, n, 2, 12, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_SLAB);
+            this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANK);
             
             // паутина
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
@@ -213,11 +218,11 @@ export class MineGenerator {
             this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.COBWEB, 0.05);
             
             // факелы
-            this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, 0.2, LANTERN_ROT_UP);
+            this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE * 2, LANTERN_ROT_UP);
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.1, LANTERN_ROT_UP);
             
-            this.genBoxAir(chunk, node, n - 3, 3, 14, n + 3, 3, 14, dir, BLOCK.LANTERN, 0.1, LANTERN_ROT_UP);
-            this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.LANTERN, 0.2, LANTERN_ROT_UP);
+            this.genBoxAir(chunk, node, n - 3, 3, 14, n + 3, 3, 14, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
+            this.genBoxAir(chunk, node, n - 3, 3, 12, n + 3, 3, 12, dir, BLOCK.LANTERN, LANTERN_CHANCE * 2, LANTERN_ROT_UP);
         }
     }
 
@@ -235,9 +240,9 @@ export class MineGenerator {
         for (let n = 0; n <= 15; n += interval) {
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
-            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_SLAB);
+            this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
             
-            this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_SLAB, 0.25);
+            this.genBoxNoAir(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK, 0.25);
             
             this.genBoxAir(chunk, node, 1, 3, n - 1, 1, 3, n + 1, dir, BLOCK.COBBLESTONE, 0.25); // добавить из окружения
             this.genBoxAir(chunk, node, 3, 3, n - 1, 3, 3, n + 1, dir, BLOCK.DIRT, 0.25);
@@ -251,8 +256,8 @@ export class MineGenerator {
             this.genBoxAir(chunk, node, 3, 1, n - 3, 3, 1, n + 3, dir, BLOCK.BROWN_MUSHROOM, 0.01);
             
             // факел
-            this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.LANTERN, 0.1, LANTERN_ROT_UP);
-            this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, 0.1, LANTERN_ROT_UP);
+            this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
+            this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.LANTERN, LANTERN_CHANCE, LANTERN_ROT_UP);
         }
     }
 
