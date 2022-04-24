@@ -820,8 +820,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         }
 
-        const mine = MineGenerator.getForCoord(this, chunk.coord);
-        mine.generate(chunk);
+        if(chunk.addr.y == 0) {
+            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            mine.fillBlocks(chunk);
+        }
 
         return map;
 
