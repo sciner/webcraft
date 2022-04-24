@@ -23,6 +23,10 @@ export default class TeleportPlugin {
         ];
         player.sendPackets(packets, [player], []);
     }
+    
+    chTitle(title){
+        return (!title.match(reg) && title.length < 50);
+    }
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
@@ -35,7 +39,7 @@ export default class TeleportPlugin {
                     if (args.length == 3){
                         let title = args[2].trim();
                         if (subcmd == "add") {
-                            if (!title.match(reg) && title.length < 50){
+                            if (this.chTitle(title)){
                                 let x = player.state.pos.x;
                                 let y = player.state.pos.y;
                                 let z = player.state.pos.z;
@@ -51,7 +55,7 @@ export default class TeleportPlugin {
                             }
                             return true;
                         } else if (subcmd == "go") {
-                            if (!title.match(reg) && title.length < 50){
+                            if (this.chTitle(title)){
                                 let row = await world.db.getTeleportPoint(id, title);
                                 if (row) {
                                     const pos = new Vector(row.x, row.y, row.z);
