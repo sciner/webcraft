@@ -2,6 +2,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Color, Vector, VectorCollector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 
+const SIZE_CLUSTER = 8;
 const LANTERN_ROT_UP = {x: 0, y: -1, z: 0};
 export const MINE_SIZE = new Vector(128, 40, 128);
 
@@ -9,26 +10,24 @@ export const MINE_SIZE = new Vector(128, 40, 128);
  * Draw mines
  * @class MineGenerator
  * @param {World} world world
- * @param {number} x x chunk positon
- * @param {number} y y chunk positon
- * @param {number} z z chunk positon
+ * @param {Vector} pos chunk positon
  * @param {object} options options
  */
 export class MineGenerator {
 
     static all = new VectorCollector();
 
-    constructor(world, x, y, z, options = {}) {
-        this.size_x = (options.size_x) ? options.size_x : 20;
-        this.size_z = (options.size_z) ? options.size_z : 20;
+    constructor(world, pos, options = {}) {
+        this.size_x = (options.size_x) ? options.size_x : SIZE_CLUSTER;
+        this.size_z = (options.size_z) ? options.size_z : SIZE_CLUSTER;
         this.chance_hal = (options.chance_hal) ? options.chance_hal : 0.5;
         this.chance_cross = (options.chance_cross) ? options.chance_cross : 0.2;
         this.chance_side_room = (options.chance_side_room) ? options.chance_side_room : 0.5;
         this.world = world;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.random = new alea(x + "mine" + y + "mine" + z);
+        this.x = pos.x * SIZE_CLUSTER;
+        this.y = pos.y * SIZE_CLUSTER;
+        this.z = pos.z * SIZE_CLUSTER;
+        this.random = new alea(this.x + "mine" + this.y + "mine" + this.z);
         for (let i = 0; i < 1000; ++i) {
             this.map = [];
             this.genNodeMine(0, 0, 0, DIRECTION.SOUTH);
@@ -49,7 +48,7 @@ export class MineGenerator {
         if(mine) {
             return mine;
         }
-        mine = new MineGenerator(generator, addr.x, addr.y, addr.z);
+        mine = new MineGenerator(generator, addr);
         MineGenerator.all.set(addr, mine);
         return mine;
     }
