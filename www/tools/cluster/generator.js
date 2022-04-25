@@ -27,6 +27,8 @@ BLOCK.DIRT_PATH.color = '#746645';
 BLOCK.POLISHED_ANDESITE.color = '#aaa';
 BLOCK.LANTERN.color = '#aaa';
 BLOCK.HAY_BLOCK.color = '#fc0';
+BLOCK.CONCRETE.color = '#ccc';
+BLOCK.ANDESITE.color = '#bbb';
 
 const colors = new Map();
 for(let b of blocks) {
