@@ -2,6 +2,7 @@
 *.obj
 *.mtl
 *.exe
+*.bak
 .idea/
 *.sqlite3
 node_modules
