@@ -3,9 +3,10 @@ import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
-export const CLUSTER_SIZE = new Vector(128, 128, 128);
-const WATER_LINE            = 64;
-const temp_vec2             = new Vector(0, 0, 0);
+export const CLUSTER_SIZE       = new Vector(128, 128, 128);
+export const CLUSTER_PADDING    = 8;
+const WATER_LINE                = 64;
+const temp_vec2                 = new Vector(0, 0, 0);
 
 export class ClusterPoint {
 
@@ -27,7 +28,7 @@ export class ClusterBase {
     // constructor
     constructor(addr) {
         this.addr        = addr;
-        this.coord       = addr.multiplyVecSelf(CLUSTER_SIZE);
+        this.coord       = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
         this.size        = CLUSTER_SIZE.clone();
         this.id          = addr.toHash();
         this.randoms     = new alea(`villages_${this.id}`);
@@ -61,6 +62,71 @@ export class ClusterBase {
     getBlock(chunk, x, y, z) {
         const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
         return chunk.tblocks.id[index];
+    }
+
+    moveToRandomCorner() {
+        const resp = new Vector(0, 0, 0);
+        if(this.is_empty) {
+            return resp;
+        }
+        let corner = Math.floor(this.randoms.double() * 4);
+        let min_x = this.size.x;
+        let min_z = this.size.z;
+        let max_x = 0;
+        let max_z = 0;
+        for(let index in this.mask) {
+            const value = this.mask[index];
+            if(value && value.block_id > 0) {
+                const x = index % this.size.x;
+                const z = Math.floor(index / this.size.x);
+                if(x < min_x) min_x = x;
+                if(z < min_z) min_z = z;
+                if(x > max_x) max_x = x;
+                if(z > max_z) max_z = z;
+            }
+        }
+        let move_x = 0;
+        let move_z = 0;
+        switch(corner) {
+            case 0: {
+                move_x = -min_x + CLUSTER_PADDING;
+                move_z = -min_z + CLUSTER_PADDING;
+                break;
+            }
+            case 1: {
+                move_x = this.size.x - max_x - CLUSTER_PADDING;
+                move_z = -min_z + CLUSTER_PADDING;
+                break;
+            }
+            case 2: {
+                move_x = this.size.x - max_x - CLUSTER_PADDING;
+                move_z = this.size.z - max_z - CLUSTER_PADDING;
+                break;
+            }
+            case 3: {
+                move_x = -min_x + CLUSTER_PADDING;
+                move_z = this.size.z - max_z - CLUSTER_PADDING;
+                break;
+            }
+        }
+        // make new mask
+        const new_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        for(let x = 0; x < this.size.x; x++) {
+            for(let z = 0; z < this.size.z; z++) {
+                const index = z * this.size.x + x;
+                const value = this.mask[index];
+                if(value && value.block_id > 0) {
+                    const new_x = x + move_x;
+                    const new_z = z + move_z;
+                    const new_index = new_z * this.size.x + new_x;
+                    new_mask[new_index] = value;
+                }
+            }
+        }
+        this.mask = new_mask;
+        resp.x = move_x;
+        resp.z = move_z;
+        return resp;
     }
 
     // Fill chunk blocks

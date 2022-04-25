@@ -1,27 +1,32 @@
 import {BLOCK} from '../../js/blocks.js';
-// await BLOCK.init({texture_pack: 'base'});
+await BLOCK.init({
+    texture_pack: 'base',
+    json_url: '../../data/block_style.json',
+    resource_packs_url: '../../data/resource_packs.json'
+});
 
-const blocks = [];
-blocks.push({id: 2, name: 'GRASS_DIRT', color: '#15810e'});
-blocks.push({id: 7, name: 'OAK_PLANK', color: '#725c39'});
-blocks.push({id: 8, name: 'COBBLESTONE', color: '#555'});
-blocks.push({id: 12, name: 'OAK_GRAVEL', color: '#535b64'});
-blocks.push({id: 50, name: 'TORCH', color: '#552'});
-blocks.push({id: 54, name: 'CHEST', color: '#552'});
-blocks.push({id: 58, name: 'CRAFTING_TABLE', color: '#cc8'});
-blocks.push({id: 69, name: 'GOLD', color: '#ffff00'});
-blocks.push({id: 85, name: 'OAK_FENCE', color: '#725c39'});
-blocks.push({id: 98, name: 'STONE_BRICK', color: '#515151'});
-blocks.push({id: 134, name: 'SPRUCE_STAIRS', color: '#846645'});
-blocks.push({id: 139, name: 'COBBLESTONE_WALL', color: '#555'});
-blocks.push({id: 191, name: 'SPRUCE_FENCE', color: '#846645'});
-blocks.push({id: 460, name: 'SPRUCE_PLANK', color: '#846645'});
-blocks.push({id: 461, name: 'SPRUCE_SLAB', color: '#846645'});
-blocks.push({id: 465, name: 'SPRUCE_TRAPDOOR', color: '#846645'});
-blocks.push({id: 468, name: 'DIRT_PATH', color: '#746645'});
-blocks.push({id: 546, name: 'POLISHED_ANDESITE', color: '#aaa'});
-blocks.push({id: 599, name: 'LANTERN', color: '#aaa'});
-blocks.push({id: 631, name: 'HAY_BLOCK', color: '#fc0'});
+const blocks = Array.from(BLOCK.getAll().values());
+
+BLOCK.GRASS_DIRT.color = '#15810e';
+BLOCK.OAK_PLANK.color = '#725c39';
+BLOCK.COBBLESTONE.color = '#555';
+BLOCK.GRAVEL.color = '#535b64';
+BLOCK.TORCH.color = '#552';
+BLOCK.CHEST.color = '#552';
+BLOCK.CRAFTING_TABLE.color = '#cc8';
+BLOCK.GOLD.color = '#ffff00';
+BLOCK.OAK_FENCE.color = '#725c39';
+BLOCK.STONE_BRICK.color = '#515151';
+BLOCK.SPRUCE_STAIRS.color = '#846645';
+BLOCK.COBBLESTONE_WALL.color = '#555';
+BLOCK.SPRUCE_FENCE.color = '#846645';
+BLOCK.SPRUCE_PLANK.color = '#846645';
+BLOCK.SPRUCE_SLAB.color = '#846645';
+BLOCK.SPRUCE_TRAPDOOR.color = '#846645';
+BLOCK.DIRT_PATH.color = '#746645';
+BLOCK.POLISHED_ANDESITE.color = '#aaa';
+BLOCK.LANTERN.color = '#aaa';
+BLOCK.HAY_BLOCK.color = '#fc0';
 
 const colors = new Map();
 for(let b of blocks) {
@@ -38,14 +43,23 @@ let ctx = cnv.getContext('2d', { alpha: false });
 class Sandbox {
 
     generate(vec) {
+        let attempts = 0;
         while(true) {
-            let addr = vec ? vec : new Vector((Math.random() * 999) | 0, (Math.random() * 999) | 0);
+            attempts++;
+            let addr = vec ? vec : new Vector(
+                (Math.random() * 999) | 0,
+                0,
+                (Math.random() * 999) | 0
+            );
             let tm = performance.now();
             this.cluster = new ClusterVilage(addr);
             if(this.cluster.is_empty) {
                 vec = null;
             } else {
-                document.getElementById('timer').innerHTML = (Math.round((performance.now() - tm) * 1000) / 1000) + ' ms';
+                let text = (Math.round((performance.now() - tm) * 1000) / 1000) + ` ms`;
+                text += `<br>attempts: ${attempts}`;
+                text += `<br>addr: ${addr.toHash()}`;
+                document.getElementById('timer').innerHTML = text;
                 break;
             }
         }

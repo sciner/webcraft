@@ -1,12 +1,11 @@
 import {getChunkAddr} from "../../chunk.js";
 import {DIRECTION, Vector, VectorCollector} from "../../helpers.js";
 import { AABB } from '../../core/AABB.js';
-import {ClusterBase, ClusterPoint, CLUSTER_SIZE} from "./base.js";
+import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.js";
 import {VilageSchema} from "./vilage_schema.js";
 import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell} from "./building.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
-const CLUSTER_PADDING       = 8;
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
 
@@ -75,9 +74,14 @@ export class ClusterVilage extends ClusterBase {
             }
             this.timers.add_buildings = performance.now() - t; t = performance.now();
         }
+        //
+        const moving = this.moveToRandomCorner();
+        for(let b of this.buildings) {
+            b.translate(moving);
+        }
     }
 
-    //
+    // createBuildingPalette...
     createBuildingPalette(rules) {
         let that = this;
         let resp = {};

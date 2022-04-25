@@ -295,15 +295,16 @@ export class Resources {
     }
 
     // loadResourcePacks...
-    static async loadResourcePacks() {
-        return Helpers.fetchJSON('../data/resource_packs.json', true, 'rp')
+    static async loadResourcePacks(settings) {
+        const resource_packs_url = (settings && settings.resource_packs_url) ? settings.resource_packs_url : '../data/resource_packs.json';
+        return Helpers.fetchJSON(resource_packs_url, true, 'rp');
     }
 
     // Load supported block styles
-    static async loadBlockStyles() {
+    static async loadBlockStyles(settings) {
         let resp = new Set();
         let all = [];
-        let json_url = '../data/block_style.json';
+        let json_url = (settings && settings.json_url) ? settings.json_url : '../data/block_style.json';
         await Helpers.fetchJSON(json_url, true, 'bs').then((json) => {
             for(let code of json) {
                 // Load module

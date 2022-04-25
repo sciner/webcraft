@@ -1103,7 +1103,7 @@ BLOCK.init = async function(settings) {
     // resource styles is textures for it
 
     return Promise.all([
-        Resources.loadBlockStyles(),
+        Resources.loadBlockStyles(settings),
         BLOCK.resource_pack_manager.init(settings)
     ]).then(([block_styles, _])=>{
         // Block styles

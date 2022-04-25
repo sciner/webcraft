@@ -30,6 +30,7 @@ export class Building {
         this.coord.addSelf(vec);
         this.entrance.addSelf(vec);
         this.door_bottom.addSelf(vec);
+
     }
 
     //

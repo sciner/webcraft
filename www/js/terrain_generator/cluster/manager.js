@@ -22,10 +22,13 @@ export class ClusterManager {
         const r = rand.double();
         if(r <= .1) {
             cluster = new ClusterPyramid(addr.clone());
-        } else if(r > .6 && r < .8) {
-            cluster = new ClusterVilage(addr.clone());
-        } else {
+        } else if(r < .6) {
             cluster = new ClusterEmpty(addr.clone());
+        } else {
+            cluster = new ClusterVilage(addr.clone());
+            if(!cluster.is_empty) {
+                console.log(cluster.buildings.size);
+            }
         }
         ClusterManager.all.set(addr, cluster);
         return cluster;
