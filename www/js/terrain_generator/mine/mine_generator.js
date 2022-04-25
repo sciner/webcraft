@@ -81,7 +81,8 @@ export class MineGenerator {
         }
 
         if (this.nodes.size == 0) {
-            this.addNode(x, y, z, dir, 'enter');
+            // this.addNode(x, y, z, dir, 'enter');
+            this.addNode(x, y, z, dir, 'cross');
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.NORTH, dir));
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.EAST, dir));
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.WEST, dir));

@@ -126,27 +126,6 @@ export class Building {
         }
     }
 
-    //
-    createPalette(list) {
-        let that = this;
-        let resp = {
-            list: list,
-            reset: function() {
-                this.randoms = new alea(that.id);
-            },
-            next: function() {
-                const r = this.randoms.double();
-                for(let item of this.list) {
-                    if (r <= item.chance) {
-                        return item.value;
-                    }
-                }
-                throw 'Proportional fill pattern';
-            }
-        };
-        return resp;
-    }
-
     // Draw blocks
     drawBlocks(cluster, chunk) {
         const vec = new Vector(0, 0, 0);
@@ -357,6 +336,7 @@ export class WaterWell extends Building {
         Building.limitSize([3], seed, coord, size, entrance, door_bottom, door_direction);
         super(cluster, seed, coord, aabb, entrance, door_bottom, door_direction, size);
         //
+        cluster.road_block.reset();
         cluster.addRoadPlatform(coord, size, cluster.road_block);
         //
         this.draw_entrance = false;
@@ -369,7 +349,7 @@ export class WaterWell extends Building {
             list:           []
         }
         if(seed < .75) {
-            this.wallBlocks = this.createPalette([
+            this.wallBlocks = this.cluster.createPalette([
                 {value: BLOCK.OAK_PLANK, chance: 1}
             ]);
             this.blocks.list.push(...[
@@ -390,7 +370,7 @@ export class WaterWell extends Building {
                 {move: new Vector(1, 4, 1), block_id: BLOCK.OAK_SLAB.id},
             ]);
         } else {
-            this.wallBlocks = this.createPalette([
+            this.wallBlocks = this.cluster.createPalette([
                 {value: BLOCK.COBBLESTONE, chance: 1}
             ]);
             this.blocks.list.push(...[
@@ -500,7 +480,7 @@ export class Building1 extends Building {
             }
         }
         //
-        this.wallBlocks = this.createPalette([
+        this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: 1}
         ]);
         // Blocks
@@ -622,7 +602,7 @@ export class BuildingS extends Building {
             light:          BLOCK.TORCH
         };
         //
-        this.wallBlocks = this.createPalette([
+        this.wallBlocks = this.cluster.createPalette([
             {value: this.materials.wall, chance: .33},
             {value: BLOCK.ANDESITE, chance: .66},
             {value: BLOCK.CONCRETE, chance: 1},

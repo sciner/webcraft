@@ -5,6 +5,7 @@ import {ClusterBase, ClusterPoint, CLUSTER_SIZE, CLUSTER_PADDING} from "./base.j
 import {VilageSchema} from "./vilage_schema.js";
 import {BUILDING_AABB_MARGIN, Building1, BuildingS, Farmland, StreetLight, WaterWell} from "./building.js";
 import {impl as alea} from '../../../vendors/alea.js';
+import { BLOCK } from "../../blocks.js";
 
 const ROAD_DAMAGE_FACTOR    = 0.15;
 const USE_ROAD_AS_GANGWAY   = 0;
@@ -31,9 +32,15 @@ export class ClusterVilage extends ClusterBase {
         if(!this.is_empty) {
             this.flat               = this.randoms.double() >= .8;
             this.max_height         = this.flat ? 1 : 30;
-            this.wall_block         = this.flat ? 98 : 7;
-            this.road_block         = this.flat ? 12 : 468;
-            this.basement_block     = this.flat ? 546 : 8;
+            this.wall_block         = this.flat ? BLOCK.STONE_BRICK.id : BLOCK.OAK_PLANK.id;
+            this.road_block         = this.createPalette(this.flat ? [
+                {value: BLOCK.ANDESITE, chance: .5},
+                {value: BLOCK.CONCRETE, chance: 1}
+            ] : [
+                {value: BLOCK.DIRT_PATH, chance: 1}
+            ]);
+            this.road_block.reset();
+            this.basement_block     = this.flat ? BLOCK.POLISHED_ANDESITE.id : BLOCK.COBBLESTONE.id;
             this.building_palette   = this.createBuildingPalette({
                 crossroad: [
                     {class: StreetLight, max_count: Infinity, chance: 1}

@@ -175,9 +175,9 @@ export class TerrainMap {
                     noisefn(px / 350, pz / 350) * .5;
                 value += noisefn(px / 25, pz / 25) * (4 / 255 * noisefn(px / 20, pz / 20));
                 // Влажность
-                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.8) / 2, 0, 1);
+                let humidity = Helpers.clamp((noisefn(px / options.SCALE_HUMIDITY, pz / options.SCALE_HUMIDITY) + 0.5) / 2, 0, 1);
                 // Экватор
-                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8) / 1, 0, 1);
+                let equator = Helpers.clamp((noisefn(px / options.SCALE_EQUATOR, pz / options.SCALE_EQUATOR) + 0.8), 0, 1);
                 // Get biome
                 let biome = BIOMES.getBiome((value * 64 + H) / 255, humidity, equator);
                 if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
@@ -745,12 +745,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
 
                         // Ores (если это не вода, то заполняем полезными ископаемыми)
+                        let block_id = dirt_block;
                         if(xyz.y < local_dirt_level) {
-                            const stone_block_id = this.getOreBlockID(xyz, value, dirt_block);
-                            setBlock(x, y, z, stone_block_id);
-                        } else {
-                            setBlock(x, y, z, dirt_block);
+                            block_id = this.getOreBlockID(xyz, value, dirt_block);
                         }
+                        setBlock(x, y, z, block_id);
 
                     }
 
@@ -764,6 +763,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                 if(!chunk.tblocks.has(temp_vec)) {
                                     setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.STILL_WATER.id);
                                 }
+                            }
+                        }
+                        if(cell.equator < .6 && cell.humidity > .4) {
+                            const vl = map.info.options.WATER_LINE;
+                            if(vl >= chunk_coord.y && vl < chunk_coord.y + chunk.size.y) {
+                                temp_vec.y = vl - chunk_coord.y;
+                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
                             }
                         }
                     }

@@ -115,7 +115,7 @@ export class VilageSchema {
         rnd = rnd > .75 ? .75 : rnd;
         const pre_part = Math.floor(rnd * ln / settings.quant) * settings.quant;
         const post_part = Math.floor((ln - pre_part) / settings.quant) * settings.quant;
-        const road_point = new ClusterPoint(1, this.cluster.road_block, 5, null);
+        // const road_point = new ClusterPoint(1, this.cluster.road_block, 5, null);
         this.addCrossRoad(x - (pre_part) * is_x_mod + 1, z - (pre_part) * is_z_mod + 1);
         this.addCrossRoad(x - (pre_part - post_part) * is_x_mod + 1, z - (pre_part - post_part) * is_z_mod + 1);
         for(var process = 0; process <= (pre_part + post_part) + settings.road_ext_value; process++) {
@@ -133,7 +133,8 @@ export class VilageSchema {
                     }
                     const dx = (xprint + (road_step * is_z_mod));
                     const dz = (zprint + (road_step * is_x_mod));
-                    this.mask[dz * settings.size + dx] = road_point;
+                    // this.mask[dz * settings.size + dx] = road_point;
+                    this.mask[dz * settings.size + dx] = new ClusterPoint(1, this.cluster.road_block.next().id, 5, null)
                 }
             }
         }
@@ -210,7 +211,7 @@ export class VilageSchema {
         let xprint = x, zprint = z, dest = this.settings.road_dist;
         for(var process = 0; process < dest; process++) {
             if(this.fill_house_door_path) {
-                this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block, 1, this.settings.road_margin);
+                this.put_dot(xprint, zprint, process == dest - 1 ? this.cluster.basement_block : this.cluster.road_block.next().id, 1, this.settings.road_margin);
             }
             xprint += x_dir;
             zprint += z_dir;
@@ -334,7 +335,7 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block, 1, this.settings.road_margin);
+                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             // Отрисовка дороги вокруг сложного дома для обеспечения соединенности всех дорог
@@ -343,8 +344,8 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block, 1, this.settings.road_margin);
-                    this.put_dot((x_init + x_cursor), (z_init + road_step), this.cluster.road_block, 1, this.settings.road_margin);
+                    this.put_dot((x_init + x_cursor), (z_init + settings.quant * cell_count_z + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.put_dot((x_init + x_cursor), (z_init + road_step), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             for (let z_cursor = 0; z_cursor <= settings.quant * cell_count_z + settings.road_ext_value; z_cursor++) {
@@ -352,8 +353,8 @@ export class VilageSchema {
                     if(this.isDamagedRoad()) {
                         continue;
                     }
-                    this.put_dot((x_init + road_step), (z_init + z_cursor), this.cluster.road_block, 1, this.settings.road_margin);
-                    this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), this.cluster.road_block, 1, this.settings.road_margin);
+                    this.put_dot((x_init + road_step), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
+                    this.put_dot((x_init + road_step + settings.quant * cell_count_x), (z_init + z_cursor), this.cluster.road_block.next().id, 1, this.settings.road_margin);
                 }
             }
             // Отрисовка тропинки

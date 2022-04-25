@@ -227,7 +227,7 @@ BIOMES.SNOW = {
     color:      '#f5f5ff',
     dirt_color: new Color(1020 / 1024, 990 / 1024, 0, 0),
     title:      'СНЕГ',
-    max_height: 30,
+    max_height: 35,
     dirt_block: [BLOCK.SNOW_DIRT],
     trees:      {
         frequency: TREE_FREQUENCY,
@@ -409,7 +409,7 @@ BIOMES.getBiome = function(v_height, humidity, equator) {
         if (height > 0.5 || equator < .6) {
             if (humidity < 0.1) return 'SCORCHED';
             if (humidity < 0.2) return 'BARE';
-            if (humidity < 0.5) return 'TUNDRA';
+            if (humidity < 0.4) return 'TUNDRA';
             return 'SNOW';
         }
         if (height > 0.6) {

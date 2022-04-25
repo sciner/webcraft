@@ -26,9 +26,6 @@ export class ClusterManager {
             cluster = new ClusterEmpty(addr.clone());
         } else {
             cluster = new ClusterVilage(addr.clone());
-            if(!cluster.is_empty) {
-                console.log(cluster.buildings.size);
-            }
         }
         ClusterManager.all.set(addr, cluster);
         return cluster;

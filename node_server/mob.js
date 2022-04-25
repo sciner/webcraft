@@ -95,10 +95,9 @@ export class Mob {
     }
 
     punch(server_player, params) {
-        // console.log('params.interractMob id:', mob);
         console.log('live', this.indicators.live.value);
         // Add velocity for drop item
-        let velocity = new Vector(0, 0.5, 0);
+        let velocity = this.pos.sub(server_player.state.pos).normSelf();
         this.addVelocity(velocity);
         this.#brain.panic = true;
         setTimeout(() => {

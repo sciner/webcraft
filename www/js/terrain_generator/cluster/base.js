@@ -129,6 +129,27 @@ export class ClusterBase {
         return resp;
     }
 
+    //
+    createPalette(list) {
+        let that = this;
+        let resp = {
+            list: list,
+            reset: function() {
+                this.randoms = new alea(that.id);
+            },
+            next: function() {
+                const r = this.randoms.double();
+                for(let item of this.list) {
+                    if (r <= item.chance) {
+                        return item.value;
+                    }
+                }
+                throw 'Proportional fill pattern';
+            }
+        };
+        return resp;
+    }
+
     // Fill chunk blocks
     fillBlocks(chunk, map) {
         if(this.is_empty) {
@@ -137,6 +158,8 @@ export class ClusterBase {
         const START_X           = chunk.coord.x - this.coord.x;
         const START_Z           = chunk.coord.z - this.coord.z;
         const CHUNK_Y_BOTTOM    = chunk.coord.y;
+        //
+        // this.road_block.reset();
         // fill roards and basements
         for(let i = 0; i < CHUNK_SIZE_X; i++) {
             for(let j = 0; j < CHUNK_SIZE_Z; j++) {
@@ -148,15 +171,15 @@ export class ClusterBase {
                         continue;
                     }
                     const cell = map.info.cells[i][j];
-                    if(cell.biome.code == 'OCEAN') {
-                        if(point.block_id == this.road_block && this.use_road_as_gangway) {
+                    /*if(cell.biome.code == 'OCEAN') {
+                        if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
                                 this.setBlock(chunk, i, y, j, BLOCK.OAK_PLANK.id, null);
                             }
                         }
                         continue;
-                    }
+                    }*/
                     //
                     if(point.height > 0) {
                         const is_array = Array.isArray(point.block_id);
@@ -232,7 +255,7 @@ export class ClusterBase {
     }
 
     // Add road platform
-    addRoadPlatform(coord, size, road_block_id) {
+    addRoadPlatform(coord, size, road_block_palette) {
         const dx = coord.x - this.coord.x;
         const dz = coord.z - this.coord.z;
         for(let i = 0; i < size.x + 2; i++) {
@@ -240,7 +263,7 @@ export class ClusterBase {
                 const x = dx + i - 1;
                 const z = dz + j - 1;
                 // Draw road around plot
-                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, road_block_id, 1, null, null);
+                this.mask[z * CLUSTER_SIZE.x + x] = new ClusterPoint(1, road_block_palette.next().id, 1, null, null);
             }
         }
     }

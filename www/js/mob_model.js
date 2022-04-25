@@ -182,20 +182,22 @@ export class MobAnimator extends Animator {
             return;
         }
 
-        let aniangle = 0;
+        // Mob legs animation
+        let aniangle        = 0;
+        let anim_speed      = 128;
+        let max_anim_angle  = Math.PI / 4;
         if(animable.moving || Math.abs(animable.aniframe) > 0.1) {
-            animable.aniframe += delta / 128;
+            animable.aniframe += delta / anim_speed;
             if(animable.aniframe > Math.PI) {
                 animable.aniframe  = -Math.PI;
             }
-
-            aniangle = Math.PI / 4 * Math.sin(animable.aniframe);
+            aniangle = max_anim_angle * Math.sin(animable.aniframe);
             if(!animable.moving && Math.abs(aniangle) < 0.1) {
                 animable.aniframe = 0;
             }
         }
-
         this.applyAnimation(delta, animable.aniframe, aniangle, camPos, animable);
+
     }
 
     applyAnimation(delta, aniframe, aniangle, camPos, animable) {
@@ -437,7 +439,6 @@ export class MobModel extends NetworkPhysicObject {
             this.material.tintColor = this.tintColor;
         }
 
-        
         // invalid state, chunk always should be presented
         if (!newChunk) {
             return;
