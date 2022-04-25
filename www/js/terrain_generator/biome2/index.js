@@ -6,6 +6,7 @@ import {Map, MapCell} from './../map.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
+import {MineGenerator} from "../mine/mine_generator.js";
 
 import {CaveGenerator} from '../caves.js';
 import {BIOMES} from "../biomes.js";
@@ -393,11 +394,13 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
             chunk.tblocks.id[index] = block_id;
         };
+        
+       
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
 
-            this.generateBottomCaves(chunk, aleaRandom, setBlock);
+            this.generateBottomCaves(chunk, aleaRandom, setBlock); 
 
         } else {
 
@@ -485,7 +488,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         }
                     } else {
                         let dist = xyz.distanceToLine(line.p_start, line.p_end, _intersection);
-                        let r = randoms[randoms_index++ % randoms.length];
+                        let r = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
                         if(dist < line.rad + r * 1) {
                             return line;
                         }
@@ -815,6 +818,11 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 }
             }
 
+        }
+
+        if(chunk.addr.y == 0) {
+            const mine = MineGenerator.getForCoord(this, chunk.coord);
+            mine.fillBlocks(chunk);
         }
 
         return map;

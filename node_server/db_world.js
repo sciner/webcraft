@@ -351,6 +351,19 @@ export class DBWorld {
             `DELETE FROM entity;`,
             `DELETE FROM chunk;`,
         ]});
+        
+        migrations.push({version: 39, queries: [
+            `CREATE TABLE "teleport_points" (
+            "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+            "user_id" integer NOT NULL,
+            "x" real NOT NULL,
+            "y" real NOT NULL,
+            "z" real NOT NULL,
+            "title" VARCHER(50)
+            );`
+        ]});
+        
+
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -988,6 +1001,57 @@ export class DBWorld {
             });
         }
 
+    }
+    
+    /**
+     * TO DO EN список точек для телепортации
+     * @param {number} id id игрока
+     * @return {Object} список доступных точек для телепортации
+     */
+    async getListTeleportPoints(id) {
+        let rows = await this.db.all("SELECT title, x, y, z FROM teleport_points WHERE user_id = :id ", {
+            ":id" : parseInt(id)
+        });
+        if(!rows) {
+            return null;
+        }
+        return rows;
+    }
+    
+    /**
+     * TO DO EN получает коодинаты точки игрока с именем title
+     * @param {number} id id тгрока
+     * @param {string} title имя точки
+     */
+    async getTeleportPoint(id, title) {
+        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        let row = await this.db.get("SELECT x, y, z FROM teleport_points WHERE user_id = :id AND title=:title ", {
+            ":id" : parseInt(id),
+            ":title": clear_title
+        });
+        if(!row) {
+            return null;
+        }
+        return row;
+    }
+    
+    /**
+     * TO DO EN добавлят положение игрока в список с именем title
+     * @param {number} id id игрока
+     * @param {string} title имя точки
+     * @param {number} x x точки
+     * @param {number} y y точки
+     * @param {number} z z точки
+     */
+    async addTeleportPoint(id, title, x, y, z) {
+        let clear_title = title.replace(/[^a-z0-9\s]/gi, '').substr(0, 50);
+        await this.db.run("INSERT INTO teleport_points (user_id, title, x, y, z) VALUES (:id, :title, :x, :y, :z)", {
+            ":id" : parseInt(id),
+            ":title": clear_title,
+            ":x": parseInt(x),
+            ":y": parseInt(y + 0.5),
+            ":z": parseInt(z)
+        });
     }
 
 }

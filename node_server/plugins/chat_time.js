@@ -21,6 +21,7 @@ export default class Chat_Time {
 
     onChat(chat) {
         chat.onCmd(async (player, cmd, args) => {
+            console.log(cmd);
             switch(cmd) {
                 case '/time': {
                     args = chat.parseCMD(args, ['string', 'string', 'string']);
