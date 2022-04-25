@@ -107,4 +107,4 @@ class Sandbox {
 }
 
 const sandbox = globalThis.sandbox = new Sandbox();
-sandbox.generate(new Vector(180, 0, 180));
+sandbox.generate(new Vector(240, 0, 807));

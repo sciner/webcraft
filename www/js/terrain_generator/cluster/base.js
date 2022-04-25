@@ -76,7 +76,7 @@ export class ClusterBase {
         let max_z = 0;
         for(let index in this.mask) {
             const value = this.mask[index];
-            if(value && value.block_id > 0) {
+            if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
                 const x = index % this.size.x;
                 const z = Math.floor(index / this.size.x);
                 if(x < min_x) min_x = x;
@@ -115,7 +115,7 @@ export class ClusterBase {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;
                 const value = this.mask[index];
-                if(value && value.block_id > 0) {
+                if(value && (Array.isArray(value.block_id) || value.block_id > 0)) {
                     const new_x = x + move_x;
                     const new_z = z + move_z;
                     const new_index = new_z * this.size.x + new_x;
