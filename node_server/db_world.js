@@ -1048,9 +1048,9 @@ export class DBWorld {
         await this.db.run("INSERT INTO teleport_points (user_id, title, x, y, z) VALUES (:id, :title, :x, :y, :z)", {
             ":id" : parseInt(id),
             ":title": clear_title,
-            ":x": parseInt(x),
-            ":y": parseInt(y + 0.5),
-            ":z": parseInt(z)
+            ":x": x,
+            ":y": y + 0.5,
+            ":z": z
         });
     }
 
