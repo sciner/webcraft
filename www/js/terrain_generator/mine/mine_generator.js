@@ -1,5 +1,5 @@
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
-import {Color, Vector, VectorCollector, DIRECTION} from '../../helpers.js';
+import {Vector, VectorCollector, DIRECTION} from '../../helpers.js';
 import {impl as alea} from '../../../vendors/alea.js';
 import { AABB } from "../../core/AABB.js";
 
@@ -23,27 +23,32 @@ export class MineGenerator {
     static all = new VectorCollector();
 
     constructor(generator, addr, options = {}) {
-        this.size_cluster = (options.size_cluster) ? options.size_cluster : 8;
-        this.chance_hal = (options.chance_hal) ? options.chance_hal : 0.5;
-        this.chance_cross = (options.chance_cross) ? options.chance_cross : 0.2;
-        this.chance_side_room = (options.chance_side_room) ? options.chance_side_room : 0.5;
-        this.generator = generator;
-        this.addr = addr.clone();
-        this.coord = (new Vector(addr.x, addr.y, addr.z)).multiplyVecSelf(MINE_SIZE);
-        this._get_vec = new Vector(0, 0, 0);
-        this.random = new alea(this.x + "mine" + this.y + "mine" + this.z);
-        for (let i = 0; i < 1000; ++i) {
-            this.nodes = new VectorCollector();
-            const bottom_y = Math.floor(this.random.double() * (NODE_COUNT.y - 2));
-            this.genNodeMine(0, bottom_y, 0, DIRECTION.SOUTH);
-            if (this.nodes.size > this.size_cluster) {
-                break;
-            }
+        this.generator          = generator;
+        this.addr               = addr.clone();
+        this.coord              = (new Vector(addr.x, addr.y, addr.z)).multiplyVecSelf(MINE_SIZE);
+        this.random             = new alea(this.addr.toHash());
+        this.is_empty           = this.random.double() > .25;
+        if(this.is_empty) {
+            return;
         }
-        
-        console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes");
-        
-        this.voxel_buildings = [];
+        //
+        this.size_cluster       = (options.size_cluster) ? options.size_cluster : 8;
+        this.chance_hal         = (options.chance_hal) ? options.chance_hal : 0.75;
+        this.chance_cross       = (options.chance_cross) ? options.chance_cross : 0.6;
+        this.chance_side_room   = (options.chance_side_room) ? options.chance_side_room : 0.5;
+        //
+        this._get_vec           = new Vector(0, 0, 0);
+        this.voxel_buildings    = [];
+        //
+        let pn = performance.now();
+        this.nodes = new VectorCollector();
+        const bottom_y = Math.floor(this.random.double() * (NODE_COUNT.y - 2));
+        const x = Math.round(NODE_COUNT.x / 2);
+        const z = Math.round(NODE_COUNT.z / 2);
+        this.genNodeMine(x, bottom_y, z, DIRECTION.SOUTH);
+        this.is_empty = this.nodes.size == 0;
+        const ms = Math.round((performance.now() - pn) * 1000) / 1000;
+        console.log("[INFO]MineGenerator: generation " + this.nodes.size + " nodes for " + ms + ' ms on height ' + bottom_y);
     }
 
     // getForCoord
@@ -81,18 +86,10 @@ export class MineGenerator {
         }
 
         if (this.nodes.size == 0) {
-            // this.addNode(x, y, z, dir, 'enter');
-            this.addNode(x, y, z, dir, 'cross');
+            this.addNode(x, y, z, dir, 'cross'); // enter
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.NORTH, dir));
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.EAST, dir));
             this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.WEST, dir));
-            //
-            y++;
-            this.addNode(x, y, z, dir, 'cross');
-            this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.NORTH, dir));
-            this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.EAST, dir));
-            this.genNodeMine(x, y, z, this.wrapRotation(DIRECTION.WEST, dir));
-            return;
         }
         
         let node = this.findNodeMine(new_x, new_y, new_z);
@@ -123,6 +120,10 @@ export class MineGenerator {
     // Generate chunk blocks
     fillBlocks(chunk) {
 
+        if(this.is_empty) {
+            return false;
+        }
+
         let aabb = new AABB();
 
         aabb.x_min = (chunk.coord.x - this.coord.x) / NODE_SIZE.x;
@@ -143,6 +144,8 @@ export class MineGenerator {
             }
         }
 
+        return true;
+
     }
 
     // Generate sideroom node
@@ -151,7 +154,7 @@ export class MineGenerator {
         const dir = node.dir;
 
         this.genBox(chunk, node, 0, 0, 0, 9, 1, 4, dir, BLOCK.BRICK);
-        // this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
+        this.genBox(chunk, node, 0, 2, 0, 9, 3, 4, dir, BLOCK.BRICK);
         this.genBox(chunk, node, 1, 1, 1, 8, 3, 4, dir);
         
         let vec = new Vector(0, 0, 0);
@@ -167,7 +170,7 @@ export class MineGenerator {
     genNodeEnter(chunk, node) {
         const dir = node.dir;
         this.genBox(chunk, node, 0, 1, 8, 15, 3, 15, dir);
-        this.genBox(chunk, node, 0, 0, 0, 15, 0, 15, dir, BLOCK.OAK_PLATE);
+        this.genBox(chunk, node, 0, 0, 0, 15, 0, 15, dir, BLOCK.OAK_PLANK);
 
         const addFloorDecor = (vec, block) => {
             let temp_block_over = this.getBlock(chunk, node, vec.x, vec.y + 1, vec.z);
@@ -189,19 +192,24 @@ export class MineGenerator {
     genNodeCross(chunk, node) {
         const dir = node.dir;
         this.genBox(chunk, node, 0, 1, 0, 4, 4, 15, dir, BLOCK.AIR, 0.05);
-        
+
         this.genBox(chunk, node, 0, 1, 1, 1, 3, 3, dir);
         this.genBox(chunk, node, 1, 1, 0, 3, 3, 15, dir);
         this.genBox(chunk, node, 1, 1, 12, 15, 3, 14, dir);
-        
+
         // floor as bridge over air
-        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLATE, 1, true);
-        this.genBox(chunk, node, 1, 0, 12, 15, 0, 14, dir, BLOCK.OAK_PLATE, 1, true);
-        this.genBox(chunk, node, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLATE, 1, true);
-        
+        this.genBox(chunk, node, 1, 0, 0, 3, 0, 15, dir, BLOCK.OAK_PLANK, 1, true);
+        this.genBox(chunk, node, 1, 0, 12, 15, 0, 14, dir, BLOCK.OAK_PLANK, 1, true);
+        this.genBox(chunk, node, 0, 0, 1, 1, 0, 3, dir, BLOCK.OAK_PLANK, 1, true);
+
         let interval = Math.round(node.random.double()) + 4;
 
         for (let n = 0; n < 16; n += interval) {
+
+            if(n == 0) {
+                continue;
+            }
+
             // опоры
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
@@ -210,7 +218,12 @@ export class MineGenerator {
             this.genBox(chunk, node, n, 1, 14, n, 2, 14, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 1, 12, n, 2, 12, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, n, 3, 12, n, 3, 14, dir, BLOCK.OAK_PLANK);
-            
+
+            const sign = dir % 2 == 1 ? -1 : 1;
+            let torch_dir = dir + 1 * sign;
+            this.genBox(chunk, node, n + 1, 3, 13, n + 1, 3, 13, dir, BLOCK.TORCH, .3, false, {x: torch_dir % 4, y: 0, z: 0});
+            this.genBox(chunk, node, n - 1, 3, 13, n - 1, 3, 13, dir, BLOCK.TORCH, .3, false, {x: (torch_dir + 2) % 4, y: 0, z: 0});
+
             // паутина
             this.genBoxAir(chunk, node, 1, 3, n - 3, 1, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
             this.genBoxAir(chunk, node, 3, 3, n - 3, 3, 3, n + 3, dir, BLOCK.COBWEB, 0.05);
@@ -239,6 +252,11 @@ export class MineGenerator {
         
         let interval = Math.round(node.random.double()) + 4;
         for (let n = 0; n <= 15; n += interval) {
+
+            if(n == 0) {
+                continue;
+            }
+
             this.genBox(chunk, node, 1, 1, n, 1, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 3, 1, n, 3, 2, n, dir, BLOCK.OAK_FENCE);
             this.genBox(chunk, node, 1, 3, n, 3, 3, n, dir, BLOCK.OAK_PLANK);
@@ -264,7 +282,8 @@ export class MineGenerator {
 
     // Add new node
     addNode(x, y, z, dir, type) {
-        const bottom_y = y * NODE_SIZE.y;
+        let add_bottom_y = this.random.double() >= .5 ? 1 : 0;
+        const bottom_y = y * NODE_SIZE.y + add_bottom_y;
         const random = new alea(`node_mine_${x}_${y}_${z}`);
         this.nodes.set(new Vector(x, y, z), {dir, type, random, bottom_y});
     }
@@ -326,8 +345,10 @@ export class MineGenerator {
      * @param {Block} block
      * @param {DIRECTION} dir поворот внутри чанка
      * @param {float} chance вероятность установки
+     * @param {bool} only_if_air только если на позиции блок воздуха
+     * @param {Vector} block_rotate поворот блока
      */
-    genBox(chunk, node, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION.NORTH, blocks = {id : 0}, chance = 1, only_if_air = false) {
+    genBox(chunk, node, minX, minY, minZ, maxX, maxY, maxZ, dir = DIRECTION.NORTH, blocks = {id : 0}, chance = 1, only_if_air = false, block_rotate = null) {
         for (let x = minX; x <= maxX; ++x) {
             for (let y = minY; y <= maxY; ++y) {
                 for (let z = minZ; z <= maxZ; ++z) {
@@ -340,7 +361,7 @@ export class MineGenerator {
                                 continue;
                             }
                         }
-                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, blocks, true); 
+                        this.setBlock(chunk, node, vec.x, vec.y, vec.z, blocks, true, block_rotate); 
                     }
                 }
             }
