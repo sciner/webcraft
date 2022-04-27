@@ -202,6 +202,15 @@ export class GameClass {
                             return true;
                         }
                     }
+                    if(e.keyCode == KEY.ESC) {
+                        if(!e.down) {
+                            if(Game.hud.frmMainMenu.visible) {
+                                Game.hud.wm.closeAll();
+                                Game.setupMousePointer(false);
+                                return true;
+                            }
+                        }
+                    }
                     return this.hud.wm.onKeyEvent(e);
                 }
                 //
