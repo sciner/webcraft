@@ -2,7 +2,7 @@
 Minecraft clone on JS
 
 - Demo: https://madcraft.io/
-- Discord: https://discord.gg/C9zw4kNT2t
+- Discord: https://discord.gg/QQw2zadu3T
 - Youtube: https://www.youtube.com/channel/UCAcOZMpzYE8rk62giMgTwdw/videos
 
 # Run and play
