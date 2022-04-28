@@ -3,9 +3,9 @@ import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
+export const NEAR_MASK_MAX_DIST = 5;
 export const CLUSTER_SIZE       = new Vector(128, 128, 128);
 export const CLUSTER_PADDING    = 8;
-const WATER_LINE                = 64;
 const temp_vec2                 = new Vector(0, 0, 0);
 
 export class ClusterPoint {
@@ -111,6 +111,7 @@ export class ClusterBase {
         }
         // make new mask
         const new_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.near_mask = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z).fill(255);
         for(let x = 0; x < this.size.x; x++) {
             for(let z = 0; z < this.size.z; z++) {
                 const index = z * this.size.x + x;
@@ -120,6 +121,19 @@ export class ClusterBase {
                     const new_z = z + move_z;
                     const new_index = new_z * this.size.x + new_x;
                     new_mask[new_index] = value;
+                    for(let i = -NEAR_MASK_MAX_DIST; i < NEAR_MASK_MAX_DIST; i++) {
+                        for(let j = -NEAR_MASK_MAX_DIST; j < NEAR_MASK_MAX_DIST; j++) {
+                            const dx = new_x + i;
+                            const dz = new_z + j;
+                            if(dx > -1 && dz > -1 && dx < this.size.x && dz < this.size.z) {
+                                const nidx = dz * this.size.x + dx;
+                                const dist = Math.sqrt(Math.pow(dx - new_x, 2) + Math.pow(dz - new_z, 2));
+                                if(this.near_mask[nidx] > dist) {
+                                    this.near_mask[nidx] = dist;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -204,22 +218,17 @@ export class ClusterBase {
 
     // Return true if cell is occupied by any object (road or building)
     cellIsOccupied(x, y, z, margin) {
+        if(this.is_empty) {
+            return false;
+        }
         x -= this.coord.x;
         y -= this.coord.y;
         z -= this.coord.z;
-        for(let i = -margin; i <= margin; i++) {
-            for(let j = -margin; j <= margin; j++) {
-                const dx = x + i;
-                const dz = z + j;
-                if(dx >= 0 && dz >= 0 && dx < CLUSTER_SIZE.x && z < CLUSTER_SIZE.z) {
-                    const info = this.mask[dz * CLUSTER_SIZE.x + dx];
-                    if(info ) {
-                        return true;
-                    }
-                }
-            }
+        const index = z * CLUSTER_SIZE.x + x;
+        if(!this.near_mask) {
+            debugger
         }
-        return false;
+        return this.near_mask[index] <= margin;
     }
 
     // Add NPC

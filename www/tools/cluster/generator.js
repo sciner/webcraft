@@ -74,6 +74,15 @@ class Sandbox {
         const scale = 4;
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, this.settings.size * scale, this.settings.size * scale);
+        // near mask
+        for(var x = 0; x < this.settings.size; x++) {
+            for(var z = 0; z < this.settings.size; z++) {
+                const dist = this.cluster.near_mask[z * this.settings.size + x];
+                ctx.fillStyle = "rgba(255,15,0," + (1-Math.round(dist/5*100)/100) + ")";
+                ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+            }
+        }
+        //
         for(var x = 0; x < this.settings.size; x++) {
             for(var z = 0; z < this.settings.size; z++) {
                 const point = this.cluster.mask[z * this.settings.size + x];

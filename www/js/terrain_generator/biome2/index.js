@@ -162,10 +162,8 @@ export class TerrainMap {
                 let px = SX + x;
                 let pz = SZ + z;
                 let cluster_max_height = null;
-                if(!cluster.is_empty) {
-                    if(cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
-                        cluster_max_height = cluster.max_height;
-                    }
+                if(!cluster.is_empty && cluster.cellIsOccupied(px, 0, pz, MAP_CLUSTER_MARGIN)) {
+                    cluster_max_height = cluster.max_height;
                 }
                 // Высота горы в точке
                 let value = noisefn(px / 150, pz / 150, 0) * .4 + 

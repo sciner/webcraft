@@ -124,7 +124,7 @@ export class Map {
                         cluster = ClusterManager.getForCoord(chunk.coord);
                     }
                     //
-                    if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
+                    if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
                         continue;
                     }
                     //
@@ -152,7 +152,7 @@ export class Map {
                         for(let type of biome.trees.list) {
                             s += type.percent;
                             if(r < s) {
-                                if(cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
+                                if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
                                     break;
                                 }
                                 let r = aleaRandom.double();
