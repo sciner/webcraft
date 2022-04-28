@@ -544,6 +544,7 @@
         "name": "BIRCH_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "BIRCH_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             18
@@ -552,7 +553,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -563,6 +563,7 @@
         "name": "OAK_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "OAK_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             19
@@ -571,7 +572,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -582,6 +582,7 @@
         "name": "ACACIA_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "ACACIA_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             20
@@ -590,7 +591,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -601,6 +601,7 @@
         "name": "SPRUCE_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "SPRUCE_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             21
@@ -609,7 +610,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -620,6 +620,7 @@
         "name": "DARK_OAK_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "DARK_OAK_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             22
@@ -628,7 +629,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -639,6 +639,7 @@
         "name": "JUNGLE_LEAVES",
         "transparent": false,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "TROPICAL_TREE_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             24
@@ -647,7 +648,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
