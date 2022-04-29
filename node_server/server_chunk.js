@@ -717,13 +717,14 @@ export class ServerChunk {
                     }
                     case 'spawnmob': {
                         if(v.ticks % extra_data.max_ticks == 0) {
+                            const spawn_pos = v.pos.clone().addSelf(new Vector(.5, 0, .5));
                             const params = {
                                 type           : extra_data.type,
                                 skin           : extra_data.skin,
-                                pos            : v.pos.clone(),
-                                pos_spawn      : v.pos.clone(),
+                                pos            : spawn_pos,
+                                pos_spawn      : spawn_pos.clone(),
                                 rotate         : new Vector(0, 0, 0).toAngles()
-                            }
+                            };
                             // Spawn mob
                             console.log('Spawn mob', v.pos.toHash());
                             await this.world.createMob(params);

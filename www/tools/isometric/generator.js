@@ -1,15 +1,79 @@
+import {BLOCK} from '../../js/blocks.js';
+import { Vector } from '../../js/helpers.js';
+await BLOCK.init({
+    texture_pack: 'base',
+    json_url: '../../data/block_style.json',
+    resource_packs_url: '../../data/resource_packs.json'
+});
+import {noise} from "../../js/terrain_generator/default.js";
+
+// load module
+await import('../../js/terrain_generator/cluster/manager.js').then(module => {
+    globalThis.ClusterManager = module.ClusterManager;
+});
+
+globalThis.BLOCK = BLOCK;
+
+await import('../../js/terrain_generator/terrain_map.js').then(module => {
+    globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
+    globalThis.TerrainMap = module.TerrainMap;
+
+    //
+    const seed = 'undefined';
+    const world_id = 'demo';
+    const noisefn = noise.perlin2;
+    const Tmaps = new TerrainMap(seed, world_id, noisefn);
+
+    let canvas = document.getElementById('canvas3D');
+    let ctx = canvas.getContext('2d', { alpha: false });
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // Отрисовка карты
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const scale = 1;
+    const chunk_addr_center = new Vector(180, 0, 170);
+    const pn = performance.now();
+    const SZ = 40;
+    let maps_generated = 0;
+
+    for(let sx = 0; sx < SZ; sx++) {
+        for(let sz = 0; sz < SZ; sz++) {
+            const chunk_addr = chunk_addr_center.add(new Vector(sx, 0, sz));
+            let maps = Tmaps.generateAround(chunk_addr, true, true);
+            let map = maps[4];
+            maps_generated++;
+            for(var i = 0; i < 16; i++) {
+                for(var j = 0; j < 16; j++) {
+                    const z = sx * 16 + i;
+                    const x = sz * 16 + j;
+                    const cell = map.info.cells[i][j];
+                    ctx.fillStyle = cell.biome.color;
+                    ctx.fillRect(x * scale, z * scale, 1 * scale, 1 * scale);
+                }
+            }
+        }
+    }
+
+    let elapsed = performance.now() - pn;
+    let text = Math.round(elapsed) + ' ms';
+    text += '\nMaps: ' + maps_generated;
+    text += '\nmps: ' + Math.round((elapsed / maps_generated) * 100) / 100 + ' ms';
+    document.getElementById('timer').innerText = text;
+
+});
+
+// import {GENERATOR_OPTIONS, TerrainMap} from '../../js/terrain_generator/terrain_map.js';
+
+/*
 import noise from '../../vendors/perlin.js';
 import {Helpers} from '../../js/helpers.js';
 import {makeSignal, lightHex, rgb2Hex, getCurvePoints} from './routines.js';
+*/
 
-let canvas = document.getElementById('canvas3D');
-let ctx = canvas.getContext('2d', { alpha: false });
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight ;
-
-let canvas2D = document.getElementById('canvas2D');
-let ctx2D = canvas2D.getContext('2d', { alpha: false });
-
+/*
 // onmousemove
 canvas2D.onmousemove = function(e) {
     let c = ctx2D.getImageData(e.offsetX, e.offsetY, 1, 1).data;
@@ -154,19 +218,10 @@ class Biome {
         SX += SZ / 50;
     }
 
-    /**
-    * Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора
-    */
+    // Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора
     getBiome(height, humidity, equator) {
         let h = height;
         let m = humidity;
-        /*
-        if(equator > .7) {
-            if (equator < .9) return 'OCEAN';
-            if (equator < .92 && humidity < .5) return 'TUNDRA';
-            return 'SNOW';
-        }
-        */
         // if (h < 0.1) return 'OCEAN';
         // if (h < 0.12) return 'BEACH';
         if (h < 0.248) return 'OCEAN';
@@ -202,3 +257,4 @@ biome.redraw();
 setInterval(function() {
     biome.redraw();
 }, 150);
+*/
