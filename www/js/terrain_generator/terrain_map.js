@@ -139,16 +139,10 @@ export class TerrainMap {
                 let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
                 let dirt_block_id = biome.dirt_block[index];
                 // Create map cell
-                let cell = new MapCell(
-                    value,
-                    humidity,
-                    equator,
-                    biome,
-                    dirt_block_id
-                );
-                if(biome.code == 'OCEAN') {
-                    cell.dirt_block_id = BLOCK.STILL_WATER.id;
-                }
+                let cell = new MapCell(value, humidity, equator, biome, dirt_block_id);
+                //if(biome.code == 'OCEAN') {
+                //    cell.dirt_block_id = BLOCK.STILL_WATER.id;
+                //}
                 try {
                     map.cells[x][z] = cell;
                 } catch(e) {
