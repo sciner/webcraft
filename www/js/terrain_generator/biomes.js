@@ -1,4 +1,4 @@
-import {Color} from '../helpers.js';
+import {Color, hexToRgbA} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -384,6 +384,12 @@ BIOMES.TROPICAL_RAIN_FOREST = {
         ]
     }
 };
+
+for(let k in BIOMES) {
+    const biome = BIOMES[k];
+    biome.color_rgba = hexToRgbA(biome.color);
+    biome.dirt_block = biome.dirt_block.map(function(item) {return item.id;});
+}
 
 /**
 * Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора

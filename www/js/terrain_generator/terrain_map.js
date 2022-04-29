@@ -137,7 +137,7 @@ export class TerrainMap {
                 // Different dirt blocks
                 let ns = noisefn(px / 5, pz / 5);
                 let index = parseInt(biome.dirt_block.length * Helpers.clamp(Math.abs(ns + .3), 0, .999));
-                let dirt_block = biome.dirt_block[index];
+                let dirt_block_id = biome.dirt_block[index];
                 // Create map cell
                 let cell = new MapCell(
                     value,
@@ -148,10 +148,10 @@ export class TerrainMap {
                         color:          biome.color,
                         dirt_color:     biome.dirt_color,
                         title:          biome.title,
-                        dirt_block:     dirt_block.id,
+                        dirt_block:     dirt_block_id,
                         block:          biome.block
                     },
-                    dirt_block.id
+                    dirt_block_id
                 );
                 if(biome.code == 'OCEAN') {
                     cell.block = BLOCK.STILL_WATER.id;

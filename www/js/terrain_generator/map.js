@@ -113,7 +113,7 @@ export class Map {
                 let cell = this.cells[x][z];
                 if(!biome || biome.code != cell.biome.code) {
                     biome = BIOMES[cell.biome.code];
-                    dirt_block_ids = biome.dirt_block.map(function(item) {return item.id;});
+                    dirt_block_ids = biome.dirt_block; // .map(function(item) {return item.id;});
                 }
                 // Растения, цветы, трава (только если на поверхности блок земли)
                 if(dirt_block_ids.indexOf(cell.block) >= 0) {
