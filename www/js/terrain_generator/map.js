@@ -5,6 +5,8 @@ import {BLOCK} from "../blocks.js";
 import {BIOMES} from "./biomes.js";
 
 export const SMOOTH_RAD         = 3;
+export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4;
+export const SMOOTH_XZ_COUNT    = SMOOTH_ROW_COUNT * 2;
 export const NO_SMOOTH_BIOMES   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
 
 const PLANT_MARGIN              = 0;
@@ -44,13 +46,15 @@ export class Map {
     }
 
     static initCells() {
-        Map._cells = [];
-        for(let x = -SMOOTH_RAD * 2; x < CHUNK_SIZE_X + SMOOTH_RAD * 2; x++) {
-            Map._cells[x] = [];
-            for(let z = -SMOOTH_RAD * 2; z < CHUNK_SIZE_Z + SMOOTH_RAD * 2; z++) {
-                Map._cells[x][z] = null;
-            }
-        }
+        Map._cells = new Array(SMOOTH_XZ_COUNT);
+    }
+
+    static getCell(x, z) {
+        return Map._cells[(z * SMOOTH_ROW_COUNT) + x];
+    }
+
+    static setCell(x, z, value) {
+        Map._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
     }
 
     // Сглаживание карты высот
@@ -69,20 +73,20 @@ export class Map {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                Map._cells[x][z] = map.cells[bi.x][bi.z];
+                Map.setCell(x, z, map.cells[bi.x][bi.z]);
             }
         }
         // 2. Smoothing | Сглаживание
         let colorComputer   = new Color();
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
             for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
-                let cell = Map._cells[x][z];
+                let cell        = Map.getCell(x, z);
                 let cnt         = 0;
                 let height_sum  = 0;
                 let dirt_color  = new Color(0, 0, 0, 0);
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        let neighbour_cell = Map._cells[x + i][z + j];
+                        let neighbour_cell = Map.getCell(x + i, z + j);
                         height_sum += neighbour_cell.value;
                         dirt_color.add(neighbour_cell.biome.dirt_color);
                         cnt++;
