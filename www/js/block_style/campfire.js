@@ -50,7 +50,7 @@ export default class style {
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         const textures = {
             fire:  BLOCK.calcMaterialTexture(block.material, DIRECTION.UP), // пламя

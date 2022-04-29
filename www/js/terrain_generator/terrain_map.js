@@ -143,18 +143,11 @@ export class TerrainMap {
                     value,
                     humidity,
                     equator,
-                    {
-                        code:           biome.code,
-                        color:          biome.color,
-                        dirt_color:     biome.dirt_color,
-                        title:          biome.title,
-                        dirt_block:     dirt_block_id,
-                        block:          biome.block
-                    },
+                    biome,
                     dirt_block_id
                 );
                 if(biome.code == 'OCEAN') {
-                    cell.block = BLOCK.STILL_WATER.id;
+                    cell.dirt_block_id = BLOCK.STILL_WATER.id;
                 }
                 try {
                     map.cells[x][z] = cell;

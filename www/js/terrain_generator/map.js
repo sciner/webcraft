@@ -13,13 +13,13 @@ const TREE_MARGIN               = 3;
 // Map cell
 export class MapCell {
 
-    constructor(value, humidity, equator, biome, block) {
-        this.value      = value;
-        this.value2     = value;
-        this.humidity   = Math.round(humidity * 100000) / 100000;
-        this.equator    = Math.round(equator * 100000) / 100000;
-        this.biome      = biome;
-        this.block      = block;
+    constructor(value, humidity, equator, biome, dirt_block_id) {
+        this.value          = value;
+        this.value2         = value;
+        this.humidity       = Math.round(humidity * 100000) / 100000;
+        this.equator        = Math.round(equator * 100000) / 100000;
+        this.biome          = biome;
+        this.dirt_block_id  = dirt_block_id;
     }
 
 }
@@ -94,7 +94,7 @@ export class Map {
                     cell.value2 = parseInt(height_sum / cnt);
                 }
                 colorComputer.set(cnt, cnt, cnt, cnt);
-                cell.biome.dirt_color = dirt_color.divide(colorComputer);
+                cell.dirt_color = dirt_color.divide(colorComputer);
             }
         }
     }
@@ -116,7 +116,7 @@ export class Map {
                     dirt_block_ids = biome.dirt_block; // .map(function(item) {return item.id;});
                 }
                 // Растения, цветы, трава (только если на поверхности блок земли)
-                if(dirt_block_ids.indexOf(cell.block) >= 0) {
+                if(dirt_block_ids.indexOf(cell.dirt_block_id) >= 0) {
                     let y = cell.value2;
                     //
                     if(!aleaRandom) {

@@ -542,7 +542,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     const rnd               = aleaRandom.double();
                     const local_dirt_level  = value - (rnd < .005 ? 1 : 3);
                     const in_ocean          = this.OCEAN_BIOMES.indexOf(biome.code) >= 0;
-                    const dirt_block        = biome.dirt_block;
+                    const dirt_block        = cell.dirt_block_id;
 
                     xyz.set(x + chunk_coord.x, 0, z + chunk_coord.z);
 

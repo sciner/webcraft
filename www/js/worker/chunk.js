@@ -395,6 +395,7 @@ export class Chunk {
             }
             if(block.vertices === null) {
                 block.vertices = [];
+                const cell = this.map.info.cells[block.pos.x][block.pos.z];
                 const resp = material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
@@ -403,7 +404,8 @@ export class Chunk {
                     block.pos.y,
                     block.pos.z,
                     neighbours,
-                    this.map.info.cells[block.pos.x][block.pos.z].biome
+                    cell.biome,
+                    cell.dirt_color
                 );
                 if(Array.isArray(resp)) {
                     this.emitted_blocks.set(block.pos, resp);
@@ -427,27 +429,6 @@ export class Chunk {
                 WEST: null,
                 EAST: null,
             };
-            for(let eblocks of this.emitted_blocks) {
-                for(let eb of eblocks) {
-                    let vertices = [];
-                    const material = eb.material;
-                    material.resource_pack.pushVertices(
-                        vertices,
-                        eb,
-                        this,
-                        eb.pos.x,
-                        eb.pos.y,
-                        eb.pos.z,
-                        fake_neighbours,
-                        eb.biome,
-                        null,
-                        null,
-                        eb.matrix,
-                        eb.pivot
-                    );
-                    addVerticesToGroup(material.group, material.material_key, vertices);
-                }
-            }
         }
 
         this.dirty = false;

@@ -102,7 +102,7 @@ export default class style {
     }
 
     //
-    static putIntoPot(vertices, material, pivot, matrix, pos, biome) {
+    static putIntoPot(vertices, material, pivot, matrix, pos, biome, dirt_color) {
         const width = 8/32;
         const {x, y, z} = pos;
         let aabb = new AABB();
@@ -123,7 +123,7 @@ export default class style {
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(material.tags.indexOf('mask_biome') >= 0) {
-            lm = biome?.dirt_color || MULTIPLY.COLOR.GRASS;
+            lm = dirt_color || MULTIPLY.COLOR.GRASS;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else if(material.tags.indexOf('mask_color') >= 0) {
             flags = QUAD_FLAGS.MASK_BIOME;
@@ -223,13 +223,13 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         const material                  = block.material;
 
         // Pot
         if(block.hasTag('into_pot')) {
-            return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z), biome);
+            return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z), biome, dirt_color);
         }
 
         const {width, height, depth}    = style.calculateBlockSize(block, neighbours);
@@ -288,7 +288,7 @@ export default class style {
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.hasTag('mask_biome')) {
-            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            lm = dirt_color; // MULTIPLY.COLOR.GRASS;
             sideFlags = QUAD_FLAGS.MASK_BIOME;
             upFlags = QUAD_FLAGS.MASK_BIOME;
         }

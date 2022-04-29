@@ -78,7 +78,7 @@ export default class style {
     }
 
     //
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         const material = block.material;
         const cardinal_direction = block.getCardinalDirection();
@@ -130,7 +130,7 @@ export default class style {
 
         // Texture color multiplier
         if(block.hasTag('mask_biome')) {
-            style.lm.set(biome.dirt_color);
+            style.lm.set(dirt_color);
             flag |= QUAD_FLAGS.MASK_BIOME;
         }
 
