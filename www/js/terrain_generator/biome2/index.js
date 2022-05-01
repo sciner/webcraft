@@ -4,7 +4,7 @@ import {CubeSym} from '../../core/CubeSym.js';
 import {BLOCK} from '../../blocks.js';
 import {Vox_Loader} from "../../vox/loader.js";
 import {Vox_Mesh} from "../../vox/mesh.js";
-import {GENERATOR_OPTIONS, TerrainMap} from "../terrain_map.js";
+import {GENERATOR_OPTIONS, TerrainMapManager} from "../terrain_map.js";
 import {Default_Terrain_Generator, noise, alea} from "../default.js";
 import {MineGenerator} from "../mine/mine_generator.js";
 
@@ -102,7 +102,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.islands                = [];
         this.extruders              = [];
         //
-        this.maps                   = new TerrainMap(this.seed, this.world_id, this.noisefn);
+        this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
             // Костыль для NodeJS

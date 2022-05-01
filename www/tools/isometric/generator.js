@@ -16,13 +16,13 @@ globalThis.BLOCK = BLOCK;
 
 await import('../../js/terrain_generator/terrain_map.js').then(module => {
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
-    globalThis.TerrainMap = module.TerrainMap;
+    globalThis.TerrainMapManager = module.TerrainMapManager;
 
     //
     const seed      = 'undefined';
     const world_id  = 'demo';
     const noisefn   = noise.perlin2;
-    const Tmaps     = new TerrainMap(seed, world_id, noisefn);
+    const Tmaps     = new TerrainMapManager(seed, world_id, noisefn);
 
     let canvas = document.getElementById('canvas3D');
     let ctx = canvas.getContext('2d', { alpha: false });

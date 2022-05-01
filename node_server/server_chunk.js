@@ -759,6 +759,11 @@ export class ServerChunk {
                 drop_item.onUnload();
             }
         }
+        // Send requet to worker for unload map
+        this.world.chunks.postWorkerMessage(['destroyMap', {
+            addr: this.addr,
+        }]);
+        //
         this.world.chunks.removeTickingChunk(this.addr);
     }
 

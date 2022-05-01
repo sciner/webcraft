@@ -3,7 +3,7 @@ import {DIRECTION, Vector} from "../../helpers.js";
 import {BLOCK} from "../../blocks.js";
 import {impl as alea} from '../../../vendors/alea.js';
 
-export const NEAR_MASK_MAX_DIST = 5;
+export const NEAR_MASK_MAX_DIST = 10;
 export const CLUSTER_SIZE       = new Vector(128, 128, 128);
 export const CLUSTER_PADDING    = 8;
 const temp_vec2                 = new Vector(0, 0, 0);
@@ -35,6 +35,7 @@ export class ClusterBase {
         this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/4;
         this.mask        = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
         this.max_height  = null;
+        this.max_dist    = NEAR_MASK_MAX_DIST;
     }
 
     // Set block
@@ -128,7 +129,7 @@ export class ClusterBase {
                             if(dx > -1 && dz > -1 && dx < this.size.x && dz < this.size.z) {
                                 const nidx = dz * this.size.x + dx;
                                 const dist = Math.sqrt(Math.pow(dx - new_x, 2) + Math.pow(dz - new_z, 2));
-                                if(this.near_mask[nidx] > dist) {
+                                if(this.near_mask[nidx] > dist && dist <= NEAR_MASK_MAX_DIST) {
                                     this.near_mask[nidx] = dist;
                                 }
                             }
