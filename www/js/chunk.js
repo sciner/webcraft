@@ -413,6 +413,7 @@ export class Chunk {
             this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
         }
         this.in_frustum = render.frustum.intersectsGeometryArray(this.frustum_geometry);
+        return this.in_frustum;
     }
 
     //

@@ -497,10 +497,8 @@ export class Renderer {
         }
 
         //
-        //if(this.frame % 3 == 0) {
         this.world.chunkManager.rendered_chunks.fact = 0;
         this.world.chunkManager.prepareRenderList(this);
-        //}
 
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
@@ -716,10 +714,6 @@ export class Renderer {
 
     // Sets the properties of the perspective projection.
     setPerspective(fov, min, max) {
-        //this.fov = fov;
-        //this.min = min;
-        //this.max = max;
-
         this.camera.width = this.renderBackend.size.width;
         this.camera.height = this.renderBackend.size.height;
         this.camera.fov = fov;

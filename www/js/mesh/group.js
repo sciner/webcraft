@@ -127,6 +127,7 @@ export class MeshGroup {
             code:       'GRASSLAND',
             color:      '#98a136'
         };
+        const pos = new Vector(0, 0, 0);
         for(let k of this.vc.keys()) {
             const item = this.vc.get(k);
             const rp = item.block.material.resource_pack;
@@ -160,13 +161,12 @@ export class MeshGroup {
                 this.meshes.set(mat_key, mesh);
             }
             //
+            pos.set(tx + k.x, ty + k.y, tz + k.z);
             rp.pushVertices(
                 mesh.vertices,
                 item.block,
                 FakeWorld,
-                tx + k.x,
-                ty + k.y,
-                tz + k.z,
+                pos,
                 item.neighbours,
                 biome,
                 dirt_color,

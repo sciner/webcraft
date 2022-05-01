@@ -1,5 +1,5 @@
 import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
-import {Vector, VectorCollector} from "../helpers.js";
+import {Color, Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
@@ -51,6 +51,20 @@ export class ChunkManager {
             return chunk.getBlock(x, y, z);
         }
         return this.DUMMY;
+    }
+
+}
+
+class BlockNeighbours {
+
+    constructor() {
+        this.pcnt   = 0;
+        this.UP     = null;
+        this.DOWN   = null;
+        this.SOUTH  = null;
+        this.NORTH  = null;
+        this.WEST   = null;
+        this.EAST   = null;
     }
 
 }
@@ -236,17 +250,7 @@ export class Chunk {
      */
     getBlockNeighbours(pos, cache = null) {
 
-        const neighbours = {
-            pcnt: 0,
-            UP: null,
-            DOWN: null,
-            SOUTH: null,
-            NORTH: null,
-            WEST: null,
-            EAST: null
-        };
-
-        neighbours.pcnt = 0;
+        const neighbours = new BlockNeighbours();
 
         // обходим соседние блоки
         let i = 0;
@@ -343,10 +347,6 @@ export class Chunk {
         this.gravity_blocks         = [];
         this.vertices               = new Map(); // Add vertices for blocks
 
-        const cache                 = BLOCK_CACHE;
-        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
-        let material                = null;
-
         // addVerticesToGroup...
         const addVerticesToGroup = (material_group, material_key, vertices) => {
             if(!this.vertices.has(material_key)) {
@@ -372,13 +372,15 @@ export class Chunk {
             return false;
         }
 
+        const cache                 = BLOCK_CACHE;
+        const blockIter             = this.tblocks.createUnsafeIterator(new TBlock(null, new Vector(0,0,0)));
+
         // Обход всех блоков данного чанка
         for(let block of blockIter) {
-            material = block.material;
+            const material = block.material;
             // @todo iterator not fired air blocks
             if(block.id == BLOCK.AIR.id || !material || material.item) {
                 if(this.emitted_blocks.has(block.pos)) {
-                    console.log('delete emitter');
                     this.emitted_blocks.delete(block.pos);
                 }
                 continue;
@@ -400,9 +402,7 @@ export class Chunk {
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone
                     this,
-                    block.pos.x,
-                    block.pos.y,
-                    block.pos.z,
+                    block.pos,
                     neighbours,
                     cell.biome,
                     cell.dirt_color
@@ -414,11 +414,12 @@ export class Chunk {
                 }
             }
             world.blocks_pushed++;
-            if(block.vertices !== null && block.vertices.length > 0) {
+            if(block.vertices.length > 0) {
                 addVerticesToGroup(material.group, material.material_key, block.vertices);
             }
         }
 
+        /*
         // Emmited blocks
         if(this.emitted_blocks.size > 0) {
             const fake_neighbours = {
@@ -429,7 +430,7 @@ export class Chunk {
                 WEST: null,
                 EAST: null,
             };
-        }
+        }*/
 
         this.dirty = false;
         this.tm = performance.now() - tm;
