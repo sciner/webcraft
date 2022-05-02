@@ -160,10 +160,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     }
 
     // getOreBlockID...
-    getOreBlockID(xyz, value, dirt_block) {
+    getOreBlockID(map, xyz, value, dirt_block) {
         this.temp_vec.copyFrom(xyz);
         this.temp_vec.y++;
-        if(this.map.info.plants.has(this.temp_vec)) {
+        if(map.info.plants.has(this.temp_vec)) {
             return dirt_block;
         }
         let stone_block_id = BLOCK.CONCRETE.id;
@@ -210,7 +210,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         let maps                        = this.maps.generateAround(chunk.addr, true, true);
         let map                         = maps[4];
         let cluster                     = chunk.cluster; // ClusterManager.getForCoord(chunk.coord);
-        this.map                        = map;
         this.caveManager.addSpiral(chunk.addr);
 
         this.ores = [];
@@ -240,8 +239,6 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             }
             chunk.tblocks.id[index] = block_id;
         };
-        
-       
 
         // Endless caves / Бесконечные пещеры нижнего уровня
         if(chunk.addr.y < -1) {
@@ -593,7 +590,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         // Ores (если это не вода, то заполняем полезными ископаемыми)
                         let block_id = dirt_block;
                         if(xyz.y < local_dirt_level) {
-                            block_id = this.getOreBlockID(xyz, value, dirt_block);
+                            block_id = this.getOreBlockID(map, xyz, value, dirt_block);
                         }
                         setBlock(x, y, z, block_id);
 

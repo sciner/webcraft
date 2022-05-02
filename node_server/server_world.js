@@ -48,6 +48,7 @@ export class ServerWorld {
         this.models.init();
         await this.quests.init();
         this.ticks_stat     = {
+            number: 0,
             pn: null,
             last: 0,
             total: 0,
@@ -61,6 +62,7 @@ export class ServerWorld {
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                maps_clear: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 packets_queue_send: {min: Infinity, max: -Infinity, avg: 0, sum: 0}
             },
             start() {
@@ -240,6 +242,7 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         //
+        this.ticks_stat.number++;
         this.ticks_stat.start();
         // 1.
         await this.chunks.tick(delta);
@@ -273,6 +276,20 @@ export class ServerWorld {
         this.packets_queue.send();
         this.ticks_stat.add('packets_queue_send');
         //
+        if(this.ticks_stat.number % 100 == 0) {
+            if(this.players.size > 0) {
+                let players = [];
+                for(let [_, p] of this.players.entries()) {
+                    players.push({
+                        pos: p.state.pos,
+                        chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
+                        chunk_render_dist: p.state.chunk_render_dist
+                    });
+                }
+                this.chunks.postWorkerMessage(['destroyMap', {players}]);
+            }
+            this.ticks_stat.add('maps_clear');
+        }
         //
         this.ticks_stat.end();
         //

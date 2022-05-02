@@ -74,7 +74,6 @@ export class TerrainMapManager {
                 const direct_load = x == 0 && z == 0;
                 if(direct_load) {
                     direct_map = item;
-                    direct_map.is_direct = true;
                 }
             }
         }
@@ -90,13 +89,6 @@ export class TerrainMapManager {
         if(vegetation) {
             for(let map of maps) {
                 map.info.generateVegetation();
-            }
-        }
-        for(let map of maps) {
-            if(!map.is_direct) {
-                if(!map.chunk.addr.equal(direct_map.info.chunk.addr)) {
-                    direct_map.info.submaps.push(map)
-                }
             }
         }
         return maps;
@@ -174,12 +166,28 @@ export class TerrainMapManager {
         // Clear maps_cache
         // this.maps_cache.reduce(20000);
         this.maps_cache.set(chunk.addr, map);
+        // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
     }
 
-    destroyMap(addr) {
-        // let map = this.maps_cache.get(addr);
-        // map.submaps
+    destroyAroundPlayers(players) {
+        let cnt_destroyed = 0;
+        for(let [map_addr, _] of this.maps_cache.entries()) {
+            let can_destroy = true;
+            for(let player of players) {
+                const {chunk_render_dist, chunk_addr} = player;
+                if(map_addr.distance(chunk_addr) < chunk_render_dist + 3) {
+                    can_destroy = false;
+                }
+            }
+            if(can_destroy) {
+                this.maps_cache.delete(map_addr);
+                cnt_destroyed++;
+            }
+        }
+        //if(cnt_destroyed > 0) {
+        //    console.log(`Destroyed maps: ${cnt_destroyed}`);
+        //}
     }
 
 }
@@ -195,8 +203,6 @@ export class TerrainMap {
         this.trees          = [];
         this.plants         = [];
         this.smoothed       = false;
-        this.is_direct      = false;
-        this.submaps        = [];
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
         this.chunk          = {
             size: chunk.size,

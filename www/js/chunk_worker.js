@@ -143,7 +143,7 @@ async function onMessageFunc(e) {
         }
         case 'destroyMap': {
             if(world.generator.maps) {
-                world.generator.maps.destroyMap(args.addr);
+                world.generator.maps.destroyAroundPlayers(args.players);
             }
             break;
         }
