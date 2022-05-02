@@ -419,18 +419,31 @@ export class Chunk {
             }
         }
 
-        /*
         // Emmited blocks
         if(this.emitted_blocks.size > 0) {
-            const fake_neighbours = {
-                UP: null,
-                DOWN: null,
-                SOUTH: null,
-                NORTH: null,
-                WEST: null,
-                EAST: null,
-            };
-        }*/
+            const fake_neighbours = new BlockNeighbours();
+            for(let eblocks of this.emitted_blocks) {
+                for(let eb of eblocks) {
+                    let vertices = [];
+                    const material = eb.material;
+                    // vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot
+                    material.resource_pack.pushVertices(
+                        vertices,
+                        eb,
+                        this,
+                        eb.pos,
+                        fake_neighbours,
+                        eb.biome,
+                        null,
+                        null,
+                        null,
+                        eb.matrix,
+                        eb.pivot
+                    );
+                    addVerticesToGroup(material.group, material.material_key, vertices);
+                }
+            }
+        }
 
         this.dirty = false;
         this.tm = performance.now() - tm;
