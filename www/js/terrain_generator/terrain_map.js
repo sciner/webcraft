@@ -51,7 +51,7 @@ export class TerrainMapManager {
     generateAround(chunk_addr, smooth, vegetation, rad = 1) {
         const noisefn               = this.noisefn;
         let maps                    = [];
-        let map                     = null;
+        let direct_map              = null;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
                 TerrainMapManager._temp_vec3.x = x;
@@ -73,22 +73,30 @@ export class TerrainMapManager {
                 maps.push(item);
                 const direct_load = x == 0 && z == 0;
                 if(direct_load) {
-                    map = item;
+                    direct_map = item;
+                    direct_map.is_direct = true;
                 }
             }
         }
         // Options
-        smooth = smooth && !map.info.smoothed;
-        vegetation = vegetation && !map.info.smoothed;
+        smooth = smooth && !direct_map.info.smoothed;
+        vegetation = vegetation && !direct_map.info.smoothed;
         // Smooth (for central and part of neighbours)
         if(smooth) {
-            map.info.smoothed = true;
-            map.info.smooth(this);
+            direct_map.info.smoothed = true;
+            direct_map.info.smooth(this);
         }
         // Generate vegetation
         if(vegetation) {
             for(let map of maps) {
                 map.info.generateVegetation();
+            }
+        }
+        for(let map of maps) {
+            if(!map.is_direct) {
+                if(!map.chunk.addr.equal(direct_map.info.chunk.addr)) {
+                    direct_map.info.submaps.push(map)
+                }
             }
         }
         return maps;
@@ -169,6 +177,11 @@ export class TerrainMapManager {
         return map;
     }
 
+    destroyMap(addr) {
+        // let map = this.maps_cache.get(addr);
+        // map.submaps
+    }
+
 }
 
 // Map
@@ -182,6 +195,8 @@ export class TerrainMap {
         this.trees          = [];
         this.plants         = [];
         this.smoothed       = false;
+        this.is_direct      = false;
+        this.submaps        = [];
         this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
         this.chunk          = {
             size: chunk.size,

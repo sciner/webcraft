@@ -141,6 +141,12 @@ async function onMessageFunc(e) {
             world.destructChunk(args.addr);
             break;
         }
+        case 'destroyMap': {
+            if(world.generator.maps) {
+                world.generator.maps.destroyMap(args.addr);
+            }
+            break;
+        }
         case 'buildVertices': {
             let results = [];
             for(let addr of args.addrs) {
