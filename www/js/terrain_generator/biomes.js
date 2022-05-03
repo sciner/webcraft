@@ -34,6 +34,7 @@ BIOMES.OCEAN = {
     title:      'ОКЕАН',
     max_height: 64,
     dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id],
+    no_smooth:  true,
     trees:      {
         frequency: 0,
         list: []
@@ -52,6 +53,7 @@ BIOMES.BEACH = {
     title:      'ПЛЯЖ',
     max_height: 64,
     dirt_block: [BLOCK.SAND.id],
+    no_smooth:  true,
     trees:      {
         frequency: 0,
         list: []
@@ -72,6 +74,7 @@ BIOMES.TEMPERATE_DESERT = {
     title:      'УМЕРЕННАЯ ПУСТЫНЯ',
     dirt_block: [BLOCK.SAND.id],
     max_height: 6,
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 2,
         list: [
@@ -94,6 +97,7 @@ BIOMES.JUNGLE = {
     title:      'ДЖУНГЛИ',
     max_height: 48,
     dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 4,
         list: [
@@ -125,6 +129,7 @@ BIOMES.SUBTROPICAL_DESERT = {
     title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
     max_height: 6,
     dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -150,6 +155,7 @@ BIOMES.SCORCHED = {
     title:      'ОБОГРЕВАЮЩИЙ',
     max_height: 12,
     dirt_block: [BLOCK.SAND.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 4,
         list: [
@@ -167,6 +173,7 @@ BIOMES.BARE = {
     title:      'ПУСТОШЬ',
     max_height: 64,
     dirt_block: [BLOCK.CONCRETE.id],
+    no_smooth:  false,
     trees:      {},
     plants:     {frequency: 0}
 };
@@ -179,6 +186,7 @@ BIOMES.TUNDRA = {
     title:      'ТУНДРА',
     max_height: 48,
     dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.PODZOL.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
@@ -208,6 +216,7 @@ BIOMES.TAIGA = {
     title:      'ТАЙГА',
     max_height: 12,
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -229,6 +238,7 @@ BIOMES.SNOW = {
     title:      'СНЕГ',
     max_height: 35,
     dirt_block: [BLOCK.SNOW_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -249,6 +259,7 @@ BIOMES.SHRUBLAND = {
     dirt_color: new Color(880 / 1024, 870 / 1024, 0, 0),
     title:      'КУСТАРНИКИ',
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     max_height: 8,
     trees:      {frequency: 0},
     plants: {
@@ -267,6 +278,7 @@ BIOMES.GRASSLAND = {
     title:      'ТРАВЯНАЯ ЗЕМЛЯ',
     max_height: 18,
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     plants: {
         frequency: .5,
         list: [
@@ -298,6 +310,7 @@ BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
     title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
     max_height: 48,
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -322,6 +335,7 @@ BIOMES.TEMPERATE_RAIN_FOREST = {
     title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
     max_height: 15,
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
@@ -344,6 +358,7 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
     title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
     max_height: 32,
     dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 2,
         list: [
@@ -367,6 +382,7 @@ BIOMES.TROPICAL_RAIN_FOREST = {
     title:      'ГРИБНОЙ',
     max_height: 64,
     dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.MYCELIUM.id, BLOCK.MOSS_BLOCK.id],
+    no_smooth:  false,
     trees:      {
         frequency: .0085,
         list: [

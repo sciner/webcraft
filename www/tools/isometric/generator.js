@@ -30,7 +30,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     canvas.height = window.innerHeight;
 
     // Отрисовка карты
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const scale             = 1;

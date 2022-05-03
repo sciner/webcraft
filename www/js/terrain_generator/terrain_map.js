@@ -6,9 +6,9 @@ import {BIOMES} from "./biomes.js";
 let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 export const SMOOTH_RAD         = 3;
+export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
 export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4;
 export const SMOOTH_XZ_COUNT    = SMOOTH_ROW_COUNT * 2;
-export const NO_SMOOTH_BIOMES   = [BIOMES.OCEAN.code, BIOMES.BEACH.code];
 
 // for clusters
 export const PLANT_MARGIN       = 0;
@@ -16,6 +16,21 @@ export const TREE_MARGIN        = 3;
 export const MAP_CLUSTER_MARGIN = 5;
 
 const MAP_SCALE = .5;
+
+//
+const BLUR_MOVEMENTS = new Map();
+for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
+    for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
+        const movs = new Int16Array(SMOOTH_RAD_CNT);
+        let cnt = 0;
+        for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
+            for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
+                movs[cnt++] = ((z + j) * SMOOTH_ROW_COUNT) + (x + i);
+            }
+        }
+        BLUR_MOVEMENTS.set((z * SMOOTH_ROW_COUNT) + x, movs);
+    }
+}
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             63, // Ватер-линия
@@ -212,15 +227,15 @@ export class TerrainMap {
     }
 
     static initCells() {
-        Map._cells = new Array(SMOOTH_XZ_COUNT);
+        TerrainMap._cells = new Array(SMOOTH_XZ_COUNT);
     }
 
     static getCell(x, z) {
-        return Map._cells[(z * SMOOTH_ROW_COUNT) + x];
+        return TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x];
     }
 
     static setCell(x, z, value) {
-        Map._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
+        TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
     }
 
     // Сглаживание карты высот
@@ -237,36 +252,53 @@ export class TerrainMap {
                 addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
+                    
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi);
                 TerrainMap.setCell(x, z, map.cells[bi.x][bi.z]);
             }
         }
         // 2. Smoothing | Сглаживание
-        let colorComputer   = new Color();
+        let colorComputer = new Color(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
+
+        /*for(let [dst_index, movs] of BLUR_MOVEMENTS.entries()) {
+            let cell        = TerrainMap._cells[dst_index];
+            let height_sum  = 0;
+            let dirt_color  = new Color(0, 0, 0, 0);
+            for(let index of movs) {
+                const neighbour_cell = TerrainMap._cells[index];
+                height_sum += neighbour_cell.value;
+                dirt_color.add(neighbour_cell.biome.dirt_color);
+            }
+            // Не сглаживаем блоки пляжа и океана
+            let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
+            if(smooth) {
+                cell.value2 = parseInt(height_sum / SMOOTH_RAD_CNT);
+            }
+            cell.dirt_color = dirt_color.divide(colorComputer);
+        }*/
+
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
             for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
                 let cell        = TerrainMap.getCell(x, z);
-                let cnt         = 0;
                 let height_sum  = 0;
                 let dirt_color  = new Color(0, 0, 0, 0);
                 for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
                     for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        let neighbour_cell = TerrainMap.getCell(x + i, z + j);
+                        const neighbour_cell = TerrainMap.getCell(x + i, z + j);
                         height_sum += neighbour_cell.value;
                         dirt_color.add(neighbour_cell.biome.dirt_color);
-                        cnt++;
                     }
                 }
                 // Не сглаживаем блоки пляжа и океана
-                let smooth = !(cell.value > this.options.WATER_LINE - 2 && NO_SMOOTH_BIOMES.indexOf(cell.biome.code) >= 0);
+                let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
-                    cell.value2 = parseInt(height_sum / cnt);
+                    cell.value2 = parseInt(height_sum / SMOOTH_RAD_CNT);
                 }
-                colorComputer.set(cnt, cnt, cnt, cnt);
                 cell.dirt_color = dirt_color.divide(colorComputer);
             }
         }
+
     }
 
     // Генерация растительности
