@@ -185,7 +185,7 @@ export class ClusterBase {
                     if(point.block_id == 0) {
                         continue;
                     }
-                    const cell = map.info.cells[i][j];
+                    const cell = map.cells[j * CHUNK_SIZE_X + i];
                     /*if(cell.biome.code == 'OCEAN') {
                         if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;

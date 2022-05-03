@@ -7,6 +7,8 @@ let WorkerWorldManager  = null;
 let worlds              = null;
 // let world               = null;
 
+const CHUNK_SIZE_X = 16;
+
 const worker = {
 
     init: function() {
@@ -159,8 +161,8 @@ async function onMessageFunc(e) {
                         let index = 0;
                         for(let z = 0; z < chunk.size.z; z++) {
                             for(let x = 0; x < chunk.size.x; x++) {
-                                item.dirt_colors[index++] = chunk.map.info.cells[x][z].dirt_color.r;
-                                item.dirt_colors[index++] = chunk.map.info.cells[x][z].dirt_color.g;
+                                item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.r;
+                                item.dirt_colors[index++] = chunk.map.cells[z * CHUNK_SIZE_X + x].dirt_color.g;
                             }
                         }
                         results.push(item);
@@ -217,7 +219,7 @@ async function onMessageFunc(e) {
             break;
         }
         case 'createMaps': {
-            let pn = performance.now();
+            /*let pn = performance.now();
             const addr = new Vector(args.addr);
             const maps = world.generator.maps.generateAround(addr, false, false, 8);
             const CELLS_COUNT = 256;
@@ -230,8 +232,8 @@ async function onMessageFunc(e) {
                 resp[offset + 2] = map.chunk.addr.z;
                 resp[offset + 3] = 0;
                 offset += CELL_LENGTH;
-                for(let x = 0; x < map.info.cells.length; x++) {
-                    const line = map.info.cells[x];
+                for(let x = 0; x < map.cells.length; x++) {
+                    const line = map.cells[x];
                     for(let z = 0; z < line.length; z++) {
                         const cell = line[z];
                         resp[offset + 0] = cell.value2;
@@ -244,6 +246,7 @@ async function onMessageFunc(e) {
             }
             console.log(performance.now() - pn);
             worker.postMessage(['maps_created', resp]);
+            */
             break;
         }
     }
@@ -276,7 +279,7 @@ function buildVertices(chunk, return_map) {
         tm:                     chunk.tm,
     };
     if(return_map) {
-        resp.map = chunk.map.info;
+        resp.map = chunk.map;
     }
     return resp;
 }

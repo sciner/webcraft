@@ -185,16 +185,16 @@ export class ClusterVilage extends ClusterBase {
                     for(let entrance of [b.entrance, b.entrance.clone().addSelf(getAheadMove(b.door_direction))]) {
                         const map_addr = getChunkAddr(entrance);
                         map_addr.y = 0;
-                        let entrance_map_info = maps.get(map_addr);
-                        if(entrance_map_info) {
+                        let entrance_map = maps.get(map_addr);
+                        if(entrance_map) {
                             // if map not smoothed
-                            if(!entrance_map_info.smoothed) {
+                            if(!entrance_map.smoothed) {
                                 // generate around maps and smooth current
-                                entrance_map_info = maps.generateAround(map_addr, true, true)[4].info;
+                                entrance_map = maps.generateAround(map_addr, true, false)[4];
                             }
-                            const entrance_x    = entrance.x - entrance_map_info.chunk.coord.x;
-                            const entrance_z    = entrance.z - entrance_map_info.chunk.coord.z;
-                            const cell          = entrance_map_info.cells[entrance_x][entrance_z];
+                            const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
+                            const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
+                            const cell          = entrance_map.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
                             if(cell.value2 > value2) {
                                 value2 = cell.value2;
                             }
@@ -248,11 +248,11 @@ export class ClusterVilage extends ClusterBase {
                             // if map not smoothed
                             if(!bi.smoothed) {
                                 // generate around maps and smooth current
-                                bi = maps.generateAround(map_addr, true, true)[4].info;
+                                bi = maps.generateAround(map_addr, true, false)[4];
                             }
                             const entrance_x    = vec.x - bi.chunk.coord.x;
                             const entrance_z    = vec.z - bi.chunk.coord.z;
-                            const cell          = bi.cells[entrance_x][entrance_z];
+                            const cell          = bi.cells[entrance_z * CHUNK_SIZE_X + entrance_x];
                             if(cell.biome.code == 'BEACH' || cell.biome.code == 'OCEAN') {
                                 building.hidden = true;
                             }

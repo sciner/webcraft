@@ -397,7 +397,7 @@ export class Chunk {
             }
             if(block.vertices === null) {
                 block.vertices = [];
-                const cell = this.map.info.cells[block.pos.x][block.pos.z];
+                const cell = this.map.cells[block.pos.z * CHUNK_SIZE_X + block.pos.x];
                 const resp = material.resource_pack.pushVertices(
                     block.vertices,
                     block, // UNSAFE! If you need unique block, use clone

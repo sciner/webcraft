@@ -163,7 +163,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
     getOreBlockID(map, xyz, value, dirt_block) {
         this.temp_vec.copyFrom(xyz);
         this.temp_vec.y++;
-        if(map.info.plants.has(this.temp_vec)) {
+        if(map.plants.has(this.temp_vec)) {
             return dirt_block;
         }
         let stone_block_id = BLOCK.CONCRETE.id;
@@ -360,7 +360,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     xyz.z + near_rad
                 );
                 for(let m of maps) {
-                    if(m.info.trees.length == 0) {
+                    if(m.trees.length == 0) {
                         continue;
                     }
                     //
@@ -376,7 +376,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                         continue;
                     }
                     ppos.set(xyz.x - m.chunk.coord.x, xyz.y - m.chunk.coord.y, xyz.z - m.chunk.coord.z);
-                    for(let tree of m.info.trees) {
+                    for(let tree of m.trees) {
                         if(tree.pos.distance(ppos) < near_rad) {
                             return true;
                         }
@@ -535,7 +535,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             for(let x = 0; x < size_x; x++) {
                 for(let z = 0; z < size_z; z++) {
 
-                    const cell              = map.info.cells[x][z];
+                    const cell              = map.cells[z * CHUNK_SIZE_X + x];
                     const biome             = cell.biome;
                     const value             = cell.value2;
                     const rnd               = aleaRandom.double();
@@ -599,10 +599,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     }
 
                     // `Y` of waterline
-                    let ywl = map.info.options.WATER_LINE - chunk_coord.y;
+                    let ywl = map.options.WATER_LINE - chunk_coord.y;
                     if(biome.code == 'OCEAN' && ywl >= 0) {
                         temp_vec.set(x, 0, z);
-                        for(let y = value; y <= map.info.options.WATER_LINE; y++) {
+                        for(let y = value; y <= map.options.WATER_LINE; y++) {
                             if(y >= chunk_coord.y && y < chunk_coord.y + chunk.size.y) {
                                 temp_vec.y = y - chunk_coord.y;
                                 if(!chunk.tblocks.has(temp_vec)) {
@@ -611,7 +611,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                             }
                         }
                         if(cell.equator < .6 && cell.humidity > .4) {
-                            const vl = map.info.options.WATER_LINE;
+                            const vl = map.options.WATER_LINE;
                             if(vl >= chunk_coord.y && vl < chunk_coord.y + chunk.size.y) {
                                 temp_vec.y = vl - chunk_coord.y;
                                 setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.ICE.id);
@@ -628,7 +628,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
             // Plant trees
             for(const m of maps) {
-                for(let p of m.info.trees) {
+                for(let p of m.trees) {
                     this.plantTree(
                         p,
                         chunk,
@@ -642,9 +642,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             // Plant herbs
             let temp_block = null;
             let idx = 0;
-            for(let pos of map.info.plants.keys()) {
+            for(let pos of map.plants.keys()) {
                 if(pos.y >= chunk_coord.y && pos.y < chunk_coord.y + CHUNK_SIZE_Y) {
-                    let block_id = map.info.plants.get(pos);
+                    let block_id = map.plants.get(pos);
                     xyz.set(pos.x, pos.y - chunk_coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
                     if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516) {

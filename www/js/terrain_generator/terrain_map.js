@@ -24,6 +24,13 @@ export const GENERATOR_OPTIONS = {
     SCALE_VALUE:            250  * MAP_SCALE // Масштаб шума для карты высот
 };
 
+//
+const temp_chunk = {
+    addr: new Vector(),
+    coord: new Vector(),
+    size: size
+};
+
 // Map manager
 export class TerrainMapManager {
 
@@ -47,47 +54,38 @@ export class TerrainMapManager {
     }
 
     // Generate maps
-    generateAround(chunk_addr, smooth, vegetation, rad = 1) {
+    generateAround(chunk_addr, smooth, vegetation) {
+        const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noisefn;
         let maps                    = [];
-        let direct_map              = null;
+        let center_map              = null;
         for(let x = -rad; x <= rad; x++) {
             for(let z = -rad; z <= rad; z++) {
-                TerrainMapManager._temp_vec3.x = x;
-                TerrainMapManager._temp_vec3.y = -chunk_addr.y;
-                TerrainMapManager._temp_vec3.z = z;
-                let addr = chunk_addr.add(TerrainMapManager._temp_vec3);
-                const c = {
-                    id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-                    blocks: {},
-                    seed:   this.seed,
-                    addr:   addr,
-                    size:   size,
-                    coord:  addr.mul(size),
-                };
-                let item = {
-                    chunk: c,
-                    info: this.generateMap(c, noisefn)
-                };
-                maps.push(item);
-                const direct_load = x == 0 && z == 0;
-                if(direct_load) {
-                    direct_map = item;
+                TerrainMapManager._temp_vec3.set(x, -chunk_addr.y, z);
+                temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager._temp_vec3);
+                temp_chunk.coord.copyFrom(temp_chunk.addr).multiplyVecSelf(size);
+                const map = this.generateMap(temp_chunk, noisefn);
+                if(Math.abs(x) < 2 && Math.abs(z) < 2) {
+                    maps.push(map);
+                }
+                if(x == 0 && z == 0) {
+                    center_map = map;
                 }
             }
         }
-        // Options
-        smooth = smooth && !direct_map.info.smoothed;
-        vegetation = vegetation && !direct_map.info.smoothed;
         // Smooth (for central and part of neighbours)
-        if(smooth) {
-            direct_map.info.smoothed = true;
-            direct_map.info.smooth(this);
+        if(smooth && !center_map.smoothed) {
+            center_map.smooth(this);
         }
         // Generate vegetation
         if(vegetation) {
             for(let map of maps) {
-                map.info.generateVegetation();
+                if(!map.vegetable_generated) {
+                    if(smooth && !map.smoothed) {
+                        map.smooth(this);
+                    }
+                    map.generateVegetation();
+                }
             }
         }
         return maps;
@@ -158,11 +156,9 @@ export class TerrainMapManager {
                     dirt_block_id = biome.dirt_block[index];
                 }
                 // Create map cell
-                map.cells[x][z] = new TerrainMapCell(value, humidity, equator, biome, dirt_block_id);
+                map.cells[z * CHUNK_SIZE_X + x] = new TerrainMapCell(value, humidity, equator, biome, dirt_block_id);
             }
         }
-        // Clear maps_cache
-        // this.maps_cache.reduce(20000);
         this.maps_cache.set(chunk.addr, map);
         // console.log(`Actual maps count: ${this.maps_cache.size}`);
         return map;
@@ -199,13 +195,14 @@ export class TerrainMap {
     constructor(chunk, options) {
         this.options        = options;
         this.trees          = [];
-        this.plants         = [];
+        this.plants         = new VectorCollector();
         this.smoothed       = false;
-        this.cells          = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(null));
+        this.vegetable_generated = false;
+        this.cells          = Array(chunk.size.x * chunk.size.z); // .fill(null);
         this.chunk          = {
             size: chunk.size,
-            addr: chunk.addr,
-            coord: chunk.coord
+            addr: chunk.addr.clone(),
+            coord: chunk.coord.clone()
         };
     }
 
@@ -270,6 +267,7 @@ export class TerrainMap {
         let map             = null;
         let addr            = new Vector(0, 0, 0);
         let bi              = new Vector(0, 0, 0);
+
         for(let x = -SMOOTH_RAD * 2; x < CHUNK_SIZE_X + SMOOTH_RAD * 2; x++) {
             for(let z = -SMOOTH_RAD * 2; z < CHUNK_SIZE_Z + SMOOTH_RAD * 2; z++) {
                 // absolute cell coord
@@ -278,10 +276,9 @@ export class TerrainMap {
                 addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
-
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                const cell = map.cells[bi.x][bi.z];
+                const cell = map.cells[bi.z * CHUNK_SIZE_X + bi.x];
                 TerrainMap.setPartial(x, z, cell);
             }
         }
@@ -308,22 +305,26 @@ export class TerrainMap {
                 let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
+                    cell.value = cell.value2;
                 }
                 cell.dirt_color = dirt_color.divide(colorComputer);
             }
         }
 
+        this.smoothed = true;
+
     }
 
     // Генерация растительности
     generateVegetation() {
-        let chunk           = this.chunk;
-        this.trees          = [];
-        this.plants         = new VectorCollector();
-        let aleaRandom      = null;
-        let biome           = null;
-        let cluster         = null;
-        const plant_pos     = new Vector(0, 0, 0);
+        let chunk                   = this.chunk;
+        this.vegetable_generated    = true;
+        this.trees                  = [];
+        this.plants                 = new VectorCollector();
+        let aleaRandom              = null;
+        let biome                   = null;
+        let cluster                 = null;
+        const plant_pos             = new Vector(0, 0, 0);
         //
         const addPlant = (rnd, x, y, z) => {
             let s = 0;
@@ -382,7 +383,7 @@ export class TerrainMap {
         //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
-                const cell = this.cells[x][z];
+                const cell = this.cells[z * CHUNK_SIZE_X + x];
                 biome = cell.biome;
                 if(biome.plants.frequency == 0 && biome.trees.frequency == 0) {
                     continue;
