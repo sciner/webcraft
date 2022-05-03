@@ -7,8 +7,7 @@ let size = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
 
 export const SMOOTH_RAD         = 3;
 export const SMOOTH_RAD_CNT     = Math.pow(SMOOTH_RAD * 2 + 1, 2);
-export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4;
-export const SMOOTH_XZ_COUNT    = SMOOTH_ROW_COUNT * 2;
+export const SMOOTH_ROW_COUNT   = CHUNK_SIZE_X + SMOOTH_RAD * 4 + 1;
 
 // for clusters
 export const PLANT_MARGIN       = 0;
@@ -16,21 +15,6 @@ export const TREE_MARGIN        = 3;
 export const MAP_CLUSTER_MARGIN = 5;
 
 const MAP_SCALE = .5;
-
-//
-const BLUR_MOVEMENTS = new Map();
-for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-    for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
-        const movs = new Int16Array(SMOOTH_RAD_CNT);
-        let cnt = 0;
-        for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
-            for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                movs[cnt++] = ((z + j) * SMOOTH_ROW_COUNT) + (x + i);
-            }
-        }
-        BLUR_MOVEMENTS.set((z * SMOOTH_ROW_COUNT) + x, movs);
-    }
-}
 
 export const GENERATOR_OPTIONS = {
     WATER_LINE:             63, // Ватер-линия
@@ -120,7 +104,7 @@ export class TerrainMapManager {
         let equator = Helpers.clamp((noisefn(px / GENERATOR_OPTIONS.SCALE_EQUATOR, pz / GENERATOR_OPTIONS.SCALE_EQUATOR) + 0.8), 0, 1);
         // Высота горы в точке
         const octave1 = noisefn(px / 20, pz / 20);
-        let value = noisefn(px / 150, pz / 150, 0) * .4 + 
+        let value = noisefn(px / 150, pz / 150, 0) * .4 +
             noisefn(px / 1650, pz / 1650) * .1 +
             noisefn(px / 650, pz / 650) * .25 +
             octave1 * .05 +
@@ -227,7 +211,9 @@ export class TerrainMap {
     }
 
     static initCells() {
-        TerrainMap._cells = new Array(SMOOTH_XZ_COUNT);
+        TerrainMap._cells = new Array(SMOOTH_ROW_COUNT);
+        TerrainMap._vals = new Array(SMOOTH_ROW_COUNT * 3);
+        TerrainMap._sums = new Array(SMOOTH_ROW_COUNT * 3);
     }
 
     static getCell(x, z) {
@@ -236,6 +222,47 @@ export class TerrainMap {
 
     static setCell(x, z, value) {
         TerrainMap._cells[(z * SMOOTH_ROW_COUNT) + x] = value;
+    }
+
+    static setPartial(x, z, cell) {
+        x += SMOOTH_RAD * 2;
+        z += SMOOTH_RAD * 2;
+        const ind = ((z * SMOOTH_ROW_COUNT) + x)
+        TerrainMap._cells[ind] = cell;
+        TerrainMap._vals[ind * 3] = cell.value;
+        TerrainMap._vals[ind * 3 + 1] = cell.biome.dirt_color.r;
+        TerrainMap._vals[ind * 3 + 2] = cell.biome.dirt_color.g;
+    }
+
+    static calcSum() {
+        const vals = TerrainMap._vals;
+        const sums = TerrainMap._sums;
+        sums[0] = 0;
+        sums[1] = 0;
+        sums[2] = 0;
+        const ROW3 = SMOOTH_ROW_COUNT * 3;
+        const COL3 = 3;
+        for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
+            const ind = x * 3;
+            sums[ind] = sums[ind - COL3] + vals[ind - COL3];
+            sums[ind + 1] = sums[ind - COL3 + 1] + vals[ind - COL3 + 1];
+            sums[ind + 2] = sums[ind - COL3 + 2] + vals[ind - COL3 + 2];
+        }
+        for (let z = 1; z < SMOOTH_ROW_COUNT; z++) {
+            const ind = z * (ROW3);
+            sums[ind] = sums[ind - ROW3] + vals[ind - ROW3]
+            sums[ind + 1] = sums[ind - ROW3 + 1] + vals[ind - ROW3 + 1];
+            sums[ind + 2] = sums[ind - ROW3 + 2] + vals[ind - ROW3 + 2];
+
+            for (let x = 1; x < SMOOTH_ROW_COUNT; x++) {
+                for (let k = 0; k < 3; k++) {
+                    const ind = ((z * SMOOTH_ROW_COUNT) + x) * 3 + k;
+                    sums[ind] = sums[ind - ROW3] + sums[ind - COL3]
+                        - sums[ind - ROW3 - COL3]
+                        + vals[ind - ROW3 - COL3];
+                }
+            }
+        }
     }
 
     // Сглаживание карты высот
@@ -252,48 +279,36 @@ export class TerrainMap {
                 addr            = getChunkAddr(px, 0, pz, addr); // calc chunk addr for this cell
                 if(!map || map.chunk.addr.x != addr.x || map.chunk.addr.z != addr.z) {
                     map = generator.maps_cache.get(addr); // get chunk map from cache
-                    
+
                 }
                 bi = BLOCK.getBlockIndex(px, 0, pz, bi);
-                TerrainMap.setCell(x, z, map.cells[bi.x][bi.z]);
+                const cell = map.cells[bi.x][bi.z];
+                TerrainMap.setPartial(x, z, cell);
             }
         }
         // 2. Smoothing | Сглаживание
         let colorComputer = new Color(SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT, SMOOTH_RAD_CNT);
 
-        /*for(let [dst_index, movs] of BLUR_MOVEMENTS.entries()) {
-            let cell        = TerrainMap._cells[dst_index];
-            let height_sum  = 0;
-            let dirt_color  = new Color(0, 0, 0, 0);
-            for(let index of movs) {
-                const neighbour_cell = TerrainMap._cells[index];
-                height_sum += neighbour_cell.value;
-                dirt_color.add(neighbour_cell.biome.dirt_color);
-            }
-            // Не сглаживаем блоки пляжа и океана
-            let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
-            if(smooth) {
-                cell.value2 = parseInt(height_sum / SMOOTH_RAD_CNT);
-            }
-            cell.dirt_color = dirt_color.divide(colorComputer);
-        }*/
-
+        TerrainMap.calcSum();
+        const sums = TerrainMap._sums, cells = TerrainMap._cells;
         for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
             for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
-                let cell        = TerrainMap.getCell(x, z);
-                let height_sum  = 0;
-                let dirt_color  = new Color(0, 0, 0, 0);
-                for(let i = -SMOOTH_RAD; i <= SMOOTH_RAD; i++) {
-                    for(let j = -SMOOTH_RAD; j <= SMOOTH_RAD; j++) {
-                        const neighbour_cell = TerrainMap.getCell(x + i, z + j);
-                        height_sum += neighbour_cell.value;
-                        dirt_color.add(neighbour_cell.biome.dirt_color);
-                    }
-                }
+                const ind = (z + SMOOTH_RAD * 2) * SMOOTH_ROW_COUNT + (x + SMOOTH_RAD * 2);
+                let cell        = cells[ind];
+
+                const ind1 = ind - SMOOTH_RAD * SMOOTH_ROW_COUNT - SMOOTH_RAD;
+                const ind2 = ind - SMOOTH_RAD * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
+                const ind3 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT - SMOOTH_RAD;
+                const ind4 = ind + (SMOOTH_RAD + 1) * SMOOTH_ROW_COUNT + (SMOOTH_RAD + 1);
+                let height_sum  = sums[ind1 * 3] + sums[ind4 * 3] - sums[ind2 * 3] - sums[ind3 * 3];
+                let dirt_color  = new Color(
+                    sums[ind1 * 3 + 1] + sums[ind4 * 3 + 1] - sums[ind2 * 3 + 1] - sums[ind3 * 3 + 1],
+                sums[ind1 * 3 + 2] + sums[ind4 * 3 + 2] - sums[ind2 * 3 + 2] - sums[ind3 * 3 + 2],
+                    0, 0);
                 // Не сглаживаем блоки пляжа и океана
                 let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
-                    cell.value2 = parseInt(height_sum / SMOOTH_RAD_CNT);
+                    cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
                 }
                 cell.dirt_color = dirt_color.divide(colorComputer);
             }
