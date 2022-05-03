@@ -360,7 +360,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                     xyz.z + near_rad
                 );
                 for(let m of maps) {
-                    if(m.info.trees.size == 0) continue;
+                    if(m.info.trees.length == 0) {
+                        continue;
+                    }
                     //
                     _createBlockAABB.set(
                         m.chunk.coord.x,

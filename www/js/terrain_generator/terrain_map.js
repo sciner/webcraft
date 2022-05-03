@@ -112,14 +112,14 @@ export class TerrainMapManager {
             noisefn(px / 25, pz / 25) * (0.01568627 * octave1);
         // Get biome
         let biome = BIOMES.getBiome((value * HW + H) / 255, humidity, equator);
-        if(biome.code == 'OCEAN' || biome.code == 'BEACH') {
+        if(biome.no_smooth) {
             value = value * biome.max_height + H;
         } else {
             // smooth with clusters
             value = value * (cluster_max_height ? Math.min(cluster_max_height - 1, (cluster_max_height + biome.max_height) / 2) : biome.max_height) + H;
         }
         value = parseInt(value);
-        value = Helpers.clamp(value, 4, 2500);
+        // value = Helpers.clamp(value, 4, 2500);
         biome = BIOMES.getBiome(value / 255, humidity, equator);
         // Pow
         let diff = value - GENERATOR_OPTIONS.WATER_LINE;
@@ -141,7 +141,6 @@ export class TerrainMapManager {
         // Result map
         const map                   = new TerrainMap(chunk, GENERATOR_OPTIONS);
         const cluster               = ClusterManager.getForCoord(chunk.coord);
-        //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = chunk.coord.x + x;
@@ -321,71 +320,97 @@ export class TerrainMap {
         let chunk           = this.chunk;
         this.trees          = [];
         this.plants         = new VectorCollector();
-        let dirt_block_ids  = [];
         let aleaRandom      = null;
         let biome           = null;
         let cluster         = null;
+        const plant_pos     = new Vector(0, 0, 0);
+        //
+        const addPlant = (rnd, x, y, z) => {
+            let s = 0;
+            let r = rnd / biome.plants.frequency;
+            plant_pos.x = x;
+            plant_pos.y = y;
+            plant_pos.z = z;
+            for(let p of biome.plants.list) {
+                s += p.percent;
+                if(r < s) {
+                    if(p.block) {
+                        this.plants.set(plant_pos, p.block);
+                    } else if(p.trunk) {
+                        this.plants.set(plant_pos, p.trunk);
+                        plant_pos.y++;
+                        this.plants.set(plant_pos, p.leaves);
+                    }
+                    break;
+                }
+            }
+        };
+        //
+        const addTree = (rnd, x, y, z) => {
+            let s = 0;
+            let r = rnd / biome.trees.frequency;
+            for(let type of biome.trees.list) {
+                s += type.percent;
+                if(r < s) {
+                    if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
+                        break;
+                    }
+                    let r = aleaRandom.double();
+                    const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
+                    const rad = Math.max(parseInt(height / 2), 2);
+                    this.trees.push({
+                        biome_code: biome.code,
+                        pos:        new Vector(x, y, z),
+                        height:     height,
+                        rad:        rad,
+                        type:       type
+                    });
+                    return true;
+                }
+            }
+            return false;
+        };
+        //
+        const initAleaAndCluster = () => {
+            if(aleaRandom) {
+                return false;
+            }
+            aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
+            cluster = ClusterManager.getForCoord(chunk.coord);
+            return true;
+        };
+        //
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
-                let cell = this.cells[x][z];
-                if(!biome || biome.code != cell.biome.code) {
-                    biome = BIOMES[cell.biome.code];
-                    dirt_block_ids = biome.dirt_block; // .map(function(item) {return item.id;});
+                const cell = this.cells[x][z];
+                biome = cell.biome;
+                if(biome.plants.frequency == 0 && biome.trees.frequency == 0) {
+                    continue;
                 }
                 // Растения, цветы, трава (только если на поверхности блок земли)
-                if(dirt_block_ids.indexOf(cell.dirt_block_id) >= 0) {
-                    let y = cell.value2;
-                    //
-                    if(!aleaRandom) {
-                        aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
-                        cluster = ClusterManager.getForCoord(chunk.coord);
-                    }
-                    //
-                    if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
+                if(biome.dirt_block.indexOf(cell.dirt_block_id) < 0) {
+                    continue;
+                }
+                //
+                initAleaAndCluster();
+                const y = cell.value2;
+                if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, PLANT_MARGIN)) {
+                    continue;
+                }
+                //
+                const rnd = aleaRandom.double();
+                if(rnd <= 0) {
+                    continue;
+                }
+                if(rnd <= biome.trees.frequency) {
+                    // Деревья
+                    if(addTree(rnd, x, y, z)) {
                         continue;
                     }
-                    //
-                    let rnd = aleaRandom.double();
-                    if(rnd > 0 && rnd <= biome.plants.frequency) {
-                        let s = 0;
-                        let r = rnd / biome.plants.frequency;
-                        for(let p of biome.plants.list) {
-                            s += p.percent;
-                            if(r < s) {
-                                if(p.block) {
-                                    this.plants.add(new Vector(x, y, z), p.block);
-                                } else if(p.trunk) {
-                                    this.plants.add(new Vector(x, y, z), p.trunk);
-                                    this.plants.add(new Vector(x, y + 1, z), p.leaves);
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    // Деревья
-                    if(rnd > 0 && rnd <= biome.trees.frequency) {
-                        let s = 0;
-                        let r = rnd / biome.trees.frequency;
-                        for(let type of biome.trees.list) {
-                            s += type.percent;
-                            if(r < s) {
-                                if(!cluster.is_empty && cluster.cellIsOccupied(x + chunk.coord.x, y + chunk.coord.y - 1, z + chunk.coord.z, TREE_MARGIN)) {
-                                    break;
-                                }
-                                let r = aleaRandom.double();
-                                const height = Helpers.clamp(Math.round(r * (type.height.max - type.height.min) + type.height.min), type.height.min, type.height.max);
-                                const rad = Math.max(parseInt(height / 2), 2);
-                                this.trees.push({
-                                    biome_code: biome.code,
-                                    pos:    new Vector(x, y, z),
-                                    height: height,
-                                    rad:    rad,
-                                    type:   type
-                                });
-                                break;
-                            }
-                        }
-                    }
+                }
+                if(rnd <= biome.plants.frequency) {
+                    // Трава
+                    addPlant(rnd, x, y, z);
                 }
             }
         }

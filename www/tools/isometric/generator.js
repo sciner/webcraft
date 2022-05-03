@@ -1,4 +1,5 @@
 import {BLOCK} from '../../js/blocks.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk.js';
 import { Vector } from '../../js/helpers.js';
 await BLOCK.init({
     texture_pack: 'base',
@@ -24,23 +25,22 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     const noisefn   = noise.perlin2;
     const Tmaps     = new TerrainMapManager(seed, world_id, noisefn);
 
-    let canvas = document.getElementById('canvas3D');
-    let ctx = canvas.getContext('2d', { alpha: false });
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    // Отрисовка карты
-    ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const scale             = 1;
     const chunk_addr_center = new Vector(180, 0, 170);
     const pn                = performance.now();
-    const SZ                = 11;
+    const chunk_render_dist = 4;
+    const SZ                = chunk_render_dist * 2 + 3;
+
+    let canvas = document.getElementById('canvas3D');
+    let ctx = canvas.getContext('2d', { alpha: false });
+    canvas.width = SZ * CHUNK_SIZE_X;
+    canvas.height = SZ * CHUNK_SIZE_Z;
+
+    // Отрисовка карты
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let maps_generated = 0;
-
-    var imgData = ctx.getImageData(0, 0, SZ * 16, SZ * 16);
+    let imgData = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
 
     for(let sx = 0; sx < SZ; sx++) {
         for(let sz = 0; sz < SZ; sz++) {
@@ -48,15 +48,16 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
             let maps = Tmaps.generateAround(chunk_addr, true, true);
             let map = maps[4];
             maps_generated++;
-            for(var i = 0; i < 16; i++) {
-                for(var j = 0; j < 16; j++) {
-                    const z = sx * 16 + i;
-                    const x = sz * 16 + j;
+            for(var i = 0; i < CHUNK_SIZE_X; i++) {
+                for(var j = 0; j < CHUNK_SIZE_Z; j++) {
+                    const z = sx * CHUNK_SIZE_X + i;
+                    const x = sz * CHUNK_SIZE_Z + j;
                     const cell = map.info.cells[i][j];
                     let index = (z * (SZ*16) + x) * 4;
-                    imgData.data[index + 0] = cell.biome.color_rgba[0];
-                    imgData.data[index + 1] = cell.biome.color_rgba[1];
-                    imgData.data[index + 2] = cell.biome.color_rgba[2];
+                    const light = (cell.value2 / 64);
+                    imgData.data[index + 0] = cell.biome.color_rgba[0] * light;
+                    imgData.data[index + 1] = cell.biome.color_rgba[1] * light;
+                    imgData.data[index + 2] = cell.biome.color_rgba[2] * light;
                     imgData.data[index + 3] = 255;
                 }
             }
