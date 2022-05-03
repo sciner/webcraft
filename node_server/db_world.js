@@ -359,7 +359,7 @@ export class DBWorld {
             "x" real NOT NULL,
             "y" real NOT NULL,
             "z" real NOT NULL,
-            "title" VARCHER(50)
+            "title" text
             );`
         ]});
         
