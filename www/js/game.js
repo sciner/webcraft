@@ -434,6 +434,7 @@ export class GameClass {
         let bodyClassList = document.querySelector('body').classList;
         if(value) {
             bodyClassList.add('controls_enabled');
+            delete(Game.kb.keys[KEY.WIN]);
         } else {
             bodyClassList.remove('controls_enabled');
         }
