@@ -186,15 +186,15 @@ export class ClusterBase {
                         continue;
                     }
                     const cell = map.cells[j * CHUNK_SIZE_X + i];
-                    /*if(cell.biome.code == 'OCEAN') {
-                        if(this.use_road_as_gangway && point.block_id == this.road_block) {
+                    if(cell.biome.code == 'OCEAN') {
+                        /*if(this.use_road_as_gangway && point.block_id == this.road_block) {
                             let y = WATER_LINE - CHUNK_Y_BOTTOM - 1;
                             if(y >= 0 && y < CHUNK_SIZE_Y) {
                                 this.setBlock(chunk, i, y, j, BLOCK.OAK_PLANK.id, null);
                             }
-                        }
+                        }*/
                         continue;
-                    }*/
+                    }
                     //
                     if(point.height > 0) {
                         const is_array = Array.isArray(point.block_id);
