@@ -13,7 +13,6 @@ export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
 export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
-export const BLOCK_HAS_WINDOW               = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -489,7 +488,7 @@ export class BLOCK {
             }
         }
         //
-        block.has_window        = BLOCK_HAS_WINDOW.indexOf(block.name) >= 0;
+        block.has_window        = !!block.window;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
         block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;

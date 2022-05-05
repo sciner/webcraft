@@ -2702,6 +2702,7 @@
         "id": 58,
         "name": "CRAFTING_TABLE",
         "sound": "madcraft:block.wood",
+        "window": "frmCraft",
         "material": {
             "id": "wood"
         },
@@ -3112,6 +3113,7 @@
     {
         "id": 54,
         "name": "CHEST",
+        "window": "CHEST",
         "width": 0.875,
         "height": 0.875,
         "is_entity": true,
@@ -3144,6 +3146,7 @@
         "id": 61,
         "name": "FURNACE",
         "sound": "madcraft:block.stone",
+        "window": "frmFurnace",
         "material": {
             "id": "stone"
         },
@@ -3171,6 +3174,7 @@
         "id": 62,
         "name": "BURNING_FURNACE",
         "sound": "madcraft:block.stone",
+        "window": "FURNACE",
         "material": {
             "id": "stone"
         },
@@ -5906,5 +5910,36 @@
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 993
         }
+    },
+    {
+        "id": 1002,
+        "name": "CAR_BATTERY",
+        "sound": "madcraft:block.stone",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "item": {"name": "car_battery"},
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "side": [1, 29]
+        }
+    },
+    {
+        "id": 1003,
+        "name": "ENERGY_GENERATOR",
+        "window": "frmEnergyGenerator",
+        "sound": "madcraft:block.stone",
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "up": [1, 26],
+            "down": [3, 26],
+            "north": [0, 26],
+            "side": [2, 26]
+        },
+        "can_rotate": true
     }
 ]

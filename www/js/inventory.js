@@ -1,4 +1,4 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow} from "./window/index.js";
+import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, EnergyGeneratorWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
@@ -167,6 +167,9 @@ export class Inventory extends PlayerInventory {
         // Furnace window
         this.frmFurnace = new FurnaceWindow(10, 10, 352, 332, 'frmFurnace', null, null, this);
         this.hud.wm.add(this.frmFurnace);
+        // Energy generator window
+        this.frmEnergyGenerator = new EnergyGeneratorWindow(10, 10, 352, 332, 'frmEnergyGenerator', null, null, this);
+        this.hud.wm.add(this.frmEnergyGenerator);
         // Edit sign
         this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
         this.hud.wm.add(this.frmEditSign);

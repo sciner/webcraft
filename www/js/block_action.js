@@ -535,7 +535,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             if(!e.shiftKey) {
                 switch(world_material.id) {
                     case BLOCK.CRAFTING_TABLE.id: {
-                        resp.open_window = 'frmCraft';
+                        resp.open_window = world_material.window;
                         break;
                     }
                     case BLOCK.CHEST.id: {
@@ -546,7 +546,11 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         break;
                     }
                     case BLOCK.FURNACE.id: {
-                        resp.open_window = 'frmFurnace';
+                        resp.open_window = world_material.window;
+                        break;
+                    }
+                    case BLOCK.ENERGY_GENERATOR.id: {
+                        resp.open_window = world_material.window;
                         break;
                     }
                 }
