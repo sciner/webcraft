@@ -487,7 +487,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             can_destroy = world_block.extra_data.can_destroy;
         }
         if(can_destroy) {
-            if(world_block.id == BLOCK.CHEST.id) {
+            // if(world_block.id == BLOCK.CHEST.id) {
+            if(world_material && world_material.is_chest) {
                 resp.delete_chest = {pos: new Vector(pos), entity_id: world_block.entity_id};
             }
             // Remove plant from pot
@@ -533,25 +534,27 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
         // 1. Если ткнули на предмет с собственным окном
         if(world_material.has_window) {
             if(!e.shiftKey) {
-                switch(world_material.id) {
-                    case BLOCK.CRAFTING_TABLE.id: {
-                        resp.open_window = world_material.window;
-                        break;
-                    }
-                    case BLOCK.CHEST.id: {
-                        resp.load_chest = {
-                            pos: new Vector(pos),
-                            entity_id: entity_id
-                        };
-                        break;
-                    }
-                    case BLOCK.FURNACE.id: {
-                        resp.open_window = world_material.window;
-                        break;
-                    }
-                    case BLOCK.CHARGING_STATION.id: {
-                        resp.open_window = world_material.window;
-                        break;
+                if(world_material.is_chest) {
+                    resp.load_chest = {
+                        block_id:   world_material.id,
+                        window:     world_material.window,
+                        pos:        new Vector(pos),
+                        entity_id:  entity_id
+                    };
+                } else {
+                    switch(world_material.id) {
+                        case BLOCK.CRAFTING_TABLE.id: {
+                            resp.open_window = world_material.window;
+                            break;
+                        }
+                        case BLOCK.FURNACE.id: {
+                            resp.open_window = world_material.window;
+                            break;
+                        }
+                        case BLOCK.CHARGING_STATION.id: {
+                            resp.open_window = world_material.window;
+                            break;
+                        }
                     }
                 }
                 resp.reset_target_event = true;
@@ -824,7 +827,8 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             }
             // Create entity
             switch(matBlock.id) {
-                case BLOCK.CHEST.id: {
+                case BLOCK.CHEST.id:
+                case BLOCK.CHARGING_STATION.id: {
                     new_item.rotate = orientation; // rotate_orig;
                     resp.create_chest = {pos: new Vector(pos), item: new_item};
                     resp.decrement = true;

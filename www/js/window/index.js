@@ -1,4 +1,4 @@
-export {default as ChestWindow} from "./chest.js";
+export {ChestWindow} from "./chest.js";
 export {default as FurnaceWindow} from "./furnace.js";
 export {default as ChargingStationWindow} from "./charging_station.js";
 export {default as InventoryWindow} from "./inventory.js";

@@ -112,14 +112,15 @@ export class Inventory extends PlayerInventory {
                     DEST_SIZE
                     );
                 // Draw instrument life
-                if(mat.item?.instrument_id && item.power < mat.power) {
+                const power_in_percent = mat?.item?.indicator == 'bar';
+                if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
                     const power_normal = item.power / mat.power;
                     let cx = hud_pos.x + 14 * zoom;
                     let cy = hud_pos.y + 14 * zoom;
                     let cw = 40 * zoom;
                     let ch = 43 * zoom;
                     hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 8 * zoom);
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 6 * zoom);
                     //
                     let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
@@ -130,7 +131,11 @@ export class Inventory extends PlayerInventory {
                 let shift_y = 0;
                 if(this.current.index == k) {
                     if(!label && 'power' in item) {
-                        label = Math.round(item.power * 100) / 100;
+                        if(power_in_percent) {
+                            label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+                        } else {
+                            label = Math.round(item.power * 100) / 100;
+                        }
                         shift_y = -10;
                     }
                 }

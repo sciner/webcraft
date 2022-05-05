@@ -83,7 +83,7 @@ export class CraftTableSlot extends Label {
             ctx.fillText(item.count, x + width, y + height);
         }
         // Draw instrument life
-        if(mat.item?.instrument_id && item.power < mat.power) {
+        if(mat.item?.instrument_id && item.power < mat.power && mat.power > 0) {
             const power_normal = item.power / mat.power;
             let cx = x + 4 * this.zoom;
             let cy = y + 3 * this.zoom;
@@ -253,7 +253,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             }
                             break;
                         }
-                        case 'frmChest': {
+                        case 'frmChest':
+                        case 'frmChargingStation': {
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;

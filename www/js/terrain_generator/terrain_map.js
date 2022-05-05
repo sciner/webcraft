@@ -287,8 +287,8 @@ export class TerrainMap {
 
         TerrainMap.calcSum();
         const sums = TerrainMap._sums, cells = TerrainMap._cells;
-        for(let x = -SMOOTH_RAD; x < CHUNK_SIZE_X + SMOOTH_RAD; x++) {
-            for(let z = -SMOOTH_RAD; z < CHUNK_SIZE_Z + SMOOTH_RAD; z++) {
+        for(let x = 0; x < CHUNK_SIZE_X; x++) {
+            for(let z = 0; z < CHUNK_SIZE_Z; z++) {
                 const ind = (z + SMOOTH_RAD * 2) * SMOOTH_ROW_COUNT + (x + SMOOTH_RAD * 2);
                 let cell        = cells[ind];
 

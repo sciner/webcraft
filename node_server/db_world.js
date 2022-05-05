@@ -799,7 +799,7 @@ export class DBWorld {
             if('extra_data' in item && !item.extra_data) {
                 delete(item.extra_data);
             }
-            if('power' in item && item.power === 1) {
+            if('power' in item && item.power === 0) {
                 delete(item.power);
             }
         }

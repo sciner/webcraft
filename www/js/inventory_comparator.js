@@ -137,7 +137,7 @@ export class InventoryComparator {
                     let entity_key = false;
                     for(let prop of ITEM_INVENTORY_KEY_PROPS) {
                         if(prop in b) {
-                            if(prop != 'power' || b.power != 1) {
+                            if(prop != 'power' || b.power != 0) {
                                 if(prop in new_item) {
                                     let jvalue = JSON.stringify(new_item[prop]);
                                     key += `|${prop}:${jvalue}`;

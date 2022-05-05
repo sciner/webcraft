@@ -125,7 +125,7 @@ export class ChestManager {
                     if(item.count > 0) {
                         slots[i] = item;
                         const b = BLOCK.fromId(item.id);
-                        if(b.power != 1) {
+                        if(b.power != 0) {
                             item.power = b.power;
                         }
                     }
@@ -154,7 +154,7 @@ export class ChestManager {
         if(this.blocks.has(pos)) {
             let be = this.blocks.get(pos);
             // Block occupied by another entity
-            switch (be.type) {
+            switch(be.type) {
                 case 'chest': {
                     return {
                         entity: this.list.get(be.id),

@@ -1,6 +1,6 @@
 import { getChunkAddr } from "./chunk.js";
 import {Vector} from "./helpers.js";
-import {BLOCK} from "./blocks.js";
+import {BLOCK, POWER_NO} from "./blocks.js";
 
 export class ServerClient {
 
@@ -227,7 +227,7 @@ export class ServerClient {
                 const extra_data = ('extra_data' in item) ? item.extra_data : null;
                 const entity_id = ('entity_id' in item) ? item.entity_id : null;
                 const rotate = ('rotate' in item) ? item.rotate : null;
-                const power = ('power' in item) ? item.power : 1;
+                const power = ('power' in item) ? item.power : POWER_NO;
                 tblock.extra_data   = extra_data;
                 tblock.entity_id    = entity_id;
                 tblock.rotate       = rotate;

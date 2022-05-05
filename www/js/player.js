@@ -363,7 +363,7 @@ export class Player {
         }
         if(actions.load_chest) {
             this.clearEvents();
-            Game.hud.wm.getWindow('frmChest').load(actions.load_chest);
+            Game.hud.wm.getWindow(actions.load_chest.window).load(actions.load_chest);
         }
         if(actions.play_sound) {
             for(let item of actions.play_sound) {

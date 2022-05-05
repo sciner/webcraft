@@ -131,6 +131,35 @@
         ]
     },
     {
+        "type": "madcraft:block.charging_station",
+        "dig": [
+            "stone1",
+            "stone2",
+            "stone3",
+            "stone4"
+        ],
+        "place": [
+            "stone1",
+            "stone2",
+            "stone3",
+            "stone4"
+        ],
+        "hit": [
+            "Stone_hit1",
+            "Stone_hit2",
+            "Stone_hit3",
+            "Stone_hit4",
+            "Stone_hit5",
+            "Stone_hit6"
+        ],
+        "open": [
+            "Charging_station_open"
+        ],
+        "close": [
+            "Charging_station_close"
+        ]
+    },
+    {
         "type": "madcraft:block.wood",
         "dig": [
             "wood1",

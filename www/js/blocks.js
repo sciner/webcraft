@@ -8,6 +8,7 @@ import { AABB } from './core/AABB.js';
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
+export const POWER_NO                       = 0;
 
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
@@ -190,10 +191,16 @@ export class BLOCK {
         if('count' in item) {
             item.count = Math.floor(item.count);
         }
+        // fix old invalid instruments power
+        if(b && 'power' in b && b.power > 0) {
+            if(!item.power) {
+                item.power = b.power;
+            }
+        }
         for(let k of ITEM_INVENTORY_PROPS) {
             if(b) {
                 if(k in b) {
-                    if(k == 'power' && b.power == 1) {
+                    if(k == 'power' && b.power == 0) {
                         continue;
                     }
                 } else {
@@ -491,7 +498,7 @@ export class BLOCK {
         block.has_window        = !!block.window;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
-        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;
+        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
         block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;

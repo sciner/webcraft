@@ -201,7 +201,7 @@ export default class style {
             if(neighbours.UP && neighbours.UP.material.is_fluid) {
                 height = 1.0;
             } else {
-                height = Math.min(block.power, .9);
+                height = .9;
             }
         }
         // Layering

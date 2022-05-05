@@ -1,4 +1,4 @@
-import {BLOCK, WATER_BLOCKS_ID} from "../blocks.js";
+import {BLOCK, POWER_NO, WATER_BLOCKS_ID} from "../blocks.js";
 import {Color, Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
@@ -199,12 +199,9 @@ export class Chunk {
         }
         // fix power
         if(typeof power === 'undefined' || power === null) {
-            power = 1.0;
+            power = POWER_NO;
         }
         power = Math.round(power * 10000) / 10000;
-        if(power <= 0) {
-            return;
-        }
         //
         if(orig_type.id < 3) {
             power       = null;
