@@ -55,6 +55,15 @@ export class WebGLBuffer extends BaseBuffer {
         gl.bindBuffer(this.index ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER, this.buffer);
     }
 
+    multiUpdate(segments) {
+        const { gl } = this.context;
+        for (let i=0;i<segments.length;i+=2) {
+            //todo: check if we need slice Float32Array for certain browser
+            gl.bufferSubData(gl.ARRAY_BUFFER, segments[i] * 4, this.data, segments[i], segments[i+1] - segments[i]);
+            // gl.bufferSubData(gl.ARRAY_BUFFER, segments[i], this.data.slice(segments[i], segments[i+1]));
+        }
+    }
+
     destroy() {
         if (!this.buffer) {
             return;

@@ -8,12 +8,18 @@ import {Resources} from "../../resources.js";
 import {WebGLTexture3D} from "./WebGLTexture3D.js";
 import {WebGLRenderTarget} from "./WebGLRenderTarget.js";
 import { WebGLUniversalShader } from "./WebGLUniversalShader.js";
+import {GLMeshDrawer} from "./GLMeshDrawer.js";
+import {GLCubeDrawer} from "./GLCubeDrawer.js";
+import {GLChunkDrawer} from "./GLChunkDrawer.js";
 
 const clamp = (a, b, x) => Math.min(b, Math.max(a, x));
 
 const TEXTURE_TYPE_FORMAT = {
     'rgba8u': {
         format: 'RGBA', type : 'UNSIGNED_BYTE'
+    },
+    'rgba32sint': {
+        format: 'RGBA_INTEGER', internal: 'RGBA32I', type: 'INT'
     },
     'depth24stencil8': {
         format: 'DEPTH_STENCIL', internal: 'DEPTH24_STENCIL8' , type : 'UNSIGNED_INT_24_8'
@@ -117,6 +123,14 @@ export class WebGLCubeGeometry extends BaseCubeGeometry {
 }
 
 export class WebGLTexture extends BaseTexture {
+    constructor(context, options) {
+        super(context, options);
+
+        this._prevWidth = 0;
+        this._prevHeight = 0
+        this._lastMinFilter = 0;
+        this._lastMagFilter = 0;
+    }
     _applyStyle() {
         const {
             gl
@@ -176,14 +190,44 @@ export class WebGLTexture extends BaseTexture {
 
         if (mode === '2d') {
             if (this.source) {
-                gl.texImage2D(
-                    type,
-                    0,
-                    gl[formats.internal || formats.format],
-                    gl[formats.format],
-                    gl[formats.type],
-                    this.source
-                );
+                if (this.source.byteLength) {
+                    if (this._prevWidth !== this.width || this._prevHeight !== this.height) {
+                        this._prevWidth = this.width;
+                        this._prevHeight = this.height;
+
+                        gl.texImage2D(
+                            type,
+                            0,
+                            gl[formats.internal || formats.format],
+                            this.width,
+                            this.height,
+                            0,
+                            gl[formats.format],
+                            gl[formats.type],
+                            this.source
+                        );
+                    } else {
+                        gl.texSubImage2D(
+                            type,
+                            0,
+                            0, 0,
+                            this.width,
+                            this.height,
+                            gl[formats.format],
+                            gl[formats.type],
+                            this.source
+                        )
+                    }
+                } else {
+                    gl.texImage2D(
+                        type,
+                        0,
+                        gl[formats.internal || formats.format],
+                        gl[formats.format],
+                        gl[formats.type],
+                        this.source
+                    );
+                }
             } else {
                 gl.texImage2D(
                     type,
@@ -262,6 +306,10 @@ export default class WebGLRenderer extends BaseRenderer {
             write: true,
             test: true,
         }
+
+        this.mesh = new GLMeshDrawer(this);
+        this.cube = new GLCubeDrawer(this);
+        this.chunk = new GLChunkDrawer(this);
     }
 
     async init(args) {
@@ -272,7 +320,10 @@ export default class WebGLRenderer extends BaseRenderer {
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
         gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        this._emptyTex3D.bind(5)
+        for (let i = 6; i < 16; i++) {
+            this._emptyTex3D.bind(i);
+        }
+        this.multidrawExt = this.gl.getExtension('WEBGL_multi_draw_instanced_base_vertex_base_instance');
         return Promise.resolve(this);
     }
 
@@ -302,7 +353,7 @@ export default class WebGLRenderer extends BaseRenderer {
         */
     }
 
-    clear({clearDepth = true, clearColor = true} = {}) 
+    clear({clearDepth = true, clearColor = true} = {})
     {
         const {
             gl, _clearColor
@@ -317,7 +368,7 @@ export default class WebGLRenderer extends BaseRenderer {
             _clearColor[3]
         );
 
-        mask && gl.clear(mask);        
+        mask && gl.clear(mask);
     }
 
     createRenderTarget(options) {
@@ -369,33 +420,6 @@ export default class WebGLRenderer extends BaseRenderer {
         return new WebGLBuffer(this, options);
     }
 
-    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type) {
-        if (geom.size === 0) {
-            return;
-        }
-        let gl = this.gl;
-        if(!draw_type) {
-            draw_type = 'triangles';
-        }
-        switch(draw_type) {
-            case 'triangles': {
-                draw_type = gl.TRIANGLES;
-                break;
-            }
-            case 'line_loop': {
-                draw_type = gl.LINE_LOOP;
-                break;
-            }
-        }
-        material.bind();
-        geom.bind(material.shader);
-        material.shader.updatePos(a_pos, modelMatrix);
-        gl.drawArraysInstanced(draw_type, 0, 6, geom.size);
-        // stat
-        this.stat.drawquads += geom.size;
-        this.stat.drawcalls++;
-    }
-
     /**
      *
      * @param {import("../BaseRenderer.js").PassOptions} options
@@ -413,13 +437,13 @@ export default class WebGLRenderer extends BaseRenderer {
         );
 
         gl.viewport(..._viewport);
- 
+
         this.clear(options);
     }
 
     /**
      * @deprecated
-     * @param {} fogColor 
+     * @param {} fogColor
      */
     beginFrame(fogColor) {
         this.beginPass({fogColor})
@@ -506,28 +530,6 @@ export default class WebGLRenderer extends BaseRenderer {
 
     createCubeMap(options) {
         return new CubeMesh(new WebGLCubeShader(this, options), new WebGLCubeGeometry(this, options));
-    }
-
-    drawCube(cube) {
-        if (this._mat) {
-            this._mat.unbind();
-            this._mat = null;
-        }
-        cube.shader.bind();
-        cube.geom.bind(cube.shader);
-
-        const  {
-            gl
-        } = this;
-
-        gl.disable(gl.CULL_FACE);
-        gl.disable(gl.DEPTH_TEST);
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-        gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_TEST);
-        // stat
-        this.stat.drawquads += 6;
-        this.stat.drawcalls++;
     }
 
     /**

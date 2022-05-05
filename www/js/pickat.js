@@ -206,7 +206,7 @@ export class PickAt {
         }
         // 2. Damage block
         if(damage_block.mesh && damage_block.event && damage_block.event.destroyBlock && damage_block.frame > 0) {
-            
+
             const matrix = mat4.create();
             let a_pos = half.add(this.damage_block.pos);
 
@@ -214,7 +214,7 @@ export class PickAt {
             this.chunk_addr = getChunkAddr(this.damage_block.pos);
             this.chunk = this.world.chunkManager.getChunk(this.chunk_addr);
             if(this.chunk) {
-                mat4.translate(matrix, matrix, 
+                mat4.translate(matrix, matrix,
                     [
                         (a_pos.x - this.chunk.coord.x),
                         (a_pos.z - this.chunk.coord.z),

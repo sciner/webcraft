@@ -30,6 +30,11 @@ export class BaseTexture3D {
         this.isRegion = false;
         this.isEmpty = false;
         this.emptyRegion = null;
+
+        /**
+         * permanent location for base light texture in pool
+         */
+        this._poolLocation = -1;
     }
 
     upload() {

@@ -18,9 +18,9 @@ const lm = {r : -1, g : -1, b : -1};
 
 /**
  * Fill cube from bedrock cube notation
- * @param {*} param0 
- * @param {*} target 
- * @returns 
+ * @param {*} param0
+ * @param {*} target
+ * @returns
  */
 export function fillCube({
     matrix,
@@ -92,7 +92,7 @@ export function fillCube({
     yX += Math.sign(yX) * inflate;
     yY += Math.sign(yY) * inflate;
     yZ += Math.sign(yZ) * inflate;
-    
+
     zX += Math.sign(zX) * inflate;
     zY += Math.sign(zY) * inflate;
     zZ += Math.sign(zZ) * inflate;
@@ -108,7 +108,7 @@ export function fillCube({
             zX, zZ, zY,
             c[0], c[1], c[2] * flip, -c[3],
             lm.r, lm.g, lm.b, flags);
-        
+
         //down
         c = uv.down;
         target.push(cX - inf2 * yX, cZ - inf2 * yZ, cY - inf2 * yY,
@@ -154,7 +154,7 @@ export function fillCube({
             c[0], c[1], c[2] * flip, -c[3],
             lm.r, lm.g, lm.b, flags);
     }
- 
+
     return target;
 }
 
@@ -269,9 +269,9 @@ export function decodeJsonGeometryTree(json, variant = null) {
          */
         const blob = json["minecraft:geometry"];
         const dataset = (
-            variant 
-                ? (typeof variant === "number" 
-                    ? blob[variant] 
+            variant
+                ? (typeof variant === "number"
+                    ? blob[variant]
                     : blob.find(e => e.description.identifier === variant))
                 : blob[0]
             ) || blob[0];

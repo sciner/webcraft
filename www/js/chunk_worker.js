@@ -17,7 +17,7 @@ const worker = {
             import('path').then(module => global.path = module);
             import('worker_threads').then(module => {
                 this.parentPort = module.parentPort;
-                this.parentPort.on('message', onMessageFunc);    
+                this.parentPort.on('message', onMessageFunc);
             });
         } else {
             onmessage = onMessageFunc
@@ -147,9 +147,13 @@ async function onMessageFunc(e) {
         }
         case 'buildVertices': {
             let results = [];
-            for(let addr of args.addrs) {
+            for (let ind = 0; ind < args.addrs.length; ind++) {
+                let addr = args.addrs[ind];
+                let dataOffset = args.offsets[ind];
+
                 let chunk = world.chunks.get(addr);
                 if(chunk) {
+                    chunk.dataOffset = dataOffset;
                     // 4. Rebuild vertices list
                     const item = buildVertices(chunk, false);
                     if(item) {

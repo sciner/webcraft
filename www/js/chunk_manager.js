@@ -2,6 +2,9 @@ import {Helpers, SpiralGenerator, Vector, VectorCollector} from "./helpers.js";
 import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
+import {ChunkDataTexture} from "./light/ChunkDataTexture.js";
+import {TrivialGeometryPool} from "./light/GeometryPool.js";
+import {Basic05GeometryPool} from "./light/Basic05GeometryPool.js";
 
 const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
@@ -34,6 +37,8 @@ export class ChunkManager {
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
         this.lightPool = null;
+        this.bufferPool = null;
+        this.chunkDataTexture = new ChunkDataTexture();
 
         // Torches
         this.torches = {
@@ -90,7 +95,6 @@ export class ChunkManager {
         this.lightWorker            = new Worker('./js/light_worker.js'/*, {type: 'module'}*/);
         this.sort_chunk_by_frustum  = false;
         this.timer60fps             = 0;
-
     }
 
     get lightmap_count() {
@@ -231,6 +235,13 @@ export class ChunkManager {
     }
 
     prepareRenderList(render) {
+        if (!this.bufferPool) {
+            if (render.renderBackend.multidrawExt) {
+                this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+            } else {
+                this.bufferPool = new TrivialGeometryPool(render.renderBackend);
+            }
+        }
 
         const chunk_render_dist = Game.player.state.chunk_render_dist;
         const player_chunk_addr = Game.player.chunkAddr;
@@ -271,8 +282,10 @@ export class ChunkManager {
                     chunk.applyVertices();
                 }
             }
-            if(this.vertices_length == 0) {
-                return;    
+            // actualize light
+            chunk.prepareRender(render.renderBackend);
+            if(chunk.vertices_length === 0) {
+                continue;
             }
             for(let [key, v] of chunk.vertices) {
                 let key1 = v.resource_pack_id;

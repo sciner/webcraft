@@ -10,6 +10,8 @@ import {WebGPUBuffer} from "./WebGPUBuffer.js";
 import {WebGPUCubeShader} from "./WebGPUCubeShader.js";
 import {Resources} from "../../resources.js";
 import { WebGPURenderTarget } from "./WebGPURenderTarget.js";
+import {GPUMeshDrawer} from "./GPUMeshDrawer.js";
+import {GPUCubeDrawer} from "./GPUCubeDrawer.js";
 
 export default class WebGPURenderer extends BaseRenderer{
     constructor(view, options) {
@@ -58,17 +60,20 @@ export default class WebGPURenderer extends BaseRenderer{
         this.depth = null;
 
         this.subMats = [];
+
+        this.mesh = new GPUMeshDrawer(this);
+        this.cube = new GPUCubeDrawer(this);
     }
 
     get currentBackTexture() {
-        return this._target 
+        return this._target
             ? this._target.texture.view
             : this.context.getCurrentTexture().createView();
     }
 
     get currentDepth() {
-        return this._target 
-            ? this._target.depthTexture.view 
+        return this._target
+            ? this._target.depthTexture.view
             : this.depth.createView();
     }
 
@@ -152,49 +157,6 @@ export default class WebGPURenderer extends BaseRenderer{
         );
     }
 
-    /**
-     *
-     * @param geom
-     * @param {WebGPUMaterial} material
-     */
-    drawMesh(geom, material, a_pos = null, modelMatrix = null) {
-        if (geom.size === 0) {
-            return;
-        }
-
-        material.shader.bind();
-        geom.bind(material.shader);
-
-        if (a_pos) {
-            material = material.getSubMat();
-            this.subMats.push(material);
-        }
-
-
-        material.updatePos(a_pos, modelMatrix);
-        material.bind(this);
-
-        this.passEncoder.setPipeline(material.pipeline);
-
-        geom.buffers.forEach((e, i) => {
-            e.bind();
-            if (e.index) {
-                this.passEncoder.setIndexBuffer(e.buffer, 'uint16');
-                return;
-            }
-
-            this.passEncoder.setVertexBuffer(i, e.buffer);
-        })
-
-
-        this.passEncoder.setBindGroup(0, material.group);
-
-        if(material.skinGroup)
-            this.passEncoder.setBindGroup(1, material.skinGroup);
-
-        this.passEncoder.draw(6, geom.size, 0, 0);
-    }
-
     drawCube(cube) {
         cube.shader.update();
         this.passEncoder.setPipeline(cube.shader.pipeline);
@@ -209,6 +171,8 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     endPass() {
+        super.endPass();
+
         if (!this.encoder) {
             return;
         }
@@ -270,8 +234,8 @@ export default class WebGPURenderer extends BaseRenderer{
     }
 
     /**
-     * 
-     * @param {WebGPURenderTarget} target 
+     *
+     * @param {WebGPURenderTarget} target
      */
     setTarget(target) {
         super.setTarget(target);
