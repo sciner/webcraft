@@ -5928,8 +5928,8 @@
     },
     {
         "id": 1003,
-        "name": "ENERGY_GENERATOR",
-        "window": "frmEnergyGenerator",
+        "name": "CHARGING_STATION",
+        "window": "frmChargingStation",
         "sound": "madcraft:block.stone",
         "material": {
             "id": "iron"

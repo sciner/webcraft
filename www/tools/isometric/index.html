@@ -5,13 +5,17 @@
     <meta charset="utf-8" />
     <link href="./style.css" rel="stylesheet" type="text/css">
     <base href="../.."/>
+    <script type="module">
+        import {showCoordInfo} from "/tools/isometric/generator.js";
+        globalThis.showCoordInfo = showCoordInfo;
+    </script>
 </head>
 <body>
 
-    <script src="/tools/isometric/generator.js" type="module"></script>
-
-    <canvas id="canvas3D" width="1500" height="1000">Ваш браузер не поддерживает элемент canvas</canvas>
+    <canvas id="canvas3D" width="1500" height="1000" onmousemove="showCoordInfo(event.offsetX, event.offsetY)">Ваш браузер не поддерживает элемент canvas</canvas>
     <div id="timer"></div>
+    <div id="dbg"></div>
+    <img id="axis" src="/tools/isometric/axis.png" />
 
 </body>
 </html>

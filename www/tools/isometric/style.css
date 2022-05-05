@@ -13,27 +13,6 @@ body {
     background: #aaddff;
 }
 
-
-#colorTable {
-    display: inline-block;
-    font-family: arial;
-    background: rgba(0,0,0,.1);
-    padding: 1em;
-    border-radius: 1em;
-    position: fixed;
-    left: 10px;
-    top: 10px;
-}
-
-#colorTable div {
-    display: flex;
-    align-items: center;
-}
-
-#colorTable div span {
-    margin-right: 5px;
-}
-
 #canvas2D {
     background: #aaddff;
     position: fixed;
@@ -46,6 +25,23 @@ body {
     left: 10px;
     bottom: 10px;
     font-size: 20px;
+    font-family: monospace;
+}
+
+#axis {
+    position: fixed;
+    z-index: 2;
+    left: 10px;
+    top: 10px;
+}
+
+#dbg {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    font-size: 20px;
+    font-family: monospace;
+    text-align: right;
 }
 
 canvas {

@@ -1,4 +1,4 @@
-import {Color, hexToRgbA} from '../helpers.js';
+import {Color} from '../helpers.js';
 import {BLOCK} from "../blocks.js";
 
 const CACTUS_MIN_HEIGHT     = 2;
@@ -67,7 +67,7 @@ BIOMES.BEACH = {
 };
 
 BIOMES.TEMPERATE_DESERT = {
-    block: BLOCK.GRAVEL.id,
+    block:      BLOCK.GRAVEL.id,
     code:       'TEMPERATE_DESERT',
     color:      '#f4a460',
     dirt_color: new Color(840 / 1024, 980 / 1024, 0, 0),
@@ -92,7 +92,7 @@ BIOMES.TEMPERATE_DESERT = {
 BIOMES.JUNGLE = {
     block:      BLOCK.OAK_PLANK.id,
     code:       'JUNGLE',
-    color:      '#c19a6b',
+    color:      '#4eb41c',
     dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
     title:      'ДЖУНГЛИ',
     max_height: 48,
@@ -403,7 +403,8 @@ BIOMES.TROPICAL_RAIN_FOREST = {
 
 for(let k in BIOMES) {
     const biome = BIOMES[k];
-    biome.color_rgba = hexToRgbA(biome.color);
+    biome.code = k;
+    biome.color_rgba = Color.hexToColor(biome.color);
 }
 
 /**

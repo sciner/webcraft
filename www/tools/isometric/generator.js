@@ -1,12 +1,48 @@
 import {BLOCK} from '../../js/blocks.js';
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from '../../js/chunk.js';
-import { Vector } from '../../js/helpers.js';
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from '../../js/chunk.js';
+import { Color, Vector, VectorCollector } from '../../js/helpers.js';
 await BLOCK.init({
     texture_pack: 'base',
     json_url: '../../data/block_style.json',
     resource_packs_url: '../../data/resource_packs.json'
 });
+//
+await import('../../js/terrain_generator/biomes.js').then(module => {
+    globalThis.BIOMES = module.BIOMES;
+});
+//
 import {noise} from "../../js/terrain_generator/default.js";
+
+// Fix biomes color
+import {Resources} from "../../js/resources.js";
+await Resources.loadImage('resource_packs/base/textures/default.png', false).then(async (img) => {
+    let canvas          = document.createElement('canvas');
+    const w             = img.width;
+    const h             = img.height;
+    canvas.width        = w;
+    canvas.height       = h;
+    let ctx             = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h, 0, 0, w, h);
+    const imgData = ctx.getImageData(0, 0, w, h).data;
+        for(let [code, biome] of Object.entries(BIOMES)) {
+            if(typeof biome === 'object') {
+                const dirt_color = biome.dirt_color;
+                const x = (dirt_color.r * w) | 0;
+                const y = (dirt_color.g * h) | 0;
+                const index = (y * w + x) * 4;
+                const color = new Color(
+                    imgData[index + 0],
+                    imgData[index + 1],
+                    imgData[index + 2],
+                    imgData[index + 3]
+                );
+                biome.color_rgba = color;
+                biome.color = color.toHex();
+                console.log(biome.code, biome.color)
+            }
+        }
+    }
+);
 
 // load module
 await import('../../js/terrain_generator/cluster/manager.js').then(module => {
@@ -14,21 +50,39 @@ await import('../../js/terrain_generator/cluster/manager.js').then(module => {
 });
 
 globalThis.BLOCK = BLOCK;
+const chunk_addr_start = new Vector(180, 0, 170);
+const chunk_coord_start = chunk_addr_start.mul(new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z));
+const all_maps = new VectorCollector();
+
+export function showCoordInfo(x, z) {
+    const ax = chunk_coord_start.x + z;
+    const az = chunk_coord_start.z + x;
+    const chunk_addr = getChunkAddr(ax, 0, az);
+    const map = all_maps.get(chunk_addr);
+    if(map) {
+        const mx = ax - map.chunk.coord.x;
+        const mz = az - map.chunk.coord.z;
+        const cell_index = mz * CHUNK_SIZE_X + mx;
+        const cell = map.cells[cell_index];
+        let text = ax + 'x' + az;
+        text += `\n${cell.biome.code}`;
+        document.getElementById('dbg').innerText = text;
+    }
+}
 
 await import('../../js/terrain_generator/terrain_map.js').then(module => {
     globalThis.GENERATOR_OPTIONS = module.GENERATOR_OPTIONS;
     globalThis.TerrainMapManager = module.TerrainMapManager;
 
     //
-    const seed      = 'undefined';
-    const world_id  = 'demo';
-    const noisefn   = noise.perlin2;
-    const Tmaps     = new TerrainMapManager(seed, world_id, noisefn);
+    const CHUNK_RENDER_DIST = 4;
+    const seed              = 'undefined';
+    const world_id          = 'demo';
+    const noisefn           = noise.perlin2;
+    const Tmaps             = new TerrainMapManager(seed, world_id, noisefn);
 
-    const chunk_addr_center = new Vector(180, 0, 170);
     const pn                = performance.now();
-    const chunk_render_dist = 4;
-    const SZ                = chunk_render_dist * 2 + 3;
+    const SZ                = CHUNK_RENDER_DIST * 2 + 3;
 
     let canvas = document.getElementById('canvas3D');
     let ctx = canvas.getContext('2d', { alpha: false });
@@ -36,7 +90,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     canvas.height = SZ * CHUNK_SIZE_Z;
 
     // Отрисовка карты
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#fc0";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     let maps_generated = 0;
@@ -44,9 +98,10 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     for(let sx = 0; sx < SZ; sx++) {
         for(let sz = 0; sz < SZ; sz++) {
-            const chunk_addr = chunk_addr_center.add(new Vector(sx, 0, sz));
+            const chunk_addr = chunk_addr_start.add(new Vector(sx, 0, sz));
             let maps = Tmaps.generateAround(chunk_addr, true, true);
             let map = maps[4];
+            all_maps.set(chunk_addr, map);
             maps_generated++;
             for(var i = 0; i < CHUNK_SIZE_X; i++) {
                 for(var j = 0; j < CHUNK_SIZE_Z; j++) {
@@ -55,9 +110,9 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
                     const cell = map.cells[j * CHUNK_SIZE_X + i];
                     let index = (z * (SZ * CHUNK_SIZE_X) + x) * 4;
                     const light = (cell.value2 / 64);
-                    imgData.data[index + 0] = cell.biome.color_rgba[0] * light;
-                    imgData.data[index + 1] = cell.biome.color_rgba[1] * light;
-                    imgData.data[index + 2] = cell.biome.color_rgba[2] * light;
+                    imgData.data[index + 0] = cell.biome.color_rgba.r * light;
+                    imgData.data[index + 1] = cell.biome.color_rgba.g * light;
+                    imgData.data[index + 2] = cell.biome.color_rgba.b * light;
                     imgData.data[index + 3] = 255;
                 }
             }
@@ -67,8 +122,10 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     let elapsed = performance.now() - pn;
     let text = Math.round(elapsed) + ' ms';
-    text += '\nMaps: ' + maps_generated;
-    text += '\nmps: ' + Math.round((elapsed / maps_generated) * 100) / 100 + ' ms';
+    text += '\nmaps: ' + maps_generated;
+    text += '\none map: ' + Math.round((elapsed / maps_generated) * 100) / 100 + ' ms';
+    text += '\nmaps per sec: ' + Math.round(1000 / (elapsed / maps_generated) * 100) / 100;
+    text += '\nchunk render dist: ' + CHUNK_RENDER_DIST;
     document.getElementById('timer').innerText = text;
 
 });

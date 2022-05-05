@@ -283,6 +283,24 @@ export class VectorCollector {
 // Color
 export class Color {
 
+    static componentToHex(c) {
+        var hex = c.toString(16);
+        return hex.length == 1 ? "0" + hex : hex;
+    }
+
+    static hexToColor(hex_color) {
+        var c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex_color)) {
+            c = hex_color.substring(1).split('');
+            if(c.length == 3){
+                c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c = '0x' + c.join('');
+            return new Color((c>>16)&255, (c>>8)&255, c&255, 255); // 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
+        }
+        throw new Error('Bad Hex');
+    }
+
     constructor(r, g, b, a) {
         this.r = r;
         this.g = g;
@@ -336,6 +354,13 @@ export class Color {
 
     clone() {
         return new Color(this.r, this.g, this.b, this.a);
+    }
+
+    toHex() {
+        return "#" + Color.componentToHex(this.r) +
+            Color.componentToHex(this.g) +
+            Color.componentToHex(this.b) +
+            Color.componentToHex(this.a);
     }
 
     toArray() {
@@ -1505,18 +1530,4 @@ export function deepAssign(options) {
         });
         return target;
     }
-}
-
-//
-export function hexToRgbA(hex) {
-    var c;
-    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-        c= hex.substring(1).split('');
-        if(c.length== 3){
-            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
-        }
-        c= '0x'+c.join('');
-        return [(c>>16)&255, (c>>8)&255, c&255, 255]; // 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',1)';
-    }
-    throw new Error('Bad Hex');
 }

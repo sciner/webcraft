@@ -3,7 +3,7 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {BaseCraftWindow, CraftTableInventorySlot} from "./base_craft_window.js";
 import {ServerClient} from "../server_client.js";
 
-export default class EnergyGeneratorWindow extends BaseCraftWindow {
+export default class ChargingStationWindow extends BaseCraftWindow {
 
     constructor(x, y, w, h, id, title, text, inventory) {
 
@@ -21,7 +21,7 @@ export default class EnergyGeneratorWindow extends BaseCraftWindow {
         const ct = this;
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/form-energy-generator.png');
+        ct.setBackground('./media/gui/form-charging-station.png');
         ct.hide();
 
         this.dragItem = null;
@@ -56,7 +56,7 @@ export default class EnergyGeneratorWindow extends BaseCraftWindow {
         }
 
         // Add labels to window
-        ct.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Energy generator'));
+        ct.add(this.lbl1 = new Label(15 * this.zoom, 12 * this.zoom, 200 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Charging station'));
         ct.add(new Label(15 * this.zoom, 147 * this.zoom, 100 * this.zoom, 30 * this.zoom, 'lbl2', null, 'Inventory'));
 
         // Add listeners for server commands

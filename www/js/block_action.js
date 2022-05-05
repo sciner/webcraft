@@ -549,7 +549,7 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                         resp.open_window = world_material.window;
                         break;
                     }
-                    case BLOCK.ENERGY_GENERATOR.id: {
+                    case BLOCK.CHARGING_STATION.id: {
                         resp.open_window = world_material.window;
                         break;
                     }
