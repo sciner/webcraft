@@ -195,9 +195,8 @@ export class PlayerInventory {
         }
         const current_item_material = BLOCK.fromId(this.current_item.id);
         if(current_item_material.item?.instrument_id) {
-            this.current_item.power = Math.max(this.current_item.power - .01, 0);
-            this.current_item.power = Math.round(this.current_item.power * 1000) / 1000;
-            if(this.current_item.power < 0.001) {
+            this.current_item.power = Math.max(this.current_item.power - 1, 0);
+            if(this.current_item.power <= 0) {
                 this.items[this.current.index] = null;
             }
             this.refresh(true);

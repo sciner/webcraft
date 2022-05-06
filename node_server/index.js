@@ -31,7 +31,10 @@ global.randomUUID       = () => {
 console.log('Server config', config);
 
 // Init environment
-await BLOCK.init();
+await BLOCK.init({
+    _json_url: __dirname + '/../data/block_style.json',
+    _resource_packs_url: __dirname + '/../data/resource_packs.json'
+});
 
 // Hack ;)
 Resources.physics = {

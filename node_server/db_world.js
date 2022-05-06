@@ -8,6 +8,7 @@ import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {Vector} from "../www/js/helpers.js";
+import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
 
@@ -361,8 +362,11 @@ export class DBWorld {
             "title" VARCHER(50)
             );`
         ]});
-        
 
+        migrations.push({version: 40, queries: [
+            `alter table world_modify add column "block_id" integer DEFAULT NULL`,
+            `UPDATE world_modify SET block_id = json_extract(params, '$.id') WHERE params IS NOT NULL`
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -730,6 +734,7 @@ export class DBWorld {
     // Block set
     async blockSet(world, player, params) {
         let item = params.item;
+        const is_modify = params.action_id == ServerClient.BLOCK_ACTION_MODIFY;
         if(item.id == 0) {
             item = null;
         } else {
@@ -750,17 +755,38 @@ export class DBWorld {
                 delete(item.power);
             }
         }
-        const result = await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data)', {
-            ':user_id':     player?.session.user_id || null,
-            ':dt':          ~~(Date.now() / 1000),
-            ':world_id':    world.info.id,
-            ':params':      item ? JSON.stringify(item) : null,
-            ':x':           params.pos.x,
-            ':y':           params.pos.y,
-            ':z':           params.pos.z,
-            ':entity_id':   item?.entity_id ? item.entity_id : null,
-            ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null
-        });
+        let need_insert = true;
+        if(is_modify) {
+            let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+                ':x': params.pos.x,
+                ':y': params.pos.y,
+                ':z': params.pos.z
+            });
+            for(let row of rows) {
+                need_insert = false;
+                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE id = :id', {
+                    ':id':          row.id,
+                    ':params':      item ? JSON.stringify(item) : null,
+                    ':entity_id':   item?.entity_id ? item.entity_id : null,
+                    ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                    ':block_id':    item?.id
+                });
+            }
+        }
+        if(need_insert) {
+            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id)', {
+                ':user_id':     player?.session.user_id || null,
+                ':dt':          ~~(Date.now() / 1000),
+                ':world_id':    world.info.id,
+                ':x':           params.pos.x,
+                ':y':           params.pos.y,
+                ':z':           params.pos.z,
+                ':params':      item ? JSON.stringify(item) : null,
+                ':entity_id':   item?.entity_id ? item.entity_id : null,
+                ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                ':block_id':    item?.id
+            });
+        }
         if (item && 'extra_data' in item) {
             // @todo Update extra data
         }

@@ -508,6 +508,7 @@ export class BLOCK {
         block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
         block.is_button         = block.tags.indexOf('button') >= 0;
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
+        block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;

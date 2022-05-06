@@ -110,7 +110,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -129,7 +129,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -148,7 +148,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -167,7 +167,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -186,7 +186,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -223,7 +223,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -242,7 +242,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -261,7 +261,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -280,7 +280,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -299,7 +299,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -333,7 +333,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -350,7 +350,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -367,7 +367,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -384,7 +384,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -401,7 +401,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -418,7 +418,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
-        "power": 1,
+        "power": 100,
         "material": {
             "id": "wood"
         },
@@ -435,7 +435,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -452,7 +452,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -469,7 +469,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -486,7 +486,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -503,7 +503,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -4769,7 +4769,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -4787,7 +4787,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -4805,7 +4805,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -4823,7 +4823,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -4841,7 +4841,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -5909,7 +5909,7 @@
         "max_in_stack": 1,
         "style": "extruder",
         "item": {"name": "car_battery", "indicator": "bar"},
-        "power": 1,
+        "power": 100,
         "material": {
             "id": "iron"
         },
@@ -5927,6 +5927,9 @@
         "can_rotate": true,
         "material": {
             "id": "iron"
+        },
+        "ticking": {
+            "type": "charging_station"
         },
         "texture": {
             "up": [1, 26],

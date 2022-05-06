@@ -11,47 +11,19 @@ export class ChestManager {
 
     constructor(world) {
         this.world = world;
-        this.list = new VectorCollector();
     }
 
     /**
-     * Create chest
-     * @param {*} player
-     * @param {ParamBlockSet} params
-     * @returns {Chest}
+     * Return chest by pos
+     * @param {Vector} pos
+     * @returns Chest|null
      */
-    async create(player, params, options = {check_occupied: true, slots: {}}) {
-        /*
-        const check_occupied = options ? options.check_occupied : true;
-        const slots = options ? options.slots : {}; // Array(27) // @ChestSlot
-        //if(check_occupied && this.blocks.has(params.pos)) {
-        //    throw 'error_block_occupied_by_another_entity';
-        //}
-        // @Chest
-        let chest = new Chest(
-            this.world,
-            new Vector(params.pos.x, params.pos.y, params.pos.z),
-            player.session.user_id,
-            new Date().toISOString(),
-            {...params.item, extra_data: {can_destroy: true, slots: {}}},
-            slots
-        );
-        this.list.set(chest.pos, chest);
-        // Save to DB
-        await this.world.db.createChest(player, params.pos, chest);
-        return chest;
-        */
+    get(pos) {
+        let block = this.world.getBlock(pos);
+        return block;
     }
 
-    // Generate ID
-    generateID() {
-        const guid = uuid();
-        if(this.list.has(guid)) {
-            return this.generateID();
-        }
-        return guid;
-    }
-
+    //
     async confirmPlayerAction(player, pos, params) {
 
         const chest = this.get(pos);
@@ -90,23 +62,6 @@ export class ChestManager {
             }
         }
         //
-        const sendChestToPlayers = (except_player_ids) => {
-            let chunk_addr = getChunkAddr(pos);
-            const chunk = this.world.chunks.get(chunk_addr);
-            if(chunk) {
-                let players = [];
-                for(let p of Array.from(chunk.connections.values())) {
-                    if(except_player_ids && Array.isArray(except_player_ids)) {
-                        if(except_player_ids.indexOf(p.session.user_id) >= 0) {
-                            continue;
-                        }
-                        players.push(p);
-                    }
-                }
-                this.sendContentToPlayers(players, pos);
-            }
-        };
-        //
         if(equal) {
             // update chest slots
             chest.extra_data.slots = new_chest_slots;
@@ -117,7 +72,7 @@ export class ChestManager {
             player.inventory.applyNewItems(params.inventory_slots, false);
             player.inventory.refresh(false);
             // Send new chest state to players
-            sendChestToPlayers([player.session.user_id]);
+            this.sendChestToPlayers(pos, [player.session.user_id]);
             // Save chest slots to DB
             await this.world.db.saveChestSlots({
                 pos: pos,
@@ -137,8 +92,9 @@ export class ChestManager {
         let chunk = this.world.chunks.get(chunk_addr);
         if(chunk) {
             const item = {
-                id: chest.id,
+                id:         chest.id,
                 extra_data: chest.extra_data,
+                rotate:     chest.rotate
             };
             const packets = [{
                 name: ServerClient.CMD_BLOCK_SET,
@@ -148,25 +104,33 @@ export class ChestManager {
         }
     }
 
-    /**
-     * Return chest by pos
-     * @param {Vector} pos
-     * @returns Chest|null
-     */
-    get(pos) {
-        let block = this.world.getBlock(pos);
-        return block;
+    sendChestToPlayers(pos, except_player_ids) {
+        let chunk_addr = getChunkAddr(pos);
+        const chunk = this.world.chunks.get(chunk_addr);
+        if(chunk) {
+            let players = [];
+            for(let p of Array.from(chunk.connections.values())) {
+                if(except_player_ids && Array.isArray(except_player_ids)) {
+                    if(except_player_ids.indexOf(p.session.user_id) >= 0) {
+                        continue;
+                    }
+                    players.push(p);
+                }
+            }
+            this.sendContentToPlayers(players, pos);
+        }
     }
 
+    //
     sendContentToPlayers(players, pos) {
         let block = this.world.getBlock(pos);
         if(!block) {
             return false;
         }
         const chest = {
-            pos: block.posworld,
-            slots: block.extra_data.slots,
-            can_destroy: block.extra_data.can_destroy,
+            pos:            block.posworld,
+            slots:          block.extra_data.slots,
+            can_destroy:    block.extra_data.can_destroy,
         }
         for(let player of players) {
             let packets = [{

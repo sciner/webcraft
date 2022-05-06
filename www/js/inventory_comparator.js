@@ -70,7 +70,7 @@ export class InventoryComparator {
                     equal = false;
                     break;
                 }
-                if(!InventoryComparator.itemsIsEqual(item, old_item)) {
+                if(!InventoryComparator.itemsIsEqual(old_item, item)) {
                     console.log('* Comparator not equal', JSON.stringify([item, old_item]));
                     equal = false;
                     break;
@@ -91,7 +91,7 @@ export class InventoryComparator {
     }
 
     //
-    static itemsIsEqual(a, b) {
+    static itemsIsEqual(old_item, new_item) {
         //
         function isObject(object) {
             return object != null && typeof object === 'object';
@@ -99,10 +99,6 @@ export class InventoryComparator {
         //
         function deepEqual(object1, object2) {
             const keys1 = Object.keys(object1);
-            // const keys2 = Object.keys(object2);
-            /*if (keys1.length !== keys2.length) {
-                return false;
-            }*/
             for (const key of keys1) {
                 if(ITEM_INVENTORY_PROPS.indexOf(key) < 0) {
                     continue;
@@ -116,7 +112,7 @@ export class InventoryComparator {
             }
             return true;
         }
-        return deepEqual(a, b);
+        return deepEqual(new_item, old_item);
     }
 
     //
@@ -139,9 +135,10 @@ export class InventoryComparator {
                         if(prop in b) {
                             if(prop != 'power' || b.power != 0) {
                                 if(prop in new_item) {
-                                    let jvalue = JSON.stringify(new_item[prop]);
-                                    key += `|${prop}:${jvalue}`;
-                                    entity_key = new_item.id;
+                                    const jvalue = JSON.stringify(new_item[prop]);
+                                    const prop_key = `|${prop}:${jvalue}`;
+                                    key += prop_key;
+                                    entity_key = new_item.id + prop_key;
                                 }
                             }
                         }

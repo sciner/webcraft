@@ -142,8 +142,6 @@ export class ServerChat {
                     }
                 }
                 break;
-            case '/obj':
-            case '/weather':
             case '/tp': {
                 try {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
@@ -216,6 +214,10 @@ export class ServerChat {
                 // add
                 this.world.spawnMob(player, params);
                break;
+            }
+            case '/obj':
+            case '/weather': {
+                break;
             }
             default: {
                 let ok = false;

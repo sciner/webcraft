@@ -114,7 +114,7 @@ export class Inventory extends PlayerInventory {
                 // Draw instrument life
                 const power_in_percent = mat?.item?.indicator == 'bar';
                 if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
-                    const power_normal = item.power / mat.power;
+                    const power_normal = Math.min(item.power / mat.power, 1);
                     let cx = hud_pos.x + 14 * zoom;
                     let cy = hud_pos.y + 14 * zoom;
                     let cw = 40 * zoom;

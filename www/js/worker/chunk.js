@@ -201,14 +201,15 @@ export class Chunk {
         if(typeof power === 'undefined' || power === null) {
             power = POWER_NO;
         }
-        power = Math.round(power * 10000) / 10000;
         //
         if(orig_type.id < 3) {
             power       = null;
             rotate      = null;
             extra_data  = null;
         }
-        if(power == 1) power = null;
+        if(power === 0) {
+            power = null;
+        }
         //
         if(is_modify) {
             let modify_item = {

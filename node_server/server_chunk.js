@@ -399,16 +399,16 @@ export class ServerChunk {
         for(let k of this.modify_list.keys()) {
             let temp = k.split(',');
             pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
-            const m = this.modify_list.get(k);
+            const current_block_on_pos = this.modify_list.get(k);
             // @todo if chest
             // this.modify_list.set(k, chest.entity.item);
-            if(!block || block.id != m.id) {
-                block = BLOCK.fromId(m.id);
+            if(!block || block.id != current_block_on_pos.id) {
+                block = BLOCK.fromId(current_block_on_pos.id);
             }
-            if(block.ticking && m.extra_data && !('notick' in m.extra_data)) {
+            if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
                 this.addTickingBlock(pos, {
                     id:         block.id,
-                    extra_data: m.extra_data,
+                    extra_data: current_block_on_pos.extra_data,
                     ticking:    block.ticking
                 });
             }
@@ -732,6 +732,22 @@ export class ServerChunk {
                             // Delete completed block from tickings
                             this.deleteTickingBlock(v.pos);
                         }
+                    }
+                    case 'charging_station': {
+                        if(extra_data && extra_data.slots) {
+                            if(v.ticks % 40 == 0) {
+                                console.log('charged++');
+                                for(let [slot_index, battery] of Object.entries(extra_data.slots)) {
+                                    const block = BLOCK.fromId(battery.id);
+                                    if(block.is_battery) {
+                                        battery.power += 1;
+                                    }
+                                }
+                                updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
+                                this.world.chests.sendChestToPlayers(new Vector(v.pos), []);
+                            }
+                        }
+                        break;
                     }
                 }
             }

@@ -7,7 +7,7 @@ Minecraft clone on JS
 
 # Run and play
 ```
-// Run NodeJS v17.1.0 server
+// Run NodeJS v17.9.0 server!
 cd ./node_server
 npm install
 node --experimental-json-modules --no-warnings ./index.js

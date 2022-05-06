@@ -311,9 +311,8 @@ export class Chunk {
         }
         // fix power
         if(typeof power === 'undefined' || power === null) {
-            power = 1.0;
+            power = 100;
         }
-        power = Math.round(power * 10000) / 10000;
         if(power <= 0) {
             return;
         }

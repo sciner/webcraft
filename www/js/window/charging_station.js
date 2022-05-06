@@ -23,13 +23,15 @@ export default class ChargingStationWindow extends BaseChestWindow {
         const y             = (38 + 6) * this.zoom;
         const sx            = 56 * this.zoom;
         const sy            = 56 * this.zoom;
-        resp.push({pos: new Vector(fuel_slot_pos.x, fuel_slot_pos.y, 0)});
+        // charger slots
         resp.push({pos: new Vector(x, y, 0)});
         resp.push({pos: new Vector(x + sx, y, 0)});
         resp.push({pos: new Vector(x + sx * 2, y, 0)});
         resp.push({pos: new Vector(x, y + sy, 0)});
         resp.push({pos: new Vector(x + sx, y + sy, 0)});
         resp.push({pos: new Vector(x + sx * 2, y + sy, 0)});
+        // fuel
+        resp.push({pos: new Vector(fuel_slot_pos.x, fuel_slot_pos.y, 0)});
         return resp;
     }
 
