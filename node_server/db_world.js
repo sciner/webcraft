@@ -4,11 +4,10 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
-import {Chest} from "./chest.js";
 import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
-import {Vector, VectorCollector} from "../www/js/helpers.js";
+import {Vector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
 
@@ -544,76 +543,24 @@ export class DBWorld {
         let result = await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    // Load world chests
-    async loadChests(world) {
-        let resp = {
-            list: new Map(),
-            blocks: new VectorCollector() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
-        };
-        let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest WHERE is_deleted = 0');
-        for(let row of rows) {
-            // EntityBlock
-            let entity_block = {
-                id:   row.entity_id,
-                type: 'chest'
-            };
-            // slots
-            let slots = JSON.parse(row.slots);
-            // Block item
-            let bi = JSON.parse(row.item);
-            if(!('extra_data' in bi)) {
-                bi.extra_data = {};
-            }
-            bi.extra_data.can_destroy = Object.entries(slots).length == 0;
-            // chest
-            let chest = new Chest(
-                world,
-                new Vector(row.x, row.y, row.z),
-                row.user_id,
-                new Date(row.dt * 1000).toISOString(),
-                bi,
-                slots
-            );
-            resp.list.set(row.entity_id, chest);
-            resp.blocks.set(new Vector(row.x, row.y, row.z), entity_block);
-        }
-        return resp;
-    }
-
-    // Delete chest
-    async deleteChest(entity_id) {
-        const result = await this.db.run('UPDATE chest SET is_deleted = 1 WHERE entity_id = :entity_id', {
-            ':entity_id': entity_id
-        });
-    }
-
-    /**
-     * Create chest
-     * @param {ServerPlayer} player 
-     * @param {Vector} pos 
-     * @param {Object} params
-     * @return {number}
-     */
-    async createChest(player, pos, params) {
-        const result = await this.db.run('INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES(:dt, :user_id, :entity_id, :item, :slots, :x, :y, :z)', {
-            ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
-            ':entity_id':       params.item.entity_id,
-            ':item':            JSON.stringify(params.item),
-            ':slots':           JSON.stringify(params.slots),
-            ':x':               pos.x,
-            ':y':               pos.y,
-            ':z':               pos.z
-        });
-        return result.lastID;
-    }
-
     // saveChestSlots...
     async saveChestSlots(chest) {
-        const result = await this.db.run('UPDATE chest SET slots = :slots WHERE entity_id = :entity_id', {
-            ':slots':       JSON.stringify(chest.slots),
-            ':entity_id':   chest.item.entity_id
+        let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            ':x': chest.pos.x,
+            ':y': chest.pos.y,
+            ':z': chest.pos.z
         });
+        for(let row of rows) {
+            let extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
+            extra_data.slots = chest.slots;
+            extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
+            await this.db.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
+                ':extra_data':  JSON.stringify(extra_data),
+                ':id':          row.id
+            });
+            return true;
+        }
+        return false;
     }
 
     // ChunkBecameModified...
@@ -850,7 +797,6 @@ export class DBWorld {
         for(let row of rows) {
             const action = {...row};
             delete(action.quest_id);
-            // let q = quests.get(row.quest_id);
             quest.actions.push(action);
         }
         // Rewards
@@ -860,7 +806,6 @@ export class DBWorld {
         for(let row of rows) {
             const reward = {...row};
             delete(reward.quest_id);
-            // let q = quests.get(row.quest_id);
             quest.rewards.push(reward);
         }
         return quest;

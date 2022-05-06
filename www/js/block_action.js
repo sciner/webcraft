@@ -487,10 +487,6 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
             can_destroy = world_block.extra_data.can_destroy;
         }
         if(can_destroy) {
-            // if(world_block.id == BLOCK.CHEST.id) {
-            if(world_material && world_material.is_chest) {
-                resp.delete_chest = {pos: new Vector(pos), entity_id: world_block.entity_id};
-            }
             // Remove plant from pot
             if(world_material && world_material.tags.indexOf('pot') >= 0) {
                 if(extra_data?.item_id) {

@@ -135,7 +135,7 @@ export class BaseChestWindow extends Window {
     confirmAction() {
         const params = {
             drag_item: Game.hud.wm.drag?.item?.item,
-            chest: {entity_id: this.info.entity_id, slots: {}},
+            chest: {pos: this.info.pos, slots: {}},
             inventory_slots: []
         };
         params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
@@ -179,11 +179,8 @@ export class BaseChestWindow extends Window {
             return;
         }
         // пришло содержимое другого сундука (не просматриваемого в данный момент)
-        if(chest.item.entity_id != this.info.entity_id) {
-            if(!this.info.pos.equal(chest.pos)) {
-                return;
-            }
-            this.info.entity_id = chest.item.entity_id;
+        if(!this.info.pos.equal(chest.pos)) {
+            return;
         }
         this.lbl1.setText(this.options.title);
         this.clear();

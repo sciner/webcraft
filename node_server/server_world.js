@@ -159,13 +159,15 @@ export class ServerWorld {
             run: async function() {
                 while(this.list.length > 0) {
                     const queue_item = this.list.shift();
-                    const chest = that.chests.get(queue_item.params.chest.entity_id);
+                    const pos = queue_item.params.chest.pos;
+                    const chest = that.chests.get(pos);
                     if(chest) {
                         console.log('Chest state from ' + queue_item.player.session.username);
-                        await chest.confirmPlayerAction(queue_item.player, queue_item.params);
+                        await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
                     } else {
                         queue_item.player.inventory.refresh(true);
-                        throw `Chest ${queue_item.params.chest.entity_id} not found`;
+                        const pos_hash = pos.toHash();
+                        throw `Chest ${pos_hash} not found`;
                     }
                 }
             }
@@ -617,15 +619,9 @@ export class ServerWorld {
         // Create chest
         if(actions.create_chest) {
             const params = actions.create_chest;
-            const chest = await this.chests.create(server_player, params);
-            const new_item = chest.item;
-            const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
+            params.item.extra_data = {can_destroy: true, slots: {}};
+            const b_params = {pos: params.pos, item: params.item, action_id: ServerClient.BLOCK_ACTION_CREATE};
             actions.blocks.list.push(b_params);
-        }
-        // Delete chest
-        if(actions.delete_chest) {
-            const params = actions.delete_chest;
-            await this.chests.delete(params.entity_id, params.pos);
         }
         // Decrement item
         if(actions.decrement) {

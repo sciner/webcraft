@@ -399,12 +399,9 @@ export class ServerChunk {
         for(let k of this.modify_list.keys()) {
             let temp = k.split(',');
             pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
-            // If chest
-            let chest = this.world.chests.getOnPos(pos);
-            if(chest) {
-                this.modify_list.set(k, chest.entity.item);
-            }
             const m = this.modify_list.get(k);
+            // @todo if chest
+            // this.modify_list.set(k, chest.entity.item);
             if(!block || block.id != m.id) {
                 block = BLOCK.fromId(m.id);
             }
