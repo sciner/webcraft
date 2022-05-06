@@ -10,7 +10,7 @@ import {Inventory} from "./inventory.js";
 import {Chat} from "./chat.js";
 import {GameMode, GAME_MODE} from "./game_mode.js";
 import {doBlockAction} from "./block_action.js";
-import {QuestWindow} from "./window/index.js";
+import {QuestWindow, StatsWindow} from "./window/index.js";
 
 const MAX_UNDAMAGED_HEIGHT              = 3;
 const PLAYER_HEIGHT                     = 1.7;
@@ -150,6 +150,10 @@ export class Player {
         // Quests
         this.frmQuests = new QuestWindow(10, 10, 1700/2, 1200/2, 'frmQuests', null, null, this);
         Game.hud.wm.add(this.frmQuests);
+        
+        this.frmStats = new StatsWindow(10, 10, 300, 400, this);
+        Game.hud.wm.add(this.frmStats);
+        
         return true;
     }
 
