@@ -10,6 +10,8 @@ const MAX_RAD                   = 2; // максимальный радиус с
 const TREASURE_ROOM_RAD         = 3.5;
 const GROUP_COUNT               = 8;
 const MAX_DIR_LENGTH            = 25;
+const CAVES_SERCH_MARGIN        = 8;
+const CAVES_MAX_LENGTH          = CAVES_SERCH_MARGIN * CHUNK_SIZE_X - (MAX_RAD + 1) * 2;
 const _aabb                     = new AABB();
 const _intersection             = new Vector(0, 0, 0);
 const temp_vec                  = new Vector(0, 0, 0);
@@ -130,7 +132,8 @@ export class Cave {
         const z = ((index) % (CHUNK_SIZE_X * CHUNK_SIZE_Z) - x) / CHUNK_SIZE_X;
         vec_line.set(x, y, z);
 
-        let p_start = addr.mul(DIVIDER).addSelf(vec_line);
+        const start_coord = addr.mul(DIVIDER).addSelf(vec_line); // 
+        let p_start = start_coord.clone();
 
         // getChunk
         function getChunk(addr) {
@@ -176,6 +179,13 @@ export class Cave {
                 new_pos.y += (aleaRandom.double() * 2 - 1) * (max_rad / vert_coeff);
                 new_pos.z += (aleaRandom.double() * 2 - 1) * max_rad;
                 p_end.set(new_pos).flooredSelf();
+            }
+
+            //
+            const dist_from_start = start_coord.distance(p_end);
+            if(dist_from_start > CAVES_MAX_LENGTH) {
+                // console.log('break cave', dist, addr.toHash());
+                break;
             }
 
             // Для расчетов максимально разнесенных точек отрезка с учетом радиуса
@@ -233,7 +243,7 @@ export class CaveGenerator {
 
     constructor(seed) {
         this.seed           = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
-        this.margin         = 8;
+        this.margin         = CAVES_SERCH_MARGIN;
         this.spiral_moves   = SpiralGenerator.generate3D(new Vector(this.margin, this.margin, this.margin));
         this.lines          = new VectorCollector(); // В ключах адреса чанков, в значениях отрезки, которые затрагивают этот чанк
         this.caves          = new VectorCollector(); // Чтобы не генерировать пещеры в одних и техже чанках много раз подряд
