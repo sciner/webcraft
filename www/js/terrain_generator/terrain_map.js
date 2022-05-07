@@ -84,7 +84,7 @@ export class TerrainMapManager {
                     if(smooth && !map.smoothed) {
                         map.smooth(this);
                     }
-                    map.generateVegetation();
+                    map.generateVegetation(this.seed);
                 }
             }
         }
@@ -315,7 +315,7 @@ export class TerrainMap {
     }
 
     // Генерация растительности
-    generateVegetation() {
+    generateVegetation(seed) {
         let chunk                   = this.chunk;
         this.vegetable_generated    = true;
         this.trees                  = [];
@@ -375,7 +375,7 @@ export class TerrainMap {
             if(aleaRandom) {
                 return false;
             }
-            aleaRandom = new alea(chunk.seed + '_' + chunk.coord.toString());
+            aleaRandom = new alea(seed + '_' + chunk.coord.toString());
             cluster = ClusterManager.getForCoord(chunk.coord);
             return true;
         };

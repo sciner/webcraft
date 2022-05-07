@@ -567,7 +567,7 @@ export class DBWorld {
         return false;
     }
 
-    // ChunkBecameModified...
+    // Chunk became modified
     async chunkBecameModified() {
         let resp = new Set();
         let rows = await this.db.all(`SELECT DISTINCT
