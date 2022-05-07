@@ -2,11 +2,9 @@ import {Button, Label, Window} from "../../tools/gui/wm.js";
 import {ServerClient} from "../../js/server_client.js";
 
 export class StatsWindow extends Window {
-    constructor(x, y, w, h, player) {
-        super(x, y, w, h, "frmStats", null, null);
-        
-        this.player = player;
-        
+    constructor(player) {
+        super(10, 10, 300, 400, "frmStats", null, null);
+
         this.width *= this.zoom;
         this.height *= this.zoom;
         this.cell_size = 36 * this.zoom;
@@ -20,7 +18,7 @@ export class StatsWindow extends Window {
         ct.hide();
 
         // Add labels to window
-        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 250 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Base Stats');
+        let lbl1 = new Label(17 * this.zoom, 12 * this.zoom, 250 * this.zoom, 30 * this.zoom, 'lbl1', null, 'Статистика');
         ct.add(lbl1);
         
         let label_death = new Label(17 * this.zoom, 50 * this.zoom, 250 * this.zoom, 68 * this.zoom, 'label_death', null, '0');
@@ -81,13 +79,20 @@ export class StatsWindow extends Window {
             return false;
         }
         
-        
-        
         player.world.server.AddCmdListener([ServerClient.CMD_STATS], (cmd) => {
             label_death.text = "Количество смертей: " + cmd.data.death;
-            label_time.text = "Время в игре: " + cmd.data.time;
+            label_time.text = "Время в игре: " + this.secToStr(cmd.data.time);
             label_pickat.text = "Разбитых блоков: " + cmd.data.pickat;
-            label_distance.text = "Пройдено: " + cmd.data.distance;
+            label_distance.text = "Пройдено: " + cmd.data.distance + " м";
         });
+    }
+    
+    secToStr(time){
+        let minute = Math.floor(time / 60);
+        let hours = Math.floor(minute / 60);
+        let day = Math.floor(hours / 24);
+        minute %= 60;
+        hours %= 24;
+        return day + " д " + hours + " ч " + minute + " м";
     }
 }

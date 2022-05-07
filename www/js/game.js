@@ -239,16 +239,6 @@ export class GameClass {
                         return true;
                         break;
                     }
-                    case KEY.F2: {
-                        if(e.down) {
-                            if(!this.hud.wm.hasVisibleWindow()) {
-                                Game.hud.wm.getWindow('frmStats').toggleVisibility();
-                                return true;
-                            }
-                        }
-                        return true;
-                        break;
-                    }
                     // [F2]
                     /*case KEY.F2: {
                         if(!e.down) {
