@@ -305,7 +305,6 @@ export class TerrainMap {
                 let smooth = !(cell.value > this.options.WATER_LINE - 2 && cell.biome.no_smooth);
                 if(smooth) {
                     cell.value2 = Math.floor(height_sum / SMOOTH_RAD_CNT);
-                    cell.value = cell.value2;
                 }
                 cell.dirt_color = dirt_color.divide(colorComputer);
             }

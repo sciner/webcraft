@@ -233,7 +233,7 @@ export class CaveGenerator {
 
     constructor(seed) {
         this.seed           = typeof seed != 'undefined' ? seed : 'default_seed'; // unique world seed
-        this.margin         = 4;
+        this.margin         = 6;
         this.spiral_moves   = SpiralGenerator.generate3D(new Vector(this.margin, this.margin, this.margin));
         this.lines          = new VectorCollector(); // В ключах адреса чанков, в значениях отрезки, которые затрагивают этот чанк
         this.caves          = new VectorCollector(); // Чтобы не генерировать пещеры в одних и техже чанках много раз подряд

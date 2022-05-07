@@ -443,7 +443,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(!is_floor && level == 0) {
                     return BLOCK.LODESTONE.id;
                 }
-                let rb = randoms[randoms_index++ % randoms.length];
+                let rb = randoms[Math.abs(xyz.x + xyz.y + xyz.z) % randoms.length];
                 if(rb < .2) {
                     return BLOCK.MOSS_BLOCK.id;
                 } else if (rb < .8) {
