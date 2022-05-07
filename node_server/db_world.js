@@ -363,7 +363,7 @@ export class DBWorld {
             );`
         ]});
         
-        migrations.push({version: 40, queries: [
+        migrations.push({version: 41, queries: [
             `ALTER TABLE "user" ADD COLUMN stats TEXT;`
         ]});
         
