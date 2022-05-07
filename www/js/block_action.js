@@ -896,12 +896,12 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                     if(!underBlock) {
                         return resp;
                     }
-                    if(underBlock.id != BLOCK.GRASS_DIRT.id && underBlock.id != BLOCK.FARMLAND.id) {
+                    if([BLOCK.GRASS_DIRT.id, BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
                         return resp;
                     }
                     // Посадить семена можно только на вспаханную землю
                     const is_seeds = !!matBlock.seeds;
-                    if(is_seeds && underBlock.id != BLOCK.FARMLAND.id) {
+                    if(is_seeds && [BLOCK.FARMLAND.id, BLOCK.FARMLAND_WET.id].indexOf(underBlock.id) < 0) {
                         return resp;
                     }
                 }
