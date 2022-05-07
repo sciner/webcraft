@@ -142,7 +142,6 @@ export class ServerWorld {
         //this.tickerWorldTimer = setInterval(() => {
         //    this.tick();
         //}, 50);
-        this.tick();
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -207,6 +206,7 @@ export class ServerWorld {
                 }
             }
         };
+        await this.tick();
     }
 
     getInfo() {
@@ -265,7 +265,7 @@ export class ServerWorld {
         }
         this.ticks_stat.add('drop_items');
         // 5.
-        this.pickat_action_queue.run();
+        await this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
         // 6. Chest confirms
         try {
@@ -296,8 +296,8 @@ export class ServerWorld {
         this.ticks_stat.end();
         //
         let elapsed = performance.now() - started;
-        setTimeout(() => {
-                this.tick()
+        setTimeout(async () => {
+                await this.tick();
             }, 
             elapsed < 50 ? (50 - elapsed) : 0    
         );
@@ -675,6 +675,7 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
+                    // await this.db.blockSet(this, server_player, params);
                     all.push(this.db.blockSet(this, server_player, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);

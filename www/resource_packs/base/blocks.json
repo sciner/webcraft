@@ -5745,7 +5745,7 @@
         ]},
         "sound": "madcraft:block.cloth",
         "material": {
-            "id": "wool"
+            "id": "plant"
         },
         "tags": [
             "bamboo",

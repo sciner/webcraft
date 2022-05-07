@@ -164,6 +164,10 @@ export class TBlock {
         return mat.tags && mat.tags.indexOf(tag) >= 0;
     }
 
+    convertToDBItem() {
+        return BLOCK.convertItemToDBItem(this);
+    }
+
 }
 
 // TypedBlocks

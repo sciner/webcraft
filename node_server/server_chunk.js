@@ -1,10 +1,25 @@
-import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "../www/js/chunk.js";
+import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {Vector, VectorCollector} from "../www/js/helpers.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
 import {impl as alea} from '../www/vendors/alea.js';
-import {Default_Terrain_Generator} from '../www/js/terrain_generator/default.js';
+
+/*
+import {default as Ticker_Bamboo} from './ticker/bamboo.js';
+import {default as Ticker_Charging_Station} from './ticker/charging_station.js';
+import {default as Ticker_Dirt} from './ticker/dirt.js';
+import {default as Ticker_Sapling} from './ticker/sapling.js';
+import {default as Ticker_Spawnmob} from './ticker/spawnmob.js';
+import {default as Ticker_Stage} from './ticker/stage.js';
+*/
+
+const Tickers = new Map();
+for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage']) {
+    await import(`./ticker/${fn}.js`).then((module) => {
+        Tickers.set(module.default.type, module.default.func);
+    });
+}
 
 export const CHUNK_STATE_NEW               = 0;
 export const CHUNK_STATE_LOADING           = 1;
@@ -13,99 +28,88 @@ export const CHUNK_STATE_BLOCKS_GENERATED  = 3;
 //
 export const STAGE_TIME_MUL                = 5; // 20;
 
-// TreeGenerator
-class TreeGenerator extends Default_Terrain_Generator {
+// Ticking block
+class TickingBlock {
 
-    static _instance = null;
+    #manager;
 
-    constructor(seed, world_id) {
-        super(seed, world_id);
+    constructor(manager, id, pos, ticking) {
+        this.id         = id;
+        this.pos        = pos.clone();
+        this.ticking    = ticking;
+        this.#manager   = manager;
+        this.ticks      = 0;
     }
 
-    static async getInstance() {
-        if(TreeGenerator._instance) {
-            return TreeGenerator._instance;
+    get tblock() {
+        return this.#manager.chunk.getBlock(this.pos);
+    }
+
+}
+
+// TickingBlockManager
+class TickingBlockManager {
+
+    #chunk;
+
+    constructor(chunk) {
+        this.#chunk = chunk;
+        this.blocks = new Map();
+    }
+
+    get chunk() {
+        return this.#chunk;
+    }
+
+    // addTickingBlock
+    add(id, pos, ticking) {
+        const block = new TickingBlock(this, id, pos, ticking);
+        this.blocks.set(block.pos.toHash(), block);
+        this.#chunk.world.chunks.addTickingChunk(this.#chunk.addr);
+    }
+
+    // deleteTickingBlock
+    delete(pos) {
+        const k = pos.toHash();
+        this.blocks.delete(k);
+        if(this.blocks.size == 0) {
+            this.#chunk.world.chunks.removeTickingChunk(this.#chunk.addr);
         }
-        // Import trees
-        await import('../www/js/terrain_generator/biomes.js').then(module => {
-            TreeGenerator.TREES = module.TREES;
-        });
-        // Return instance
-        return TreeGenerator._instance = new TreeGenerator();
     }
 
-    // Generate tree
-    async generateTree(world, world_chunk, pos, m) {
+    // tick
+    async tick() {
+        const world             = this.#chunk.world;
         const updated_blocks    = [];
-        const tree_style        = m.extra_data.style.toLowerCase();
-        const tree_type         = TreeGenerator.TREES[tree_style.toUpperCase()];
-        const _temp_vec         = new Vector(0, 0, 0);
-        if(!tree_type) {
-            throw 'error_invalid_tree_style';
-        }
+        const ignore_coords     = new VectorCollector();
+        const check_pos         = new Vector(0, 0, 0);
         //
-        const getMaxFreeHeight = () => {
-            let resp_max_height = 0;
-            for(let y = 0; y <= tree_height; y++) {
-                for(let x = -2; x <= 2; x++) {
-                    for(let z = -2; z <= 2; z++) {
-                        if(!(x == 0 && y == 0 && z == 0)) {
-                            _temp_vec.copyFrom(pos);
-                            _temp_vec.x += x;
-                            _temp_vec.y += y;
-                            _temp_vec.z += z;
-                            let near_block = world.getBlock(_temp_vec);
-                            if(!near_block) {
-                                return -1;
-                            }
-                            if(near_block.id > 0 && ['leaves', 'plant', 'dirt'].indexOf(near_block.material.material.id) < 0) {
-                                return resp_max_height;
-                            }
-                        }
+        for(let [k, v] of this.blocks.entries()) {
+            const tblock = v.tblock;
+            const ticking = v.ticking;
+            let extra_data = tblock.extra_data;
+            const current_block = this.chunk.getBlock(v.pos);
+            if(!extra_data || !current_block || current_block.id != tblock.id) {
+                this.delete(v.pos);
+                continue;
+            }
+            if(Math.random() > .33) {
+                v.ticks++;
+                const ticker = Tickers.get(ticking.type);
+                if(ticker) {
+                    const upd_blocks = await ticker.call(this, world, this.#chunk, v, check_pos, ignore_coords);
+                    if(Array.isArray(upd_blocks)) {
+                        updated_blocks.push(...upd_blocks);
                     }
-                }
-                resp_max_height++;
-            }
-            return resp_max_height;
-        };
-        //
-        let tree_height = m.extra_data.height;
-        let max_height = getMaxFreeHeight();
-        if(max_height < 0) {
-            return updated_blocks;
-        }
-        //
-        if(max_height < tree_type.height.min) {
-            console.error('not free space for sapling', tree_type, max_height);
-            return updated_blocks;
-        }
-        tree_height = Math.min(tree_height, max_height);
-        //
-        const chunk = {
-            coord: world_chunk.coord,
-            tblocks: {
-                get: function() {
-                    return {id: 0};
+                } else {
+                    console.log(`Invalid ticking type: ${ticking.type}`);
                 }
             }
-        };
-        //
-        let is_invalid_operation = false;
-        this.setBlock = function(chunk, x, y, z, block_type, force_replace, rotate, extra_data) {
-            _temp_vec.set(x, y, z);
-            let near_block = world.getBlock(_temp_vec);
-            if(!near_block) {
-                is_invalid_operation = true;
-                return false;
-            }
-            if(near_block.id == 0 || near_block.material.material.id == 'leaves' || near_block.material.material.id == 'plant' || near_block.material.is_sapling) {
-                updated_blocks.push({pos: new Vector(x, y, z), item: {id: block_type.id, extra_data: extra_data, rotate: rotate}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                return true;
-            }
-            return false;
-        };
-        this.plantTree({height: tree_height, type: {...tree_type, style: tree_style}}, chunk, pos.x, pos.y, pos.z, false);
-        return is_invalid_operation ? [] : updated_blocks;
+        }
+        if(updated_blocks.length > 0) {
+            const actions = {blocks: {list: updated_blocks}};
+            await world.applyActions(null, actions);
+        }
     }
 
 }
@@ -211,9 +215,10 @@ export class ServerChunk {
         this.connections    = new Map();
         this.preq           = new Map();
         this.modify_list    = new Map();
-        this.ticking_blocks = new Map();
         this.mobs           = new Map();
         this.drop_items     = new Map();
+        this.ticking_blocks = new TickingBlockManager(this);
+        this.options        = {STAGE_TIME_MUL};
         if(['biome2'].indexOf(world.info.generator.id) >= 0) {
             this.mobGenerator   = new MobGenerator(this);
         }
@@ -406,11 +411,7 @@ export class ServerChunk {
                 block = BLOCK.fromId(current_block_on_pos.id);
             }
             if(block.ticking && current_block_on_pos.extra_data && !('notick' in current_block_on_pos.extra_data)) {
-                this.addTickingBlock(pos, {
-                    id:         block.id,
-                    extra_data: current_block_on_pos.extra_data,
-                    ticking:    block.ticking
-                });
+                this.ticking_blocks.add(block.id, pos, block.ticking);
             }
         }
         // 2. Check generated blocks
@@ -421,11 +422,7 @@ export class ServerChunk {
                     pos.set(temp[0] | 0, temp[1] | 0, temp[2] | 0);
                     let block = this.getBlock(pos);
                     if(block.material.ticking && block.extra_data && !('notick' in block.extra_data)) {
-                        this.addTickingBlock(pos, {
-                            id:         block.id,
-                            extra_data: BLOCK.calculateExtraData(block.extra_data),
-                            ticking:    block.material.ticking
-                        });
+                        this.ticking_blocks.add(block.id, pos, block.material.ticking);
                     }
                 }
             }
@@ -514,248 +511,14 @@ export class ServerChunk {
         if(item && item.id) {
             let block = BLOCK.fromId(item.id);
             if(block.ticking && item.extra_data && !('notick' in item.extra_data)) {
-                this.addTickingBlock(pos, {
-                    id:         block.id,
-                    extra_data: item.extra_data,
-                    ticking:    block.ticking
-                });
+                this.ticking_blocks.add(block.id, pos, block.ticking);
             }
-        }
-    }
-
-    //
-    addTickingBlock(pos, block) {
-        const k = pos.toHash();
-        this.ticking_blocks.set(k, {
-            pos:    pos.clone(),
-            ticks:  0,
-            block:  block
-        });
-        this.world.chunks.addTickingChunk(this.addr);
-    }
-
-    //
-    deleteTickingBlock(pos) {
-        const k = pos.toHash();
-        this.ticking_blocks.delete(k);
-        if(this.ticking_blocks.size == 0) {
-            this.world.chunks.removeTickingChunk(this.addr);
         }
     }
 
     // On world tick
     async tick() {
-        let that = this;
-        let updated_blocks = [];
-        let ignore_coords = new VectorCollector();
-        let check_pos = new Vector(0, 0, 0);
-        for(let [k, v] of this.ticking_blocks.entries()) {
-            let extra_data = v.block.extra_data;
-            const m = this.modify_list.get(k);
-            if(m) {
-                if(m.id == v.block.id) {
-                    extra_data = m.extra_data;
-                } else {
-                    this.deleteTickingBlock(v.pos);
-                    continue;
-                }
-            }
-            const ticking = v.block.ticking;
-            if(Math.random() > .33) {
-                v.ticks++;
-                switch(ticking.type) {
-                    case 'bamboo': {
-                        check_pos.copyFrom(v.pos);
-                        check_pos.y = 0;
-                        if(ignore_coords.has(check_pos)) {
-                            break;
-                        }
-                        if(extra_data && extra_data.stage < ticking.max_stage) {
-                            //
-                            if(v.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
-                                //
-                                const world = this.world;
-                                //
-                                function addNextBamboo(pos, block, stage) {
-                                    const next_pos = new Vector(pos);
-                                    next_pos.y++;
-                                    const new_item = {
-                                        id: block.id,
-                                        extra_data: {...block.extra_data}
-                                    };
-                                    new_item.extra_data.stage = stage;
-                                    let b = world.getBlock(next_pos);
-                                    if(b.id == 0 || b.material.material.id == 'leaves') {
-                                        updated_blocks.push({pos: next_pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE});
-                                        // игнорировать в этот раз все другие бамбуки на этой позиции без учета вертикальной позиции
-                                        check_pos.copyFrom(next_pos);
-                                        check_pos.y = 0;
-                                        ignore_coords.set(check_pos, true);
-                                        return true;
-                                    }
-                                    return false;
-                                }
-                                //
-                                if(extra_data.stage == 0) {
-                                    addNextBamboo(v.pos, m, 1);
-                                    m.extra_data = null; // .stage = 3;
-                                    updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                } else {
-                                    let over1 = world.getBlock(v.pos.add(new Vector(0, 1, 0)));
-                                    let under1 = world.getBlock(v.pos.add(new Vector(0, -1, 0)));
-                                    if(extra_data.stage == 1) {
-                                        if(over1.id == 0 || over1.material.material.id == 'leaves') {
-                                            if(under1.id == m.id && (!under1.extra_data || under1.extra_data.stage == 3)) {
-                                                addNextBamboo(v.pos, m, 1);
-                                            }
-                                            if(under1.id == m.id && under1.extra_data && under1.extra_data.stage == 1) {
-                                                addNextBamboo(v.pos, m, 2);
-                                            }
-                                        } else if(over1.id == m.id && under1.id == m.id) {
-                                            if(over1.extra_data.stage == 2 && under1.extra_data && under1.extra_data.stage == 1) {
-                                                if(addNextBamboo(over1.posworld, m, 2)) {
-                                                    if(under1.extra_data.stage == 1) {
-                                                        const new_item = {...m};
-                                                        new_item.extra_data = {...extra_data};
-                                                        new_item.extra_data = null; // .stage = 3;
-                                                        updated_blocks.push({pos: under1.posworld, item: new_item, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        if(extra_data.stage == 2) {
-                                            if(over1.id == m.id && under1.id == m.id) {
-                                                if(over1.extra_data.stage == 2 && under1.extra_data.stage == 1) {
-                                                    if(over1.posworld.distance(extra_data.pos) < extra_data.max_height - 1) {
-                                                        if(addNextBamboo(over1.posworld, m, 2)) {
-                                                            // replace current to 1
-                                                            const new_current = {...m};
-                                                            new_current.extra_data = {...extra_data};
-                                                            new_current.extra_data.stage = 1;
-                                                            updated_blocks.push({pos: v.pos, item: new_current, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                            // set under to 3
-                                                            const new_under = {...m};
-                                                            new_under.extra_data = {...new_under.extra_data};
-                                                            new_under.extra_data = null; // .stage = 3;
-                                                            updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                        }
-                                                    } else {
-                                                        // Limit height
-                                                        let pos = new Vector(v.pos);
-                                                        extra_data.notick = true;
-                                                        delete(extra_data.pos);
-                                                        delete(extra_data.max_height);
-                                                        updated_blocks.push({pos: pos, item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                        that.deleteTickingBlock(pos);
-                                                        //
-                                                        const new_under = {...m};
-                                                        new_under.extra_data = {...under1.extra_data};
-                                                        new_under.extra_data.notick = true;
-                                                        delete(new_under.extra_data.pos);
-                                                        delete(new_under.extra_data.max_height);
-                                                        updated_blocks.push({pos: under1.posworld, item: new_under, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                        that.deleteTickingBlock(under1.posworld);
-                                                        //
-                                                        const new_over = {...m};
-                                                        new_over.extra_data = {...over1.extra_data};
-                                                        new_over.extra_data.notick = true;
-                                                        delete(new_over.extra_data.pos);
-                                                        delete(new_over.extra_data.max_height);
-                                                        updated_blocks.push({pos: over1.posworld, item: new_over, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                                        that.deleteTickingBlock(over1.posworld);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            // Delete completed block from tickings
-                            this.deleteTickingBlock(v.pos);
-                        }
-                        break;
-                    }
-                    case 'stage': {
-                        if(extra_data && extra_data.stage < ticking.max_stage) {
-                            if(v.ticks % (ticking.times_per_stage * STAGE_TIME_MUL) == 0) {
-                                extra_data.stage++;
-                                if(extra_data.stage == ticking.max_stage) {
-                                    extra_data.complete = true;
-                                }
-                                updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                            }
-                        } else {
-                            // Delete completed block from tickings
-                            this.deleteTickingBlock(v.pos);
-                        }
-                        break;
-                    }
-                    case 'dirt': {
-                        if(v.ticks % m.extra_data.max_ticks == 0) {
-                            updated_blocks.push({pos: new Vector(v.pos), item: {id: 2}, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                            // Delete completed block from tickings
-                            this.deleteTickingBlock(v.pos);
-                        }
-                        break;
-                    }
-                    case 'sapling': {
-                        if(v.ticks % extra_data.max_ticks == 0) {
-                            const treeGenerator = await TreeGenerator.getInstance();
-                            const new_tree_blocks = await treeGenerator.generateTree(this.world, this, v.pos, m);
-                            if(new_tree_blocks) {
-                                updated_blocks.push(...new_tree_blocks);
-                                // Delete completed block from tickings
-                                this.deleteTickingBlock(v.pos);
-                            }
-                        }
-                        break;
-                    }
-                    case 'spawnmob': {
-                        if(v.ticks % extra_data.max_ticks == 0) {
-                            const spawn_pos = v.pos.clone().addSelf(new Vector(.5, 0, .5));
-                            const params = {
-                                type           : extra_data.type,
-                                skin           : extra_data.skin,
-                                pos            : spawn_pos,
-                                pos_spawn      : spawn_pos.clone(),
-                                rotate         : new Vector(0, 0, 0).toAngles()
-                            };
-                            // Spawn mob
-                            console.log('Spawn mob', v.pos.toHash());
-                            await this.world.createMob(params);
-                            const upd_blocks = [
-                                {pos: v.pos.clone(), item: {id: BLOCK.AIR.id, extra_data: null, rotate: null}, action_id: ServerClient.BLOCK_ACTION_MODIFY}
-                            ];
-                            updated_blocks.push(...upd_blocks);
-                            // Delete completed block from tickings
-                            this.deleteTickingBlock(v.pos);
-                        }
-                    }
-                    case 'charging_station': {
-                        if(extra_data && extra_data.slots) {
-                            if(v.ticks % 40 == 0) {
-                                console.log('charged++');
-                                for(let [slot_index, battery] of Object.entries(extra_data.slots)) {
-                                    const block = BLOCK.fromId(battery.id);
-                                    if(block.is_battery) {
-                                        battery.power += 1;
-                                    }
-                                }
-                                updated_blocks.push({pos: new Vector(v.pos), item: m, action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                                this.world.chests.sendChestToPlayers(new Vector(v.pos), []);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        if(updated_blocks.length > 0) {
-            const actions = {blocks: {list: updated_blocks}};
-            await this.world.applyActions(null, actions);
-        }
+        await this.ticking_blocks.tick();
     }
 
     // Before unload chunk

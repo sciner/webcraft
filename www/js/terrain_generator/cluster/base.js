@@ -235,7 +235,8 @@ export class ClusterBase {
         if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= CHUNK_SIZE_X || rel_pos.y >= CHUNK_SIZE_Y || rel_pos.z >= CHUNK_SIZE_Z) {
             return false;
         }
-        this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, BLOCK.MOB_SPAWN.id, null, this.generateNPCSpawnExtraData());
+        const npc_extra_data = BLOCK.calculateExtraData(this.generateNPCSpawnExtraData(), rel_pos);
+        this.setBlock(chunk, rel_pos.x, rel_pos.y, rel_pos.z, BLOCK.MOB_SPAWN.id, null, npc_extra_data);
         chunk.addTickingBlock(pos);
         return true;
     }

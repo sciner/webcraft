@@ -756,6 +756,7 @@ export class DBWorld {
             }
         }
         let need_insert = true;
+        // console.log('db.setblock:', is_modify, params.pos.x, params.pos.y, params.pos.z);
         if(is_modify) {
             let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
                 ':x': params.pos.x,
