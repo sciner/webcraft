@@ -168,16 +168,24 @@ export class ResourcePackManager {
                 "id": START_BED_ID + i,
                 "name": color.toUpperCase() + '_BED',
                 "material": {"id": "wood"},
+                "style": "bed",
                 "height": 0.5,
                 "sound": "madcraft:block.wood",
                 "transparent": true,
-                "texture": {"side": [10, 17]},
+                "texture": {
+                    "side": [10, 14],
+                    "south": [10, 15],
+                    "north": [10, 16]
+                },
+                "can_rotate": true,
                 "inventory": {
                     "style": "extruder",
                     "texture": [4, 17]
                 },
                 "mask_color": mask_color,
                 "tags": [
+                    "bed",
+                    "rotate_by_pos_n",
                     "mask_color"
                 ]
             };

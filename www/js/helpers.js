@@ -831,12 +831,13 @@ export class Vector {
 
         return this;
     }
+
     /**
      * TO DO EN поворот внутри чанка вокруг y
      * @param {DIRECTION_BIT} dir
      * @return {Vector}
      */
-    rotY(dir){
+    rotY(dir) {
         let tmp_x = this.x, tmp_y = this.y, tmp_z = this.z;
         if (dir == DIRECTION.EAST){
             this.x = tmp_z;
@@ -850,7 +851,6 @@ export class Vector {
             this.x = 15 - tmp_z;
             this.z = tmp_x;
         }
-        
         return this;
     }
 

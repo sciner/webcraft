@@ -1101,10 +1101,7 @@
         "material": {
             "id": "clay"
         },
-        "texture": [
-            0,
-            3
-        ],
+        "texture": [0, 3],
         "can_rotate": true
     },
     {
@@ -1243,14 +1240,8 @@
         "width": 0.0625,
         "planting": false,
         "texture": {
-            "south": [
-                6,
-                16
-            ],
-            "side": [
-                6,
-                16
-            ]
+            "south": [6, 16],
+            "side": [6, 16]
         },
         "align": [
             "back"
