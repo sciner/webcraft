@@ -1,22 +1,18 @@
 import {Mesh_Default} from "./mesh/default.js";
 import {ServerClient} from "./server_client.js";
-import {BLINK_PERIOD} from "../tools/gui/wm.js";
+import {TextBox} from "./ui/textbox.js";
 
 const MESSAGE_SHOW_TIME         = 10000; // максимальное время отображения текста, после закрытия чата (мс)
 const SYSTEM_MESSAGE_SHOW_TIME  = 3000;
 const SYSTEM_NAME               = '<MadCraft>';
 
-export class Chat {
-
-    zoom = UI_ZOOM;
+export class Chat extends TextBox {
 
     constructor(player) {
+        super(UI_ZOOM);
         let that                    = this;
         this.player                 = player;
-        this.active                 = false;
-        this.buffer                 = [];
         this.history_max_messages   = 64;
-        this.resetCarriage();
         this.messages = {
             list: [],
             send: function(text) {
@@ -95,17 +91,6 @@ export class Chat {
         });
     }
 
-    // Reset carriage
-    resetCarriage() {
-        this.carriage = this.buffer.length;
-    }
-
-    // Move carriage
-    moveCarriage(cnt) {
-        this.carriage += cnt;
-        this.carriage = Math.min(Math.max(this.carriage, 0), this.buffer.length);
-    }
-
     //
     historyNavigate(go_back) {
         this.history.navigate(go_back, this.buffer, (new_buffer) => {
@@ -130,72 +115,6 @@ export class Chat {
     close() {
         this.active = false;
         Game.hud.refresh();
-    }
-    
-    typeChar(charCode, ch) {
-        if(!this.active) {
-            return;
-        }
-        if(charCode == 13) {
-            return this.submit();
-        }
-        if(this.carriage < this.buffer.length) {
-            this.buffer.splice(this.carriage, 0, ch);
-        } else {
-            this.buffer.push(ch);
-        }
-        this.moveCarriage(1);
-    }
-
-    pasteText(text) {
-        if(!this.active) {
-            return false;
-        }
-        text = text.trim();
-        let chars = text.split('');
-        if(chars.length > 0) {
-            if(this.carriage < this.buffer.length) {
-                this.buffer.splice(this.carriage, 0, ...chars);
-            } else {
-                this.buffer.push(...chars);
-            }
-            this.moveCarriage(chars.length);
-        }
-    }
-    
-    backspace() {
-        if(!this.active) {
-            return;
-        }
-        if(this.buffer.length > 0) {
-            if(this.carriage == this.buffer.length) {
-                this.buffer.pop();
-            } else {
-                this.buffer.splice(this.carriage - 1, 1);
-            }
-            this.moveCarriage(-1);
-        }
-    }
-
-    onKeyDel() {
-        if(this.carriage < this.buffer.length) {
-            this.buffer.splice(this.carriage, 1);
-            this.moveCarriage(0);
-        }
-    }
-
-    onKeyHome() {
-        this.moveCarriage(-this.buffer.length);
-    }
-
-    onKeyEnd() {
-        this.moveCarriage(this.buffer.length);
-    }
-    
-    keyPress(keyCode) {
-        if(!this.active) {
-            return;
-        }
     }
 
     sendMessage(text) {
@@ -276,7 +195,7 @@ export class Chat {
     drawHUD(hud) {
 
         const margin            = 10 * this.zoom;
-        const padding           = 5 * this.zoom;
+        const padding           = this.style.padding;
         const top               = 45 * this.zoom;
         const now               = performance.now();
         const fadeout_time      = 2000; // время угасания текста перед счезновением (мс)
@@ -295,28 +214,11 @@ export class Chat {
             this.line_height = mt.actualBoundingBoxDescent + 14 * this.zoom;
         }
 
+        let x = margin;
         let y = hud.height - (top + margin + this.line_height);
 
         if(this.active) {
-            hud.ctx.fillStyle = '#000000aa';
-            hud.ctx.fillRect(margin, hud.height - top, hud.width - margin * 2, this.line_height);
-            let text = this.buffer.join('');
-            let how_long_open = Math.round(now - this.open_time);
-            if(how_long_open % BLINK_PERIOD < BLINK_PERIOD * 0.5) {
-                if(this.carriage == this.buffer.length) {
-                    text += '_';
-                } else {
-                    // const carriage_height = 4;
-                    const text_start = this.buffer.slice(0, this.carriage).join('');
-                    // const ch = this.buffer[this.carriage];
-                    let m_start = hud.ctx.measureText(text_start).width;
-                    // let m_width = hud.ctx.measureText(ch).width;
-                    // hud.ctx.fillStyle = '#ffffffaa';
-                    hud.drawText('_', margin + padding + m_start, hud.height - top + padding);
-                    // hud.ctx.fillRect(margin + padding + m_start, hud.height - top + this.line_height - carriage_height, m_width, carriage_height);
-                }
-            }
-            hud.drawText(text, margin + padding, hud.height - top + padding);
+            super.draw(hud.ctx, x, hud.height - top, hud.width - margin * 2, this.line_height);
         }
     
         // Draw message history
@@ -371,6 +273,7 @@ export class Chat {
                 break;
             }
             case KEY.F5: {
+                console.log(99999)
                 return false;
                 break;
             }
