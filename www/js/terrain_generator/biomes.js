@@ -33,7 +33,8 @@ BIOMES.OCEAN = {
     dirt_color: new Color(1012 / 1024, 988 / 1024, 0, 0),
     title:      'ОКЕАН',
     max_height: 64,
-    dirt_block: [BLOCK.SAND, BLOCK.GRAVEL, BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.SAND.id, BLOCK.GRAVEL.id, BLOCK.GRASS_DIRT.id],
+    no_smooth:  true,
     trees:      {
         frequency: 0,
         list: []
@@ -51,7 +52,8 @@ BIOMES.BEACH = {
     dirt_color: new Color(770 / 1024, 990 / 1024, 0, 0),
     title:      'ПЛЯЖ',
     max_height: 64,
-    dirt_block: [BLOCK.SAND],
+    dirt_block: [BLOCK.SAND.id],
+    no_smooth:  true,
     trees:      {
         frequency: 0,
         list: []
@@ -65,13 +67,14 @@ BIOMES.BEACH = {
 };
 
 BIOMES.TEMPERATE_DESERT = {
-    block: BLOCK.GRAVEL.id,
+    block:      BLOCK.GRAVEL.id,
     code:       'TEMPERATE_DESERT',
     color:      '#f4a460',
     dirt_color: new Color(840 / 1024, 980 / 1024, 0, 0),
     title:      'УМЕРЕННАЯ ПУСТЫНЯ',
-    dirt_block: [BLOCK.SAND],
+    dirt_block: [BLOCK.SAND.id],
     max_height: 6,
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 2,
         list: [
@@ -89,11 +92,12 @@ BIOMES.TEMPERATE_DESERT = {
 BIOMES.JUNGLE = {
     block:      BLOCK.OAK_PLANK.id,
     code:       'JUNGLE',
-    color:      '#c19a6b',
+    color:      '#4eb41c',
     dirt_color: new Color(800 / 1024, 825 / 1024, 0, 0),
     title:      'ДЖУНГЛИ',
     max_height: 48,
-    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 4,
         list: [
@@ -124,7 +128,8 @@ BIOMES.SUBTROPICAL_DESERT = {
     dirt_color: new Color(845 / 1024, 990 / 1024, 0, 0),
     title:      'СУБТРОПИЧЕСКАЯ ПУСТЫНЯ',
     max_height: 6,
-    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.DIRT, BLOCK.PODZOL],
+    dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.DIRT.id, BLOCK.PODZOL.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -149,7 +154,8 @@ BIOMES.SCORCHED = {
     dirt_color: new Color(770 / 1024, 990 / 1024, 0, 0),
     title:      'ОБОГРЕВАЮЩИЙ',
     max_height: 12,
-    dirt_block: [BLOCK.SAND],
+    dirt_block: [BLOCK.SAND.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 4,
         list: [
@@ -166,7 +172,8 @@ BIOMES.BARE = {
     dirt_color: new Color(960 / 1024, 950 / 1024, 0, 0),
     title:      'ПУСТОШЬ',
     max_height: 64,
-    dirt_block: [BLOCK.CONCRETE],
+    dirt_block: [BLOCK.CONCRETE.id],
+    no_smooth:  false,
     trees:      {},
     plants:     {frequency: 0}
 };
@@ -178,7 +185,8 @@ BIOMES.TUNDRA = {
     dirt_color: new Color(980 / 1024, 980 / 1024, 0, 0),
     title:      'ТУНДРА',
     max_height: 48,
-    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.PODZOL],
+    dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.PODZOL.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
@@ -207,7 +215,8 @@ BIOMES.TAIGA = {
     color:      '#879b89',
     title:      'ТАЙГА',
     max_height: 12,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -228,7 +237,8 @@ BIOMES.SNOW = {
     dirt_color: new Color(1020 / 1024, 990 / 1024, 0, 0),
     title:      'СНЕГ',
     max_height: 35,
-    dirt_block: [BLOCK.SNOW_DIRT],
+    dirt_block: [BLOCK.SNOW_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -248,7 +258,8 @@ BIOMES.SHRUBLAND = {
     color:      '#316033',
     dirt_color: new Color(880 / 1024, 870 / 1024, 0, 0),
     title:      'КУСТАРНИКИ',
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     max_height: 8,
     trees:      {frequency: 0},
     plants: {
@@ -266,7 +277,8 @@ BIOMES.GRASSLAND = {
     dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0),
     title:      'ТРАВЯНАЯ ЗЕМЛЯ',
     max_height: 18,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     plants: {
         frequency: .5,
         list: [
@@ -297,7 +309,8 @@ BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
     dirt_color: new Color(800 / 1024, 880 / 1024, 0, 0),
     title:      'УМЕРЕННЫЙ ЛИСТЫЙ ЛЕС',
     max_height: 48,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY,
         list: [
@@ -321,7 +334,8 @@ BIOMES.TEMPERATE_RAIN_FOREST = {
     dirt_color: new Color(900 / 1024, 880 / 1024, 0, 0),
     title:      'УМЕРЕННЫЙ ДОЖДЬ ЛЕС',
     max_height: 15,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY * 1.5,
         list: [
@@ -343,7 +357,8 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
     // dirt_color: new Color(900 / 1024, 965 / 1024, 0, 0),
     title:      'ТРОПИЧЕСКИЙ СЕЗОННЫЙ ЛЕС',
     max_height: 32,
-    dirt_block: [BLOCK.GRASS_DIRT],
+    dirt_block: [BLOCK.GRASS_DIRT.id],
+    no_smooth:  false,
     trees:      {
         frequency: TREE_FREQUENCY / 2,
         list: [
@@ -366,7 +381,8 @@ BIOMES.TROPICAL_RAIN_FOREST = {
     dirt_color: new Color(860 / 1024, 910 / 1024, 0, 0),
     title:      'ГРИБНОЙ',
     max_height: 64,
-    dirt_block: [BLOCK.GRASS_DIRT, BLOCK.GRASS_DIRT, BLOCK.MYCELIUM, BLOCK.MOSS_BLOCK],
+    dirt_block: [BLOCK.GRASS_DIRT.id, BLOCK.GRASS_DIRT.id, BLOCK.MYCELIUM.id, BLOCK.MOSS_BLOCK.id],
+    no_smooth:  false,
     trees:      {
         frequency: .0085,
         list: [
@@ -384,6 +400,12 @@ BIOMES.TROPICAL_RAIN_FOREST = {
         ]
     }
 };
+
+for(let k in BIOMES) {
+    const biome = BIOMES[k];
+    biome.code = k;
+    biome.color_rgba = Color.hexToColor(biome.color);
+}
 
 /**
 * Функция определения биома в зависимости от возвышенности, влажности и отдаленности от экватора

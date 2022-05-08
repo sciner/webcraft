@@ -1,32 +1,16 @@
-#canvas3D {
-    position: fixed;
-    z-index: -1;
-    background: #aaddff;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-}
-
-
-#colorTable {
-    display: inline-block;
-    font-family: arial;
-    background: rgba(0,0,0,.1);
-    padding: 1em;
-    border-radius: 1em;
-    position: fixed;
-    left: 10px;
-    top: 10px;
-}
-
-#colorTable div {
+body {
+    background-color: #171717;
+    color: #f0f0f0;
     display: flex;
+    justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
 }
 
-#colorTable div span {
-    margin-right: 5px;
+#canvas3D {
+    background: #aaddff;
 }
 
 #canvas2D {
@@ -41,6 +25,23 @@
     left: 10px;
     bottom: 10px;
     font-size: 20px;
+    font-family: monospace;
+}
+
+#axis {
+    position: fixed;
+    z-index: 2;
+    left: 10px;
+    top: 10px;
+}
+
+#dbg {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    font-size: 20px;
+    font-family: monospace;
+    text-align: right;
 }
 
 canvas {

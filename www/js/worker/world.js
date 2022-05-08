@@ -53,6 +53,7 @@ export class WorkerWorld {
         let chunk = new Chunk(this.chunkManager, args);
         chunk.init();
         this.chunks.add(args.addr, chunk);
+        // console.log(`Actual chunks count: ${this.chunks.size}`);
         // Ticking blocks
         let ticking_blocks = [];
         for(let k of chunk.ticking_blocks.keys()) {

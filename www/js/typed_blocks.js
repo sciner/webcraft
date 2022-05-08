@@ -1,6 +1,6 @@
 import {Vector, VectorCollector} from "./helpers.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, CHUNK_SIZE} from "./chunk.js";
-import {BLOCK} from "./blocks.js";
+import {BLOCK, POWER_NO} from "./blocks.js";
 
 export class TBlock {
 
@@ -35,7 +35,7 @@ export class TBlock {
     //
     get power() {
         let resp = this.tb.power.get(this.vec);
-        if(resp === null) resp = 1;
+        if(resp === null) resp = POWER_NO;
         return resp;
     }
     set power(value) {
@@ -162,6 +162,10 @@ export class TBlock {
     hasTag(tag) {
         let mat = this.material;
         return mat.tags && mat.tags.indexOf(tag) >= 0;
+    }
+
+    convertToDBItem() {
+        return BLOCK.convertItemToDBItem(this);
     }
 
 }

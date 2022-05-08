@@ -110,7 +110,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -129,7 +129,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -148,7 +148,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -167,7 +167,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -186,7 +186,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "shovel"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -223,7 +223,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -242,7 +242,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -261,7 +261,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -280,7 +280,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -299,7 +299,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "hoe"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -333,7 +333,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -350,7 +350,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -367,7 +367,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -384,7 +384,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -401,7 +401,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "axe"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -418,6 +418,7 @@
         "max_in_stack": 1,
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
+        "power": 100,
         "material": {
             "id": "wood"
         },
@@ -434,7 +435,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -451,7 +452,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -468,7 +469,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -485,7 +486,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -502,7 +503,7 @@
         "item": {"name": "instrument", "instrument_id": "pickaxe"},
         "diagonal": true,
         "style": "extruder",
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -544,6 +545,7 @@
         "name": "BIRCH_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "BIRCH_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             18
@@ -552,7 +554,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -563,6 +564,7 @@
         "name": "OAK_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "OAK_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             19
@@ -571,7 +573,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -582,6 +583,7 @@
         "name": "ACACIA_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "ACACIA_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             20
@@ -590,7 +592,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -601,6 +602,7 @@
         "name": "SPRUCE_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "SPRUCE_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             21
@@ -609,7 +611,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -620,6 +621,7 @@
         "name": "DARK_OAK_LEAVES",
         "transparent": true,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "DARK_OAK_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             22
@@ -628,7 +630,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -639,6 +640,7 @@
         "name": "JUNGLE_LEAVES",
         "transparent": false,
         "sound": "madcraft:block.grass",
+        "drop_item": {"name": "TROPICAL_TREE_SAPLING", "count": 1, "chance": 0.05},
         "texture": [
             10,
             24
@@ -647,7 +649,6 @@
             "id": "leaves"
         },
         "tags": [
-            "no_drop",
             "mask_biome",
             "can_put_info_pot",
             "leaves"
@@ -2702,6 +2703,7 @@
         "id": 58,
         "name": "CRAFTING_TABLE",
         "sound": "madcraft:block.wood",
+        "window": "frmCraft",
         "material": {
             "id": "wood"
         },
@@ -3112,38 +3114,29 @@
     {
         "id": 54,
         "name": "CHEST",
+        "window": "frmChest",
         "width": 0.875,
         "height": 0.875,
         "is_entity": true,
+        "is_chest": true,
         "transparent": true,
         "sound": "madcraft:block.chest",
+        "can_rotate": true,
         "material": {
             "id": "wood"
         },
         "texture": {
-            "up": [
-                17,
-                6
-            ],
-            "down": [
-                17,
-                6
-            ],
-            "north": [
-                19,
-                6
-            ],
-            "side": [
-                18,
-                6
-            ]
-        },
-        "can_rotate": true
+            "up": [17, 6],
+            "down": [17, 6],
+            "north": [19, 6],
+            "side": [18, 6]
+        }
     },
     {
         "id": 61,
         "name": "FURNACE",
         "sound": "madcraft:block.stone",
+        "window": "frmFurnace",
         "material": {
             "id": "stone"
         },
@@ -3171,6 +3164,7 @@
         "id": 62,
         "name": "BURNING_FURNACE",
         "sound": "madcraft:block.stone",
+        "window": "frmFurnace",
         "material": {
             "id": "stone"
         },
@@ -3815,8 +3809,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [0, 0]
+            "side": [1, 11]
         }
     },
     {
@@ -3827,8 +3820,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [0, 1]
+            "side": [1, 12]
         }
     },
     {
@@ -3839,8 +3831,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [1, 0]
+            "side": [2, 11]
         }
     },
     {
@@ -3851,8 +3842,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [1, 1]
+            "side": [2, 12]
         }
     },
     {
@@ -3863,8 +3853,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [2, 0]
+            "side": [3, 11]
         }
     },
     {
@@ -3995,8 +3984,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [2, 1]
+            "side": [3, 12]
         }
     },
     {
@@ -4781,7 +4769,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "stone"
         },
@@ -4799,7 +4787,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 3,
+        "power": 300,
         "material": {
             "id": "iron"
         },
@@ -4817,7 +4805,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 2,
+        "power": 200,
         "material": {
             "id": "gold"
         },
@@ -4835,7 +4823,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 5,
+        "power": 500,
         "material": {
             "id": "diamond"
         },
@@ -4853,7 +4841,7 @@
         "style": "extruder",
         "item": {"name": "instrument", "instrument_id": "sword"},
         "diagonal": true,
-        "power": 10,
+        "power": 1000,
         "material": {
             "id": "netherite"
         },
@@ -5021,8 +5009,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [0, 0]
+            "side": [1, 11]
         }
     },
     {
@@ -5035,8 +5022,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [1, 0]
+            "side": [2, 11]
         }
     },
     {
@@ -5049,8 +5035,7 @@
             "id": "stone"
         },
         "texture": {
-            "id": "stone",
-            "side": [2, 0]
+            "side": [3, 11]
         }
     },
     {
@@ -5760,7 +5745,7 @@
         ]},
         "sound": "madcraft:block.cloth",
         "material": {
-            "id": "wool"
+            "id": "plant"
         },
         "tags": [
             "bamboo",
@@ -5914,6 +5899,43 @@
         "previous_part": {
             "offset_pos": {"x": 0, "y": -1, "z": 0},
             "id": 993
+        }
+    },
+    {
+        "id": 1002,
+        "name": "CAR_BATTERY",
+        "sound": "madcraft:block.stone",
+        "transparent": true,
+        "max_in_stack": 1,
+        "style": "extruder",
+        "item": {"name": "car_battery", "indicator": "bar"},
+        "power": 100,
+        "material": {
+            "id": "iron"
+        },
+        "texture": {
+            "side": [1, 29]
+        }
+    },
+    {
+        "id": 1003,
+        "name": "CHARGING_STATION",
+        "window": "frmChargingStation",
+        "sound": "madcraft:block.charging_station",
+        "is_entity": true,
+        "is_chest": true,
+        "can_rotate": true,
+        "material": {
+            "id": "iron"
+        },
+        "ticking": {
+            "type": "charging_station"
+        },
+        "texture": {
+            "up": [1, 26],
+            "down": [3, 26],
+            "north": [0, 26],
+            "side": [2, 26]
         }
     }
 ]

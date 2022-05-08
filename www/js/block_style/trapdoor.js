@@ -12,7 +12,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -21,7 +21,7 @@ export default class style {
         // Texture color multiplier
         let lm = MULTIPLY.COLOR.WHITE;
         if(block.id == BLOCK.GRASS_DIRT.id) {
-            lm = biome.dirt_color; // MULTIPLY.COLOR.GRASS;
+            lm = dirt_color; // MULTIPLY.COLOR.GRASS;
         }
 
         let DIRECTION_UP            = DIRECTION.UP;

@@ -3,7 +3,7 @@ import {Chunk, getChunkAddr, ALLOW_NEGATIVE_Y} from "./chunk.js";
 import {ServerClient} from "./server_client.js";
 import {BLOCK} from "./blocks.js";
 
-const CHUNKS_ADD_PER_UPDATE     = 4;
+const CHUNKS_ADD_PER_UPDATE     = 8;
 const MAX_APPLY_VERTICES_COUNT  = 20;
 export const MAX_Y_MARGIN       = 3;
 export const GROUPS_TRANSPARENT = ['transparent', 'doubleface_transparent'];
@@ -231,16 +231,20 @@ export class ChunkManager {
     }
 
     prepareRenderList(render) {
-        if (this.poses_need_update || !Game.player.chunkAddr.equal(this.poses_chunkPos)) {
+
+        const chunk_render_dist = Game.player.state.chunk_render_dist;
+        const player_chunk_addr = Game.player.chunkAddr;
+
+        if (this.poses_need_update || !player_chunk_addr.equal(this.poses_chunkPos)) {
             this.poses_need_update = false;
-            const pos               = this.poses_chunkPos = Game.player.chunkAddr;
+            const pos               = this.poses_chunkPos = player_chunk_addr;
             const pos_temp          = pos.clone();
-            let margin              = Math.max(Game.player.state.chunk_render_dist + 1, 1);
+            let margin              = Math.max(chunk_render_dist + 1, 1);
             let spiral_moves_3d     = SpiralGenerator.generate3D(new Vector(margin, MAX_Y_MARGIN, margin));
             this.poses.length = 0;
             for (let i = 0; i < spiral_moves_3d.length; i++) {
                 const item = spiral_moves_3d[i];
-                pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z); // pos.add(item.pos)
+                pos_temp.set(pos.x + item.pos.x, pos.y + item.pos.y, pos.z + item.pos.z);
                 const chunk = this.chunks.get(pos_temp);
                 if (chunk) {
                     this.poses.push(chunk);
@@ -248,25 +252,27 @@ export class ChunkManager {
             }
         }
 
+        //
         const {renderList} = this;
         for (let [key, v] of renderList) {
             for (let [key2, v2] of v) {
                 v2.length = 0;
             }
         }
+
+        //
         let applyVerticesCan = MAX_APPLY_VERTICES_COUNT;
         for(let chunk of this.poses) {
+            if(!chunk.updateInFrustum(render)) {
+                continue;
+            }
             if(chunk.need_apply_vertices) {
                 if(applyVerticesCan-- > 0) {
                     chunk.applyVertices();
                 }
             }
-            chunk.updateInFrustum(render);
-            if(chunk.vertices_length === 0) {
-                continue;
-            }
-            if(!chunk.in_frustum) {
-                continue;
+            if(this.vertices_length == 0) {
+                return;    
             }
             for(let [key, v] of chunk.vertices) {
                 let key1 = v.resource_pack_id;

@@ -48,6 +48,7 @@ export class ServerWorld {
         this.models.init();
         await this.quests.init();
         this.ticks_stat     = {
+            number: 0,
             pn: null,
             last: 0,
             total: 0,
@@ -61,6 +62,7 @@ export class ServerWorld {
                 drop_items: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 pickat_action_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 chest_confirm_queue: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
+                maps_clear: {min: Infinity, max: -Infinity, avg: 0, sum: 0},
                 packets_queue_send: {min: Infinity, max: -Infinity, avg: 0, sum: 0}
             },
             start() {
@@ -140,7 +142,6 @@ export class ServerWorld {
         //this.tickerWorldTimer = setInterval(() => {
         //    this.tick();
         //}, 50);
-        this.tick();
         //
         this.saveWorldTimer = setInterval(() => {
             // let pn = performance.now();
@@ -157,13 +158,15 @@ export class ServerWorld {
             run: async function() {
                 while(this.list.length > 0) {
                     const queue_item = this.list.shift();
-                    const chest = that.chests.get(queue_item.params.chest.entity_id);
+                    const pos = queue_item.params.chest.pos;
+                    const chest = that.chests.get(pos);
                     if(chest) {
                         console.log('Chest state from ' + queue_item.player.session.username);
-                        await chest.confirmPlayerAction(queue_item.player, queue_item.params);
+                        await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
                     } else {
                         queue_item.player.inventory.refresh(true);
-                        throw `Chest ${queue_item.params.chest.entity_id} not found`;
+                        const pos_hash = pos.toHash();
+                        throw `Chest ${pos_hash} not found`;
                     }
                 }
             }
@@ -203,6 +206,7 @@ export class ServerWorld {
                 }
             }
         };
+        await this.tick();
     }
 
     getInfo() {
@@ -240,6 +244,7 @@ export class ServerWorld {
         }
         this.pn = performance.now();
         //
+        this.ticks_stat.number++;
         this.ticks_stat.start();
         // 1.
         await this.chunks.tick(delta);
@@ -260,7 +265,7 @@ export class ServerWorld {
         }
         this.ticks_stat.add('drop_items');
         // 5.
-        this.pickat_action_queue.run();
+        await this.pickat_action_queue.run();
         this.ticks_stat.add('pickat_action_queue');
         // 6. Chest confirms
         try {
@@ -273,12 +278,26 @@ export class ServerWorld {
         this.packets_queue.send();
         this.ticks_stat.add('packets_queue_send');
         //
+        if(this.ticks_stat.number % 100 == 0) {
+            if(this.players.size > 0) {
+                let players = [];
+                for(let [_, p] of this.players.entries()) {
+                    players.push({
+                        pos: p.state.pos,
+                        chunk_addr: getChunkAddr(p.state.pos.x, 0, p.state.pos.z),
+                        chunk_render_dist: p.state.chunk_render_dist
+                    });
+                }
+                this.chunks.postWorkerMessage(['destroyMap', {players}]);
+            }
+            this.ticks_stat.add('maps_clear');
+        }
         //
         this.ticks_stat.end();
         //
         let elapsed = performance.now() - started;
-        setTimeout(() => {
-                this.tick()
+        setTimeout(async () => {
+                await this.tick();
             }, 
             elapsed < 50 ? (50 - elapsed) : 0    
         );
@@ -600,15 +619,9 @@ export class ServerWorld {
         // Create chest
         if(actions.create_chest) {
             const params = actions.create_chest;
-            const chest = await this.chests.create(server_player, params);
-            const new_item = chest.item;
-            const b_params = {pos: params.pos, item: new_item, action_id: ServerClient.BLOCK_ACTION_CREATE};
+            params.item.extra_data = {can_destroy: true, slots: {}};
+            const b_params = {pos: params.pos, item: params.item, action_id: ServerClient.BLOCK_ACTION_CREATE};
             actions.blocks.list.push(b_params);
-        }
-        // Delete chest
-        if(actions.delete_chest) {
-            const params = actions.delete_chest;
-            await this.chests.delete(params.entity_id, params.pos);
         }
         // Decrement item
         if(actions.decrement) {
@@ -662,6 +675,7 @@ export class ServerWorld {
                         chunk = this.chunks.get(chunk_addr);
                         prev_chunk_addr.set(chunk_addr.x, chunk_addr.y, chunk_addr.z);
                     }
+                    // await this.db.blockSet(this, server_player, params);
                     all.push(this.db.blockSet(this, server_player, params));
                     // 2. Mark as became modifieds
                     this.chunkBecameModified(chunk_addr);

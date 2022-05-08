@@ -21,7 +21,7 @@ for(let i = 0; i < randoms.length; i++) {
 
 class FakeBlock {
 
-    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome) {
+    constructor(id, extra_data, pos, rotate, pivot, matrix, tags, biome, dirt_color) {
         this.id = id;
         this.extra_data = extra_data;
         this.pos = pos;
@@ -30,6 +30,7 @@ class FakeBlock {
         this.pivot = pivot;
         this.matrix = matrix;
         this.biome = biome;
+        this.dirt_color = dirt_color;
     }
 
     getCardinalDirection() {
@@ -77,7 +78,7 @@ export default class style {
     }
 
     // Build function
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(!block || typeof block == 'undefined' || block.id == BLOCK.AIR.id) {
             return;
@@ -172,7 +173,8 @@ export default class style {
                 pivot,
                 matrix,
                 ['no_random_pos', 'into_pot'],
-                biome
+                biome,
+                dirt_color
             );
             return [fb];
         }

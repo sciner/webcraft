@@ -12,7 +12,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         if(typeof block == 'undefined') {
             return;
@@ -30,7 +30,7 @@ export default class style {
         // Texture color multiplier
         if(block.id == BLOCK.VINES.id) {
             c = BLOCK.calcTexture(texture, DIRECTION.BACK);
-            lm = biome.dirt_color;
+            lm = dirt_color;
             flags = QUAD_FLAGS.MASK_BIOME;
         } else {
             c = BLOCK.calcTexture(texture, DIRECTION.BACK);

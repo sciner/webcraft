@@ -131,6 +131,9 @@ export class ServerChat {
                 this.sendSystemChatMessageToSelectedPlayers('\n' + commands.join('\n'), [player.session.user_id]);
                 break;
             case '/gamemode':
+                if(!this.world.admins.checkIsAdmin(player)) {
+                    throw 'error_not_permitted';
+                }
                 args = this.parseCMD(args, ['string', 'string']);
                 let game_mode_id = args[1].toLowerCase();
                 for(let mode of player.game_mode.modes) {
@@ -139,8 +142,6 @@ export class ServerChat {
                     }
                 }
                 break;
-            case '/obj':
-            case '/weather':
             case '/tp': {
                 try {
                     args = this.parseCMD(args, ['string', '?float', '?float', '?float']);
@@ -213,6 +214,10 @@ export class ServerChat {
                 // add
                 this.world.spawnMob(player, params);
                break;
+            }
+            case '/obj':
+            case '/weather': {
+                break;
             }
             default: {
                 let ok = false;

@@ -269,13 +269,13 @@ export class BaseResourcePack {
     }
 
     // pushVertices
-    pushVertices(vertices, block, world, x, y, z, neighbours, biome, draw_style, force_tex, _matrix, _pivot) {
+    pushVertices(vertices, block, world, pos, neighbours, biome, dirt_color, draw_style, force_tex, _matrix, _pivot) {
         const style = draw_style ? draw_style : block.material.style;
         const module = BLOCK.styles.get(style);
         if(!module) {
             throw 'Invalid vertices style `' + style + '`';
         }
-        return module.func(block, vertices, world, x, y, z, neighbours, biome, true, _matrix, _pivot, force_tex);
+        return module.func(block, vertices, world, pos.x, pos.y, pos.z, neighbours, biome, dirt_color, true, _matrix, _pivot, force_tex);
     }
 
 }

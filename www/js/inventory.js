@@ -1,4 +1,4 @@
-import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow} from "./window/index.js";
+import {CraftTable, InventoryWindow, ChestWindow, CreativeInventoryWindow, EditSignWindow, FurnaceWindow, ChargingStationWindow} from "./window/index.js";
 import {Vector, Helpers} from "./helpers.js";
 import {RecipeManager} from "./recipes.js";
 import {BLOCK} from "./blocks.js";
@@ -112,14 +112,15 @@ export class Inventory extends PlayerInventory {
                     DEST_SIZE
                     );
                 // Draw instrument life
-                if(mat.item?.instrument_id && item.power < mat.power) {
-                    const power_normal = item.power / mat.power;
+                const power_in_percent = mat?.item?.indicator == 'bar';
+                if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
+                    const power_normal = Math.min(item.power / mat.power, 1);
                     let cx = hud_pos.x + 14 * zoom;
                     let cy = hud_pos.y + 14 * zoom;
                     let cw = 40 * zoom;
                     let ch = 43 * zoom;
                     hud.ctx.fillStyle = '#000000ff';
-                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 8 * zoom);
+                    hud.ctx.fillRect(cx, cy + ch - 8 * zoom, cw, 6 * zoom);
                     //
                     let rgb = Helpers.getColorForPercentage(power_normal);
                     hud.ctx.fillStyle = rgb.toCSS();
@@ -130,7 +131,11 @@ export class Inventory extends PlayerInventory {
                 let shift_y = 0;
                 if(this.current.index == k) {
                     if(!label && 'power' in item) {
-                        label = Math.round(item.power * 100) / 100;
+                        if(power_in_percent) {
+                            label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+                        } else {
+                            label = Math.round(item.power * 100) / 100;
+                        }
                         shift_y = -10;
                     }
                 }
@@ -167,6 +172,9 @@ export class Inventory extends PlayerInventory {
         // Furnace window
         this.frmFurnace = new FurnaceWindow(10, 10, 352, 332, 'frmFurnace', null, null, this);
         this.hud.wm.add(this.frmFurnace);
+        // Charging station window
+        this.frmChargingStation = new ChargingStationWindow(10, 10, 352, 332, 'frmChargingStation', null, null, this);
+        this.hud.wm.add(this.frmChargingStation);
         // Edit sign
         this.frmEditSign = new EditSignWindow(10, 10, 236, 192, 'frmEditSign', null, null, this);
         this.hud.wm.add(this.frmEditSign);

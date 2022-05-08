@@ -14,8 +14,8 @@ export class Instrument_Hand {
         let inventory_item = this.inventory_item;
         if(inventory_item) {
             if(inventory_item.item?.instrument_id) {
-                let damage = .01;
-                inventory_item.power = Math.round((inventory_item.power - damage) * 100) / 100;
+                let damage = 1;
+                inventory_item.power = inventory_item.power - damage;
                 if(inventory_item.power <= 0) {
                     // @todo inventory
                     console.error('Нужно перенести на сервер');

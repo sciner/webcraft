@@ -8,12 +8,12 @@ import { AABB } from './core/AABB.js';
 export const TRANS_TEX                      = [4, 12];
 export const WATER_BLOCKS_ID                = [200, 202];
 export const INVENTORY_STACK_DEFAULT_SIZE   = 64;
+export const POWER_NO                       = 0;
 
 // Свойства, которые могут сохраняться в БД
 export const ITEM_DB_PROPS                  = ['count', 'entity_id', 'power', 'extra_data', 'rotate'];
 export const ITEM_INVENTORY_PROPS           = ['count', 'entity_id', 'power'];
 export const ITEM_INVENTORY_KEY_PROPS       = ['entity_id', 'power'];
-export const BLOCK_HAS_WINDOW               = ['CRAFTING_TABLE', 'CHEST', 'FURNACE', 'BURNING_FURNACE'];
 
 let aabb = new AABB();
 let shapePivot = new Vector(.5, .5, .5);
@@ -191,10 +191,16 @@ export class BLOCK {
         if('count' in item) {
             item.count = Math.floor(item.count);
         }
+        // fix old invalid instruments power
+        if(b && 'power' in b && b.power > 0) {
+            if(!item.power) {
+                item.power = b.power;
+            }
+        }
         for(let k of ITEM_INVENTORY_PROPS) {
             if(b) {
                 if(k in b) {
-                    if(k == 'power' && b.power == 1) {
+                    if(k == 'power' && b.power == 0) {
                         continue;
                     }
                 } else {
@@ -489,10 +495,10 @@ export class BLOCK {
             }
         }
         //
-        block.has_window        = BLOCK_HAS_WINDOW.indexOf(block.name) >= 0;
+        block.has_window        = !!block.window;
         block.style             = this.parseBlockStyle(block);
         block.tags              = block?.tags || [];
-        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : 1;
+        block.power             = (('power' in block) && !isNaN(block.power) && block.power > 0) ? block.power : POWER_NO;
         block.group             = this.getBlockStyleGroup(block);
         block.selflit           = block.hasOwnProperty('selflit') && !!block.selflit;
         block.deprecated        = block.hasOwnProperty('deprecated') && !!block.deprecated;
@@ -502,6 +508,7 @@ export class BLOCK {
         block.is_mushroom_block = block.tags.indexOf('mushroom_block') >= 0;
         block.is_button         = block.tags.indexOf('button') >= 0;
         block.is_sapling        = block.tags.indexOf('sapling') >= 0;
+        block.is_battery        = ['car_battery'].indexOf(block?.item?.name) >= 0;
         block.is_layering       = !!block.layering;
         block.planting          = ('planting' in block) ? block.planting : (block.material.id == 'plant');
         block.resource_pack     = resource_pack;

@@ -12,7 +12,7 @@ const PLANES = {
     up: {
         // axisX , axisY. axisY is flips sign!
         axes  : [[1, 0, 0], /**/ [0, 1, 0]],
-        flip  : [1, 1],
+        flip  : [1, -1],
         // origin offset realtive center
         offset : [0.5, 0.5, 1.0],
     },

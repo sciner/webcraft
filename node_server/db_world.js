@@ -4,11 +4,11 @@ import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import { copyFile } from 'fs/promises';
 
-import {Chest} from "./chest.js";
 import {Mob} from "./mob.js";
 
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../www/js/chunk.js";
-import {Vector, VectorCollector} from "../www/js/helpers.js";
+import {Vector} from "../www/js/helpers.js";
+import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import { DropItem } from './drop_item.js';
 
@@ -362,12 +362,24 @@ export class DBWorld {
             "title" text
             );`
         ]});
-        
+
+        migrations.push({version: 40, queries: [
+            `alter table world_modify add column "block_id" integer DEFAULT NULL`,
+            `UPDATE world_modify SET block_id = json_extract(params, '$.id') WHERE params IS NOT NULL`
+        ]});
+
         migrations.push({version: 41, queries: [
             `ALTER TABLE "user" ADD COLUMN stats TEXT;`
         ]});
-        
 
+        migrations.push({version: 42, queries: [
+            {
+                sql: 'UPDATE "user" SET stats = :stats WHERE stats IS NULL',
+                placeholders: {
+                    ':stats':  JSON.stringify(this.getDefaultPlayerStats()),
+                }
+            }
+        ]});
 
         for(let m of migrations) {
             if(m.version > version) {
@@ -400,6 +412,11 @@ export class DBWorld {
 
     async TransactionRollback() {
         await this.db.get('rollback');
+    }
+
+    // getDefaultPlayerStats...
+    getDefaultPlayerStats() {
+        return {death: 0, time: 0, pickat: 0, distance: 0}
     }
 
     // getDefaultPlayerIndicators...
@@ -471,7 +488,7 @@ export class DBWorld {
             ':rotate':      JSON.stringify(new Vector(0, 0, Math.PI)),
             ':inventory':   JSON.stringify(this.getDefaultInventory()),
             ':indicators':  JSON.stringify(this.getDefaultPlayerIndicators()),
-            ':stats':       JSON.stringify({death: 0, time: 0, pickat: 0, distance: 0}),
+            ':stats':       JSON.stringify(this.getDefaultPlayerStats()),
             ':is_admin':    (world.info.user_id == player.session.user_id) ? 1 : 0
         });
         return await this.registerUser(world, player);
@@ -551,79 +568,27 @@ export class DBWorld {
         let result = await this.db.get("UPDATE user SET is_admin = ? WHERE id = ?", [is_admin, user_id]);
     }
 
-    // Load world chests
-    async loadChests(world) {
-        let resp = {
-            list: new Map(),
-            blocks: new VectorCollector() // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
-        };
-        let rows = await this.db.all('SELECT x, y, z, dt, user_id, entity_id, item, slots FROM chest WHERE is_deleted = 0');
-        for(let row of rows) {
-            // EntityBlock
-            let entity_block = {
-                id:   row.entity_id,
-                type: 'chest'
-            };
-            // slots
-            let slots = JSON.parse(row.slots);
-            // Block item
-            let bi = JSON.parse(row.item);
-            if(!('extra_data' in bi)) {
-                bi.extra_data = {};
-            }
-            bi.extra_data.can_destroy = Object.entries(slots).length == 0;
-            // chest
-            let chest = new Chest(
-                world,
-                new Vector(row.x, row.y, row.z),
-                row.user_id,
-                new Date(row.dt * 1000).toISOString(),
-                bi,
-                slots
-            );
-            resp.list.set(row.entity_id, chest);
-            resp.blocks.set(new Vector(row.x, row.y, row.z), entity_block);
-        }
-        return resp;
-    }
-
-    // Delete chest
-    async deleteChest(entity_id) {
-        const result = await this.db.run('UPDATE chest SET is_deleted = 1 WHERE entity_id = :entity_id', {
-            ':entity_id': entity_id
-        });
-    }
-
-    /**
-     * Create chest
-     * @param {ServerPlayer} player 
-     * @param {Vector} pos 
-     * @param {Object} params
-     * @return {number}
-     */
-    async createChest(player, pos, params) {
-        const result = await this.db.run('INSERT INTO chest(dt, user_id, entity_id, item, slots, x, y, z) VALUES(:dt, :user_id, :entity_id, :item, :slots, :x, :y, :z)', {
-            ':user_id':         player.session.user_id,
-            ':dt':              ~~(Date.now() / 1000),
-            ':entity_id':       params.item.entity_id,
-            ':item':            JSON.stringify(params.item),
-            ':slots':           JSON.stringify(params.slots),
-            ':x':               pos.x,
-            ':y':               pos.y,
-            ':z':               pos.z
-        });
-        return result.lastID;
-    }
-
     // saveChestSlots...
     async saveChestSlots(chest) {
-        const result = await this.db.run('UPDATE chest SET slots = :slots WHERE entity_id = :entity_id', {
-            ':slots':       JSON.stringify(chest.slots),
-            ':entity_id':   chest.item.entity_id
+        let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+            ':x': chest.pos.x,
+            ':y': chest.pos.y,
+            ':z': chest.pos.z
         });
+        for(let row of rows) {
+            let extra_data = row.extra_data ? JSON.parse(row.extra_data) : {};
+            extra_data.slots = chest.slots;
+            extra_data.can_destroy = !chest.slots || Object.entries(chest.slots).length == 0;
+            await this.db.run('UPDATE world_modify SET extra_data = :extra_data WHERE id = :id', {
+                ':extra_data':  JSON.stringify(extra_data),
+                ':id':          row.id
+            });
+            return true;
+        }
+        return false;
     }
 
-    // ChunkBecameModified...
+    // Chunk became modified
     async chunkBecameModified() {
         let resp = new Set();
         let rows = await this.db.all(`SELECT DISTINCT
@@ -790,6 +755,7 @@ export class DBWorld {
     // Block set
     async blockSet(world, player, params) {
         let item = params.item;
+        const is_modify = params.action_id == ServerClient.BLOCK_ACTION_MODIFY;
         if(item.id == 0) {
             item = null;
         } else {
@@ -806,21 +772,43 @@ export class DBWorld {
             if('extra_data' in item && !item.extra_data) {
                 delete(item.extra_data);
             }
-            if('power' in item && item.power === 1) {
+            if('power' in item && item.power === 0) {
                 delete(item.power);
             }
         }
-        const result = await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data)', {
-            ':user_id':     player?.session.user_id || null,
-            ':dt':          ~~(Date.now() / 1000),
-            ':world_id':    world.info.id,
-            ':params':      item ? JSON.stringify(item) : null,
-            ':x':           params.pos.x,
-            ':y':           params.pos.y,
-            ':z':           params.pos.z,
-            ':entity_id':   item?.entity_id ? item.entity_id : null,
-            ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null
-        });
+        let need_insert = true;
+        // console.log('db.setblock:', is_modify, params.pos.x, params.pos.y, params.pos.z);
+        if(is_modify) {
+            let rows = await this.db.all('SELECT id, extra_data FROM world_modify WHERE x = :x AND y = :y AND z = :z ORDER BY id DESC LIMIT 1', {
+                ':x': params.pos.x,
+                ':y': params.pos.y,
+                ':z': params.pos.z
+            });
+            for(let row of rows) {
+                need_insert = false;
+                await this.db.run('UPDATE world_modify SET params = :params, entity_id = :entity_id, extra_data = :extra_data, block_id = :block_id WHERE id = :id', {
+                    ':id':          row.id,
+                    ':params':      item ? JSON.stringify(item) : null,
+                    ':entity_id':   item?.entity_id ? item.entity_id : null,
+                    ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                    ':block_id':    item?.id
+                });
+            }
+        }
+        if(need_insert) {
+            await this.db.run('INSERT INTO world_modify(user_id, dt, world_id, params, x, y, z, entity_id, extra_data, block_id) VALUES (:user_id, :dt, :world_id, :params, :x, :y, :z, :entity_id, :extra_data, :block_id)', {
+                ':user_id':     player?.session.user_id || null,
+                ':dt':          ~~(Date.now() / 1000),
+                ':world_id':    world.info.id,
+                ':x':           params.pos.x,
+                ':y':           params.pos.y,
+                ':z':           params.pos.z,
+                ':params':      item ? JSON.stringify(item) : null,
+                ':entity_id':   item?.entity_id ? item.entity_id : null,
+                ':extra_data':  item?.extra_data ? JSON.stringify(item.extra_data) : null,
+                ':block_id':    item?.id
+            });
+        }
         if (item && 'extra_data' in item) {
             // @todo Update extra data
         }
@@ -857,7 +845,6 @@ export class DBWorld {
         for(let row of rows) {
             const action = {...row};
             delete(action.quest_id);
-            // let q = quests.get(row.quest_id);
             quest.actions.push(action);
         }
         // Rewards
@@ -867,7 +854,6 @@ export class DBWorld {
         for(let row of rows) {
             const reward = {...row};
             delete(reward.quest_id);
-            // let q = quests.get(row.quest_id);
             quest.rewards.push(reward);
         }
         return quest;
@@ -1055,9 +1041,9 @@ export class DBWorld {
         await this.db.run("INSERT INTO teleport_points (user_id, title, x, y, z) VALUES (:id, :title, :x, :y, :z)", {
             ":id" : parseInt(id),
             ":title": clear_title,
-            ":x": parseInt(x),
-            ":y": parseInt(y + 0.5),
-            ":z": parseInt(z)
+            ":x": x,
+            ":y": y + 0.5,
+            ":z": z
         });
     }
     

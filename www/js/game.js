@@ -202,6 +202,15 @@ export class GameClass {
                             return true;
                         }
                     }
+                    if(e.keyCode == KEY.ESC) {
+                        if(!e.down) {
+                            if(Game.hud.frmMainMenu.visible) {
+                                Game.hud.wm.closeAll();
+                                Game.setupMousePointer(false);
+                                return true;
+                            }
+                        }
+                    }
                     return this.hud.wm.onKeyEvent(e);
                 }
                 //
@@ -425,6 +434,7 @@ export class GameClass {
         let bodyClassList = document.querySelector('body').classList;
         if(value) {
             bodyClassList.add('controls_enabled');
+            delete(Game.kb.keys[KEY.WIN]);
         } else {
             bodyClassList.remove('controls_enabled');
         }

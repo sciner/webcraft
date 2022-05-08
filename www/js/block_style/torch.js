@@ -64,7 +64,7 @@ export default class style {
         return [aabb];
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix = null, pivot = null, force_tex) {
 
         const {
             rotate
@@ -76,7 +76,7 @@ export default class style {
                 pos: chunk.coord.add(new Vector(x, y, z)),
                 type: 'torch'
             }]);
-            return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, false, null, null);
+            return cube_func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, false, null, null);
         }
 
         const symRot = CubeSym.matrices[(rotate.x + 1) % 4];
@@ -106,6 +106,7 @@ export default class style {
             z + cubeSymAxis[rotate.x][1] * 0.55,
             neighbours,
             biome,
+            dirt_color,
             false,
             tmpMat,
             pivotArr

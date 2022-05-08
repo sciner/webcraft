@@ -98,6 +98,7 @@ export class Mob {
         console.log('live', this.indicators.live.value);
         // Add velocity for drop item
         let velocity = this.pos.sub(server_player.state.pos).normSelf();
+        velocity.y = .5;
         this.addVelocity(velocity);
         this.#brain.panic = true;
         setTimeout(() => {

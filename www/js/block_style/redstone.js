@@ -77,7 +77,7 @@ export default class style {
     }
 
     // Pushes the vertices necessary for rendering a specific block into the array.
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, _unknown, matrix = null, pivot = null, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, _unknown, matrix = null, pivot = null, force_tex) {
         
         let index               = Math.abs(Math.round(x * CHUNK_SIZE_Z + z)) % 256;
         const r                 = randoms[index];

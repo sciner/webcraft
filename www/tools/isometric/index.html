@@ -3,17 +3,19 @@
 <head>
     <title>3D in Canvas!</title>
     <meta charset="utf-8" />
-    <!--<script src="https://cdn.jsdelivr.net/npm/perlin-noise@0.0.1/index.min.js"></script>-->
     <link href="./style.css" rel="stylesheet" type="text/css">
+    <base href="../.."/>
+    <script type="module">
+        import {showCoordInfo} from "/tools/isometric/generator.js";
+        globalThis.showCoordInfo = showCoordInfo;
+    </script>
 </head>
 <body>
 
-    <canvas id="canvas3D" width="1500" height="1000">Ваш браузер не поддерживает элемент canvas</canvas>
-    <div id="colorTable"></div>
-    <canvas id="canvas2D" width="320" height="320" style="background: #aaddff;">Ваш браузер не поддерживает элемент canvas</canvas>
+    <canvas id="canvas3D" width="1500" height="1000" onmousemove="showCoordInfo(event.offsetX, event.offsetY)">Ваш браузер не поддерживает элемент canvas</canvas>
     <div id="timer"></div>
-    
-    <script src="./generator.js" type="module"></script>
+    <div id="dbg"></div>
+    <img id="axis" src="/tools/isometric/axis.png" />
 
 </body>
 </html>

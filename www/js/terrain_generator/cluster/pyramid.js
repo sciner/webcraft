@@ -37,6 +37,8 @@ export class ClusterPyramid extends ClusterBase {
                 }
             }
         }
+        //
+        const moving = this.moveToRandomCorner();
     }
 
     // Fill chunk blocks

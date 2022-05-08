@@ -113,7 +113,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, _x, _y, _z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
         _x *= 2;
         _y *= 2;
         _z *= 2;
@@ -178,7 +178,7 @@ export default class style {
         let flags = QUAD_FLAGS.NO_AO;
 
         if(block.hasTag('mask_biome')) {
-            lm = biome.dirt_color;
+            lm = dirt_color;
             flags = QUAD_FLAGS.MASK_BIOME;
         }
 

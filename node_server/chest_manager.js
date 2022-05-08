@@ -1,84 +1,151 @@
 import { v4 as uuid } from 'uuid';
 import {Vector, VectorCollector } from "../www/js/helpers.js";
-import { Chest } from './chest.js';
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
+import {getChunkAddr} from "../www/js/chunk.js";
+import {InventoryComparator} from "../www/js/inventory_comparator.js";
+
+export const DEFAULT_CHEST_SLOT_COUNT = 27;
 
 export class ChestManager {
 
     constructor(world) {
         this.world = world;
-        this.list = new Map();
-        this.blocks = new VectorCollector(); // Блоки занятые сущностями (содержат ссылку на сущность) Внимание! В качестве ключа используется сериализованные координаты блока
-        this.load();
-    }
-
-    // Load from DB
-    async load() {
-        let resp = await this.world.db.loadChests(this.world);
-        this.list = resp.list;
-        this.blocks = resp.blocks;
     }
 
     /**
-     * Create chest
-     * @param {*} player
-     * @param {ParamBlockSet} params
-     * @returns {Chest}
-     */
-    async create(player, params, options = {check_occupied: true, slots: {}}) {
-        const check_occupied = options ? options.check_occupied : true;
-        const slots = options ? options.slots : {}; // Array(27) // @ChestSlot
-        if(check_occupied && this.blocks.has(params.pos)) {
-            throw 'error_block_occupied_by_another_entity';
-        }
-        // @Chest
-        let chest = new Chest(
-            this.world,
-            new Vector(params.pos.x, params.pos.y, params.pos.z),
-            player.session.user_id,
-            new Date().toISOString(),
-            {...params.item, entity_id: this.generateID(), extra_data: {can_destroy: true}},
-            slots
-        );
-        this.list.set(chest.item.entity_id, chest);
-        // @EntityBlock
-        this.blocks.set(params.pos, {
-            id:   chest.item.entity_id,
-            type: 'chest'
-        });
-        // Save to DB
-        await this.world.db.createChest(player, params.pos, chest);
-        return chest;
-    }
-
-    async delete(entity_id, pos) {
-        await this.world.db.deleteChest(entity_id);
-        this.list.delete(entity_id);
-        this.blocks.delete(pos);
-    }
-
-    // Generate ID
-    generateID() {
-        const guid = uuid();
-        if(this.list.has(guid)) {
-            return this.generateID();
-        }
-        return guid;
-    }
-
-    /**
-     * Return chest by entity_id
-     * @param {string} entity_id
+     * Return chest by pos
+     * @param {Vector} pos
      * @returns Chest|null
      */
-    get(entity_id) {
-        return this.list.get(entity_id) || null;
+    get(pos) {
+        let block = this.world.getBlock(pos);
+        return block;
     }
 
-    async getByInfo(player, info) {
-        if(info.entity_id) {
-            return this.get(info.entity_id);
+    //
+    async confirmPlayerAction(player, pos, params) {
+
+        const chest = this.get(pos);
+        if(!('slots' in chest.extra_data)) {
+            chest.extra_data.slots = {};
+        }
+
+        // Валидация ключей слотов сундука, а также самих айтемов путем их привидения к строгому формату
+        let new_chest_slots = {};
+        for(let k in params.chest.slots) {
+            if(!isNaN(k) && k >= 0 && k < DEFAULT_CHEST_SLOT_COUNT) {
+                let item = params.chest.slots[k];
+                new_chest_slots[k] = BLOCK.convertItemToInventoryItem(item);
+            }
+        }
+
+        //
+        params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
+        //
+        let old_items = [...[player.inventory.drag_item], ...player.inventory.items, ...Array.from(Object.values(chest.extra_data.slots))];
+        let new_items = [...[params.drag_item], ...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
+        let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
+        //
+        if(player.onPutInventoryItems) {
+            let old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
+            let new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
+            const put_items = [];
+            for(let [key, item] of new_simple) {
+                let old_item = old_simple.get(key);
+                if(!old_item) {
+                    put_items.push(item);
+                }
+            }
+            for(let item of put_items) {
+                player.onPutInventoryItems({block_id: item.id});
+            }
+        }
+        //
+        if(equal) {
+            // update chest slots
+            chest.extra_data.slots = new_chest_slots;
+            chest.extra_data.can_destroy = !new_chest_slots || Object.entries(new_chest_slots).length == 0;
+            // update player drag item
+            player.inventory.drag_item = params.drag_item;
+            // update player inventory
+            player.inventory.applyNewItems(params.inventory_slots, false);
+            player.inventory.refresh(false);
+            // Send new chest state to players
+            this.sendChestToPlayers(pos, [player.session.user_id]);
+            // Save chest slots to DB
+            await this.world.db.saveChestSlots({
+                pos: pos,
+                slots: chest.extra_data.slots
+            });
+            //
+            this.sendItem(pos, chest);
+        } else {
+            this.sendContentToPlayers([player], pos);
+            player.inventory.refresh(true);
+        }
+    }
+
+    // Send block item without slots
+    async sendItem(pos, chest) {
+        let chunk_addr = getChunkAddr(pos);
+        let chunk = this.world.chunks.get(chunk_addr);
+        if(chunk) {
+            const item = {
+                id:         chest.id,
+                extra_data: chest.extra_data,
+                rotate:     chest.rotate
+            };
+            const packets = [{
+                name: ServerClient.CMD_BLOCK_SET,
+                data: {pos: pos, item: item}
+            }];
+            chunk.sendAll(packets, []);
+        }
+    }
+
+    sendChestToPlayers(pos, except_player_ids) {
+        let chunk_addr = getChunkAddr(pos);
+        const chunk = this.world.chunks.get(chunk_addr);
+        if(chunk) {
+            let players = [];
+            for(let p of Array.from(chunk.connections.values())) {
+                if(except_player_ids && Array.isArray(except_player_ids)) {
+                    if(except_player_ids.indexOf(p.session.user_id) >= 0) {
+                        continue;
+                    }
+                    players.push(p);
+                }
+            }
+            this.sendContentToPlayers(players, pos);
+        }
+    }
+
+    //
+    sendContentToPlayers(players, pos) {
+        let block = this.world.getBlock(pos);
+        if(!block) {
+            return false;
+        }
+        const chest = {
+            pos:            block.posworld,
+            slots:          block.extra_data.slots,
+            can_destroy:    block.extra_data.can_destroy,
+        }
+        for(let player of players) {
+            let packets = [{
+                name: ServerClient.CMD_CHEST_CONTENT,
+                data: chest
+            }];
+            player.sendPackets(packets);
+        }
+        return true;
+    }
+
+    async generateTreasureChest(player, pos) {
+        /*
+        if(info.pos) {
+            return this.get(info.pos);
         } else if(info.pos) {
             let block = this.world.getBlock(info.pos);
             if(block && block.id == BLOCK_CHEST) {
@@ -125,7 +192,7 @@ export class ChestManager {
                     if(item.count > 0) {
                         slots[i] = item;
                         const b = BLOCK.fromId(item.id);
-                        if(b.power != 1) {
+                        if(b.power != 0) {
                             item.power = b.power;
                         }
                     }
@@ -143,28 +210,7 @@ export class ChestManager {
             }
         }
         return null;
-    }
-
-    /**
-     * Return chest on this block position
-     * @param {Vector} pos
-     * @returns Chest|null
-     */
-    getOnPos(pos) {
-        if(this.blocks.has(pos)) {
-            let be = this.blocks.get(pos);
-            // Block occupied by another entity
-            switch (be.type) {
-                case 'chest': {
-                    return {
-                        entity: this.list.get(be.id),
-                        type: be.type
-                    };
-                    break;
-                }
-            }
-        }
-        return null;
+        */
     }
 
 }

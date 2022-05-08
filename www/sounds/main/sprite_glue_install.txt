@@ -1,1 +1,2 @@
 python -m pip install pydub
+python -m pip install ffmpeg

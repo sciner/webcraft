@@ -73,18 +73,32 @@ export class CraftTableSlot extends Label {
             dest_icon_size,
             dest_icon_size
         );
-        if(item.count > 1) {
+        // Draw label
+        let font_size = 18;
+        const power_in_percent = mat?.item?.indicator == 'bar';
+        let label = item.count > 1 ? item.count : null;
+        let shift_y = 0;
+        if(!label && 'power' in item) {
+            if(power_in_percent) {
+                label = (Math.round((item.power / mat.power * 100) * 100) / 100) + '%';
+            } else {
+                label = null; // Math.round(item.power * 100) / 100;
+            }
+            font_size = 12;
+            shift_y = -10;
+        }
+        if(label) {
             ctx.textBaseline        = 'bottom';
             ctx.textAlign           = 'right';
-            ctx.font                = Math.round(18 * this.zoom) + 'px ' + UI_FONT;
+            ctx.font                = Math.round(font_size * this.zoom) + 'px ' + UI_FONT;
             ctx.fillStyle           = '#000000ff';
-            ctx.fillText(item.count, x + width + 2 * this.zoom, y + height + 2 * this.zoom);
+            ctx.fillText(label, x + width + 2 * this.zoom, y + height + (2 + shift_y) * this.zoom);
             ctx.fillStyle           = '#ffffffff';
-            ctx.fillText(item.count, x + width, y + height);
+            ctx.fillText(label, x + width, y + height + (shift_y) * this.zoom);
         }
         // Draw instrument life
-        if(mat.item?.instrument_id && item.power < mat.power) {
-            const power_normal = item.power / mat.power;
+        if((mat.item?.instrument_id && item.power < mat.power) || power_in_percent) {
+            const power_normal = Math.min(item.power / mat.power, 1);
             let cx = x + 4 * this.zoom;
             let cy = y + 3 * this.zoom;
             let cw = width - 8 * this.zoom;
@@ -253,7 +267,8 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             }
                             break;
                         }
-                        case 'frmChest': {
+                        case 'frmChest':
+                        case 'frmChargingStation': {
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
                             let targetList = srcList;

@@ -311,9 +311,8 @@ export class Chunk {
         }
         // fix power
         if(typeof power === 'undefined' || power === null) {
-            power = 1.0;
+            power = 100;
         }
-        power = Math.round(power * 10000) / 10000;
         if(power <= 0) {
             return;
         }
@@ -413,6 +412,7 @@ export class Chunk {
             this.frustum_geometry = Chunk.createFrustumGeometry(this.coord, this.size);
         }
         this.in_frustum = render.frustum.intersectsGeometryArray(this.frustum_geometry);
+        return this.in_frustum;
     }
 
     //

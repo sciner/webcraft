@@ -11,7 +11,7 @@ export default class style {
         };
     }
 
-    static func(block, vertices, chunk, x, y, z, neighbours, biome, unknown, matrix, pivot, force_tex) {
+    static func(block, vertices, chunk, x, y, z, neighbours, biome, dirt_color, unknown, matrix, pivot, force_tex) {
 
         if(typeof block == 'undefined') {
             return;
