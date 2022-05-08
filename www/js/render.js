@@ -1,6 +1,6 @@
 "use strict";
 
-import {DIRECTION, Helpers, Vector} from "./helpers.js";
+import {Color, DIRECTION, Helpers, Vector} from "./helpers.js";
 import {CHUNK_SIZE_X} from "./chunk.js";
 import rendererProvider from "./renders/rendererProvider.js";
 import {Mth} from "./helpers.js";
@@ -355,13 +355,21 @@ export class Renderer {
 
                 let image = tex.texture.source;
 
-                const tint = material.tags && material.tags.indexOf('mask_biome') > -1;
+                const tint = material.tags && (
+                    material.tags.indexOf('mask_biome') > -1 ||
+                    material.tags.indexOf('mask_color') > -1
+                );
 
                 ctx.globalCompositeOperation = 'source-over';
  
                 if (tint) {
                     tmpContext.globalCompositeOperation = 'source-over';
-                    tmpContext.fillStyle = "#7ba83d";
+                    if(material.mask_color) {
+                        tmpContext.fillStyle = tex.getColorAt(material.mask_color.r, material.mask_color.g).toHex();
+                    } else {
+                        // default grass color
+                        tmpContext.fillStyle = "#7ba83d";
+                    }
                     tmpContext.fillRect(0, 0, w, h);
 
                     tmpContext.globalCompositeOperation = 'multiply';

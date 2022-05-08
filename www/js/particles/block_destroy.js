@@ -1,4 +1,4 @@
-import { DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector } from '../helpers.js';
+import { Color, DIRECTION, MULTIPLY, QUAD_FLAGS, TX_CNT, Vector } from '../helpers.js';
 import { CHUNK_SIZE_X, getChunkAddr } from "../chunk.js";
 import GeometryTerrain from "../geometry_terrain.js";
 import { default as push_plane_style } from '../block_style/plane.js';
@@ -37,7 +37,10 @@ export default class Particles_Block_Destroy extends Particles_Base {
 
         if(BLOCK.MASK_BIOME_BLOCKS.indexOf(block.id) >= 0) {
             const index = ((pos.z - chunk.coord.z) * CHUNK_SIZE_X + (pos.x - chunk.coord.x)) * 2;
-            lm          = {r: chunk.dirt_colors[index], g: chunk.dirt_colors[index + 1], b: 0, a: 0};
+            lm          = new Color(chunk.dirt_colors[index], chunk.dirt_colors[index + 1], 0, 0);
+            flags       = flags | QUAD_FLAGS.MASK_BIOME;
+        } else if(BLOCK.MASK_COLOR_BLOCKS.indexOf(block.id) >= 0) {
+            lm          = block.mask_color;
             flags       = flags | QUAD_FLAGS.MASK_BIOME;
         }
 

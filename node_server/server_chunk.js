@@ -5,15 +5,6 @@ import {BLOCK} from "../www/js/blocks.js";
 import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
 import {impl as alea} from '../www/vendors/alea.js';
 
-/*
-import {default as Ticker_Bamboo} from './ticker/bamboo.js';
-import {default as Ticker_Charging_Station} from './ticker/charging_station.js';
-import {default as Ticker_Dirt} from './ticker/dirt.js';
-import {default as Ticker_Sapling} from './ticker/sapling.js';
-import {default as Ticker_Spawnmob} from './ticker/spawnmob.js';
-import {default as Ticker_Stage} from './ticker/stage.js';
-*/
-
 const Tickers = new Map();
 for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage']) {
     await import(`./ticker/${fn}.js`).then((module) => {
