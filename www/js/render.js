@@ -378,6 +378,12 @@ export class Renderer {
                         tex_x + tex_w, tex_y, tex_w, tex_h,
                         0, 0, w , h
                     );
+                    tmpContext.globalCompositeOperation = 'lighter';
+                    tmpContext.drawImage(
+                        image,
+                        tex_x, tex_y, tex_w, tex_h,
+                        0, 0, w , h
+                    );
 
                     tmpContext.globalCompositeOperation = 'destination-in';
                     tmpContext.drawImage(
@@ -385,6 +391,7 @@ export class Renderer {
                         tex_x + tex_w, tex_y, tex_w, tex_h,
                         0, 0, w , h
                     );
+
 
                     image = tmpContext.canvas;
                     tex_x = 0;
