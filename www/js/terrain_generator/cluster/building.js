@@ -581,7 +581,7 @@ export class Building1 extends Building {
 
 }
 
-// BuildingS
+// BuildingS (small)
 export class BuildingS extends Building {
 
     static MAX_SIZES = [5];
@@ -624,6 +624,7 @@ export class BuildingS extends Building {
         const mirror_x           = dir % 2 == 1;
         const has_crafting_table = this.randoms.double() <= .4;
         const has_chandelier     = this.randoms.double() <= .8;
+        const has_bed            = this.randoms.double() <= .6;
         this.blocks = {
             mirror_x:       mirror_x,
             mirror_z:       false,
@@ -643,6 +644,12 @@ export class BuildingS extends Building {
         }
         if(has_chandelier) {
             this.blocks.list.push({move: new Vector(0, 3, 2), block_id: BLOCK.LANTERN.id, rotate: {x: 0, y: -1, z: 0}});
+        }
+        // Bed
+        if(has_bed) {
+            const bed_block_id = 1210 + ((this.randoms.double() * 4) | 0);
+            this.blocks.list.push({move: new Vector(-1, 0, 1), block_id: bed_block_id, rotate: {x: dir + 0, y: -1, z: 0}, extra_data: {is_head: true}});
+            this.blocks.list.push({move: new Vector(-1, 0, 2), block_id: bed_block_id, rotate: {x: dir + 2, y: -1, z: 0}});
         }
     }
 
