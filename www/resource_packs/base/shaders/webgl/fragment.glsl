@@ -30,7 +30,7 @@ vec4 sampleAtlassTexture (vec2 texcoord, vec4 texClamp, vec2 biomPos) {
     vec4 color = texture(u_texture, texc * mipData.zw + mipData.xy);
 
     if (v_color.r >= 0.0) {
-        vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize, texc.y) * mipData.zw + mipData.xy);
+        vec4 color_mask = texture(u_texture, vec2(texc.x + u_blockSize * max(v_color.b, 1.), texc.y) * mipData.zw + mipData.xy);
         vec4 color_mult = texture(u_texture, biomPos);
         color.rgb += color_mask.rgb * color_mult.rgb;
     }

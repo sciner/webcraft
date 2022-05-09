@@ -11,20 +11,6 @@ const HEIGHT = 20 / 32;
 const {mat4} = glMatrix;
 
 const lm = MULTIPLY.COLOR.WHITE.clone();
-lm.b = 1;
-
-// getAnimations...
-let getAnimations = (material, side) => {
-    if(!material.texture_animations) {
-        return 1;
-    }
-    if(side in material.texture_animations) {
-        return material.texture_animations[side];
-    } else if('side' in material.texture_animations) {
-        return material.texture_animations['side'];
-    }
-    return 1;
-};
 
 // Фонарь
 export default class style {
@@ -63,15 +49,10 @@ export default class style {
         }
 
         const c_up_top          = BLOCK.calcMaterialTexture(block.material, DIRECTION.UP, null, null, block);
-        const animations_side   = getAnimations(block.material, 'side');
         const stage             = block.extra_data.stage;
         const flag              = QUAD_FLAGS.NO_AO | QUAD_FLAGS.NORMAL_UP;
-
-        const rot = [0, ((block.rotate.x - 1) / 4) * (2 * Math.PI), 0];
-
-        lm.b = animations_side;
-
-        const pos = new Vector(x, y, z);
+        const rot               = [0, ((block.rotate.x - 1) / 4) * (2 * Math.PI), 0];
+        const pos               = new Vector(x, y, z);
 
         // 1. Chains
         const planes = [];

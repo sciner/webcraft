@@ -892,6 +892,7 @@ export let QUAD_FLAGS = {}
     QUAD_FLAGS.NO_AO = 1 << 2;
     QUAD_FLAGS.NO_FOG = 1 << 3;
     QUAD_FLAGS.LOOK_AT_CAMERA = 1 << 4;
+    QUAD_FLAGS.FLAG_ANIMATED = 1 << 5;
 
 export let ROTATE = {};
     ROTATE.S = CubeSym.ROT_Y2; // front

@@ -83,7 +83,8 @@ export default class style {
         );
 
         const flags = QUAD_FLAGS.MASK_BIOME;
-        const lm = block.material.mask_color;
+        const lm = block.material.mask_color.clone();
+        const mask_shift = lm.b = 4;
 
         // Push vertices down
         pushAABB(
@@ -92,12 +93,12 @@ export default class style {
             pivot,
             matrix,
             {
-                up:     new AABBSideParams(c_top, flags, 1, lm, null, true), // flag: 0, anim: 1 implicit 
-                down:   new AABBSideParams(c_down, 0, 1, null, null, true),
-                south:  new AABBSideParams(c_side, flags, 1, lm, null, true),
-                north:  new AABBSideParams(c_side, flags, 1, lm, null, true),
-                west:   new AABBSideParams(c_side, flags, 1, lm, null, true),
-                east:   new AABBSideParams(c_side, flags, 1, lm, null, true),
+                up:     new AABBSideParams(c_top, flags, mask_shift, lm, null, true), // flag: 0, anim: 1 implicit 
+                down:   new AABBSideParams(c_down, 0, mask_shift, null, null, true),
+                south:  new AABBSideParams(c_side, flags, mask_shift, lm, null, true),
+                north:  new AABBSideParams(c_side, flags, mask_shift, lm, null, true),
+                west:   new AABBSideParams(c_side, flags, mask_shift, lm, null, true),
+                east:   new AABBSideParams(c_side, flags, mask_shift, lm, null, true),
             },
             new Vector(x, y, z)
         );

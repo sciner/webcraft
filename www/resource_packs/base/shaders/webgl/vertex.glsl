@@ -24,7 +24,7 @@ void main() {
     }
 
     // Animated textures
-    if(v_color.b > 1.) {
+    if(flagAnimated > 0) {
         // v_color.b contain number of animation frames
         float disc = v_color.b - 1.;
         float t = ((u_time * v_color.b / 3.) / 1000.);

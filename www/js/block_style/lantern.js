@@ -12,7 +12,6 @@ const HEIGHT_INNER = 4/32;
 const CONNECT_HEIGHT_ON_CEIL = 6 / 16;
 
 const lm = MULTIPLY.COLOR.WHITE.clone();
-lm.b = 1;
 
 // getAnimations...
 let getAnimations = (material, side) => {

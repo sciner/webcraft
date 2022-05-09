@@ -173,9 +173,9 @@ export class ResourcePackManager {
                 "sound": "madcraft:block.wood",
                 "transparent": true,
                 "texture": {
-                    "side": [10, 14],
-                    "south": [10, 15],
-                    "north": [10, 16]
+                    "side": [12, 17],
+                    "south": [16.375, 23.375],
+                    "north": [16.375, 24.75]
                 },
                 "can_rotate": true,
                 "inventory": {

@@ -20,6 +20,7 @@
     #define NO_AO_FLAG 2
     #define NO_FOG_FLAG 3
     #define LOOK_AT_CAMERA 4
+    #define FLAG_ANIMATED 5
 #endif
 
 #ifdef global_uniforms
@@ -233,6 +234,7 @@
     int flagNoAO = (flags >> NO_AO_FLAG) & 1;
     int flagNoFOG = (flags >> NO_FOG_FLAG) & 1;
     int flagLookAtCamera = (flags >> LOOK_AT_CAMERA) & 1;
+    int flagAnimated = (flags >> FLAG_ANIMATED) & 1;
 
     v_useFog    = 1.0 - float(flagNoFOG);
     v_lightMode = 1.0 - float(flagNoAO);

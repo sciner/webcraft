@@ -378,12 +378,42 @@ export default class style {
 
         // Push vertices
         const sides = {};
-        if(canDrawUP) sides.up = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block), flags | upFlags, style.getAnimations(material, 'up'), lm, axes_up, autoUV);
-        if(canDrawDOWN) sides.down = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block), flags | sideFlags, style.getAnimations(material, 'down'), lm, null, true);
-        if(canDrawSOUTH) sides.south = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, 1, block), flags | sideFlags, style.getAnimations(material, 'south'), lm, null, true);
-        if(canDrawNORTH) sides.north = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, 1, block), flags | sideFlags, style.getAnimations(material, 'north'), lm, null, true);
-        if(canDrawWEST) sides.west = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, 1, block),  flags | sideFlags, style.getAnimations(material, 'west'), lm, null, true);
-        if(canDrawEAST) sides.east = new AABBSideParams(force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, 1, block), flags | sideFlags, style.getAnimations(material, 'east'), lm, null, true);
+        if(canDrawUP) {
+            let anim_frames = style.getAnimations(material, 'up');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_UP, null, null, block);
+            sides.up = new AABBSideParams(t, flags | upFlags | animFlag, anim_frames, lm, axes_up, autoUV);
+        }
+        if(canDrawDOWN) {
+            let anim_frames = style.getAnimations(material, 'down');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_DOWN, null, null, block);
+            sides.down = new AABBSideParams(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+        }
+        if(canDrawSOUTH) {
+            let anim_frames = style.getAnimations(material, 'south');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_BACK, null, 1, block);
+            sides.south = new AABBSideParams(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+        }
+        if(canDrawNORTH) {
+            let anim_frames = style.getAnimations(material, 'north');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_FORWARD, null, 1, block);
+            sides.north = new AABBSideParams(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+        }
+        if(canDrawWEST) {
+            let anim_frames = style.getAnimations(material, 'west');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_LEFT, null, 1, block);
+            sides.west = new AABBSideParams(t,  flags | sideFlags | animFlag, anim_frames, lm, null, true);
+        }
+        if(canDrawEAST) {
+            let anim_frames = style.getAnimations(material, 'east');
+            let animFlag = anim_frames > 1 ? QUAD_FLAGS.FLAG_ANIMATED : 0;
+            let t = force_tex || BLOCK.calcMaterialTexture(material, DIRECTION_RIGHT, null, 1, block);
+            sides.east = new AABBSideParams(t, flags | sideFlags | animFlag, anim_frames, lm, null, true);
+        }
         pushAABB(vertices, aabb, pivot, matrix, sides, new Vector(x, y, z));
 
     }

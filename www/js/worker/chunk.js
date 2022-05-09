@@ -55,7 +55,7 @@ export class ChunkManager {
 
 }
 
-class BlockNeighbours {
+export class BlockNeighbours {
 
     constructor() {
         this.pcnt   = 0;
