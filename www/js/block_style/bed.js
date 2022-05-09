@@ -3,6 +3,7 @@ import {BLOCK} from "../blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Z} from "../chunk.js";
 import {impl as alea} from "../../vendors/alea.js";
 import {AABB, AABBSideParams, pushAABB} from '../core/AABB.js';
+import {CubeSym} from "../core/CubeSym.js";
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js"
 
 const {mat4} = glMatrix;
@@ -162,7 +163,7 @@ export default class style {
             new Vector(x, y, z)
         );
 
-        /*for(let leg of style.addLegs(sz, x, y, z, is_head, c_head, flags, mask_shift, lm)) {
+        for(let leg of style.addLegs(sz, x, y, z, is_head, c_head, flags, mask_shift, lm)) {
             // push mattress vertices
             pushAABB(
                 vertices,
@@ -172,7 +173,7 @@ export default class style {
                 leg.sides,
                 new Vector(x, y, z)
             );
-        }*/
+        }
 
         return null;
 
@@ -180,33 +181,66 @@ export default class style {
 
     static addLegs(sz, x, y, z, is_head, c_head, flags, mask_shift, lm) {
 
-        let left_aabb = new AABB();
-        left_aabb.set(
-            x,
-            y,
-            z,
-            x + LEG_WIDTH/2,
-            y + LEG_HEIGHT,
-            z + LEG_WIDTH/2,
-        ).translate(0, LEG_HEIGHT, 0);
+        const resp = [];
 
-        const c_down = [...c_head];
-        const c_south = [...c_head];
-        const c_north = [...c_head];
-        const c_west = [...c_head];
-        const c_east = [...c_head];
-
-        const left_sides = {
-            // down:   new AABBSideParams(c_down, flags, mask_shift, lm, null, false),
-            south:  new AABBSideParams(c_south, flags, mask_shift, lm, null, false),
-            // north:  new AABBSideParams(c_north, flags, mask_shift, lm, null, false),
-            // west:   new AABBSideParams(c_west, flags, mask_shift, lm, null, false),
-            // east:   new AABBSideParams(c_east, flags, mask_shift, lm, null, false),
-        };
-
-        return [
-            {aabb: left_aabb, sides: left_sides}
+        const ops = [
+            {
+                texY: 0 + (is_head ? 24 : 0),
+                moveX: 0,
+                moveZ: is_head ? 0 : (1 - LEG_WIDTH),
+                index: is_head ? 0 : 2
+            },
+            {
+                texY: 12 + (is_head ? 24 : 0),
+                moveX: 1 - LEG_WIDTH,
+                moveZ: is_head ? 0 : (1 - LEG_WIDTH),
+                index: is_head ? 1 : 3
+            }
         ];
+
+        for(let op of ops) {
+            let left_aabb = new AABB();
+            left_aabb.set(x, y, z, x + LEG_WIDTH, y + LEG_HEIGHT, z + LEG_WIDTH);
+            left_aabb.translate(op.moveX, 0, op.moveZ);
+
+            const c_down    = [c_head[0] + 115/sz, c_head[1] + (op.texY + 3)/sz, 6/sz, 6/sz];
+            const c_south   = [c_head[0] + 109/sz, c_head[1] + (op.texY + 9)/sz, 6/sz, 6/sz];
+            const c_east    = [c_head[0] + 115/sz, c_head[1] + (op.texY + 9)/sz, 6/sz, 6/sz];
+            const c_north   = [c_head[0] + 121/sz, c_head[1] + (op.texY + 9)/sz, -6/sz, -6/sz];
+            const c_west    = [c_head[0] + 103/sz, c_head[1] + (op.texY + 9)/sz, -6/sz, 6/sz];
+
+            let cc = null;
+            if(op.index == 0) {
+                cc = [c_south, c_east, c_north, c_west];
+            } else if(op.index == 1) {
+                cc = [c_west, c_south, c_east, c_north];
+                cc[0][2] *= -1;
+                cc[2][2] *= -1;
+            } else if(op.index == 2) {
+                cc = [c_east, c_north, c_west, c_south];
+                cc[1][2] *= -1;
+                cc[3][2] *= -1;
+            } else if(op.index == 3) {
+                cc = [c_north, c_west, c_south, c_east];
+                cc[0][2] *= -1;
+                cc[1][2] *= -1;
+                cc[2][2] *= -1;
+                cc[3][2] *= -1;
+            } else {
+                continue;
+            }
+
+            const left_sides = {
+                down:   new AABBSideParams(c_down, flags, mask_shift, lm, null, false),
+                south:  new AABBSideParams(cc[0], flags, mask_shift, lm, null, false),
+                east:   new AABBSideParams(cc[1], flags, mask_shift, lm, null, false),
+                north:  new AABBSideParams(cc[2], flags, mask_shift, lm, null, false),
+                west:   new AABBSideParams(cc[3], flags, mask_shift, lm, null, false),
+            };
+            resp.push({aabb: left_aabb, sides: left_sides});
+        }
+
+        return resp;
 
     }
 
