@@ -1,7 +1,9 @@
 import {RecipeWindow} from "./window/index.js";
 import {Resources} from "./resources.js";
 import {BLOCK} from "./blocks.js";
+import { digestMessage, md5 } from "./helpers.js";
 import {default as runes} from "../vendors/runes.js";
+import {COLOR_PALETTE} from './resource_pack_manager.js';
 
 export class RecipeManager {
 
@@ -233,6 +235,54 @@ export class RecipeManager {
         let that = this;
         let recipes = await Resources.loadRecipes();
         let ids = new Map();
+        const md5s = (text) => {
+            const guid = md5(text);
+            return guid.substring(0, 8) + '-' +
+                guid.substring(8, 12) + '-' + guid.substring(12, 16) + '-' +
+                guid.substring(16, 20) + '-' + guid.substring(20, 32);
+        };
+        // bed
+        for(let color in COLOR_PALETTE) {
+            let name = `${color}_bed`;
+            recipes.push(
+            {
+                "id": md5s(name),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "   ",
+                    "WWW",
+                    "PPP"
+                ],
+                "key": {
+                    "W": {"item": [`madcraft:${color}_wool`]},
+                    "P": {"item": ["madcraft:oak_plank", "madcraft:birch_plank", "madcraft:spruce_plank", "madcraft:acacia_plank", "madcraft:jungle_plank", "madcraft:dark_oak_plank"]}
+                },
+                "result": {
+                    "item": `madcraft:${name}`,
+                    "count": 1
+                }
+            });
+        }
+        // carpet
+        for(let color in COLOR_PALETTE) {
+            let name = `${color}_carpet`;
+            recipes.push(
+            {
+                "id": md5s(name),
+                "type": "madcraft:crafting_shaped",
+                "pattern": [
+                    "WW"
+                ],
+                "key": {
+                    "W": {"item": [`madcraft:${color}_wool`]}
+                },
+                "result": {
+                    "item": `madcraft:${name}`,
+                    "count": 3
+                }
+            });
+        }
+        //
         for(let item of recipes) {
             if(!('id' in item)) {
                 console.error(item);
@@ -245,6 +295,7 @@ export class RecipeManager {
             ids.set(item.id, true);
             that.add(item);
         }
+        //
         this.group();
         callback();
     }
