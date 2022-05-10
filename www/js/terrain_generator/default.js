@@ -19,7 +19,8 @@ export class Default_Terrain_Generator {
         this.temp_block     = {id: 0};
         this.temp_tblock    = null;
         this.maps = {
-            delete: function() {}
+            delete: function() {},
+            destroyAroundPlayers: function() {}
         };
     }
 
