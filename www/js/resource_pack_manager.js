@@ -170,6 +170,7 @@ export class ResourcePackManager {
                 "material": {"id": "wood"},
                 "style": "bed",
                 "height": 0.5,
+                "max_in_stack": 1,
                 "sound": "madcraft:block.wood",
                 "transparent": true,
                 "texture": {
