@@ -228,7 +228,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         }
 
         //
-        const setBlock = (x, y, z, block_id, rotate) => {
+        const setBlock = (x, y, z, block_id, rotate, extra_data) => {
             // temp_vec2.set(x, y, z);
             temp_vec2.x = x;
             temp_vec2.y = y;
@@ -236,6 +236,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * temp_vec2.y + (temp_vec2.z * CHUNK_SIZE_X) + temp_vec2.x;
             if(rotate) {
                 chunk.tblocks.rotate.set(temp_vec2, rotate);
+            }
+            if(extra_data) {
+                chunk.tblocks.extra_data.set(temp_vec2, extra_data);
             }
             chunk.tblocks.id[index] = block_id;
         };
@@ -644,7 +647,9 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             let idx = 0;
             for(let pos of map.plants.keys()) {
                 if(pos.y >= chunk_coord.y && pos.y < chunk_coord.y + CHUNK_SIZE_Y) {
-                    let block_id = map.plants.get(pos);
+                    let block = map.plants.get(pos);
+                    const block_id = block.id;
+                    const extra_data = block.extra_data || null;
                     xyz.set(pos.x, pos.y - chunk_coord.y - 1, pos.z);
                     temp_block = chunk.tblocks.get(xyz, temp_block);
                     if(temp_block.id === BLOCK.GRASS_DIRT.id || temp_block.id == 516) {
@@ -659,10 +664,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                                     setBlock(temp_vec.x, temp_vec.y, temp_vec.z, BLOCK.TALL_GRASS.id);
                                     setBlock(temp_vec.x, temp_vec.y + 1, temp_vec.z, BLOCK.TALL_GRASS_TOP.id);
                                 } else {
-                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);    
+                                    setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);    
                                 }
                             } else {
-                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id);
+                                setBlock(temp_vec.x, temp_vec.y, temp_vec.z, block_id, null, extra_data);
                             }
                         }
                     }

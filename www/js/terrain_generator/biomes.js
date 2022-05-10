@@ -61,7 +61,7 @@ BIOMES.BEACH = {
     plants: {
         frequency: .005,
         list: [
-            {percent: 1, block: BLOCK.DEAD_BUSH.id}
+            {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
         ]
     }
 };
@@ -84,7 +84,7 @@ BIOMES.TEMPERATE_DESERT = {
     plants: {
         frequency: .005,
         list: [
-            {percent: 1, block: BLOCK.DEAD_BUSH.id}
+            {percent: 1, block: {id: BLOCK.DEAD_BUSH.id}}
         ]
     }
 };
@@ -112,11 +112,11 @@ BIOMES.JUNGLE = {
     plants: {
         frequency: .8,
         list: [
-            {percent: .6, block: BLOCK.OAK_LEAVES.id},
-            {percent: .37, block: BLOCK.GRASS.id},
-            {percent: .01, block: BLOCK.TULIP.id},
-            {percent: .005, block: BLOCK.WATERMELON.id},
-            {percent: .005, block: BLOCK.DANDELION.id}
+            {percent: .6, block: {id: BLOCK.OAK_LEAVES.id}},
+            {percent: .37, block: {id: BLOCK.GRASS.id}},
+            {percent: .01, block: {id: BLOCK.TULIP.id}},
+            {percent: .005, block: {id: BLOCK.WATERMELON.id}},
+            {percent: .005, block: {id: BLOCK.DANDELION.id}}
         ]
     }
 };
@@ -140,9 +140,9 @@ BIOMES.SUBTROPICAL_DESERT = {
     plants: {
         frequency: .5,
         list: [
-            {percent: .98, block: BLOCK.GRASS.id},
-            {percent: .01, block: BLOCK.TULIP.id},
-            {percent: .01, block: BLOCK.DANDELION.id}
+            {percent: .98, block: {id: BLOCK.GRASS.id}},
+            {percent: .01, block: {id: BLOCK.TULIP.id}},
+            {percent: .01, block: {id: BLOCK.DANDELION.id}}
         ]
     }
 };
@@ -200,10 +200,11 @@ BIOMES.TUNDRA = {
     plants: {
         frequency: .65,
         list: [
-            {percent: .68, block: BLOCK.GRASS.id},
-            {percent: .3, block: BLOCK.FERN.id},
-            {percent: .001, block: BLOCK.BROWN_MUSHROOM.id},
-            {percent: .009, block: BLOCK.DEAD_BUSH.id}
+            {percent: .62, block: {id: BLOCK.GRASS.id}},
+            {percent: .3, block: {id: BLOCK.FERN.id}},
+            {percent: .001, block: {id: BLOCK.BROWN_MUSHROOM.id}},
+            {percent: .008, block: {id: BLOCK.SWEET_BERRY.id, extra_data: {'stage': 3, 'complete': true}}},
+            {percent: .007, block: {id: BLOCK.DEAD_BUSH.id}}
         ]
     }
 };
@@ -265,7 +266,7 @@ BIOMES.SHRUBLAND = {
     plants: {
         frequency: .3,
         list: [
-            {percent: 1, block: BLOCK.GRASS.id}
+            {percent: 1, block: {id: BLOCK.GRASS.id}}
         ]
     }
 };
@@ -282,15 +283,15 @@ BIOMES.GRASSLAND = {
     plants: {
         frequency: .5,
         list: [
-            {percent: .800, block: BLOCK.GRASS.id},
-            {percent: .025, block: BLOCK.TULIP.id},
-            {percent: .025, block: BLOCK.FLOWER_ALLIUM.id},
-            {percent: .025, block: BLOCK.FLOWER_BLUE_ORCHID.id},
-            {percent: .025, block: BLOCK.FLOWER_OXEYE_DAISY.id},
-            {percent: .025, block: BLOCK.FLOWER_LILY_OF_THE_VALLEY.id},
-            {percent: .025, block: BLOCK.FLOWER_CORNFLOWER.id},
-            {percent: .025, block: BLOCK.DANDELION.id},
-            {percent: .015, block: BLOCK.PUMPKIN.id},
+            {percent: .800, block: {id: BLOCK.GRASS.id}},
+            {percent: .025, block: {id: BLOCK.TULIP.id}},
+            {percent: .025, block: {id: BLOCK.FLOWER_ALLIUM.id}},
+            {percent: .025, block: {id: BLOCK.FLOWER_BLUE_ORCHID.id}},
+            {percent: .025, block: {id: BLOCK.FLOWER_OXEYE_DAISY.id}},
+            {percent: .025, block: {id: BLOCK.FLOWER_LILY_OF_THE_VALLEY.id}},
+            {percent: .025, block: {id: BLOCK.FLOWER_CORNFLOWER.id}},
+            {percent: .025, block: {id: BLOCK.DANDELION.id}},
+            {percent: .015, block: {id: BLOCK.PUMPKIN.id}},
             {percent: .025, trunk: BLOCK.FLOWER_LILAC.id, leaves: BLOCK.FLOWER_LILAC_TOP.id, style: 'stump', height: {min: 1, max: 1}}
         ]
     },
@@ -321,8 +322,8 @@ BIOMES.TEMPERATE_DECIDUOUS_FOREST = {
     plants: {
         frequency: .3,
         list: [
-            {percent: .975, block: BLOCK.GRASS.id},
-            {percent: .025, block: BLOCK.RED_MUSHROOM.id}
+            {percent: .975, block: {id: BLOCK.GRASS.id}},
+            {percent: .025, block: {id: BLOCK.RED_MUSHROOM.id}}
         ]
     }
 };
@@ -369,7 +370,7 @@ BIOMES.TROPICAL_SEASONAL_FOREST = {
     plants: {
         frequency: .35,
         list: [
-            {percent: 1, block: BLOCK.GRASS.id}
+            {percent: 1, block: {id: BLOCK.GRASS.id}}
         ]
     }
 };
@@ -394,9 +395,9 @@ BIOMES.TROPICAL_RAIN_FOREST = {
     plants: {
         frequency: .75,
         list: [
-            {percent: .1, block: BLOCK.RED_MUSHROOM.id},
-            {percent: .1, block: BLOCK.BROWN_MUSHROOM.id},
-            {percent: .7, block: BLOCK.GRASS.id}
+            {percent: .1, block: {id: BLOCK.RED_MUSHROOM.id}},
+            {percent: .1, block: {id: BLOCK.BROWN_MUSHROOM.id}},
+            {percent: .7, block: {id: BLOCK.GRASS.id}}
         ]
     }
 };
