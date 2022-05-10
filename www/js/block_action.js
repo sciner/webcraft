@@ -294,7 +294,7 @@ class DestroyBlocks {
     }
 
     //
-    add(block, pos) {
+    add(block, pos, no_drop = false) {
         const cv        = this.cv;
         const world     = this.world;
         const player    = this.player;
@@ -325,7 +325,9 @@ class DestroyBlocks {
             }
         }
         // Drop block if need
-        dropBlock(player, block, resp, false);
+        if(!no_drop) {
+            dropBlock(player, block, resp, false);
+        }
         // Destroy connected blocks
         for(let cn of ['next_part', 'previous_part']) {
             let part = block.material[cn];
@@ -343,7 +345,7 @@ class DestroyBlocks {
         if(block.material.tags.indexOf('bed') >= 0) {
             const connected_pos = new Vector(pos).addByCardinalDirectionSelf(new Vector(0, 0, 1), block.rotate.x + 2);
             let block_connected = world.getBlock(connected_pos);
-            this.add(block_connected, connected_pos);
+            this.add(block_connected, connected_pos, true);
         }
         // Destroy chain blocks to down
         if(block.material.destroy_to_down) {
