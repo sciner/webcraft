@@ -220,7 +220,7 @@ export class CraftTableResultSlot extends CraftTableSlot {
 
 export class CraftTableInventorySlot extends CraftTableSlot {
 
-    constructor(x, y, w, h, id, title, text, ct, slot_index) {
+    constructor(x, y, w, h, id, title, text, ct, slot_index, readonly) {
         
         super(x, y, w, h, id, title, text, ct, slot_index);
 
@@ -233,7 +233,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             this.style.background.color = '#00000000';
         }
 
-        // Drag & drop
+        // Drag
         this.onMouseDown = function(e) {
             let that        = this;
             let player      = Game.player;
@@ -268,6 +268,7 @@ export class CraftTableInventorySlot extends CraftTableSlot {
                             break;
                         }
                         case 'frmChest':
+                        case 'frmFurnace':
                         case 'frmChargingStation': {
                             let srcList = e.target.is_chest_slot ? player.inventory.inventory_window.inventory_slots : this.parent.getSlots();
                             let srcListFirstIndexOffset = 0;
@@ -307,125 +308,127 @@ export class CraftTableInventorySlot extends CraftTableSlot {
             this.prev_mousedown_button = e.button;
         }
 
-        // Drag & drop
-        this.onDrop = function(e) {
-            let player      = Game.player;
-            let that        = this;
-            let drag        = e.drag;
-            // @todo check instanceof!
-            // if(dropData instanceof InventoryItem) {
-            let dropData    = drag.getItem();
-            let targetItem  = this.getInventoryItem();
-            if(!dropData) {
-                return;
-            }
-            const max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
-            //
-            if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && this.prev_mousedown_button == MOUSE.BUTTON_LEFT && !e.shiftKey) {
-                // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
-                let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
-                if(doubleClick && dropData.item.count < max_stack_count) {
-                    let need_count = max_stack_count - dropData.item.count;
-                    // проверить крафт слоты
-                    let slots = this.parent.getSlots();
-                    for(let i in slots) {
-                        if(need_count == 0) {
-                            break;
-                        }
-                        const slot = slots[i];
-                        if(slot && slot.item) {
-                            if(slot.item.id == dropData.item.id) {
-                                if(slot.item.count != max_stack_count) {
-                                    let minus_count = 0;
-                                    if(slot.item.count < need_count) {
-                                        minus_count = slot.item.count;
-                                    } else {
-                                        minus_count = need_count;
-                                    }
-                                    need_count -= minus_count;
-                                    dropData.item.count += minus_count;
-                                    slot.item.count -= minus_count;
-                                    if(slot.item.count < 1) {
-                                        slots[i].setItem(null, e);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    // проверить слоты инвентаря
-                    let inventory_items = player.inventory.items;
-                    for(let i in inventory_items) {
-                        if(need_count == 0) {
-                            break;
-                        }
-                        const item = inventory_items[i];
-                        if(item) {
-                            if(item.id == dropData.item.id) {
-                                if(item.count != max_stack_count) {
-                                    let minus_count = 0;
-                                    if(item.count < need_count) {
-                                        minus_count = item.count;
-                                    } else {
-                                        minus_count = need_count;
-                                    }
-                                    need_count -= minus_count;
-                                    dropData.item.count += minus_count;
-                                    item.count -= minus_count;
-                                    if(item.count < 1) {
-                                        player.inventory.setItem(i, null);
-                                    }
-                                }
-                            }
-                        }
-                    }
+        // if slot is readonly
+        if(!readonly) {
+            // Drop
+            this.onDrop = function(e) {
+                let player      = Game.player;
+                let that        = this;
+                let drag        = e.drag;
+                // @todo check instanceof!
+                // if(dropData instanceof InventoryItem) {
+                let dropData    = drag.getItem();
+                let targetItem  = this.getInventoryItem();
+                if(!dropData) {
                     return;
                 }
-            }
-            if(!dropData.item) {
-                return;
-            }
-            // Если в текущей ячейке что-то есть
-            if(targetItem) {
-                // @todo
-                if(targetItem.id == dropData.item.id) {
-                    if(targetItem.count < max_stack_count) {
-                        if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                            targetItem.count++;
-                            dropData.item.count--;
-                        } else {
-                            let new_count = targetItem.count + dropData.item.count;
-                            let remains = 0;
-                            if(new_count > max_stack_count) {
-                                remains = new_count - max_stack_count;
-                                new_count = max_stack_count;
+                const max_stack_count = BLOCK.fromId(dropData.item.id).max_in_stack;
+                //
+                if(this.prev_mousedown_time && e.button === MOUSE.BUTTON_LEFT && this.prev_mousedown_button == MOUSE.BUTTON_LEFT && !e.shiftKey) {
+                    // 1. Объединение мелких ячеек в одну при двойном клике на ячейке
+                    let doubleClick = performance.now() - this.prev_mousedown_time < 200.0;
+                    if(doubleClick && dropData.item.count < max_stack_count) {
+                        let need_count = max_stack_count - dropData.item.count;
+                        // проверить крафт слоты
+                        let slots = this.parent.getSlots();
+                        for(let i in slots) {
+                            if(need_count == 0) {
+                                break;
                             }
-                            targetItem.count = new_count;
-                            dropData.item.count = remains;
-                            if(dropData.item.count <= 0) {
-                                drag.clear();
+                            const slot = slots[i];
+                            if(slot && slot.item) {
+                                if(slot.item.id == dropData.item.id) {
+                                    if(slot.item.count != max_stack_count) {
+                                        let minus_count = 0;
+                                        if(slot.item.count < need_count) {
+                                            minus_count = slot.item.count;
+                                        } else {
+                                            minus_count = need_count;
+                                        }
+                                        need_count -= minus_count;
+                                        dropData.item.count += minus_count;
+                                        slot.item.count -= minus_count;
+                                        if(slot.item.count < 1) {
+                                            slots[i].setItem(null, e);
+                                        }
+                                    }
+                                }
                             }
                         }
-                        this.setItem(targetItem, e);
+                        // проверить слоты инвентаря
+                        let inventory_items = player.inventory.items;
+                        for(let i in inventory_items) {
+                            if(need_count == 0) {
+                                break;
+                            }
+                            const item = inventory_items[i];
+                            if(item) {
+                                if(item.id == dropData.item.id) {
+                                    if(item.count != max_stack_count) {
+                                        let minus_count = 0;
+                                        if(item.count < need_count) {
+                                            minus_count = item.count;
+                                        } else {
+                                            minus_count = need_count;
+                                        }
+                                        need_count -= minus_count;
+                                        dropData.item.count += minus_count;
+                                        item.count -= minus_count;
+                                        if(item.count < 1) {
+                                            player.inventory.setItem(i, null);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        return;
+                    }
+                }
+                if(!dropData.item) {
+                    return;
+                }
+                // Если в текущей ячейке что-то есть
+                if(targetItem) {
+                    // @todo
+                    if(targetItem.id == dropData.item.id) {
+                        if(targetItem.count < max_stack_count) {
+                            if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                                targetItem.count++;
+                                dropData.item.count--;
+                            } else {
+                                let new_count = targetItem.count + dropData.item.count;
+                                let remains = 0;
+                                if(new_count > max_stack_count) {
+                                    remains = new_count - max_stack_count;
+                                    new_count = max_stack_count;
+                                }
+                                targetItem.count = new_count;
+                                dropData.item.count = remains;
+                                if(dropData.item.count <= 0) {
+                                    drag.clear();
+                                }
+                            }
+                            this.setItem(targetItem, e);
+                        }
+                    } else {
+                        // поменять местами перетаскиваемый элемент и содержимое ячейки
+                        this.setItem(dropData.item, e);
+                        dropData.item = targetItem;
                     }
                 } else {
-                    // поменять местами перетаскиваемый элемент и содержимое ячейки
-                    this.setItem(dropData.item, e);
-                    dropData.item = targetItem;
-                }
-            } else {
-                // Перетаскивание в пустую ячейку
-                if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
-                    let newItem = {...dropData.item};
-                    newItem.count = 1;
-                    that.setItem(newItem, e);
-                    dropData.item.count--;
-                } else {
-                    that.setItem(dropData.item, e);
-                    drag.clear();
+                    // Перетаскивание в пустую ячейку
+                    if(e.button == MOUSE.BUTTON_RIGHT && dropData.item.count > 1) {
+                        let newItem = {...dropData.item};
+                        newItem.count = 1;
+                        that.setItem(newItem, e);
+                        dropData.item.count--;
+                    } else {
+                        that.setItem(dropData.item, e);
+                        drag.clear();
+                    }
                 }
             }
         }
-
     }
 
     /**

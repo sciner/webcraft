@@ -677,6 +677,7 @@
         "id": 456,
         "name": "BIRCH_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -693,6 +694,7 @@
         "id": 7,
         "name": "OAK_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -709,6 +711,7 @@
         "id": 457,
         "name": "ACACIA_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -725,6 +728,7 @@
         "id": 460,
         "name": "SPRUCE_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -741,6 +745,7 @@
         "id": 528,
         "name": "DARK_OAK_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -757,6 +762,7 @@
         "id": 529,
         "name": "JUNGLE_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -773,6 +779,7 @@
         "id": 661,
         "name": "WARPED_PLANK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "tags": [
             "can_put_info_pot",
             "plank"
@@ -1045,11 +1052,8 @@
         "id": 14,
         "name": "GOLD_ORE",
         "sound": "madcraft:block.stone",
-        "drop_item": {"name": "GOLD_INGOT", "count": 1, "chance": 1},
-        "texture": [
-            0,
-            2
-        ],
+        "coocked_item": {"name": "GOLD_INGOT", "count": 1},
+        "texture": [0, 2],
         "material": {
             "id": "gold"
         }
@@ -1108,11 +1112,8 @@
         "id": 15,
         "name": "IRON_ORE",
         "sound": "madcraft:block.stone",
-        "drop_item": {"name": "IRON_INGOT", "count": 1, "chance": 1},
-        "texture": [
-            1,
-            2
-        ],
+        "coocked_item": {"name": "IRON_INGOT", "count": 1},
+        "texture": [1, 2],
         "material": {
             "id": "iron"
         }
@@ -1122,10 +1123,7 @@
         "name": "COAL_ORE",
         "sound": "madcraft:block.stone",
         "drop_item": {"name": "COAL", "count": 1, "chance": 1},
-        "texture": [
-            2,
-            2
-        ],
+        "texture": [2, 2],
         "material": {
             "id": "stone"
         }
@@ -1134,10 +1132,7 @@
         "id": 21,
         "name": "LAPIS_LAZULI_ORE",
         "sound": "madcraft:block.stone",
-        "texture": [
-            0,
-            10
-        ],
+        "texture": [0, 10],
         "material": {
             "id": "stone"
         }
@@ -1677,10 +1672,7 @@
         "name": "DIAMOND_ORE",
         "sound": "madcraft:block.stone",
         "drop_item": {"name": "DIAMOND", "count": 1, "chance": 1},
-        "texture": [
-            2,
-            3
-        ],
+        "texture": [2, 3],
         "material": {
             "id": "diamond"
         }
@@ -2446,13 +2438,8 @@
         "id": 129,
         "name": "EMERALD_ORE",
         "sound": "madcraft:block.stone",
-        "material": {
-            "id": "stone"
-        },
-        "texture": [
-            0,
-            4
-        ]
+        "material": {"id": "stone"},
+        "texture": [0, 4]
     },
     {
         "id": 135,
@@ -2638,6 +2625,7 @@
         "name": "COAL",
         "item": {"name": "coal"},
         "style": "extruder",
+        "fuel_time": 80,
         "material": {
             "id": "wood"
         },
@@ -2815,6 +2803,7 @@
         "id": 162,
         "name": "BIRCH_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -2841,6 +2830,7 @@
         "id": 3,
         "name": "OAK_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -2868,6 +2858,7 @@
         "id": 165,
         "name": "ACACIA_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -2894,6 +2885,7 @@
         "id": 138,
         "name": "SPRUCE_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -2920,6 +2912,7 @@
         "id": 530,
         "name": "DARK_OAK_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -2946,6 +2939,7 @@
         "id": 531,
         "name": "JUNGLE_TRUNK",
         "sound": "madcraft:block.wood",
+        "fuel_time": 16,
         "material": {
             "id": "wood"
         },
@@ -3128,26 +3122,19 @@
         "name": "FURNACE",
         "sound": "madcraft:block.stone",
         "window": "frmFurnace",
+        "is_entity": true,
+        "is_chest": true,
+        "ticking": {
+            "type": "furnace"
+        },
         "material": {
             "id": "stone"
         },
         "texture": {
-            "up": [
-                14,
-                3
-            ],
-            "down": [
-                14,
-                3
-            ],
-            "north": [
-                12,
-                2
-            ],
-            "side": [
-                13,
-                2
-            ]
+            "up": [14, 3],
+            "down": [14, 3],
+            "north": [12, 2],
+            "side": [13, 2]
         },
         "can_rotate": true
     },
@@ -3156,26 +3143,19 @@
         "name": "BURNING_FURNACE",
         "sound": "madcraft:block.stone",
         "window": "frmFurnace",
+        "is_entity": true,
+        "is_chest": true,
+        "ticking": {
+            "type": "furnace"
+        },
         "material": {
             "id": "stone"
         },
         "texture": {
-            "up": [
-                14,
-                3
-            ],
-            "down": [
-                14,
-                3
-            ],
-            "north": [
-                13,
-                3
-            ],
-            "side": [
-                13,
-                2
-            ]
+            "up": [14, 3],
+            "down": [14, 3],
+            "north": [13, 3],
+            "side": [13, 2]
         },
         "light_power": {
             "r": 253,

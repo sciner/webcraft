@@ -848,18 +848,17 @@ export async function doBlockAction(e, world, player, currentInventoryItem) {
                 }
             }
             // Create entity
-            switch(matBlock.id) {
-                case BLOCK.CHEST.id:
-                case BLOCK.CHARGING_STATION.id: {
-                    new_item.rotate = orientation; // rotate_orig;
-                    resp.create_chest = {pos: new Vector(pos), item: new_item};
-                    resp.decrement = true;
-                    if(matBlock.sound) {
-                        resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
-                    }
-                    return resp;
-                    break;
+            if(matBlock.is_chest) {
+                new_item.rotate = orientation; // rotate_orig;
+                resp.create_chest = {pos: new Vector(pos), item: new_item};
+                resp.decrement = true;
+                if(matBlock.sound) {
+                    resp.play_sound.push({tag: matBlock.sound, action: 'place', pos: new Vector(pos)});
                 }
+                return resp;
+            }
+            //
+            switch(matBlock.id) {
                 case BLOCK.PAINTING.id: {
                     const painting = await createPainting(e, world, pos);
                     if(painting) {

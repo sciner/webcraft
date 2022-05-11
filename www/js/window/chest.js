@@ -13,7 +13,7 @@ export class BaseChestWindow extends Window {
         this.options = options;
         this.width *= this.zoom;
         this.height *= this.zoom;
-        this.style.background.image_size_mode = 'stretch';
+        this.style.background = {...this.style.background, ...options.background}
 
         this.server     = inventory.player.world.server;
         this.inventory  = inventory;
@@ -23,7 +23,7 @@ export class BaseChestWindow extends Window {
         const ct = this;
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        ct.setBackground(options.background);
+        ct.setBackground(options.background.image);
         ct.hide();
 
         this.dragItem = null;
@@ -41,7 +41,9 @@ export class BaseChestWindow extends Window {
         this.onShow = function() {
             this.getRoot().center(this);
             Game.releaseMousePointer();
-            Game.sounds.play(options.sound.open.tag, options.sound.open.action);
+            if(options.sound.open) {
+                Game.sounds.play(options.sound.open.tag, options.sound.open.action);
+            }
         }
 
         // Обработчик закрытия формы
@@ -54,7 +56,9 @@ export class BaseChestWindow extends Window {
             }
             this.getRoot().drag.clear();
             this.confirmAction();
-            Game.sounds.play(options.sound.close.tag, options.sound.close.action);
+            if(options.sound.close) {
+                Game.sounds.play(options.sound.close.tag, options.sound.close.action);
+            }
         }
 
         // Add labels to window
@@ -134,8 +138,8 @@ export class BaseChestWindow extends Window {
     // Confirm action
     confirmAction() {
         const params = {
-            drag_item: Game.hud.wm.drag?.item?.item,
-            chest: {pos: this.info.pos, slots: {}},
+            drag_item:       Game.hud.wm.drag?.item?.item,
+            chest:           {pos: this.info.pos, slots: {}},
             inventory_slots: []
         };
         params.drag_item = params.drag_item ? BLOCK.convertItemToInventoryItem(params.drag_item) : null;
@@ -184,6 +188,7 @@ export class BaseChestWindow extends Window {
         }
         this.lbl1.setText(this.options.title);
         this.clear();
+        this.state = chest?.state || null;
         for(let k of Object.keys(chest.slots)) {
             let item = chest.slots[k];
             if(!item) {
@@ -234,13 +239,14 @@ export class BaseChestWindow extends Window {
             console.error('createCraftSlots() already created');
             return;
         }
-        let sz          = this.cell_size;
+        let sz = this.cell_size;
         this.chest = {
             slots: []
         };
         for(let i in slots) {
             const slot = slots[i];
-            let lblSlot = new CraftTableInventorySlot(slot.pos.x, slot.pos.y, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null);
+            const readonly = !!slot.readonly;
+            let lblSlot = new CraftTableInventorySlot(slot.pos.x, slot.pos.y, sz, sz, 'lblCraftChestSlot' + i, null, '' + i, this, null, readonly);
             lblSlot.index = i;
             lblSlot.is_chest_slot = true;
             lblSlot.onMouseEnter = function() {
@@ -296,7 +302,17 @@ export class ChestWindow extends BaseChestWindow {
     constructor(x, y, w, h, id, title, text, inventory) {
         super(x, y, w, h, id, title, text, inventory, {
             title: 'Chest',
-            background: './media/gui/form-chest.png',
+            background: {
+                image: './media/gui/form-chest.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 0,
+                    y: 0,
+                    width: 352 * 2,
+                    height: 332 * 2
+                }
+            },
             sound: {
                 open: {tag: BLOCK.CHEST.sound, action: 'open'},
                 close: {tag: BLOCK.CHEST.sound, action: 'close'}

@@ -6,7 +6,7 @@ import {TypedBlocks, TBlock} from "../www/js/typed_blocks.js";
 import {impl as alea} from '../www/vendors/alea.js';
 
 const Tickers = new Map();
-for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage']) {
+for(let fn of ['bamboo', 'charging_station', 'dirt', 'sapling', 'spawnmob', 'stage', 'furnace']) {
     await import(`./ticker/${fn}.js`).then((module) => {
         Tickers.set(module.default.type, module.default.func);
     });
@@ -55,6 +55,10 @@ class TickingBlockManager {
     // addTickingBlock
     add(id, pos, ticking) {
         const block = new TickingBlock(this, id, pos, ticking);
+        const ex_block = this.blocks.get(block.pos.toHash());
+        if(ex_block) {
+            block.ticks = ex_block.ticks;
+        }
         this.blocks.set(block.pos.toHash(), block);
         this.#chunk.world.chunks.addTickingChunk(this.#chunk.addr);
     }

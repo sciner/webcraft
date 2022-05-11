@@ -19,8 +19,8 @@ export class ChestManager {
      * @returns Chest|null
      */
     get(pos) {
-        let block = this.world.getBlock(pos);
-        return block;
+        let tblock = this.world.getBlock(pos);
+        return tblock;
     }
 
     //
@@ -47,22 +47,22 @@ export class ChestManager {
         let new_items = [...[params.drag_item], ...params.inventory_slots, ...Array.from(Object.values(new_chest_slots))];
         let equal = await InventoryComparator.checkEqual(old_items, new_items, []);
         //
-        if(player.onPutInventoryItems) {
-            let old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
-            let new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
-            const put_items = [];
-            for(let [key, item] of new_simple) {
-                let old_item = old_simple.get(key);
-                if(!old_item) {
-                    put_items.push(item);
+        if(equal) {
+            // учёт появления новых элементов в инвентаре
+            if(player.onPutInventoryItems) {
+                let old_simple = InventoryComparator.groupToSimpleItems(player.inventory.items);
+                let new_simple = InventoryComparator.groupToSimpleItems(params.inventory_slots);
+                const put_items = [];
+                for(let [key, item] of new_simple) {
+                    let old_item = old_simple.get(key);
+                    if(!old_item) {
+                        put_items.push(item);
+                    }
+                }
+                for(let item of put_items) {
+                    player.onPutInventoryItems({block_id: item.id});
                 }
             }
-            for(let item of put_items) {
-                player.onPutInventoryItems({block_id: item.id});
-            }
-        }
-        //
-        if(equal) {
             // update chest slots
             chest.extra_data.slots = new_chest_slots;
             chest.extra_data.can_destroy = !new_chest_slots || Object.entries(new_chest_slots).length == 0;
@@ -87,8 +87,8 @@ export class ChestManager {
     }
 
     // Send block item without slots
-    async sendItem(pos, chest) {
-        let chunk_addr = getChunkAddr(pos);
+    async sendItem(block_pos, chest) {
+        let chunk_addr = getChunkAddr(block_pos);
         let chunk = this.world.chunks.get(chunk_addr);
         if(chunk) {
             const item = {
@@ -98,10 +98,35 @@ export class ChestManager {
             };
             const packets = [{
                 name: ServerClient.CMD_BLOCK_SET,
-                data: {pos: pos, item: item}
+                data: {pos: block_pos, item: item}
             }];
             chunk.sendAll(packets, []);
         }
+    }
+
+    //
+    sendContentToPlayers(players, block_pos) {
+        let tblock = this.world.getBlock(block_pos);
+        if(!tblock || tblock.id < 0) {
+            return false;
+        }
+        if(!tblock.extra_data || !tblock.extra_data.slots) {
+            return false;
+        }
+        const chest = {
+            pos:            tblock.posworld,
+            slots:          tblock.extra_data.slots,
+            can_destroy:    tblock.extra_data.can_destroy,
+            state:          tblock.extra_data.state
+        };
+        for(let player of players) {
+            let packets = [{
+                name: ServerClient.CMD_CHEST_CONTENT,
+                data: chest
+            }];
+            player.sendPackets(packets);
+        }
+        return true;
     }
 
     sendChestToPlayers(pos, except_player_ids) {
@@ -119,27 +144,6 @@ export class ChestManager {
             }
             this.sendContentToPlayers(players, pos);
         }
-    }
-
-    //
-    sendContentToPlayers(players, pos) {
-        let block = this.world.getBlock(pos);
-        if(!block) {
-            return false;
-        }
-        const chest = {
-            pos:            block.posworld,
-            slots:          block.extra_data.slots,
-            can_destroy:    block.extra_data.can_destroy,
-        }
-        for(let player of players) {
-            let packets = [{
-                name: ServerClient.CMD_CHEST_CONTENT,
-                data: chest
-            }];
-            player.sendPackets(packets);
-        }
-        return true;
     }
 
     async generateTreasureChest(player, pos) {

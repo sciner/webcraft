@@ -65,14 +65,22 @@ export class HUD {
             draw: function() {
                 let cl = 0;
                 let nc = 45;
+                let player_chunk_loaded = false;
+                const player_chunk_addr = Game.player?.chunkAddr;
+                // const chunk_render_dist = Game.player?.player?.state?.chunk_render_dist || 0;
                 if(Game.world && Game.world.chunkManager) {
                     for(let chunk of Game.world.chunkManager.chunks) {
                         if(chunk.inited) {
                             cl++;
+                            if(player_chunk_addr) {
+                                if(player_chunk_addr.equal(chunk.addr)) {
+                                    player_chunk_loaded = !!chunk.lightTex;
+                                }
+                            }
                         }
                     }
                 }
-                this.loading = cl < nc;
+                this.loading = cl < nc || !player_chunk_loaded;
                 if(!this.loading) {
                     return false;
                 }
@@ -103,7 +111,7 @@ export class HUD {
                 } else if(cl == 0) {
                     txt = 'CONNECTING TO SERVER...';
                 } else {
-                    txt = 'GENERATE PLANET ... ' + Math.round(cl / nc * 100) + '%';
+                    txt = 'GENERATE PLANET ... ' + Math.round(Math.min(cl / nc * 100, 100 - (player_chunk_loaded ? 0 : 1))) + '%';
                 }
                 //
                 let x = w / 2;

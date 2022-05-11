@@ -248,10 +248,7 @@ export class ServerPlayer extends Player {
 
                 // Request chest content
                 case ServerClient.CMD_LOAD_CHEST: {
-                    const res = await this.world.chests.sendContentToPlayers([this], cmd.data.pos);
-                    if(!res) {
-                        throw `Chest ${cmd.data.entity_id} not found`;
-                    }
+                    this.world.chest_load_queue.add(this, cmd.data);
                     break;
                 }
             
