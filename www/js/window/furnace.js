@@ -58,16 +58,16 @@ export default class FurnaceWindow extends BaseChestWindow {
                 );
                 // 2. arrow
                 const arrow = {x: 704, y: 56, width: 96, height: 68, tox: 158 * this.zoom, toy: 69 * this.zoom};
-                let sub_width = Math.floor(arrow.width * this.state.result_percent);
+                let arrow_width = Math.floor(arrow.width * this.state.result_percent);
                 ctx.drawImage(
                     this.style.background.image,
                     arrow.x,
                     arrow.y,
-                    arrow.width - sub_width,
+                    arrow_width,
                     arrow.height,
                     x + arrow.tox,
                     y + arrow.toy,
-                    arrow.width - sub_width,
+                    arrow_width,
                     arrow.height
                 );
             }

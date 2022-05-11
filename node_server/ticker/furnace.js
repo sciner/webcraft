@@ -7,6 +7,7 @@ export default class Ticker {
 
     //
     static async func(world, chunk, v) {
+        const max_ticks = 50;
         const tblock = v.tblock;
         // const ticking = v.ticking;
         const extra_data = tblock.extra_data;
@@ -22,8 +23,7 @@ export default class Ticker {
         let is_update = false;
         if(!('fuel_time' in state)) {
             state.fuel_time = 0;
-        }
-        if(!('result_percent' in state)) {
+            state.result_ticks = 0;
             state.result_percent = 0;
         }
         if(state.fuel_time == 0) {
@@ -43,22 +43,21 @@ export default class Ticker {
             }
         }
         // cook
+        let coocked = false;
+        let fuel_used = false;
+        let product_slot = extra_data.slots[0];
         if(state.fuel_time > 0) {
-            let coocked = false;
-            let product_slot = extra_data.slots[0];
             let result_slot = extra_data.slots[2];
             if(product_slot && product_slot.count > 0) {
                 const product_mat = BLOCK.fromId(product_slot.id);
-                let fuel_used = false;
                 // check if ore
                 if(product_mat.coocked_item) {
                     const add_count = product_mat.coocked_item.count;
                     const coocked_mat = BLOCK.fromName(product_mat.coocked_item.name); 
                     // compare ore result id and result slot mat id
                     if(!result_slot || result_slot.id == coocked_mat.id) {
-                        const max_ticks = 40;
-                        const tick = (v.ticks % max_ticks) == 0;
-                        state.result_percent = 1 - (v.ticks % max_ticks) / max_ticks;
+                        state.result_ticks++;
+                        const tick = state.result_ticks % max_ticks == 0;
                         if(!result_slot) {
                             if(tick) {
                                 extra_data.slots[2] = {
@@ -76,29 +75,35 @@ export default class Ticker {
                             return updated_blocks;
                         }
                         fuel_used = true;
-                        // is_update = (v.ticks % 10) == 0;
                         is_update = ((state.fuel_time - 1) % 2) == 0;
                     }
                 }
-                if(fuel_used) {
-                    state.fuel_time--;
-                    // console.log('* furnace fuel--');
-                }
             }
-            // списание переработанного ресурса
-            if(coocked) {
-                product_slot.count--;
-                if(product_slot.count == 0) {
-                    delete(extra_data.slots[0]);
-                }
-                is_update = true;
-                console.log(`* furnace coocked!`);
+        }
+        if(fuel_used) {
+            state.fuel_time--;
+            // console.log('* furnace fuel--');
+        } else {
+            let elapsed = state.result_ticks % max_ticks;
+            if(elapsed > 0) {
+                state.result_ticks--;
+                is_update = state.result_ticks % 2 == 0;
             }
-            // если что-то обновилось, то шлём это игрокам
-            if(is_update) {
-                updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
-                world.chests.sendChestToPlayers(v.pos.clone(), []);
+        }
+        state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
+        // списание переработанного ресурса
+        if(coocked) {
+            product_slot.count--;
+            if(product_slot.count == 0) {
+                delete(extra_data.slots[0]);
             }
+            is_update = true;
+            console.log(`* furnace coocked!`);
+        }
+        // если что-то обновилось, то шлём это игрокам
+        if(is_update) {
+            updated_blocks.push({pos: v.pos.clone(), item: tblock.convertToDBItem(), action_id: ServerClient.BLOCK_ACTION_MODIFY});
+            world.chests.sendChestToPlayers(v.pos.clone(), []);
         }
         return updated_blocks;
     }
