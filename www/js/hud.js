@@ -74,7 +74,7 @@ export class HUD {
                             cl++;
                             if(player_chunk_addr) {
                                 if(player_chunk_addr.equal(chunk.addr)) {
-                                    player_chunk_loaded = !!chunk.lightTex;
+                                    player_chunk_loaded = true; // !!chunk.lightTex;
                                 }
                             }
                         }

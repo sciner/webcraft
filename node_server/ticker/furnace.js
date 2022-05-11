@@ -92,7 +92,8 @@ export default class Ticker {
         }
         state.result_percent = (state.result_ticks % max_ticks) / max_ticks;
         const prev_id = tblock.id;
-        tblock.id = ((state.result_ticks % max_ticks) > 0 || coocked) ? 62 : 61;
+        // tblock.id = ((state.result_ticks % max_ticks) > 0 || coocked) ? 62 : 61;
+        tblock.id = state.fuel_time > 0 ? 62 : 61;
         if(!is_update) {
             is_update = tblock.id != prev_id;
         }
