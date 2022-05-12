@@ -447,7 +447,8 @@ let gameCtrl = async function($scope, $timeout) {
             title:  '',
             seed:   '',
             generator: {
-                id: null
+                id: null,
+                options: null
             }
         },
         reset: function() {
@@ -457,19 +458,81 @@ let gameCtrl = async function($scope, $timeout) {
         generators: {
             index: 0,
             list: [
-                {id: 'biome2', title: 'Стандартный'},
+                {id: 'biome2', title: 'Стандартный', options: {
+                    mobs: {
+                        title: 'Generate mobs',
+                        type: 'select',
+                        options: [
+                            {value: true, title: 'Yes'},
+                            {value: false, title: 'No'}
+                        ]
+                    }
+                }},
                 {id: 'city', title: 'Город'},
                 {id: 'city2', title: 'Город 2'},
                 {id: 'flat', title: 'Плоский мир'},
                 {id: 'test_trees', title: 'Тестовые деревья'},
                 {id: 'mine', title: 'Заброшенная шахта'}
             ],
-            next: function() {
-                this.index = (this.index + 1) % this.list.length;
-                $scope.newgame.form.generator.id = this.getCurrent().id;
-            },
             getCurrent: function() {
                 return this.list[this.index];
+            },
+            next: function() {
+                this.index = (this.index + 1) % this.list.length;
+                this.select(this.getCurrent().id);
+            },
+            toggleSelect: function(key) {
+                const form = $scope.newgame.form;
+                if(!form.generator.options) {
+                    return null;
+                }
+                const value = form.generator.options[key];
+                const op = this.getCurrent().options[key];
+                let next_index = 0;
+                for(let i in op.options) {
+                    const option = op.options[i];
+                    if(value == option.value) {
+                        next_index = parseInt(i) + 1;
+                    }
+                }
+                form.generator.options[key] = op.options[next_index % op.options.length].value;
+            },
+            getSelectTitle: function(key) {
+                const form = $scope.newgame.form;
+                if(!form.generator.options) {
+                    return null;
+                }
+                const value = form.generator.options[key];
+                const op = this.getCurrent().options[key];
+                for(let option of op.options) {
+                    if(option.value == value) {
+                        return option.title;
+                    }
+                }
+                return value;
+            },
+            select: function(id) {
+                $scope.newgame.form.generator.id = id;
+                const form = $scope.newgame.form;
+                this.getCurrent().options_form = form.generator.options = this.getCurrent().options_form || {};
+                const options = this.getCurrent().options;
+                if(options) {
+                    for(let k in options) {
+                        const op = options[k];
+                        let value = null;
+                        switch(op.type) {
+                            case 'select': {
+                                value = op.options[0].value;
+                                break;
+                            }
+                            default: {
+                                console.error('Invalid generator option type');
+                                break;
+                            }
+                        }
+                        form.generator.options[k] = value;
+                    }
+                }
             }
         },
         submit: function() {
@@ -487,7 +550,7 @@ let gameCtrl = async function($scope, $timeout) {
             });
         },
         open: function() {
-            this.form.generator.id = this.generators.list[0].id;
+            this.generators.select(this.generators.list[0].id);
             $scope.current_window.show('newgame');
             this.form.seed = $scope.App.GenerateSeed(Helpers.getRandomInt(1000000, 4000000000));
         },

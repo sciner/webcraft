@@ -444,18 +444,6 @@ export class Renderer {
         this.env.setBrightness(value);
     }
 
-    // toggleNight...
-    toggleNight() {
-        globalThis.f9 = !globalThis.f9;
-        console.log(globalThis.f9);
-        /*
-        if(this.env.brightness == 1) {
-            this.setBrightness(0);
-        } else {
-            this.setBrightness(1);
-        }*/
-    }
-
     update(delta, args) {
 
         this.frame++;

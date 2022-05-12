@@ -314,14 +314,6 @@ export class GameClass {
                         return true;
                         break;
                     }
-                    // F9 (toggleNight | Under rain)
-                    case KEY.F9: {
-                        if(!e.down) {
-                            this.render.toggleNight();
-                        }
-                        return true;
-                        break;
-                    }
                     // F10 (toggleUpdateChunks)
                     case KEY.F10: {
                         if(!e.down) {

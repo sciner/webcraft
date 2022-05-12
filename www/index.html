@@ -267,6 +267,12 @@
                     <button class="btn" ng-click="newgame.generators.next()">
                         <span>Тип мира: {{newgame.generators.getCurrent().title}}</span>
                     </button>
+                    <!-- Options -->
+                    <div ng-repeat="(key, option) in newgame.generators.getCurrent().options">
+                        <button ng-if="option.type == 'select'" ng-click="newgame.generators.toggleSelect(key)" class="btn">
+                            <span>{{option.title}}: {{newgame.generators.getSelectTitle(key)}}</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="btn-bar">
                     <button class="btn btn-main" ng-click="newgame.submit()" ng-class="{disabled: !newgame.form.title.trim()}">

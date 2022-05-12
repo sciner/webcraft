@@ -93,7 +93,7 @@ export class ServerWorld {
                 }
             }
         };
-        //
+        // Queue for packets
         this.packets_queue = {
             list: new Map(),
             add: function(user_ids, packets) {
@@ -787,6 +787,17 @@ export class ServerWorld {
                 cp.chunk.sendAll(cp.packets, []);
             }
         }
+    }
+
+    // Return generator options
+    getGeneratorOptions(key, default_value) {
+        const generator_options = this.info.generator.options;
+        if(generator_options) {
+            if(key in generator_options) {
+                return generator_options.mobs;
+            }
+        }
+        return default_value;
     }
 
 }
