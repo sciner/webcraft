@@ -25,28 +25,26 @@ export default class MineGenerator2 extends Default_Terrain_Generator {
         }
         
         this.mine.fillBlocks(chunk);
-        
-        let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
-        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
+
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+            code: 'Flat'
+        }};
 
         let addr = chunk.addr;
         let size = chunk.size;
 
         return {
-            chunk: {
-                id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-                blocks: {},
-                seed:   chunk.seed,
-                addr:   addr,
-                size:   size,
-                coord:  addr.mul(size),
-            },
+            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
+            blocks: {},
+            seed:   chunk.seed,
+            addr:   addr,
+            size:   size,
+            coord:  addr.mul(size),
+            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
             options: {
                 WATER_LINE: 63, // Ватер-линия
-            },
-            info: {
-                cells: cells
             }
         };
+
     }
 }

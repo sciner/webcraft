@@ -10,6 +10,7 @@ await BLOCK.init({
 //
 await import('../../js/terrain_generator/biomes.js').then(module => {
     globalThis.BIOMES = module.BIOMES;
+    globalThis.TREES = module.TREES;
 });
 //
 import {noise} from "../../js/terrain_generator/default.js";

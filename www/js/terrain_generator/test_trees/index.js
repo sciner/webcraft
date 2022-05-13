@@ -2,6 +2,7 @@ import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z} from "../../chunk.js";
 import {Color, Vector} from '../../helpers.js';
 import { Default_Terrain_Generator, alea } from '../default.js';
 import {BLOCK} from '../../blocks.js';
+import {TREES} from '../../terrain_generator/biomes.js';
 
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
@@ -27,6 +28,10 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
         //
         const tree_height = {min: 5, max: 8};
+        const tree_types = Object.keys(TREES);
+        const tree_type_index = Math.floor(aleaRandom.double() * tree_types.length);
+        const tree_type_key = tree_types[tree_type_index];
+        const tree_type = TREES[tree_type_key];
 
         if(chunk.addr.y == 0) {
             for(let x = 0; x < chunk.size.x; x++) {
@@ -40,12 +45,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             this.plantTree(
                 {
                     // рандомная высота дерева
-                    height: Math.round(aleaRandom.double() * (tree_height.max - tree_height.min) + tree_height.min),
-                    type: {
-                        trunk: BLOCK.OAK_TRUNK.id,
-                        leaves: BLOCK.OAK_LEAVES.id,
-                        style: 'test_tree'
-                    },
+                    height: Math.round(aleaRandom.double() * (tree_type.height.max - tree_type.height.min) + tree_type.height.min),
+                    type: tree_type
                 },
                 chunk,
                 // XYZ позиция в чанке
@@ -53,26 +54,23 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
             );
         }
 
-        let cell = {biome: {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), code: 'Flat'}};
-        let cells = Array(chunk.size.x).fill(null).map(el => Array(chunk.size.z).fill(cell));
+        const cell = {dirt_color: new Color(850 / 1024, 930 / 1024, 0, 0), biome: {
+            code: 'Flat'
+        }};
 
         let addr = chunk.addr;
         let size = chunk.size;
 
         return {
-            chunk: {
-                id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
-                blocks: {},
-                seed:   chunk.seed,
-                addr:   addr,
-                size:   size,
-                coord:  addr.mul(size),
-            },
+            id:     [addr.x, addr.y, addr.z, size.x, size.y, size.z].join('_'),
+            blocks: {},
+            seed:   chunk.seed,
+            addr:   addr,
+            size:   size,
+            coord:  addr.mul(size),
+            cells:  Array(chunk.size.x * chunk.size.z).fill(cell),
             options: {
                 WATER_LINE: 63, // Ватер-линия
-            },
-            info: {
-                cells: cells
             }
         };
 
