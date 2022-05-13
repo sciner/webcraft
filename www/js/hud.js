@@ -346,12 +346,16 @@ export class HUD {
         }
         
         // Draw tech info
-        const drawTechInfo = false;
+        const drawTechInfo = true;
         if(drawTechInfo) {
             this.text += '\nPackets: ' + Game.world.server.stat.out_packets.total + '/' + Game.world.server.stat.in_packets.total; // + '(' + Game.world.server.stat.in_packets.physical + ')';
             if(Game.render) {
                 this.text += '\nParticles: ' + Particles_Effects.current_count;
                 this.text += '\nDrawcalls: ' + Game.render.renderBackend.stat.drawcalls;
+
+                if (Game.render.renderBackend.stat.multidrawcalls) {
+                    this.text += ' + ' + Game.render.renderBackend.stat.multidrawcalls + '(multi)';
+                }
             }
         }
 

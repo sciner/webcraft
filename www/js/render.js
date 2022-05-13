@@ -78,14 +78,13 @@ export class Renderer {
         });
 
         this.inHandOverlay = null;
-
     }
 
     /**
      * Request animation frame
      * This method depend of mode which we runs
      * for XR raf will be provided from session
-     * @param {(time, ...args) => void} callback 
+     * @param {(time, ...args) => void} callback
      * @returns {number}
      */
     requestAnimationFrame(callback) {
@@ -209,7 +208,7 @@ export class Renderer {
         const extruded = [];
         const regular = Array.from(all_blocks.values()).map((block, i) => {
             let draw_style = block.inventory_style
-                ? block.inventory_style 
+                ? block.inventory_style
                 : block.style;
             if('inventory' in block) {
                 draw_style = block.inventory.style;
@@ -255,7 +254,7 @@ export class Renderer {
         mat4.rotateZ(matrix, matrix, Math.PI + Math.PI / 4);
         //
         camera.set(new Vector(0, 0, -2), new Vector(0, 0, 0));
-        // larg for valid render results 
+        // larg for valid render results
         gu.fogColor = [0, 0, 0, 0];
         gu.fogDensity = 100;
         gu.chunkBlockDist = 100;
@@ -269,7 +268,7 @@ export class Renderer {
 
         camera.use(gu, true);
         gu.update();
-        
+
         this.renderBackend.beginPass({
             target
         });
@@ -361,7 +360,7 @@ export class Renderer {
                 );
 
                 ctx.globalCompositeOperation = 'source-over';
- 
+
                 if (tint) {
                     tmpContext.globalCompositeOperation = 'source-over';
                     if(material.mask_color) {
@@ -413,7 +412,7 @@ export class Renderer {
 
             Resources.inventory.image = data;
         });
-        
+
         this.renderBackend.endPass();
 
         // disable
@@ -426,7 +425,7 @@ export class Renderer {
      * Makes the renderer start tracking a new world and set up the chunk structure.
      * world - The world object to operate on.
      * chunkSize - X, Y and Z dimensions of each chunk, doesn't have to fit exactly inside the world.
-     * @param {World} world 
+     * @param {World} world
      */
     setWorld(world) {
         this.world = world;
@@ -438,7 +437,7 @@ export class Renderer {
 
     /**
      * @deprecated use a this.env.setBrightness
-     * @param {number} value 
+     * @param {number} value
      */
     setBrightness(value) {
         this.env.setBrightness(value);
@@ -473,7 +472,7 @@ export class Renderer {
         if(player.pos.y < 0 && this.world.info.generator.id !== 'flat') {
             nightshift = 1 - Math.min(-player.pos.y / NIGHT_SHIFT_RANGE, 1);
         }
-  
+
         if(player.eyes_in_water) {
             if(player.eyes_in_water.is_water) {
                 preset = PRESET_NAMES.WATER;
@@ -499,9 +498,25 @@ export class Renderer {
             this.clouds = this.createClouds(pos);
         }
 
+        const cm = this.world.chunkManager;
         //
-        this.world.chunkManager.rendered_chunks.fact = 0;
-        this.world.chunkManager.prepareRenderList(this);
+        cm.rendered_chunks.fact = 0;
+        cm.prepareRenderList(this);
+
+        // TODO: move to batcher
+        cm.chunkDataTexture.getTexture(renderBackend).bind(3);
+        const lp = cm.lightPool;
+
+        // webgl bind all texture-3d-s
+        if (lp) {
+            // renderBackend._emptyTex3D.bind(8);
+            for (let i = 1; i < lp.boundTextures.length; i++) {
+                const tex = lp.boundTextures[i] || renderBackend._emptyTex3D;
+                if (tex) {
+                    tex.bind(6 + i);
+                }
+            }
+        }
 
         if (this.player.currentInventoryItem) {
             const block = BLOCK.BLOCK_BY_ID.get(this.player.currentInventoryItem.id);
@@ -522,6 +537,7 @@ export class Renderer {
         const { renderBackend, camera, player } = this;
         const { globalUniforms } = renderBackend;
 
+        renderBackend.stat.multidrawcalls = 0;
         renderBackend.stat.drawcalls = 0;
         renderBackend.stat.drawquads = 0;
         this.defaultShader.texture = this._base_texture;
@@ -550,6 +566,7 @@ export class Renderer {
                 // 2. Draw chunks
                 this.world.chunkManager.draw(this, rp, transparent);
             }
+            renderBackend.batch.flush();
             if(!transparent) {
                 let shader = this.defaultShader;
                 // @todo Тут не должно быть этой проверки, но без нее зачастую падает, видимо текстура не успевает в какой-то момент прогрузиться
@@ -681,7 +698,7 @@ export class Renderer {
         if(this.world.drop_items.list.size < 1) {
             return;
         }
-        const {renderBackend, defaultShader} = this;     
+        const {renderBackend, defaultShader} = this;
         defaultShader.bind();
         for(let [id, drop_item] of this.world.drop_items.list) {
             drop_item.draw(this, delta);
@@ -781,12 +798,12 @@ export class Renderer {
             let zmul = Mth.sin(f1 * Math.PI) * f2 * 3.0;
             let xmul = Math.abs(Mth.cos(f1 * Math.PI - 0.2) * f2) * 5.0;
             let m = Math.PI / 180;
-        
+
             if (!forDrop) {
-                
+
                 mat4.multiply(viewMatrix, viewMatrix, mat4.fromZRotation([], zmul * m));
                 mat4.multiply(viewMatrix, viewMatrix, mat4.fromXRotation([], xmul * m));
-                
+
                 mat4.translate(viewMatrix, viewMatrix, [
                     Mth.sin(f1 * Math.PI) * f2 * 0.5,
                     0.0,

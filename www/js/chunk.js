@@ -84,6 +84,10 @@ export class Chunk {
             this.coord.y + this.size.y,
             this.coord.z + this.size.z
         );
+
+        this._dataTextureOffset = 0;
+        this._dataTexture = null;
+        this._dataTextureDirty = false;
     }
 
     // onBlocksGenerated ... Webworker callback method
@@ -173,9 +177,36 @@ export class Chunk {
                 filter: 'linear',
                 data: this.lightData
             })
+            this._dataTextureDirty = true;
         }
 
         return this.lightTex;
+    }
+
+    getDataTextureOffset() {
+        if (!this._dataTexture) {
+            const cm = this.getChunkManager();
+            cm.chunkDataTexture.add(this);
+        }
+
+        return this._dataTextureOffset;
+    }
+
+    prepareRender(render) {
+        if (!render) {
+            return;
+        }
+        //TODO: if dist < 100?
+        this.getLightTexture(render);
+
+        if (!this._dataTexture) {
+            const cm = this.getChunkManager();
+            cm.chunkDataTexture.add(this);
+        }
+
+        if (this._dataTextureDirty) {
+            this._dataTexture.writeChunkData(this);
+        }
     }
 
     drawBufferVertices(render, resource_pack, group, mat, vertices) {
@@ -185,18 +216,24 @@ export class Chunk {
             texMat = mat.getSubMat(resource_pack.getTexture(v.texture_id).texture);
             resource_pack.materials.set(key, texMat);
         }
+        mat = texMat;
         let dist = 0; // Game.player.lerpPos.distance(this.coord);
+        render.batch.setObjectDrawer(render.chunk);
         if(this.lightData && dist < 100) {
+            // in case light of chunk is SPECIAL
             this.getLightTexture(render);
-            let mat = this.lightMats.get(key);
-            if (!mat) {
-                mat = texMat.getLightMat(this.lightTex);
-                this.lightMats.set(key, mat);
+            if (this.lightTex) {
+                const base = this.lightTex.baseTexture || this.lightTex;
+                if (base._poolLocation <= 0) {
+                    mat = this.lightMats.get(key);
+                    if (!mat) {
+                        mat = texMat.getLightMat(this.lightTex);
+                        this.lightMats.set(key, mat);
+                    }
+                }
             }
-            render.drawMesh(v.buffer, mat, this.coord);
-        } else {
-            render.drawMesh(v.buffer, texMat, this.coord);
         }
+        render.chunk.draw(v.buffer, mat, this);
         return true;
     }
 
@@ -214,24 +251,43 @@ export class Chunk {
         this.vertices_length                    = 0;
         // Delete old WebGL buffers
         for(let [key, v] of this.vertices) {
-            if(v.buffer) {
-                v.buffer.destroy();
-            }
-            this.vertices.delete(key);
+            v.buffer.customFlag = true;
         }
+
+        const chunkLightId = this.getDataTextureOffset();
         // Add chunk to renderer
         for(let [key, v] of Object.entries(args.vertices)) {
             if(v.list.length > 0) {
                 let temp = key.split('/');
                 this.vertices_length  += v.list.length / GeometryTerrain.strideFloats;
-                v.buffer              = new GeometryTerrain(v.list);
+                let lastBuffer = this.vertices.get(key);
+                if (lastBuffer) { lastBuffer = lastBuffer.buffer }
                 v.resource_pack_id    = temp[0];
                 v.material_group      = temp[1];
                 v.texture_id          = temp[2];
                 v.key                 = key;
+                v.buffer              = chunkManager.bufferPool.alloc({
+                    lastBuffer,
+                    vertices: v.list,
+                    chunkId: chunkLightId
+                });
+                if (lastBuffer && v.buffer !== lastBuffer) {
+                    lastBuffer.destroy();
+                }
+                v.buffer.customFlag = false;
                 this.vertices.set(key, v);
                 delete(v.list);
             }
+        }
+        let oldKeys = [];
+        for (let [key, v] of this.vertices) {
+            if (v.customFlag) {
+                v.destroy();
+                oldKeys.push(key);
+            }
+        }
+        for (let i = 0; i< oldKeys.length; i++) {
+            this.vertices.delete(oldKeys);
         }
         if(this.vertices_length == 0) {
             // @todo
@@ -269,7 +325,10 @@ export class Chunk {
         }
         this.buildVerticesInProgress = true;
         // run webworker method
-        this.getChunkManager().postWorkerMessage(['buildVertices', {keys: [this.key], addrs: [this.addr]}]);
+        this.getChunkManager().postWorkerMessage(['buildVertices', {
+            keys: [this.key],
+            addrs: [this.addr],
+            offsets: [this.getDataTextureOffset()]}]);
         return true;
     }
 

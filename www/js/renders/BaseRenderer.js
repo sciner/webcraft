@@ -1,5 +1,6 @@
 import {Color, Vector} from '../helpers.js';
 import glMatrix from "../../vendors/gl-matrix-3.3.min.js";
+import {BatchSystem} from "./batch/BatchSystem.js";
 
 const {mat4} = glMatrix;
 
@@ -160,6 +161,10 @@ export class BaseBuffer {
         this.dirty = false;
     }
 
+    multiUpdate(updates) {
+
+    }
+
     bind() {
 
     }
@@ -202,7 +207,7 @@ export class BaseTexture {
         this.id = BaseRenderer.ID++;
         this.usage = 0;
 
-        if (source) {
+        if (source && !source.byteLength) {
             this.width = Array.isArray(source) ? source[0].width : source.width;
             this.height = Array.isArray(source) ? source[0].height : source.height;
         }
@@ -356,7 +361,6 @@ export class BaseTerrainShader extends BaseShader {
 
     updatePos(pos, modelMatrix) {
     }
-
 }
 
 export class CubeMesh {
@@ -509,7 +513,8 @@ export default class BaseRenderer {
         };
         this.stat = {
             drawcalls: 0,
-            drawquads: 0
+            drawquads: 0,
+            multidrawcalls: 0,
         };
 
         /**
@@ -553,6 +558,9 @@ export default class BaseRenderer {
          */
         this.global_defines = Object.assign({}, options.defines || {});
 
+        this.batch = new BatchSystem(this);
+
+        this.multidrawExt = null;
     }
 
     get kind() {
@@ -724,7 +732,7 @@ export default class BaseRenderer {
      * Execute render and close current pass
      */
     endPass() {
-
+        this.batch.flush();
     }
 
     /**
@@ -793,8 +801,17 @@ export default class BaseRenderer {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 
-    drawMesh(geom, material) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
+    drawMesh(geom, material, a_pos = null, modelMatrix = null, draw_type) {
+        if (geom.size === 0) {
+            return;
+        }
+        this.batch.setObjectDrawer(this.mesh);
+        this.mesh.draw(geom, material, a_pos, modelMatrix, draw_type);
+    }
+
+    drawCube(cube) {
+        this.batch.setObjectDrawer(this.cube);
+        this.cube.draw(cube);
     }
 
     createShader(options) {
@@ -815,14 +832,6 @@ export default class BaseRenderer {
     }
 
     createCubeMap(options) {
-        throw new TypeError('Illegal invocation, must be overridden by subclass');
-    }
-
-    /**
-     *
-     * @param {CubeMesh} cube
-     */
-    drawCube(cube) {
         throw new TypeError('Illegal invocation, must be overridden by subclass');
     }
 }

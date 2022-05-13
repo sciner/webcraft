@@ -25,6 +25,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
 
         this.u_add_pos          = gl.getUniformLocation(program, 'u_add_pos');
         this.u_camera_pos       = gl.getUniformLocation(program, 'u_camera_pos');
+        this.u_camera_posi      = gl.getUniformLocation(program, 'u_camera_posi');
         this.u_fogColor         = gl.getUniformLocation(program, 'u_fogColor');
         // this.u_fogDensity       = gl.getUniformLocation(program, 'u_fogDensity');
         this.u_fogAddColor      = gl.getUniformLocation(program, 'u_fogAddColor');
@@ -40,6 +41,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_localLightRadius = gl.getUniformLocation(program, 'u_localLightRadius');
         this.u_time             = gl.getUniformLocation(program, 'u_time');
 
+        this.a_chunkId          = gl.getAttribLocation(program, 'a_chunkId');
         this.a_position         = gl.getAttribLocation(program, 'a_position');
         this.a_axisX            = gl.getAttribLocation(program, 'a_axisX');
         this.a_axisY            = gl.getAttribLocation(program, 'a_axisY');
@@ -56,6 +58,7 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         this.u_lightSize        = gl.getUniformLocation(program, 'u_lightSize');
         this.u_opaqueThreshold  = gl.getUniformLocation(program, 'u_opaqueThreshold');
         this.u_tintColor        = gl.getUniformLocation(program, 'u_tintColor');
+        this.u_chunkDataSampler = gl.getUniformLocation(program, 'u_chunkDataSampler');
         // this.u_chunkLocalPos    = gl.getUniformLocation(program, 'u_chunkLocalPos');
 
         this.hasModelMatrix = false;
@@ -96,7 +99,8 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         const gu = this.globalUniforms;
         if (this.globalID === -1) {
             gl.uniform1i(this.u_texture, 4);
-            gl.uniform1i(this.u_lightTex, 5);
+            gl.uniform1i(this.u_chunkDataSampler, 3);
+            gl.uniform1iv(this.u_lightTex, [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
         }
         if (this.globalID === gu.updateID) {
             return;
@@ -112,7 +116,11 @@ export class WebGLTerrainShader extends BaseTerrainShader {
         gl.uniform4fv(this.u_fogAddColor, gu.fogAddColor);
         gl.uniform1f(this.u_brightness, gu.brightness);
         gl.uniform1f(this.u_chunkBlockDist, gu.chunkBlockDist);
-        gl.uniform3f(this.u_camera_pos, gu.camPos.x, gu.camPos.z, gu.camPos.y);
+
+        const cx = gu.camPos.x, cy = gu.camPos.y, cz = gu.camPos.z;
+        const px = Math.floor(cx), py = Math.floor(cy), pz = Math.floor(cz);
+        gl.uniform3f(this.u_camera_pos, cx - px, cz - pz, cy - py);
+        gl.uniform3i(this.u_camera_posi, px, pz, py);
 
         gl.uniform2fv(this.u_resolution, gu.resolution);
         gl.uniform1f(this.u_TestLightOn, gu.testLightOn);
@@ -146,5 +154,4 @@ export class WebGLTerrainShader extends BaseTerrainShader {
             this.hasModelMatrix = false;
         }
     }
-
 }
