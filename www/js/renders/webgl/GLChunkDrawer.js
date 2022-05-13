@@ -11,10 +11,6 @@ export class GLChunkDrawer extends ChunkDrawer {
         this.count = 0;
     }
 
-    start() {
-        this.currentMat = null;
-    }
-
     resize(sz) {
         this.size = sz;
         const oldCnt = this.counts, oldOff = this.offsets;
@@ -53,7 +49,8 @@ export class GLChunkDrawer extends ChunkDrawer {
             this.flush();
             material.bind();
             geom.bind(material.shader);
-            // material.shader.updatePos(chunk.coord, null);
+            //TODO: find why some chunks are using chunkID = -1, remove this line
+            material.shader.updatePos(chunk.coord, null);
             gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, geom.size);
             // stat
             context.stat.drawquads += geom.size;
