@@ -233,6 +233,11 @@ export class ClusterBase {
 
     // Add NPC
     addNPC(chunk, pos) {
+        // Auto generate mobs
+        const auto_generate_mobs = this.clusterManager.chunkManager.world.getGeneratorOptions('auto_generate_mobs', true);
+        if(!auto_generate_mobs) {
+            return;
+        }
         let rel_pos = pos.sub(chunk.coord);
         if(rel_pos.x < 0 || rel_pos.y < 0 || rel_pos.z < 0 || rel_pos.x >= CHUNK_SIZE_X || rel_pos.y >= CHUNK_SIZE_Y || rel_pos.z >= CHUNK_SIZE_Z) {
             return false;

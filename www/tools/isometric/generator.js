@@ -103,7 +103,7 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     const fake_chunk = {
         chunkManager: {
-            clusterManager: new ClusterManager(seed)
+            clusterManager: new ClusterManager({}, seed)
         }
     };
 

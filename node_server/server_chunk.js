@@ -126,7 +126,7 @@ class MobGenerator {
 
     async generate() {
         // Auto generate mobs
-        const auto_generate_mobs = this.chunk.world.getGeneratorOptions('mobs', true);
+        const auto_generate_mobs = this.chunk.world.getGeneratorOptions('auto_generate_mobs', true);
         if(auto_generate_mobs) {
             // probability 1/10
             const chunk_addr_hash = this.chunk.addr.toHash();

@@ -190,7 +190,7 @@ export class ClusterVilage extends ClusterBase {
                             // if map not smoothed
                             if(!entrance_map.smoothed) {
                                 // generate around maps and smooth current
-                                entrance_map = maps.generateAround(map_addr, true, false)[4];
+                                entrance_map = maps.generateAround(chunk, map_addr, true, false)[4];
                             }
                             const entrance_x    = entrance.x - entrance_map.chunk.coord.x;
                             const entrance_z    = entrance.z - entrance_map.chunk.coord.z;
@@ -248,7 +248,7 @@ export class ClusterVilage extends ClusterBase {
                             // if map not smoothed
                             if(!bi.smoothed) {
                                 // generate around maps and smooth current
-                                bi = maps.generateAround(map_addr, true, false)[4];
+                                bi = maps.generateAround(chunk, map_addr, true, false)[4];
                             }
                             const entrance_x    = vec.x - bi.chunk.coord.x;
                             const entrance_z    = vec.z - bi.chunk.coord.z;

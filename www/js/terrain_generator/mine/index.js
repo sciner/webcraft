@@ -5,8 +5,8 @@ import {BLOCK} from '../../blocks.js';
 
 export default class MineGenerator2 extends Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
-        super();
+    constructor(seed, world_id, options) {
+        super(seed, world_id, options);
         this.setSeed(0);
         this.mine = new MineGenerator(this, new Vector(22, 0, 22), {chance_hal: 0.2});
     }

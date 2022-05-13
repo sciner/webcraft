@@ -62,7 +62,7 @@ async function preLoad () {
 * @param {string} terrain_type
 */
 async function initWorld(
-    terrain_type,
+    generator,
     world_seed,
     world_guid,
     settings,
@@ -80,8 +80,8 @@ async function initWorld(
     await globalThis.BLOCK.init(settings);
     //
     worlds = new WorkerWorldManager();
-    await worlds.InitTerrainGenerators([terrain_type]);
-    globalThis.world = await worlds.add(terrain_type, world_seed, world_guid);
+    await worlds.InitTerrainGenerators([generator.id]);
+    globalThis.world = await worlds.add(generator, world_seed, world_guid);
     // Worker inited
     worker.postMessage(['world_inited', null]);
 }
@@ -97,7 +97,7 @@ async function onMessageFunc(e) {
     if(cmd == 'init') {
         // Init modules
         return await initWorld(
-            args.generator.id,
+            args.generator,
             args.world_seed,
             args.world_guid,
             args.settings,

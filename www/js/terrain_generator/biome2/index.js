@@ -81,8 +81,8 @@ const _intersection             = new Vector(0, 0, 0);
 // Terrain generator class
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
-    constructor(seed, world_id) {
-        super(seed, world_id);
+    constructor(seed, world_id, options) {
+        super(seed, world_id, options);
         this._createBlockAABB = new AABB();
         this._createBlockAABB_second = new AABB();
         this.temp_set_block = null;
@@ -91,7 +91,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
 
     async init() {
         // Настройки
-        this.options                = GENERATOR_OPTIONS;
+        this.options                = {...GENERATOR_OPTIONS, ...this.options};
         this.temp_vec               = new Vector(0, 0, 0);
         this.noise3d                = noise.simplex3;
         //

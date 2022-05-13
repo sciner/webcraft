@@ -5,7 +5,7 @@ import {alea, Default_Terrain_Generator} from "../default.js";
 export default class Terrain_Generator extends Default_Terrain_Generator {
 
     constructor(seed, world_id) {
-        super();
+        super(seed, world_id, options);
         this.setSeed(0);
         // Init palette blocks
         this.blocks1 = [];

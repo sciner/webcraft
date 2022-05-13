@@ -24,7 +24,7 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
-        this.clusterManager = new ClusterManager(world.generator.seed);
+        this.clusterManager = new ClusterManager(this, world.generator.seed);
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],

@@ -794,7 +794,7 @@ export class ServerWorld {
         const generator_options = this.info.generator.options;
         if(generator_options) {
             if(key in generator_options) {
-                return generator_options.mobs;
+                return generator_options[key];
             }
         }
         return default_value;

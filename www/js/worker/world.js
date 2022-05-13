@@ -22,13 +22,15 @@ export class WorkerWorldManager {
         await Promise.all(all);
     }
 
-    async add(generator_code, seed, world_id) {
-        let key = generator_code + '/' + seed;
+    async add(g, seed, world_id) {
+        const generator_options = g?.options || {};
+        const generator_id = g.id;
+        let key = generator_id + '/' + seed;
         if(this.list.has(key)) {
             return this.list.get(key);
         }
-        let generator = this.terrainGenerators.get(generator_code);
-        generator = new generator(seed, world_id);
+        let generator = this.terrainGenerators.get(generator_id);
+        generator = new generator(seed, world_id, generator_options);
         await generator.init();
         let world = new WorkerWorld(generator);
         this.list.set(key, world);
@@ -80,6 +82,18 @@ export class WorkerWorld {
 
     getChunk(addr) {
         return this.chunks.get(addr) || null;
+    }
+
+    // Return generator options
+    getGeneratorOptions(key, default_value) {
+        const generator_options = this.generator.options;
+        debugger
+        if(generator_options) {
+            if(key in generator_options) {
+                return generator_options[key];
+            }
+        }
+        return default_value;
     }
 
 }

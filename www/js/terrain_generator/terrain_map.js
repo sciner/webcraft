@@ -138,6 +138,9 @@ export class TerrainMapManager {
         }
         // Result map
         const map                   = new TerrainMap(chunk, GENERATOR_OPTIONS);
+        if(!real_chunk.chunkManager) {
+            debugger
+        }
         const cluster               = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {

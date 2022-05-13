@@ -459,7 +459,7 @@ let gameCtrl = async function($scope, $timeout) {
             index: 0,
             list: [
                 {id: 'biome2', title: 'Стандартный', options: {
-                    mobs: {
+                    auto_generate_mobs: {
                         title: 'Generate mobs',
                         type: 'select',
                         options: [

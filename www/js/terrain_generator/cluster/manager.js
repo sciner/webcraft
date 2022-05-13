@@ -9,8 +9,9 @@ import {impl as alea} from '../../../vendors/alea.js';
 export class ClusterManager {
 
     // All clusters
-    constructor(seed) {
+    constructor(chunkManager, seed) {
         this.seed = seed;
+        this.chunkManager = chunkManager;
         this.all = new VectorCollector();
     }
 
