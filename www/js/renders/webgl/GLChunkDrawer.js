@@ -4,22 +4,35 @@ export class GLChunkDrawer extends ChunkDrawer {
     constructor(context) {
         super(context);
 
-        this.arrZeros = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        this.arrSixes = [6, 6, 6, 6, 6, 6, 6, 6, 6, 6];
+        this.resize(32);
         this.curMat = null;
         this.curBase = null;
         this.elements = [];
         this.count = 0;
-        this.offsets = [];
-        this.counts = [];
     }
 
     start() {
         this.currentMat = null;
     }
 
+    resize(sz) {
+        this.size = sz;
+        const oldCnt = this.counts, oldOff = this.offsets;
+        this.arrZeros = new Int32Array(sz);
+        this.arrSixes = new Int32Array(sz);
+        this.counts = new Int32Array(sz);
+        this.offsets = new Uint32Array(sz);
+        for (let i = 0; i < sz; i++) {
+            this.arrSixes[i] = 6;
+        }
+        if (oldCnt) {
+            this.counts.set(oldCnt, 0);
+            this.offsets.set(oldOff, 0);
+        }
+    }
+
     draw(geom, material, chunk) {
-        const { context } = this;
+        const {context} = this;
         if (geom.size === 0 || geom.glCounts && geom.glCounts.length === 0) {
             return;
         }
@@ -52,13 +65,19 @@ export class GLChunkDrawer extends ChunkDrawer {
         if (this.count === 0) {
             return;
         }
-        const {elements, context, offsets, counts} = this;
+        let {elements, context, offsets, counts} = this;
         let sz = 0;
-        for (let i = 0; i < this.count; i ++) {
+        for (let i = 0; i < this.count; i++) {
             const geom = elements[i];
             elements[i] = null;
 
-            for (let j=0;j<geom.glOffsets.length;j++) {
+            const len = geom.glOffsets.length;
+            if (this.size < sz + len) {
+                this.resize((sz + len) * 2);
+                offsets = this.offsets;
+                counts = this.counts;
+            }
+            for (let j = 0; j < len; j++) {
                 offsets[sz] = geom.glOffsets[j];
                 counts[sz] = geom.glCounts[j];
                 sz++;
@@ -72,10 +91,6 @@ export class GLChunkDrawer extends ChunkDrawer {
 
         const md = context.multidrawExt, gl = context.gl;
         const {arrZeros, arrSixes} = this;
-        while (arrZeros.length < sz) {
-            arrZeros.push(0);
-            arrSixes.push(6);
-        }
         md.multiDrawArraysInstancedBaseInstanceWEBGL(
             gl.TRIANGLES,
             arrZeros, 0,
