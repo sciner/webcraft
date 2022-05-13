@@ -8,6 +8,11 @@ export default class Ticker {
 
     //
     static async func(world, chunk, v) {
+        const auto_generate_mobs = world.getGeneratorOptions('mobs', true);
+        if(!auto_generate_mobs) {
+            return [];
+        }
+
         const tblock = v.tblock;
         const ticking = v.ticking;
         const extra_data = tblock.extra_data;
