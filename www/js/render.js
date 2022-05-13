@@ -499,9 +499,6 @@ export class Renderer {
         }
 
         const cm = this.world.chunkManager;
-        //
-        cm.rendered_chunks.fact = 0;
-        cm.prepareRenderList(this);
 
         // TODO: move to batcher
         cm.chunkDataTexture.getTexture(renderBackend).bind(3);

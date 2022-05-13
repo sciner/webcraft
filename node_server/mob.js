@@ -2,9 +2,6 @@ import {getChunkAddr} from "../www/js/chunk.js";
 import {Brains} from "./fsm/index.js";
 import { Vector } from "../www/js/helpers.js";
 
-// import {BLOCK} from "../www/js/blocks.js";
-// import {MobModel} from "../www/js/mob_model.js";
-
 await Brains.init();
 
 export class Mob {

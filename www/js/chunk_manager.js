@@ -371,6 +371,7 @@ export class ChunkManager {
             let chunk = new Chunk(state.addr, state.modify_list, this);
             chunk.load_time = performance.now() - prepare.start_time;
             this.chunks.add(state.addr, chunk);
+            this.chunk_added = true;
             this.rendered_chunks.total++;
             this.chunks_prepare.delete(state.addr);
             this.poses_need_update = true;
@@ -417,9 +418,8 @@ export class ChunkManager {
 
         // Load chunks
         let can_add = CHUNKS_ADD_PER_UPDATE;
-
         let j = 0;
-        for (let i=0;i<this.nearby.added.length;i++) {
+        for (let i = 0; i < this.nearby.added.length; i++) {
             const item = this.nearby.added[i];
             if (!this.nearby.deleted.has(item.addr)) {
                 if (can_add > 0) {
@@ -443,6 +443,26 @@ export class ChunkManager {
         }
 
         // Build dirty chunks
+        this.buildDirtyChunks();
+
+        // Prepare render list
+        this.rendered_chunks.fact = 0;
+        this.prepareRenderList(Game.render);
+
+        this.timer60fps += delta;
+        if(this.timer60fps >= 16.666) {
+            this.timer60fps = 0;
+            this.torches.update(player_pos);
+        }
+
+    }
+
+    // Build dirty chunks
+    buildDirtyChunks() {
+        if(!this.chunk_added) {
+            return;
+        }
+        this.chunk_added = false;
         for(let chunk of this.chunks) {
             if(chunk.dirty && !chunk.buildVerticesInProgress) {
                 let ok = true;
@@ -465,13 +485,6 @@ export class ChunkManager {
                 }
             }
         }
-
-        this.timer60fps += delta;
-        if(this.timer60fps >= 16.666) {
-            this.timer60fps = 0;
-            this.torches.update(player_pos);
-        }
-
     }
 
     // Возвращает блок по абслютным координатам
