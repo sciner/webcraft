@@ -55,10 +55,6 @@ async function preLoad () {
         globalThis.BLOCK = module.BLOCK;
         // return BLOCK.init(settings);
     });
-    // load module
-    await import('./terrain_generator/cluster/manager.js').then(module => {
-        globalThis.ClusterManager = module.ClusterManager;
-    });
 
     console.debug('[ChunkWorker] Preloaded, load time:', performance.now() - start);
 }
@@ -221,7 +217,7 @@ async function onMessageFunc(e) {
         case 'createMaps': {
             /*let pn = performance.now();
             const addr = new Vector(args.addr);
-            const maps = world.generator.maps.generateAround(addr, false, false, 8);
+            const maps = world.generator.maps.generateAround(chunk, addr, false, false, 8);
             const CELLS_COUNT = 256;
             const CELL_LENGTH = 4;
             const resp = new Float32Array(new Array((CELLS_COUNT * CELL_LENGTH + CELL_LENGTH) * maps.length));

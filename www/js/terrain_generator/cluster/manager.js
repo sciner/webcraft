@@ -9,25 +9,28 @@ import {impl as alea} from '../../../vendors/alea.js';
 export class ClusterManager {
 
     // All clusters
-    static all = new VectorCollector();
+    constructor(seed) {
+        this.seed = seed;
+        this.all = new VectorCollector();
+    }
 
     // Return cluster
-    static getForCoord(coord) {
+    getForCoord(coord) {
         const addr = new Vector(coord.x, coord.y, coord.z).divScalarVec(CLUSTER_SIZE).flooredSelf();
-        let cluster = ClusterManager.all.get(addr);
+        let cluster = this.all.get(addr);
         if(cluster) {
             return cluster;
         }
-        const rand = new alea(addr.toHash());
+        const rand = new alea(this.seed + '_' + addr.toHash());
         const r = rand.double();
         if(r <= .1) {
-            cluster = new ClusterPyramid(addr.clone());
+            cluster = new ClusterPyramid(this, addr.clone());
         } else if(r < .6) {
-            cluster = new ClusterEmpty(addr.clone());
+            cluster = new ClusterEmpty(this, addr.clone());
         } else {
-            cluster = new ClusterVilage(addr.clone());
+            cluster = new ClusterVilage(this, addr.clone());
         }
-        ClusterManager.all.set(addr, cluster);
+        this.all.set(addr, cluster);
         return cluster;
     }
 

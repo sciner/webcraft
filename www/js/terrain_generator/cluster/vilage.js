@@ -24,8 +24,8 @@ const getAheadMove = (dir) => {
 //
 export class ClusterVilage extends ClusterBase {
 
-    constructor(addr) {
-        super(addr);
+    constructor(clusterManager, addr) {
+        super(clusterManager, addr);
         this.buildings              = new VectorCollector();
         this.randoms                = new alea(this.id);
         this.use_road_as_gangway    = this.randoms.double() <= USE_ROAD_AS_GANGWAY;
@@ -215,7 +215,7 @@ export class ClusterVilage extends ClusterBase {
                 }
             }
         }
-        super.fillBlocks(chunk, map);
+        super.fillBlocks(maps, chunk, map);
         //
         this.timers.fill_blocks += performance.now() - t;
         this.timers.fill_blocks_count++;

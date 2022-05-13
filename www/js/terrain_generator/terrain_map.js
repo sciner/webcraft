@@ -54,7 +54,7 @@ export class TerrainMapManager {
     }
 
     // Generate maps
-    generateAround(chunk_addr, smooth, vegetation) {
+    generateAround(chunk, chunk_addr, smooth, vegetation) {
         const rad                   = vegetation ? 2 : 1;
         const noisefn               = this.noisefn;
         let maps                    = [];
@@ -64,7 +64,7 @@ export class TerrainMapManager {
                 TerrainMapManager._temp_vec3.set(x, -chunk_addr.y, z);
                 temp_chunk.addr.copyFrom(chunk_addr).addSelf(TerrainMapManager._temp_vec3);
                 temp_chunk.coord.copyFrom(temp_chunk.addr).multiplyVecSelf(size);
-                const map = this.generateMap(temp_chunk, noisefn);
+                const map = this.generateMap(chunk, temp_chunk, noisefn);
                 if(Math.abs(x) < 2 && Math.abs(z) < 2) {
                     maps.push(map);
                 }
@@ -84,7 +84,7 @@ export class TerrainMapManager {
                     if(smooth && !map.smoothed) {
                         map.smooth(this);
                     }
-                    map.generateVegetation(this.seed);
+                    map.generateVegetation(chunk, this.seed);
                 }
             }
         }
@@ -131,14 +131,14 @@ export class TerrainMapManager {
     }
 
     // generateMap
-    generateMap(chunk, noisefn) {
+    generateMap(real_chunk, chunk, noisefn) {
         let cached = this.maps_cache.get(chunk.addr);
         if(cached) {
             return cached;
         }
         // Result map
         const map                   = new TerrainMap(chunk, GENERATOR_OPTIONS);
-        const cluster               = ClusterManager.getForCoord(chunk.coord);
+        const cluster               = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
         for(let x = 0; x < chunk.size.x; x++) {
             for(let z = 0; z < chunk.size.z; z++) {
                 let px = chunk.coord.x + x;
@@ -315,7 +315,7 @@ export class TerrainMap {
     }
 
     // Генерация растительности
-    generateVegetation(seed) {
+    generateVegetation(real_chunk, seed) {
         let chunk                   = this.chunk;
         this.vegetable_generated    = true;
         this.trees                  = [];
@@ -376,7 +376,7 @@ export class TerrainMap {
                 return false;
             }
             aleaRandom = new alea(seed + '_' + chunk.coord.toString());
-            cluster = ClusterManager.getForCoord(chunk.coord);
+            cluster = real_chunk.chunkManager.clusterManager.getForCoord(chunk.coord);
             return true;
         };
         //

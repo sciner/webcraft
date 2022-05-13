@@ -23,19 +23,21 @@ export class ClusterPoint {
 
 }
 
+// ClusterBase
 export class ClusterBase {
 
     // constructor
-    constructor(addr) {
-        this.addr        = addr;
-        this.coord       = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
-        this.size        = CLUSTER_SIZE.clone();
-        this.id          = addr.toHash();
-        this.randoms     = new alea(`villages_${this.id}`);
-        this.is_empty    = this.addr.y != 0 || this.randoms.double() > 1/4;
-        this.mask        = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
-        this.max_height  = null;
-        this.max_dist    = NEAR_MASK_MAX_DIST;
+    constructor(clusterManager, addr) {
+        this.clusterManager = clusterManager;
+        this.addr           = addr;
+        this.coord          = addr.clone().multiplyVecSelf(CLUSTER_SIZE);
+        this.size           = CLUSTER_SIZE.clone();
+        this.id             = this.clusterManager.seed + '_' + addr.toHash();
+        this.randoms        = new alea(`villages_${this.id}`);
+        this.is_empty       = this.addr.y != 0 || this.randoms.double() > 1/4;
+        this.mask           = new Array(CLUSTER_SIZE.x * CLUSTER_SIZE.z);
+        this.max_height     = null;
+        this.max_dist       = NEAR_MASK_MAX_DIST;
     }
 
     // Set block
@@ -166,7 +168,7 @@ export class ClusterBase {
     }
 
     // Fill chunk blocks
-    fillBlocks(chunk, map) {
+    fillBlocks(maps, chunk, map) {
         if(this.is_empty) {
             return false;
         }

@@ -1,8 +1,9 @@
-import {BLOCK, POWER_NO, WATER_BLOCKS_ID} from "../blocks.js";
-import {Color, Vector, VectorCollector} from "../helpers.js";
+import {BLOCK, POWER_NO} from "../blocks.js";
+import {Vector, VectorCollector} from "../helpers.js";
 import {TypedBlocks, TBlock} from "../typed_blocks.js";
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from "../chunk.js";
 import { AABB } from '../core/AABB.js';
+import { ClusterManager } from '../terrain_generator/cluster/manager.js';
 
 // Constants
 const DIRTY_REBUILD_RAD = 1;
@@ -23,6 +24,7 @@ export class ChunkManager {
 
     constructor(world) {
         this.world = world;
+        this.clusterManager = new ClusterManager(world.generator.seed);
         this.DUMMY = {
             id: BLOCK.DUMMY.id,
             shapes: [],
@@ -55,6 +57,7 @@ export class ChunkManager {
 
 }
 
+// BlockNeighbours
 export class BlockNeighbours {
 
     constructor() {
@@ -73,7 +76,7 @@ export class BlockNeighbours {
 export class Chunk {
 
     constructor(chunkManager, args) {
-        this.chunkManager = chunkManager;
+        this.chunkManager   = chunkManager;
         Object.assign(this, args);
         this.addr           = new Vector(this.addr.x, this.addr.y, this.addr.z);
         this.size           = new Vector(CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z);
@@ -81,7 +84,7 @@ export class Chunk {
         this.id             = this.addr.toHash();
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new VectorCollector();
-        this.cluster        = ClusterManager.getForCoord(this.coord);
+        this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
         this.aabb           = new AABB();
         this.aabb.set(
             this.coord.x,

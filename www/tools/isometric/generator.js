@@ -1,6 +1,7 @@
 import {BLOCK} from '../../js/blocks.js';
 import {CHUNK_SIZE_X, CHUNK_SIZE_Y, CHUNK_SIZE_Z, getChunkAddr} from '../../js/chunk.js';
 import { Color, Vector, VectorCollector } from '../../js/helpers.js';
+import { ClusterManager } from '../../js/terrain_generator/cluster/manager.js';
 await BLOCK.init({
     texture_pack: 'base',
     json_url: '../../data/block_style.json',
@@ -38,7 +39,7 @@ await Resources.loadImage('resource_packs/base/textures/default.png', false).the
                 );
                 biome.color_rgba = color;
                 biome.color = color.toHex();
-                console.log(biome.code, biome.color)
+                // console.log(biome.code, biome.color);
             }
         }
     }
@@ -76,11 +77,14 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
 
     //
     const CHUNK_RENDER_DIST = 4;
-    const seed              = 'undefined';
+    const demo_map_seed     = 'undefined';
+    const seed              = demo_map_seed | 0; // allow only numeric values
     const world_id          = 'demo';
+
+    noise.seed(seed);
+
     const noisefn           = noise.perlin2;
     const Tmaps             = new TerrainMapManager(seed, world_id, noisefn);
-
     const pn                = performance.now();
     const SZ                = CHUNK_RENDER_DIST * 2 + 3;
 
@@ -96,10 +100,16 @@ await import('../../js/terrain_generator/terrain_map.js').then(module => {
     let maps_generated = 0;
     let imgData = ctx.getImageData(0, 0, SZ * CHUNK_SIZE_X, SZ * CHUNK_SIZE_Z);
 
+    const fake_chunk = {
+        chunkManager: {
+            clusterManager: new ClusterManager(seed)
+        }
+    };
+
     for(let sx = 0; sx < SZ; sx++) {
         for(let sz = 0; sz < SZ; sz++) {
             const chunk_addr = chunk_addr_start.add(new Vector(sx, 0, sz));
-            let maps = Tmaps.generateAround(chunk_addr, true, true);
+            let maps = Tmaps.generateAround(fake_chunk, chunk_addr, true, true);
             let map = maps[4];
             all_maps.set(chunk_addr, map);
             maps_generated++;

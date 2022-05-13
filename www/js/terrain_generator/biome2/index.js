@@ -105,58 +105,63 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         this.maps                   = new TerrainMapManager(this.seed, this.world_id, this.noisefn);
         // Map specific
         if(this.world_id == 'demo') {
-            // Костыль для NodeJS
-            let root_dir = '../www';
-            if(typeof process === 'undefined') {
-                root_dir = '';
-            }
-            await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
-                let palette = {
-                    81: BLOCK.CONCRETE,
-                    97: BLOCK.OAK_PLANK,
-                    121: BLOCK.STONE_BRICK,
-                    122: BLOCK.SMOOTH_STONE,
-                    123: BLOCK.GRAVEL,
-                };
-                vox_templates.monu10 = {chunk: chunks[0], palette: palette};
-            });
-            await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
-                let palette = {
-                    93: BLOCK.GRAVEL,
-                    106: BLOCK.STONE_BRICK,
-                    114: BLOCK.CONCRETE,
-                    72: BLOCK.GRASS_DIRT,
-                    235: BLOCK.SNOW_BLOCK,
-                    54: BLOCK.SPRUCE_PLANK,
-                    150: BLOCK.OAK_LEAVES,
-                    139: BLOCK.OAK_LEAVES,
-                    58: BLOCK.OAK_TRUNK,
-                    107: BLOCK.GRASS_DIRT,
-                    144: BLOCK.OAK_LEAVES,
-                    143: BLOCK.GRASS_DIRT,
-                    253: BLOCK.OAK_PLANK,
-                    238: BLOCK.SPRUCE_PLANK,
-                    79: BLOCK.BIRCH_PLANK,
-                    184: BLOCK.GRASS_DIRT,
-                    174: BLOCK.GRASS_DIRT,
-                };
-                vox_templates.castle = {chunk: chunks[0], palette: palette};
-            });
-            this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
-            this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
-            this.islands.push({
-                pos: new Vector(2865, 118, 2787),
-                rad: 15
-            });
-            this.islands.push({
-                pos: new Vector(2920, 1024, 2787),
-                rad: 20
-            });
-            this.extruders.push({
-                pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
-                rad: this.islands[0].rad
-            });
+            await this.generateDemoMapStructures();
         }
+    }
+
+    // Map specific
+    async generateDemoMapStructures() {
+        // Костыль для NodeJS
+        let root_dir = '../www';
+        if(typeof process === 'undefined') {
+            root_dir = '';
+        }
+        await Vox_Loader.load(root_dir + '/data/vox/monu10.vox', (chunks) => {
+            let palette = {
+                81: BLOCK.CONCRETE,
+                97: BLOCK.OAK_PLANK,
+                121: BLOCK.STONE_BRICK,
+                122: BLOCK.SMOOTH_STONE,
+                123: BLOCK.GRAVEL,
+            };
+            vox_templates.monu10 = {chunk: chunks[0], palette: palette};
+        });
+        await Vox_Loader.load(root_dir + '/data/vox/castle.vox', (chunks) => {
+            let palette = {
+                93: BLOCK.GRAVEL,
+                106: BLOCK.STONE_BRICK,
+                114: BLOCK.CONCRETE,
+                72: BLOCK.GRASS_DIRT,
+                235: BLOCK.SNOW_BLOCK,
+                54: BLOCK.SPRUCE_PLANK,
+                150: BLOCK.OAK_LEAVES,
+                139: BLOCK.OAK_LEAVES,
+                58: BLOCK.OAK_TRUNK,
+                107: BLOCK.GRASS_DIRT,
+                144: BLOCK.OAK_LEAVES,
+                143: BLOCK.GRASS_DIRT,
+                253: BLOCK.OAK_PLANK,
+                238: BLOCK.SPRUCE_PLANK,
+                79: BLOCK.BIRCH_PLANK,
+                184: BLOCK.GRASS_DIRT,
+                174: BLOCK.GRASS_DIRT,
+            };
+            vox_templates.castle = {chunk: chunks[0], palette: palette};
+        });
+        this.voxel_buildings.push(new Vox_Mesh(vox_templates.monu10, new Vector(2840, 58, 2830), new Vector(0, 0, 0), null, null));
+        this.voxel_buildings.push(new Vox_Mesh(vox_templates.castle, new Vector(2980, 70, 2640), new Vector(0, 0, 0), null, new Vector(0, 1, 0)));
+        this.islands.push({
+            pos: new Vector(2865, 118, 2787),
+            rad: 15
+        });
+        this.islands.push({
+            pos: new Vector(2920, 1024, 2787),
+            rad: 20
+        });
+        this.extruders.push({
+            pos: this.islands[0].pos.sub(new Vector(0, 50, 0)),
+            rad: this.islands[0].rad
+        });
     }
 
     // getOreBlockID...
@@ -204,14 +209,15 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
         const size_x                    = chunk.size.x;
         const size_y                    = chunk.size.y;
         const size_z                    = chunk.size.z;
-        let randoms_index               = 0;
 
         // Maps
-        let maps                        = this.maps.generateAround(chunk.addr, true, true);
+        let maps                        = this.maps.generateAround(chunk, chunk.addr, true, true);
         let map                         = maps[4];
-        let cluster                     = chunk.cluster; // ClusterManager.getForCoord(chunk.coord);
+        let cluster                     = chunk.cluster;
         this.caveManager.addSpiral(chunk.addr);
 
+        // Ores
+        // @todo для каждого блока в чанке считается расстояние до каждого источника руды
         this.ores = [];
         const margin = 3;
         let count = Math.round(aleaRandom.double() * 15);
@@ -223,8 +229,8 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 margin + (CHUNK_SIZE_X - margin*2) * aleaRandom.double(),
                 margin + (CHUNK_SIZE_Y - margin*2) * aleaRandom.double(),
                 margin + (CHUNK_SIZE_Z - margin*2) * aleaRandom.double()
-            ).flooredSelf().addSelf(chunk_coord)
-            this.ores.push(ore)
+            ).flooredSelf().addSelf(chunk_coord);
+            this.ores.push(ore);
         }
 
         //
