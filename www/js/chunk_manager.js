@@ -244,11 +244,11 @@ export class ChunkManager {
 
     prepareRenderList(render) {
         if (!this.bufferPool) {
-            // if (render.renderBackend.multidrawExt) {
-            //     this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
-            // } else {
+            if (render.renderBackend.multidrawExt) {
+                 this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+            } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
-            // }
+            }
         }
 
         const chunk_render_dist = Game.player.state.chunk_render_dist;

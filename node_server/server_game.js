@@ -7,6 +7,15 @@ import {ServerWorld} from "./server_world.js";
 import {ServerPlayer} from "./server_player.js";
 import {GameLog} from './game_log.js';
 
+class FakeHUD {
+    add() {}
+    refresh() {}
+}
+
+class FakeHotbar {
+    setInventory(items) {}
+}
+
 export class ServerGame {
 
     constructor() {
@@ -15,13 +24,8 @@ export class ServerGame {
         // Worlds
         this.worlds = new Map();
         // Placeholder
-        this.hud = {
-            add: () => {},
-            refresh: () => {}
-        };
-        this.hotbar = {
-            setInventory: (items) => {}
-        }
+        this.hud = new FakeHUD();
+        this.hotbar = new FakeHotbar();
     }
 
     // startWS...
