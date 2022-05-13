@@ -36,7 +36,10 @@ export class ChunkManager {
         this.world                  = world;
         this.chunks                 = new VectorCollector();
         this.chunks_prepare         = new VectorCollector();
+
         this.lightPool = null;
+        this.lightTexFormat         = 'rgba8unorm';
+
         this.bufferPool = null;
         this.chunkDataTexture = new ChunkDataTexture();
 
@@ -234,13 +237,18 @@ export class ChunkManager {
     refresh() {
     }
 
+    setLightTexFormat(texFormat) {
+        this.lightTexFormat = texFormat;
+        this.lightWorker.postMessage(['initRender', { texFormat }]);
+    }
+
     prepareRenderList(render) {
         if (!this.bufferPool) {
-            if (render.renderBackend.multidrawExt) {
-                this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
-            } else {
+            // if (render.renderBackend.multidrawExt) {
+            //     this.bufferPool = new Basic05GeometryPool(render.renderBackend, {});
+            // } else {
                 this.bufferPool = new TrivialGeometryPool(render.renderBackend);
-            }
+            // }
         }
 
         const chunk_render_dist = Game.player.state.chunk_render_dist;

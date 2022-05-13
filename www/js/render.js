@@ -135,6 +135,10 @@ export class Renderer {
             blocks: Resources.shaderBlocks
         });
 
+        if (renderBackend.gl) {
+            world.chunkManager.setLightTexFormat('rgb565unorm');
+        }
+
         this.env.init(this);
 
         this.videoCardInfoCache = null;

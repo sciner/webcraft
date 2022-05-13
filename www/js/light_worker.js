@@ -653,7 +653,7 @@ class Chunk {
 
     init() {
         this.resultLen = this.outerLen;
-        this.lightResult = new Uint8Array(this.resultLen * 4 * 2);
+        this.lightResult = null;
     }
 
     fillOuter() {
@@ -829,17 +829,25 @@ class Chunk {
         }
     }
 
-    calcResult() {
+    calcResult(is565) {
         const {lightChunk} = this;
         const {outerSize, uint8View, strideBytes} = lightChunk;
-        const result = this.lightResult;
+        const elemPerBlock = is565 ? 1 : 4;
+        if (!this.lightResult) {
+            if (is565) {
+                this.lightResult = new Uint16Array(this.resultLen * 2 * elemPerBlock);
+            } else {
+                this.lightResult = new Uint8Array(this.resultLen * 2 * elemPerBlock);
+            }
+        }
 
+        const result = this.lightResult;
         const sy = outerSize.x * outerSize.z * strideBytes, sx = strideBytes, sz = outerSize.x * strideBytes;
 
         //TODO: separate multiple cycle
 
         // Light + AO
-        let ind = 0, ind2 = lightChunk.outerLen * 4;
+        let ind = 0, ind2 = lightChunk.outerLen * elemPerBlock;
         for (let y = 0; y < outerSize.y; y++)
             for (let z = 0; z < outerSize.z; z++)
                 for (let x = 0; x < outerSize.x; x++) {
@@ -856,6 +864,25 @@ class Chunk {
                             Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
                     A = adjustLight(A);
 
+                    // add day light
+                    coord = coord0 - boundX - boundY - boundZ + OFFSET_DAY + OFFSET_LIGHT;
+                    let A2 = Math.max(Math.max(Math.max(uint8View[coord], uint8View[coord + sx])),
+                        Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
+                        Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
+                            Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
+                    A2 = adjustLight(A2);
+
+                    if (is565) {
+                        result[ind++] = (Math.round(A * 31.0 / 15.0) << 11)
+                            + (Math.round(31.0 - (A2 * 31.0 / 15.0)) << 0);
+                    } else {
+                        result[ind++] = Math.round(A * 255.0 / 15.0);
+                        result[ind++] = 0;
+                        result[ind++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+                        result[ind++] = 0;
+                    }
+
+
                     coord = coord0 - boundY - boundZ + OFFSET_AO;
                     const R1 = uint8View[coord] + uint8View[coord + sy + sz];
                     const R2 = uint8View[coord + sy] + uint8View[coord + sz];
@@ -871,23 +898,16 @@ class Chunk {
                     const B2 = uint8View[coord + sx] + uint8View[coord + sz];
                     const B = B1 + B2 + (B1 === 0 && B2 === 2) + (B1 === 2 && B2 === 0);
 
-                    result[ind++] = Math.round(R * 255.0 / 4.0);
-                    result[ind++] = Math.round(G * 255.0 / 4.0);
-                    result[ind++] = Math.round(B * 255.0 / 4.0);
-                    result[ind++] = Math.round(A * 255.0 / 15.0);
-
-                    // add day light
-                    coord = coord0 - boundX - boundY - boundZ + OFFSET_DAY + OFFSET_LIGHT;
-                    let A2 = Math.max(Math.max(Math.max(uint8View[coord], uint8View[coord + sx])),
-                        Math.max(uint8View[coord + sy], uint8View[coord + sx + sy]),
-                        Math.max(Math.max(uint8View[coord + sz], uint8View[coord + sx + sz]),
-                            Math.max(uint8View[coord + sy + sz], uint8View[coord + sx + sy + sz])));
-                    A2 = adjustLight(A2);
-
-                    result[ind2++] = 0;
-                    result[ind2++] = 0;
-                    result[ind2++] = 0;
-                    result[ind2++] = Math.round(255.0 - (A2 * 255.0 / 15.0));
+                    if (is565) {
+                        result[ind2++] = (Math.round(R * 31.0 / 4.0) << 11)
+                            + (Math.round(G * 63.0 / 4.0) << 5)
+                            + (Math.round(B * 31.0 / 4.0) << 0);
+                    } else {
+                        result[ind2++] = Math.round(R * 255.0 / 4.0);
+                        result[ind2++] = Math.round(G * 255.0 / 4.0);
+                        result[ind2++] = Math.round(B * 255.0 / 4.0);
+                        result[ind2++] = 0;
+                    }
                 }
     }
 }
@@ -928,7 +948,7 @@ function run() {
             return;
         chunk.sentID = chunk.lastID;
 
-        chunk.calcResult();
+        chunk.calcResult(renderFormat === 'rgb565unorm');
 
         worker.postMessage(['light_generated', {
             addr: chunk.addr,
@@ -942,6 +962,8 @@ function run() {
         }
     })
 }
+
+let renderFormat = 'rgba8';
 
 const msgQueue = [];
 
@@ -1038,6 +1060,10 @@ async function onMessageFunc(e) {
     //do stuff
 
     switch (cmd) {
+        case 'initRender': {
+            renderFormat = args.texFormat;
+            break;
+        }
         case 'createChunk': {
             if (!world.chunkManager.getChunk(args.addr)) {
                 let chunk = new Chunk(args);
