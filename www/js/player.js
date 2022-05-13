@@ -376,7 +376,7 @@ export class Player {
         if(actions.reset_target_event) {
             this.pickAt.clearEvent();
         }
-        if(actions.clone_block && this.game_mode.canBlockClone()) {
+        if(actions.clone_block /* && this.game_mode.canBlockClone()*/) {
             this.world.server.CloneBlock(e.pos);
         }
         if(actions.blocks && actions.blocks.list) {

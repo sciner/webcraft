@@ -1,6 +1,7 @@
 // Modules
 let Vector              = null;
 let Helpers             = null;
+let getChunkAddr        = null;
 let VectorCollector     = null;
 // let BLOCK               = null;
 let WorkerWorldManager  = null;
@@ -49,6 +50,10 @@ async function preLoad () {
     // load module
     await import('./worker/world.js').then(module => {
         WorkerWorldManager = module.WorkerWorldManager;
+    });
+    // load module
+    await import('./chunk.js').then(module => {
+        getChunkAddr = module.getChunkAddr;
     });
     // load module
     await import('./blocks.js').then(module => {
@@ -175,18 +180,21 @@ async function onMessageFunc(e) {
         }
         case 'setBlock': {
             let chunks = new VectorCollector();
+            let chunk_addr = new Vector(0, 0, 0);
+            const pos_world = new Vector(0, 0, 0);
             for(let m of args) {
                 // 1. Get chunk
-                let chunk = world.getChunk(m.addr);
+                getChunkAddr(m.pos.x, m.pos.y, m.pos.z, chunk_addr);
+                let chunk = world.getChunk(chunk_addr);
                 if(chunk) {
                     // 2. Set block
                     if(m.type) {
-                        chunk.setBlock(m.x, m.y, m.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
+                        chunk.setBlock(m.pos.x, m.pos.y, m.pos.z, m.type, m.is_modify, m.power, m.rotate, null, m.extra_data);
                     }
-                    let pos = new Vector(m.x - chunk.coord.x, m.y - chunk.coord.y, m.z - chunk.coord.z);
+                    pos_world.set(m.pos.x - chunk.coord.x, m.pos.y - chunk.coord.y, m.pos.z - chunk.coord.z)
                     // 3. Clear vertices for block and around near
-                    chunk.setDirtyBlocks(pos);
-                    chunks.set(m.addr, chunk);
+                    chunk.setDirtyBlocks(pos_world);
+                    chunks.set(chunk_addr, chunk);
                 } else {
                     console.error('worker.setBlock: chunk not found at addr: ', m.addr);
                 }

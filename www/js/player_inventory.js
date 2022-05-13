@@ -258,7 +258,7 @@ export class PlayerInventory {
     }
 
     // Клонирование материала в инвентарь
-    cloneMaterial(mat) {
+    cloneMaterial(mat, allow_create_new) {
         if(mat.id < 2 || mat.deprecated) {
             return false;
         }
@@ -269,16 +269,26 @@ export class PlayerInventory {
         mat = BLOCK.convertItemToInventoryItem(mat);
         // Search same material with count < max
         for(let k in Object.keys(this.items)) {
-            if(parseInt(k) >= this.hotbar_count) {
-                break;
-            }
+            k = parseInt(k);
             if(this.items[k]) {
                 let item = this.items[k];
                 if(item.id == mat.id) {
-                    this.select(parseInt(k));
-                    return this.refresh(false);
+                    if(k >= this.hotbar_count) {
+                        // swith with another from inventory
+                        this.items[k] = this.items[this.current.index];
+                        this.items[this.current.index] = item;
+                        this.select(this.current.index);
+                        return this.refresh(false);
+                    } else {
+                        // select if on hotbar
+                        this.select(k);
+                        return this.refresh(false);
+                    }
                 }
             }
+        }
+        if(!allow_create_new) {
+            return false;
         }
         // Create in current cell if this empty
         if(this.current.index < this.hotbar_count) {

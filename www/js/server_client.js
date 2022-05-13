@@ -218,27 +218,31 @@ export class ServerClient {
                     material = BLOCK.fromId(item.id);
                 }
                 //
-                // let tblock_pos = new Vector(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
                 tblock_pos.set(pos.x - chunk.coord.x, pos.y - chunk.coord.y, pos.z - chunk.coord.z);
-                chunk.tblocks.delete(tblock_pos);
-                tblock = chunk.tblocks.get(tblock_pos, tblock);
-                // let tblock = chunk.tblocks.get(tblock_pos);
-                tblock.id = item.id;
+                // const ex_block = chunk.tblocks.get(tblock_pos).convertToDBItem();
+                // console.log(ex_block);
                 const extra_data = ('extra_data' in item) ? item.extra_data : null;
                 const entity_id = ('entity_id' in item) ? item.entity_id : null;
                 const rotate = ('rotate' in item) ? item.rotate : null;
                 const power = ('power' in item) ? item.power : POWER_NO;
-                tblock.extra_data   = extra_data;
-                tblock.entity_id    = entity_id;
-                tblock.rotate       = rotate;
-                tblock.power        = power;
+                chunk.tblocks.delete(tblock_pos);
+                tblock = chunk.tblocks.get(tblock_pos, tblock);
+                // fill properties
+                tblock.id = item.id;
+                if(extra_data) tblock.extra_data = extra_data;
+                if(entity_id) tblock.entity_id = entity_id;
+                if(rotate) tblock.rotate = rotate;
+                if(power) tblock.power = power;
                 //
                 set_block_list.push({
+                    /*
                     key:        chunk_key,
                     addr:       chunk_addr,
                     x:          pos.x,
                     y:          pos.y,
                     z:          pos.z,
+                    */
+                    pos,
                     type:       item,
                     is_modify:  false,
                     power:      power,
@@ -248,14 +252,14 @@ export class ServerClient {
                 //
                 const oldLight = chunk.light_source[tblock.index];
                 const light = chunk.light_source[tblock.index] = material.light_power_number;
-                if (oldLight !== light) {
+                if(oldLight !== light) {
                     // updating light here
                     chunkManager.postLightWorkerMessage(['setBlock', {
                         addr:           chunk.addr,
                         x:              pos.x,
                         y:              pos.y,
                         z:              pos.z,
-                        light_source: light
+                        light_source:   light
                     }]);
                 }
             }

@@ -313,11 +313,6 @@ export class ServerPlayer extends Player {
                 }
 
                 case ServerClient.CMD_BLOCK_CLONE: {
-                    // Check game mode
-                    if(!this.game_mode.getCurrent().block_clone) {
-                        throw 'error_command_not_working_in_this_game_mode';
-                    }
-                    //
                     const pos = new Vector(cmd.data);
                     const chunk_addr = getChunkAddr(pos);
                     let chunk = this.world.chunks.get(chunk_addr);
@@ -325,7 +320,7 @@ export class ServerPlayer extends Player {
                         throw 'error_invalid_block_position';
                     }
                     const block = chunk.getBlock(pos);
-                    this.inventory.cloneMaterial(block.material);
+                    this.inventory.cloneMaterial(block.material, this.game_mode.getCurrent().block_clone);
                     break;
                 }
 

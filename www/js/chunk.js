@@ -411,11 +411,14 @@ export class Chunk {
         if(update_vertices) {
             let set_block_list = [];
             set_block_list.push({
+                /*
                 key:        this.key,
                 addr:       this.addr,
                 x:          x + this.coord.x,
                 y:          y + this.coord.y,
                 z:          z + this.coord.z,
+                */
+                pos:        new Vector(x + this.coord.x, y + this.coord.y, z + this.coord.z),
                 type:       item,
                 is_modify:  is_modify,
                 power:      power,
@@ -451,11 +454,13 @@ export class Chunk {
                 if(updated_chunks.indexOf(key) < 0) {
                     updated_chunks.push(key);
                     set_block_list.push({
-                        key:        key,
+                        /*key:        key,
                         addr:       chunk_addr,
                         x:          pos.x,
                         y:          pos.y,
                         z:          pos.z,
+                        */
+                        pos,
                         type:       null,
                         is_modify:  is_modify,
                         power:      power,
