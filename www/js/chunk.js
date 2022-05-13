@@ -111,7 +111,9 @@ export class Chunk {
     }
 
     onLightGenerated(args) {
-        this.lightData = args.lightmap_buffer ? new Uint8Array(args.lightmap_buffer) : null;
+        const cm = this.getChunkManager();
+        const arrClass = cm.lightTexFormat === 'rgb565unorm' ? Uint16Array: Uint8Array;
+        this.lightData = args.lightmap_buffer ? new arrClass(args.lightmap_buffer) : null;
         if (this.lightTex !== null) {
             this.lightTex.update(this.lightData)
         }
@@ -163,7 +165,7 @@ export class Chunk {
                 defWidth: CHUNK_SIZE_X + 2,
                 defHeight: CHUNK_SIZE_Z + 2,
                 defDepth: (CHUNK_SIZE_Y + 2) * 2,
-                type: 'rgba8unorm',
+                type: cm.lightTexFormat,
                 filter: 'linear',
             });
         }
@@ -173,7 +175,7 @@ export class Chunk {
                 width: this.size.x + 2,
                 height: this.size.z + 2,
                 depth: (this.size.y + 2) * 2,
-                type: 'rgba8unorm',
+                type: cm.lightTexFormat,
                 filter: 'linear',
                 data: this.lightData
             })

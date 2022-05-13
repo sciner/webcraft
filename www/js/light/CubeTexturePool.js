@@ -74,6 +74,7 @@ export class CubeTexturePool {
         this.totalRegions = 0;
         this.maxBoundTextures = maxBoundTextures;
         this.boundTextures = [null];
+        this.bytePerElement = (type === 'rgb565unorm' ? 2 : 4 );
     }
 
     alloc({width, height, depth, type, filter, data}) {
@@ -146,7 +147,7 @@ export class CubeTexturePool {
             )
             newCube.init();
             const base = newCube.baseTexture;
-            this.totalBytes += base.width * base.height * base.depth * 4;
+            this.totalBytes += base.width * base.height * base.depth * this.bytePerElement;
             cur = pools.length;
             pools.push(newCube);
             this.registerLocation(base);

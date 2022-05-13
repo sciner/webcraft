@@ -5,16 +5,20 @@ const TEXTURE_FILTER_GL = {
     'nearest': 'NEAREST'
 }
 
-const FORMATS = {
-    'rgba8unorm': 'RGBA',
-    'u8': 'ALPHA',
-    'u4_4_4_4': 'RGBA',
-}
-
-const TYPES = {
-    'rgba8unorm': 'UNSIGNED_BYTE',
-    'u8': 'UNSIGNED_BYTE',
-    'u4_4_4_4': 'UNSIGNED_SHORT_4_4_4_4',
+const TEXTURE_TYPE_FORMAT = {
+    'rgba8unorm': {
+        format: 'RGBA', type : 'UNSIGNED_BYTE'
+    },
+    'rgb565unorm': {
+        format: 'RGB', internal: 'RGB565', type : 'UNSIGNED_SHORT_5_6_5',
+        arrClass: Uint16Array, bytesPerElement: 2,
+    },
+    'u8': {
+        format: 'ALPHA', type: 'UNSIGNED_BYTE',
+    },
+    'rgba': {
+        format: 'RGBA', type: 'UNSIGNED_BYTE',
+    }
 }
 
 export class WebGLTexture3D extends BaseTexture3D {
@@ -48,19 +52,21 @@ export class WebGLTexture3D extends BaseTexture3D {
         gl.bindTexture(target, this.texture);
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
 
+        const formats = TEXTURE_TYPE_FORMAT[this.type];
+
         if (this.useSubRegions) {
             this.uploadSubs();
         } else {
             if (this.prevLength !== data.length) {
                 this.prevLength = data.length;
-                gl.texImage3D(target, 0, gl[FORMATS[this.type]],
+                gl.texImage3D(target, 0, gl[formats.internal || formats.format],
                     this.width, this.height, this.depth,
-                    0, gl[FORMATS[this.type]], gl[TYPES[this.type]], data);
+                    0, gl[formats.format], gl[formats.type], data);
                 this.updateStyle();
             } else {
                 gl.texSubImage3D(target, 0, 0, 0, 0,
                     this.width, this.height, this.depth,
-                    gl[FORMATS[this.type]], gl[TYPES[this.type]], data);
+                    gl[formats.format], gl[formats.type], data);
             }
         }
         super.upload();
@@ -78,13 +84,16 @@ export class WebGLTexture3D extends BaseTexture3D {
     uploadSubs() {
         const { gl } = this.context;
 
+        const formats = TEXTURE_TYPE_FORMAT[this.type];
+
         const target = gl.TEXTURE_3D;
-        const sz = this.width * this.height * this.depth * 4;
+        const sz = this.width * this.height * this.depth * (formats.bytesPerElement || 4);
         if (this.prevLength !== sz) {
             this.prevLength = sz;
-            gl.texImage3D(target, 0, gl[FORMATS[this.type]],
+            gl.texImage3D(target, 0, gl[formats.internal || formats.format],
                 this.width, this.height, this.depth,
-                0, gl[FORMATS[this.type]], gl[TYPES[this.type]], new Uint8Array(sz));
+                0, gl[formats.format], gl[formats.type],
+                    new (formats.arrClass || Uint8Array)(sz));
             this.updateStyle();
         }
 
@@ -97,7 +106,7 @@ export class WebGLTexture3D extends BaseTexture3D {
             if (!region.isEmpty) {
                 gl.texSubImage3D(target, 0, region.offset.x, region.offset.y, region.offset.z,
                     region.width, region.height, region.depth,
-                    gl[FORMATS[this.type]], gl[TYPES[this.type]], region.data);
+                    gl[formats.format], gl[formats.type], region.data);
             }
         }
         this.regionsToUpdate.length = 0;

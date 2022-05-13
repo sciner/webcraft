@@ -311,72 +311,64 @@
     // global illumination
     vec3 absNormal = abs(v_normal);
     vec3 lightCoord = v_chunk_pos + 0.5 + v_lightOffset.xyz;
-    vec3 aoCoord = v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + v_lightOffset.xyz;
-    vec3 dayCoord = lightCoord + vec3(0.0, 0.0, 0.5 * v_lightOffset.w);
+    vec3 aoCoord = v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + vec3(0.0, 0.0, 0.5 * v_lightOffset.w) + v_lightOffset.xyz;
     //TODO: clamp?
 
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);
-    float caveSample = 0.0;
-    float daySample = 1.0;
-    vec3 aoVector = vec3(0.0);
+    vec2 caveDaySample;
+    vec3 aoVector;
 
     if (v_lightId < 0.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[0], 0));
-        caveSample = texture(u_lightTex[0], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[0], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[0], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[0], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 1.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[1], 0));
-        caveSample = texture(u_lightTex[1], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[1], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[1], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[1], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 2.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[2], 0));
-        caveSample = texture(u_lightTex[2], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[2], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[2], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[2], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 3.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[3], 0));
-        caveSample = texture(u_lightTex[3], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[3], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[3], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[3], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 4.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[4], 0));
-        caveSample = texture(u_lightTex[4], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[4], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[4], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[4], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 5.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[5], 0));
-        caveSample = texture(u_lightTex[5], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[5], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[5], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[5], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 6.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[6], 0));
-        caveSample = texture(u_lightTex[6], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[6], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[6], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[6], aoCoord * texSize).rgb;
         }
     } else if (v_lightId < 7.5) {
         vec3 texSize = vec3(1.0) / vec3(textureSize(u_lightTex[7], 0));
-        caveSample = texture(u_lightTex[7], lightCoord * texSize).a;
-        daySample = 1.0 - texture(u_lightTex[7], dayCoord * texSize).a;
+        caveDaySample = texture(u_lightTex[7], lightCoord * texSize).rb;
         if (v_lightMode > 0.5) {
             aoVector = texture(u_lightTex[7], aoCoord * texSize).rgb;
         }
     }
+    float caveSample = caveDaySample.x;
+    float daySample = 1.0 - caveDaySample.y;
 
     float aoSample = 0.0;
     if (v_lightMode > 0.5) {
