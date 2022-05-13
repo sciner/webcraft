@@ -87,7 +87,6 @@ export class WorkerWorld {
     // Return generator options
     getGeneratorOptions(key, default_value) {
         const generator_options = this.generator.options;
-        debugger
         if(generator_options) {
             if(key in generator_options) {
                 return generator_options[key];
