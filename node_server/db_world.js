@@ -374,6 +374,10 @@ export class DBWorld {
             WHERE m.block_id = 54 AND m.extra_data IS NULL`
         ]});
 
+        migrations.push({version: 42, queries: [
+            `update world_modify set extra_data = '{"can_destroy":true,"slots":{}}' where block_id = 61 and extra_data is null`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
