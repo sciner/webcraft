@@ -193,14 +193,26 @@ export class CraftTableResultSlot extends CraftTableSlot {
             // clear result slot
             this.setItem(null);
             // decrement craft slots
-            for(let slot of this.parent.craft.slots) {
-                let item = slot.getItem();
-                if(item) {
-                    item.count--;
-                    if(item.count == 0) {
-                        slot.setItem(null);
+            while(true) {
+                for(let slot of this.parent.craft.slots) {
+                    let item = slot.getItem();
+                    if(item) {
+                        item.count--;
+                        if(item.count == 0) {
+                            slot.setItem(null);
+                        }
                     }
                 }
+                that.used_recipes.push(recipe_id);
+                that.parent.checkRecipe();
+                let next_item = this.getItem();
+                if(!e.shiftKey || !next_item || next_item.id != dragItem.id) {
+                    break;
+                }
+                if(dragItem.count + next_item.count > dragItem.max_in_stack) {
+                    break;
+                }
+                dragItem.count += next_item.count;
             }
             // set drag item
             e.drag.setItem({
@@ -209,9 +221,6 @@ export class CraftTableResultSlot extends CraftTableSlot {
                 },
                 item: dragItem
             });
-            //
-            that.used_recipes.push(recipe_id);
-            that.parent.checkRecipe();
         }
     
     }

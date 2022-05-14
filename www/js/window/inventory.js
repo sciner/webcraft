@@ -15,11 +15,29 @@ export default class InventoryWindow extends BaseCraftWindow {
         this.recipes = recipes;
         this.inventory = inventory;
 
+        const options = {
+            background: {
+                image: './media/gui/form-inventory.png',
+                image_size_mode: 'sprite',
+                sprite: {
+                    mode: 'stretch',
+                    x: 0,
+                    y: 0,
+                    width: 352 * 2,
+                    height: 332 * 2
+                }
+            }
+        };
+        this.style.background = {...this.style.background, ...options.background};
+
         // Get window by ID
         const ct = this;
         ct.style.background.color = '#00000000';
         ct.style.border.hidden = true;
-        ct.setBackground('./media/gui/form-inventory.png');
+        ct.setBackground(options.background.image);
+
+
+
         ct.hide();
         
         // Craft area
