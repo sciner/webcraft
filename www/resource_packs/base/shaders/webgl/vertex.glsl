@@ -13,6 +13,7 @@ void main() {
     v_uvCenter0 = a_uvCenter;
     v_uvCenter1 = a_uvCenter;
     v_animInterp = 0.0;
+    v_uvSize = a_uvSize;
 
     vec3 axisX = a_axisX;
     vec3 axisY = a_axisY;
@@ -36,10 +37,24 @@ void main() {
     }
 
     if (flagNormalUp == 1) {
-        v_normal = -axisY;
+        v_normalMatrix = mat4(
+            vec4(0.0), 
+            vec4(0.0, 0.0, -1.0, 0.0), 
+            vec4(0.0), 
+            vec4(vec3(0.0), 1.)
+        );
     } else {
-        v_normal = normalize(cross(axisX, axisY));
+        vec3 axisZ = normalize(cross(axisX, axisY));
+        // v_normal = axisZ;
+        v_normalMatrix = mat4(
+            vec4(axisX, 0.0), 
+            vec4(axisY, 0.0), 
+            vec4(axisZ, 0.0), 
+            vec4(vec3(0.0), 1.)
+        );
     }
+
+    v_normal = (v_normalMatrix * vec4(0., .0, 1., 0.)).xyz;
 
     v_normal = normalize((uModelMatrix * vec4(v_normal, 0.0)).xyz);
 

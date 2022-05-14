@@ -52,8 +52,13 @@ export class WebGLMaterial extends BaseMaterial {
 
         const tex = this.texture || this.shader.texture;
         if (WebGLMaterial.texState !== this.texture) {
-            tex.bind(4);
-            WebGLMaterial.texState = this.texture;
+            tex.bind(4); // LOL ?? Why 4
+            WebGLMaterial.texState = tex;
+        }
+        const normal = this.normal || this.shader.normal;
+        if (WebGLMaterial.texNormal !== this.normal && normal) {
+            normal.bind(2); // LOL ?? Why 3
+            WebGLMaterial.texNormal = normal;
         }
         if (!prevMat || prevMat.texture !== this.texture)
         {
@@ -112,16 +117,28 @@ export class WebGLMaterial extends BaseMaterial {
         }
     }
 
-    getSubMat(texture = null) {
+    getSubMat(texture = null, normal = null) {
         // nothing
-        return this.context.createMaterial({texture: texture || this.texture, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
+        return this.context.createMaterial({
+            texture: texture || this.texture,
+            normal: normal || this.normal,
+            shader: this.shader,
+            cullFace: this.cullFace,
+            opaque: this.opaque,
+            ignoreDepth: this.ignoreDepth
+        });
     }
 
     getLightMat(lightTex = null) {
         // nothing
-        return this.context.createMaterial({texture: this.texture, lightTex, shader: this.shader,
-            cullFace: this.cullFace, opaque: this.opaque, ignoreDepth: this.ignoreDepth });
+        return this.context.createMaterial({
+            texture: this.texture,
+            normal: this.normal,
+            lightTex, shader: this.shader,
+            cullFace: this.cullFace,
+            opaque: this.opaque,
+            ignoreDepth: this.ignoreDepth 
+        });
     }
 
     updatePos(addPos, modelMatrix = null) {

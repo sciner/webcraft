@@ -83,7 +83,7 @@ export class BaseResourcePack {
 
     async _processTexture (textureInfo, renderBackend, settings) {
 
-        let image, texture;
+        let image, texture, normalTexture, normalImage;
 
         if('canvas' in textureInfo) {
             const cnv = textureInfo.canvas;
@@ -147,9 +147,21 @@ export class BaseResourcePack {
             );
             image = resp.image;
             texture = resp.texture;
+
+            if (textureInfo.normal) {
+                resp = await this._loadTexture(
+                    this.dir + textureInfo.normal,
+                    settings,
+                    renderBackend    
+                );
+
+                normalImage = resp.image;
+                normalTexture = resp.texture;
+            }
         }
     
         textureInfo.texture = texture;
+        textureInfo.normal = normalTexture;
         textureInfo.width   = image.width;
         textureInfo.height  = image.height;
         textureInfo.texture_n = null;
@@ -232,7 +244,8 @@ export class BaseResourcePack {
         let group = key_arr[1];
         let texture_id = key_arr[2];
         let mat = this.shader.materials[group];
-        texMat = mat.getSubMat(this.getTexture(texture_id).texture);
+        let variant = this.getTexture(texture_id);
+        texMat = mat.getSubMat(variant.texture, variant.normal);
         this.materials.set(key, texMat);
         return texMat;
     }

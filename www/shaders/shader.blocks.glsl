@@ -50,8 +50,11 @@
 #ifdef global_uniforms_frag
     // global uniforms fragment part
     uniform sampler2D u_texture;
+    uniform sampler2D u_normal;
     uniform lowp sampler3D[10] u_lightTex;
     uniform vec3 u_lightSize;
+    
+    uniform mat4 uModelMatrix;
 
     uniform float u_mipmap;
     uniform float u_blockSize;
@@ -103,6 +106,9 @@
     out vec4 v_lightOffset;
     out vec3 v_aoOffset;
 
+    flat out mat4 v_normalMatrix;
+    flat out vec2 v_uvSize;
+
     //--
 #endif
 
@@ -125,6 +131,9 @@
     in float v_useFog;
     in float v_lightId;
     in vec4 v_lightOffset;
+
+    flat in mat4 v_normalMatrix;
+    flat in vec2 v_uvSize;
 
     out vec4 outColor;
 #endif
@@ -254,28 +263,31 @@
 #ifdef sun_light_pass
     // sun light pass
     if (u_SunDir.w < 0.5) {
-        if(v_normal.x != 0.) {
+        if(normal.x != 0.) {
             light = light * .95;
-        } else if(v_normal.y != 0.) {
+        } else if(normal.y != 0.) {
             light = light * .6;
         }
     } else {
         // limit brightness to 0.2
-        light += max(0., dot(v_normal, normalize(u_SunDir.xyz))) * u_brightness;
+        light += max(0., dot(normal, normalize(u_SunDir.xyz))) * u_brightness;
     }
     //--
 #endif
 
 #ifdef local_light_pass
     // local light from hand located object
-    float lightDistance = distance(vec3(0., 0., 1.4), v_world_pos);
+    // wtf? how now?
+    vec3 delta = u_camera_pos - v_world_pos;
+    vec3 dir = normalize(delta);
+    float lightDistance = length(dir);
     float rad = u_localLightRadius;
 
     // max power is 16, we use a radious that half of it
     float initBright = rad / 16.;
 
     if(lightDistance < rad) {
-        float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright;
+        float percent = (1. - pow(lightDistance / rad, 1.) ) * initBright * max(0., dot(normal, dir));
 
         light = clamp(percent + light, 0., 1.);
     }
@@ -309,9 +321,9 @@
 
 #ifdef ao_light_pass
     // global illumination
-    vec3 absNormal = abs(v_normal);
+    vec3 absNormal = abs(normal);
     vec3 lightCoord = v_chunk_pos + 0.5 + v_lightOffset.xyz;
-    vec3 aoCoord = v_chunk_pos + (v_normal + absNormal + 1.0) * 0.5 + vec3(0.0, 0.0, 0.5 * v_lightOffset.w) + v_lightOffset.xyz;
+    vec3 aoCoord = v_chunk_pos + (normal + absNormal + 1.0) * 0.5 + vec3(0.0, 0.0, 0.5 * v_lightOffset.w) + v_lightOffset.xyz;
     //TODO: clamp?
 
     // lightCoord.z = clamp(lightCoord.z, 0.0, 0.5 - 0.5 / 84.0);

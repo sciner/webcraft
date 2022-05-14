@@ -20,6 +20,26 @@ float rand(vec2 co) {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+vec3 sampleAtlassTextureNormal (vec2 texcoord, vec4 texClamp) {
+    vec2 texCoord = clamp(texcoord, texClamp.xy, texClamp.zw);
+    vec2 texc = texCoord.xy;
+
+    vec4 mipData = manual_mip (texcoord, vec2(textureSize(u_normal, 0)));
+
+    vec4 data = texture(u_normal, texc * mipData.zw + mipData.xy);
+
+    vec3 normal = v_normal;
+
+    if (data.a > 0.0) {
+        normal = (data.xyz - 0.5) * 2.0;
+        normal.x *= sign(v_uvSize.x);
+        normal.y *= sign(-v_uvSize.y);
+
+        normal = normalize((uModelMatrix * v_normalMatrix * vec4(normal, 0.0))).xyz;
+    }
+
+    return normal;
+}
 
 vec4 sampleAtlassTexture (vec2 texcoord, vec4 texClamp, vec2 biomPos) {
     vec2 texCoord = clamp(texcoord, texClamp.xy, texClamp.zw);
@@ -57,6 +77,9 @@ void main() {
                 sampleAtlassTexture (v_texcoord1, v_texClamp1, biome),
                 v_animInterp
             );
+
+        // used for light pass
+        vec3 normal = sampleAtlassTextureNormal (v_texcoord0, v_texClamp0);
 
         if(color.a < 0.1) discard;
         if (u_opaqueThreshold > 0.1) {
