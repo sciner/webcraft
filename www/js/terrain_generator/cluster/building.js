@@ -511,7 +511,12 @@ export class Building1 extends Building {
             ]
         }
         if(has_chest) {
-            this.blocks.list.push({move: new Vector(-1, 3, 5), block_id: BLOCK.CHEST.id, rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0}});
+            this.blocks.list.push({
+                move: new Vector(-1, 3, 5),
+                block_id: BLOCK.CHEST.id,
+                rotate: {x: (dir + 1 + (mirror_x ? 2 : 0)) % 4, y: 1, z: 0},
+                extra_data: {generate: true, params: {source: 'village_house'}}
+            });
         }
     }
 

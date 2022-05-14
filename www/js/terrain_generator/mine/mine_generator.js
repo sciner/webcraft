@@ -163,7 +163,7 @@ export class MineGenerator {
         
         vec.set(1, 1, 1).rotY(dir);
         const chest_rot = CHEST_ROT;
-        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot);
+        this.setBlock(chunk, node, vec.x, vec.y, vec.z, BLOCK.CHEST, true, chest_rot, {generate: true, params: {source: 'cave_mines'}});
     }
 
     // Generate enter node

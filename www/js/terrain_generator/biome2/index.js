@@ -835,7 +835,7 @@ export default class Terrain_Generator extends Default_Terrain_Generator {
                 if(xyz.z == line.p_start.z) {
                     let cx = Math.round((line.p_start.x + line.p_end.x) / 2) - 6;
                     if(xyz.x == cx) {
-                        chunk.setBlockIndirect(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE);
+                        chunk.setBlockIndirect(x, y, z, BLOCK.CHEST.id, DEFAULT_CHEST_ROTATE, {generate: true, params: {source: 'treasure_room'}});
                     }
                     if(xyz.x == cx + 3) {
                         chunk.setBlockIndirect(x, y, z, BLOCK.MOB_SPAWN.id, DEFAULT_CHEST_ROTATE);

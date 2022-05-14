@@ -1,9 +1,9 @@
-import { v4 as uuid } from 'uuid';
-import {Vector, VectorCollector } from "../www/js/helpers.js";
+import {Vector} from "../www/js/helpers.js";
 import {ServerClient} from "../www/js/server_client.js";
 import {BLOCK} from "../www/js/blocks.js";
 import {getChunkAddr} from "../www/js/chunk.js";
 import {InventoryComparator} from "../www/js/inventory_comparator.js";
+import { alea } from "../www/js/terrain_generator/default.js";
 
 export const DEFAULT_CHEST_SLOT_COUNT = 27;
 
@@ -18,7 +18,7 @@ export class ChestManager {
      * @param {Vector} pos
      * @returns Chest|null
      */
-    get(pos) {
+    async get(pos) {
         let tblock = this.world.getBlock(pos);
         if(!tblock || tblock.id < 1) {
             throw 'error_chest_not_found';
@@ -27,13 +27,17 @@ export class ChestManager {
         if(!mat.is_chest || !tblock.extra_data) {
             throw 'error_block_is_not_chest';
         }
+        if(tblock.extra_data.generate) {
+            const params = await this.generateChest(pos, tblock.rotate, tblock.extra_data.params);
+            tblock.extra_data = params.item.extra_data;
+        }
         return tblock;
     }
 
     //
     async confirmPlayerAction(player, pos, params) {
 
-        const chest = this.get(pos);
+        const chest = await this.get(pos);
 
         if(!('slots' in chest.extra_data)) {
             chest.extra_data.slots = {};
@@ -154,75 +158,76 @@ export class ChestManager {
         }
     }
 
-    async generateTreasureChest(player, pos) {
-        /*
-        if(info.pos) {
-            return this.get(info.pos);
-        } else if(info.pos) {
-            let block = this.world.getBlock(info.pos);
-            if(block && block.id == BLOCK_CHEST) {
-                // @todo need to create new chest
-                const params = {
-                    pos: info.pos,
-                    item:  {id: BLOCK_CHEST, power: 1, rotate: block.rotate}
-                };
-                // @todo Generate random treasure chest content
-                const slots = {};
-                const items_kit = [
-                    {id: 637, count: [1, 1, 1, 1, 2, 2, 3, 5]}, // IRON_INGOT
-                    {id: 638, count: [0, 0, 1, 1, 2, 2, 3, 3, 4]}, // GOLD_INGOT
-                    {id: 59, count: [0, 0, 1, 2, 3, 8]}, // WHEAT_SEEDS
-                    {id: 638, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // CARROT_SEEDS
-                    {id: 607, count: [0, 0, 0, 0, 0, 1]}, // STONE_SWORD
-                    {id: 561, count: [0, 0, 0, 0, 1]}, // IRON_SHOVEL
-                    {id: 610, count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}, // DIAMOND_SWORD
-                    {id: 84, count: [0, 0, 0, 1]}, // JUKEBOX
-                    {id: 634, count: [1, 1, 2]}, // BREAD
-                    {id: 633, count: [1, 1, 2, 2, 3]}, // WHEAT
-                    {id: 613, count: [0, 0, 0, 0, 1]}, // APPLE
-                    {id: 641, count: [0, 0, 0, 0, 1, 2]}, // DIAMOND
-                    {id: 643, count: [0, 0, 0, 1, 1, 2, 2, 3]}, // OAK_SIGN
-                    {id: 626, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // IRON_BARS
-                    {id: 8, count: [0, 0, 0, 4, 4, 8, 8, 16]}, // COBBLESTONE
-                    //
-                    {id: 901, count: [0, 0, 0, 1]}, // MUSIC_DISC 1
-                    {id: 902, count: [0, 0, 0, 1]}, // MUSIC_DISC 2
-                    {id: 903, count: [0, 0, 1]}, // MUSIC_DISC 3
-                    {id: 904, count: [0, 0, 0, 1]}, // MUSIC_DISC 4
-                    {id: 905, count: [0, 0, 0, 1]}, // MUSIC_DISC 5
-                    {id: 906, count: [0, 0, 1]}, // MUSIC_DISC 6
-                    {id: 907, count: [0, 0, 0, 1]}, // MUSIC_DISC 7
-                    {id: 908, count: [0, 0, 0, 0, 0, 0, 1]}, // MUSIC_DISC 8
-                ];
-                for(let i = 0; i < 27; i++) {
-                    if(Math.random() > .8) {
-                        continue;
-                    }
-                    const kit_index = Math.floor(Math.random() * items_kit.length);
-                    const item = {...items_kit[kit_index]};
-                    item.count = item.count[Math.floor(Math.random() * item.count.length)];
-                    if(item.count > 0) {
-                        slots[i] = item;
-                        const b = BLOCK.fromId(item.id);
-                        if(b.power != 0) {
-                            item.power = b.power;
-                        }
-                    }
+    // Generate chest
+    async generateChest(pos, rotate, params) {
+        // @todo Generate random treasure chest content
+        const rnd = new alea(this.world.seed + pos.toHash());
+        const slots = {};
+        const items_kit = [
+            {id: 637, count: [1, 1, 1, 1, 2, 2, 3, 5]}, // IRON_INGOT
+            {id: 59, count: [0, 0, 1, 2, 3, 8]}, // WHEAT_SEEDS
+            {id: 635, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // CARROT_SEEDS
+            {id: 607, count: [0, 0, 0, 0, 0, 1]}, // STONE_SWORD
+            {id: 561, count: [0, 0, 0, 0, 1]}, // STONE_SHOVEL
+            {id: 634, count: [1, 1, 2]}, // BREAD
+            {id: 633, count: [1, 1, 2, 2, 3]}, // WHEAT
+            {id: 613, count: [0, 0, 0, 0, 1]}, // APPLE
+            {id: 643, count: [0, 0, 0, 1, 1, 2, 2, 3]}, // OAK_SIGN
+            {id: 8, count: [0, 0, 0, 4, 4, 8, 8, 16]}, // COBBLESTONE
+            //
+            {id: 903, count: [0, 0, 1]}, // MUSIC_DISC 3
+        ];
+        //
+        if(['treasure_room', 'cave_mines'].indexOf(params.source) >= 0) {
+            items_kit.push(...[
+                {id: 638, count: [0, 0, 1, 1, 2, 2, 3, 3, 4]}, // GOLD_INGOT
+                {id: 610, count: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}, // DIAMOND_SWORD
+                {id: 84, count: [0, 0, 0, 1]}, // JUKEBOX
+                {id: 641, count: [0, 0, 0, 0, 1, 2]}, // DIAMOND
+                {id: 626, count: [0, 0, 0, 2, 2, 4, 4, 8]}, // IRON_BARS
+                {id: 901, count: [0, 0, 0, 1]}, // MUSIC_DISC 1
+                {id: 902, count: [0, 0, 0, 1]}, // MUSIC_DISC 2
+                // 903 removed, because it in regular generated chests
+                {id: 904, count: [0, 0, 0, 1]}, // MUSIC_DISC 4
+                {id: 905, count: [0, 0, 0, 1]}, // MUSIC_DISC 5
+                {id: 906, count: [0, 0, 1]}, // MUSIC_DISC 6
+                {id: 907, count: [0, 0, 0, 1]}, // MUSIC_DISC 7
+                {id: 908, count: [0, 0, 0, 0, 0, 0, 1]}, // MUSIC_DISC 8
+            ]);
+        }
+        //
+        for(let i = 0; i < 27; i++) {
+            if(rnd.double() > .8) {
+                continue;
+            }
+            const kit_index = Math.floor(rnd.double() * items_kit.length);
+            const item = {...items_kit[kit_index]};
+            item.count = item.count[Math.floor(rnd.double() * item.count.length)];
+            if(item.count > 0) {
+                slots[i] = item;
+                const b = BLOCK.fromId(item.id);
+                if(b.power != 0) {
+                    item.power = b.power;
                 }
-                const chest = await this.create(player, params, {check_occupied: false, slots: slots});
-                const actions = {
-                    blocks: {
-                        list: [
-                            {pos: info.pos, item: chest.item, action_id: ServerClient.BLOCK_ACTION_CREATE}
-                        ]
-                    }
-                };
-                await this.world.applyActions(player, actions);
-                return chest;
             }
         }
-        return null;
-        */
+
+        // create db params
+        const resp = {
+            action_id: ServerClient.BLOCK_ACTION_CREATE,
+            pos,
+            item: {
+                id: BLOCK.CHEST.id,
+                rotate,
+                extra_data: {
+                    can_destroy: false,
+                    slots
+                }
+            }
+        };
+        await this.world.db.blockSet(this.world, null, resp);
+        return resp;
+
     }
 
 }

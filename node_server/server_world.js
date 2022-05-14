@@ -159,7 +159,7 @@ export class ServerWorld {
                 while(this.list.length > 0) {
                     const queue_item    = this.list.shift();
                     const pos           = new Vector(queue_item.params.pos);
-                    const chest         = that.chests.get(pos);
+                    const chest         = await that.chests.get(pos);
                     let result          = false;
                     if(chest) {
                         if(chest.id < 0) {
@@ -189,7 +189,7 @@ export class ServerWorld {
                 while(this.list.length > 0) {
                     const queue_item = this.list.shift();
                     const pos = queue_item.params.chest.pos;
-                    const chest = that.chests.get(pos);
+                    const chest = await that.chests.get(pos);
                     if(chest) {
                         console.log('Chest state from ' + queue_item.player.session.username);
                         await that.chests.confirmPlayerAction(queue_item.player, pos, queue_item.params);
