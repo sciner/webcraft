@@ -84,6 +84,7 @@ export class Chunk {
         this.id             = this.addr.toHash();
         this.ticking_blocks = new VectorCollector();
         this.emitted_blocks = new VectorCollector();
+        this.temp_vec2      = new Vector(0, 0, 0);
         this.cluster        = chunkManager.clusterManager.getForCoord(this.coord);
         this.aabb           = new AABB();
         this.aabb.set(
@@ -241,6 +242,24 @@ export class Chunk {
         block.texture    = null;
         block.extra_data = extra_data;
         this.emitted_blocks.delete(block.pos);
+    }
+
+    // Set block indirect
+    setBlockIndirect(x, y, z, block_id, rotate, extra_data) {
+        const index = (CHUNK_SIZE_X * CHUNK_SIZE_Z) * y + (z * CHUNK_SIZE_X) + x;
+        if(rotate || extra_data) {
+            this.temp_vec2.x = x;
+            this.temp_vec2.y = y;
+            this.temp_vec2.z = z;
+        }
+        // fill data
+        this.tblocks.id[index] = block_id;
+        if(rotate) {
+            this.tblocks.rotate.set(this.temp_vec2, rotate);
+        }
+        if(extra_data) {
+            this.tblocks.extra_data.set(this.temp_vec2, extra_data);
+        }
     }
 
     // Возвращает всех 6-х соседей блока

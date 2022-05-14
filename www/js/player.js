@@ -381,6 +381,16 @@ export class Player {
         }
         if(actions.blocks && actions.blocks.list) {
             for(let mod of actions.blocks.list) {
+                //
+                const tblock = Game.world.getBlock(mod.pos);
+                if(mod.action_id == ServerClient.BLOCK_ACTION_DESTROY && tblock.id > 0) {
+                    const destroy_data = {
+                        pos: mod.pos,
+                        item: {id: tblock.id}
+                    };
+                    Game.render.destroyBlock(destroy_data.item, destroy_data.pos, false);
+                }
+                //
                 switch(mod.action_id) {
                     case ServerClient.BLOCK_ACTION_CREATE:
                     case ServerClient.BLOCK_ACTION_REPLACE:

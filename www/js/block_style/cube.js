@@ -227,6 +227,10 @@ export default class style {
 
         const material                  = block.material;
 
+        //if(block.id == 2 || block.id == 9 || block.id == 547) {
+        //    return;
+        //}
+
         // Pot
         if(block.hasTag('into_pot')) {
             return style.putIntoPot(vertices, material, pivot, matrix, new Vector(x, y, z), biome, dirt_color);
