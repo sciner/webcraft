@@ -368,6 +368,12 @@ export class DBWorld {
             `UPDATE world_modify SET block_id = json_extract(params, '$.id') WHERE params IS NOT NULL`
         ]});
 
+        migrations.push({version: 41, queries: [
+            `UPDATE world_modify AS m
+            SET extra_data = COALESCE((SELECT '{"can_destroy":' || (case when c.slots is null then 'true' when c.slots = '{}' then 'true' else 'false' end) || ',"slots":' || coalesce(c.slots, '{}') || '}' from chest c where m.entity_id = c.entity_id), '{"can_destroy":true,"slots":{}}')
+            WHERE m.block_id = 54 AND m.extra_data IS NULL`
+        ]});
+
         for(let m of migrations) {
             if(m.version > version) {
                 await this.db.get('begin transaction');
